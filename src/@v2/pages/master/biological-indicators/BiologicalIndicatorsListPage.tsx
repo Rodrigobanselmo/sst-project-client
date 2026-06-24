@@ -1,26 +1,31 @@
 import { FC, useMemo, useState } from 'react';
 
 import {
-  Alert,
   Box,
-  Chip,
   FormControl,
   InputLabel,
   MenuItem,
   Paper,
   Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
   Typography,
 } from '@mui/material';
-import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { SInput } from '@v2/components/forms/fields/SInput/SInput';
+import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
+import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
+import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
+import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
+import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
+import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useFetchBrowseBiologicalIndicators } from '@v2/services/medicine/biological-indicator/hooks/useFetchBrowseBiologicalIndicators';
+import {
+  BIOLOGICAL_INDICATOR_STATUS_LABELS,
+  BIOLOGICAL_INDICATOR_TABLE_LABELS,
+  BIOLOGICAL_INDICATOR_TYPE_LABELS,
+} from '@v2/pages/master/biological-indicators/biological-indicator-labels.util';
 import type {
   BiologicalIndicatorStatus,
   BiologicalIndicatorTable,
@@ -31,22 +36,18 @@ import { SAuthShow } from 'components/molecules/SAuthShow';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
 
-const STATUS_LABELS: Record<BiologicalIndicatorStatus, string> = {
-  DRAFT: 'Rascunho',
-  ACTIVE: 'Ativo',
-  DEPRECATED: 'Depreciado',
-  REVOKED: 'Revogado',
-};
+import {
+  BiologicalIndicatorColumnEnum,
+  biologicalIndicatorColumnMap,
+  biologicalIndicatorColumns,
+  sortBiologicalIndicators,
+} from './components/biological-indicator-columns';
+import {
+  BiologicalIndicatorOrderBy,
+  BiologicalIndicatorTable as BiologicalIndicatorDataTable,
+} from './components/BiologicalIndicatorTable';
 
-const TABLE_LABELS: Record<BiologicalIndicatorTable, string> = {
-  QUADRO_1: 'Quadro 1',
-  QUADRO_2: 'Quadro 2',
-};
-
-const TYPE_LABELS: Record<BiologicalIndicatorType, string> = {
-  IBE_EE: 'IBE EE',
-  IBE_SC: 'IBE SC',
-};
+const FETCH_ALL_LIMIT = 100;
 
 const triStateOptions = [
   { value: '', label: 'Todos' },
@@ -54,243 +55,338 @@ const triStateOptions = [
   { value: 'false', label: 'Não' },
 ];
 
+type FilterState = {
+  search?: string;
+  substanceName?: string;
+  cas?: string;
+  tableNumber?: BiologicalIndicatorTable | '';
+  indicatorType?: BiologicalIndicatorType | '';
+  status?: BiologicalIndicatorStatus | '';
+  requiresNormativeReview?: string;
+  isSubstanceGroup?: string;
+  hasConfirmedRisk?: string;
+  hasConfirmedExam?: string;
+  hasPendency?: string;
+};
+
+const triStateLabel = (value?: string) => (value === 'true' ? 'Sim' : 'Não');
+
 export const BiologicalIndicatorsListPage: FC = () => {
   const router = useRouter();
+  const [filters, setFilters] = useState<FilterState>({});
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [substanceName, setSubstanceName] = useState('');
-  const [cas, setCas] = useState('');
-  const [tableNumber, setTableNumber] = useState<BiologicalIndicatorTable | ''>('');
-  const [indicatorType, setIndicatorType] = useState<BiologicalIndicatorType | ''>('');
-  const [status, setStatus] = useState<BiologicalIndicatorStatus | ''>('');
-  const [requiresNormativeReview, setRequiresNormativeReview] = useState('');
-  const [isSubstanceGroup, setIsSubstanceGroup] = useState('');
-  const [hasConfirmedRisk, setHasConfirmedRisk] = useState('');
-  const [hasConfirmedExam, setHasConfirmedExam] = useState('');
-  const [hasPendency, setHasPendency] = useState('');
+  const [orderBy, setOrderBy] = useState<BiologicalIndicatorOrderBy | null>(null);
+
+  const [hiddenColumns, setHiddenColumns] = usePersistedState<
+    Record<string, boolean>
+  >(persistKeys.COLUMNS_BIOLOGICAL_INDICATOR, {});
+
+  const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
+    useTablePageLimit(undefined, persistKeys.LIMIT_BIOLOGICAL_INDICATOR);
+
+  const onPageSizeChange = createPageSizeChangeHandler((patch) => {
+    if (patch.page) setPage(patch.page);
+  });
+
+  const patchFilters = (patch: Partial<FilterState>) => {
+    setFilters((prev) => ({ ...prev, ...patch }));
+    setPage(1);
+  };
+
+  const handleOrderBy = (field: BiologicalIndicatorColumnEnum) => {
+    setOrderBy((prev) => {
+      if (prev?.field !== field) return { field, order: 'asc' };
+      if (prev.order === 'asc') return { field, order: 'desc' };
+      return null;
+    });
+    setPage(1);
+  };
 
   const browseParams = useMemo<BrowseBiologicalIndicatorsParams>(
     () => ({
-      page,
-      limit: 25,
-      search: search || undefined,
-      substanceName: substanceName || undefined,
-      cas: cas || undefined,
-      tableNumber: tableNumber || undefined,
-      indicatorType: indicatorType || undefined,
-      status: status || undefined,
+      page: 1,
+      limit: FETCH_ALL_LIMIT,
+      search: filters.search || undefined,
+      substanceName: filters.substanceName || undefined,
+      cas: filters.cas || undefined,
+      tableNumber: filters.tableNumber || undefined,
+      indicatorType: filters.indicatorType || undefined,
+      status: filters.status || undefined,
       requiresNormativeReview:
-        requiresNormativeReview === ''
+        filters.requiresNormativeReview === '' ||
+        filters.requiresNormativeReview == null
           ? undefined
-          : requiresNormativeReview === 'true',
+          : filters.requiresNormativeReview === 'true',
       isSubstanceGroup:
-        isSubstanceGroup === '' ? undefined : isSubstanceGroup === 'true',
+        filters.isSubstanceGroup === '' || filters.isSubstanceGroup == null
+          ? undefined
+          : filters.isSubstanceGroup === 'true',
       hasConfirmedRisk:
-        hasConfirmedRisk === '' ? undefined : hasConfirmedRisk === 'true',
+        filters.hasConfirmedRisk === '' || filters.hasConfirmedRisk == null
+          ? undefined
+          : filters.hasConfirmedRisk === 'true',
       hasConfirmedExam:
-        hasConfirmedExam === '' ? undefined : hasConfirmedExam === 'true',
-      hasPendency: hasPendency === '' ? undefined : hasPendency === 'true',
+        filters.hasConfirmedExam === '' || filters.hasConfirmedExam == null
+          ? undefined
+          : filters.hasConfirmedExam === 'true',
+      hasPendency:
+        filters.hasPendency === '' || filters.hasPendency == null
+          ? undefined
+          : filters.hasPendency === 'true',
     }),
-    [
-      page,
-      search,
-      substanceName,
-      cas,
-      tableNumber,
-      indicatorType,
-      status,
-      requiresNormativeReview,
-      isSubstanceGroup,
-      hasConfirmedRisk,
-      hasConfirmedExam,
-      hasPendency,
-    ],
+    [filters],
   );
 
   const { data, isLoading } = useFetchBrowseBiologicalIndicators(browseParams);
 
-  const rows = data?.data ?? [];
+  const allRows = useMemo(() => data?.data ?? [], [data]);
+
+  const sortedRows = useMemo(
+    () => sortBiologicalIndicators(allRows, orderBy),
+    [allRows, orderBy],
+  );
+
+  const total = sortedRows.length;
+
+  const pageRows = useMemo(() => {
+    const start = (page - 1) * pageLimit;
+    return sortedRows.slice(start, start + pageLimit);
+  }, [sortedRows, page, pageLimit]);
+
+  const chips = useMemo(() => {
+    const list: { key: string; leftLabel: string; label: string; onDelete: () => void }[] =
+      [];
+
+    if (filters.substanceName) {
+      list.push({
+        key: 'substanceName',
+        leftLabel: 'Substância',
+        label: filters.substanceName,
+        onDelete: () => patchFilters({ substanceName: '' }),
+      });
+    }
+    if (filters.cas) {
+      list.push({
+        key: 'cas',
+        leftLabel: 'CAS',
+        label: filters.cas,
+        onDelete: () => patchFilters({ cas: '' }),
+      });
+    }
+    if (filters.tableNumber) {
+      list.push({
+        key: 'tableNumber',
+        leftLabel: 'Quadro',
+        label: BIOLOGICAL_INDICATOR_TABLE_LABELS[filters.tableNumber],
+        onDelete: () => patchFilters({ tableNumber: '' }),
+      });
+    }
+    if (filters.indicatorType) {
+      list.push({
+        key: 'indicatorType',
+        leftLabel: 'Tipo',
+        label: BIOLOGICAL_INDICATOR_TYPE_LABELS[filters.indicatorType],
+        onDelete: () => patchFilters({ indicatorType: '' }),
+      });
+    }
+    if (filters.status) {
+      list.push({
+        key: 'status',
+        leftLabel: 'Status',
+        label: BIOLOGICAL_INDICATOR_STATUS_LABELS[filters.status],
+        onDelete: () => patchFilters({ status: '' }),
+      });
+    }
+    const triStates: [keyof FilterState, string][] = [
+      ['requiresNormativeReview', 'Revisão normativa'],
+      ['isSubstanceGroup', 'Grupo normativo'],
+      ['hasConfirmedRisk', 'Risco confirmado'],
+      ['hasConfirmedExam', 'Exame confirmado'],
+      ['hasPendency', 'Com pendência'],
+    ];
+    triStates.forEach(([field, label]) => {
+      const value = filters[field];
+      if (value === 'true' || value === 'false') {
+        list.push({
+          key: field,
+          leftLabel: label,
+          label: triStateLabel(value),
+          onDelete: () => patchFilters({ [field]: '' } as Partial<FilterState>),
+        });
+      }
+    });
+
+    if (orderBy) {
+      list.push({
+        key: 'orderBy',
+        leftLabel: 'Ordenar',
+        label: `${biologicalIndicatorColumnMap[orderBy.field].label} (${
+          orderBy.order === 'asc' ? 'crescente' : 'decrescente'
+        })`,
+        onDelete: () => setOrderBy(null),
+      });
+    }
+
+    return list;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, orderBy]);
+
+  const handleClean = () => {
+    setFilters({});
+    setOrderBy(null);
+    setPage(1);
+  };
 
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
-        <Typography variant="h5">Indicadores Biológicos NR-07</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Curadoria normativa dos indicadores do Anexo I. Revise vínculos com
-          riscos químicos e exames complementares antes da ativação.
-        </Typography>
+        <Box>
+          <Typography variant="h5">Indicadores Biológicos NR-07 — Anexo I</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Curadoria normativa dos indicadores do Anexo I. Revise vínculos com riscos
+            químicos e exames complementares antes da ativação.
+          </Typography>
+        </Box>
 
         <Paper sx={{ p: 2 }}>
-          <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(180px, 1fr))" gap={2}>
-            <SInput label="Busca geral" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <SInput label="Substância" value={substanceName} onChange={(e) => setSubstanceName(e.target.value)} />
-            <SInput label="CAS" value={cas} onChange={(e) => setCas(e.target.value)} />
-            <FormControl size="small">
-              <InputLabel>Quadro</InputLabel>
-              <Select
-                label="Quadro"
-                value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value as BiologicalIndicatorTable | '')}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="QUADRO_1">Quadro 1</MenuItem>
-                <MenuItem value="QUADRO_2">Quadro 2</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl size="small">
-              <InputLabel>Tipo</InputLabel>
-              <Select
-                label="Tipo"
-                value={indicatorType}
-                onChange={(e) => setIndicatorType(e.target.value as BiologicalIndicatorType | '')}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="IBE_EE">IBE EE</MenuItem>
-                <MenuItem value="IBE_SC">IBE SC</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl size="small">
-              <InputLabel>Status</InputLabel>
-              <Select
-                label="Status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as BiologicalIndicatorStatus | '')}
-              >
-                <MenuItem value="">Todos</MenuItem>
-                {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <MenuItem key={value} value={value}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {[
-              ['Revisão normativa', requiresNormativeReview, setRequiresNormativeReview],
-              ['Grupo normativo', isSubstanceGroup, setIsSubstanceGroup],
-              ['Risco confirmado', hasConfirmedRisk, setHasConfirmedRisk],
-              ['Exame confirmado', hasConfirmedExam, setHasConfirmedExam],
-              ['Com pendência', hasPendency, setHasPendency],
-            ].map(([label, value, setter]) => (
-              <FormControl key={label as string} size="small">
-                <InputLabel>{label as string}</InputLabel>
-                <Select
-                  label={label as string}
-                  value={value as string}
-                  onChange={(e) => (setter as (v: string) => void)(e.target.value)}
-                >
-                  {triStateOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ))}
-          </Box>
-        </Paper>
-
-        <Paper sx={{ overflow: 'auto' }}>
-          {isLoading && <Box p={2}>Carregando...</Box>}
-          {!isLoading && rows.length === 0 && (
-            <Alert severity="info" sx={{ m: 2 }}>
-              Nenhum indicador encontrado com os filtros atuais.
-            </Alert>
-          )}
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Substância</TableCell>
-                <TableCell>CAS</TableCell>
-                <TableCell>Indicador biológico</TableCell>
-                <TableCell>Matriz</TableCell>
-                <TableCell>Quadro</TableCell>
-                <TableCell>Tipo</TableCell>
-                <TableCell>Valor ref.</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Risco</TableCell>
-                <TableCell>Exame</TableCell>
-                <TableCell>Pendências</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row) => {
-                const confirmedRisk = row.riskLinks.find((l) => l.isConfirmed);
-                const confirmedExam = row.examLinks.find((l) => l.isConfirmed);
-                return (
-                  <TableRow
-                    key={row.id}
-                    hover
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() =>
-                      router.push(
-                        `${RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}/${row.id}`,
-                      )
-                    }
-                  >
-                    <TableCell>{row.substanceName}</TableCell>
-                    <TableCell>{row.casPrimary ?? row.casNumbers.join(', ')}</TableCell>
-                    <TableCell>{row.biologicalIndicatorOriginal}</TableCell>
-                    <TableCell>{row.biologicalMatrix}</TableCell>
-                    <TableCell>{TABLE_LABELS[row.tableNumber]}</TableCell>
-                    <TableCell>{TYPE_LABELS[row.indicatorType]}</TableCell>
-                    <TableCell>
-                      {row.referenceValue} {row.unit}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        size="small"
-                        label={STATUS_LABELS[row.status]}
-                        color={row.status === 'ACTIVE' ? 'success' : 'default'}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {confirmedRisk
-                        ? confirmedRisk.riskFactor?.name ?? confirmedRisk.riskNameSnapshot
-                        : row.riskLinks[0]?.riskFactor?.name ?? '—'}
-                    </TableCell>
-                    <TableCell>
-                      {confirmedExam
-                        ? confirmedExam.exam?.name ?? confirmedExam.examNameSnapshot
-                        : '—'}
-                    </TableCell>
-                    <TableCell>
-                      {row.pendencies.length ? (
-                        <Chip size="small" color="warning" label={row.pendencies.length} />
-                      ) : (
-                        <Chip size="small" color="success" label="OK" />
+          <STableSearch
+            search={filters.search}
+            onSearch={(search) => patchFilters({ search })}
+          >
+            <STableSearchContent>
+              <STableColumnsButton
+                showLabel
+                columns={biologicalIndicatorColumns}
+                hiddenColumns={hiddenColumns}
+                setHiddenColumns={setHiddenColumns}
+              />
+              <STableFilterButton text="Filtros">
+                <Box display="flex" flexDirection="column" gap={2} width={280}>
+                  <SInput
+                    label="Substância"
+                    value={filters.substanceName ?? ''}
+                    onChange={(e) => patchFilters({ substanceName: e.target.value })}
+                  />
+                  <SInput
+                    label="CAS"
+                    value={filters.cas ?? ''}
+                    onChange={(e) => patchFilters({ cas: e.target.value })}
+                  />
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Quadro</InputLabel>
+                    <Select
+                      label="Quadro"
+                      value={filters.tableNumber ?? ''}
+                      onChange={(e) =>
+                        patchFilters({
+                          tableNumber: e.target.value as BiologicalIndicatorTable | '',
+                        })
+                      }
+                    >
+                      <MenuItem value="">Todos</MenuItem>
+                      <MenuItem value="QUADRO_1">Quadro 1</MenuItem>
+                      <MenuItem value="QUADRO_2">Quadro 2</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Tipo</InputLabel>
+                    <Select
+                      label="Tipo"
+                      value={filters.indicatorType ?? ''}
+                      onChange={(e) =>
+                        patchFilters({
+                          indicatorType: e.target.value as BiologicalIndicatorType | '',
+                        })
+                      }
+                    >
+                      <MenuItem value="">Todos</MenuItem>
+                      <MenuItem value="IBE_EE">IBE EE</MenuItem>
+                      <MenuItem value="IBE_SC">IBE SC</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      label="Status"
+                      value={filters.status ?? ''}
+                      onChange={(e) =>
+                        patchFilters({
+                          status: e.target.value as BiologicalIndicatorStatus | '',
+                        })
+                      }
+                    >
+                      <MenuItem value="">Todos</MenuItem>
+                      {Object.entries(BIOLOGICAL_INDICATOR_STATUS_LABELS).map(
+                        ([value, label]) => (
+                          <MenuItem key={value} value={value}>
+                            {label}
+                          </MenuItem>
+                        ),
                       )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Paper>
+                    </Select>
+                  </FormControl>
+                  {(
+                    [
+                      ['requiresNormativeReview', 'Revisão normativa'],
+                      ['isSubstanceGroup', 'Grupo normativo'],
+                      ['hasConfirmedRisk', 'Risco confirmado'],
+                      ['hasConfirmedExam', 'Exame confirmado'],
+                      ['hasPendency', 'Com pendência'],
+                    ] as [keyof FilterState, string][]
+                  ).map(([field, label]) => (
+                    <FormControl key={field} size="small" fullWidth>
+                      <InputLabel>{label}</InputLabel>
+                      <Select
+                        label={label}
+                        value={(filters[field] as string) ?? ''}
+                        onChange={(e) =>
+                          patchFilters({ [field]: e.target.value } as Partial<FilterState>)
+                        }
+                      >
+                        {triStateOptions.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  ))}
+                </Box>
+              </STableFilterButton>
+            </STableSearchContent>
+          </STableSearch>
 
-        {data && data.count > data.limit && (
-          <Box display="flex" gap={1} alignItems="center">
-            <Typography variant="body2">
-              Página {data.page} — {data.count} indicadores
-            </Typography>
-            <TextField
-              select
-              size="small"
-              label="Página"
-              value={page}
-              onChange={(e) => setPage(Number(e.target.value))}
-              sx={{ width: 100 }}
-            >
-              {Array.from(
-                { length: Math.ceil(data.count / data.limit) },
-                (_, index) => index + 1,
-              ).map((pageNumber) => (
-                <MenuItem key={pageNumber} value={pageNumber}>
-                  {pageNumber}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
-        )}
+          {chips.length > 0 && (
+            <STableInfoSection>
+              <STableFilterChipList onClean={handleClean}>
+                {chips.map((chip) => (
+                  <STableFilterChip
+                    key={chip.key}
+                    leftLabel={chip.leftLabel}
+                    leftLabelBold
+                    label={chip.label}
+                    onDelete={chip.onDelete}
+                  />
+                ))}
+              </STableFilterChipList>
+            </STableInfoSection>
+          )}
+
+          <BiologicalIndicatorDataTable
+            data={pageRows}
+            isLoading={isLoading}
+            hiddenColumns={hiddenColumns}
+            orderBy={orderBy}
+            onOrderBy={handleOrderBy}
+            pagination={{ total, limit: pageLimit, page }}
+            setPage={setPage}
+            pageSizeOptions={pageSizeOptions}
+            onPageSizeChange={onPageSizeChange}
+            onSelectRow={(row) =>
+              router.push(`${RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}/${row.id}`)
+            }
+          />
+        </Paper>
       </Box>
     </SAuthShow>
   );

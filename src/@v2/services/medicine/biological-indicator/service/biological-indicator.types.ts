@@ -97,7 +97,9 @@ export type BiologicalIndicatorListItem = {
 export type BiologicalIndicatorDetail = BiologicalIndicatorListItem & {
   normativeSource?: string;
   annex?: string;
-  defaultPeriodicity?: string | null;
+  technicalObservationsRaw?: string | null;
+  generalApplicabilityNotes?: string | null;
+  defaultValidityMonths?: number | null;
   collectionToleranceDays?: number | null;
   occupationalApplicability?: unknown;
   reviewNotes?: string | null;
