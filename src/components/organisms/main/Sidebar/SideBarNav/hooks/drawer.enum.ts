@@ -8,6 +8,7 @@ export enum DrawerItemsEnum {
   checklist = 'checklist',
   importExportData = 'importExportData',
   catalogEquivalences = 'catalogEquivalences',
+  biologicalIndicators = 'biologicalIndicators',
   allCompaniesData = 'allCompaniesData',
   allClinicsData = 'allClinicsData',
   oneClinicsData = 'oneClinicsData',

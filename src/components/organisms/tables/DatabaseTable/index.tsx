@@ -43,13 +43,20 @@ export const DatabaseTable: FC<{ children?: any } & BoxProps> = () => {
   return (
     <>
       <STableTitle icon={SDatabaseIcon}>Banco de dados</STableTitle>
-      <Box mb={2}>
+      <Box mb={2} display="flex" flexDirection="column" gap={0.5}>
         <MuiLink
           component={NextLink}
           href={RoutesEnum.DATABASE_CATALOG_EQUIVALENCES}
           underline="hover"
         >
           Equivalências de Catálogo
+        </MuiLink>
+        <MuiLink
+          component={NextLink}
+          href={RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}
+          underline="hover"
+        >
+          Indicadores Biológicos NR-07
         </MuiLink>
       </Box>
       <STableSearch onChange={(e) => handleSearchChange(e.target.value)} />

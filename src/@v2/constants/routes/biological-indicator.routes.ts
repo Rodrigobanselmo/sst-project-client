@@ -1,0 +1,15 @@
+export const BiologicalIndicatorRoutes = {
+  BASE: '/v2/master/biological-indicators',
+  EXAM_CANDIDATES: '/v2/master/biological-indicators/exam-candidates',
+  BY_ID: '/v2/master/biological-indicators/:id',
+  STATUS: '/v2/master/biological-indicators/:id/status',
+  PENDENCIES: '/v2/master/biological-indicators/:id/pendencies',
+  RISK_LINKS: '/v2/master/biological-indicators/:id/risk-links',
+  EXAM_LINKS: '/v2/master/biological-indicators/:id/exam-links',
+  RISK_LINK_CONFIRM: '/v2/master/biological-indicators/risk-links/:id/confirm',
+  RISK_LINK_REJECT: '/v2/master/biological-indicators/risk-links/:id/reject',
+  RISK_LINK_PRIMARY: '/v2/master/biological-indicators/risk-links/:id/primary',
+  EXAM_LINK_CONFIRM: '/v2/master/biological-indicators/exam-links/:id/confirm',
+  EXAM_LINK_REJECT: '/v2/master/biological-indicators/exam-links/:id/reject',
+  EXAM_LINK_DEFAULT: '/v2/master/biological-indicators/exam-links/:id/default',
+} as const;

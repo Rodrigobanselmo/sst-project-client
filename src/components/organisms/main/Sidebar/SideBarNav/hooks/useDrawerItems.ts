@@ -176,6 +176,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_CATALOG_EQUIVALENCES,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.biologicalIndicators]: {
+      text: 'Indicadores Biológicos',
+      description:
+        'Curadoria normativa dos indicadores biológicos NR-07 Anexo I',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.allCompaniesData]: {
       text: 'Empresas',
       description: 'Visualizar empresas cadastradas',
@@ -439,6 +447,7 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.employee],
       items[DrawerItemsEnum.importExportData],
       items[DrawerItemsEnum.catalogEquivalences],
+      items[DrawerItemsEnum.biologicalIndicators],
       items[DrawerItemsEnum.forms],
     ],
   };
