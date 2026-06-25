@@ -817,16 +817,22 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
           companyId: characterizationData.companyId,
         })),
         recAddOnly: [
-          ...risk.recommendedAdministrativeMeasures.map((adm) => ({
-            recName: adm,
-            companyId: characterizationData.companyId,
-            recType: RecTypeEnum.ADM,
-          })),
-          ...risk.recommendedEngineeringMeasures.map((rec) => ({
-            recName: rec,
-            recType: RecTypeEnum.ENG,
-            companyId: characterizationData.companyId,
-          })),
+          ...risk.recommendedAdministrativeMeasures
+            .map((adm) => adm?.trim())
+            .filter((adm): adm is string => !!adm)
+            .map((adm) => ({
+              recName: adm,
+              companyId: characterizationData.companyId,
+              recType: RecTypeEnum.ADM,
+            })),
+          ...risk.recommendedEngineeringMeasures
+            .map((rec) => rec?.trim())
+            .filter((rec): rec is string => !!rec)
+            .map((rec) => ({
+              recName: rec,
+              recType: RecTypeEnum.ENG,
+              companyId: characterizationData.companyId,
+            })),
         ],
       });
 
