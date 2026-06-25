@@ -5,7 +5,7 @@ import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IExam } from 'core/interfaces/api/IExam';
+import { ExamOriginEnum, IExam } from 'core/interfaces/api/IExam';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
@@ -20,6 +20,9 @@ export interface IQueryExam {
   status?: StatusEnum;
   isAvaliation?: boolean;
   isAttendance?: boolean;
+  origin?: ExamOriginEnum;
+  orderBy?: 'name' | 'analyses' | 'material' | 'status' | 'created_at';
+  orderByDirection?: 'asc' | 'desc';
 }
 
 export const queryExams = async (
@@ -50,7 +53,7 @@ export function useQueryExams(page = 1, query = {} as IQueryExam, take = 20) {
     [QueryEnum.EXAMS, page, { ...pagination, ...query, companyId }],
     () => queryExams(pagination, { ...query, companyId }),
     {
-      staleTime: 1000 * 60 * 60, // 1 hour
+      staleTime: 30_000,
     },
   );
 

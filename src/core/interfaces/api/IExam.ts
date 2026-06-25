@@ -11,6 +11,13 @@ export enum ExamTypeEnum {
   OTHERS = 'OTHERS',
 }
 
+export enum ExamOriginEnum {
+  NR07 = 'NR07',
+  SYSTEM = 'SYSTEM',
+  CLIENT = 'CLIENT',
+  OTHER = 'OTHER',
+}
+
 export enum ClinicScheduleTypeEnum {
   PHONE = 'PHONE',
   EMAIL = 'EMAIL',
@@ -34,6 +41,7 @@ export interface IExam {
   isAvaliation: boolean;
   analyses: string;
   deleted_at: Date;
+  origin?: ExamOriginEnum;
   examToClinic: IExamToClinic[];
   examToRiskData: IExamRiskData[];
   examsRiskData: IExamRiskData;
