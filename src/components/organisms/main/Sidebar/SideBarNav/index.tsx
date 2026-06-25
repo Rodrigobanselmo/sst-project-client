@@ -112,6 +112,7 @@ export function SideBarNav(): JSX.Element {
                       icon={item.Icon}
                       text={item.text}
                       canOpen={Boolean(item.items?.length)}
+                      expandToggleOffset={false}
                       description={item.description}
                       shouldMatchExactHref={item.shouldMatchExactHref}
                     >

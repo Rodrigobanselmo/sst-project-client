@@ -176,12 +176,26 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_CATALOG_EQUIVALENCES,
       roles: [RoleEnum.MASTER],
     },
-    [DrawerItemsEnum.biologicalIndicators]: {
+    [DrawerItemsEnum.biologicalIndicatorsGroup]: {
       text: 'Indicadores Biológicos',
+      description: 'Tabelas de indicadores biológicos por fonte normativa',
+      Icon: SDatabaseIcon,
+      roles: [RoleEnum.MASTER],
+    },
+    [DrawerItemsEnum.biologicalIndicators]: {
+      text: 'NR-07',
       description:
         'Curadoria normativa dos indicadores biológicos NR-07 Anexo I',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS,
+      roles: [RoleEnum.MASTER],
+    },
+    [DrawerItemsEnum.esocialTable27]: {
+      text: 'Tabela 27 eSocial',
+      description:
+        'Consulta dos procedimentos diagnósticos da Tabela 27 do eSocial',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_ESOCIAL_TABLE_27,
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.allCompaniesData]: {
@@ -445,9 +459,19 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.oneClinicsData],
       items[DrawerItemsEnum.allClinicsData],
       items[DrawerItemsEnum.employee],
-      items[DrawerItemsEnum.importExportData],
-      items[DrawerItemsEnum.catalogEquivalences],
-      items[DrawerItemsEnum.biologicalIndicators],
+      {
+        ...items[DrawerItemsEnum.importExportData],
+        items: [
+          items[DrawerItemsEnum.catalogEquivalences],
+          {
+            ...items[DrawerItemsEnum.biologicalIndicatorsGroup],
+            items: [
+              items[DrawerItemsEnum.biologicalIndicators],
+              items[DrawerItemsEnum.esocialTable27],
+            ],
+          },
+        ],
+      },
       items[DrawerItemsEnum.forms],
     ],
   };

@@ -58,6 +58,13 @@ export const DatabaseTable: FC<{ children?: any } & BoxProps> = () => {
         >
           Indicadores Biológicos NR-07
         </MuiLink>
+        <MuiLink
+          component={NextLink}
+          href={RoutesEnum.DATABASE_ESOCIAL_TABLE_27}
+          underline="hover"
+        >
+          Tabela 27 eSocial
+        </MuiLink>
       </Box>
       <STableSearch onChange={(e) => handleSearchChange(e.target.value)} />
       <STable
