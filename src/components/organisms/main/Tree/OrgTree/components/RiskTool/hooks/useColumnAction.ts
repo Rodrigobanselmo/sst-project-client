@@ -2,6 +2,7 @@ import { initialProbState } from 'components/organisms/modals/ModalAddProbabilit
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
 import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
+import { RiskEnum } from 'project/enum/risk.enums';
 import { useSnackbar } from 'notistack';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -238,10 +239,12 @@ export const useColumnAction = () => {
   const onHandleEditExams = async (
     exam: IExam,
     handleSelect: (exams: IExamRiskData[]) => void,
+    riskType?: RiskEnum,
   ) => {
     onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
       onSubmit: (exams) =>
         exams?.examsRiskData && handleSelect([exams.examsRiskData]),
+      riskType,
       ...exam,
       examRiskData: exam.examsRiskData,
     } as Partial<typeof initialExamDataState>);

@@ -1,7 +1,8 @@
 import React, { FC, MouseEvent, useMemo, useState } from 'react';
 
-import { Icon } from '@mui/material';
+import { Icon, Box } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
+import { SSwitch } from 'components/atoms/SSwitch';
 import STooltip from 'components/atoms/STooltip';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
@@ -29,12 +30,21 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   onlyExam = false,
   query,
   selectedExamId,
+  riskType,
   ...props
 }) => {
   const [search, setSearch] = useState('');
+  const [showAllExams, setShowAllExams] = useState(false);
   const { data, isLoading } = useQueryExams(
     1,
-    { search, status: StatusEnum.ACTIVE, ...query },
+    {
+      search,
+      status: StatusEnum.ACTIVE,
+      ...query,
+      ...(riskType
+        ? { riskType, includeIncompatible: showAllExams }
+        : {}),
+    },
     15,
   );
   const { onStackOpenModal } = useModal();
@@ -44,15 +54,19 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   }, 300);
 
   const handleSelectExam = (options: IExam) => {
+    const selectedExam =
+      data.find((exam) => exam.id === options.id) ?? options;
+
     if (onlyExam) {
-      if (handleSelect) handleSelect(options);
+      if (handleSelect) handleSelect(selectedExam);
       return;
     }
 
-    if (options.id)
+    if (selectedExam.id)
       onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
         onSubmit: handleSelect,
-        ...options,
+        riskType,
+        ...selectedExam,
       } as Partial<typeof initialExamDataState>);
   };
 
@@ -80,6 +94,21 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   const onCloseMenu = () => {
     setSearch('');
   };
+
+  const renderShowAllFilter = riskType
+    ? () => (
+        <Box sx={{ px: '10px', pt: 1, pb: 0.5 }}>
+          <SSwitch
+            checked={showAllExams}
+            onChange={() => setShowAllExams((prev) => !prev)}
+            label="Mostrar todos os exames"
+            formControlProps={{ sx: { m: 0, width: '100%' } }}
+            sx={{ ml: 0 }}
+            color="text.light"
+          />
+        </Box>
+      )
+    : undefined;
 
   const options = useMemo(() => {
     return data.map((exam) => ({
@@ -132,6 +161,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       }}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}
       {...props}
+      renderFilter={renderShowAllFilter ?? props.renderFilter}
     />
   );
 };

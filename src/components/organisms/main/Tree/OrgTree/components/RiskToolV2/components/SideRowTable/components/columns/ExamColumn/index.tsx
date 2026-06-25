@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import { red, green } from '@mui/material/colors';
 import { STagButton } from 'components/atoms/STagButton';
 import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
+import { ExamIncompatibilityAlert } from 'components/organisms/tagSelects/ExamSelect/ExamIncompatibilityAlert';
 
 import { IExam } from 'core/interfaces/api/IExam';
 
@@ -31,6 +32,7 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
       <ExamSelect
         asyncLoad
         disabled={!risk?.id}
+        riskType={risk?.type}
         text={'adicionar'}
         tooltipTitle=""
         multiple={false}
@@ -49,18 +51,24 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
         if (exam.examsRiskData?.isStandard) return null;
 
         return (
-          <SelectedTableItem
-            key={exam.id}
-            // isExpired={isExpired}
-            handleEdit={() => handleEdit(exam)}
-            name={`${exam.name}`}
-            tooltip={`${exam.name}`}
-            handleRemove={() => {
-              handleRemove({
-                exams: [exam.examsRiskData || exam],
-              });
-            }}
-          />
+          <Box key={exam.id}>
+            <SelectedTableItem
+              // isExpired={isExpired}
+              handleEdit={() => handleEdit(exam)}
+              name={`${exam.name}`}
+              tooltip={`${exam.name}`}
+              handleRemove={() => {
+                handleRemove({
+                  exams: [exam.examsRiskData || exam],
+                });
+              }}
+            />
+            <ExamIncompatibilityAlert
+              exam={exam}
+              riskType={risk?.type}
+              sx={{ mt: 1, mb: 2 }}
+            />
+          </Box>
         );
       })}
 

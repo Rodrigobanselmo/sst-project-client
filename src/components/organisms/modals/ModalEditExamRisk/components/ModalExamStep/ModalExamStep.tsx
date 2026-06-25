@@ -9,6 +9,7 @@ import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { SelectForm } from 'components/molecules/form/select';
 import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
+import { ExamIncompatibilityAlert } from 'components/organisms/tagSelects/ExamSelect/ExamIncompatibilityAlert';
 import { RiskSelect } from 'components/organisms/tagSelects/RiskSelect';
 
 import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
@@ -26,6 +27,8 @@ export const ModalExamStep = ({
   setExamData,
   loading,
 }: IUseEditExam) => {
+  const riskType = examData.risk?.type;
+
   return (
     <SFlex direction="column" mt={8}>
       <SText color="text.label" fontSize={14} mb={-2}>
@@ -222,6 +225,7 @@ export const ModalExamStep = ({
             asyncLoad
             large
             disabled={loading}
+            riskType={riskType}
             selectedExamId={examData.examId || undefined}
             text={examData.exam?.name || 'selecione um exame'}
             error={examData.error.exam}
@@ -246,6 +250,11 @@ export const ModalExamStep = ({
                 }),
               })
             }
+          />
+          <ExamIncompatibilityAlert
+            exam={examData.exam}
+            riskType={riskType}
+            sx={{ mt: 2 }}
           />
         </Box>
 

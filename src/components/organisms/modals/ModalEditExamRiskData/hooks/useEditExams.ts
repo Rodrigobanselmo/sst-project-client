@@ -6,11 +6,14 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IExam, IExamRiskData } from 'core/interfaces/api/IExam';
+import { ExamOriginEnum, IExam, IExamRiskData } from 'core/interfaces/api/IExam';
+import { RiskEnum } from 'project/enum/risk.enums';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
 export const initialExamDataState = {
   id: 0,
+  origin: undefined as ExamOriginEnum | undefined,
+  riskType: undefined as RiskEnum | undefined,
   examRiskData: {
     id: 0,
     examId: undefined as number | undefined,

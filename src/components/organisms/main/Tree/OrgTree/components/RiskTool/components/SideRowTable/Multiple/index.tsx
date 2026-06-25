@@ -340,7 +340,11 @@ export const SideRowTableMulti: FC<
   };
 
   const handleEditExams = async (exam: IExam) => {
-    onHandleEditExams(exam, (exams) => handleSelect({ exams }));
+    onHandleEditExams(
+      exam,
+      (exams) => handleSelect({ exams }),
+      selectedRiskStore?.type,
+    );
   };
 
   return (

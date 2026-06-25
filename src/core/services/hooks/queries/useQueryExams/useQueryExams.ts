@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query';
 
+import { RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 import queryString from 'query-string';
 
@@ -23,6 +24,12 @@ export interface IQueryExam {
   origin?: ExamOriginEnum;
   orderBy?: 'name' | 'analyses' | 'material' | 'status' | 'created_at';
   orderByDirection?: 'asc' | 'desc';
+  // Contexto de aplicabilidade por categoria do risco (Fase 1). Opcional e
+  // retrocompatível: sem riskType a lista é idêntica à atual. Com riskType, a
+  // API esconde exames incompatíveis (hoje, NR-07 para riscos não químicos),
+  // a menos que includeIncompatible seja true ("Mostrar todos os exames").
+  riskType?: RiskEnum;
+  includeIncompatible?: boolean;
 }
 
 export const queryExams = async (

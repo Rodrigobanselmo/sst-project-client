@@ -7,6 +7,7 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
+import { ExamIncompatibilityAlert } from 'components/organisms/tagSelects/ExamSelect/ExamIncompatibilityAlert';
 
 import { intMask } from 'core/utils/masks/int.mask';
 
@@ -20,6 +21,12 @@ export const ModalExamStep = ({
 }: IUseEditExam) => {
   return (
     <SFlex direction="column" mt={8}>
+      <ExamIncompatibilityAlert
+        exam={examData}
+        riskType={examData.riskType}
+        sx={{ mb: 4 }}
+      />
+
       <SText color="text.label" fontSize={14} mb={-2}>
         Periodicidade dos exames
       </SText>
