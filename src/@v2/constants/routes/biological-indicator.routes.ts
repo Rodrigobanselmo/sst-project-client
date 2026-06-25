@@ -3,6 +3,7 @@ export const BiologicalIndicatorRoutes = {
   EXPORT: '/v2/master/biological-indicators/export',
   TEMPLATE: '/v2/master/biological-indicators/template',
   IMPORT_PREVIEW: '/v2/master/biological-indicators/import/preview',
+  IMPORT_APPLY: '/v2/master/biological-indicators/import/apply',
   EXAM_CANDIDATES: '/v2/master/biological-indicators/exam-candidates',
   BY_ID: '/v2/master/biological-indicators/:id',
   STATUS: '/v2/master/biological-indicators/:id/status',

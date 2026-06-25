@@ -217,3 +217,18 @@ export type ImportPreviewResult = {
   lines: ImportPreviewLine[];
   deprecatedCandidates: Array<{ indicatorId: string; substanceName: string }>;
 };
+
+export type ImportApplyResult = {
+  batchId: string;
+  fileName: string;
+  applied: {
+    new: number;
+    updated: number;
+    deprecated: number;
+    unchanged: number;
+    riskLinksFlagged: number;
+    examLinksFlagged: number;
+  };
+  totals: ImportPreviewTotals;
+  affectedIndicatorIds: string[];
+};

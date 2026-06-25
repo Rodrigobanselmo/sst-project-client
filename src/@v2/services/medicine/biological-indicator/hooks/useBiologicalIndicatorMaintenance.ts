@@ -2,6 +2,7 @@ import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
 
 import {
+  applyBiologicalIndicatorImport,
   downloadBiologicalIndicatorTemplate,
   exportBiologicalIndicators,
   importBiologicalIndicatorPreview,
@@ -30,6 +31,16 @@ export const useImportBiologicalIndicatorPreview = () => {
   return useMutate({
     mutationFn: (file: File) => importBiologicalIndicatorPreview(file),
     invalidateManyQueryKeys: () => [],
+    onError: onErrorMessage,
+  });
+};
+
+export const useApplyBiologicalIndicatorImport = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: (file: File) => applyBiologicalIndicatorImport(file),
+    invalidateManyQueryKeys: () => [['biological-indicator', 'browse']],
+    onSuccess: () => onSuccessMessage('Atualização normativa aplicada'),
     onError: onErrorMessage,
   });
 };

@@ -3,7 +3,12 @@ import { refreshToken } from 'core/contexts/AuthContext';
 import { api } from 'core/services/apiClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
 
-import type { ImportPreviewResult } from './biological-indicator.types';
+import type {
+  ImportApplyResult,
+  ImportPreviewResult,
+} from './biological-indicator.types';
+
+export const BIOLOGICAL_INDICATOR_APPLY_CONFIRM_TEXT = 'APLICAR NR07';
 
 async function downloadXlsx(path: string) {
   const { token } = await refreshToken();
@@ -33,6 +38,27 @@ export async function importBiologicalIndicatorPreview(
 
   const response = await api.post<ImportPreviewResult>(
     BiologicalIndicatorRoutes.IMPORT_PREVIEW,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
+  );
+
+  return response.data;
+}
+
+export async function applyBiologicalIndicatorImport(
+  file: File,
+): Promise<ImportApplyResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('confirmApply', 'true');
+  formData.append('confirmText', BIOLOGICAL_INDICATOR_APPLY_CONFIRM_TEXT);
+
+  const response = await api.post<ImportApplyResult>(
+    BiologicalIndicatorRoutes.IMPORT_APPLY,
     formData,
     {
       headers: {

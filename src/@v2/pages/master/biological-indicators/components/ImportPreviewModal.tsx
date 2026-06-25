@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 
 import {
   Box,
@@ -18,17 +18,23 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
+import { SAuthShow } from 'components/molecules/SAuthShow';
+import { RoleEnum } from 'project/enum/roles.enums';
 
 import type {
   ImportPreviewClassification,
   ImportPreviewResult,
 } from '@v2/services/medicine/biological-indicator/service/biological-indicator.types';
 
+import { ApplyConfirmDialog } from './ApplyConfirmDialog';
+
 type Props = {
   open: boolean;
   isLoading: boolean;
   result: ImportPreviewResult | null;
   onClose: () => void;
+  onApply?: () => void;
+  isApplying?: boolean;
 };
 
 type ChipColor =
@@ -85,7 +91,23 @@ export const ImportPreviewModal: FC<Props> = ({
   isLoading,
   result,
   onClose,
+  onApply,
+  isApplying = false,
 }) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const totals = result?.totals;
+  const applicable = totals
+    ? totals.new + totals.updated + totals.deprecatedCandidate
+    : 0;
+  const hasBlocking = totals ? totals.invalid + totals.conflict > 0 : false;
+  const canApply = Boolean(onApply) && !!result && applicable > 0;
+
+  const handleConfirm = () => {
+    setConfirmOpen(false);
+    onApply?.();
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>
@@ -232,12 +254,40 @@ export const ImportPreviewModal: FC<Props> = ({
         }}
       >
         <Typography variant="caption" color="text.secondary">
-          Prévia concluída — nenhuma alteração foi gravada.
+          {canApply
+            ? 'Revise as alterações antes de aplicar.'
+            : 'Prévia concluída — nenhuma alteração foi gravada.'}
         </Typography>
-        <Button variant="outlined" onClick={onClose}>
-          Fechar
-        </Button>
+        <Box display="flex" gap={1}>
+          <Button variant="outlined" onClick={onClose} disabled={isApplying}>
+            Fechar
+          </Button>
+          {canApply && (
+            <SAuthShow roles={[RoleEnum.MASTER]}>
+              <Button
+                variant="contained"
+                color="warning"
+                onClick={() => setConfirmOpen(true)}
+                disabled={hasBlocking || isApplying}
+              >
+                Aplicar atualização
+              </Button>
+            </SAuthShow>
+          )}
+        </Box>
       </DialogActions>
+
+      <ApplyConfirmDialog
+        open={confirmOpen}
+        isApplying={isApplying}
+        summary={{
+          new: totals?.new ?? 0,
+          updated: totals?.updated ?? 0,
+          deprecated: totals?.deprecatedCandidate ?? 0,
+        }}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirm}
+      />
     </Dialog>
   );
 };

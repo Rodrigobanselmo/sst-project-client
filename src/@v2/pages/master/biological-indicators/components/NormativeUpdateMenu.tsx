@@ -14,6 +14,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import {
+  useApplyBiologicalIndicatorImport,
   useDownloadBiologicalIndicatorTemplate,
   useExportBiologicalIndicators,
   useImportBiologicalIndicatorPreview,
@@ -30,11 +31,13 @@ export const NormativeUpdateMenu: FC = () => {
   const [previewResult, setPreviewResult] = useState<ImportPreviewResult | null>(
     null,
   );
+  const [importedFile, setImportedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const exportMutation = useExportBiologicalIndicators();
   const templateMutation = useDownloadBiologicalIndicatorTemplate();
   const previewMutation = useImportBiologicalIndicatorPreview();
+  const applyMutation = useApplyBiologicalIndicatorImport();
 
   const open = Boolean(anchorEl);
   const closeMenu = () => setAnchorEl(null);
@@ -60,11 +63,28 @@ export const NormativeUpdateMenu: FC = () => {
     if (!file) return;
 
     setPreviewResult(null);
+    setImportedFile(file);
     setPreviewOpen(true);
     previewMutation.mutate(file, {
       onSuccess: (result) => setPreviewResult(result),
       onError: () => setPreviewOpen(false),
     });
+  };
+
+  const handleApply = () => {
+    if (!importedFile) return;
+    applyMutation.mutate(importedFile, {
+      onSuccess: () => {
+        setPreviewOpen(false);
+        setPreviewResult(null);
+        setImportedFile(null);
+      },
+    });
+  };
+
+  const handleClosePreview = () => {
+    setPreviewOpen(false);
+    setImportedFile(null);
   };
 
   return (
@@ -110,7 +130,9 @@ export const NormativeUpdateMenu: FC = () => {
         open={previewOpen}
         isLoading={previewMutation.isPending}
         result={previewResult}
-        onClose={() => setPreviewOpen(false)}
+        onClose={handleClosePreview}
+        onApply={handleApply}
+        isApplying={applyMutation.isPending}
       />
     </SAuthShow>
   );
