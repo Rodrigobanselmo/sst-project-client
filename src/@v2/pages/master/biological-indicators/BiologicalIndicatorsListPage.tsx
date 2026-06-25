@@ -46,6 +46,7 @@ import {
   BiologicalIndicatorOrderBy,
   BiologicalIndicatorTable as BiologicalIndicatorDataTable,
 } from './components/BiologicalIndicatorTable';
+import { NormativeUpdateMenu } from './components/NormativeUpdateMenu';
 
 const FETCH_ALL_LIMIT = 100;
 
@@ -240,12 +241,20 @@ export const BiologicalIndicatorsListPage: FC = () => {
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
-        <Box>
-          <Typography variant="h5">Indicadores Biológicos NR-07 — Anexo I</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Curadoria normativa dos indicadores do Anexo I. Revise vínculos com riscos
-            químicos e exames complementares antes da ativação.
-          </Typography>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          gap={2}
+        >
+          <Box>
+            <Typography variant="h5">Indicadores Biológicos NR-07 — Anexo I</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Curadoria normativa dos indicadores do Anexo I. Revise vínculos com riscos
+              químicos e exames complementares antes da ativação.
+            </Typography>
+          </Box>
+          <NormativeUpdateMenu />
         </Box>
 
         <Paper sx={{ p: 2 }}>

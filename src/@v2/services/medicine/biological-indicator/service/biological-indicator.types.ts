@@ -166,3 +166,54 @@ export type CurationNotesParams = {
   linkId: string;
   notes?: string;
 };
+
+export type ImportPreviewClassification =
+  | 'UNCHANGED'
+  | 'NEW'
+  | 'UPDATED'
+  | 'DEPRECATED_CANDIDATE'
+  | 'INVALID'
+  | 'CONFLICT';
+
+export type ImportPreviewAnchor = 'indicatorId' | 'idempotencyKey' | 'none';
+
+export type ImportPreviewRowError = {
+  field: string;
+  message: string;
+};
+
+export type ImportPreviewFieldChange = {
+  field: string;
+  from: string;
+  to: string;
+};
+
+export type ImportPreviewLine = {
+  rowNumber: number;
+  classification: ImportPreviewClassification;
+  anchorUsed: ImportPreviewAnchor;
+  indicatorId: string | null;
+  idempotencyKey: string | null;
+  substanceName: string;
+  changedFields: string[];
+  fieldChanges: ImportPreviewFieldChange[];
+  errors: ImportPreviewRowError[];
+};
+
+export type ImportPreviewTotals = {
+  read: number;
+  valid: number;
+  invalid: number;
+  new: number;
+  updated: number;
+  unchanged: number;
+  deprecatedCandidate: number;
+  conflict: number;
+};
+
+export type ImportPreviewResult = {
+  fileName: string;
+  totals: ImportPreviewTotals;
+  lines: ImportPreviewLine[];
+  deprecatedCandidates: Array<{ indicatorId: string; substanceName: string }>;
+};

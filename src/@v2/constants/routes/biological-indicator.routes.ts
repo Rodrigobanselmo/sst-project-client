@@ -1,5 +1,8 @@
 export const BiologicalIndicatorRoutes = {
   BASE: '/v2/master/biological-indicators',
+  EXPORT: '/v2/master/biological-indicators/export',
+  TEMPLATE: '/v2/master/biological-indicators/template',
+  IMPORT_PREVIEW: '/v2/master/biological-indicators/import/preview',
   EXAM_CANDIDATES: '/v2/master/biological-indicators/exam-candidates',
   BY_ID: '/v2/master/biological-indicators/:id',
   STATUS: '/v2/master/biological-indicators/:id/status',
