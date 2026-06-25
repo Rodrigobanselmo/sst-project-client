@@ -1,6 +1,9 @@
-import { FC } from 'react';
+import { cloneElement, FC, ReactElement, useState } from 'react';
 
-import { BoxProps } from '@mui/material';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
@@ -11,7 +14,6 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -19,13 +21,13 @@ import SText from 'components/atoms/SText';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import { initialExamRiskState } from 'components/organisms/modals/ModalEditExamRisk/hooks/useEditExams';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
-import { company } from 'faker/locale/zh_TW';
-import { StatusEnum } from 'project/enum/status.enum';
+
+import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
-import SReloadIcon from 'assets/icons/SReloadIcon';
-import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -41,7 +43,6 @@ import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk
 import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import SFlex from 'components/atoms/SFlex';
-import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
 export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
   const periodic = [] as string[];
@@ -66,6 +67,44 @@ export const getExamAge = (exam: Partial<IExamToRisk>) => {
   return exam.fromAge + ' a ' + exam.toAge + ' anos';
 };
 
+type ExamRiskColumnKey =
+  | 'RISK'
+  | 'EXAM'
+  | 'PERIODICITY'
+  | 'SEX'
+  | 'AGE'
+  | 'VALIDITY';
+
+type SortField = 'risk' | 'exam' | 'validity';
+
+type ColumnDef = {
+  key: ExamRiskColumnKey;
+  label: string;
+  width: string;
+  sortField?: SortField;
+  justify?: string;
+};
+
+const COLUMN_DEFS: ColumnDef[] = [
+  { key: 'RISK', label: 'Risco', width: 'minmax(250px, 5fr)', sortField: 'risk' },
+  { key: 'EXAM', label: 'Exame', width: 'minmax(150px, 5fr)', sortField: 'exam' },
+  { key: 'PERIODICITY', label: 'Periodicidade', width: '120px' },
+  { key: 'SEX', label: 'Sexo', width: '55px' },
+  { key: 'AGE', label: 'Faixa etária', width: '135px' },
+  {
+    key: 'VALIDITY',
+    label: 'Periodicidade (meses)',
+    width: '130px',
+    sortField: 'validity',
+    justify: 'center',
+  },
+];
+
+const COLUMNS_CONFIG = COLUMN_DEFS.map(({ key, label }) => ({
+  value: key,
+  label,
+}));
+
 export const ExamsRiskTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
@@ -76,7 +115,7 @@ export const ExamsRiskTable: FC<
       companyFlowBelowTabs?: boolean;
     }
 > = ({
-  rowsPerPage = 8,
+  rowsPerPage,
   onSelectData,
   selectedData,
   query,
@@ -84,12 +123,28 @@ export const ExamsRiskTable: FC<
   companyFlowBelowTabs = false,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const [sort, setSort] = useState<{ field: SortField; order: 'asc' | 'desc' } | null>(
+    null,
+  );
+  const [hiddenColumns, setHiddenColumns] = usePersistedState<
+    Record<string, boolean>
+  >(persistKeys.COLUMNS_EXAM_RISK, {});
+  const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
+    useTablePageLimit(undefined, persistKeys.LIMIT_EXAM_RISK);
 
   const isSelect = !!onSelectData;
+  const effectiveLimit = rowsPerPage ?? pageLimit;
+
+  const {
+    orderBy: _ignoredOrderBy,
+    orderByDirection: _ignoredOrderDir,
+    ...restQuery
+  } = (query ?? {}) as Record<string, unknown>;
 
   const {
     data: exams,
     isLoading: loadExams,
+    isError,
     count,
     companyId,
     isFetching,
@@ -97,13 +152,35 @@ export const ExamsRiskTable: FC<
     refetch,
   } = useQueryExamsRisk(
     page,
-    { search, ...query },
-    rowsPerPage,
+    {
+      search,
+      ...restQuery,
+      ...(sort ? { orderBy: sort.field, orderByDirection: sort.order } : {}),
+    },
+    effectiveLimit,
   );
 
   const { onStackOpenModal } = useModal();
   const copyExamMutation = useMutCopyExamRisk();
   const { preventWarn } = usePreventAction();
+
+  const onPageSizeChange = createPageSizeChangeHandler((patch) => {
+    if (patch.page) setPage(patch.page);
+  });
+
+  const onToggleSort = (field: SortField) => {
+    setSort((prev) => {
+      if (prev?.field !== field) return { field, order: 'asc' };
+      if (prev.order === 'asc') return { field, order: 'desc' };
+      return null;
+    });
+    setPage(1);
+  };
+
+  const isHidden = (key: ExamRiskColumnKey) =>
+    key in hiddenColumns ? hiddenColumns[key] : false;
+
+  const visibleDefs = COLUMN_DEFS.filter((def) => !isHidden(def.key));
 
   const onImportExams = () => {
     onStackOpenModal(ModalEnum.COMPANY_SELECT, {
@@ -147,18 +224,40 @@ export const ExamsRiskTable: FC<
     } else onEditExam(exam);
   };
 
-  const onRefetchThrottle = useThrottle((s?: string) => {
+  const onRefetchThrottle = useThrottle(() => {
     refetch();
     // invalidate next or previous pages
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
   }, 1000);
 
-  const tableColumns = `${
-    selectedData ? '15px ' : ''
-  }minmax(250px, 5fr) minmax(150px, 5fr) 120px 55px 135px ${
-    false ? '180px' : ''
-  }90px 80px`;
+  const tableColumns = `${selectedData ? '15px ' : ''}${visibleDefs
+    .map((def) => def.width)
+    .join(' ')} 80px`;
+
+  const renderSortableHeader = (def: ColumnDef): ReactElement => {
+    const active = sort?.field === def.sortField;
+    return (
+      <STableHRow
+        justifyContent={def.justify as any}
+        sx={{ cursor: 'pointer', userSelect: 'none' }}
+        onClick={() => def.sortField && onToggleSort(def.sortField)}
+      >
+        {def.label}
+        {!active && (
+          <UnfoldMoreIcon sx={{ fontSize: 14, ml: 0.5, color: 'grey.400' }} />
+        )}
+        {active && sort?.order === 'asc' && (
+          <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }} />
+        )}
+        {active && sort?.order === 'desc' && (
+          <ArrowDownwardIcon
+            sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }}
+          />
+        )}
+      </STableHRow>
+    );
+  };
 
   const tableChrome = (
     <>
@@ -185,118 +284,119 @@ export const ExamsRiskTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
         loadingReload={loadExams || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
-      />
+      >
+        <Box ml={2}>
+          <STableColumnsButton
+            columns={COLUMNS_CONFIG}
+            hiddenColumns={hiddenColumns}
+            setHiddenColumns={setHiddenColumns}
+          />
+        </Box>
+      </STableSearch>
     </>
   );
 
   const tableHeader = (
     <STableHeader>
-          {selectedData && <STableHRow></STableHRow>}
-          <STableHRow>Risco</STableHRow>
-          <STableHRow>Exame</STableHRow>
-          <STableHRow>Periodicidade</STableHRow>
-          <STableHRow>Sexo</STableHRow>
-          <STableHRow>Faixa etária</STableHRow>
-          {/* <STableHRow justifyContent="center">
-            Peridiocidade
-            <span style={{ fontSize: 9, margin: '1px 0 0px 5px' }}>
-              (Comorbidades)
-            </span>
-          </STableHRow> */}
-          <STableHRow justifyContent="center">Peridiocidade</STableHRow>
-          {/* <STableHRow justifyContent="center">Status</STableHRow> */}
-          <STableHRow justifyContent="center">Ações</STableHRow>
+      {selectedData && <STableHRow></STableHRow>}
+      {visibleDefs.map((def) =>
+        def.sortField ? (
+          cloneElement(renderSortableHeader(def), { key: def.key })
+        ) : (
+          <STableHRow key={def.key} justifyContent={def.justify as any}>
+            {def.label}
+          </STableHRow>
+        ),
+      )}
+      <STableHRow justifyContent="center">Ações</STableHRow>
     </STableHeader>
   );
 
+  const renderCell = (def: ColumnDef, row: IExamToRisk): ReactElement | null => {
+    switch (def.key) {
+      case 'RISK':
+        return <TextIconRow clickable text={row.risk?.name || '-'} />;
+      case 'EXAM':
+        return <TextIconRow clickable text={row.exam?.name || '-'} />;
+      case 'PERIODICITY':
+        return (
+          <TextIconRow
+            clickable
+            tooltipTitle={getExamPeriodic(row).tooltip}
+            text={getExamPeriodic(row).text || '-'}
+          />
+        );
+      case 'SEX':
+        return (
+          <TextIconRow
+            clickable
+            text={(row.isMale ? 'M' : '') + (row.isFemale ? ' F' : '') || '-'}
+          />
+        );
+      case 'AGE':
+        return <TextIconRow clickable text={getExamAge(row) || '-'} />;
+      case 'VALIDITY':
+        return (
+          <TextIconRow
+            clickable
+            justifyContent="center"
+            text={
+              row?.validityInMonths ? row?.validityInMonths + ' meses' : '-'
+            }
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   const tableBody = (
     <STableBody<(typeof exams)[0]>
-          rowsData={exams}
-          hideLoadMore
-          rowsInitialNumber={rowsPerPage}
-          renderRow={(row) => {
-            return (
-              <STableRow
-                onClick={() => onSelectRow(row)}
-                clickable
-                key={row.id}
-              >
-                {selectedData && (
-                  <SCheckBox
-                    label=""
-                    checked={!!selectedData.find((exam) => exam.id === row.id)}
-                  />
-                )}
-                <TextIconRow clickable text={row.risk?.name || '-'} />
-                <TextIconRow clickable text={row.exam?.name || '-'} />
-                <TextIconRow
-                  clickable
-                  tooltipTitle={getExamPeriodic(row).tooltip}
-                  text={getExamPeriodic(row).text || '-'}
-                />
-                <TextIconRow
-                  clickable
-                  text={
-                    (row.isMale ? 'M' : '') + (row.isFemale ? ' F' : '') || '-'
-                  }
-                />
-                <TextIconRow clickable text={getExamAge(row) || '-'} />
-                <TextIconRow
-                  clickable
-                  justifyContent="center"
-                  text={
-                    row?.validityInMonths
-                      ? row?.validityInMonths + ' meses'
-                      : '-'
-                  }
-                />{' '}
-                {/* <TextIconRow
-                  clickable
-                  justifyContent="center"
-                  align="center"
-                  text={
-                    row?.lowValidityInMonths
-                      ? row?.lowValidityInMonths + ' meses'
-                      : '-'
-                  }
-                /> */}
-                {/* <TextIconRow clickable text={row.material || '-'} /> */}
-                {/* <StatusSelect
-                  large={false}
-                  sx={{ maxWidth: '90px' }}
-                  selected={'status' in row ? row.status : StatusEnum.ACTIVE}
-                  statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
-                  handleSelectMenu={(option) => handleEditStatus(option.value)}
-                  disabled
-                /> */}
-                <SFlex>
-                  <IconButtonRow
-                    icon={<EditIcon />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditExam(row);
-                    }}
-                  />
-                  {/* <IconButtonRow
-                    icon={<SDeleteIcon />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  /> */}
-                </SFlex>
-              </STableRow>
-            );
-          }}
+      rowsData={exams}
+      hideLoadMore
+      rowsInitialNumber={effectiveLimit}
+      contentEmpty={
+        isError
+          ? 'Erro ao carregar os exames. Tente recarregar.'
+          : 'Nenhum exame vinculado a risco encontrado.'
+      }
+      renderRow={(row) => {
+        return (
+          <STableRow onClick={() => onSelectRow(row)} clickable key={row.id}>
+            {selectedData && (
+              <SCheckBox
+                label=""
+                checked={!!selectedData.find((exam) => exam.id === row.id)}
+              />
+            )}
+            {visibleDefs.map((def) => {
+              const cell = renderCell(def, row);
+              return cell ? cloneElement(cell, { key: def.key }) : null;
+            })}
+            <SFlex>
+              <IconButtonRow
+                icon={<EditIcon />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditExam(row);
+                }}
+              />
+            </SFlex>
+          </STableRow>
+        );
+      }}
     />
   );
 
   const tablePagination = (
     <STablePagination
       mt={2}
-      registersPerPage={rowsPerPage}
+      registersPerPage={effectiveLimit}
       totalCountOfRegisters={loadExams ? undefined : count}
       currentPage={page}
       onPageChange={setPage}
+      pageSizeOptions={pageSizeOptions}
+      onRegistersPerPageChange={onPageSizeChange}
     />
   );
 
@@ -306,7 +406,7 @@ export const ExamsRiskTable: FC<
         chrome={tableChrome}
         columns={tableColumns}
         loading={loadExams || copyExamMutation.isLoading}
-        rowsNumber={rowsPerPage}
+        rowsNumber={effectiveLimit}
         header={tableHeader}
         footer={tablePagination}
         belowModuleTabs={companyFlowBelowTabs}
@@ -322,7 +422,7 @@ export const ExamsRiskTable: FC<
       <STable
         columns={tableColumns}
         loading={loadExams || copyExamMutation.isLoading}
-        rowsNumber={rowsPerPage}
+        rowsNumber={effectiveLimit}
       >
         {tableHeader}
         {tableBody}
