@@ -44,19 +44,24 @@ import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { useThrottle } from 'core/hooks/useThrottle';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IExamToRisk } from 'core/interfaces/api/IExam';
+import { IPcmsoExamDefaults } from 'core/interfaces/api/IPcmsoExamDefaults';
 import { useMutBulkDeleteExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutBulkDeleteExamRisk/useMutBulkDeleteExamRisk';
 import {
   IBulkExamRiskPatch,
   useMutBulkUpdateExamRisk,
 } from 'core/services/hooks/mutations/checklist/exams/useMutBulkUpdateExamRisk/useMutBulkUpdateExamRisk';
 import { useMutCopyExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutCopyExamRisk/useMutCopyExamRisk';
+import { useMutUpdatePcmsoExamDefaults } from 'core/services/hooks/mutations/checklist/exams/useMutUpdatePcmsoExamDefaults/useMutUpdatePcmsoExamDefaults';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk/useQueryExamsRisk';
+import { useQueryPcmsoExamDefaults } from 'core/services/hooks/queries/useQueryPcmsoExamDefaults/useQueryPcmsoExamDefaults';
 import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
+import { mapPcmsoDefaultsToExamRisk } from 'core/utils/helpers/pcmsoExamDefaults';
 import SFlex from 'components/atoms/SFlex';
 import { SButton } from 'components/atoms/SButton';
 import { BulkEditExamRiskModal } from './BulkEditExamRiskModal';
+import { PcmsoExamDefaultsModal } from './PcmsoExamDefaultsModal';
 
 const PERIODICITY_LEGEND =
   'A = Admissional · P = Periódico · M = Mudança · R = Retorno · D = Demissional';
@@ -222,6 +227,13 @@ export const ExamsRiskTable: FC<
   const bulkDeleteMutation = useMutBulkDeleteExamRisk();
   const { preventWarn, preventDelete } = usePreventAction();
 
+  const { data: pcmsoDefaults } = useQueryPcmsoExamDefaults(
+    companyId,
+    !isSelect,
+  );
+  const pcmsoDefaultsMutation = useMutUpdatePcmsoExamDefaults();
+  const [pcmsoDefaultsOpen, setPcmsoDefaultsOpen] = useState(false);
+
   const isBulkMode = enableBulkActions && !isSelect;
   const {
     selectedData: selectedIds,
@@ -292,7 +304,16 @@ export const ExamsRiskTable: FC<
   };
 
   const onAddExam = () => {
-    onStackOpenModal(ModalEnum.EXAM_RISK, {} as typeof initialExamRiskState);
+    // Novo vínculo abre pré-preenchido com os padrões de PCMSO da empresa.
+    // Empresa sem configuração → patch vazio → mantém o comportamento atual.
+    onStackOpenModal(ModalEnum.EXAM_RISK, {
+      ...(mapPcmsoDefaultsToExamRisk(pcmsoDefaults) as object),
+    } as typeof initialExamRiskState);
+  };
+
+  const onSavePcmsoDefaults = async (defaults: IPcmsoExamDefaults) => {
+    await pcmsoDefaultsMutation.mutateAsync({ ...defaults, companyId });
+    setPcmsoDefaultsOpen(false);
   };
 
   const onEditExam = (exam: IExamToRisk) => {
@@ -398,6 +419,18 @@ export const ExamsRiskTable: FC<
             setHiddenColumns={setHiddenColumns}
           />
         </Box>
+        {!isSelect && (
+          <Box ml={2}>
+            <SButton
+              xsmall
+              variant="outlined"
+              onClick={() => setPcmsoDefaultsOpen(true)}
+              sx={{ width: 'auto', whiteSpace: 'nowrap' }}
+            >
+              Padrões de PCMSO
+            </SButton>
+          </Box>
+        )}
       </STableSearch>
       {isBulkMode && selectedIds.length > 0 && (
         <SFlex
@@ -613,6 +646,16 @@ export const ExamsRiskTable: FC<
     />
   ) : null;
 
+  const pcmsoDefaultsModal = !isSelect ? (
+    <PcmsoExamDefaultsModal
+      open={pcmsoDefaultsOpen}
+      isSaving={pcmsoDefaultsMutation.isLoading}
+      initialValue={pcmsoDefaults}
+      onClose={() => setPcmsoDefaultsOpen(false)}
+      onConfirm={onSavePcmsoDefaults}
+    />
+  ) : null;
+
   if (companyFlowSticky) {
     return (
       <>
@@ -628,6 +671,7 @@ export const ExamsRiskTable: FC<
           {tableBody}
         </CompanyFlowTableSection>
         {bulkEditModal}
+        {pcmsoDefaultsModal}
       </>
     );
   }
@@ -645,6 +689,7 @@ export const ExamsRiskTable: FC<
       </STable>
       {tablePagination}
       {bulkEditModal}
+      {pcmsoDefaultsModal}
     </>
   );
 };

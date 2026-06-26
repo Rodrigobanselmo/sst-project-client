@@ -344,6 +344,7 @@ export const SideRowTableMulti: FC<
       exam,
       (exams) => handleSelect({ exams }),
       selectedRiskStore?.type,
+      selectedRiskStore,
     );
   };
 

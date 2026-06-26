@@ -107,7 +107,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   };
 
   const handleEditExams = async (exam: IExam) => {
-    onHandleEditExams(exam, (exams) => handleSelect({ exams }), risk?.type);
+    onHandleEditExams(exam, (exams) => handleSelect({ exams }), risk?.type, risk ?? undefined);
   };
 
   return (

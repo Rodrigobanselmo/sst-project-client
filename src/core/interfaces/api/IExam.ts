@@ -111,6 +111,8 @@ export interface IExamRiskData {
   considerBetweenDays?: number;
   fromAge?: number;
   toAge?: number;
+  minRiskDegree?: number;
+  minRiskDegreeQuantity?: number;
   isStandard?: boolean;
 }
 

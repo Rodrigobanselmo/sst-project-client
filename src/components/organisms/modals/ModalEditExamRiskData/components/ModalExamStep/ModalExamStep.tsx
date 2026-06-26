@@ -7,8 +7,11 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
+import { SelectForm } from 'components/molecules/form/select';
 import { ExamIncompatibilityAlert } from 'components/organisms/tagSelects/ExamSelect/ExamIncompatibilityAlert';
 
+import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
+import { isQuantity } from 'core/utils/helpers/isQuantity';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
@@ -180,6 +183,57 @@ export const ModalExamStep = ({
         sx={{ width: [300], mt: 10 }}
         options={[30, 60, 90, 120, 180, 240, 300]}
       />
+
+      {!examData.isAttendance && (
+        <>
+          <SText color="text.label" fontSize={14} mb={3} mt={5}>
+            Grau de risco mínimo
+          </SText>
+          <SFlex gap={5} mt={2} maxWidth={400} flexWrap="wrap">
+            <Box flex={1} width={200}>
+              <SelectForm
+                defaultValue={String(examData.examRiskData.minRiskDegree || 1)}
+                label="Qualitativo"
+                control={control}
+                placeholder="grau de risco..."
+                name="minRiskDegree"
+                setValue={setValue}
+                labelPosition="center"
+                size="small"
+                options={Object.values(matrixRiskMap)
+                  .filter((m) => m.level > 0 && m.level < 6)
+                  .map((value) => ({
+                    value: value.level,
+                    content: value.label,
+                  }))}
+              />
+            </Box>
+            {isQuantity(examData.risk) && (
+              <Box flex={1} maxWidth={200}>
+                <SelectForm
+                  fullWidth
+                  defaultValue={String(
+                    examData.examRiskData.minRiskDegreeQuantity || 1,
+                  )}
+                  label="Quantitativo"
+                  control={control}
+                  setValue={setValue}
+                  placeholder="grau de risco..."
+                  name="minRiskDegreeQuantity"
+                  labelPosition="center"
+                  size="small"
+                  options={Object.values(matrixRiskMap)
+                    .filter((m) => m.level > 0 && m.level < 6)
+                    .map((value) => ({
+                      value: value.level,
+                      content: value.label,
+                    }))}
+                />
+              </Box>
+            )}
+          </SFlex>
+        </>
+      )}
     </SFlex>
   );
 };

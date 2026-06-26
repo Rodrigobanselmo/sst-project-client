@@ -240,11 +240,13 @@ export const useColumnAction = () => {
     exam: IExam,
     handleSelect: (exams: IExamRiskData[]) => void,
     riskType?: RiskEnum,
+    risk?: IRiskFactors,
   ) => {
     onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
       onSubmit: (exams) =>
         exams?.examsRiskData && handleSelect([exams.examsRiskData]),
       riskType,
+      risk,
       ...exam,
       examRiskData: exam.examsRiskData,
     } as Partial<typeof initialExamDataState>);

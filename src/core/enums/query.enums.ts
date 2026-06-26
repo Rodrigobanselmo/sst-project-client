@@ -48,6 +48,7 @@ export enum QueryEnum {
   EXAMS = 'exams',
   EXAMS_RISK = 'exams-risk',
   EXAMS_RISK_DATA = 'exams-risk-data',
+  PCMSO_EXAM_DEFAULTS = 'pcmso-exam-defaults',
   GENERATE_SOURCE = 'genrate-source',
   GHO = 'gho',
   HIERARCHY = 'hierarchy',

@@ -17,6 +17,8 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IExam } from 'core/interfaces/api/IExam';
 import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
+import { useQueryPcmsoExamDefaults } from 'core/services/hooks/queries/useQueryPcmsoExamDefaults/useQueryPcmsoExamDefaults';
+import { mapPcmsoDefaultsToExamRisk } from 'core/utils/helpers/pcmsoExamDefaults';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IExamSelectProps } from './types';
@@ -31,6 +33,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   query,
   selectedExamId,
   riskType,
+  risk,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -49,6 +52,14 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   );
   const { onStackOpenModal } = useModal();
 
+  // Padrões de PCMSO da empresa para pré-preencher NOVO vínculo no fluxo inline
+  // da coluna Exames. Só busca quando o modal de configuração pode abrir
+  // (onlyExam não abre EXAM_RISK_DATA). Empresa sem config → {} → comportamento atual.
+  const { data: pcmsoDefaults } = useQueryPcmsoExamDefaults(
+    undefined,
+    !onlyExam,
+  );
+
   const handleSearchChange = useDebouncedCallback((value: string) => {
     setSearch(value);
   }, 300);
@@ -66,7 +77,12 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
         onSubmit: handleSelect,
         riskType,
+        risk,
         ...selectedExam,
+        examRiskData: {
+          ...initialExamDataState.examRiskData,
+          ...mapPcmsoDefaultsToExamRisk(pcmsoDefaults),
+        },
       } as Partial<typeof initialExamDataState>);
   };
 

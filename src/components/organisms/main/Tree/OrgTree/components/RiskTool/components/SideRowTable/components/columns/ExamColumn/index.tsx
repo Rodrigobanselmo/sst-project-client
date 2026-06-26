@@ -33,6 +33,7 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
         asyncLoad
         disabled={!risk?.id}
         riskType={risk?.type}
+        risk={risk ?? undefined}
         text={'adicionar'}
         tooltipTitle=""
         multiple={false}

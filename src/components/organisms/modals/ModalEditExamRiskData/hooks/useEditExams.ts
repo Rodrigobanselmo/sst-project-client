@@ -7,13 +7,16 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ExamOriginEnum, IExam, IExamRiskData } from 'core/interfaces/api/IExam';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
 export const initialExamDataState = {
   id: 0,
+  isAttendance: false,
   origin: undefined as ExamOriginEnum | undefined,
   riskType: undefined as RiskEnum | undefined,
+  risk: undefined as IRiskFactors | undefined,
   examRiskData: {
     id: 0,
     examId: undefined as number | undefined,
@@ -27,6 +30,8 @@ export const initialExamDataState = {
     validityInMonths: undefined as number | undefined,
     fromAge: undefined as number | undefined,
     toAge: undefined as number | undefined,
+    minRiskDegree: 0 as number,
+    minRiskDegreeQuantity: 1 as number,
   } as Partial<IExamRiskData>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: Partial<IExam> | null) => {},
@@ -40,6 +45,8 @@ interface ISubmit {
   lowValidityInMonths: string;
   toAge: string;
   fromAge: string;
+  minRiskDegree: string;
+  minRiskDegreeQuantity: string;
 }
 
 export const useEditExams = () => {
@@ -105,6 +112,8 @@ export const useEditExams = () => {
     validityInMonths,
     considerBetweenDays,
     lowValidityInMonths,
+    minRiskDegree,
+    minRiskDegreeQuantity,
   }) => {
     const submitData: Partial<IExam> = {
       ...examData,
@@ -122,6 +131,16 @@ export const useEditExams = () => {
         considerBetweenDays: considerBetweenDays
           ? parseInt(considerBetweenDays, 10)
           : undefined,
+        minRiskDegree: examData.isAttendance
+          ? 0
+          : minRiskDegree
+            ? parseInt(minRiskDegree, 10)
+            : 1,
+        minRiskDegreeQuantity: examData.isAttendance
+          ? 0
+          : minRiskDegreeQuantity
+            ? parseInt(minRiskDegreeQuantity, 10)
+            : 1,
       },
     };
 

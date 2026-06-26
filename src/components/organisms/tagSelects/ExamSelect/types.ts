@@ -3,6 +3,7 @@ import { ISTagSearchSelectProps } from 'components/molecules/STagSearchSelect/ty
 import { RiskEnum } from 'project/enum/risk.enums';
 
 import { IExam } from 'core/interfaces/api/IExam';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 
 export interface IExamSelectProps
@@ -25,4 +26,7 @@ export interface IExamSelectProps
    * compatíveis com o risco e exibe a opção "Mostrar todos os exames".
    */
   riskType?: RiskEnum;
+  /** Risco completo em contexto (matriz de caracterização). Necessário para exibir
+   * grau quantitativo mínimo quando aplicável. */
+  risk?: IRiskFactors;
 }

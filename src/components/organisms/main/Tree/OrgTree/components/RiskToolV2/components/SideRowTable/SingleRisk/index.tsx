@@ -105,7 +105,7 @@ export const RiskToolSingleRiskRow: FC<
   };
 
   const handleEditExams = async (exam: IExam) => {
-    onHandleEditExams(exam, (exams) => handleSelect({ exams }), risk?.type);
+    onHandleEditExams(exam, (exams) => handleSelect({ exams }), risk?.type, risk);
   };
 
   return (
