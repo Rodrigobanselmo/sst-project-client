@@ -22,6 +22,7 @@ export enum RoutesEnum {
   DATABASE_CATALOG_EQUIVALENCES = '/dashboard/dados/equivalencias-catalogo',
   DATABASE_BIOLOGICAL_INDICATORS = '/dashboard/dados/indicadores-biologicos',
   DATABASE_ESOCIAL_TABLE_27 = '/dashboard/dados/tabela-27-esocial',
+  DATABASE_EXAM_RISK_RULES = '/dashboard/dados/regras-exame-risco',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
   EMPLOYEES = '/dashboard/empresas/:companyId/empregados',
   GHOS = '/dashboard/empresas/:companyId/grupos-homogenios',

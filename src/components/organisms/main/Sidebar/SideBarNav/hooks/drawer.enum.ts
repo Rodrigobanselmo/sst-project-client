@@ -11,6 +11,7 @@ export enum DrawerItemsEnum {
   biologicalIndicatorsGroup = 'biologicalIndicatorsGroup',
   biologicalIndicators = 'biologicalIndicators',
   esocialTable27 = 'esocialTable27',
+  examRiskRules = 'examRiskRules',
   allCompaniesData = 'allCompaniesData',
   allClinicsData = 'allClinicsData',
   oneClinicsData = 'oneClinicsData',

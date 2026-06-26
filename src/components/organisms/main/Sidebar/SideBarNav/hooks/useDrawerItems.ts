@@ -24,6 +24,7 @@ import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 import SScheduleBlockIcon from 'assets/icons/SScheduleBlockIcon/SScheduleBlockIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
+import { featureFlags } from '@v2/constants/feature-flags';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAccess } from 'core/hooks/useAccess';
@@ -196,6 +197,14 @@ export const useDrawerItems = () => {
         'Consulta dos procedimentos diagnósticos da Tabela 27 do eSocial',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE_ESOCIAL_TABLE_27,
+      roles: [RoleEnum.MASTER],
+    },
+    [DrawerItemsEnum.examRiskRules]: {
+      text: 'Regras Exame × Risco',
+      description:
+        'Biblioteca SimpleSST de regras técnicas Exame × Risco (MASTER)',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_EXAM_RISK_RULES,
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.allCompaniesData]: {
@@ -468,6 +477,9 @@ export const useDrawerItems = () => {
             items: [
               items[DrawerItemsEnum.biologicalIndicators],
               items[DrawerItemsEnum.esocialTable27],
+              ...(featureFlags.examRiskRuleLibrary
+                ? [items[DrawerItemsEnum.examRiskRules]]
+                : []),
             ],
           },
         ],
