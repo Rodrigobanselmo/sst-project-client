@@ -73,6 +73,7 @@ export interface IExamToRisk {
   id: number;
   examId: number;
   riskId: string;
+  companyId?: string;
   exam?: IExam;
   risk?: IRiskFactors;
 
@@ -88,6 +89,8 @@ export interface IExamToRisk {
   considerBetweenDays?: number;
   fromAge?: number;
   toAge?: number;
+  minRiskDegree?: number;
+  minRiskDegreeQuantity?: number;
 }
 
 export interface IExamRiskData {

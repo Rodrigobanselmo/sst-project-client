@@ -5,6 +5,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
+import STooltip from 'components/atoms/STooltip';
 import {
   STable,
   STableBody,
@@ -29,20 +30,55 @@ import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import EditIcon from 'assets/icons/SEditIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
 
+import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
+import {
+  TableCheckSelect,
+  TableCheckSelectAll,
+  useTableSelect,
+} from 'core/hooks/useTableSelect';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { useThrottle } from 'core/hooks/useThrottle';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IExamToRisk } from 'core/interfaces/api/IExam';
+import { useMutBulkDeleteExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutBulkDeleteExamRisk/useMutBulkDeleteExamRisk';
+import {
+  IBulkExamRiskPatch,
+  useMutBulkUpdateExamRisk,
+} from 'core/services/hooks/mutations/checklist/exams/useMutBulkUpdateExamRisk/useMutBulkUpdateExamRisk';
 import { useMutCopyExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutCopyExamRisk/useMutCopyExamRisk';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk/useQueryExamsRisk';
 import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import SFlex from 'components/atoms/SFlex';
+import { SButton } from 'components/atoms/SButton';
+import { BulkEditExamRiskModal } from './BulkEditExamRiskModal';
+
+const PERIODICITY_LEGEND =
+  'A = Admissional · P = Periódico · M = Mudança · R = Retorno · D = Demissional';
+const SEX_LEGEND = 'M = Masculino · F = Feminino';
+
+const renderLegendCell = (text: string, tooltip?: string) => {
+  const cell = <TextIconRow clickable text={text} />;
+
+  if (!tooltip) return cell;
+
+  return (
+    <STooltip
+      title={tooltip}
+      minLength={0}
+      withWrapper
+      placement="top"
+      boxProps={{ sx: { width: '100%', height: '100%' } }}
+    >
+      {cell}
+    </STooltip>
+  );
+};
 
 export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
   const periodic = [] as string[];
@@ -67,13 +103,23 @@ export const getExamAge = (exam: Partial<IExamToRisk>) => {
   return exam.fromAge + ' a ' + exam.toAge + ' anos';
 };
 
+// Rótulo amigável do grau de risco (qualitativo/quantitativo). Vazio/null/0
+// (não informado) → '-'. Níveis 1..5 usam o label do mapa da matriz.
+const getRiskDegreeLabel = (value?: number | null) => {
+  if (!value) return '-';
+  return matrixRiskMap[value as keyof typeof matrixRiskMap]?.label || '-';
+};
+
 type ExamRiskColumnKey =
   | 'RISK'
   | 'EXAM'
   | 'PERIODICITY'
   | 'SEX'
   | 'AGE'
-  | 'VALIDITY';
+  | 'VALIDITY'
+  | 'CONSIDER_DAYS'
+  | 'MIN_QUALITATIVE'
+  | 'MIN_QUANTITATIVE';
 
 type SortField = 'risk' | 'exam' | 'validity';
 
@@ -98,6 +144,14 @@ const COLUMN_DEFS: ColumnDef[] = [
     sortField: 'validity',
     justify: 'center',
   },
+  {
+    key: 'CONSIDER_DAYS',
+    label: 'Considerar (dias)',
+    width: '120px',
+    justify: 'center',
+  },
+  { key: 'MIN_QUALITATIVE', label: 'Qualitativo mínimo', width: '130px' },
+  { key: 'MIN_QUANTITATIVE', label: 'Quantitativo mínimo', width: '130px' },
 ];
 
 const COLUMNS_CONFIG = COLUMN_DEFS.map(({ key, label }) => ({
@@ -113,6 +167,7 @@ export const ExamsRiskTable: FC<
       query?: IQueryExam;
       companyFlowSticky?: boolean;
       companyFlowBelowTabs?: boolean;
+      enableBulkActions?: boolean;
     }
 > = ({
   rowsPerPage,
@@ -121,6 +176,7 @@ export const ExamsRiskTable: FC<
   query,
   companyFlowSticky = false,
   companyFlowBelowTabs = false,
+  enableBulkActions = false,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const [sort, setSort] = useState<{ field: SortField; order: 'asc' | 'desc' } | null>(
@@ -162,7 +218,34 @@ export const ExamsRiskTable: FC<
 
   const { onStackOpenModal } = useModal();
   const copyExamMutation = useMutCopyExamRisk();
-  const { preventWarn } = usePreventAction();
+  const bulkUpdateMutation = useMutBulkUpdateExamRisk();
+  const bulkDeleteMutation = useMutBulkDeleteExamRisk();
+  const { preventWarn, preventDelete } = usePreventAction();
+
+  const isBulkMode = enableBulkActions && !isSelect;
+  const {
+    selectedData: selectedIds,
+    onToggleSelected,
+    onToggleAll,
+    onIsSelected,
+    setSelectedData: setSelectedIds,
+  } = useTableSelect();
+
+  // Edição em lote só pode atuar sobre vínculos da própria empresa. Vínculos
+  // herdados/contratante (companyId diferente) não são editáveis em lote —
+  // a API os ignora, então impedimos a seleção para evitar alteração parcial
+  // silenciosa. Caso a linha não traga companyId, tratamos como editável
+  // (comportamento legado) para não bloquear a empresa atual.
+  const isRowEditable = (row: IExamToRisk) =>
+    !row.companyId || row.companyId === companyId;
+
+  const editablePageIds = (exams ?? [])
+    .filter((exam) => isRowEditable(exam))
+    .map((exam) => exam.id);
+  const isAllPageSelected =
+    editablePageIds.length > 0 &&
+    editablePageIds.every((id) => onIsSelected(id));
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
 
   const onPageSizeChange = createPageSizeChangeHandler((patch) => {
     if (patch.page) setPage(patch.page);
@@ -231,7 +314,30 @@ export const ExamsRiskTable: FC<
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
   }, 1000);
 
-  const tableColumns = `${selectedData ? '15px ' : ''}${visibleDefs
+  const onClearSelection = () => setSelectedIds([]);
+
+  const onConfirmBulkEdit = async (patch: IBulkExamRiskPatch) => {
+    if (selectedIds.length === 0) return;
+    await bulkUpdateMutation.mutateAsync({ ids: selectedIds, patch, companyId });
+    setBulkEditOpen(false);
+    onClearSelection();
+    onRefetchThrottle();
+  };
+
+  const onBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    preventDelete(
+      async () => {
+        await bulkDeleteMutation.mutateAsync({ ids: selectedIds, companyId });
+        onClearSelection();
+        onRefetchThrottle();
+      },
+      `Você tem certeza que deseja remover ${selectedIds.length} vínculo(s) selecionado(s)? Esta ação não pode ser desfeita.`,
+      { confirmText: 'Remover' },
+    );
+  };
+
+  const tableColumns = `${isBulkMode ? '40px ' : selectedData ? '15px ' : ''}${visibleDefs
     .map((def) => def.width)
     .join(' ')} 80px`;
 
@@ -293,12 +399,66 @@ export const ExamsRiskTable: FC<
           />
         </Box>
       </STableSearch>
+      {isBulkMode && selectedIds.length > 0 && (
+        <SFlex
+          align="center"
+          gap={8}
+          mt={2}
+          mb={1}
+          sx={{
+            backgroundColor: 'grey.100',
+            borderRadius: 1,
+            px: 6,
+            py: 3,
+            flexWrap: 'wrap',
+          }}
+        >
+          <SText fontSize={14} fontWeight={600}>
+            {selectedIds.length} selecionado(s)
+          </SText>
+          <SButton
+            xsmall
+            variant="contained"
+            onClick={() => setBulkEditOpen(true)}
+            sx={{ width: 'auto' }}
+          >
+            Editar em lote
+          </SButton>
+          <SButton
+            xsmall
+            variant="outlined"
+            color="error"
+            loading={bulkDeleteMutation.isLoading}
+            onClick={onBulkDelete}
+            sx={{ width: 'auto' }}
+          >
+            Remover selecionados
+          </SButton>
+          <SButton
+            xsmall
+            variant="text"
+            onClick={onClearSelection}
+            sx={{ width: 'auto' }}
+          >
+            Limpar seleção
+          </SButton>
+        </SFlex>
+      )}
     </>
   );
 
   const tableHeader = (
     <STableHeader>
-      {selectedData && <STableHRow></STableHRow>}
+      {isBulkMode ? (
+        <STableHRow>
+          <TableCheckSelectAll
+            isSelected={isAllPageSelected}
+            onToggleAll={() => onToggleAll(editablePageIds)}
+          />
+        </STableHRow>
+      ) : (
+        selectedData && <STableHRow></STableHRow>
+      )}
       {visibleDefs.map((def) =>
         def.sortField ? (
           cloneElement(renderSortableHeader(def), { key: def.key })
@@ -319,22 +479,25 @@ export const ExamsRiskTable: FC<
       case 'EXAM':
         return <TextIconRow clickable text={row.exam?.name || '-'} />;
       case 'PERIODICITY':
-        return (
-          <TextIconRow
-            clickable
-            tooltipTitle={getExamPeriodic(row).tooltip}
-            text={getExamPeriodic(row).text || '-'}
-          />
+        return renderLegendCell(
+          getExamPeriodic(row).text || '-',
+          PERIODICITY_LEGEND,
         );
-      case 'SEX':
-        return (
-          <TextIconRow
-            clickable
-            text={(row.isMale ? 'M' : '') + (row.isFemale ? ' F' : '') || '-'}
-          />
+      case 'SEX': {
+        const sexText =
+          (row.isMale ? 'M' : '') + (row.isFemale ? ' F' : '') || '-';
+        return renderLegendCell(
+          sexText,
+          sexText === '-' ? undefined : SEX_LEGEND,
         );
-      case 'AGE':
-        return <TextIconRow clickable text={getExamAge(row) || '-'} />;
+      }
+      case 'AGE': {
+        const ageText = getExamAge(row) || '-';
+        return renderLegendCell(
+          ageText,
+          ageText === 'todas' ? 'todas as faixas etárias' : undefined,
+        );
+      }
       case 'VALIDITY':
         return (
           <TextIconRow
@@ -343,6 +506,25 @@ export const ExamsRiskTable: FC<
             text={
               row?.validityInMonths ? row?.validityInMonths + ' meses' : '-'
             }
+          />
+        );
+      case 'CONSIDER_DAYS':
+        return (
+          <TextIconRow
+            clickable
+            justifyContent="center"
+            text={row?.considerBetweenDays ? String(row.considerBetweenDays) : '-'}
+          />
+        );
+      case 'MIN_QUALITATIVE':
+        return (
+          <TextIconRow clickable text={getRiskDegreeLabel(row?.minRiskDegree)} />
+        );
+      case 'MIN_QUANTITATIVE':
+        return (
+          <TextIconRow
+            clickable
+            text={getRiskDegreeLabel(row?.minRiskDegreeQuantity)}
           />
         );
       default:
@@ -363,11 +545,32 @@ export const ExamsRiskTable: FC<
       renderRow={(row) => {
         return (
           <STableRow onClick={() => onSelectRow(row)} clickable key={row.id}>
-            {selectedData && (
-              <SCheckBox
-                label=""
-                checked={!!selectedData.find((exam) => exam.id === row.id)}
-              />
+            {isBulkMode ? (
+              <Box onClick={(e) => e.stopPropagation()}>
+                {isRowEditable(row) ? (
+                  <TableCheckSelect
+                    isSelected={onIsSelected(row.id)}
+                    onToggleSelected={() => onToggleSelected(row.id)}
+                  />
+                ) : (
+                  <STooltip
+                    title="Vínculo herdado; edição em lote indisponível"
+                    placement="right"
+                  >
+                    {/* span garante tooltip mesmo com o checkbox desabilitado */}
+                    <span>
+                      <SCheckBox label="" checked={false} disabled />
+                    </span>
+                  </STooltip>
+                )}
+              </Box>
+            ) : (
+              selectedData && (
+                <SCheckBox
+                  label=""
+                  checked={!!selectedData.find((exam) => exam.id === row.id)}
+                />
+              )
             )}
             {visibleDefs.map((def) => {
               const cell = renderCell(def, row);
@@ -400,19 +603,32 @@ export const ExamsRiskTable: FC<
     />
   );
 
+  const bulkEditModal = isBulkMode ? (
+    <BulkEditExamRiskModal
+      open={bulkEditOpen}
+      count={selectedIds.length}
+      isSaving={bulkUpdateMutation.isLoading}
+      onClose={() => setBulkEditOpen(false)}
+      onConfirm={onConfirmBulkEdit}
+    />
+  ) : null;
+
   if (companyFlowSticky) {
     return (
-      <CompanyFlowTableSection
-        chrome={tableChrome}
-        columns={tableColumns}
-        loading={loadExams || copyExamMutation.isLoading}
-        rowsNumber={effectiveLimit}
-        header={tableHeader}
-        footer={tablePagination}
-        belowModuleTabs={companyFlowBelowTabs}
-      >
-        {tableBody}
-      </CompanyFlowTableSection>
+      <>
+        <CompanyFlowTableSection
+          chrome={tableChrome}
+          columns={tableColumns}
+          loading={loadExams || copyExamMutation.isLoading}
+          rowsNumber={effectiveLimit}
+          header={tableHeader}
+          footer={tablePagination}
+          belowModuleTabs={companyFlowBelowTabs}
+        >
+          {tableBody}
+        </CompanyFlowTableSection>
+        {bulkEditModal}
+      </>
     );
   }
 
@@ -428,6 +644,7 @@ export const ExamsRiskTable: FC<
         {tableBody}
       </STable>
       {tablePagination}
+      {bulkEditModal}
     </>
   );
 };

@@ -85,7 +85,7 @@ export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) =>
           />
         </>
         <>
-          <ExamsRiskTable companyFlowSticky companyFlowBelowTabs />
+          <ExamsRiskTable companyFlowSticky companyFlowBelowTabs enableBulkActions />
           <ExamsRiskTableList companyFlowSticky companyFlowBelowTabs />
         </>
         <>
