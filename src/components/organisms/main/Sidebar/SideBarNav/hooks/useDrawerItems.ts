@@ -223,6 +223,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_ACGIH_BEI_INDICATORS,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.acgihBeiComparison]: {
+      text: 'ACGIH/BEI — Comparação técnica',
+      description:
+        'Comparação diagnóstica (read-only) ACGIH/BEI × NR-7 × Regras Exame × Risco (MASTER)',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_ACGIH_BEI_COMPARISON,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.allCompaniesData]: {
       text: 'Empresas',
       description: 'Visualizar empresas cadastradas',
@@ -501,6 +509,9 @@ export const useDrawerItems = () => {
                 : []),
               ...(featureFlags.acgihBeiIndicators
                 ? [items[DrawerItemsEnum.acgihBeiIndicators]]
+                : []),
+              ...(featureFlags.acgihBeiComparison
+                ? [items[DrawerItemsEnum.acgihBeiComparison]]
                 : []),
             ],
           },

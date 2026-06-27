@@ -25,4 +25,12 @@ export const featureFlags = {
   acgihBeiIndicators: isFlagEnabledByDefault(
     process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_INDICATORS,
   ),
+  // Comparação técnica ACGIH/BEI × NR-7 × Regras Exame × Risco (Fase 4E). Tela
+  // MASTER somente leitura: ativa por padrão (visível para MASTER) e desligável
+  // via env=false como kill-switch visual. É 100% diagnóstica e não altera
+  // nenhuma base; a segurança real continua nos guards MASTER (menu, withSSRAuth,
+  // SAuthShow e @Roles na API), não nesta flag.
+  acgihBeiComparison: isFlagEnabledByDefault(
+    process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_COMPARISON,
+  ),
 } as const;

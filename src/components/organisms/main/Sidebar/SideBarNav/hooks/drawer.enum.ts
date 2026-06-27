@@ -13,6 +13,7 @@ export enum DrawerItemsEnum {
   esocialTable27 = 'esocialTable27',
   esocialProcedures = 'esocialProcedures',
   acgihBeiIndicators = 'acgihBeiIndicators',
+  acgihBeiComparison = 'acgihBeiComparison',
   examRiskRules = 'examRiskRules',
   allCompaniesData = 'allCompaniesData',
   allClinicsData = 'allClinicsData',
