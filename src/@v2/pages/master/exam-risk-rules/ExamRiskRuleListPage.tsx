@@ -37,6 +37,7 @@ import {
   examRiskRuleStatusLabels,
 } from './exam-risk-rule-labels';
 import { ExamRiskRuleFormModal } from './components/ExamRiskRuleFormModal';
+import { ExamRiskRuleImportExportMenu } from './components/ExamRiskRuleImportExportMenu';
 import { ExamRiskRuleTable } from './components/ExamRiskRuleTable';
 
 const ALL = 'ALL';
@@ -119,6 +120,7 @@ export const ExamRiskRuleListPage: FC = () => {
             </Typography>
           </Box>
           <Box display="flex" gap={1}>
+            <ExamRiskRuleImportExportMenu />
             <Button
               variant="outlined"
               onClick={() => setSyncConfirmOpen(true)}

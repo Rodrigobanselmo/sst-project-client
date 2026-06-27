@@ -144,3 +144,71 @@ export interface IExamRiskRuleExamCandidate {
   type: string | null;
   esocial27Code: string | null;
 }
+
+// ── Import/Export Excel (Fase 4A.1) ─────────────────────────────────────────
+
+export type ExamRiskRuleImportClassification =
+  | 'CREATE'
+  | 'UPDATE'
+  | 'UNCHANGED'
+  | 'REJECTED'
+  | 'CONFLICT'
+  | 'INVALID';
+
+export interface IExamRiskRuleRowError {
+  field: string;
+  message: string;
+}
+
+export interface IExamRiskRuleFieldChange {
+  field: string;
+  from: string;
+  to: string;
+}
+
+export interface IExamRiskRulePreviewLine {
+  rowNumber: number;
+  classification: ExamRiskRuleImportClassification;
+  ruleId: string;
+  ruleExamId: string;
+  scope: string | null;
+  referenceName: string | null;
+  examId: number | null;
+  examName: string | null;
+  changedFields: string[];
+  fieldChanges: IExamRiskRuleFieldChange[];
+  warnings: string[];
+  errors: IExamRiskRuleRowError[];
+}
+
+export interface IExamRiskRuleImportTotals {
+  read: number;
+  valid: number;
+  create: number;
+  update: number;
+  unchanged: number;
+  rejected: number;
+  conflict: number;
+  invalid: number;
+}
+
+export interface IExamRiskRuleImportPreviewResult {
+  fileName: string;
+  totals: IExamRiskRuleImportTotals;
+  lines: IExamRiskRulePreviewLine[];
+}
+
+export interface IExamRiskRuleImportApplyResult {
+  fileName: string;
+  applied: {
+    rulesUpdated: number;
+    examsCreated: number;
+    examsUpdated: number;
+    unchanged: number;
+    rejected: number;
+    conflict: number;
+    invalid: number;
+  };
+  totals: IExamRiskRuleImportTotals;
+  affectedRuleIds: string[];
+}
