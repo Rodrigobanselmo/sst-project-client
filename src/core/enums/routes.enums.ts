@@ -24,6 +24,7 @@ export enum RoutesEnum {
   DATABASE_ESOCIAL_TABLE_27 = '/dashboard/dados/tabela-27-esocial',
   DATABASE_EXAM_RISK_RULES = '/dashboard/dados/regras-exame-risco',
   DATABASE_ESOCIAL_PROCEDURES = '/dashboard/dados/procedimentos-esocial',
+  DATABASE_ACGIH_BEI_INDICATORS = '/dashboard/dados/acgih-bei-indicadores',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
   EMPLOYEES = '/dashboard/empresas/:companyId/empregados',
   GHOS = '/dashboard/empresas/:companyId/grupos-homogenios',

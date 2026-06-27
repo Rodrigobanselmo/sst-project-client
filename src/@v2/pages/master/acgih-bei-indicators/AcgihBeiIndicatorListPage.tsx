@@ -1,0 +1,242 @@
+import { FC, useState } from 'react';
+
+import AddIcon from '@mui/icons-material/Add';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  MenuItem,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { persistKeys } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
+import { useFetchBrowseAcgihBeiIndicators } from '@v2/services/medicine/acgih-bei-indicator/hooks/useFetchBrowseAcgihBeiIndicators';
+import { useMutateDeleteAcgihBeiIndicator } from '@v2/services/medicine/acgih-bei-indicator/hooks/useMutateAcgihBeiIndicator';
+import {
+  AcgihBeiIndicatorConfidenceEnum,
+  AcgihBeiIndicatorStatusEnum,
+  IAcgihBeiIndicator,
+} from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.types';
+import { SAuthShow } from 'components/molecules/SAuthShow';
+import { RoleEnum } from 'project/enum/roles.enums';
+
+import {
+  acgihBeiConfidenceLabels,
+  acgihBeiStatusLabels,
+} from './acgih-bei-indicator-labels';
+import { AcgihBeiIndicatorFormModal } from './components/AcgihBeiIndicatorFormModal';
+import { AcgihBeiIndicatorImportExportMenu } from './components/AcgihBeiIndicatorImportExportMenu';
+import { AcgihBeiIndicatorTable } from './components/AcgihBeiIndicatorTable';
+
+const ALL = 'ALL';
+
+export const AcgihBeiIndicatorListPage: FC = () => {
+  const [search, setSearch] = useState('');
+  const [biologicalMatrix, setBiologicalMatrix] = useState('');
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<
+    AcgihBeiIndicatorStatusEnum | typeof ALL
+  >(ALL);
+  const [confidence, setConfidence] = useState<
+    AcgihBeiIndicatorConfidenceEnum | typeof ALL
+  >(ALL);
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<IAcgihBeiIndicator | null>(null);
+  const [toDelete, setToDelete] = useState<IAcgihBeiIndicator | null>(null);
+
+  const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
+    useTablePageLimit(undefined, persistKeys.LIMIT_ACGIH_BEI_INDICATORS);
+
+  const onPageSizeChange = createPageSizeChangeHandler((patch) => {
+    if (patch.page) setPage(patch.page);
+  });
+
+  const { data, isLoading } = useFetchBrowseAcgihBeiIndicators({
+    page,
+    limit: pageLimit,
+    search: search.trim() || undefined,
+    biologicalMatrix: biologicalMatrix.trim() || undefined,
+    status: status === ALL ? undefined : status,
+    confidence: confidence === ALL ? undefined : confidence,
+  });
+
+  const deleteMutation = useMutateDeleteAcgihBeiIndicator();
+
+  const handleCreate = () => {
+    setEditing(null);
+    setFormOpen(true);
+  };
+
+  const handleEdit = (item: IAcgihBeiIndicator) => {
+    setEditing(item);
+    setFormOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!toDelete) return;
+    deleteMutation.mutate(
+      { id: toDelete.id },
+      { onSuccess: () => setToDelete(null) },
+    );
+  };
+
+  return (
+    <SAuthShow roles={[RoleEnum.MASTER]}>
+      <Box display="flex" flexDirection="column" gap={2}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          gap={2}
+          flexWrap="wrap"
+        >
+          <Box>
+            <Typography variant="h5">
+              ACGIH/BEI — Indicadores Biológicos
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Base técnica de referência interna (ACGIH/BEI). É isolada e aditiva:
+              não altera NR-7, Tabela 27/eSocial, XML, S-2220/S-2240, ExamToRisk,
+              empresas nem a biblioteca Regras Exame × Risco, e não é aplicada
+              automaticamente.
+            </Typography>
+          </Box>
+          <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+            <AcgihBeiIndicatorImportExportMenu />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreate}
+            >
+              Novo indicador
+            </Button>
+          </Box>
+        </Box>
+
+        <Paper sx={{ p: 2 }}>
+          <Box display="flex" gap={2} flexWrap="wrap" mb={2} alignItems="center">
+            <TextField
+              label="Buscar (substância, CAS ou determinante)"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              size="small"
+              sx={{ minWidth: 280 }}
+            />
+            <TextField
+              label="Matriz biológica"
+              value={biologicalMatrix}
+              onChange={(event) => {
+                setBiologicalMatrix(event.target.value);
+                setPage(1);
+              }}
+              size="small"
+              sx={{ minWidth: 180 }}
+            />
+            <TextField
+              select
+              label="Status"
+              value={status}
+              onChange={(event) => {
+                setStatus(
+                  event.target.value as
+                    | AcgihBeiIndicatorStatusEnum
+                    | typeof ALL,
+                );
+                setPage(1);
+              }}
+              size="small"
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value={ALL}>Todos</MenuItem>
+              {Object.values(AcgihBeiIndicatorStatusEnum).map((value) => (
+                <MenuItem key={value} value={value}>
+                  {acgihBeiStatusLabels[value]}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Confiança"
+              value={confidence}
+              onChange={(event) => {
+                setConfidence(
+                  event.target.value as
+                    | AcgihBeiIndicatorConfidenceEnum
+                    | typeof ALL,
+                );
+                setPage(1);
+              }}
+              size="small"
+              sx={{ minWidth: 150 }}
+            >
+              <MenuItem value={ALL}>Todas</MenuItem>
+              {Object.values(AcgihBeiIndicatorConfidenceEnum).map((value) => (
+                <MenuItem key={value} value={value}>
+                  {acgihBeiConfidenceLabels[value]}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+
+          <AcgihBeiIndicatorTable
+            data={data?.data ?? []}
+            isLoading={isLoading}
+            pagination={{
+              total: data?.count ?? 0,
+              limit: pageLimit,
+              page,
+            }}
+            setPage={setPage}
+            pageSizeOptions={pageSizeOptions}
+            onPageSizeChange={onPageSizeChange}
+            onEdit={handleEdit}
+            onDelete={setToDelete}
+          />
+        </Paper>
+      </Box>
+
+      <AcgihBeiIndicatorFormModal
+        open={formOpen}
+        item={editing}
+        onClose={() => setFormOpen(false)}
+      />
+
+      <Dialog open={Boolean(toDelete)} onClose={() => setToDelete(null)}>
+        <DialogTitle>Remover indicador</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja remover este indicador ACGIH/BEI? Esta ação faz
+            soft delete apenas na base técnica ACGIH/BEI e pode ser restaurada por
+            uma nova importação.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setToDelete(null)}
+            disabled={deleteMutation.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmDelete}
+            disabled={deleteMutation.isPending}
+          >
+            Remover
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </SAuthShow>
+  );
+};

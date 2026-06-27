@@ -215,6 +215,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_ESOCIAL_PROCEDURES,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.acgihBeiIndicators]: {
+      text: 'ACGIH/BEI — Indicadores Biológicos',
+      description:
+        'Base técnica de referência ACGIH/BEI de indicadores biológicos (MASTER)',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_ACGIH_BEI_INDICATORS,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.allCompaniesData]: {
       text: 'Empresas',
       description: 'Visualizar empresas cadastradas',
@@ -490,6 +498,9 @@ export const useDrawerItems = () => {
                 : []),
               ...(featureFlags.esocialProcedureCuration
                 ? [items[DrawerItemsEnum.esocialProcedures]]
+                : []),
+              ...(featureFlags.acgihBeiIndicators
+                ? [items[DrawerItemsEnum.acgihBeiIndicators]]
                 : []),
             ],
           },

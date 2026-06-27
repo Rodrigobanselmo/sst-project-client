@@ -18,4 +18,11 @@ export const featureFlags = {
   esocialProcedureCuration: isFlagEnabledByDefault(
     process.env.NEXT_PUBLIC_FEATURE_ESOCIAL_PROCEDURE_CURATION,
   ),
+  // Base técnica de referência ACGIH/BEI. Tela MASTER: ativa por padrão
+  // (visível para MASTER) e desligável via env=false como kill-switch visual.
+  // Base isolada e aditiva; a segurança real continua nos guards MASTER (menu,
+  // withSSRAuth, SAuthShow e @Roles na API), não nesta flag.
+  acgihBeiIndicators: isFlagEnabledByDefault(
+    process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_INDICATORS,
+  ),
 } as const;
