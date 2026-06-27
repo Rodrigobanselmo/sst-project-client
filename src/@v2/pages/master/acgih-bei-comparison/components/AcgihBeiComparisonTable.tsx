@@ -1,6 +1,8 @@
 import { FC } from 'react';
 
-import { Box, Chip, Tooltip } from '@mui/material';
+import AddLinkIcon from '@mui/icons-material/AddLink';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { Box, Button, Chip, Tooltip } from '@mui/material';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '@v2/components/organisms/STable/addons/addons-table/STablePagination/STablePagination';
 import { STable } from '@v2/components/organisms/STable/common/STable/STable';
@@ -13,7 +15,11 @@ import {
   acgihBeiConfidenceColors,
   acgihBeiConfidenceLabels,
 } from '@v2/pages/master/acgih-bei-indicators/acgih-bei-indicator-labels';
-import type { IAcgihBeiComparisonRow } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
+import {
+  AcgihBeiComparisonStatusEnum,
+  AcgihBeiSuggestedActionEnum,
+  IAcgihBeiComparisonRow,
+} from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
 
 import {
   comparisonStatusColors,
@@ -30,7 +36,15 @@ type Props = {
   setPage: (page: number) => void;
   pageSizeOptions: number[];
   onPageSizeChange: (size: number) => void;
+  onAddReference: (row: IAcgihBeiComparisonRow) => void;
+  applyingId?: string | null;
 };
+
+/** Item elegível para virar fonte complementar (espelha as regras da API). */
+export const isEligibleForReference = (row: IAcgihBeiComparisonRow): boolean =>
+  row.comparisonStatus === AcgihBeiComparisonStatusEnum.ALREADY_COVERED &&
+  row.suggestedAction === AcgihBeiSuggestedActionEnum.ADD_REFERENCE_ONLY &&
+  Boolean(row.examRiskRuleId);
 
 export const AcgihBeiComparisonTable: FC<Props> = ({
   data,
@@ -39,6 +53,8 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
   setPage,
   pageSizeOptions,
   onPageSizeChange,
+  onAddReference,
+  applyingId,
 }) => {
   const tableData: ITableData<IAcgihBeiComparisonRow>[] = [
     {
@@ -113,7 +129,7 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
     },
     {
       column: 'minmax(160px, 1fr)',
-      header: <STableHRow>Match Regra</STableHRow>,
+      header: <STableHRow>Match Biblioteca Exame × Risco</STableHRow>,
       row: (row) => (
         <Box display="flex" flexDirection="column" gap={0.5}>
           <Chip
@@ -177,6 +193,51 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
           lineNumber={2}
         />
       ),
+    },
+    {
+      column: '210px',
+      header: <STableHRow justify="center">Fonte complementar</STableHRow>,
+      row: (row) => {
+        // Vínculo já registrado tem precedência visual sobre o botão.
+        if (row.hasComplementaryReference) {
+          return (
+            <Box display="flex" justifyContent="center" width="100%">
+              <Tooltip title="Esta ACGIH/BEI já está registrada como fonte complementar da regra.">
+                <Chip
+                  size="small"
+                  color="success"
+                  variant="outlined"
+                  icon={<CheckCircleOutlineIcon />}
+                  label="ACGIH/BEI registrada"
+                />
+              </Tooltip>
+            </Box>
+          );
+        }
+
+        const eligible = isEligibleForReference(row);
+        const disabledReason = !eligible
+          ? 'Disponível apenas para itens já cobertos com sugestão de fonte complementar e regra existente.'
+          : '';
+        const isApplying = applyingId === row.acgihBeiId;
+        return (
+          <Box display="flex" justifyContent="center" width="100%">
+            <Tooltip title={disabledReason}>
+              <span>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<AddLinkIcon />}
+                  disabled={!eligible || isApplying}
+                  onClick={() => onAddReference(row)}
+                >
+                  Adicionar
+                </Button>
+              </span>
+            </Tooltip>
+          </Box>
+        );
+      },
     },
   ];
 

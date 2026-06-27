@@ -45,6 +45,10 @@ export interface IAcgihBeiComparisonRow {
   suggestedAction: AcgihBeiSuggestedActionEnum;
   technicalDiff: string;
   reviewNotes: string;
+  // Estado persistente da fonte complementar (Fase 4I).
+  hasComplementaryReference?: boolean;
+  complementaryReferenceId?: string | null;
+  complementaryReferenceStatus?: string | null;
 }
 
 export interface IAcgihBeiComparisonTotals {
@@ -71,4 +75,23 @@ export interface IBrowseAcgihBeiComparisonResponse {
   page: number;
   limit: number;
   count: number;
+}
+
+export type ApplyAcgihReferenceOutcome = 'CREATED' | 'RESTORED' | 'UNCHANGED';
+
+export interface IApplyAcgihReferencePayload {
+  acgihBeiIndicatorId: string;
+}
+
+export interface IApplyAcgihReferenceResponse {
+  outcome: ApplyAcgihReferenceOutcome;
+  reference: {
+    id: string;
+    ruleId: string;
+    sourceType: string;
+    acgihBeiIndicatorId: string | null;
+    referenceLabel: string | null;
+    referenceYear: number | null;
+    status: string;
+  };
 }

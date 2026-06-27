@@ -16,9 +16,11 @@ import { persistKeys } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useExportAcgihBeiComparison } from '@v2/services/medicine/acgih-bei-comparison/hooks/useAcgihBeiComparisonExport';
 import { useFetchBrowseAcgihBeiComparison } from '@v2/services/medicine/acgih-bei-comparison/hooks/useFetchBrowseAcgihBeiComparison';
+import { useMutateApplyAcgihReference } from '@v2/services/medicine/acgih-bei-comparison/hooks/useMutateApplyAcgihReference';
 import {
   AcgihBeiComparisonStatusEnum,
   AcgihBeiSuggestedActionEnum,
+  IAcgihBeiComparisonRow,
   IAcgihBeiComparisonTotals,
 } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
 import { AcgihBeiIndicatorConfidenceEnum } from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.types';
@@ -30,6 +32,7 @@ import {
   comparisonStatusLabels,
   suggestedActionLabels,
 } from './acgih-bei-comparison-labels';
+import { AcgihBeiAddReferenceDialog } from './components/AcgihBeiAddReferenceDialog';
 import { AcgihBeiComparisonTable } from './components/AcgihBeiComparisonTable';
 import { acgihBeiConfidenceLabels } from '../acgih-bei-indicators/acgih-bei-indicator-labels';
 
@@ -83,6 +86,18 @@ export const AcgihBeiComparisonListPage: FC = () => {
   });
 
   const exportMutation = useExportAcgihBeiComparison();
+
+  const [referenceTarget, setReferenceTarget] =
+    useState<IAcgihBeiComparisonRow | null>(null);
+  const applyReferenceMutation = useMutateApplyAcgihReference();
+
+  const handleConfirmReference = () => {
+    if (!referenceTarget || applyReferenceMutation.isPending) return;
+    applyReferenceMutation.mutate(
+      { acgihBeiIndicatorId: referenceTarget.acgihBeiId },
+      { onSuccess: () => setReferenceTarget(null) },
+    );
+  };
 
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
@@ -242,9 +257,24 @@ export const AcgihBeiComparisonListPage: FC = () => {
             setPage={setPage}
             pageSizeOptions={pageSizeOptions}
             onPageSizeChange={onPageSizeChange}
+            onAddReference={setReferenceTarget}
+            applyingId={
+              applyReferenceMutation.isPending
+                ? referenceTarget?.acgihBeiId
+                : null
+            }
           />
         </Paper>
       </Box>
+
+      <AcgihBeiAddReferenceDialog
+        row={referenceTarget}
+        isApplying={applyReferenceMutation.isPending}
+        onClose={() => {
+          if (!applyReferenceMutation.isPending) setReferenceTarget(null);
+        }}
+        onConfirm={handleConfirmReference}
+      />
     </SAuthShow>
   );
 };

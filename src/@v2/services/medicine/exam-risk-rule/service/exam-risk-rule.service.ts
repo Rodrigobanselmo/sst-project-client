@@ -8,6 +8,7 @@ import type {
   IExamRiskRule,
   IExamRiskRuleExamCandidate,
   IExamRiskRuleNr07SyncSummary,
+  IExamRiskRuleReference,
   IExamRiskRuleRiskCandidate,
   IUpdateExamRiskRulePayload,
   ExamRiskRuleCategoryEnum,
@@ -95,4 +96,27 @@ export async function searchExamRiskRuleExamCandidates(params: {
     { params },
   );
   return response.data;
+}
+
+// ── Fontes complementares (Fase 4I) ─────────────────────────────────────────
+
+export async function listExamRiskRuleReferences(
+  ruleId: string,
+): Promise<IExamRiskRuleReference[]> {
+  const response = await api.get<IExamRiskRuleReference[]>(
+    ExamRiskRuleRoutes.REFERENCES.replace(':ruleId', ruleId),
+  );
+  return response.data;
+}
+
+export async function deleteExamRiskRuleReference(params: {
+  ruleId: string;
+  referenceId: string;
+}): Promise<void> {
+  await api.delete(
+    ExamRiskRuleRoutes.REFERENCE_BY_ID.replace(
+      ':ruleId',
+      params.ruleId,
+    ).replace(':referenceId', params.referenceId),
+  );
 }

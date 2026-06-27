@@ -27,6 +27,30 @@ export enum ExamRiskRuleCategoryEnum {
   OUTROS = 'OUTROS',
 }
 
+export enum ExamRiskRuleReferenceSourceEnum {
+  ACGIH_BEI = 'ACGIH_BEI',
+  NR_07 = 'NR_07',
+  SIMPLE_SST = 'SIMPLE_SST',
+  TECHNICAL = 'TECHNICAL',
+  OTHER = 'OTHER',
+}
+
+export enum ExamRiskRuleReferenceStatusEnum {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
+/** Fonte/evidência complementar de uma regra (Fase 4I). */
+export interface IExamRiskRuleReference {
+  id: string;
+  sourceType: ExamRiskRuleReferenceSourceEnum;
+  acgihBeiIndicatorId: string | null;
+  nr7IndicatorId: string | null;
+  referenceLabel: string | null;
+  referenceYear: number | null;
+  created_at: string;
+}
+
 export interface IExamRiskRuleExam {
   id: string;
   ruleId: string;
@@ -67,6 +91,8 @@ export interface IExamRiskRule {
   isCurated: boolean;
   createdById: number | null;
   exams: IExamRiskRuleExam[];
+  // Fontes complementares ativas (Fase 4I) — read-only no browse.
+  references?: IExamRiskRuleReference[];
   created_at: string;
   updated_at: string;
 }

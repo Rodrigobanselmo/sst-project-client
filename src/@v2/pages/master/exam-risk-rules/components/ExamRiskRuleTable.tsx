@@ -31,6 +31,15 @@ type Props = {
   onPageSizeChange: (size: number) => void;
   onEdit: (rule: IExamRiskRule) => void;
   onDelete: (rule: IExamRiskRule) => void;
+  onManageReferences: (rule: IExamRiskRule) => void;
+};
+
+/** Resumo legível das fontes complementares ativas de uma regra (Fase 4I). */
+const referencesSummary = (rule: IExamRiskRule): string => {
+  const refs = rule.references ?? [];
+  if (!refs.length) return '';
+  const hasAcgih = refs.some((ref) => ref.sourceType === 'ACGIH_BEI');
+  return hasAcgih ? `ACGIH/BEI (${refs.length})` : `${refs.length}`;
 };
 
 const collectionLabel = (rule: IExamRiskRule): string => {
@@ -72,6 +81,7 @@ export const ExamRiskRuleTable: FC<Props> = ({
   onPageSizeChange,
   onEdit,
   onDelete,
+  onManageReferences,
 }) => {
   const tableData: ITableData<IExamRiskRule>[] = [
     {
@@ -96,18 +106,35 @@ export const ExamRiskRuleTable: FC<Props> = ({
       ),
     },
     {
-      column: '140px',
+      column: 'minmax(180px, 0.9fr)',
       header: <STableHRow>Fonte</STableHRow>,
-      row: (row) => (
-        <Box display="flex" alignItems="center" gap={0.5}>
-          <STextRow text={examRiskRuleSourceLabels[row.source]} lineNumber={1} />
-          {row.isCurated && (
-            <Tooltip title="Regra editada manualmente (não sobrescrita pelo sync)">
-              <Chip size="small" color="info" label="Curada" />
-            </Tooltip>
-          )}
-        </Box>
-      ),
+      row: (row) => {
+        const summary = referencesSummary(row);
+        return (
+          <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
+            <STextRow
+              text={examRiskRuleSourceLabels[row.source]}
+              lineNumber={1}
+            />
+            {row.isCurated && (
+              <Tooltip title="Regra editada manualmente (não sobrescrita pelo sync)">
+                <Chip size="small" color="info" label="Curada" />
+              </Tooltip>
+            )}
+            {summary && (
+              <Tooltip title="Ver fontes complementares (evidências técnicas)">
+                <Chip
+                  size="small"
+                  color="secondary"
+                  variant="outlined"
+                  label={`+ ${summary}`}
+                  onClick={() => onManageReferences(row)}
+                />
+              </Tooltip>
+            )}
+          </Box>
+        );
+      },
     },
     {
       column: 'minmax(140px, 0.6fr)',

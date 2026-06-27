@@ -4,6 +4,7 @@ import { useMutate } from '@v2/hooks/api/useMutate';
 import {
   createExamRiskRule,
   deleteExamRiskRule,
+  deleteExamRiskRuleReference,
   syncExamRiskRulesNr07,
   updateExamRiskRule,
   updateExamRiskRuleStatus,
@@ -57,6 +58,16 @@ export const useMutateDeleteExamRiskRule = () => {
     mutationFn: ({ id }: { id: string }) => deleteExamRiskRule(id),
     invalidateManyQueryKeys: invalidate,
     onSuccess: () => onSuccessMessage('Regra removida'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateDeleteExamRiskRuleReference = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: deleteExamRiskRuleReference,
+    invalidateManyQueryKeys: invalidate,
+    onSuccess: () => onSuccessMessage('Fonte complementar removida'),
     onError: onErrorMessage,
   });
 };

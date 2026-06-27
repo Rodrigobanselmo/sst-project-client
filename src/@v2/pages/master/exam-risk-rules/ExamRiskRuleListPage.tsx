@@ -38,6 +38,7 @@ import {
 } from './exam-risk-rule-labels';
 import { ExamRiskRuleFormModal } from './components/ExamRiskRuleFormModal';
 import { ExamRiskRuleImportExportMenu } from './components/ExamRiskRuleImportExportMenu';
+import { ExamRiskRuleReferencesModal } from './components/ExamRiskRuleReferencesModal';
 import { ExamRiskRuleTable } from './components/ExamRiskRuleTable';
 
 const ALL = 'ALL';
@@ -59,6 +60,7 @@ export const ExamRiskRuleListPage: FC = () => {
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
   const [syncSummary, setSyncSummary] =
     useState<IExamRiskRuleNr07SyncSummary | null>(null);
+  const [referencesRuleId, setReferencesRuleId] = useState<string | null>(null);
 
   const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
     useTablePageLimit(undefined, persistKeys.LIMIT_EXAM_RISK_RULES);
@@ -105,6 +107,10 @@ export const ExamRiskRuleListPage: FC = () => {
       { onSuccess: () => setToDelete(null) },
     );
   };
+
+  // Deriva a regra do conjunto atual para refletir remoções após invalidação.
+  const referencesRule =
+    data?.data.find((rule) => rule.id === referencesRuleId) ?? null;
 
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
@@ -218,6 +224,7 @@ export const ExamRiskRuleListPage: FC = () => {
             onPageSizeChange={onPageSizeChange}
             onEdit={handleEdit}
             onDelete={setToDelete}
+            onManageReferences={(rule) => setReferencesRuleId(rule.id)}
           />
         </Paper>
       </Box>
@@ -226,6 +233,11 @@ export const ExamRiskRuleListPage: FC = () => {
         open={formOpen}
         rule={editing}
         onClose={() => setFormOpen(false)}
+      />
+
+      <ExamRiskRuleReferencesModal
+        rule={referencesRule}
+        onClose={() => setReferencesRuleId(null)}
       />
 
       <Dialog open={Boolean(toDelete)} onClose={() => setToDelete(null)}>
