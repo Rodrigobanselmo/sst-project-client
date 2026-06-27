@@ -32,6 +32,7 @@ import {
   esocialProcedureTypeLabels,
 } from './esocial-procedure-labels';
 import { EsocialProcedureFormModal } from './components/EsocialProcedureFormModal';
+import { EsocialProcedureImportExportMenu } from './components/EsocialProcedureImportExportMenu';
 import { EsocialProcedureTable } from './components/EsocialProcedureTable';
 
 const ALL = 'ALL';
@@ -89,16 +90,25 @@ export const EsocialProcedureListPage: FC = () => {
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
-        <Box>
-          <Typography variant="h5">
-            Curadoria SimpleSST — Procedimentos da Tabela 27 (eSocial)
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Camada de curadoria sobre os procedimentos oficiais da Tabela 27 do
-            eSocial. A Tabela 27 oficial é apenas leitura e permanece intocável;
-            aqui o MASTER classifica relevância ocupacional, tipo técnico,
-            status e observações para uso no PCMSO.
-          </Typography>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          gap={2}
+          flexWrap="wrap"
+        >
+          <Box>
+            <Typography variant="h5">
+              Curadoria SimpleSST — Procedimentos da Tabela 27 (eSocial)
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Camada de curadoria sobre os procedimentos oficiais da Tabela 27 do
+              eSocial. A Tabela 27 oficial é apenas leitura e permanece
+              intocável; aqui o MASTER classifica relevância ocupacional, tipo
+              técnico, status e observações para uso no PCMSO.
+            </Typography>
+          </Box>
+          <EsocialProcedureImportExportMenu />
         </Box>
 
         <Paper sx={{ p: 2 }}>

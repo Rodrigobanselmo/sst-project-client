@@ -67,3 +67,63 @@ export interface IUpsertEsocialProcedurePayload {
   technicalType?: EsocialProcedureTypeEnum | null;
   internalNotes?: string | null;
 }
+
+export type EsocialProcedureImportClassification =
+  | 'CREATE'
+  | 'UPDATE'
+  | 'UNCHANGED'
+  | 'REJECTED'
+  | 'CONFLICT'
+  | 'INVALID';
+
+export interface IEsocialProcedureRowError {
+  field: string;
+  message: string;
+}
+
+export interface IEsocialProcedureFieldChange {
+  field: string;
+  from: string;
+  to: string;
+}
+
+export interface IEsocialProcedurePreviewLine {
+  rowNumber: number;
+  classification: EsocialProcedureImportClassification;
+  procedureCode: string;
+  procedureNameSnapshot: string | null;
+  changedFields: string[];
+  fieldChanges: IEsocialProcedureFieldChange[];
+  errors: IEsocialProcedureRowError[];
+}
+
+export interface IEsocialProcedureImportTotals {
+  read: number;
+  valid: number;
+  create: number;
+  update: number;
+  unchanged: number;
+  rejected: number;
+  conflict: number;
+  invalid: number;
+}
+
+export interface IEsocialProcedureImportPreviewResult {
+  fileName: string;
+  totals: IEsocialProcedureImportTotals;
+  lines: IEsocialProcedurePreviewLine[];
+}
+
+export interface IEsocialProcedureImportApplyResult {
+  fileName: string;
+  applied: {
+    created: number;
+    updated: number;
+    unchanged: number;
+    rejected: number;
+    conflict: number;
+    invalid: number;
+  };
+  totals: IEsocialProcedureImportTotals;
+  affectedCodes: string[];
+}
