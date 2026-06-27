@@ -207,6 +207,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_EXAM_RISK_RULES,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.esocialProcedures]: {
+      text: 'Procedimentos eSocial (curadoria)',
+      description:
+        'Curadoria SimpleSST sobre procedimentos da Tabela 27 do eSocial (MASTER)',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_ESOCIAL_PROCEDURES,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.allCompaniesData]: {
       text: 'Empresas',
       description: 'Visualizar empresas cadastradas',
@@ -479,6 +487,9 @@ export const useDrawerItems = () => {
               items[DrawerItemsEnum.esocialTable27],
               ...(featureFlags.examRiskRuleLibrary
                 ? [items[DrawerItemsEnum.examRiskRules]]
+                : []),
+              ...(featureFlags.esocialProcedureCuration
+                ? [items[DrawerItemsEnum.esocialProcedures]]
                 : []),
             ],
           },
