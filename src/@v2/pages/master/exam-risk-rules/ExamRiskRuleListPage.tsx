@@ -111,12 +111,11 @@ export const ExamRiskRuleListPage: FC = () => {
       <Box display="flex" flexDirection="column" gap={2}>
         <Box display="flex" justifyContent="space-between" alignItems="flex-end">
           <Box>
-            <Typography variant="h5">
-              Biblioteca SimpleSST — Regras Exame × Risco
-            </Typography>
+            <Typography variant="h5">Biblioteca Exame × Risco</Typography>
             <Typography variant="body2" color="text.secondary">
-              Catálogo MASTER de regras técnicas que sugerem exames por risco,
-              grupo, categoria ou agente. Não aplica vínculos automaticamente.
+              Padrão SimpleSST de indicação de exames por fator de risco. Esta
+              biblioteca reúne as regras efetivamente elegíveis para uso técnico
+              do sistema.
             </Typography>
           </Box>
           <Box display="flex" gap={1}>

@@ -90,11 +90,12 @@ export const AcgihBeiComparisonListPage: FC = () => {
           flexWrap="wrap"
         >
           <Box>
-            <Typography variant="h5">ACGIH/BEI — Comparação técnica</Typography>
+            <Typography variant="h5">ACGIH/BEI × NR-7 × Regras</Typography>
             <Typography variant="body2" color="text.secondary">
-              Comparação diagnóstica (somente leitura) entre a base ACGIH/BEI e a
-              base NR-7 e a biblioteca Regras Exame × Risco. Nada é criado,
-              alterado ou aplicado: as ações abaixo são apenas sugestões.
+              Análise diagnóstica e somente leitura entre a base ACGIH/BEI, a base
+              NR-7 e a biblioteca Exame × Risco. Identifica itens já cobertos,
+              divergentes, candidatos novos e sugestões de fonte complementar, sem
+              criar ou alterar regras automaticamente.
             </Typography>
           </Box>
           <Button

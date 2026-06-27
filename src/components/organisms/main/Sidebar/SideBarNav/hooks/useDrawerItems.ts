@@ -183,10 +183,31 @@ export const useDrawerItems = () => {
       Icon: SDatabaseIcon,
       roles: [RoleEnum.MASTER],
     },
-    [DrawerItemsEnum.biologicalIndicators]: {
-      text: 'NR-07',
+    [DrawerItemsEnum.systemStandardsGroup]: {
+      text: 'Padrões do sistema',
       description:
-        'Curadoria normativa dos indicadores biológicos NR-07 Anexo I',
+        'Bases efetivamente usadas como padrão SimpleSST para uso técnico',
+      Icon: SDatabaseIcon,
+      roles: [RoleEnum.MASTER],
+    },
+    [DrawerItemsEnum.curationBasesGroup]: {
+      text: 'Bases de curadoria',
+      description:
+        'Fontes técnicas ou oficiais que servem como matéria-prima para os padrões',
+      Icon: SDatabaseIcon,
+      roles: [RoleEnum.MASTER],
+    },
+    [DrawerItemsEnum.eligibilityAnalysisGroup]: {
+      text: 'Análises de elegibilidade',
+      description:
+        'Telas que comparam fontes e ajudam a decidir o que vira padrão SimpleSST',
+      Icon: SDatabaseIcon,
+      roles: [RoleEnum.MASTER],
+    },
+    [DrawerItemsEnum.biologicalIndicators]: {
+      text: 'NR-7 — Indicadores biológicos',
+      description:
+        'Base normativa brasileira de indicadores biológicos (fonte de curadoria)',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS,
       roles: [RoleEnum.MASTER],
@@ -200,15 +221,15 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.examRiskRules]: {
-      text: 'Regras Exame × Risco',
+      text: 'Biblioteca Exame × Risco',
       description:
-        'Biblioteca SimpleSST de regras técnicas Exame × Risco (MASTER)',
+        'Padrão SimpleSST de indicação de exames por fator de risco (MASTER)',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE_EXAM_RISK_RULES,
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.esocialProcedures]: {
-      text: 'Procedimentos eSocial (curadoria)',
+      text: 'Tabela 27/eSocial — Procedimentos curados',
       description:
         'Curadoria SimpleSST sobre procedimentos da Tabela 27 do eSocial (MASTER)',
       Icon: SDatabaseIcon,
@@ -216,7 +237,7 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.acgihBeiIndicators]: {
-      text: 'ACGIH/BEI — Indicadores Biológicos',
+      text: 'ACGIH/BEI — Indicadores biológicos',
       description:
         'Base técnica de referência ACGIH/BEI de indicadores biológicos (MASTER)',
       Icon: SDatabaseIcon,
@@ -224,9 +245,9 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.acgihBeiComparison]: {
-      text: 'ACGIH/BEI — Comparação técnica',
+      text: 'ACGIH/BEI × NR-7 × Regras',
       description:
-        'Comparação diagnóstica (read-only) ACGIH/BEI × NR-7 × Regras Exame × Risco (MASTER)',
+        'Análise diagnóstica (read-only) entre ACGIH/BEI, NR-7 e a Biblioteca Exame × Risco (MASTER)',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE_ACGIH_BEI_COMPARISON,
       roles: [RoleEnum.MASTER],
@@ -496,25 +517,37 @@ export const useDrawerItems = () => {
         ...items[DrawerItemsEnum.importExportData],
         items: [
           items[DrawerItemsEnum.catalogEquivalences],
+          // Padrões do sistema → bases efetivamente usadas como padrão SimpleSST.
+          ...(featureFlags.examRiskRuleLibrary
+            ? [
+                {
+                  ...items[DrawerItemsEnum.systemStandardsGroup],
+                  items: [items[DrawerItemsEnum.examRiskRules]],
+                },
+              ]
+            : []),
+          // Bases de curadoria → fontes técnicas/oficiais (matéria-prima).
           {
-            ...items[DrawerItemsEnum.biologicalIndicatorsGroup],
+            ...items[DrawerItemsEnum.curationBasesGroup],
             items: [
               items[DrawerItemsEnum.biologicalIndicators],
-              items[DrawerItemsEnum.esocialTable27],
-              ...(featureFlags.examRiskRuleLibrary
-                ? [items[DrawerItemsEnum.examRiskRules]]
+              ...(featureFlags.acgihBeiIndicators
+                ? [items[DrawerItemsEnum.acgihBeiIndicators]]
                 : []),
               ...(featureFlags.esocialProcedureCuration
                 ? [items[DrawerItemsEnum.esocialProcedures]]
                 : []),
-              ...(featureFlags.acgihBeiIndicators
-                ? [items[DrawerItemsEnum.acgihBeiIndicators]]
-                : []),
-              ...(featureFlags.acgihBeiComparison
-                ? [items[DrawerItemsEnum.acgihBeiComparison]]
-                : []),
             ],
           },
+          // Análises de elegibilidade → comparações que apoiam a decisão de padrão.
+          ...(featureFlags.acgihBeiComparison
+            ? [
+                {
+                  ...items[DrawerItemsEnum.eligibilityAnalysisGroup],
+                  items: [items[DrawerItemsEnum.acgihBeiComparison]],
+                },
+              ]
+            : []),
         ],
       },
       items[DrawerItemsEnum.forms],

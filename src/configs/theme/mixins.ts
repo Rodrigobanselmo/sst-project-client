@@ -11,7 +11,7 @@ const customMixinsIndex = {
 
 const customMixinsSize = {
   closedSideBarWidth: '4rem',
-  openSideBarWidth: '16rem',
+  openSideBarWidth: '17.5rem',
 };
 
 const customMixins = { ...customMixinsSize, ...customMixinsIndex };

@@ -248,10 +248,11 @@ export const BiologicalIndicatorsListPage: FC = () => {
           gap={2}
         >
           <Box>
-            <Typography variant="h5">Indicadores Biológicos NR-07 — Anexo I</Typography>
+            <Typography variant="h5">NR-7 — Indicadores biológicos</Typography>
             <Typography variant="body2" color="text.secondary">
-              Curadoria normativa dos indicadores do Anexo I. Revise vínculos com riscos
-              químicos e exames complementares antes da ativação.
+              Base normativa brasileira de indicadores biológicos. Serve como
+              fonte primária para sincronização e curadoria técnica das regras de
+              exame.
             </Typography>
           </Box>
           <NormativeUpdateMenu />

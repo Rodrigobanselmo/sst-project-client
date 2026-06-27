@@ -99,13 +99,12 @@ export const AcgihBeiIndicatorListPage: FC = () => {
         >
           <Box>
             <Typography variant="h5">
-              ACGIH/BEI — Indicadores Biológicos
+              ACGIH/BEI — Indicadores biológicos
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Base técnica de referência interna (ACGIH/BEI). É isolada e aditiva:
-              não altera NR-7, Tabela 27/eSocial, XML, S-2220/S-2240, ExamToRisk,
-              empresas nem a biblioteca Regras Exame × Risco, e não é aplicada
-              automaticamente.
+              Base técnica de referência internacional ACGIH/BEI. Lista isolada e
+              curável; não altera NR-7, Tabela 27/eSocial, XML, S-2220/S-2240,
+              ExamToRisk, empresas nem a biblioteca Exame × Risco automaticamente.
             </Typography>
           </Box>
           <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">

@@ -99,13 +99,12 @@ export const EsocialProcedureListPage: FC = () => {
         >
           <Box>
             <Typography variant="h5">
-              Curadoria SimpleSST — Procedimentos da Tabela 27 (eSocial)
+              Tabela 27/eSocial — Procedimentos curados
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Camada de curadoria sobre os procedimentos oficiais da Tabela 27 do
-              eSocial. A Tabela 27 oficial é apenas leitura e permanece
-              intocável; aqui o MASTER classifica relevância ocupacional, tipo
-              técnico, status e observações para uso no PCMSO.
+              Curadoria da Tabela 27 do eSocial para identificar procedimentos
+              ocupacionais relevantes e sua classificação técnica. Esta base não
+              altera XML, S-2220/S-2240 ou empresas automaticamente.
             </Typography>
           </Box>
           <EsocialProcedureImportExportMenu />

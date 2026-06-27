@@ -70,7 +70,13 @@ export function NavLink({
             <LinkStyle
               py="0.45rem"
               px={8}
-              sx={deep === 1 ? { pl: isOpen ? 24 : 16 } : undefined}
+              sx={{
+                // Recuo por nível, aplicado apenas com a sidebar aberta para
+                // não afetar a sidebar recolhida (nível 1 = 1rem padrão do px=8;
+                // nível 2/isMenuPeer = 2rem; nível 3/deep = 3rem).
+                ...(isMenuPeer && isOpen && { pl: 16 }),
+                ...(deep === 1 && { pl: isOpen ? 24 : 16 }),
+              }}
               {...rest}
             >
               {(icon || deep) && (
