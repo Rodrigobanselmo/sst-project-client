@@ -113,7 +113,7 @@ export const AcgihBeiComparisonListPage: FC = () => {
             <Typography variant="h5">ACGIH/BEI × NR-7 × Regras</Typography>
             <Typography variant="body2" color="text.secondary">
               Análise diagnóstica e somente leitura entre a base ACGIH/BEI, a base
-              NR-7 e a biblioteca Exame × Risco. Identifica itens já cobertos,
+              NR-7 e a Biblioteca Risco × Exame. Identifica itens já cobertos,
               divergentes, candidatos novos e sugestões de fonte complementar, sem
               criar ou alterar regras automaticamente.
             </Typography>
@@ -136,7 +136,7 @@ export const AcgihBeiComparisonListPage: FC = () => {
                 onClick={() => router.push(RoutesEnum.DATABASE_EXAM_RISK_RULES)}
                 sx={{ px: 0 }}
               >
-                Abrir Biblioteca Exame × Risco
+                Abrir Biblioteca Risco × Exame
               </Button>
             </Box>
           </Box>

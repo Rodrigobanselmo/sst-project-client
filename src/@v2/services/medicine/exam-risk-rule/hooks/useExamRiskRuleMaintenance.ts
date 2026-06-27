@@ -41,7 +41,7 @@ export const useApplyExamRiskRuleImport = () => {
   return useMutate({
     mutationFn: (file: File) => applyExamRiskRuleImport(file),
     invalidateManyQueryKeys: () => [examRiskRuleQueryKeys.all()],
-    onSuccess: () => onSuccessMessage('Curadoria Exame × Risco aplicada'),
+    onSuccess: () => onSuccessMessage('Curadoria Risco × Exame aplicada'),
     onError: onErrorMessage,
   });
 };

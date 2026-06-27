@@ -205,7 +205,7 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {isEdit ? 'Editar regra Exame × Risco' : 'Nova regra Exame × Risco'}
+        {isEdit ? 'Editar regra Risco × Exame' : 'Nova regra Risco × Exame'}
       </DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2}>

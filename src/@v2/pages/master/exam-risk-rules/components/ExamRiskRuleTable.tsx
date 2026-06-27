@@ -72,6 +72,58 @@ const referenceLabel = (rule: IExamRiskRule): string => {
   }
 };
 
+/** Nomes legíveis dos exames vinculados (usa o snapshot persistido na regra). */
+const examDisplayName = (exam: IExamRiskRule['exams'][number]): string =>
+  exam.examNameSnapshot?.trim() || 'Exame sem nome';
+
+/**
+ * Célula da coluna Exames: 0 → "0" com tooltip; 1 → nome do exame; 2+ →
+ * contagem em chip com tooltip listando os nomes vinculados.
+ */
+const ExamsCell: FC<{ rule: IExamRiskRule }> = ({ rule }) => {
+  const exams = rule.exams ?? [];
+  const count = exams.length;
+
+  if (count === 0) {
+    return (
+      <Tooltip title="Nenhum exame vinculado.">
+        <span>
+          <STextRow text="0" color="text.secondary" />
+        </span>
+      </Tooltip>
+    );
+  }
+
+  if (count === 1) {
+    const name = examDisplayName(exams[0]);
+    return <STextRow text={name} tooltipMinLength={20} lineNumber={2} />;
+  }
+
+  const tooltip = (
+    <Box>
+      <Box component="span" sx={{ fontWeight: 600 }}>
+        Exames vinculados:
+      </Box>
+      {exams.map((exam, index) => (
+        <Box key={exam.id ?? index} component="div">
+          - {examDisplayName(exam)}
+        </Box>
+      ))}
+    </Box>
+  );
+
+  return (
+    <Tooltip title={tooltip}>
+      <Chip
+        size="small"
+        variant="outlined"
+        label={`${count} exames`}
+        sx={{ cursor: 'default' }}
+      />
+    </Tooltip>
+  );
+};
+
 export const ExamRiskRuleTable: FC<Props> = ({
   data,
   isLoading,
@@ -99,11 +151,9 @@ export const ExamRiskRuleTable: FC<Props> = ({
       ),
     },
     {
-      column: '120px',
-      header: <STableHRow justify="center">Exames</STableHRow>,
-      row: (row) => (
-        <STextRow text={String(row.exams?.length ?? 0)} justify="center" />
-      ),
+      column: 'minmax(160px, 0.8fr)',
+      header: <STableHRow>Exames</STableHRow>,
+      row: (row) => <ExamsCell rule={row} />,
     },
     {
       column: 'minmax(180px, 0.9fr)',

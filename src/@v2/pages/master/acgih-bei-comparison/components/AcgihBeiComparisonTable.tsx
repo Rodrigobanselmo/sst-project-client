@@ -129,7 +129,7 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
     },
     {
       column: 'minmax(160px, 1fr)',
-      header: <STableHRow>Match Biblioteca Exame × Risco</STableHRow>,
+      header: <STableHRow>Match Biblioteca Risco × Exame</STableHRow>,
       row: (row) => (
         <Box display="flex" flexDirection="column" gap={0.5}>
           <Chip

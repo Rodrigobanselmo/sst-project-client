@@ -114,7 +114,7 @@ export const ExamRiskRuleImportPreviewModal: FC<Props> = ({
       fullWidth
     >
       <DialogTitle>
-        Prévia da importação — biblioteca Regras Exame × Risco
+        Prévia da importação — Biblioteca Risco × Exame
         <Typography variant="body2" color="text.secondary">
           Prévia apenas leitura (dry-run). Nenhuma alteração é gravada. Só a
           biblioteca global é tocada — empresas, ExamToRisk e Tabela 27 oficial

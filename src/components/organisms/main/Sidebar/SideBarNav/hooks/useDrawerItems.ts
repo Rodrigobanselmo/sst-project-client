@@ -184,9 +184,9 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.systemStandardsGroup]: {
-      text: 'Padrões do sistema',
+      text: 'Risco × Exame',
       description:
-        'Bases efetivamente usadas como padrão SimpleSST para uso técnico',
+        'Padrão SimpleSST de indicação de exames a partir dos fatores de risco',
       Icon: SDatabaseIcon,
       roles: [RoleEnum.MASTER],
     },
@@ -221,15 +221,15 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.examRiskRules]: {
-      text: 'Biblioteca Exame × Risco',
+      text: 'Biblioteca do Sistema',
       description:
-        'Padrão SimpleSST de indicação de exames por fator de risco (MASTER)',
+        'Padrão SimpleSST de indicação de exames a partir dos fatores de risco (MASTER)',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE_EXAM_RISK_RULES,
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.esocialProcedures]: {
-      text: 'Tabela 27/eSocial — Procedimentos curados',
+      text: 'eSocial T-27 — Procedimentos curados',
       description:
         'Curadoria SimpleSST sobre procedimentos da Tabela 27 do eSocial (MASTER)',
       Icon: SDatabaseIcon,
@@ -245,9 +245,9 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.MASTER],
     },
     [DrawerItemsEnum.acgihBeiComparison]: {
-      text: 'ACGIH/BEI × NR-7 × Regras',
+      text: 'ACGIH/BEI × NR-7 × Biblioteca',
       description:
-        'Análise diagnóstica (read-only) entre ACGIH/BEI, NR-7 e a Biblioteca Exame × Risco (MASTER)',
+        'Análise diagnóstica (read-only) entre ACGIH/BEI, NR-7 e a Biblioteca Risco × Exame (MASTER)',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE_ACGIH_BEI_COMPARISON,
       roles: [RoleEnum.MASTER],

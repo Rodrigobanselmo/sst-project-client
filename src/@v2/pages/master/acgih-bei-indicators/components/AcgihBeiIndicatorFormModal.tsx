@@ -165,7 +165,7 @@ export const AcgihBeiIndicatorFormModal: FC<Props> = ({
         <Box display="flex" flexDirection="column" gap={2} mt={1}>
           <Alert severity="info">
             Base técnica de referência interna. Não é aplicada automaticamente em
-            empresas, exames, vínculos ou na biblioteca Regras Exame × Risco.
+            empresas, exames, vínculos ou na Biblioteca Risco × Exame.
           </Alert>
 
           <Box display="flex" gap={2} flexWrap="wrap">

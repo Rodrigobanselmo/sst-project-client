@@ -57,7 +57,7 @@ export const ExamRiskRuleApplyConfirmDialog: FC<Props> = ({
       maxWidth="sm"
       fullWidth
     >
-      <DialogTitle>Aplicar curadoria Exame × Risco</DialogTitle>
+      <DialogTitle>Aplicar curadoria Risco × Exame</DialogTitle>
       <DialogContent dividers>
         <Box display="flex" flexDirection="column" gap={2}>
           <Box display="flex" flexDirection="column" gap={0.5}>

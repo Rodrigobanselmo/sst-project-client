@@ -255,7 +255,7 @@ export const BiologicalIndicatorsListPage: FC = () => {
               Base normativa brasileira de indicadores biológicos. Serve como
               fonte primária para sincronização e curadoria técnica das regras de
               exame. As regras geradas a partir desta base aparecem na Biblioteca
-              Exame × Risco (via “Sincronizar NR-07”, naquela tela).
+              Risco × Exame (via “Sincronizar NR-07”, naquela tela).
             </Typography>
             <Button
               variant="text"
@@ -264,7 +264,7 @@ export const BiologicalIndicatorsListPage: FC = () => {
               onClick={() => router.push(RoutesEnum.DATABASE_EXAM_RISK_RULES)}
               sx={{ px: 0, mt: 0.5 }}
             >
-              Abrir Biblioteca Exame × Risco
+              Abrir Biblioteca Risco × Exame
             </Button>
           </Box>
           <NormativeUpdateMenu />

@@ -108,7 +108,7 @@ export const AcgihBeiIndicatorListPage: FC = () => {
             <Typography variant="body2" color="text.secondary">
               Base técnica de referência internacional ACGIH/BEI. Lista isolada e
               curável; não altera NR-7, Tabela 27/eSocial, XML, S-2220/S-2240,
-              ExamToRisk, empresas nem a biblioteca Exame × Risco automaticamente.
+              ExamToRisk, empresas nem a Biblioteca Risco × Exame automaticamente.
               A cobertura e as divergências em relação à NR-7 e às regras ficam na
               análise de elegibilidade.
             </Typography>

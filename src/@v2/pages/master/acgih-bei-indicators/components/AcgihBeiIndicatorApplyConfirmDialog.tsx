@@ -68,7 +68,7 @@ export const AcgihBeiIndicatorApplyConfirmDialog: FC<Props> = ({
           <Alert severity="info">
             A aplicação grava somente na base técnica ACGIH/BEI
             (PcmsoAcgihBeiIndicator). NR-7, Tabela 27/eSocial, XML, S-2220/S-2240,
-            ExamToRisk, empresas e a biblioteca Regras Exame × Risco não são
+            ExamToRisk, empresas e a Biblioteca Risco × Exame não são
             alterados.
           </Alert>
 
