@@ -1,5 +1,7 @@
 import { FC, useState } from 'react';
 
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import DownloadIcon from '@mui/icons-material/Download';
 import {
   Box,
@@ -9,6 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useRouter } from 'next/router';
 import { persistKeys } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useExportAcgihBeiComparison } from '@v2/services/medicine/acgih-bei-comparison/hooks/useAcgihBeiComparisonExport';
@@ -20,6 +23,7 @@ import {
 } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
 import { AcgihBeiIndicatorConfidenceEnum } from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.types';
 import { SAuthShow } from 'components/molecules/SAuthShow';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import {
@@ -44,6 +48,7 @@ const totalsConfig: Array<{
 ];
 
 export const AcgihBeiComparisonListPage: FC = () => {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [comparisonStatus, setComparisonStatus] = useState<
@@ -97,6 +102,28 @@ export const AcgihBeiComparisonListPage: FC = () => {
               divergentes, candidatos novos e sugestões de fonte complementar, sem
               criar ou alterar regras automaticamente.
             </Typography>
+            <Box display="flex" gap={2} flexWrap="wrap" mt={0.5}>
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={() =>
+                  router.push(RoutesEnum.DATABASE_ACGIH_BEI_INDICATORS)
+                }
+                sx={{ px: 0 }}
+              >
+                Voltar à base ACGIH/BEI
+              </Button>
+              <Button
+                variant="text"
+                size="small"
+                endIcon={<ArrowForwardIcon />}
+                onClick={() => router.push(RoutesEnum.DATABASE_EXAM_RISK_RULES)}
+                sx={{ px: 0 }}
+              >
+                Abrir Biblioteca Exame × Risco
+              </Button>
+            </Box>
           </Box>
           <Button
             variant="outlined"

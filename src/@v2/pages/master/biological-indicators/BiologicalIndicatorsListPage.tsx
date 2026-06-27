@@ -1,7 +1,9 @@
 import { FC, useMemo, useState } from 'react';
 
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
   Box,
+  Button,
   FormControl,
   InputLabel,
   MenuItem,
@@ -252,8 +254,18 @@ export const BiologicalIndicatorsListPage: FC = () => {
             <Typography variant="body2" color="text.secondary">
               Base normativa brasileira de indicadores biológicos. Serve como
               fonte primária para sincronização e curadoria técnica das regras de
-              exame.
+              exame. As regras geradas a partir desta base aparecem na Biblioteca
+              Exame × Risco (via “Sincronizar NR-07”, naquela tela).
             </Typography>
+            <Button
+              variant="text"
+              size="small"
+              endIcon={<ArrowForwardIcon />}
+              onClick={() => router.push(RoutesEnum.DATABASE_EXAM_RISK_RULES)}
+              sx={{ px: 0, mt: 0.5 }}
+            >
+              Abrir Biblioteca Exame × Risco
+            </Button>
           </Box>
           <NormativeUpdateMenu />
         </Box>

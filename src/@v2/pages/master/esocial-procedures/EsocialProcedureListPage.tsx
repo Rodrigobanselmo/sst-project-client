@@ -1,8 +1,10 @@
 import { FC, useState } from 'react';
 
 import {
+  Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -109,6 +111,16 @@ export const EsocialProcedureListPage: FC = () => {
           </Box>
           <EsocialProcedureImportExportMenu />
         </Box>
+
+        <Alert
+          severity="info"
+          icon={false}
+          sx={{ alignItems: 'center' }}
+          action={<Chip size="small" label="Em breve" />}
+        >
+          Próxima etapa: preparar elegibilidade por fator de risco — fluxo ainda
+          não implementado. Base curada para análise futura.
+        </Alert>
 
         <Paper sx={{ p: 2 }}>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2} alignItems="center">

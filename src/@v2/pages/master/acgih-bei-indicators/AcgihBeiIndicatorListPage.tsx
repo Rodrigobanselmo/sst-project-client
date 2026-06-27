@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import {
   Box,
   Button,
@@ -14,6 +15,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useRouter } from 'next/router';
 import { persistKeys } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useFetchBrowseAcgihBeiIndicators } from '@v2/services/medicine/acgih-bei-indicator/hooks/useFetchBrowseAcgihBeiIndicators';
@@ -24,6 +26,7 @@ import {
   IAcgihBeiIndicator,
 } from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.types';
 import { SAuthShow } from 'components/molecules/SAuthShow';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import {
@@ -37,6 +40,7 @@ import { AcgihBeiIndicatorTable } from './components/AcgihBeiIndicatorTable';
 const ALL = 'ALL';
 
 export const AcgihBeiIndicatorListPage: FC = () => {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [biologicalMatrix, setBiologicalMatrix] = useState('');
   const [page, setPage] = useState(1);
@@ -105,7 +109,20 @@ export const AcgihBeiIndicatorListPage: FC = () => {
               Base técnica de referência internacional ACGIH/BEI. Lista isolada e
               curável; não altera NR-7, Tabela 27/eSocial, XML, S-2220/S-2240,
               ExamToRisk, empresas nem a biblioteca Exame × Risco automaticamente.
+              A cobertura e as divergências em relação à NR-7 e às regras ficam na
+              análise de elegibilidade.
             </Typography>
+            <Button
+              variant="text"
+              size="small"
+              endIcon={<ArrowForwardIcon />}
+              onClick={() =>
+                router.push(RoutesEnum.DATABASE_ACGIH_BEI_COMPARISON)
+              }
+              sx={{ px: 0, mt: 0.5 }}
+            >
+              Ver análise de elegibilidade (ACGIH/BEI × NR-7 × Regras)
+            </Button>
           </Box>
           <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
             <AcgihBeiIndicatorImportExportMenu />
