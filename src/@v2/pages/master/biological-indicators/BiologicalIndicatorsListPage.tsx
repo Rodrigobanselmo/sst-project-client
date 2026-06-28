@@ -240,6 +240,18 @@ export const BiologicalIndicatorsListPage: FC = () => {
     setPage(1);
   };
 
+  // Preset rápido de curadoria: rascunhos (DRAFT) que ainda têm pendências.
+  const draftWithPendencyActive =
+    filters.status === 'DRAFT' && filters.hasPendency === 'true';
+
+  const toggleDraftWithPendency = () => {
+    if (draftWithPendencyActive) {
+      patchFilters({ status: '', hasPendency: '' });
+    } else {
+      patchFilters({ status: 'DRAFT', hasPendency: 'true' });
+    }
+  };
+
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
@@ -276,6 +288,15 @@ export const BiologicalIndicatorsListPage: FC = () => {
             onSearch={(search) => patchFilters({ search })}
           >
             <STableSearchContent>
+              <Button
+                size="small"
+                variant={draftWithPendencyActive ? 'contained' : 'outlined'}
+                color={draftWithPendencyActive ? 'warning' : 'inherit'}
+                onClick={toggleDraftWithPendency}
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                Rascunhos com pendência
+              </Button>
               <STableColumnsButton
                 showLabel
                 columns={biologicalIndicatorColumns}

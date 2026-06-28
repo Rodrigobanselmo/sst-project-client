@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
 
-import { Chip } from '@mui/material';
+import { Box, Chip, Tooltip } from '@mui/material';
 import { SIconSortArrowDown } from '@v2/assets/icons/SIconSortArrowDown/SIconSortArrowDown';
 import { SIconSortArrowUp } from '@v2/assets/icons/SIconSortArrowUp/SIconSortArrowUp';
 import { SIconUnfolderMore } from '@v2/assets/icons/SIconUnfolderMore/SIconUnfolderMore';
@@ -20,6 +20,7 @@ import {
   BIOLOGICAL_INDICATOR_STATUS_LABELS,
   BIOLOGICAL_INDICATOR_TABLE_LABELS,
   BIOLOGICAL_INDICATOR_TYPE_LABELS,
+  getPendencyMessage,
   getStatusChipColor,
 } from '../biological-indicator-labels.util';
 import {
@@ -84,6 +85,63 @@ const getConfirmedRiskLabel = (row: BiologicalIndicatorListItem) => {
 const getConfirmedExamLabel = (row: BiologicalIndicatorListItem) => {
   const confirmed = row.examLinks.find((link) => link.isConfirmed);
   return confirmed?.exam?.name ?? confirmed?.examNameSnapshot ?? '—';
+};
+
+/**
+ * Coluna Pendências: 0 → chip "OK"; 1+ → chip numérico (warning) com tooltip
+ * listando cada pendência em mensagem legível (row.pendencies já vem do backend).
+ */
+const PendenciesCell: FC<{ row: BiologicalIndicatorListItem }> = ({ row }) => {
+  if (!row.pendencies.length) {
+    return (
+      <STextRow
+        justify="center"
+        startAddon={
+          <Chip
+            size="small"
+            variant="filled"
+            color="success"
+            label="OK"
+            sx={{ fontWeight: 600 }}
+          />
+        }
+        text=""
+        lineNumber={1}
+      />
+    );
+  }
+
+  const tooltip = (
+    <Box>
+      <Box component="span" sx={{ fontWeight: 600 }}>
+        Pendências:
+      </Box>
+      {row.pendencies.map((item) => (
+        <Box key={item.code} component="div">
+          - {getPendencyMessage(item.code, item.message)}
+        </Box>
+      ))}
+    </Box>
+  );
+
+  return (
+    <STextRow
+      justify="center"
+      startAddon={
+        <Tooltip title={tooltip}>
+          <Chip
+            size="small"
+            variant="filled"
+            color="warning"
+            label={row.pendencies.length}
+            sx={{ fontWeight: 600, cursor: 'default' }}
+          />
+        </Tooltip>
+      }
+      text=""
+      lineNumber={1}
+    />
+  );
 };
 
 export const BiologicalIndicatorTable: FC<Props> = ({
@@ -239,32 +297,7 @@ export const BiologicalIndicatorTable: FC<Props> = ({
       column: '120px',
       hidden: isColumnHidden(hiddenColumns, BiologicalIndicatorColumnEnum.PENDENCIES),
       header: header(BiologicalIndicatorColumnEnum.PENDENCIES, 'center'),
-      row: (row) => (
-        <STextRow
-          justify="center"
-          startAddon={
-            row.pendencies.length ? (
-              <Chip
-                size="small"
-                variant="filled"
-                color="warning"
-                label={row.pendencies.length}
-                sx={{ fontWeight: 600 }}
-              />
-            ) : (
-              <Chip
-                size="small"
-                variant="filled"
-                color="success"
-                label="OK"
-                sx={{ fontWeight: 600 }}
-              />
-            )
-          }
-          text=""
-          lineNumber={1}
-        />
-      ),
+      row: (row) => <PendenciesCell row={row} />,
     },
   ];
 

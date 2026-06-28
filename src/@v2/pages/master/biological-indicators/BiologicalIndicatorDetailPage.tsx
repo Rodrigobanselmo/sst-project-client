@@ -1,7 +1,9 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 
 import CheckIcon from '@mui/icons-material/Check';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import {
   Alert,
   Box,
@@ -38,6 +40,7 @@ import {
   useMutateUpdateBiologicalIndicatorStatus,
 } from '@v2/services/medicine/biological-indicator/hooks/useMutateBiologicalIndicatorCuration';
 import type {
+  BiologicalIndicatorDetail,
   BiologicalIndicatorExamLink,
   BiologicalIndicatorRiskLink,
   ExamCandidate,
@@ -61,52 +64,113 @@ import {
   requiresNormativeReview,
 } from './biological-indicator-labels.util';
 
-const ACTIVATION_STEPS = [
-  'Confirmar o vínculo indicador → risco',
-  'Marcar risco principal, quando houver múltiplos confirmados',
-  'Vincular exame complementar no catálogo',
-  'Confirmar o vínculo indicador → exame',
-  'Marcar exame padrão entre os confirmados',
-  'Resolver revisão normativa/médica, quando exigida',
-  'Clicar em "Ativar indicador"',
-];
+type ActivationChecklistItem = {
+  label: string;
+  done: boolean;
+  /** Orientação exibida quando o passo está pendente. */
+  guidance?: string;
+};
 
-const ActivationSteps: FC = () => (
-  <Stack component="ol" spacing={1} sx={{ listStyle: 'none', m: 0, mb: 1.5, p: 0 }}>
-    {ACTIVATION_STEPS.map((step, index) => (
-      <Stack
-        key={step}
-        component="li"
-        direction="row"
-        spacing={1.5}
-        alignItems="flex-start"
-      >
-        <Box
-          sx={{
-            flexShrink: 0,
-            width: 22,
-            height: 22,
-            borderRadius: '50%',
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 12,
-            fontWeight: 600,
-            lineHeight: 1,
-            mt: '2px',
-          }}
+/**
+ * Deriva o checklist de ativação a partir do estado real do indicador.
+ * Reaproveita as pendências calculadas no backend (indicator.pendencies) — não
+ * altera a validação de ativação, apenas visualiza o que falta.
+ */
+const buildActivationChecklist = (
+  indicator: BiologicalIndicatorDetail,
+  reviewRequired: boolean,
+): ActivationChecklistItem[] => {
+  const codes = new Set(indicator.pendencies.map((item) => item.code));
+  const items: ActivationChecklistItem[] = [
+    {
+      label: 'Risco confirmado',
+      done: !codes.has('RISK_NOT_CONFIRMED'),
+      guidance: 'Confirme um fator de risco para permitir a ativação do indicador.',
+    },
+    {
+      label: 'Risco principal definido',
+      done: !codes.has('RISK_PRIMARY_REQUIRED'),
+      guidance:
+        'Marque um risco como principal quando houver mais de um risco confirmado.',
+    },
+    {
+      label: 'Exame confirmado',
+      done: !codes.has('EXAM_NOT_CONFIRMED'),
+      guidance: 'Vincule e confirme um exame do catálogo do sistema.',
+    },
+    {
+      label: 'Exame padrão definido',
+      done: !codes.has('EXAM_DEFAULT_REQUIRED'),
+      guidance:
+        'Marque um exame como padrão quando houver mais de um exame confirmado.',
+    },
+  ];
+
+  if (reviewRequired) {
+    items.push({
+      label: 'Revisão normativa/médica',
+      done: !codes.has('NORMATIVE_REVIEW_REQUIRED'),
+      guidance: 'Registre a revisão normativa/médica antes de ativar este indicador.',
+    });
+  }
+
+  items.push({
+    label: 'Indicador ativo',
+    done: indicator.status === 'ACTIVE',
+    guidance: 'Conclua os passos acima e clique em "Ativar indicador".',
+  });
+
+  return items;
+};
+
+const ActivationChecklist: FC<{
+  indicator: BiologicalIndicatorDetail;
+  reviewRequired: boolean;
+}> = ({ indicator, reviewRequired }) => {
+  const items = buildActivationChecklist(indicator, reviewRequired);
+
+  return (
+    <Stack component="ol" spacing={1} sx={{ listStyle: 'none', m: 0, mb: 1.5, p: 0 }}>
+      {items.map((item) => (
+        <Stack
+          key={item.label}
+          component="li"
+          direction="row"
+          spacing={1.5}
+          alignItems="flex-start"
         >
-          {index + 1}
-        </Box>
-        <Typography variant="body2" color="text.secondary">
-          {step}
-        </Typography>
-      </Stack>
-    ))}
-  </Stack>
-);
+          {item.done ? (
+            <CheckCircleIcon
+              sx={{ fontSize: 20, color: 'success.main', flexShrink: 0, mt: '2px' }}
+            />
+          ) : (
+            <RadioButtonUncheckedIcon
+              sx={{ fontSize: 20, color: 'warning.main', flexShrink: 0, mt: '2px' }}
+            />
+          )}
+          <Box>
+            <Typography
+              variant="body2"
+              color={item.done ? 'text.primary' : 'text.secondary'}
+              sx={{
+                fontWeight: item.done ? 500 : 400,
+                textDecoration: item.done ? 'none' : 'none',
+              }}
+            >
+              {item.label}
+              {item.done ? ' — concluído' : ' — pendente'}
+            </Typography>
+            {!item.done && item.guidance && (
+              <Typography variant="caption" color="text.secondary">
+                {item.guidance}
+              </Typography>
+            )}
+          </Box>
+        </Stack>
+      ))}
+    </Stack>
+  );
+};
 
 type Props = {
   indicatorId: string;
@@ -573,7 +637,10 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
             O indicador permanece em <strong>Rascunho</strong> até concluir todos os passos e
             clicar em &quot;Ativar indicador&quot;. Somente então passa para <strong>Ativo</strong>.
           </Typography>
-          <ActivationSteps />
+          <ActivationChecklist
+            indicator={indicator}
+            reviewRequired={reviewRequired}
+          />
           <Stack
             direction="row"
             justifyContent="space-between"

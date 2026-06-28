@@ -10,9 +10,15 @@ import { STableHeader } from '@v2/components/organisms/STable/common/STableHeade
 import { STableHRow } from '@v2/components/organisms/STable/common/STableHRow/STableHRow';
 import { STableRow } from '@v2/components/organisms/STable/common/STableRow/STableRow';
 import type { IExamRiskRule } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
-import { ExamRiskRuleScopeEnum } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
+import {
+  ExamRiskRuleScopeEnum,
+  ExamRiskRuleSourceEnum,
+} from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import LaunchIcon from '@mui/icons-material/Launch';
+import { useRouter } from 'next/router';
+import { RoutesEnum } from 'core/enums/routes.enums';
 
 import {
   examRiskRuleCategoryLabels,
@@ -135,6 +141,8 @@ export const ExamRiskRuleTable: FC<Props> = ({
   onDelete,
   onManageReferences,
 }) => {
+  const router = useRouter();
+
   const tableData: ITableData<IExamRiskRule>[] = [
     {
       column: '150px',
@@ -166,6 +174,21 @@ export const ExamRiskRuleTable: FC<Props> = ({
               text={examRiskRuleSourceLabels[row.source]}
               lineNumber={1}
             />
+            {row.source === ExamRiskRuleSourceEnum.NR_07 &&
+              row.sourceIndicatorId && (
+                <Tooltip title="Abrir indicador NR-7 de origem">
+                  <IconButton
+                    size="small"
+                    onClick={() =>
+                      router.push(
+                        `${RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}/${row.sourceIndicatorId}`,
+                      )
+                    }
+                  >
+                    <LaunchIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
             {row.isCurated && (
               <Tooltip title="Regra editada manualmente (não sobrescrita pelo sync)">
                 <Chip size="small" color="info" label="Curada" />
