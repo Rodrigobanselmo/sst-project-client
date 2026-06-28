@@ -6,6 +6,7 @@ import type {
   IApplyAcgihReferenceResponse,
   IBrowseAcgihBeiComparisonParams,
   IBrowseAcgihBeiComparisonResponse,
+  IComparisonAiSuggestionResponse,
   IRemoveComparisonReviewResponse,
   IUpsertComparisonReviewPayload,
   IUpsertComparisonReviewResponse,
@@ -55,6 +56,19 @@ export async function removeComparisonReview(
 ): Promise<IRemoveComparisonReviewResponse> {
   const response = await api.delete<IRemoveComparisonReviewResponse>(
     AcgihBeiComparisonRoutes.REVIEW_BY_ID(acgihBeiIndicatorId),
+  );
+  return response.data;
+}
+
+/**
+ * 4O.2 — solicita sugestão de decisão técnica assistida por IA para a linha. A
+ * sugestão é apenas um rascunho; nada é gravado até o humano salvar (4O.1).
+ */
+export async function getComparisonAiSuggestion(
+  acgihBeiIndicatorId: string,
+): Promise<IComparisonAiSuggestionResponse> {
+  const response = await api.post<IComparisonAiSuggestionResponse>(
+    AcgihBeiComparisonRoutes.REVIEW_AI_SUGGESTION(acgihBeiIndicatorId),
   );
   return response.data;
 }

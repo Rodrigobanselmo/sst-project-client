@@ -159,3 +159,14 @@ export interface IRemoveComparisonReviewResponse {
   acgihBeiIndicatorId: string;
   removed: boolean;
 }
+
+/** 4O.2 — sugestão de decisão técnica assistida por IA (rascunho, não gravada). */
+export interface IComparisonAiSuggestionResponse {
+  decisionSuggestion: AcgihBeiComparisonDecisionEnum;
+  confidence: 'low' | 'medium' | 'high';
+  rationale: string;
+  matchedFields: string[];
+  divergentFields: string[];
+  suggestedTechnicalNote: string;
+  warnings: string[];
+}

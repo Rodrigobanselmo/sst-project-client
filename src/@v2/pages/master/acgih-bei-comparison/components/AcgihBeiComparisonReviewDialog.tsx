@@ -1,21 +1,27 @@
 import { FC, useEffect, useState } from 'react';
 
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import {
   Alert,
   Box,
   Button,
+  Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   MenuItem,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+import { useMutateComparisonAiSuggestion } from '@v2/services/medicine/acgih-bei-comparison/hooks/useMutateComparisonReview';
 import {
   AcgihBeiComparisonDecisionEnum,
   IAcgihBeiComparisonRow,
+  IComparisonAiSuggestionResponse,
 } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
 
 import {
@@ -23,6 +29,21 @@ import {
   comparisonDecisionLabels,
   comparisonStatusLabels,
 } from '../acgih-bei-comparison-labels';
+
+const confidenceLabels: Record<'low' | 'medium' | 'high', string> = {
+  low: 'baixa',
+  medium: 'média',
+  high: 'alta',
+};
+
+const confidenceColors: Record<
+  'low' | 'medium' | 'high',
+  'error' | 'warning' | 'success'
+> = {
+  low: 'error',
+  medium: 'warning',
+  high: 'success',
+};
 
 type Props = {
   row: IAcgihBeiComparisonRow | null;
@@ -47,13 +68,29 @@ export const AcgihBeiComparisonReviewDialog: FC<Props> = ({
     '',
   );
   const [note, setNote] = useState('');
+  const [aiSuggestion, setAiSuggestion] =
+    useState<IComparisonAiSuggestionResponse | null>(null);
+  const aiMutation = useMutateComparisonAiSuggestion();
 
   useEffect(() => {
     if (row) {
       setDecision(row.review?.decision ?? '');
       setNote(row.review?.technicalNote ?? '');
+      setAiSuggestion(null);
     }
   }, [row]);
+
+  const handleAnalyzeWithAi = () => {
+    if (!row || aiMutation.isPending) return;
+    aiMutation.mutate(row.acgihBeiId, {
+      onSuccess: (data) => {
+        setAiSuggestion(data);
+        // Preenche apenas como RASCUNHO editável; nada é gravado aqui.
+        setDecision(data.decisionSuggestion);
+        setNote(data.suggestedTechnicalNote);
+      },
+    });
+  };
 
   const noteTrimmed = note.trim();
   const canSave = Boolean(decision) && noteTrimmed.length > 0 && !isSaving;
@@ -103,6 +140,90 @@ export const AcgihBeiComparisonReviewDialog: FC<Props> = ({
             nem as bases NR-7, ACGIH/BEI, Biblioteca, fonte complementar, regras
             ou status.
           </Alert>
+
+          <Box>
+            <Button
+              variant="outlined"
+              color="secondary"
+              size="small"
+              startIcon={
+                aiMutation.isPending ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <AutoAwesomeIcon />
+                )
+              }
+              disabled={aiMutation.isPending || isSaving}
+              onClick={handleAnalyzeWithAi}
+            >
+              {aiMutation.isPending ? 'Analisando…' : 'Analisar com IA'}
+            </Button>
+          </Box>
+
+          {aiSuggestion && (
+            <>
+              <Divider />
+              <Box>
+                <Box
+                  display="flex"
+                  gap={1}
+                  alignItems="center"
+                  flexWrap="wrap"
+                  mb={0.5}
+                >
+                  <Typography variant="subtitle2">Sugestão da IA</Typography>
+                  <Chip
+                    size="small"
+                    color={confidenceColors[aiSuggestion.confidence]}
+                    label={`Confiança da sugestão: ${
+                      confidenceLabels[aiSuggestion.confidence]
+                    }`}
+                  />
+                </Box>
+                <Alert severity="warning" sx={{ mb: 1 }}>
+                  Sugestão assistida por IA; requer validação técnica humana.
+                </Alert>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>
+                    {comparisonDecisionLabels[aiSuggestion.decisionSuggestion]}
+                  </strong>{' '}
+                  — {aiSuggestion.rationale}
+                </Typography>
+                {(aiSuggestion.matchedFields.length > 0 ||
+                  aiSuggestion.divergentFields.length > 0) && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                  >
+                    {aiSuggestion.matchedFields.length > 0 &&
+                      `Coincidem: ${aiSuggestion.matchedFields.join(', ')}. `}
+                    {aiSuggestion.divergentFields.length > 0 &&
+                      `Divergem: ${aiSuggestion.divergentFields.join(', ')}.`}
+                  </Typography>
+                )}
+                {aiSuggestion.warnings.length > 0 && (
+                  <Typography
+                    variant="caption"
+                    color="warning.main"
+                    display="block"
+                    sx={{ mt: 0.5 }}
+                  >
+                    {aiSuggestion.warnings.join(' ')}
+                  </Typography>
+                )}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  display="block"
+                  sx={{ mt: 0.5 }}
+                >
+                  A decisão e a nota abaixo foram pré-preenchidas como rascunho;
+                  revise e edite antes de salvar.
+                </Typography>
+              </Box>
+            </>
+          )}
 
           {row && (
             <Box>

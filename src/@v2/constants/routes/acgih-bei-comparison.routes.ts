@@ -5,4 +5,6 @@ export const AcgihBeiComparisonRoutes = {
   REVIEWS: '/v2/master/acgih-bei-comparison/reviews',
   REVIEW_BY_ID: (acgihBeiIndicatorId: string) =>
     `/v2/master/acgih-bei-comparison/reviews/${acgihBeiIndicatorId}`,
+  REVIEW_AI_SUGGESTION: (acgihBeiIndicatorId: string) =>
+    `/v2/master/acgih-bei-comparison/reviews/${acgihBeiIndicatorId}/ai-suggestion`,
 } as const;

@@ -2,6 +2,7 @@ import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
 
 import {
+  getComparisonAiSuggestion,
   removeComparisonReview,
   upsertComparisonReview,
 } from '../service/acgih-bei-comparison.service';
@@ -34,6 +35,19 @@ export const useMutateRemoveComparisonReview = () => {
     mutationFn: removeComparisonReview,
     invalidateManyQueryKeys: () => [acgihBeiComparisonQueryKeys.all()],
     onSuccess: () => onSuccessMessage('Decisão técnica removida.'),
+    onError: onErrorMessage,
+  });
+};
+
+/**
+ * 4O.2 — solicita sugestão de IA (rascunho). Não invalida queries nem grava
+ * nada; o resultado apenas pré-popula o modal para revisão humana.
+ */
+export const useMutateComparisonAiSuggestion = () => {
+  const { onErrorMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: getComparisonAiSuggestion,
+    invalidateQueryKey: false,
     onError: onErrorMessage,
   });
 };
