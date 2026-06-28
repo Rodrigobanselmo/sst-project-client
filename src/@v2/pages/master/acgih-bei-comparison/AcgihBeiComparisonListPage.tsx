@@ -9,6 +9,7 @@ import {
   MenuItem,
   Paper,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useRouter } from 'next/router';
@@ -99,6 +100,94 @@ export const AcgihBeiComparisonListPage: FC = () => {
     );
   };
 
+  // 4L.1b — filtros rápidos reaproveitando os filtros server-side existentes
+  // (comparisonStatus, suggestedAction, confidence). Não quebram paginação/contagem.
+  const toggleComparisonStatus = (value: AcgihBeiComparisonStatusEnum) => {
+    setComparisonStatus((prev) => (prev === value ? ALL : value));
+    setPage(1);
+  };
+
+  const toggleLowConfidence = () => {
+    setConfidence((prev) =>
+      prev === AcgihBeiIndicatorConfidenceEnum.LOW
+        ? ALL
+        : AcgihBeiIndicatorConfidenceEnum.LOW,
+    );
+    setPage(1);
+  };
+
+  const toggleEligibleReference = () => {
+    setSuggestedAction((prev) =>
+      prev === AcgihBeiSuggestedActionEnum.ADD_REFERENCE_ONLY
+        ? ALL
+        : AcgihBeiSuggestedActionEnum.ADD_REFERENCE_ONLY,
+    );
+    setPage(1);
+  };
+
+  const quickFilters: Array<{
+    key: string;
+    label: string;
+    active: boolean;
+    color: 'warning' | 'error' | 'info' | 'success' | 'primary';
+    tooltip: string;
+    onToggle: () => void;
+  }> = [
+    {
+      key: 'low',
+      label: 'Baixa confiança',
+      active: confidence === AcgihBeiIndicatorConfidenceEnum.LOW,
+      color: 'error',
+      tooltip: 'Transcrição ACGIH/BEI com baixa confiança; revisar fonte antes de usar.',
+      onToggle: toggleLowConfidence,
+    },
+    {
+      key: 'divergent',
+      label: 'Divergentes',
+      active: comparisonStatus === AcgihBeiComparisonStatusEnum.DIVERGENT,
+      color: 'warning',
+      tooltip: 'Divergência técnica relevante entre ACGIH/BEI e NR-7/Biblioteca.',
+      onToggle: () =>
+        toggleComparisonStatus(AcgihBeiComparisonStatusEnum.DIVERGENT),
+    },
+    {
+      key: 'review',
+      label: 'Requer revisão',
+      active: comparisonStatus === AcgihBeiComparisonStatusEnum.NEEDS_REVIEW,
+      color: 'info',
+      tooltip: 'Correspondência parcial ou ambígua; revisar antes de decidir.',
+      onToggle: () =>
+        toggleComparisonStatus(AcgihBeiComparisonStatusEnum.NEEDS_REVIEW),
+    },
+    {
+      key: 'candidate',
+      label: 'Candidatos novos',
+      active: comparisonStatus === AcgihBeiComparisonStatusEnum.NEW_CANDIDATE,
+      color: 'primary',
+      tooltip: 'Sem equivalência clara; possível candidato para fase futura.',
+      onToggle: () =>
+        toggleComparisonStatus(AcgihBeiComparisonStatusEnum.NEW_CANDIDATE),
+    },
+    {
+      key: 'covered',
+      label: 'Já cobertos',
+      active: comparisonStatus === AcgihBeiComparisonStatusEnum.ALREADY_COVERED,
+      color: 'success',
+      tooltip: 'ACGIH/BEI confirma item já coberto pela NR-7/Biblioteca.',
+      onToggle: () =>
+        toggleComparisonStatus(AcgihBeiComparisonStatusEnum.ALREADY_COVERED),
+    },
+    {
+      key: 'eligible',
+      label: 'Elegíveis p/ fonte complementar',
+      active: suggestedAction === AcgihBeiSuggestedActionEnum.ADD_REFERENCE_ONLY,
+      color: 'success',
+      tooltip:
+        'Itens com sugestão de fonte complementar. A elegibilidade final ainda exige uma regra vinculada (o botão Adicionar permanece desabilitado quando não houver regra).',
+      onToggle: toggleEligibleReference,
+    },
+  ];
+
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
@@ -167,6 +256,25 @@ export const AcgihBeiComparisonListPage: FC = () => {
         </Box>
 
         <Paper sx={{ p: 2 }}>
+          <Box display="flex" gap={1} flexWrap="wrap" mb={2} alignItems="center">
+            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+              Filtros rápidos:
+            </Typography>
+            {quickFilters.map((filter) => (
+              <Tooltip key={filter.key} title={filter.tooltip}>
+                <Button
+                  size="small"
+                  variant={filter.active ? 'contained' : 'outlined'}
+                  color={filter.active ? filter.color : 'inherit'}
+                  onClick={filter.onToggle}
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
+                  {filter.label}
+                </Button>
+              </Tooltip>
+            ))}
+          </Box>
+
           <Box display="flex" gap={2} flexWrap="wrap" mb={2} alignItems="center">
             <TextField
               label="Buscar (substância, CAS ou determinante)"

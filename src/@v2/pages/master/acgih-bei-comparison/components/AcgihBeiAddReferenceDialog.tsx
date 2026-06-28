@@ -4,17 +4,21 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   Divider,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { examRiskRuleSourceLabels } from '@v2/pages/master/exam-risk-rules/exam-risk-rule-labels';
 import type { IAcgihBeiComparisonRow } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
 import { ExamRiskRuleSourceEnum } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
+
+import { getComparisonReadiness } from '../acgih-bei-comparison-readiness';
 
 type Props = {
   row: IAcgihBeiComparisonRow | null;
@@ -81,8 +85,39 @@ export const AcgihBeiAddReferenceDialog: FC<Props> = ({
               label="Origem principal da regra (não será alterada)"
               value={sourceLabel(row.examRiskRuleSource)}
             />
+
+            {(() => {
+              const chips = getComparisonReadiness(row);
+              if (!chips.length) return null;
+              return (
+                <Box display="flex" flexDirection="column" gap={0.5}>
+                  <Typography variant="caption" color="text.secondary">
+                    Contexto/readiness
+                  </Typography>
+                  <Box display="flex" gap={0.5} flexWrap="wrap">
+                    {chips.map((chip) => (
+                      <Tooltip key={chip.key} title={chip.tooltip ?? ''}>
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          color={chip.color}
+                          label={chip.label}
+                          sx={{ cursor: 'default' }}
+                        />
+                      </Tooltip>
+                    ))}
+                  </Box>
+                </Box>
+              );
+            })()}
           </Box>
         )}
+
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          Antes de registrar a ACGIH/BEI como fonte complementar, confirme se o
+          item ACGIH/BEI está revisado/curado e se não há pendências relevantes
+          na base NR-7 ou na regra da Biblioteca.
+        </Alert>
 
         <Alert severity="info" sx={{ mt: 2 }}>
           Não será criada nova regra. Não haverá alteração em empresas, exames,

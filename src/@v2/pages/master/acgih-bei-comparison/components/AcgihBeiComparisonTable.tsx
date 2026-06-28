@@ -1,8 +1,12 @@
 import { FC } from 'react';
 
 import AddLinkIcon from '@mui/icons-material/AddLink';
+import BiotechIcon from '@mui/icons-material/Biotech';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { Box, Button, Chip, Tooltip } from '@mui/material';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import ScienceIcon from '@mui/icons-material/Science';
+import { Box, Button, Chip, IconButton, Tooltip } from '@mui/material';
+import { useRouter } from 'next/router';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '@v2/components/organisms/STable/addons/addons-table/STablePagination/STablePagination';
 import { STable } from '@v2/components/organisms/STable/common/STable/STable';
@@ -20,14 +24,24 @@ import {
   AcgihBeiSuggestedActionEnum,
   IAcgihBeiComparisonRow,
 } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
+import { RoutesEnum } from 'core/enums/routes.enums';
 
 import {
+  comparisonNextStep,
   comparisonStatusColors,
+  comparisonStatusExplanations,
   comparisonStatusLabels,
   matchStatusColors,
   matchStatusLabels,
+  ruleMatchMethodLabels,
+  ruleMatchMethodTooltips,
+  suggestedActionExplanations,
   suggestedActionLabels,
 } from '../acgih-bei-comparison-labels';
+import {
+  getComparisonReadiness,
+  parseTechnicalDiff,
+} from '../acgih-bei-comparison-readiness';
 
 type Props = {
   data: IAcgihBeiComparisonRow[];
@@ -46,6 +60,29 @@ export const isEligibleForReference = (row: IAcgihBeiComparisonRow): boolean =>
   row.suggestedAction === AcgihBeiSuggestedActionEnum.ADD_REFERENCE_ONLY &&
   Boolean(row.examRiskRuleId);
 
+/** Coluna de readiness: chips de contexto das três bases (4L.1b). */
+const ReadinessCell: FC<{ row: IAcgihBeiComparisonRow }> = ({ row }) => {
+  const chips = getComparisonReadiness(row);
+  if (!chips.length) {
+    return <STextRow text="—" color="text.secondary" />;
+  }
+  return (
+    <Box display="flex" flexDirection="column" gap={0.5}>
+      {chips.map((chip) => (
+        <Tooltip key={chip.key} title={chip.tooltip ?? ''}>
+          <Chip
+            size="small"
+            variant="outlined"
+            color={chip.color}
+            label={chip.label}
+            sx={{ cursor: 'default', justifyContent: 'flex-start' }}
+          />
+        </Tooltip>
+      ))}
+    </Box>
+  );
+};
+
 export const AcgihBeiComparisonTable: FC<Props> = ({
   data,
   isLoading,
@@ -56,6 +93,8 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
   onAddReference,
   applyingId,
 }) => {
+  const router = useRouter();
+
   const tableData: ITableData<IAcgihBeiComparisonRow>[] = [
     {
       column: 'minmax(200px, 1.2fr)',
@@ -130,69 +169,127 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
     {
       column: 'minmax(160px, 1fr)',
       header: <STableHRow>Match Biblioteca Risco × Exame</STableHRow>,
-      row: (row) => (
-        <Box display="flex" flexDirection="column" gap={0.5}>
-          <Chip
-            size="small"
-            variant="outlined"
-            color={matchStatusColors[row.examRiskRuleMatchStatus]}
-            label={matchStatusLabels[row.examRiskRuleMatchStatus]}
-          />
-          {row.examNameSnapshot && (
-            <STextRow
-              text={row.examNameSnapshot}
-              fontSize={11}
-              color="text.secondary"
-              lineNumber={2}
-            />
-          )}
-        </Box>
-      ),
+      row: (row) => {
+        const method =
+          row.ruleMatchMethod === 'VIA_NR7' ||
+          row.ruleMatchMethod === 'VIA_AGENT'
+            ? row.ruleMatchMethod
+            : null;
+        return (
+          <Box display="flex" flexDirection="column" gap={0.5}>
+            <Box display="flex" gap={0.5} flexWrap="wrap" alignItems="center">
+              <Chip
+                size="small"
+                variant="outlined"
+                color={matchStatusColors[row.examRiskRuleMatchStatus]}
+                label={matchStatusLabels[row.examRiskRuleMatchStatus]}
+              />
+              {method && (
+                <Tooltip title={ruleMatchMethodTooltips[method]}>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={method === 'VIA_NR7' ? 'info' : 'default'}
+                    label={ruleMatchMethodLabels[method]}
+                    sx={{ cursor: 'default' }}
+                  />
+                </Tooltip>
+              )}
+            </Box>
+            {row.examNameSnapshot && (
+              <STextRow
+                text={row.examNameSnapshot}
+                fontSize={11}
+                color="text.secondary"
+                lineNumber={2}
+              />
+            )}
+          </Box>
+        );
+      },
     },
     {
-      column: 'minmax(220px, 1.4fr)',
+      column: 'minmax(240px, 1.5fr)',
       header: <STableHRow>Classificação / Diferenças</STableHRow>,
-      row: (row) => (
-        <Box display="flex" flexDirection="column" gap={0.5}>
-          <Box display="flex" gap={0.5} flexWrap="wrap">
-            <Chip
-              size="small"
-              color={comparisonStatusColors[row.comparisonStatus]}
-              label={comparisonStatusLabels[row.comparisonStatus]}
-            />
-          </Box>
-          {row.technicalDiff && (
-            <Tooltip title={row.technicalDiff}>
-              <span>
-                <STextRow
-                  text={row.technicalDiff}
-                  fontSize={11}
-                  color="text.secondary"
-                  lineNumber={2}
+      row: (row) => {
+        const diffParts = parseTechnicalDiff(row.technicalDiff);
+        return (
+          <Box display="flex" flexDirection="column" gap={0.5}>
+            <Box display="flex" gap={0.5} flexWrap="wrap">
+              <Tooltip title={comparisonStatusExplanations[row.comparisonStatus]}>
+                <Chip
+                  size="small"
+                  color={comparisonStatusColors[row.comparisonStatus]}
+                  label={comparisonStatusLabels[row.comparisonStatus]}
+                  sx={{ cursor: 'default' }}
                 />
-              </span>
-            </Tooltip>
-          )}
-          {row.reviewNotes && (
+              </Tooltip>
+            </Box>
+            {diffParts.length > 0 && (
+              <Box display="flex" flexDirection="column" gap={0.25}>
+                {diffParts.map((part) => (
+                  <Tooltip key={part.key} title={part.detail}>
+                    <Box display="flex" gap={0.5} alignItems="baseline">
+                      <Box
+                        component="span"
+                        sx={{ fontSize: 11, fontWeight: 600, color: 'text.secondary' }}
+                      >
+                        {part.label}:
+                      </Box>
+                      <Box
+                        component="span"
+                        sx={{
+                          fontSize: 11,
+                          color: 'text.secondary',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          maxWidth: 200,
+                        }}
+                      >
+                        {part.detail}
+                      </Box>
+                    </Box>
+                  </Tooltip>
+                ))}
+              </Box>
+            )}
+            {row.reviewNotes && (
+              <STextRow
+                text={row.reviewNotes}
+                fontSize={11}
+                color="text.secondary"
+                lineNumber={2}
+              />
+            )}
             <STextRow
-              text={row.reviewNotes}
+              text={comparisonNextStep[row.comparisonStatus]}
               fontSize={11}
-              color="text.secondary"
+              color="primary.main"
               lineNumber={2}
             />
-          )}
-        </Box>
-      ),
+          </Box>
+        );
+      },
     },
     {
       column: 'minmax(170px, 1fr)',
       header: <STableHRow>Ação sugerida</STableHRow>,
       row: (row) => (
-        <STextRow
-          text={suggestedActionLabels[row.suggestedAction]}
-          lineNumber={2}
-        />
+        <Tooltip title={suggestedActionExplanations[row.suggestedAction]}>
+          <span>
+            <STextRow
+              text={suggestedActionLabels[row.suggestedAction]}
+              lineNumber={2}
+            />
+          </span>
+        </Tooltip>
       ),
+    },
+    {
+      column: 'minmax(170px, 1fr)',
+      header: <STableHRow>Contexto / Readiness</STableHRow>,
+      row: (row) => <ReadinessCell row={row} />,
     },
     {
       column: '210px',
@@ -238,6 +335,62 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
           </Box>
         );
       },
+    },
+    {
+      column: '130px',
+      header: <STableHRow justify="center">Abrir</STableHRow>,
+      row: (row) => (
+        <Box display="flex" justifyContent="center" gap={0.5} width="100%">
+          <Tooltip
+            title={
+              row.nr7IndicatorId
+                ? 'Abrir indicador NR-7 de origem'
+                : 'Sem indicador NR-7 relacionado'
+            }
+          >
+            <span>
+              <IconButton
+                size="small"
+                disabled={!row.nr7IndicatorId}
+                onClick={() =>
+                  router.push(
+                    `${RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}/${row.nr7IndicatorId}`,
+                  )
+                }
+              >
+                <BiotechIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Abrir base ACGIH/BEI">
+            <IconButton
+              size="small"
+              onClick={() =>
+                router.push(RoutesEnum.DATABASE_ACGIH_BEI_INDICATORS)
+              }
+            >
+              <ScienceIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip
+            title={
+              row.examRiskRuleId
+                ? 'Abrir Biblioteca Risco × Exame'
+                : 'Sem regra relacionada na Biblioteca'
+            }
+          >
+            <span>
+              <IconButton
+                size="small"
+                disabled={!row.examRiskRuleId}
+                onClick={() => router.push(RoutesEnum.DATABASE_EXAM_RISK_RULES)}
+              >
+                <MenuBookIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Box>
+      ),
     },
   ];
 

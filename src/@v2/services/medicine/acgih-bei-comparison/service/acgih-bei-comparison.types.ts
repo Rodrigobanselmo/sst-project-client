@@ -1,4 +1,7 @@
-import { AcgihBeiIndicatorConfidenceEnum } from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.types';
+import {
+  AcgihBeiIndicatorConfidenceEnum,
+  AcgihBeiIndicatorStatusEnum,
+} from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.types';
 
 export enum AcgihBeiComparisonStatusEnum {
   ALREADY_COVERED = 'ALREADY_COVERED',
@@ -45,6 +48,16 @@ export interface IAcgihBeiComparisonRow {
   suggestedAction: AcgihBeiSuggestedActionEnum;
   technicalDiff: string;
   reviewNotes: string;
+  // 4L.1a — contexto de curadoria/readiness (read-only).
+  acgihBeiStatus?: AcgihBeiIndicatorStatusEnum | string | null;
+  acgihBeiIsCurated?: boolean | null;
+  acgihBeiSourceYear?: number | null;
+  acgihBeiSourcePage?: string | null;
+  nr7Status?: string | null;
+  nr7PendencyCount?: number | null;
+  nr7PendencyCodes?: string[] | null;
+  examRiskRuleStatus?: string | null;
+  examRiskRuleIsCurated?: boolean | null;
   // Estado persistente da fonte complementar (Fase 4I).
   hasComplementaryReference?: boolean;
   complementaryReferenceId?: string | null;
