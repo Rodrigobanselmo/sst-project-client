@@ -15,6 +15,8 @@ import {
   DialogTitle,
   Divider,
   Grid,
+  Menu,
+  MenuItem,
   Paper,
   Stack,
   Table,
@@ -45,10 +47,13 @@ import type {
   BiologicalIndicatorExamLink,
   BiologicalIndicatorRiskLink,
   ExamCandidate,
+  RematchTarget,
 } from '@v2/services/medicine/biological-indicator/service/biological-indicator.types';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
+
+import { BiologicalIndicatorRematchDialog } from './components/BiologicalIndicatorRematchDialog';
 
 import {
   BIOLOGICAL_INDICATOR_STATUS_LABELS,
@@ -229,6 +234,13 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
   const [rejectExamTarget, setRejectExamTarget] = useState<BiologicalIndicatorExamLink | null>(
     null,
   );
+  const [rematchMenuAnchor, setRematchMenuAnchor] = useState<null | HTMLElement>(null);
+  const [rematchTarget, setRematchTarget] = useState<RematchTarget | null>(null);
+
+  const openRematch = (target: RematchTarget) => {
+    setRematchMenuAnchor(null);
+    setRematchTarget(target);
+  };
 
   const { data: examCandidates = [] } = useFetchBiologicalIndicatorExamCandidates(
     { search: examSearch, material: examMaterial, limit: 20 },
@@ -363,9 +375,32 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
               {indicator.biologicalIndicatorOriginal}
             </Typography>
           </Box>
-          <Button component={NextLink} href={RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}>
-            Voltar à lista
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              onClick={(e) => setRematchMenuAnchor(e.currentTarget)}
+            >
+              Reanalisar vínculos
+            </Button>
+            <Menu
+              anchorEl={rematchMenuAnchor}
+              open={Boolean(rematchMenuAnchor)}
+              onClose={() => setRematchMenuAnchor(null)}
+            >
+              <MenuItem onClick={() => openRematch('RISK')}>
+                Reanalisar risco
+              </MenuItem>
+              <MenuItem onClick={() => openRematch('EXAM')}>
+                Reanalisar exame
+              </MenuItem>
+              <MenuItem onClick={() => openRematch('BOTH')}>
+                Reanalisar risco e exame
+              </MenuItem>
+            </Menu>
+            <Button component={NextLink} href={RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}>
+              Voltar à lista
+            </Button>
+          </Stack>
         </Box>
 
         {indicator.pendencies.length > 0 && (
@@ -748,6 +783,12 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <BiologicalIndicatorRematchDialog
+          indicatorId={indicatorId}
+          target={rematchTarget}
+          onClose={() => setRematchTarget(null)}
+        />
 
         <Dialog open={Boolean(rejectExamTarget)} onClose={() => setRejectExamTarget(null)}>
           <DialogTitle>Rejeitar vínculo com exame</DialogTitle>

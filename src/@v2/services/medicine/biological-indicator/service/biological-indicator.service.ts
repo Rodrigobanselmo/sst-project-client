@@ -11,6 +11,8 @@ import type {
   CreateExamLinkParams,
   CurationNotesParams,
   ExamCandidate,
+  RematchParams,
+  RematchResult,
   SearchExamCandidatesParams,
   UpdateIndicatorStatusParams,
   UpdateReviewNotesParams,
@@ -77,6 +79,21 @@ export async function updateBiologicalIndicatorReviewNotes({
       pathParams: { id: indicatorId },
     }),
     { reviewNotes },
+  );
+  return response.data;
+}
+
+export async function rematchBiologicalIndicator({
+  indicatorId,
+  target,
+  dryRun,
+}: RematchParams): Promise<RematchResult> {
+  const response = await api.post<RematchResult>(
+    bindUrlParams({
+      path: BiologicalIndicatorRoutes.REMATCH,
+      pathParams: { id: indicatorId },
+    }),
+    { target, dryRun },
   );
   return response.data;
 }

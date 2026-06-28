@@ -8,6 +8,7 @@ export const BiologicalIndicatorRoutes = {
   BY_ID: '/v2/master/biological-indicators/:id',
   STATUS: '/v2/master/biological-indicators/:id/status',
   REVIEW_NOTES: '/v2/master/biological-indicators/:id/review-notes',
+  REMATCH: '/v2/master/biological-indicators/:id/rematch',
   PENDENCIES: '/v2/master/biological-indicators/:id/pendencies',
   RISK_LINKS: '/v2/master/biological-indicators/:id/risk-links',
   EXAM_LINKS: '/v2/master/biological-indicators/:id/exam-links',

@@ -172,6 +172,48 @@ export type UpdateReviewNotesParams = {
   reviewNotes: string;
 };
 
+export type RematchTarget = 'RISK' | 'EXAM' | 'BOTH';
+
+export type RematchParams = {
+  indicatorId: string;
+  target: RematchTarget;
+  dryRun: boolean;
+};
+
+export type RematchRiskCandidate = {
+  riskFactorId: string;
+  riskName: string | null;
+  riskCas: string | null;
+  matchMethod: string;
+  matchConfidence: string;
+  requiresReview: boolean;
+};
+
+export type RematchExamCandidate = {
+  examId: number;
+  examName: string | null;
+  examMaterial: string | null;
+  matchMethod: string;
+  matchConfidence: string;
+  requiresReview: boolean;
+};
+
+export type RematchBucket<TCandidate> = {
+  created: TCandidate[];
+  restored: TCandidate[];
+  ignoredConfirmed: TCandidate[];
+  ignoredExisting: TCandidate[];
+  candidates: TCandidate[];
+};
+
+export type RematchResult = {
+  target: RematchTarget;
+  dryRun: boolean;
+  risk: RematchBucket<RematchRiskCandidate>;
+  exam: RematchBucket<RematchExamCandidate>;
+  indicator: BiologicalIndicatorDetail;
+};
+
 export type ImportPreviewClassification =
   | 'UNCHANGED'
   | 'NEW'

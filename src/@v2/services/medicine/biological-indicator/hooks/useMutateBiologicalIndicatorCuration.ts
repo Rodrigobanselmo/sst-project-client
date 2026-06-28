@@ -7,6 +7,7 @@ import {
   createBiologicalIndicatorExamLink,
   rejectBiologicalIndicatorExamLink,
   rejectBiologicalIndicatorRiskLink,
+  rematchBiologicalIndicator,
   setDefaultBiologicalIndicatorExamLink,
   setPrimaryBiologicalIndicatorRiskLink,
   updateBiologicalIndicatorReviewNotes,
@@ -112,6 +113,27 @@ export const useMutateUpdateBiologicalIndicatorReviewNotes = (
     mutationFn: updateBiologicalIndicatorReviewNotes,
     invalidateManyQueryKeys: () => invalidateIndicator(indicatorId),
     onSuccess: () => onSuccessMessage('Nota de revisão salva'),
+    onError: onErrorMessage,
+  });
+};
+
+/** 4M.1 — Prévia (dryRun): apenas calcula, não invalida nem mostra toast de sucesso. */
+export const useMutateRematchBiologicalIndicatorPreview = () => {
+  const { onErrorMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: rematchBiologicalIndicator,
+    invalidateQueryKey: false,
+    onError: onErrorMessage,
+  });
+};
+
+/** 4M.1 — Aplicação (dryRun=false): invalida o indicador e mostra feedback. */
+export const useMutateApplyRematchBiologicalIndicator = (indicatorId: string) => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: rematchBiologicalIndicator,
+    invalidateManyQueryKeys: () => invalidateIndicator(indicatorId),
+    onSuccess: () => onSuccessMessage('Reanálise de vínculos aplicada'),
     onError: onErrorMessage,
   });
 };
