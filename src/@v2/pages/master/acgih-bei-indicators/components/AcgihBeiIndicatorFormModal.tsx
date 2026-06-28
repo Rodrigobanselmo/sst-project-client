@@ -1,5 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import {
   Alert,
   Box,
@@ -8,10 +10,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   FormControlLabel,
   MenuItem,
+  Stack,
   Switch,
   TextField,
+  Typography,
 } from '@mui/material';
 import {
   useMutateCreateAcgihBeiIndicator,
@@ -29,6 +34,10 @@ import {
   acgihBeiSourceLabels,
   acgihBeiStatusLabels,
 } from '../acgih-bei-indicator-labels';
+import {
+  AcgihBeiReadinessInput,
+  buildAcgihBeiChecklist,
+} from '../acgih-bei-indicator-pendencies';
 
 type Props = {
   open: boolean;
@@ -81,6 +90,73 @@ const parseYear = (value: string): number | null => {
   if (!trimmed) return null;
   const num = Number(trimmed);
   return Number.isInteger(num) ? num : null;
+};
+
+/**
+ * Checklist de readiness (apoio de curadoria). Calculado no Client a partir do
+ * estado atual do formulário. NÃO bloqueia o salvamento e NÃO altera status,
+ * isCurated ou validação — é apenas orientação.
+ */
+const ReadinessChecklist: FC<{ input: AcgihBeiReadinessInput }> = ({ input }) => {
+  const items = buildAcgihBeiChecklist(input);
+  const pendingCount = items.filter((item) => !item.done).length;
+
+  return (
+    <Box>
+      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+        <Typography variant="subtitle2">Readiness de curadoria</Typography>
+        <Typography variant="caption" color="text.secondary">
+          {pendingCount === 0
+            ? 'Todos os itens de apoio preenchidos'
+            : `${pendingCount} item(ns) a revisar`}
+        </Typography>
+      </Box>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+        Use este checklist apenas como apoio de curadoria. Ele não bloqueia o
+        salvamento e não altera automaticamente o status do item.
+      </Typography>
+      <Stack component="ul" spacing={0.75} sx={{ listStyle: 'none', m: 0, p: 0 }}>
+        {items.map((item) => {
+          const pendingColor =
+            item.severity === 'critical' ? 'warning.main' : 'text.disabled';
+          return (
+            <Stack
+              key={item.label}
+              component="li"
+              direction="row"
+              spacing={1}
+              alignItems="flex-start"
+            >
+              {item.done ? (
+                <CheckCircleIcon
+                  sx={{ fontSize: 18, color: 'success.main', flexShrink: 0, mt: '2px' }}
+                />
+              ) : (
+                <RadioButtonUncheckedIcon
+                  sx={{ fontSize: 18, color: pendingColor, flexShrink: 0, mt: '2px' }}
+                />
+              )}
+              <Box>
+                <Typography
+                  variant="body2"
+                  color={item.done ? 'text.primary' : 'text.secondary'}
+                  sx={{ fontWeight: item.done ? 500 : 400 }}
+                >
+                  {item.label}
+                  {!item.done && item.severity === 'warning' ? ' (recomendado)' : ''}
+                </Typography>
+                {!item.done && item.guidance && (
+                  <Typography variant="caption" color="text.secondary">
+                    {item.guidance}
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
 };
 
 export const AcgihBeiIndicatorFormModal: FC<Props> = ({
@@ -167,6 +243,13 @@ export const AcgihBeiIndicatorFormModal: FC<Props> = ({
             Base técnica de referência interna. Não é aplicada automaticamente em
             empresas, exames, vínculos ou na Biblioteca Risco × Exame.
           </Alert>
+
+          {form.confidence === AcgihBeiIndicatorConfidenceEnum.LOW && (
+            <Alert severity="warning">
+              Item com baixa confiança de transcrição: revisar contra a fonte
+              antes de usar como evidência técnica.
+            </Alert>
+          )}
 
           <Box display="flex" gap={2} flexWrap="wrap">
             <TextField
@@ -331,6 +414,31 @@ export const AcgihBeiIndicatorFormModal: FC<Props> = ({
             multiline
             minRows={3}
           />
+
+          <Divider />
+
+          <ReadinessChecklist
+            input={{
+              cas: form.cas,
+              determinant: form.determinant,
+              biologicalMatrix: form.biologicalMatrix,
+              samplingTime: form.samplingTime,
+              beiValue: form.beiValue,
+              unit: form.unit,
+              referenceYear: form.referenceYear,
+              sourceYear: form.sourceYear,
+              sourcePage: form.sourcePage,
+              confidence: form.confidence,
+              isCurated: form.isCurated,
+            }}
+          />
+
+          <Typography variant="caption" color="text.secondary">
+            Semântica de curadoria: confiança/campos ausentes indicam transcrição
+            pendente ou incompleta; “Curado / revisado” indica revisão técnica
+            humana realizada; o status “Ativo” representa liberação futura para uso
+            técnico — sem regra funcional nova nesta fase.
+          </Typography>
         </Box>
       </DialogContent>
       <DialogActions>

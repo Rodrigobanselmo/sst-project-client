@@ -1,8 +1,10 @@
 import { FC } from 'react';
 
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import { Box, Chip, IconButton, Tooltip } from '@mui/material';
+import { useRouter } from 'next/router';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '@v2/components/organisms/STable/addons/addons-table/STablePagination/STablePagination';
 import { STable } from '@v2/components/organisms/STable/common/STable/STable';
@@ -12,6 +14,7 @@ import { STableHeader } from '@v2/components/organisms/STable/common/STableHeade
 import { STableHRow } from '@v2/components/organisms/STable/common/STableHRow/STableHRow';
 import { STableRow } from '@v2/components/organisms/STable/common/STableRow/STableRow';
 import type { IAcgihBeiIndicator } from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.types';
+import { RoutesEnum } from 'core/enums/routes.enums';
 
 import {
   acgihBeiConfidenceColors,
@@ -19,6 +22,54 @@ import {
   acgihBeiStatusColors,
   acgihBeiStatusLabels,
 } from '../acgih-bei-indicator-labels';
+import {
+  countCriticalPendencies,
+  getAcgihBeiPendencies,
+} from '../acgih-bei-indicator-pendencies';
+
+/**
+ * Coluna Pendências: 0 → chip verde "OK"; 1+ → chip numérico com tooltip
+ * listando cada pendência em PT-BR. Cálculo 100% no Client (sem persistência).
+ */
+const PendenciesCell: FC<{ item: IAcgihBeiIndicator }> = ({ item }) => {
+  const pendencies = getAcgihBeiPendencies(item);
+
+  if (!pendencies.length) {
+    return (
+      <Box display="flex" justifyContent="center" width="100%">
+        <Chip size="small" color="success" label="OK" sx={{ fontWeight: 600 }} />
+      </Box>
+    );
+  }
+
+  const critical = countCriticalPendencies(pendencies);
+  const tooltip = (
+    <Box>
+      <Box component="span" sx={{ fontWeight: 600 }}>
+        Pendências:
+      </Box>
+      {pendencies.map((pendency) => (
+        <Box key={pendency.code} component="div">
+          - {pendency.message}
+          {pendency.severity === 'warning' ? ' (recomendado)' : ''}
+        </Box>
+      ))}
+    </Box>
+  );
+
+  return (
+    <Box display="flex" justifyContent="center" width="100%">
+      <Tooltip title={tooltip}>
+        <Chip
+          size="small"
+          color={critical > 0 ? 'warning' : 'default'}
+          label={pendencies.length}
+          sx={{ fontWeight: 600, cursor: 'default' }}
+        />
+      </Tooltip>
+    </Box>
+  );
+};
 
 type Props = {
   data: IAcgihBeiIndicator[];
@@ -41,6 +92,8 @@ export const AcgihBeiIndicatorTable: FC<Props> = ({
   onEdit,
   onDelete,
 }) => {
+  const router = useRouter();
+
   const tableData: ITableData<IAcgihBeiIndicator>[] = [
     {
       column: 'minmax(200px, 1fr)',
@@ -117,10 +170,25 @@ export const AcgihBeiIndicatorTable: FC<Props> = ({
       ),
     },
     {
-      column: '110px',
+      column: '120px',
+      header: <STableHRow justify="center">Pendências</STableHRow>,
+      row: (row) => <PendenciesCell item={row} />,
+    },
+    {
+      column: '150px',
       header: <STableHRow justify="center">Ações</STableHRow>,
       row: (row) => (
         <Box display="flex" justifyContent="center" gap={0.5} width="100%">
+          <Tooltip title="Ver na análise de elegibilidade (ACGIH/BEI × NR-7 × Regras)">
+            <IconButton
+              size="small"
+              onClick={() =>
+                router.push(RoutesEnum.DATABASE_ACGIH_BEI_COMPARISON)
+              }
+            >
+              <CompareArrowsIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Editar indicador">
             <IconButton size="small" onClick={() => onEdit(row)}>
               <EditIcon fontSize="small" />

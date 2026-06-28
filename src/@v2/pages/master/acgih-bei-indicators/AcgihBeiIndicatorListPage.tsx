@@ -91,6 +91,23 @@ export const AcgihBeiIndicatorListPage: FC = () => {
     );
   };
 
+  // Filtros rápidos de curadoria (reaproveitam os filtros server-side já existentes).
+  const draftActive = status === AcgihBeiIndicatorStatusEnum.DRAFT;
+  const lowConfidenceActive =
+    confidence === AcgihBeiIndicatorConfidenceEnum.LOW;
+
+  const toggleDraft = () => {
+    setStatus(draftActive ? ALL : AcgihBeiIndicatorStatusEnum.DRAFT);
+    setPage(1);
+  };
+
+  const toggleLowConfidence = () => {
+    setConfidence(
+      lowConfidenceActive ? ALL : AcgihBeiIndicatorConfidenceEnum.LOW,
+    );
+    setPage(1);
+  };
+
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
@@ -137,6 +154,30 @@ export const AcgihBeiIndicatorListPage: FC = () => {
         </Box>
 
         <Paper sx={{ p: 2 }}>
+          <Box display="flex" gap={1} flexWrap="wrap" mb={2} alignItems="center">
+            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+              Filtros rápidos:
+            </Typography>
+            <Button
+              size="small"
+              variant={draftActive ? 'contained' : 'outlined'}
+              color={draftActive ? 'warning' : 'inherit'}
+              onClick={toggleDraft}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Rascunhos
+            </Button>
+            <Button
+              size="small"
+              variant={lowConfidenceActive ? 'contained' : 'outlined'}
+              color={lowConfidenceActive ? 'error' : 'inherit'}
+              onClick={toggleLowConfidence}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Baixa confiança
+            </Button>
+          </Box>
+
           <Box display="flex" gap={2} flexWrap="wrap" mb={2} alignItems="center">
             <TextField
               label="Buscar (substância, CAS ou determinante)"
