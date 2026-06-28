@@ -37,6 +37,7 @@ import {
   useMutateRejectBiologicalIndicatorRiskLink,
   useMutateSetDefaultBiologicalIndicatorExamLink,
   useMutateSetPrimaryBiologicalIndicatorRiskLink,
+  useMutateUpdateBiologicalIndicatorReviewNotes,
   useMutateUpdateBiologicalIndicatorStatus,
 } from '@v2/services/medicine/biological-indicator/hooks/useMutateBiologicalIndicatorCuration';
 import type {
@@ -214,6 +215,7 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
   const rejectExam = useMutateRejectBiologicalIndicatorExamLink(indicatorId);
   const setDefaultExam = useMutateSetDefaultBiologicalIndicatorExamLink(indicatorId);
   const updateStatus = useMutateUpdateBiologicalIndicatorStatus(indicatorId);
+  const updateReviewNotes = useMutateUpdateBiologicalIndicatorReviewNotes(indicatorId);
 
   const [examSearch, setExamSearch] = useState('');
   const [examMaterial, setExamMaterial] = useState('');
@@ -283,6 +285,19 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
     if (!indicator) return;
     setReviewNotes(buildNormativeReviewSuggestion(indicator));
     setReviewNotesSuggested(true);
+  };
+
+  const reviewNotesDirty = useMemo(() => {
+    if (!indicator) return false;
+    return reviewNotes.trim() !== (indicator.reviewNotes ?? '').trim();
+  }, [indicator, reviewNotes]);
+
+  const handleSaveReviewNotes = () => {
+    if (!indicator || !reviewNotesDirty || updateReviewNotes.isPending) return;
+    updateReviewNotes.mutate(
+      { indicatorId, reviewNotes: reviewNotes.trim() },
+      { onSuccess: () => setReviewNotesSuggested(false) },
+    );
   };
 
   if (isLoading) {
@@ -659,14 +674,25 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
                 />
               )}
             </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              disabled={!indicator}
-              onClick={handleGenerateReviewSuggestion}
-            >
-              Gerar texto sugerido
-            </Button>
+            <Stack direction="row" spacing={1}>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={!indicator}
+                onClick={handleGenerateReviewSuggestion}
+              >
+                Gerar texto sugerido
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                color="primary"
+                disabled={!reviewNotesDirty || updateReviewNotes.isPending}
+                onClick={handleSaveReviewNotes}
+              >
+                Salvar nota
+              </Button>
+            </Stack>
           </Stack>
           <TextField
             fullWidth
@@ -683,8 +709,14 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
               setReviewNotes(e.target.value);
               setReviewNotesSuggested(false);
             }}
-            sx={{ mb: 2, mt: 1 }}
+            sx={{ mb: 1, mt: 1 }}
           />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+            Salvar nota apenas registra/atualiza o texto da revisão. Não altera o
+            status do indicador, os vínculos de risco/exame, o exame padrão, e não
+            executa sincronização. Use Rejeitar apenas para corrigir um vínculo
+            técnico incorreto.
+          </Typography>
           <Button
             variant="contained"
             color="primary"

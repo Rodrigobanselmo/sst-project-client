@@ -13,6 +13,7 @@ import type {
   ExamCandidate,
   SearchExamCandidatesParams,
   UpdateIndicatorStatusParams,
+  UpdateReviewNotesParams,
 } from './biological-indicator.types';
 
 export async function browseBiologicalIndicators(
@@ -62,6 +63,20 @@ export async function updateBiologicalIndicatorStatus({
       pathParams: { id: indicatorId },
     }),
     { status, reviewNotes },
+  );
+  return response.data;
+}
+
+export async function updateBiologicalIndicatorReviewNotes({
+  indicatorId,
+  reviewNotes,
+}: UpdateReviewNotesParams): Promise<BiologicalIndicatorDetail> {
+  const response = await api.patch<BiologicalIndicatorDetail>(
+    bindUrlParams({
+      path: BiologicalIndicatorRoutes.REVIEW_NOTES,
+      pathParams: { id: indicatorId },
+    }),
+    { reviewNotes },
   );
   return response.data;
 }

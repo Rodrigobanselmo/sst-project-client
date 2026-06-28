@@ -167,6 +167,11 @@ export type CurationNotesParams = {
   notes?: string;
 };
 
+export type UpdateReviewNotesParams = {
+  indicatorId: string;
+  reviewNotes: string;
+};
+
 export type ImportPreviewClassification =
   | 'UNCHANGED'
   | 'NEW'

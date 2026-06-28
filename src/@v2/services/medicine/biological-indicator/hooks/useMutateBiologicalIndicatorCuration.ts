@@ -9,6 +9,7 @@ import {
   rejectBiologicalIndicatorRiskLink,
   setDefaultBiologicalIndicatorExamLink,
   setPrimaryBiologicalIndicatorRiskLink,
+  updateBiologicalIndicatorReviewNotes,
   updateBiologicalIndicatorStatus,
 } from '../service/biological-indicator.service';
 import { biologicalIndicatorQueryKeys } from './biological-indicator.query-keys';
@@ -99,6 +100,18 @@ export const useMutateUpdateBiologicalIndicatorStatus = (indicatorId: string) =>
     mutationFn: updateBiologicalIndicatorStatus,
     invalidateManyQueryKeys: () => invalidateIndicator(indicatorId),
     onSuccess: () => onSuccessMessage('Status do indicador atualizado'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateUpdateBiologicalIndicatorReviewNotes = (
+  indicatorId: string,
+) => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: updateBiologicalIndicatorReviewNotes,
+    invalidateManyQueryKeys: () => invalidateIndicator(indicatorId),
+    onSuccess: () => onSuccessMessage('Nota de revisão salva'),
     onError: onErrorMessage,
   });
 };
