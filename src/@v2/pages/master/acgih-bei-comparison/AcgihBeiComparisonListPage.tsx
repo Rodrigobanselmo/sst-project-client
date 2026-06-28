@@ -6,6 +6,11 @@ import DownloadIcon from '@mui/icons-material/Download';
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   MenuItem,
   Paper,
   TextField,
@@ -19,6 +24,11 @@ import { useExportAcgihBeiComparison } from '@v2/services/medicine/acgih-bei-com
 import { useFetchBrowseAcgihBeiComparison } from '@v2/services/medicine/acgih-bei-comparison/hooks/useFetchBrowseAcgihBeiComparison';
 import { useMutateApplyAcgihReference } from '@v2/services/medicine/acgih-bei-comparison/hooks/useMutateApplyAcgihReference';
 import {
+  useMutateRemoveComparisonReview,
+  useMutateUpsertComparisonReview,
+} from '@v2/services/medicine/acgih-bei-comparison/hooks/useMutateComparisonReview';
+import {
+  AcgihBeiComparisonDecisionEnum,
   AcgihBeiComparisonStatusEnum,
   AcgihBeiSuggestedActionEnum,
   IAcgihBeiComparisonRow,
@@ -30,10 +40,12 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import {
+  comparisonDecisionLabels,
   comparisonStatusLabels,
   suggestedActionLabels,
 } from './acgih-bei-comparison-labels';
 import { AcgihBeiAddReferenceDialog } from './components/AcgihBeiAddReferenceDialog';
+import { AcgihBeiComparisonReviewDialog } from './components/AcgihBeiComparisonReviewDialog';
 import { AcgihBeiComparisonTable } from './components/AcgihBeiComparisonTable';
 import { acgihBeiConfidenceLabels } from '../acgih-bei-indicators/acgih-bei-indicator-labels';
 
@@ -64,6 +76,10 @@ export const AcgihBeiComparisonListPage: FC = () => {
   const [confidence, setConfidence] = useState<
     AcgihBeiIndicatorConfidenceEnum | typeof ALL
   >(ALL);
+  const [reviewDecision, setReviewDecision] = useState<
+    AcgihBeiComparisonDecisionEnum | typeof ALL
+  >(ALL);
+  const [hasReview, setHasReview] = useState<'true' | 'false' | typeof ALL>(ALL);
 
   const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
     useTablePageLimit(undefined, persistKeys.LIMIT_ACGIH_BEI_COMPARISON);
@@ -78,6 +94,8 @@ export const AcgihBeiComparisonListPage: FC = () => {
       comparisonStatus === ALL ? undefined : comparisonStatus,
     suggestedAction: suggestedAction === ALL ? undefined : suggestedAction,
     confidence: confidence === ALL ? undefined : confidence,
+    reviewDecision: reviewDecision === ALL ? undefined : reviewDecision,
+    hasReview: hasReview === ALL ? undefined : hasReview,
   };
 
   const { data, isLoading } = useFetchBrowseAcgihBeiComparison({
@@ -99,6 +117,114 @@ export const AcgihBeiComparisonListPage: FC = () => {
       { onSuccess: () => setReferenceTarget(null) },
     );
   };
+
+  // 4O.1 — decisão técnica de curadoria.
+  const [reviewTarget, setReviewTarget] =
+    useState<IAcgihBeiComparisonRow | null>(null);
+  const [clearTarget, setClearTarget] =
+    useState<IAcgihBeiComparisonRow | null>(null);
+  const upsertReviewMutation = useMutateUpsertComparisonReview();
+  const removeReviewMutation = useMutateRemoveComparisonReview();
+
+  const handleConfirmReview = (params: {
+    decision: AcgihBeiComparisonDecisionEnum;
+    technicalNote: string;
+  }) => {
+    if (!reviewTarget || upsertReviewMutation.isPending) return;
+    upsertReviewMutation.mutate(
+      { acgihBeiIndicatorId: reviewTarget.acgihBeiId, ...params },
+      { onSuccess: () => setReviewTarget(null) },
+    );
+  };
+
+  const handleConfirmClear = () => {
+    if (!clearTarget || removeReviewMutation.isPending) return;
+    removeReviewMutation.mutate(clearTarget.acgihBeiId, {
+      onSuccess: () => setClearTarget(null),
+    });
+  };
+
+  const toggleHasReview = (value: 'true' | 'false') => {
+    setHasReview((prev) => (prev === value ? ALL : value));
+    setReviewDecision(ALL);
+    setPage(1);
+  };
+
+  const toggleReviewDecision = (value: AcgihBeiComparisonDecisionEnum) => {
+    setReviewDecision((prev) => (prev === value ? ALL : value));
+    setHasReview(ALL);
+    setPage(1);
+  };
+
+  const decisionQuickFilters: Array<{
+    key: string;
+    label: string;
+    active: boolean;
+    color: 'warning' | 'error' | 'info' | 'success' | 'primary';
+    onToggle: () => void;
+  }> = [
+    {
+      key: 'no-decision',
+      label: 'Sem decisão',
+      active: hasReview === 'false',
+      color: 'primary',
+      onToggle: () => toggleHasReview('false'),
+    },
+    {
+      key: 'with-decision',
+      label: 'Com decisão',
+      active: hasReview === 'true',
+      color: 'success',
+      onToggle: () => toggleHasReview('true'),
+    },
+    {
+      key: 'false-divergence',
+      label: 'Falso divergente / equivalência',
+      active:
+        reviewDecision ===
+        AcgihBeiComparisonDecisionEnum.FALSE_DIVERGENCE_EQUIVALENT,
+      color: 'success',
+      onToggle: () =>
+        toggleReviewDecision(
+          AcgihBeiComparisonDecisionEnum.FALSE_DIVERGENCE_EQUIVALENT,
+        ),
+    },
+    {
+      key: 'real-divergence',
+      label: 'Divergência real',
+      active: reviewDecision === AcgihBeiComparisonDecisionEnum.REAL_DIVERGENCE,
+      color: 'error',
+      onToggle: () =>
+        toggleReviewDecision(AcgihBeiComparisonDecisionEnum.REAL_DIVERGENCE),
+    },
+    {
+      key: 'acgih-error',
+      label: 'Erro ACGIH',
+      active: reviewDecision === AcgihBeiComparisonDecisionEnum.SOURCE_ACGIH_ERROR,
+      color: 'warning',
+      onToggle: () =>
+        toggleReviewDecision(AcgihBeiComparisonDecisionEnum.SOURCE_ACGIH_ERROR),
+    },
+    {
+      key: 'nr7-error',
+      label: 'Erro NR-7',
+      active: reviewDecision === AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR,
+      color: 'warning',
+      onToggle: () =>
+        toggleReviewDecision(AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR),
+    },
+    {
+      key: 'pending',
+      label: 'Pendente',
+      active:
+        reviewDecision === AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW,
+      color: 'info',
+      onToggle: () =>
+        toggleReviewDecision(
+          AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW,
+        ),
+    },
+  ];
 
   // 4L.1b — filtros rápidos reaproveitando os filtros server-side existentes
   // (comparisonStatus, suggestedAction, confidence). Não quebram paginação/contagem.
@@ -275,6 +401,24 @@ export const AcgihBeiComparisonListPage: FC = () => {
             ))}
           </Box>
 
+          <Box display="flex" gap={1} flexWrap="wrap" mb={2} alignItems="center">
+            <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+              Decisão técnica:
+            </Typography>
+            {decisionQuickFilters.map((filter) => (
+              <Button
+                key={filter.key}
+                size="small"
+                variant={filter.active ? 'contained' : 'outlined'}
+                color={filter.active ? filter.color : 'inherit'}
+                onClick={filter.onToggle}
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </Box>
+
           <Box display="flex" gap={2} flexWrap="wrap" mb={2} alignItems="center">
             <TextField
               label="Buscar (substância, CAS ou determinante)"
@@ -352,6 +496,29 @@ export const AcgihBeiComparisonListPage: FC = () => {
                 </MenuItem>
               ))}
             </TextField>
+            <TextField
+              select
+              label="Decisão técnica"
+              value={reviewDecision}
+              onChange={(event) => {
+                setReviewDecision(
+                  event.target.value as
+                    | AcgihBeiComparisonDecisionEnum
+                    | typeof ALL,
+                );
+                setHasReview(ALL);
+                setPage(1);
+              }}
+              size="small"
+              sx={{ minWidth: 200 }}
+            >
+              <MenuItem value={ALL}>Todas</MenuItem>
+              {Object.values(AcgihBeiComparisonDecisionEnum).map((value) => (
+                <MenuItem key={value} value={value}>
+                  {comparisonDecisionLabels[value]}
+                </MenuItem>
+              ))}
+            </TextField>
           </Box>
 
           <AcgihBeiComparisonTable
@@ -371,6 +538,11 @@ export const AcgihBeiComparisonListPage: FC = () => {
                 ? referenceTarget?.acgihBeiId
                 : null
             }
+            onRegisterDecision={setReviewTarget}
+            onClearDecision={setClearTarget}
+            clearingId={
+              removeReviewMutation.isPending ? clearTarget?.acgihBeiId : null
+            }
           />
         </Paper>
       </Box>
@@ -383,6 +555,50 @@ export const AcgihBeiComparisonListPage: FC = () => {
         }}
         onConfirm={handleConfirmReference}
       />
+
+      <AcgihBeiComparisonReviewDialog
+        row={reviewTarget}
+        isSaving={upsertReviewMutation.isPending}
+        onClose={() => {
+          if (!upsertReviewMutation.isPending) setReviewTarget(null);
+        }}
+        onConfirm={handleConfirmReview}
+      />
+
+      <Dialog
+        open={Boolean(clearTarget)}
+        onClose={() => {
+          if (!removeReviewMutation.isPending) setClearTarget(null);
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Limpar decisão técnica</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Remover a decisão técnica registrada para{' '}
+            <strong>{clearTarget?.substanceName}</strong>? A linha volta a ficar
+            sem decisão. Isso não altera a classificação calculada nem as bases
+            de origem.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setClearTarget(null)}
+            disabled={removeReviewMutation.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmClear}
+            disabled={removeReviewMutation.isPending}
+          >
+            Limpar decisão
+          </Button>
+        </DialogActions>
+      </Dialog>
     </SAuthShow>
   );
 };

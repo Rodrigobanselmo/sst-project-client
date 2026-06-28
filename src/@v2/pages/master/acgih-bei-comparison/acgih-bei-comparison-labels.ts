@@ -1,4 +1,5 @@
 import {
+  AcgihBeiComparisonDecisionEnum,
   AcgihBeiComparisonStatusEnum,
   AcgihBeiMatchStatusEnum,
   AcgihBeiSuggestedActionEnum,
@@ -110,4 +111,48 @@ export const ruleMatchMethodLabels: Record<'VIA_NR7' | 'VIA_AGENT', string> = {
 export const ruleMatchMethodTooltips: Record<'VIA_NR7' | 'VIA_AGENT', string> = {
   VIA_NR7: 'Match apoiado em indicador NR-7 (proveniência da regra).',
   VIA_AGENT: 'Match mais fraco por agente/substância (CAS ou nome).',
+};
+
+/** 4O.1 — rótulos da decisão técnica de curadoria. */
+export const comparisonDecisionLabels: Record<
+  AcgihBeiComparisonDecisionEnum,
+  string
+> = {
+  [AcgihBeiComparisonDecisionEnum.FALSE_DIVERGENCE_EQUIVALENT]:
+    'Equivalência técnica / falso divergente',
+  [AcgihBeiComparisonDecisionEnum.REAL_DIVERGENCE]: 'Divergência técnica real',
+  [AcgihBeiComparisonDecisionEnum.SOURCE_ACGIH_ERROR]: 'Erro na base ACGIH/BEI',
+  [AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR]: 'Erro na base NR-7',
+  [AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW]: 'Pendente de revisão',
+  [AcgihBeiComparisonDecisionEnum.IGNORE_MONITOR]: 'Monitorar / ignorar',
+};
+
+export const comparisonDecisionColors: Record<
+  AcgihBeiComparisonDecisionEnum,
+  ChipColor
+> = {
+  [AcgihBeiComparisonDecisionEnum.FALSE_DIVERGENCE_EQUIVALENT]: 'success',
+  [AcgihBeiComparisonDecisionEnum.REAL_DIVERGENCE]: 'error',
+  [AcgihBeiComparisonDecisionEnum.SOURCE_ACGIH_ERROR]: 'warning',
+  [AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR]: 'warning',
+  [AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW]: 'info',
+  [AcgihBeiComparisonDecisionEnum.IGNORE_MONITOR]: 'default',
+};
+
+export const comparisonDecisionExplanations: Record<
+  AcgihBeiComparisonDecisionEnum,
+  string
+> = {
+  [AcgihBeiComparisonDecisionEnum.FALSE_DIVERGENCE_EQUIVALENT]:
+    'A divergência apontada é apenas nomenclatural/operacional; tecnicamente equivalente.',
+  [AcgihBeiComparisonDecisionEnum.REAL_DIVERGENCE]:
+    'Há divergência técnica real entre ACGIH/BEI e NR-7 que exige atenção.',
+  [AcgihBeiComparisonDecisionEnum.SOURCE_ACGIH_ERROR]:
+    'Indício de erro/transcrição incorreta na base ACGIH/BEI.',
+  [AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR]:
+    'Indício de erro/transcrição incorreta na base NR-7.',
+  [AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW]:
+    'Decisão pendente; requer mais análise antes de concluir.',
+  [AcgihBeiComparisonDecisionEnum.IGNORE_MONITOR]:
+    'Sem ação necessária agora; manter em monitoramento.',
 };

@@ -6,6 +6,9 @@ import type {
   IApplyAcgihReferenceResponse,
   IBrowseAcgihBeiComparisonParams,
   IBrowseAcgihBeiComparisonResponse,
+  IRemoveComparisonReviewResponse,
+  IUpsertComparisonReviewPayload,
+  IUpsertComparisonReviewResponse,
 } from './acgih-bei-comparison.types';
 
 export async function browseAcgihBeiComparison(
@@ -28,6 +31,30 @@ export async function applyAcgihReference(
   const response = await api.post<IApplyAcgihReferenceResponse>(
     AcgihBeiComparisonRoutes.REFERENCES,
     payload,
+  );
+  return response.data;
+}
+
+/**
+ * 4O.1 — registra/atualiza a decisão técnica de uma linha da comparação. O
+ * servidor recalcula a comparação e grava os snapshots. Não altera as bases.
+ */
+export async function upsertComparisonReview(
+  payload: IUpsertComparisonReviewPayload,
+): Promise<IUpsertComparisonReviewResponse> {
+  const response = await api.post<IUpsertComparisonReviewResponse>(
+    AcgihBeiComparisonRoutes.REVIEWS,
+    payload,
+  );
+  return response.data;
+}
+
+/** 4O.1 — limpa/reabre a decisão técnica (soft-delete). */
+export async function removeComparisonReview(
+  acgihBeiIndicatorId: string,
+): Promise<IRemoveComparisonReviewResponse> {
+  const response = await api.delete<IRemoveComparisonReviewResponse>(
+    AcgihBeiComparisonRoutes.REVIEW_BY_ID(acgihBeiIndicatorId),
   );
   return response.data;
 }

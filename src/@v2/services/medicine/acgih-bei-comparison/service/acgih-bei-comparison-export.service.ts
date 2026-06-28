@@ -9,7 +9,12 @@ import type { IBrowseAcgihBeiComparisonParams } from './acgih-bei-comparison.typ
 export async function exportAcgihBeiComparison(
   params?: Pick<
     IBrowseAcgihBeiComparisonParams,
-    'search' | 'comparisonStatus' | 'suggestedAction' | 'confidence'
+    | 'search'
+    | 'comparisonStatus'
+    | 'suggestedAction'
+    | 'confidence'
+    | 'reviewDecision'
+    | 'hasReview'
   >,
 ) {
   const { token } = await refreshToken();

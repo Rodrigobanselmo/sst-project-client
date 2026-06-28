@@ -27,6 +27,9 @@ import {
 import { RoutesEnum } from 'core/enums/routes.enums';
 
 import {
+  comparisonDecisionColors,
+  comparisonDecisionExplanations,
+  comparisonDecisionLabels,
   comparisonNextStep,
   comparisonStatusColors,
   comparisonStatusExplanations,
@@ -52,6 +55,9 @@ type Props = {
   onPageSizeChange: (size: number) => void;
   onAddReference: (row: IAcgihBeiComparisonRow) => void;
   applyingId?: string | null;
+  onRegisterDecision: (row: IAcgihBeiComparisonRow) => void;
+  onClearDecision: (row: IAcgihBeiComparisonRow) => void;
+  clearingId?: string | null;
 };
 
 /** Item elegível para virar fonte complementar (espelha as regras da API). */
@@ -92,6 +98,9 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
   onPageSizeChange,
   onAddReference,
   applyingId,
+  onRegisterDecision,
+  onClearDecision,
+  clearingId,
 }) => {
   const router = useRouter();
 
@@ -290,6 +299,95 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
       column: 'minmax(170px, 1fr)',
       header: <STableHRow>Contexto / Readiness</STableHRow>,
       row: (row) => <ReadinessCell row={row} />,
+    },
+    {
+      column: 'minmax(200px, 1.2fr)',
+      header: <STableHRow>Decisão técnica</STableHRow>,
+      row: (row) => {
+        if (!row.review) {
+          return (
+            <Box display="flex" width="100%">
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => onRegisterDecision(row)}
+              >
+                Registrar decisão
+              </Button>
+            </Box>
+          );
+        }
+        const isClearing = clearingId === row.acgihBeiId;
+        return (
+          <Box display="flex" flexDirection="column" gap={0.5}>
+            <Box display="flex" gap={0.5} flexWrap="wrap" alignItems="center">
+              <Tooltip
+                title={comparisonDecisionExplanations[row.review.decision]}
+              >
+                <Chip
+                  size="small"
+                  color={comparisonDecisionColors[row.review.decision]}
+                  label={comparisonDecisionLabels[row.review.decision]}
+                  sx={{ cursor: 'default' }}
+                />
+              </Tooltip>
+              {row.review.isStale && (
+                <Tooltip title="A classificação foi recalculada e difere do momento da decisão. Revisar.">
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color="warning"
+                    label="recalculada"
+                    sx={{ cursor: 'default' }}
+                  />
+                </Tooltip>
+              )}
+            </Box>
+            <Tooltip title={row.review.technicalNote}>
+              <span>
+                <STextRow
+                  text={row.review.technicalNote}
+                  fontSize={11}
+                  color="text.secondary"
+                  lineNumber={2}
+                />
+              </span>
+            </Tooltip>
+            <STextRow
+              text={[
+                row.review.reviewedByName
+                  ? `por ${row.review.reviewedByName}`
+                  : null,
+                row.review.reviewedAt
+                  ? new Date(row.review.reviewedAt).toLocaleString('pt-BR')
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+              fontSize={10}
+              color="text.secondary"
+            />
+            <Box display="flex" gap={0.5}>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => onRegisterDecision(row)}
+              >
+                Editar
+              </Button>
+              <Button
+                size="small"
+                variant="text"
+                color="error"
+                disabled={isClearing}
+                onClick={() => onClearDecision(row)}
+              >
+                Limpar
+              </Button>
+            </Box>
+          </Box>
+        );
+      },
     },
     {
       column: '210px',
