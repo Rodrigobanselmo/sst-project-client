@@ -11,6 +11,16 @@ export enum AcgihBeiComparisonStatusEnum {
   LOW_CONFIDENCE_REVIEW = 'LOW_CONFIDENCE_REVIEW',
 }
 
+/** 4O.3 — status operacional/efetivo (comparisonStatus + decisão técnica). */
+export enum AcgihBeiOperationalStatusEnum {
+  ALREADY_COVERED = 'ALREADY_COVERED',
+  DIVERGENT = 'DIVERGENT',
+  NEEDS_REVIEW = 'NEEDS_REVIEW',
+  NEW_CANDIDATE = 'NEW_CANDIDATE',
+  LOW_CONFIDENCE_REVIEW = 'LOW_CONFIDENCE_REVIEW',
+  RESOLVED_EQUIVALENCE = 'RESOLVED_EQUIVALENCE',
+}
+
 export enum AcgihBeiSuggestedActionEnum {
   ADD_REFERENCE_ONLY = 'ADD_REFERENCE_ONLY',
   REVIEW_DIVERGENCE = 'REVIEW_DIVERGENCE',
@@ -67,6 +77,8 @@ export interface IAcgihBeiComparisonRow {
   examNameSnapshot: string | null;
   ruleMatchMethod: 'VIA_NR7' | 'VIA_AGENT' | null;
   comparisonStatus: AcgihBeiComparisonStatusEnum;
+  // 4O.3 — status operacional/efetivo derivado. Quando ausente, usar comparisonStatus.
+  operationalStatus?: AcgihBeiOperationalStatusEnum;
   suggestedAction: AcgihBeiSuggestedActionEnum;
   technicalDiff: string;
   reviewNotes: string;
@@ -96,6 +108,8 @@ export interface IAcgihBeiComparisonTotals {
   needsReview: number;
   newCandidate: number;
   lowConfidenceReview: number;
+  // 4O.3 — divergências resolvidas por equivalência técnica.
+  resolvedEquivalence: number;
 }
 
 export interface IBrowseAcgihBeiComparisonParams {
@@ -103,6 +117,8 @@ export interface IBrowseAcgihBeiComparisonParams {
   limit?: number;
   search?: string;
   comparisonStatus?: AcgihBeiComparisonStatusEnum;
+  // 4O.3 — filtro pelo status operacional/efetivo.
+  operationalStatus?: AcgihBeiOperationalStatusEnum;
   suggestedAction?: AcgihBeiSuggestedActionEnum;
   confidence?: AcgihBeiIndicatorConfidenceEnum;
   // 4O.1 — filtros pela decisão técnica.

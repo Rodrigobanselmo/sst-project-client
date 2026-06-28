@@ -2,6 +2,7 @@ import {
   AcgihBeiComparisonDecisionEnum,
   AcgihBeiComparisonStatusEnum,
   AcgihBeiMatchStatusEnum,
+  AcgihBeiOperationalStatusEnum,
   AcgihBeiSuggestedActionEnum,
 } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
 
@@ -27,6 +28,50 @@ export const comparisonStatusColors: Record<
   [AcgihBeiComparisonStatusEnum.NEEDS_REVIEW]: 'info',
   [AcgihBeiComparisonStatusEnum.NEW_CANDIDATE]: 'default',
   [AcgihBeiComparisonStatusEnum.LOW_CONFIDENCE_REVIEW]: 'error',
+};
+
+/** 4O.3 — rótulos/cores/explicação do status operacional/efetivo. */
+export const operationalStatusLabels: Record<
+  AcgihBeiOperationalStatusEnum,
+  string
+> = {
+  [AcgihBeiOperationalStatusEnum.ALREADY_COVERED]: 'Já coberto',
+  [AcgihBeiOperationalStatusEnum.DIVERGENT]: 'Divergente',
+  [AcgihBeiOperationalStatusEnum.NEEDS_REVIEW]: 'Requer revisão',
+  [AcgihBeiOperationalStatusEnum.NEW_CANDIDATE]: 'Candidato novo',
+  [AcgihBeiOperationalStatusEnum.LOW_CONFIDENCE_REVIEW]: 'Baixa confiança',
+  [AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE]:
+    'Resolvido por equivalência',
+};
+
+export const operationalStatusColors: Record<
+  AcgihBeiOperationalStatusEnum,
+  ChipColor
+> = {
+  [AcgihBeiOperationalStatusEnum.ALREADY_COVERED]: 'success',
+  [AcgihBeiOperationalStatusEnum.DIVERGENT]: 'warning',
+  [AcgihBeiOperationalStatusEnum.NEEDS_REVIEW]: 'info',
+  [AcgihBeiOperationalStatusEnum.NEW_CANDIDATE]: 'default',
+  [AcgihBeiOperationalStatusEnum.LOW_CONFIDENCE_REVIEW]: 'error',
+  [AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE]: 'success',
+};
+
+export const operationalStatusExplanations: Record<
+  AcgihBeiOperationalStatusEnum,
+  string
+> = {
+  [AcgihBeiOperationalStatusEnum.ALREADY_COVERED]:
+    'ACGIH/BEI confirma item já coberto pela NR-7/Biblioteca.',
+  [AcgihBeiOperationalStatusEnum.DIVERGENT]:
+    'Divergência técnica relevante ainda em aberto (sem decisão de equivalência).',
+  [AcgihBeiOperationalStatusEnum.NEEDS_REVIEW]:
+    'Correspondência parcial ou ambígua; revisar.',
+  [AcgihBeiOperationalStatusEnum.NEW_CANDIDATE]:
+    'Sem equivalência clara; possível candidato futuro.',
+  [AcgihBeiOperationalStatusEnum.LOW_CONFIDENCE_REVIEW]:
+    'Transcrição ACGIH/BEI com baixa confiança; revisar fonte.',
+  [AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE]:
+    'Divergência resolvida por decisão técnica humana (equivalência / falso divergente). O status bruto calculado permanece preservado.',
 };
 
 export const suggestedActionLabels: Record<

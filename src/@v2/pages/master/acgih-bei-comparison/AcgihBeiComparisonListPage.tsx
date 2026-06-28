@@ -30,6 +30,7 @@ import {
 import {
   AcgihBeiComparisonDecisionEnum,
   AcgihBeiComparisonStatusEnum,
+  AcgihBeiOperationalStatusEnum,
   AcgihBeiSuggestedActionEnum,
   IAcgihBeiComparisonRow,
   IAcgihBeiComparisonTotals,
@@ -58,6 +59,7 @@ const totalsConfig: Array<{
   { key: 'total', label: 'Total' },
   { key: 'alreadyCovered', label: 'Já coberto' },
   { key: 'divergent', label: 'Divergente' },
+  { key: 'resolvedEquivalence', label: 'Resolvido (equiv.)' },
   { key: 'needsReview', label: 'Requer revisão' },
   { key: 'newCandidate', label: 'Candidato novo' },
   { key: 'lowConfidenceReview', label: 'Baixa confiança' },
@@ -69,6 +71,11 @@ export const AcgihBeiComparisonListPage: FC = () => {
   const [page, setPage] = useState(1);
   const [comparisonStatus, setComparisonStatus] = useState<
     AcgihBeiComparisonStatusEnum | typeof ALL
+  >(ALL);
+  // 4O.3 — filtro pelo status operacional/efetivo (Divergentes operacionais,
+  // Resolvidos por equivalência).
+  const [operationalStatus, setOperationalStatus] = useState<
+    AcgihBeiOperationalStatusEnum | typeof ALL
   >(ALL);
   const [suggestedAction, setSuggestedAction] = useState<
     AcgihBeiSuggestedActionEnum | typeof ALL
@@ -92,6 +99,8 @@ export const AcgihBeiComparisonListPage: FC = () => {
     search: search.trim() || undefined,
     comparisonStatus:
       comparisonStatus === ALL ? undefined : comparisonStatus,
+    operationalStatus:
+      operationalStatus === ALL ? undefined : operationalStatus,
     suggestedAction: suggestedAction === ALL ? undefined : suggestedAction,
     confidence: confidence === ALL ? undefined : confidence,
     reviewDecision: reviewDecision === ALL ? undefined : reviewDecision,
@@ -230,6 +239,14 @@ export const AcgihBeiComparisonListPage: FC = () => {
   // (comparisonStatus, suggestedAction, confidence). Não quebram paginação/contagem.
   const toggleComparisonStatus = (value: AcgihBeiComparisonStatusEnum) => {
     setComparisonStatus((prev) => (prev === value ? ALL : value));
+    setOperationalStatus(ALL);
+    setPage(1);
+  };
+
+  // 4O.3 — quick filters baseados no status operacional/efetivo.
+  const toggleOperationalStatus = (value: AcgihBeiOperationalStatusEnum) => {
+    setOperationalStatus((prev) => (prev === value ? ALL : value));
+    setComparisonStatus(ALL);
     setPage(1);
   };
 
@@ -270,11 +287,26 @@ export const AcgihBeiComparisonListPage: FC = () => {
     {
       key: 'divergent',
       label: 'Divergentes',
-      active: comparisonStatus === AcgihBeiComparisonStatusEnum.DIVERGENT,
+      active: operationalStatus === AcgihBeiOperationalStatusEnum.DIVERGENT,
       color: 'warning',
-      tooltip: 'Divergência técnica relevante entre ACGIH/BEI e NR-7/Biblioteca.',
+      tooltip:
+        'Divergência técnica ainda em aberto (status operacional). Itens resolvidos por equivalência técnica não aparecem aqui.',
       onToggle: () =>
-        toggleComparisonStatus(AcgihBeiComparisonStatusEnum.DIVERGENT),
+        toggleOperationalStatus(AcgihBeiOperationalStatusEnum.DIVERGENT),
+    },
+    {
+      key: 'resolved-equivalence',
+      label: 'Resolvidos por equivalência',
+      active:
+        operationalStatus ===
+        AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE,
+      color: 'success',
+      tooltip:
+        'Divergências resolvidas por decisão técnica humana (equivalência / falso divergente). O status bruto calculado permanece preservado.',
+      onToggle: () =>
+        toggleOperationalStatus(
+          AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE,
+        ),
     },
     {
       key: 'review',
@@ -440,6 +472,7 @@ export const AcgihBeiComparisonListPage: FC = () => {
                     | AcgihBeiComparisonStatusEnum
                     | typeof ALL,
                 );
+                setOperationalStatus(ALL);
                 setPage(1);
               }}
               size="small"

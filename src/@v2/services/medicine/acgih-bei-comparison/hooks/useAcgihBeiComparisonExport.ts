@@ -6,7 +6,13 @@ import type { IBrowseAcgihBeiComparisonParams } from '../service/acgih-bei-compa
 
 type ExportFilters = Pick<
   IBrowseAcgihBeiComparisonParams,
-  'search' | 'comparisonStatus' | 'suggestedAction' | 'confidence'
+  | 'search'
+  | 'comparisonStatus'
+  | 'operationalStatus'
+  | 'suggestedAction'
+  | 'confidence'
+  | 'reviewDecision'
+  | 'hasReview'
 >;
 
 export const useExportAcgihBeiComparison = () => {

@@ -11,6 +11,7 @@ export async function exportAcgihBeiComparison(
     IBrowseAcgihBeiComparisonParams,
     | 'search'
     | 'comparisonStatus'
+    | 'operationalStatus'
     | 'suggestedAction'
     | 'confidence'
     | 'reviewDecision'

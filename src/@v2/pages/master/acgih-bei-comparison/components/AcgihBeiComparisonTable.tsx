@@ -21,11 +21,15 @@ import {
 } from '@v2/pages/master/acgih-bei-indicators/acgih-bei-indicator-labels';
 import {
   AcgihBeiComparisonStatusEnum,
-  AcgihBeiSuggestedActionEnum,
+  AcgihBeiOperationalStatusEnum,
   IAcgihBeiComparisonRow,
 } from '@v2/services/medicine/acgih-bei-comparison/service/acgih-bei-comparison.types';
 import { RoutesEnum } from 'core/enums/routes.enums';
 
+import {
+  getReferenceEligibilityBlockers,
+  isEligibleForReference,
+} from '../acgih-bei-comparison-reference-eligibility';
 import {
   comparisonDecisionColors,
   comparisonDecisionExplanations,
@@ -36,6 +40,9 @@ import {
   comparisonStatusLabels,
   matchStatusColors,
   matchStatusLabels,
+  operationalStatusColors,
+  operationalStatusExplanations,
+  operationalStatusLabels,
   ruleMatchMethodLabels,
   ruleMatchMethodTooltips,
   suggestedActionExplanations,
@@ -60,12 +67,6 @@ type Props = {
   clearingId?: string | null;
 };
 
-/** Item elegível para virar fonte complementar (espelha as regras da API). */
-export const isEligibleForReference = (row: IAcgihBeiComparisonRow): boolean =>
-  row.comparisonStatus === AcgihBeiComparisonStatusEnum.ALREADY_COVERED &&
-  row.suggestedAction === AcgihBeiSuggestedActionEnum.ADD_REFERENCE_ONLY &&
-  Boolean(row.examRiskRuleId);
-
 /** Coluna de readiness: chips de contexto das três bases (4L.1b). */
 const ReadinessCell: FC<{ row: IAcgihBeiComparisonRow }> = ({ row }) => {
   const chips = getComparisonReadiness(row);
@@ -73,7 +74,7 @@ const ReadinessCell: FC<{ row: IAcgihBeiComparisonRow }> = ({ row }) => {
     return <STextRow text="—" color="text.secondary" />;
   }
   return (
-    <Box display="flex" flexDirection="column" gap={0.5}>
+    <Box display="flex" flexDirection="column" gap={0.25}>
       {chips.map((chip) => (
         <Tooltip key={chip.key} title={chip.tooltip ?? ''}>
           <Chip
@@ -81,7 +82,12 @@ const ReadinessCell: FC<{ row: IAcgihBeiComparisonRow }> = ({ row }) => {
             variant="outlined"
             color={chip.color}
             label={chip.label}
-            sx={{ cursor: 'default', justifyContent: 'flex-start' }}
+            sx={{
+              cursor: 'default',
+              justifyContent: 'flex-start',
+              height: 20,
+              '& .MuiChip-label': { px: 0.75, fontSize: 11 },
+            }}
           />
         </Tooltip>
       ))}
@@ -106,7 +112,7 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
 
   const tableData: ITableData<IAcgihBeiComparisonRow>[] = [
     {
-      column: 'minmax(200px, 1.2fr)',
+      column: 'minmax(210px, 1.4fr)',
       header: <STableHRow>ACGIH/BEI</STableHRow>,
       row: (row) => (
         <Box display="flex" flexDirection="column">
@@ -222,6 +228,12 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
       header: <STableHRow>Classificação / Diferenças</STableHRow>,
       row: (row) => {
         const diffParts = parseTechnicalDiff(row.technicalDiff);
+        // 4O.3 — quando o status operacional difere do bruto (resolvido por
+        // equivalência), exibe ambos: bruto preservado + operacional.
+        const operational = row.operationalStatus;
+        const showOperational =
+          operational != null &&
+          (operational as string) !== (row.comparisonStatus as string);
         return (
           <Box display="flex" flexDirection="column" gap={0.5}>
             <Box display="flex" gap={0.5} flexWrap="wrap">
@@ -233,6 +245,31 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
                   sx={{ cursor: 'default' }}
                 />
               </Tooltip>
+              {showOperational && (
+                <Tooltip
+                  title={
+                    operationalStatusExplanations[
+                      operational as AcgihBeiOperationalStatusEnum
+                    ]
+                  }
+                >
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={
+                      operationalStatusColors[
+                        operational as AcgihBeiOperationalStatusEnum
+                      ]
+                    }
+                    label={
+                      operationalStatusLabels[
+                        operational as AcgihBeiOperationalStatusEnum
+                      ]
+                    }
+                    sx={{ cursor: 'default' }}
+                  />
+                </Tooltip>
+              )}
             </Box>
             {diffParts.length > 0 && (
               <Box display="flex" flexDirection="column" gap={0.25}>
@@ -282,7 +319,7 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
       },
     },
     {
-      column: 'minmax(170px, 1fr)',
+      column: 'minmax(120px, 0.7fr)',
       header: <STableHRow>Ação sugerida</STableHRow>,
       row: (row) => (
         <Tooltip title={suggestedActionExplanations[row.suggestedAction]}>
@@ -296,7 +333,7 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
       ),
     },
     {
-      column: 'minmax(170px, 1fr)',
+      column: 'minmax(140px, 0.8fr)',
       header: <STableHRow>Contexto / Readiness</STableHRow>,
       row: (row) => <ReadinessCell row={row} />,
     },
@@ -390,7 +427,7 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
       },
     },
     {
-      column: '210px',
+      column: '150px',
       header: <STableHRow justify="center">Fonte complementar</STableHRow>,
       row: (row) => {
         // Vínculo já registrado tem precedência visual sobre o botão.
@@ -411,9 +448,8 @@ export const AcgihBeiComparisonTable: FC<Props> = ({
         }
 
         const eligible = isEligibleForReference(row);
-        const disabledReason = !eligible
-          ? 'Disponível apenas para itens já cobertos com sugestão de fonte complementar e regra existente.'
-          : '';
+        const blockers = eligible ? [] : getReferenceEligibilityBlockers(row);
+        const disabledReason = blockers.join(' ');
         const isApplying = applyingId === row.acgihBeiId;
         return (
           <Box display="flex" justifyContent="center" width="100%">
