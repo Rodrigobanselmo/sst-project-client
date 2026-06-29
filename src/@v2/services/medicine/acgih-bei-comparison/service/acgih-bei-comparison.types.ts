@@ -11,7 +11,7 @@ export enum AcgihBeiComparisonStatusEnum {
   LOW_CONFIDENCE_REVIEW = 'LOW_CONFIDENCE_REVIEW',
 }
 
-/** 4O.3 — status operacional/efetivo (comparisonStatus + decisão técnica). */
+/** 4O.3/4O.4 — status operacional/efetivo (comparisonStatus + decisão técnica). */
 export enum AcgihBeiOperationalStatusEnum {
   ALREADY_COVERED = 'ALREADY_COVERED',
   DIVERGENT = 'DIVERGENT',
@@ -19,6 +19,12 @@ export enum AcgihBeiOperationalStatusEnum {
   NEW_CANDIDATE = 'NEW_CANDIDATE',
   LOW_CONFIDENCE_REVIEW = 'LOW_CONFIDENCE_REVIEW',
   RESOLVED_EQUIVALENCE = 'RESOLVED_EQUIVALENCE',
+  // 4O.4 — estados operacionais derivados da decisão técnica em linhas revisadas.
+  REAL_DIVERGENCE = 'REAL_DIVERGENCE',
+  SOURCE_ACGIH_ERROR = 'SOURCE_ACGIH_ERROR',
+  SOURCE_NR7_ERROR = 'SOURCE_NR7_ERROR',
+  NEEDS_FURTHER_REVIEW = 'NEEDS_FURTHER_REVIEW',
+  IGNORE_MONITOR = 'IGNORE_MONITOR',
 }
 
 export enum AcgihBeiSuggestedActionEnum {

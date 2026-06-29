@@ -311,11 +311,12 @@ export const AcgihBeiComparisonListPage: FC = () => {
     {
       key: 'review',
       label: 'Requer revisão',
-      active: comparisonStatus === AcgihBeiComparisonStatusEnum.NEEDS_REVIEW,
+      active: operationalStatus === AcgihBeiOperationalStatusEnum.NEEDS_REVIEW,
       color: 'info',
-      tooltip: 'Correspondência parcial ou ambígua; revisar antes de decidir.',
+      tooltip:
+        'Pendentes de decisão técnica humana (status operacional). Itens que já receberam decisão saem desta fila e aparecem pelos filtros de decisão técnica.',
       onToggle: () =>
-        toggleComparisonStatus(AcgihBeiComparisonStatusEnum.NEEDS_REVIEW),
+        toggleOperationalStatus(AcgihBeiOperationalStatusEnum.NEEDS_REVIEW),
     },
     {
       key: 'candidate',

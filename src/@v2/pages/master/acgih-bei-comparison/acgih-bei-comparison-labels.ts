@@ -30,7 +30,7 @@ export const comparisonStatusColors: Record<
   [AcgihBeiComparisonStatusEnum.LOW_CONFIDENCE_REVIEW]: 'error',
 };
 
-/** 4O.3 — rótulos/cores/explicação do status operacional/efetivo. */
+/** 4O.3/4O.4 — rótulos/cores/explicação do status operacional/efetivo. */
 export const operationalStatusLabels: Record<
   AcgihBeiOperationalStatusEnum,
   string
@@ -42,6 +42,12 @@ export const operationalStatusLabels: Record<
   [AcgihBeiOperationalStatusEnum.LOW_CONFIDENCE_REVIEW]: 'Baixa confiança',
   [AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE]:
     'Resolvido por equivalência',
+  // 4O.4 — buckets operacionais derivados da decisão técnica.
+  [AcgihBeiOperationalStatusEnum.REAL_DIVERGENCE]: 'Divergência técnica real',
+  [AcgihBeiOperationalStatusEnum.SOURCE_ACGIH_ERROR]: 'Erro na base ACGIH/BEI',
+  [AcgihBeiOperationalStatusEnum.SOURCE_NR7_ERROR]: 'Erro na base NR-7',
+  [AcgihBeiOperationalStatusEnum.NEEDS_FURTHER_REVIEW]: 'Pendente (decisão)',
+  [AcgihBeiOperationalStatusEnum.IGNORE_MONITOR]: 'Monitorar / ignorar',
 };
 
 export const operationalStatusColors: Record<
@@ -54,6 +60,12 @@ export const operationalStatusColors: Record<
   [AcgihBeiOperationalStatusEnum.NEW_CANDIDATE]: 'default',
   [AcgihBeiOperationalStatusEnum.LOW_CONFIDENCE_REVIEW]: 'error',
   [AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE]: 'success',
+  // 4O.4 — alinhado às cores das decisões técnicas correspondentes.
+  [AcgihBeiOperationalStatusEnum.REAL_DIVERGENCE]: 'error',
+  [AcgihBeiOperationalStatusEnum.SOURCE_ACGIH_ERROR]: 'warning',
+  [AcgihBeiOperationalStatusEnum.SOURCE_NR7_ERROR]: 'warning',
+  [AcgihBeiOperationalStatusEnum.NEEDS_FURTHER_REVIEW]: 'info',
+  [AcgihBeiOperationalStatusEnum.IGNORE_MONITOR]: 'default',
 };
 
 export const operationalStatusExplanations: Record<
@@ -65,13 +77,24 @@ export const operationalStatusExplanations: Record<
   [AcgihBeiOperationalStatusEnum.DIVERGENT]:
     'Divergência técnica relevante ainda em aberto (sem decisão de equivalência).',
   [AcgihBeiOperationalStatusEnum.NEEDS_REVIEW]:
-    'Correspondência parcial ou ambígua; revisar.',
+    'Pendente de decisão técnica humana.',
   [AcgihBeiOperationalStatusEnum.NEW_CANDIDATE]:
     'Sem equivalência clara; possível candidato futuro.',
   [AcgihBeiOperationalStatusEnum.LOW_CONFIDENCE_REVIEW]:
     'Transcrição ACGIH/BEI com baixa confiança; revisar fonte.',
   [AcgihBeiOperationalStatusEnum.RESOLVED_EQUIVALENCE]:
     'Divergência resolvida por decisão técnica humana (equivalência / falso divergente). O status bruto calculado permanece preservado.',
+  // 4O.4 — o status bruto calculado permanece preservado para auditoria.
+  [AcgihBeiOperationalStatusEnum.REAL_DIVERGENCE]:
+    'Revisada e confirmada como divergência técnica real. Saiu da fila de pendentes; o status bruto calculado permanece preservado.',
+  [AcgihBeiOperationalStatusEnum.SOURCE_ACGIH_ERROR]:
+    'Revisada: indício de erro/transcrição na base ACGIH/BEI. O status bruto calculado permanece preservado.',
+  [AcgihBeiOperationalStatusEnum.SOURCE_NR7_ERROR]:
+    'Revisada: indício de erro/transcrição na base NR-7. O status bruto calculado permanece preservado.',
+  [AcgihBeiOperationalStatusEnum.NEEDS_FURTHER_REVIEW]:
+    'Revisada, mas marcada como pendente de mais análise (decisão registrada). Saiu da fila automática de pendentes.',
+  [AcgihBeiOperationalStatusEnum.IGNORE_MONITOR]:
+    'Revisada: manter em monitoramento, sem ação necessária agora. O status bruto calculado permanece preservado.',
 };
 
 export const suggestedActionLabels: Record<
