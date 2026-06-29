@@ -26,6 +26,7 @@ export enum RoutesEnum {
   DATABASE_ESOCIAL_PROCEDURES = '/dashboard/dados/procedimentos-esocial',
   DATABASE_ACGIH_BEI_INDICATORS = '/dashboard/dados/acgih-bei-indicadores',
   DATABASE_ACGIH_BEI_COMPARISON = '/dashboard/dados/acgih-bei-comparacao',
+  DATABASE_ACGIH_BEI_PROMOTION_PREVIEW = '/dashboard/dados/acgih-bei-promocao-preview',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
   EMPLOYEES = '/dashboard/empresas/:companyId/empregados',
   GHOS = '/dashboard/empresas/:companyId/grupos-homogenios',

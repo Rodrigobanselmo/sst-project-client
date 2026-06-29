@@ -33,4 +33,12 @@ export const featureFlags = {
   acgihBeiComparison: isFlagEnabledByDefault(
     process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_COMPARISON,
   ),
+  // 4P.1C — preview/dry-run (somente leitura) de promoção de candidatos
+  // ACGIH/BEI a indicador oficial. Tela MASTER: ativa por padrão e desligável
+  // via env=false como kill-switch visual. Não cria/altera nenhum dado; a
+  // segurança real continua nos guards MASTER (menu, withSSRAuth, SAuthShow e
+  // @Roles na API), não nesta flag.
+  acgihBeiPromotionPreview: isFlagEnabledByDefault(
+    process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_PROMOTION_PREVIEW,
+  ),
 } as const;

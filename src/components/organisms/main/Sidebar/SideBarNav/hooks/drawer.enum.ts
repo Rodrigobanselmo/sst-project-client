@@ -17,6 +17,7 @@ export enum DrawerItemsEnum {
   esocialProcedures = 'esocialProcedures',
   acgihBeiIndicators = 'acgihBeiIndicators',
   acgihBeiComparison = 'acgihBeiComparison',
+  acgihBeiPromotionPreview = 'acgihBeiPromotionPreview',
   examRiskRules = 'examRiskRules',
   allCompaniesData = 'allCompaniesData',
   allClinicsData = 'allClinicsData',
