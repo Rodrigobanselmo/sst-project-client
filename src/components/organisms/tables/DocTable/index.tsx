@@ -34,6 +34,7 @@ import {
   isUnofficialDocumentVersion,
   validatePromoteTestToOfficial,
 } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-version.helpers';
+import { resolveRegenerateProfessionals } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-generation-professionals.helpers';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
@@ -424,10 +425,16 @@ export const DocTable: FC<
   };
 
   const handleEditVersion = useCallback(
-    (doc: IRiskDocument) => {
+    async (doc: IRiskDocument) => {
       if (!workspaceId || !companyId) return;
       if (!isUnofficialDocumentVersion(doc.version)) return;
       if (doc.status === StatusEnum.PROCESSING) return;
+
+      const professionals = await resolveRegenerateProfessionals({
+        companyId,
+        generationSnapshot: doc.generationSnapshot,
+        documentProfessionals: documentData?.professionals,
+      });
 
       onOpenModal(ModalEnum.DOCUMENT_DATA_UPSERT, {
         regenerateVersionId: doc.id,
@@ -442,12 +449,19 @@ export const DocTable: FC<
         approvedBy: doc.approvedBy || documentData?.approvedBy,
         elaboratedBy: doc.elaboratedBy || documentData?.elaboratedBy,
         revisionBy: doc.revisionBy || documentData?.revisionBy,
-        coordinatorBy: documentData?.coordinatorBy,
+        coordinatorBy:
+          doc.generationSnapshot?.coordinatorBy ?? documentData?.coordinatorBy,
         modelId: doc.generationSnapshot?.modelId ?? documentData?.modelId,
         model: documentData?.model,
         generationSnapshot: doc.generationSnapshot,
-        professionals: documentData?.professionals,
-        json: documentData?.json,
+        professionals,
+        json: {
+          ...(documentData?.json || {}),
+          ...(doc.generationSnapshot?.json || {}),
+          ...(doc.generationSnapshot?.legalResponsibleBy
+            ? { legalResponsibleBy: doc.generationSnapshot.legalResponsibleBy }
+            : {}),
+        },
         versionFamily: 'test',
         downloadExpired: isTestDownloadExpired(doc),
       } as unknown as typeof initialMainDocState);
