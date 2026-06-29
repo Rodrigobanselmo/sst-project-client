@@ -1,11 +1,15 @@
 import React, { FC, MouseEvent, useMemo, useState } from 'react';
 
-import { Icon, Box } from '@mui/material';
+import { Icon, Box, Chip } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import STooltip from 'components/atoms/STooltip';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
+import {
+  getExamOriginChipSx,
+  normalizeExamOrigin,
+} from 'components/organisms/tables/ExamsTable/exam-origin.constants';
 import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -15,13 +19,24 @@ import { SExamIcon } from 'assets/icons/SExamIcon';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
-import { IExam } from 'core/interfaces/api/IExam';
+import { ExamOriginEnum, IExam } from 'core/interfaces/api/IExam';
 import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryPcmsoExamDefaults } from 'core/services/hooks/queries/useQueryPcmsoExamDefaults/useQueryPcmsoExamDefaults';
 import { mapPcmsoDefaultsToExamRisk } from 'core/utils/helpers/pcmsoExamDefaults';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IExamSelectProps } from './types';
+
+// B.1 — rótulos de origem exibidos no dropdown do seletor de exames. Reaproveita
+// o estilo do chip da tabela "Exames Cadastrados", mas com os rótulos definidos
+// para este seletor (NR-7 / Sistema / Empresa / Outro). Não distingue ACGIH/BEI
+// nem eSocial nesta fase: a API ainda classifica esses casos como SYSTEM/OTHER.
+const EXAM_SELECT_ORIGIN_LABELS: Record<ExamOriginEnum, string> = {
+  [ExamOriginEnum.NR07]: 'NR-7',
+  [ExamOriginEnum.SYSTEM]: 'Sistema',
+  [ExamOriginEnum.CLIENT]: 'Empresa',
+  [ExamOriginEnum.OTHER]: 'Outro',
+};
 
 export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   large,
@@ -160,19 +175,32 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       selected={selected || []}
       isLoading={isLoading}
       loading={tagLoading}
-      endAdornment={(options: IExam | undefined) => {
+      endAdornment={(option: IExam | undefined) => {
+        const origin = option?.origin
+          ? normalizeExamOrigin(option.origin)
+          : undefined;
+
         return (
-          <STooltip enterDelay={1200} withWrapper title={'editar'}>
-            <SIconButton
-              onClick={(e) => handleEditExam(e, options)}
-              sx={{ width: '2rem', height: '2rem' }}
-            >
-              <Icon
-                sx={{ color: 'text.light', fontSize: '18px' }}
-                component={EditIcon}
+          <Box display="flex" alignItems="center" gap={0.5} flexShrink={0}>
+            {origin && (
+              <Chip
+                size="small"
+                label={EXAM_SELECT_ORIGIN_LABELS[origin]}
+                sx={getExamOriginChipSx(origin)}
               />
-            </SIconButton>
-          </STooltip>
+            )}
+            <STooltip enterDelay={1200} withWrapper title={'editar'}>
+              <SIconButton
+                onClick={(e) => handleEditExam(e, option)}
+                sx={{ width: '2rem', height: '2rem' }}
+              >
+                <Icon
+                  sx={{ color: 'text.light', fontSize: '18px' }}
+                  component={EditIcon}
+                />
+              </SIconButton>
+            </STooltip>
+          </Box>
         );
       }}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}
