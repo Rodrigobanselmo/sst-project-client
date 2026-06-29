@@ -15,6 +15,9 @@ export interface IPaginationResult<T> {
   error: { message?: string };
   countUnread?: number;
   exams?: IExam[];
+  // Metadado opcional do filtro por agente no seletor de exames (Fase 2B).
+  // Só presente quando a API aplica recomendação por agente.
+  agentFilter?: { applied: true; recommendedCount: number };
 }
 
 export interface IReactQueryPagination<T>

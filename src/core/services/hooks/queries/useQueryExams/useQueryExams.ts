@@ -30,13 +30,26 @@ export interface IQueryExam {
   // a menos que includeIncompatible seja true ("Mostrar todos os exames").
   riskType?: RiskEnum;
   includeIncompatible?: boolean;
+  // Contexto de aplicabilidade por agente (Fase 2B). Opcional e retrocompatível:
+  // quando enviados com includeIncompatible=false, a API restringe a lista aos
+  // exames recomendados para o agente (regras ACTIVE/AGENT da Biblioteca +
+  // vínculos de indicadores biológicos). Sem esses params, comportamento atual.
+  agentCas?: string;
+  agentName?: string;
+}
+
+/** Metadado retornado pela API quando o filtro por agente é aplicado (Fase 2B). */
+export interface IExamAgentFilter {
+  applied: true;
+  recommendedCount: number;
 }
 
 export const queryExams = async (
   { skip, take }: IPagination,
   query: IQueryExam,
 ) => {
-  if ('search' in query && query.search === null) return { data: [], count: 0 };
+  if ('search' in query && query.search === null)
+    return { data: [], count: 0, agentFilter: undefined };
 
   const companyId = query.companyId;
   const queries = queryString.stringify(query);
@@ -69,5 +82,10 @@ export function useQueryExams(page = 1, query = {} as IQueryExam, take = 20) {
     count: data?.count || 0,
   };
 
-  return { ...result, data: response.data, count: response.count };
+  return {
+    ...result,
+    data: response.data,
+    count: response.count,
+    agentFilter: data?.agentFilter,
+  };
 }

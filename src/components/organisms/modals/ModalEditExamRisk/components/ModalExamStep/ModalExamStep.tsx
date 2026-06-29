@@ -226,6 +226,7 @@ export const ModalExamStep = ({
             large
             disabled={loading}
             riskType={riskType}
+            risk={examData.risk}
             selectedExamId={examData.examId || undefined}
             text={examData.exam?.name || 'selecione um exame'}
             error={examData.error.exam}

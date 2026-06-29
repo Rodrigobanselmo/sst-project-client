@@ -3,6 +3,7 @@ import React, { FC, MouseEvent, useMemo, useState } from 'react';
 import { Icon, Box, Chip } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import { SSwitch } from 'components/atoms/SSwitch';
+import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
@@ -53,7 +54,18 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [showAllExams, setShowAllExams] = useState(false);
-  const { data, isLoading } = useQueryExams(
+  // Fase 2B — quando há agente em contexto e o toggle "Mostrar todos os exames"
+  // está desligado, envia o agente para a API restringir aos exames recomendados.
+  // Com o toggle ligado, includeIncompatible=true faz a API ignorar a recomendação
+  // e devolver o catálogo amplo, então não enviamos agente.
+  const agentParams =
+    risk && !showAllExams
+      ? {
+          ...(risk.cas ? { agentCas: risk.cas } : {}),
+          ...(risk.name ? { agentName: risk.name } : {}),
+        }
+      : {};
+  const { data, agentFilter, isLoading } = useQueryExams(
     1,
     {
       search,
@@ -62,9 +74,18 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       ...(riskType
         ? { riskType, includeIncompatible: showAllExams }
         : {}),
+      ...agentParams,
     },
     15,
   );
+
+  // Recomendação por agente aplicada, porém sem nenhum exame recomendado.
+  // Diferente de busca sem resultado (recommendedCount > 0): aqui orientamos o
+  // usuário a ligar "Mostrar todos os exames" para buscar no catálogo completo.
+  const hasNoRecommendedExams =
+    !showAllExams &&
+    agentFilter?.applied === true &&
+    agentFilter.recommendedCount === 0;
   const { onStackOpenModal } = useModal();
 
   // Padrões de PCMSO da empresa para pré-preencher NOVO vínculo no fluxo inline
@@ -137,6 +158,12 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
             sx={{ ml: 0 }}
             color="text.light"
           />
+          {hasNoRecommendedExams && (
+            <SText sx={{ fontSize: 12, color: 'text.light', mt: 1, mx: 1 }}>
+              Nenhum exame recomendado para este agente. Ative “Mostrar todos os
+              exames” para buscar no catálogo completo.
+            </SText>
+          )}
         </Box>
       )
     : undefined;
