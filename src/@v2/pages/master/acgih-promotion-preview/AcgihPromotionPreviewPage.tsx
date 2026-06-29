@@ -24,6 +24,7 @@ import { SAuthShow } from 'components/molecules/SAuthShow';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
 
+import { AcgihPromotionApplyDialog } from './components/AcgihPromotionApplyDialog';
 import { AcgihPromotionPreviewDetailDialog } from './components/AcgihPromotionPreviewDetailDialog';
 import { AcgihPromotionPreviewTable } from './components/AcgihPromotionPreviewTable';
 
@@ -65,6 +66,17 @@ export const AcgihPromotionPreviewPage: FC = () => {
 
   const [detailTarget, setDetailTarget] =
     useState<IAcgihPromotionPreviewItem | null>(null);
+  const [applyOpen, setApplyOpen] = useState(false);
+
+  const eligibleCount = data?.totals?.eligible ?? 0;
+  const canApply = !isLoading && !isError && eligibleCount > 0;
+  const applyTooltip = isError
+    ? 'Corrija o erro do preview antes de promover.'
+    : isLoading
+      ? 'Aguarde o carregamento do preview.'
+      : eligibleCount === 0
+        ? 'Nenhum candidato elegível para promover.'
+        : 'Promover candidatos elegíveis como indicadores oficiais DRAFT.';
 
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
@@ -99,9 +111,13 @@ export const AcgihPromotionPreviewPage: FC = () => {
               </Button>
             </Box>
           </Box>
-          <Tooltip title="Aplicação real será tratada na 4P.2">
+          <Tooltip title={applyTooltip}>
             <span>
-              <Button variant="contained" disabled>
+              <Button
+                variant="contained"
+                disabled={!canApply}
+                onClick={() => setApplyOpen(true)}
+              >
                 Sincronizar ACGIH/BEI (4P.2)
               </Button>
             </span>
@@ -185,6 +201,15 @@ export const AcgihPromotionPreviewPage: FC = () => {
       <AcgihPromotionPreviewDetailDialog
         item={detailTarget}
         onClose={() => setDetailTarget(null)}
+      />
+
+      <AcgihPromotionApplyDialog
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        eligible={eligibleCount}
+        primary={data?.totals?.primary ?? 0}
+        divergenceDerived={data?.totals?.divergenceDerived ?? 0}
+        includeDivergenceDerived={includeDivergenceDerived}
       />
     </SAuthShow>
   );

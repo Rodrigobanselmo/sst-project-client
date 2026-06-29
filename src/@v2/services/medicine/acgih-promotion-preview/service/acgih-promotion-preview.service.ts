@@ -2,6 +2,8 @@ import { AcgihPromotionPreviewRoutes } from '@v2/constants/routes/acgih-promotio
 import { api } from 'core/services/apiClient';
 
 import type {
+  IAcgihPromotionApplyParams,
+  IAcgihPromotionApplyResponse,
   IAcgihPromotionPreviewParams,
   IAcgihPromotionPreviewResponse,
 } from './acgih-promotion-preview.types';
@@ -25,6 +27,25 @@ export async function getAcgihPromotionPreview(
           ? 'true'
           : undefined,
       },
+    },
+  );
+  return response.data;
+}
+
+/**
+ * 4P.2B — promove os candidatos ACGIH/BEI elegíveis (cria indicadores oficiais
+ * DRAFT na API). Exige confirmText literal. Sem lista de ids = aplica todos os
+ * ELIGIBLE do preview atual no servidor.
+ */
+export async function applyAcgihPromotion(
+  params: IAcgihPromotionApplyParams,
+): Promise<IAcgihPromotionApplyResponse> {
+  const response = await api.post<IAcgihPromotionApplyResponse>(
+    AcgihPromotionPreviewRoutes.APPLY,
+    {
+      acgihBeiIndicatorIds: params.acgihBeiIndicatorIds,
+      includeDivergenceDerived: params.includeDivergenceDerived,
+      confirmText: params.confirmText,
     },
   );
   return response.data;

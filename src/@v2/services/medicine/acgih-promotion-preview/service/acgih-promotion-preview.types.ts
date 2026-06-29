@@ -114,3 +114,40 @@ export interface IAcgihPromotionPreviewResponse {
   limit: number;
   count: number;
 }
+
+/**
+ * 4P.2B — apply/promote real. Alinhado 1:1 com a API (4P.2A). O servidor é
+ * autoritativo (reexecuta o preview); o Client só envia a seleção, o opt-in e
+ * a confirmação literal. Nenhum campo proposto é enviado pelo Client.
+ */
+export const ACGIH_PROMOTION_APPLY_CONFIRM_TEXT = 'PROMOVER ACGIH';
+
+export type AcgihPromotionApplyItemStatus = 'created' | 'skipped' | 'blocked';
+
+export interface IAcgihPromotionApplyParams {
+  acgihBeiIndicatorIds?: string[];
+  includeDivergenceDerived?: boolean;
+  confirmText: string;
+}
+
+export interface IAcgihPromotionApplyItemResult {
+  acgihBeiIndicatorId: string;
+  status: AcgihPromotionApplyItemStatus;
+  occupationalBiologicalIndicatorId?: string;
+  reason: string;
+  blockers?: string[];
+  warnings?: string[];
+}
+
+export interface IAcgihPromotionApplyTotals {
+  requested: number;
+  eligible: number;
+  created: number;
+  skipped: number;
+  blocked: number;
+}
+
+export interface IAcgihPromotionApplyResponse {
+  totals: IAcgihPromotionApplyTotals;
+  items: IAcgihPromotionApplyItemResult[];
+}

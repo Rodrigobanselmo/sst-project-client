@@ -4,4 +4,6 @@
  */
 export const AcgihPromotionPreviewRoutes = {
   PREVIEW: '/v2/master/biological-indicators/acgih-promotion/preview',
+  // 4P.2A/4P.2B — apply/promote real (escrita, MASTER-only).
+  APPLY: '/v2/master/biological-indicators/acgih-promotion/apply',
 } as const;
