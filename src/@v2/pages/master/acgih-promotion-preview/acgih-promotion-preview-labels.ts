@@ -23,9 +23,9 @@ export const tierExplanations: Record<
   string
 > = {
   [AcgihPromotionEligibilityTierEnum.PRIMARY]:
-    'Candidato ACGIH confirmado sem correspondência (NO_MATCH_CONFIRMED).',
+    'Primário: candidato ACGIH/BEI confirmado sem correspondência na NR-7/Biblioteca (decisão NO_MATCH_CONFIRMED).',
   [AcgihPromotionEligibilityTierEnum.DIVERGENCE_DERIVED]:
-    'Candidato derivado de divergência técnica real (REAL_DIVERGENCE), incluído apenas com o toggle ligado.',
+    'Derivado de divergência: decisão técnica real (REAL_DIVERGENCE) que prevalece sobre o status bruto; só aparece com o toggle "incluir divergências reais" ligado.',
 };
 
 export const eligibilityStatusLabels: Record<
@@ -51,11 +51,11 @@ export const eligibilityStatusExplanations: Record<
   string
 > = {
   [AcgihPromotionEligibilityStatusEnum.ELIGIBLE]:
-    'Seria criado futuramente como rascunho (DRAFT), com curadoria normativa manual posterior. Nada é criado nesta etapa.',
+    'Elegível: pronto para criação como rascunho (DRAFT), com curadoria normativa manual posterior. Ter decisão técnica não basta — só itens elegíveis são promovidos.',
   [AcgihPromotionEligibilityStatusEnum.WARNING]:
-    'Exige atenção (ex.: possível duplicidade), mas não bloqueia necessariamente a promoção futura.',
+    'Com aviso: exige atenção (ex.: possível duplicidade), mas não bloqueia necessariamente a promoção futura.',
   [AcgihPromotionEligibilityStatusEnum.BLOCKED]:
-    'Não será promovido sem correção/revisão. Verifique os bloqueios listados.',
+    'Bloqueado: falta correção/mapeamento antes de promover (ex.: momento de coleta não mapeado). Não será promovido sem revisão.',
 };
 
 export const duplicateRiskLabels: Record<
@@ -107,6 +107,30 @@ export const blockerLabels: Record<string, string> = {
   MISSING_VALUE: 'Valor de referência ausente',
   COMPLEMENTARY_REFERENCE_ACTIVE: 'Fonte complementar ativa',
   LOW_CONFIDENCE: 'Baixa confiança de transcrição',
+};
+
+/**
+ * Rótulos PT dos momentos de coleta (enum BiologicalCollectionMomentEnum) para
+ * exibição no preview. Keyed por string (não acopla ao enum Prisma); cai no
+ * próprio código quando desconhecido. 4P.2.2 adiciona FINAL_EXPOSURE.
+ */
+export const collectionMomentLabels: Record<string, string> = {
+  AJ: 'Antes da jornada',
+  FJ: 'Final da jornada',
+  FJFS: 'Final da jornada e da semana',
+  AJFS: 'Antes da última jornada da semana',
+  AJ48: 'Antes da jornada (após 48h)',
+  NC: 'Não crítico',
+  FS: 'Fim de semana',
+  AJ_FJ: 'Antes e ao final da jornada',
+  FINAL_EXPOSURE: 'Final da exposição',
+};
+
+export const formatCollectionMoment = (
+  code?: string | null,
+): string | null => {
+  if (!code) return null;
+  return collectionMomentLabels[code] ?? code;
 };
 
 /** Tradução amigável dos campos ausentes (missingFields). */

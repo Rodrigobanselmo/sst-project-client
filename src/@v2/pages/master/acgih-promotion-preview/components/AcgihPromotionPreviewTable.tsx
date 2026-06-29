@@ -19,6 +19,7 @@ import {
   eligibilityStatusLabels,
   eligibilityStatusExplanations,
   formatBlocker,
+  formatCollectionMoment,
   momentConfidenceColors,
   momentConfidenceLabels,
   tierColors,
@@ -97,7 +98,7 @@ export const AcgihPromotionPreviewTable: FC<Props> = ({
                 color={momentConfidenceColors[moment.confidence]}
                 label={
                   moment.mappedValue
-                    ? `${moment.mappedValue} · ${momentConfidenceLabels[moment.confidence]}`
+                    ? `${formatCollectionMoment(moment.mappedValue)} · ${momentConfidenceLabels[moment.confidence]}`
                     : momentConfidenceLabels[moment.confidence]
                 }
                 sx={{ cursor: 'default' }}

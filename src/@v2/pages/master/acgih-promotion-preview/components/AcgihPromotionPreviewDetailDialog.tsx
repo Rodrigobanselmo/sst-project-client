@@ -23,6 +23,7 @@ import {
   eligibilityStatusColors,
   eligibilityStatusLabels,
   formatBlocker,
+  formatCollectionMoment,
   formatMissingField,
   momentConfidenceLabels,
   tierLabels,
@@ -151,7 +152,12 @@ export const AcgihPromotionPreviewDetailDialog: FC<Props> = ({
         <Divider sx={{ my: 1.5 }} />
         <SectionTitle>Momento de coleta</SectionTitle>
         <Row label="Original (ACGIH)" value={item.mappedFields.collectionMoment.original} />
-        <Row label="Mapeado (NR-7)" value={item.mappedFields.collectionMoment.mappedValue} />
+        <Row
+          label="Mapeado (NR-7)"
+          value={formatCollectionMoment(
+            item.mappedFields.collectionMoment.mappedValue,
+          )}
+        />
         <Row
           label="Confiança do mapeamento"
           value={momentConfidenceLabels[item.mappedFields.collectionMoment.confidence]}
@@ -171,7 +177,10 @@ export const AcgihPromotionPreviewDetailDialog: FC<Props> = ({
         <Row label="CAS (lista)" value={payload.casNumbers.join(', ')} />
         <Row label="Determinante (original)" value={payload.biologicalIndicatorOriginal} />
         <Row label="Matriz biológica" value={payload.biologicalMatrix} />
-        <Row label="Momento de coleta" value={payload.collectionMoment} />
+        <Row
+          label="Momento de coleta"
+          value={formatCollectionMoment(payload.collectionMoment)}
+        />
         <Row label="Valor de referência" value={payload.referenceValue} />
         <Row label="Unidade" value={payload.unit} />
         <Row label="Versão normativa proposta" value={payload.normativeVersion} />

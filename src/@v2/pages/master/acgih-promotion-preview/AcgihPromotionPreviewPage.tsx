@@ -130,7 +130,10 @@ export const AcgihPromotionPreviewPage: FC = () => {
           rascunho (DRAFT), com curadoria manual posterior.{' '}
           <strong>Bloqueados</strong> não serão promovidos sem correção/revisão.{' '}
           <strong>Com aviso</strong> exigem atenção, mas não bloqueiam
-          necessariamente.
+          necessariamente. Ter <strong>decisão técnica</strong> registrada não
+          significa, por si só, que o item seja promovível: <strong>Primário</strong>{' '}
+          = candidato ACGIH confirmado sem match; <strong>Derivado de divergência</strong>{' '}
+          = divergência técnica real, incluído apenas com o toggle abaixo.
         </Alert>
 
         {isError && (
