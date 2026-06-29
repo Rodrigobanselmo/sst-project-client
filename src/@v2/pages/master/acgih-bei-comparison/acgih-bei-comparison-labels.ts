@@ -48,6 +48,10 @@ export const operationalStatusLabels: Record<
   [AcgihBeiOperationalStatusEnum.SOURCE_NR7_ERROR]: 'Erro na base NR-7',
   [AcgihBeiOperationalStatusEnum.NEEDS_FURTHER_REVIEW]: 'Pendente (decisão)',
   [AcgihBeiOperationalStatusEnum.IGNORE_MONITOR]: 'Monitorar / ignorar',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  [AcgihBeiOperationalStatusEnum.COVERAGE_CONFIRMED]: 'Cobertura confirmada',
+  [AcgihBeiOperationalStatusEnum.ACGIH_CANDIDATE_CONFIRMED]:
+    'Candidato ACGIH confirmado',
 };
 
 export const operationalStatusColors: Record<
@@ -66,6 +70,9 @@ export const operationalStatusColors: Record<
   [AcgihBeiOperationalStatusEnum.SOURCE_NR7_ERROR]: 'warning',
   [AcgihBeiOperationalStatusEnum.NEEDS_FURTHER_REVIEW]: 'info',
   [AcgihBeiOperationalStatusEnum.IGNORE_MONITOR]: 'default',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  [AcgihBeiOperationalStatusEnum.COVERAGE_CONFIRMED]: 'success',
+  [AcgihBeiOperationalStatusEnum.ACGIH_CANDIDATE_CONFIRMED]: 'info',
 };
 
 export const operationalStatusExplanations: Record<
@@ -95,6 +102,11 @@ export const operationalStatusExplanations: Record<
     'Revisada, mas marcada como pendente de mais análise (decisão registrada). Saiu da fila automática de pendentes.',
   [AcgihBeiOperationalStatusEnum.IGNORE_MONITOR]:
     'Revisada: manter em monitoramento, sem ação necessária agora. O status bruto calculado permanece preservado.',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  [AcgihBeiOperationalStatusEnum.COVERAGE_CONFIRMED]:
+    'Cobertura confirmada pela revisão humana (match pleno / já coberto). Não cria item novo; pode receber fonte complementar quando elegível pelo fluxo existente. O status bruto calculado permanece preservado.',
+  [AcgihBeiOperationalStatusEnum.ACGIH_CANDIDATE_CONFIRMED]:
+    'Sem correspondência real confirmada; encaminhado como candidato ACGIH para a fase 4P. Não habilita fonte complementar. O status bruto calculado permanece preservado.',
 };
 
 export const suggestedActionLabels: Record<
@@ -193,6 +205,10 @@ export const comparisonDecisionLabels: Record<
   [AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR]: 'Erro na base NR-7',
   [AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW]: 'Pendente de revisão',
   [AcgihBeiComparisonDecisionEnum.IGNORE_MONITOR]: 'Monitorar / ignorar',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  [AcgihBeiComparisonDecisionEnum.MATCH_CONFIRMED]: 'Cobertura confirmada',
+  [AcgihBeiComparisonDecisionEnum.NO_MATCH_CONFIRMED]:
+    'Candidato ACGIH confirmado',
 };
 
 export const comparisonDecisionColors: Record<
@@ -205,6 +221,9 @@ export const comparisonDecisionColors: Record<
   [AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR]: 'warning',
   [AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW]: 'info',
   [AcgihBeiComparisonDecisionEnum.IGNORE_MONITOR]: 'default',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  [AcgihBeiComparisonDecisionEnum.MATCH_CONFIRMED]: 'success',
+  [AcgihBeiComparisonDecisionEnum.NO_MATCH_CONFIRMED]: 'info',
 };
 
 export const comparisonDecisionExplanations: Record<
@@ -223,4 +242,9 @@ export const comparisonDecisionExplanations: Record<
     'Decisão pendente; requer mais análise antes de concluir.',
   [AcgihBeiComparisonDecisionEnum.IGNORE_MONITOR]:
     'Sem ação necessária agora; manter em monitoramento.',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  [AcgihBeiComparisonDecisionEnum.MATCH_CONFIRMED]:
+    'Cobertura/match confirmado pela revisão: item já coberto ou equivalente sem divergência. Não cria item novo; pode receber fonte complementar quando elegível pelo fluxo existente.',
+  [AcgihBeiComparisonDecisionEnum.NO_MATCH_CONFIRMED]:
+    'Sem correspondência real na NR-7/Biblioteca e não é erro de base: encaminhar como candidato ACGIH para a fase 4P. Não habilita fonte complementar.',
 };

@@ -14,6 +14,8 @@ const REFERENCE_BLOCKING_DECISIONS: AcgihBeiComparisonDecisionEnum[] = [
   AcgihBeiComparisonDecisionEnum.SOURCE_NR7_ERROR,
   AcgihBeiComparisonDecisionEnum.NEEDS_FURTHER_REVIEW,
   AcgihBeiComparisonDecisionEnum.IGNORE_MONITOR,
+  // 4O.5 — "candidato ACGIH confirmado" (sem match) não recebe fonte complementar.
+  AcgihBeiComparisonDecisionEnum.NO_MATCH_CONFIRMED,
 ];
 
 const isActiveStatus = (value?: string | null): boolean =>

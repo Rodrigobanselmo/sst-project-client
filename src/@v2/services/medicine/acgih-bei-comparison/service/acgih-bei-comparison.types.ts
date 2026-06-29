@@ -25,6 +25,9 @@ export enum AcgihBeiOperationalStatusEnum {
   SOURCE_NR7_ERROR = 'SOURCE_NR7_ERROR',
   NEEDS_FURTHER_REVIEW = 'NEEDS_FURTHER_REVIEW',
   IGNORE_MONITOR = 'IGNORE_MONITOR',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  COVERAGE_CONFIRMED = 'COVERAGE_CONFIRMED',
+  ACGIH_CANDIDATE_CONFIRMED = 'ACGIH_CANDIDATE_CONFIRMED',
 }
 
 export enum AcgihBeiSuggestedActionEnum {
@@ -49,6 +52,9 @@ export enum AcgihBeiComparisonDecisionEnum {
   SOURCE_NR7_ERROR = 'SOURCE_NR7_ERROR',
   NEEDS_FURTHER_REVIEW = 'NEEDS_FURTHER_REVIEW',
   IGNORE_MONITOR = 'IGNORE_MONITOR',
+  // 4O.5 — desfechos de auditoria para itens sem divergência.
+  MATCH_CONFIRMED = 'MATCH_CONFIRMED',
+  NO_MATCH_CONFIRMED = 'NO_MATCH_CONFIRMED',
 }
 
 export interface IComparisonReviewInfo {
