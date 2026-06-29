@@ -260,6 +260,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_ACGIH_BEI_PROMOTION_PREVIEW,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.acgihBeiRiskCorrelation]: {
+      text: 'ACGIH/BEI — Correlação com Fatores de Risco',
+      description:
+        'Preview somente leitura da correlação entre ACGIH/BEI e os Fatores de Risco do sistema (MASTER)',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_ACGIH_BEI_RISK_CORRELATION,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.allCompaniesData]: {
       text: 'Empresas',
       description: 'Visualizar empresas cadastradas',
@@ -549,7 +557,8 @@ export const useDrawerItems = () => {
           },
           // Análises de elegibilidade → comparações que apoiam a decisão de padrão.
           ...(featureFlags.acgihBeiComparison ||
-          featureFlags.acgihBeiPromotionPreview
+          featureFlags.acgihBeiPromotionPreview ||
+          featureFlags.acgihBeiRiskCorrelation
             ? [
                 {
                   ...items[DrawerItemsEnum.eligibilityAnalysisGroup],
@@ -559,6 +568,9 @@ export const useDrawerItems = () => {
                       : []),
                     ...(featureFlags.acgihBeiPromotionPreview
                       ? [items[DrawerItemsEnum.acgihBeiPromotionPreview]]
+                      : []),
+                    ...(featureFlags.acgihBeiRiskCorrelation
+                      ? [items[DrawerItemsEnum.acgihBeiRiskCorrelation]]
                       : []),
                   ],
                 },

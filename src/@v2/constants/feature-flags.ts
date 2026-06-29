@@ -41,4 +41,12 @@ export const featureFlags = {
   acgihBeiPromotionPreview: isFlagEnabledByDefault(
     process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_PROMOTION_PREVIEW,
   ),
+  // Frente A.2 — preview (somente leitura) da correlação ACGIH/BEI × Fatores de
+  // Risco. Tela MASTER: ativa por padrão e desligável via env=false como
+  // kill-switch visual. Não cria/altera nenhum dado; a segurança real continua
+  // nos guards MASTER (menu, withSSRAuth, SAuthShow e @Roles na API), não nesta
+  // flag.
+  acgihBeiRiskCorrelation: isFlagEnabledByDefault(
+    process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_RISK_CORRELATION,
+  ),
 } as const;
