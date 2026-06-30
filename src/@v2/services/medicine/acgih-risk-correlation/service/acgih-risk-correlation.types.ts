@@ -262,6 +262,14 @@ export interface IAcgihExamPreviewLink {
   examId?: number;
   examName?: string;
   candidates?: IAcgihExamLinkCandidate[];
+  ambiguousCandidates?: Array<{
+    examId: number;
+    examName: string;
+    material: string | null;
+    score?: number;
+    reason?: string;
+  }>;
+  pendingReason?: string;
   suggestedExamName?: string;
   reason?: string;
 }
@@ -376,4 +384,40 @@ export interface IAcgihExamConfirmSafeResponse {
   dryRun: boolean;
   totals: IAcgihExamConfirmSafeTotals;
   items: IAcgihExamConfirmSafeItemResult[];
+}
+
+export const ACGIH_EXAM_LINK_RESOLVE_AMBIGUOUS_CONFIRM_TEXT =
+  'CONFIRMAR AMBIGUIDADE ACGIH';
+
+export type AcgihExamResolveAmbiguousAction =
+  | 'confirmed'
+  | 'alreadyConfirmed'
+  | 'skipped'
+  | 'failed';
+
+export interface IAcgihExamResolveAmbiguousItemResult {
+  examId: number;
+  examName: string;
+  action: AcgihExamResolveAmbiguousAction;
+  reason?: string;
+}
+
+export interface IAcgihExamResolveAmbiguousParams {
+  indicatorId: string;
+  examIds: number[];
+  confirmText: string;
+  dryRun?: boolean;
+}
+
+export interface IAcgihExamResolveAmbiguousResponse {
+  dryRun: boolean;
+  indicatorId: string;
+  substanceName: string;
+  determinant: string;
+  matrix: string;
+  confirmedLinks: number;
+  alreadyConfirmed: number;
+  skipped: number;
+  remainingPending: number;
+  items: IAcgihExamResolveAmbiguousItemResult[];
 }

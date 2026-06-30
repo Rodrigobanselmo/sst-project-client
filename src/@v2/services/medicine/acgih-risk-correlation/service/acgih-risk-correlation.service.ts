@@ -11,6 +11,8 @@ import type {
   IAcgihExamResolveResponse,
   IAcgihExamConfirmSafeParams,
   IAcgihExamConfirmSafeResponse,
+  IAcgihExamResolveAmbiguousParams,
+  IAcgihExamResolveAmbiguousResponse,
   IAcgihRiskCorrelationApplyParams,
   IAcgihRiskCorrelationApplyResponse,
   IAcgihRiskCorrelationParams,
@@ -133,6 +135,25 @@ export async function confirmSafeAcgihExamLinks(
   const response = await api.post<IAcgihExamConfirmSafeResponse>(
     AcgihRiskCorrelationRoutes.EXAM_LINK_CONFIRM_SAFE_PENDING,
     {
+      confirmText: params.confirmText,
+      dryRun: params.dryRun,
+    },
+  );
+  return response.data;
+}
+
+/**
+ * Resolve manualmente ambiguidade ACGIH/BEI × Exame confirmando um ou mais
+ * candidatos selecionados. Não cria exame nem regra da Biblioteca.
+ */
+export async function resolveAmbiguousAcgihExamLinks(
+  params: IAcgihExamResolveAmbiguousParams,
+): Promise<IAcgihExamResolveAmbiguousResponse> {
+  const response = await api.post<IAcgihExamResolveAmbiguousResponse>(
+    AcgihRiskCorrelationRoutes.EXAM_LINK_RESOLVE_AMBIGUOUS,
+    {
+      indicatorId: params.indicatorId,
+      examIds: params.examIds,
       confirmText: params.confirmText,
       dryRun: params.dryRun,
     },

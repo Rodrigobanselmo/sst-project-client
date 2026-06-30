@@ -188,7 +188,7 @@ export const examLinkStatusTooltips: Record<AcgihExamPreviewStatus, string> = {
   LINKED:
     'Exame do sistema vinculado e confirmado — elegível para sync da Biblioteca.',
   LINKED_PENDING_CONFIRMATION:
-    'Há vínculo de exame, mas ainda não confirmado. Use “Confirmar pendentes seguros” se determinante + matriz embutida no nome do exame; caso contrário confirme manualmente antes do sync da Biblioteca.',
+    'Há vínculo de exame, mas ainda não confirmado. Use “Confirmar pendentes seguros” quando determinante + matriz embutida no nome do exame couber; use “Resolver ambiguidade” quando houver múltiplos candidatos válidos.',
   NOT_LINKED:
     'Este indicador ACGIH/BEI ainda não possui exame do sistema vinculado.',
   AMBIGUOUS: 'Múltiplos exames candidatos — escolha manual necessária.',

@@ -33,8 +33,9 @@ import { AcgihRiskCorrelationApplyDialog } from './components/AcgihRiskCorrelati
 import { AcgihRiskCorrelationConsolidateDialog } from './components/AcgihRiskCorrelationConsolidateDialog';
 import { AcgihExamResolveDialog } from './components/AcgihExamResolveDialog';
 import { AcgihExamConfirmSafeDialog } from './components/AcgihExamConfirmSafeDialog';
+import { AcgihExamResolveAmbiguousDialog } from './components/AcgihExamResolveAmbiguousDialog';
 import { AcgihRiskCorrelationDetailDialog } from './components/AcgihRiskCorrelationDetailDialog';
-import { AcgihRiskCorrelationTable } from './components/AcgihRiskCorrelationTable';
+import { AcgihRiskCorrelationTable, AcgihCorrelationTableRow } from './components/AcgihRiskCorrelationTable';
 import {
   cardinalityLabels,
   decisionSourceLabels,
@@ -99,12 +100,14 @@ export const AcgihRiskCorrelationPage: FC = () => {
   const [consolidateOpen, setConsolidateOpen] = useState(false);
   const [examResolveOpen, setExamResolveOpen] = useState(false);
   const [examConfirmSafeOpen, setExamConfirmSafeOpen] = useState(false);
+  const [ambiguousTarget, setAmbiguousTarget] =
+    useState<AcgihCorrelationTableRow | null>(null);
 
   const examByAcgihId = useMemo(() => {
     const map = new Map(
       (examPreview?.items ?? []).map((item) => [
         item.acgihBeiIndicatorId,
-        item.examLink,
+        item,
       ]),
     );
     return map;
@@ -131,10 +134,14 @@ export const AcgihRiskCorrelationPage: FC = () => {
 
   const tableRows = useMemo(
     () =>
-      filteredItems.map((item) => ({
-        ...item,
-        examLink: examByAcgihId.get(item.acgihBeiIndicatorId),
-      })),
+      filteredItems.map((item) => {
+        const examItem = examByAcgihId.get(item.acgihBeiIndicatorId);
+        return {
+          ...item,
+          officialIndicatorId: examItem?.officialIndicatorId ?? null,
+          examLink: examItem?.examLink,
+        };
+      }),
     [filteredItems, examByAcgihId],
   );
 
@@ -490,6 +497,7 @@ export const AcgihRiskCorrelationPage: FC = () => {
             data={tableRows}
             isLoading={isLoading || examPreviewLoading}
             onOpenDetail={setDetailTarget}
+            onResolveAmbiguous={setAmbiguousTarget}
           />
         </Paper>
       </Box>
@@ -522,6 +530,23 @@ export const AcgihRiskCorrelationPage: FC = () => {
       <AcgihExamConfirmSafeDialog
         open={examConfirmSafeOpen}
         onClose={() => setExamConfirmSafeOpen(false)}
+      />
+
+      <AcgihExamResolveAmbiguousDialog
+        open={!!ambiguousTarget}
+        onClose={() => setAmbiguousTarget(null)}
+        row={
+          ambiguousTarget
+            ? {
+                officialIndicatorId: ambiguousTarget.officialIndicatorId,
+                substanceName: ambiguousTarget.substanceName,
+                determinant: ambiguousTarget.determinant ?? '',
+                matrix: ambiguousTarget.matrix ?? '',
+                links: ambiguousTarget.links,
+                examLink: ambiguousTarget.examLink,
+              }
+            : null
+        }
       />
     </SAuthShow>
   );

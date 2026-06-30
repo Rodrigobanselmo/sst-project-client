@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Box, Chip, IconButton, Tooltip } from '@mui/material';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { STable } from '@v2/components/organisms/STable/common/STable/STable';
@@ -32,19 +33,28 @@ import {
 } from '../acgih-risk-correlation-labels';
 
 export type AcgihCorrelationTableRow = IAcgihRiskCorrelationItem & {
+  officialIndicatorId?: string | null;
   examLink?: IAcgihExamPreviewLink;
 };
+
+const needsAmbiguousResolution = (examLink?: IAcgihExamPreviewLink): boolean =>
+  examLink?.pendingReason === 'AMBIGUOUS_CANDIDATES' ||
+  (examLink?.ambiguousCandidates?.length ?? 0) > 1 ||
+  (examLink?.status === 'AMBIGUOUS' &&
+    (examLink?.candidates?.length ?? 0) > 0);
 
 type Props = {
   data: AcgihCorrelationTableRow[];
   isLoading?: boolean;
   onOpenDetail: (item: IAcgihRiskCorrelationItem) => void;
+  onResolveAmbiguous?: (row: AcgihCorrelationTableRow) => void;
 };
 
 export const AcgihRiskCorrelationTable: FC<Props> = ({
   data,
   isLoading,
   onOpenDetail,
+  onResolveAmbiguous,
 }) => {
   const tableData: ITableData<AcgihCorrelationTableRow>[] = [
     {
@@ -168,7 +178,7 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
       header: <STableHRow>Sugestão vínculo</STableHRow>,
       row: (row) => {
         const suggestion = formatExamSuggestion(row.examLink);
-        const candidates = row.examLink?.candidates ?? [];
+        const candidates = row.examLink?.ambiguousCandidates ?? row.examLink?.candidates ?? [];
         const tooltip =
           candidates.length > 0
             ? `Candidatos: ${candidates.map((c) => c.examName).join('; ')}`
@@ -286,10 +296,21 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
       },
     },
     {
-      column: '70px',
-      header: <STableHRow justify="center">Detalhe</STableHRow>,
+      column: '110px',
+      header: <STableHRow justify="center">Ações</STableHRow>,
       row: (row) => (
-        <Box display="flex" justifyContent="center" width="100%">
+        <Box display="flex" justifyContent="center" gap={0.5} width="100%">
+          {needsAmbiguousResolution(row.examLink) && onResolveAmbiguous && (
+            <Tooltip title="Resolver ambiguidade de exame">
+              <IconButton
+                size="small"
+                color="warning"
+                onClick={() => onResolveAmbiguous(row)}
+              >
+                <HelpOutlineIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Ver correlação completa (somente leitura)">
             <IconButton size="small" onClick={() => onOpenDetail(row)}>
               <VisibilityIcon fontSize="small" />
