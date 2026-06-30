@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { Box, Chip, IconButton, Tooltip } from '@mui/material';
+import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '@v2/components/organisms/STable/addons/addons-table/STablePagination/STablePagination';
 import { STable } from '@v2/components/organisms/STable/common/STable/STable';
@@ -10,10 +10,7 @@ import { STableHeader } from '@v2/components/organisms/STable/common/STableHeade
 import { STableHRow } from '@v2/components/organisms/STable/common/STableHRow/STableHRow';
 import { STableRow } from '@v2/components/organisms/STable/common/STableRow/STableRow';
 import type { IExamRiskRule } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
-import {
-  ExamRiskRuleScopeEnum,
-  ExamRiskRuleSourceEnum,
-} from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
+import { ExamRiskRuleSourceEnum } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import LaunchIcon from '@mui/icons-material/Launch';
@@ -21,12 +18,14 @@ import { useRouter } from 'next/router';
 import { RoutesEnum } from 'core/enums/routes.enums';
 
 import {
-  examRiskRuleCategoryLabels,
-  examRiskRuleScopeLabels,
   examRiskRuleSourceLabels,
   examRiskRuleStatusColors,
   examRiskRuleStatusLabels,
 } from '../exam-risk-rule-labels';
+import {
+  resolveNormativeOriginLabel,
+  resolveRiskFactorDisplayName,
+} from '../exam-risk-rule-display.util';
 
 type Props = {
   data: IExamRiskRule[];
@@ -59,23 +58,25 @@ const collectionLabel = (rule: IExamRiskRule): string => {
   return parts.length ? parts.join(' · ') : '—';
 };
 
-const referenceLabel = (rule: IExamRiskRule): string => {
-  switch (rule.scope) {
-    case ExamRiskRuleScopeEnum.RISK:
-      return rule.riskNameSnapshot ?? rule.riskFactorId ?? '—';
-    case ExamRiskRuleScopeEnum.CATEGORY:
-      return rule.riskCategory
-        ? examRiskRuleCategoryLabels[rule.riskCategory]
-        : '—';
-    case ExamRiskRuleScopeEnum.GROUP:
-      return rule.subTypeNameSnapshot ?? String(rule.riskSubTypeId ?? '—');
-    case ExamRiskRuleScopeEnum.AGENT:
-      return (
-        rule.agentName ?? rule.agentCas ?? '—'
-      );
-    default:
-      return '—';
-  }
+const RiskFactorCell: FC<{ rule: IExamRiskRule }> = ({ rule }) => {
+  const displayName = resolveRiskFactorDisplayName(rule);
+  const normativeHint = resolveNormativeOriginLabel(rule);
+
+  return (
+    <Box>
+      <STextRow text={displayName} tooltipMinLength={30} lineNumber={2} />
+      {normativeHint && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          component="div"
+          sx={{ lineHeight: 1.25, mt: 0.25 }}
+        >
+          {normativeHint}
+        </Typography>
+      )}
+    </Box>
+  );
 };
 
 /** Nomes legíveis dos exames vinculados (usa o snapshot persistido na regra). */
@@ -145,18 +146,9 @@ export const ExamRiskRuleTable: FC<Props> = ({
 
   const tableData: ITableData<IExamRiskRule>[] = [
     {
-      column: '150px',
-      header: <STableHRow>Escopo</STableHRow>,
-      row: (row) => (
-        <STextRow text={examRiskRuleScopeLabels[row.scope]} lineNumber={1} />
-      ),
-    },
-    {
-      column: 'minmax(220px, 1fr)',
-      header: <STableHRow>Referência</STableHRow>,
-      row: (row) => (
-        <STextRow text={referenceLabel(row)} tooltipMinLength={30} lineNumber={2} />
-      ),
+      column: 'minmax(240px, 1.1fr)',
+      header: <STableHRow>Fator de Risco</STableHRow>,
+      row: (row) => <RiskFactorCell rule={row} />,
     },
     {
       column: 'minmax(160px, 0.8fr)',
