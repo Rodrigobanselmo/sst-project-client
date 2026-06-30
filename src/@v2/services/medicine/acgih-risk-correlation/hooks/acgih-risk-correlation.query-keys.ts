@@ -7,4 +7,5 @@ export const acgihRiskCorrelationQueryKeys = {
     'preview',
     params ?? {},
   ],
+  examPreview: () => ['acgih-risk-correlation', 'exam-preview'],
 };

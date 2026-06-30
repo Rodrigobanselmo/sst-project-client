@@ -9,20 +9,34 @@ import { STableBody } from '@v2/components/organisms/STable/common/STableBody/ST
 import { STableHeader } from '@v2/components/organisms/STable/common/STableHeader/STableHeader';
 import { STableHRow } from '@v2/components/organisms/STable/common/STableHRow/STableHRow';
 import { STableRow } from '@v2/components/organisms/STable/common/STableRow/STableRow';
-import { IAcgihRiskCorrelationItem } from '@v2/services/medicine/acgih-risk-correlation/service/acgih-risk-correlation.types';
+import {
+  IAcgihExamPreviewLink,
+  IAcgihRiskCorrelationItem,
+} from '@v2/services/medicine/acgih-risk-correlation/service/acgih-risk-correlation.types';
 
 import {
   cardinalityColors,
   cardinalityLabels,
+  cardinalityTooltips,
   decisionSourceColors,
   decisionSourceLabels,
+  decisionSourceTooltips,
+  examLinkStatusColors,
+  examLinkStatusLabels,
+  examLinkStatusTooltips,
   finalStatusColors,
   finalStatusExplanations,
   finalStatusLabels,
+  formatExamSuggestion,
+  promotionTooltips,
 } from '../acgih-risk-correlation-labels';
 
+export type AcgihCorrelationTableRow = IAcgihRiskCorrelationItem & {
+  examLink?: IAcgihExamPreviewLink;
+};
+
 type Props = {
-  data: IAcgihRiskCorrelationItem[];
+  data: AcgihCorrelationTableRow[];
   isLoading?: boolean;
   onOpenDetail: (item: IAcgihRiskCorrelationItem) => void;
 };
@@ -32,9 +46,9 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
   isLoading,
   onOpenDetail,
 }) => {
-  const tableData: ITableData<IAcgihRiskCorrelationItem>[] = [
+  const tableData: ITableData<AcgihCorrelationTableRow>[] = [
     {
-      column: 'minmax(220px, 1.6fr)',
+      column: 'minmax(200px, 1.4fr)',
       header: <STableHRow>ACGIH/BEI</STableHRow>,
       row: (row) => (
         <Box display="flex" flexDirection="column">
@@ -57,7 +71,7 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
       ),
     },
     {
-      column: 'minmax(120px, 0.8fr)',
+      column: 'minmax(110px, 0.7fr)',
       header: <STableHRow justify="center">Promoção</STableHRow>,
       row: (row) => (
         <Box
@@ -67,91 +81,146 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
           alignItems="center"
           width="100%"
         >
-          <Chip
-            size="small"
-            variant="outlined"
-            color={row.promoted ? 'success' : 'default'}
-            label={row.promoted ? 'Promovido' : 'Não promovido'}
-            sx={{ cursor: 'default' }}
-          />
-          {row.alreadyLinked && (
+          <Tooltip
+            title={
+              row.promoted
+                ? promotionTooltips.promoted
+                : promotionTooltips.notPromoted
+            }
+          >
             <Chip
               size="small"
               variant="outlined"
-              color="primary"
-              label="Já vinculado"
-              sx={{ cursor: 'default' }}
-            />
-          )}
-        </Box>
-      ),
-    },
-    {
-      column: 'minmax(180px, 1fr)',
-      header: <STableHRow justify="center">Status</STableHRow>,
-      row: (row) => (
-        <Box
-          display="flex"
-          flexDirection="column"
-          gap={0.25}
-          alignItems="center"
-          width="100%"
-        >
-          <Tooltip title={finalStatusExplanations[row.finalStatus]}>
-            <Chip
-              size="small"
-              color={finalStatusColors[row.finalStatus]}
-              label={finalStatusLabels[row.finalStatus]}
+              color={row.promoted ? 'success' : 'default'}
+              label={row.promoted ? 'Promovido' : 'Não promovido'}
               sx={{ cursor: 'default' }}
             />
           </Tooltip>
-          {row.autoStatus !== row.finalStatus && (
-            <Tooltip
-              title={`Status automático antes do override: ${finalStatusLabels[row.autoStatus]}`}
-            >
-              <STextRow
-                text={`auto: ${finalStatusLabels[row.autoStatus]}`}
-                fontSize={10}
-                color="text.secondary"
-                lineNumber={1}
-              />
-            </Tooltip>
-          )}
         </Box>
       ),
     },
     {
-      column: '130px',
+      column: 'minmax(130px, 0.8fr)',
+      header: <STableHRow justify="center">Vínculo risco</STableHRow>,
+      row: (row) => {
+        const riskNames = row.links.map((l) => l.riskName);
+        return (
+          <Box
+            display="flex"
+            flexDirection="column"
+            gap={0.25}
+            alignItems="center"
+            width="100%"
+          >
+            <Tooltip title={finalStatusExplanations[row.finalStatus]}>
+              <Chip
+                size="small"
+                color={finalStatusColors[row.finalStatus]}
+                label={finalStatusLabels[row.finalStatus]}
+                sx={{ cursor: 'default' }}
+              />
+            </Tooltip>
+            {row.alreadyLinked && (
+              <Tooltip
+                title={promotionTooltips.alreadyLinkedRisk(riskNames)}
+              >
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  color="success"
+                  label="Já vinculado"
+                  sx={{ cursor: 'default' }}
+                />
+              </Tooltip>
+            )}
+          </Box>
+        );
+      },
+    },
+    {
+      column: 'minmax(120px, 0.75fr)',
+      header: <STableHRow justify="center">Exame sistema</STableHRow>,
+      row: (row) => {
+        const status = row.examLink?.status ?? 'NO_MATCH';
+        const tooltip =
+          status === 'LINKED' && row.examLink?.examName
+            ? `Exame vinculado: ${row.examLink.examName}`
+            : examLinkStatusTooltips[status];
+        return (
+          <Box display="flex" justifyContent="center" width="100%">
+            <Tooltip title={tooltip}>
+              <Chip
+                size="small"
+                variant="outlined"
+                color={examLinkStatusColors[status]}
+                label={examLinkStatusLabels[status]}
+                sx={{ cursor: 'default' }}
+              />
+            </Tooltip>
+          </Box>
+        );
+      },
+    },
+    {
+      column: 'minmax(160px, 1fr)',
+      header: <STableHRow>Sugestão vínculo</STableHRow>,
+      row: (row) => {
+        const suggestion = formatExamSuggestion(row.examLink);
+        const candidates = row.examLink?.candidates ?? [];
+        const tooltip =
+          candidates.length > 0
+            ? `Candidatos: ${candidates.map((c) => c.examName).join('; ')}`
+            : suggestion;
+        return (
+          <Tooltip title={tooltip}>
+            <STextRow
+              text={suggestion}
+              fontSize={11}
+              lineNumber={2}
+              color={
+                row.examLink?.status === 'AMBIGUOUS' ? 'warning.main' : undefined
+              }
+            />
+          </Tooltip>
+        );
+      },
+    },
+    {
+      column: '100px',
       header: <STableHRow justify="center">Fonte</STableHRow>,
       row: (row) => (
         <Box display="flex" justifyContent="center" width="100%">
-          <Chip
-            size="small"
-            variant="outlined"
-            color={decisionSourceColors[row.decisionSource]}
-            label={decisionSourceLabels[row.decisionSource]}
-            sx={{ cursor: 'default' }}
-          />
+          <Tooltip title={decisionSourceTooltips[row.decisionSource]}>
+            <Chip
+              size="small"
+              variant="outlined"
+              color={decisionSourceColors[row.decisionSource]}
+              label={decisionSourceLabels[row.decisionSource]}
+              sx={{ cursor: 'default' }}
+            />
+          </Tooltip>
         </Box>
       ),
     },
     {
-      column: '120px',
+      column: '100px',
       header: <STableHRow justify="center">Cardinalidade</STableHRow>,
       row: (row) => (
         <Box display="flex" justifyContent="center" width="100%">
-          <Chip
-            size="small"
-            variant="outlined"
-            color={cardinalityColors[row.cardinality]}
-            label={cardinalityLabels[row.cardinality]}
-            sx={{ cursor: 'default' }}
-          />
+          <Tooltip title={cardinalityTooltips[row.cardinality]}>
+            <Chip
+              size="small"
+              variant="outlined"
+              color={cardinalityColors[row.cardinality]}
+              label={cardinalityLabels[row.cardinality]}
+              sx={{ cursor: 'default' }}
+            />
+          </Tooltip>
         </Box>
       ),
     },
     {
-      column: 'minmax(200px, 1.4fr)',
+      column: 'minmax(180px, 1.2fr)',
       header: <STableHRow>Fator(es) de Risco</STableHRow>,
       row: (row) => {
         if (!row.links.length) {
@@ -172,8 +241,8 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
       },
     },
     {
-      column: 'minmax(150px, 1fr)',
-      header: <STableHRow>Bloqueios / Avisos</STableHRow>,
+      column: 'minmax(130px, 0.9fr)',
+      header: <STableHRow>Bloqueios</STableHRow>,
       row: (row) => {
         if (!row.blockers.length && !row.warnings.length) {
           return <STextRow text="—" color="text.secondary" />;
@@ -189,7 +258,6 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
                   label="Bloqueio"
                   sx={{
                     cursor: 'default',
-                    justifyContent: 'flex-start',
                     height: 20,
                     '& .MuiChip-label': { px: 0.75, fontSize: 11 },
                   }}
@@ -205,7 +273,6 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
                   label="Aviso"
                   sx={{
                     cursor: 'default',
-                    justifyContent: 'flex-start',
                     height: 20,
                     '& .MuiChip-label': { px: 0.75, fontSize: 11 },
                   }}
@@ -217,7 +284,7 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
       },
     },
     {
-      column: '90px',
+      column: '70px',
       header: <STableHRow justify="center">Detalhe</STableHRow>,
       row: (row) => (
         <Box display="flex" justifyContent="center" width="100%">

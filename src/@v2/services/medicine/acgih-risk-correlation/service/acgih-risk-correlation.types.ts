@@ -247,3 +247,91 @@ export interface IAcgihExamLinkSyncResponse {
   totals: IAcgihExamLinkTotals;
   items: IAcgihExamLinkItemResult[];
 }
+
+/** Estado consolidado de exame por indicador ACGIH/BEI (read-only). */
+export type AcgihExamPreviewStatus =
+  | 'LINKED'
+  | 'NOT_LINKED'
+  | 'AMBIGUOUS'
+  | 'NO_MATCH'
+  | 'READY_TO_CREATE';
+
+export interface IAcgihExamPreviewLink {
+  status: AcgihExamPreviewStatus;
+  examId?: number;
+  examName?: string;
+  candidates?: IAcgihExamLinkCandidate[];
+  suggestedExamName?: string;
+  reason?: string;
+}
+
+export interface IAcgihExamPreviewItem {
+  acgihBeiIndicatorId: string;
+  officialIndicatorId: string | null;
+  substanceName: string;
+  determinant: string;
+  matrix: string;
+  promoted: boolean;
+  riskLinks: Array<{ riskFactorId: string; riskName: string }>;
+  examLink: IAcgihExamPreviewLink;
+}
+
+export interface IAcgihExamPreviewTotals {
+  indicators: number;
+  linked: number;
+  notLinked: number;
+  ambiguous: number;
+  readyToCreate: number;
+  noMatch: number;
+}
+
+export interface IAcgihExamPreviewResponse {
+  totals: IAcgihExamPreviewTotals;
+  items: IAcgihExamPreviewItem[];
+}
+
+/** Resolução em lote: vincula candidatos seguros e cria exame quando necessário. */
+export const ACGIH_EXAM_LINK_RESOLVE_CONFIRM_TEXT = 'RESOLVER EXAMES ACGIH';
+
+export type AcgihExamResolveAction =
+  | 'alreadyLinked'
+  | 'linkedExistingExam'
+  | 'createdExamAndLinked'
+  | 'ambiguous'
+  | 'blocked'
+  | 'failed';
+
+export interface IAcgihExamResolveItemResult {
+  indicatorId: string;
+  substanceName: string;
+  determinant: string;
+  matrix: string;
+  action: AcgihExamResolveAction;
+  examId?: number;
+  examName?: string;
+  candidates?: IAcgihExamLinkCandidate[];
+  reason?: string;
+}
+
+export interface IAcgihExamResolveTotals {
+  indicators: number;
+  alreadyLinked: number;
+  linksCreated: number;
+  examsCreated: number;
+  ambiguous: number;
+  blocked: number;
+  failed: number;
+}
+
+export interface IAcgihExamResolveParams {
+  confirmText: string;
+  dryRun?: boolean;
+  createMissingExams?: boolean;
+  linkSafeMatches?: boolean;
+}
+
+export interface IAcgihExamResolveResponse {
+  dryRun: boolean;
+  totals: IAcgihExamResolveTotals;
+  items: IAcgihExamResolveItemResult[];
+}

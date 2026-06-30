@@ -1,9 +1,11 @@
 import type {
+  AcgihExamPreviewStatus,
   AcgihRiskCorrelationCardinality,
   AcgihRiskCorrelationConfidence,
   AcgihRiskCorrelationDecisionSource,
   AcgihRiskCorrelationFinalStatus,
   AcgihRiskCorrelationMatchMethod,
+  IAcgihExamPreviewLink,
 } from '@v2/services/medicine/acgih-risk-correlation/service/acgih-risk-correlation.types';
 
 type ChipColor =
@@ -39,10 +41,10 @@ export const finalStatusColors: Record<
   MATCH_NAME: 'info',
   AMBIGUOUS: 'warning',
   NO_MATCH: 'error',
-  ALREADY_LINKED: 'primary',
+  ALREADY_LINKED: 'success',
   ACEITAR_CANONICO: 'success',
   ACEITAR_GRUPO: 'info',
-  ACEITAR_MULTIPLO_CANONICO: 'primary',
+  ACEITAR_MULTIPLO_CANONICO: 'info',
   OVERRIDE_TARGET_MISSING: 'error',
 };
 
@@ -87,7 +89,7 @@ export const decisionSourceColors: Record<
   ChipColor
 > = {
   AUTO: 'default',
-  MANUAL_OVERRIDE: 'primary',
+  MANUAL_OVERRIDE: 'info',
 };
 
 export const cardinalityLabels: Record<
@@ -104,7 +106,7 @@ export const cardinalityColors: Record<
   ChipColor
 > = {
   SINGLE: 'default',
-  MULTIPLE: 'primary',
+  MULTIPLE: 'info',
   NONE: 'warning',
 };
 
@@ -132,3 +134,82 @@ export const formatMatchMethod = (
 export const formatConfidence = (
   confidence: AcgihRiskCorrelationConfidence,
 ): string => (confidence ? (confidenceLabels[confidence] ?? confidence) : '—');
+
+/** Tooltips obrigatórios da central de consolidação ACGIH/BEI. */
+export const promotionTooltips = {
+  promoted:
+    'Indicador ACGIH/BEI já foi criado como indicador oficial do sistema.',
+  notPromoted: 'Indicador ACGIH/BEI ainda não foi promovido a indicador oficial.',
+  alreadyLinkedRisk: (names: string[]) =>
+    names.length
+      ? `Vinculado ao(s) fator(es) de risco: ${names.join(', ')}.`
+      : 'Já possui vínculo com fator(es) de risco.',
+} as const;
+
+export const decisionSourceTooltips: Record<
+  AcgihRiskCorrelationDecisionSource,
+  string
+> = {
+  AUTO:
+    'Correlação calculada automaticamente pelo sistema, por reuso NR-7, CAS, nome/sinônimo ou regra de grupo.',
+  MANUAL_OVERRIDE:
+    'Correlação definida manualmente durante a curadoria ACGIH/BEI.',
+};
+
+export const cardinalityTooltips: Record<
+  AcgihRiskCorrelationCardinality,
+  string
+> = {
+  SINGLE: 'Este indicador está vinculado a um único fator de risco.',
+  MULTIPLE:
+    'Este indicador está vinculado a mais de um fator de risco, como o caso TDI 2,4 e 2,6.',
+  NONE: 'Nenhum fator de risco vinculado ou proposto.',
+};
+
+export const examLinkStatusLabels: Record<AcgihExamPreviewStatus, string> = {
+  LINKED: 'Vinculado',
+  NOT_LINKED: 'Não vinculado',
+  AMBIGUOUS: 'Ambíguo',
+  NO_MATCH: 'Sem sugestão',
+  READY_TO_CREATE: 'A criar',
+};
+
+export const examLinkStatusColors: Record<AcgihExamPreviewStatus, ChipColor> = {
+  LINKED: 'success',
+  NOT_LINKED: 'error',
+  AMBIGUOUS: 'warning',
+  NO_MATCH: 'error',
+  READY_TO_CREATE: 'info',
+};
+
+export const examLinkStatusTooltips: Record<AcgihExamPreviewStatus, string> = {
+  LINKED: 'Exame do sistema vinculado ao indicador ACGIH/BEI.',
+  NOT_LINKED:
+    'Este indicador ACGIH/BEI ainda não possui exame do sistema vinculado.',
+  AMBIGUOUS: 'Múltiplos exames candidatos — escolha manual necessária.',
+  NO_MATCH: 'Dados insuficientes para sugerir exame.',
+  READY_TO_CREATE:
+    'Não há exame correspondente no catálogo; pode ser criado exame sistêmico.',
+};
+
+export const formatExamSuggestion = (examLink?: IAcgihExamPreviewLink): string => {
+  if (!examLink) return '—';
+  switch (examLink.status) {
+    case 'NOT_LINKED':
+      return examLink.examName
+        ? `Vincular: ${examLink.examName}`
+        : 'Vincular exame';
+    case 'READY_TO_CREATE':
+      return examLink.suggestedExamName
+        ? `Criar exame: ${examLink.suggestedExamName}`
+        : 'Criar exame';
+    case 'AMBIGUOUS':
+      return 'Ambíguo';
+    case 'LINKED':
+      return examLink.examName ?? 'Vinculado';
+    case 'NO_MATCH':
+      return 'Sem sugestão';
+    default:
+      return '—';
+  }
+};

@@ -14,4 +14,6 @@ export const AcgihRiskCorrelationRoutes = {
   // Vínculo ACGIH/BEI → Exame: cria APENAS BiologicalIndicatorToExam (pré-requisito
   // do sync da Biblioteca Risco × Exame). MASTER-only.
   EXAM_LINK_SYNC: '/v2/master/biological-indicators/acgih-exam-links/sync',
+  EXAM_LINK_PREVIEW: '/v2/master/biological-indicators/acgih-exam-links/preview',
+  EXAM_LINK_RESOLVE: '/v2/master/biological-indicators/acgih-exam-links/resolve',
 } as const;

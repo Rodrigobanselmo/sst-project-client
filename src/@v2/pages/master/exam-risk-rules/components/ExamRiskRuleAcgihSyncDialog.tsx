@@ -21,6 +21,8 @@ import {
   ExamRiskRuleAcgihSyncAction,
   IExamRiskRuleAcgihSyncResponse,
 } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
+import { RoutesEnum } from 'core/enums/routes.enums';
+import { useRouter } from 'next/router';
 
 type Props = {
   open: boolean;
@@ -66,6 +68,7 @@ const Count: FC<{ label: string; value: number }> = ({ label, value }) => (
 );
 
 export const ExamRiskRuleAcgihSyncDialog: FC<Props> = ({ open, onClose }) => {
+  const router = useRouter();
   const [confirmText, setConfirmText] = useState('');
   const [preview, setPreview] = useState<IExamRiskRuleAcgihSyncResponse | null>(
     null,
@@ -148,16 +151,26 @@ export const ExamRiskRuleAcgihSyncDialog: FC<Props> = ({ open, onClose }) => {
             )}
 
             {preview && totals && totals.blocked > 0 && (
-              <Alert severity="warning" sx={{ mb: 2 }}>
-                {totals.blocked} item(ns) bloqueado(s) — em geral por falta de
-                exame vinculado ao indicador ACGIH/BEI. Eles não gerarão regra
-                incompleta.{' '}
-                <strong>
-                  Vincule os exames ACGIH/BEI aos indicadores antes de
-                  sincronizar a Biblioteca
-                </strong>{' '}
-                (tela Correlação ACGIH/BEI × Fatores de Risco → “Vincular exames
-                ACGIH/BEI”).
+              <Alert
+                severity="warning"
+                sx={{ mb: 2 }}
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      onClose();
+                      router.push(RoutesEnum.DATABASE_ACGIH_BEI_RISK_CORRELATION);
+                    }}
+                  >
+                    Ir para Correlação ACGIH/BEI
+                  </Button>
+                }
+              >
+                Existem indicadores ACGIH/BEI sem exame do sistema vinculado.
+                Resolva em Correlação ACGIH/BEI × Fatores de Risco usando o
+                botão <strong>Resolver exames ACGIH/BEI</strong> antes de
+                sincronizar a Biblioteca.
               </Alert>
             )}
 

@@ -6,6 +6,9 @@ import type {
   IAcgihConsolidateResponse,
   IAcgihExamLinkSyncParams,
   IAcgihExamLinkSyncResponse,
+  IAcgihExamPreviewResponse,
+  IAcgihExamResolveParams,
+  IAcgihExamResolveResponse,
   IAcgihRiskCorrelationApplyParams,
   IAcgihRiskCorrelationApplyResponse,
   IAcgihRiskCorrelationParams,
@@ -84,6 +87,34 @@ export async function syncAcgihExamLinks(
     {
       confirmText: params.confirmText,
       dryRun: params.dryRun,
+    },
+  );
+  return response.data;
+}
+
+/** Estado consolidado de exame por indicador ACGIH/BEI (read-only). */
+export async function getAcgihExamPreview(): Promise<IAcgihExamPreviewResponse> {
+  const response = await api.get<IAcgihExamPreviewResponse>(
+    AcgihRiskCorrelationRoutes.EXAM_LINK_PREVIEW,
+  );
+  return response.data;
+}
+
+/**
+ * Resolução em lote do vínculo ACGIH/BEI → Exame. Vincula candidatos únicos
+ * seguros e cria exame sistêmico quando não houver candidato. Itens ambíguos
+ * não são resolvidos automaticamente. Exige confirmText literal.
+ */
+export async function resolveAcgihExamLinks(
+  params: IAcgihExamResolveParams,
+): Promise<IAcgihExamResolveResponse> {
+  const response = await api.post<IAcgihExamResolveResponse>(
+    AcgihRiskCorrelationRoutes.EXAM_LINK_RESOLVE,
+    {
+      confirmText: params.confirmText,
+      dryRun: params.dryRun,
+      createMissingExams: params.createMissingExams,
+      linkSafeMatches: params.linkSafeMatches,
     },
   );
   return response.data;

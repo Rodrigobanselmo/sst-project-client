@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useFetchAcgihRiskCorrelation } from '@v2/services/medicine/acgih-risk-correlation/hooks/useFetchAcgihRiskCorrelation';
+import { useFetchAcgihExamPreview } from '@v2/services/medicine/acgih-risk-correlation/hooks/useFetchAcgihExamPreview';
 import {
   AcgihRiskCorrelationCardinality,
   AcgihRiskCorrelationDecisionSource,
@@ -30,7 +31,7 @@ import { RoleEnum } from 'project/enum/roles.enums';
 
 import { AcgihRiskCorrelationApplyDialog } from './components/AcgihRiskCorrelationApplyDialog';
 import { AcgihRiskCorrelationConsolidateDialog } from './components/AcgihRiskCorrelationConsolidateDialog';
-import { AcgihExamLinkDialog } from './components/AcgihExamLinkDialog';
+import { AcgihExamResolveDialog } from './components/AcgihExamResolveDialog';
 import { AcgihRiskCorrelationDetailDialog } from './components/AcgihRiskCorrelationDetailDialog';
 import { AcgihRiskCorrelationTable } from './components/AcgihRiskCorrelationTable';
 import {
@@ -83,6 +84,10 @@ export const AcgihRiskCorrelationPage: FC = () => {
   const { data, isLoading, isError, error } = useFetchAcgihRiskCorrelation({
     search: search.trim() || undefined,
   });
+  const {
+    data: examPreview,
+    isLoading: examPreviewLoading,
+  } = useFetchAcgihExamPreview();
 
   const status = (error as ErrorWithStatus | undefined)?.response?.status;
   const isAuthError = status === 401 || status === 403;
@@ -91,7 +96,17 @@ export const AcgihRiskCorrelationPage: FC = () => {
     useState<IAcgihRiskCorrelationItem | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
   const [consolidateOpen, setConsolidateOpen] = useState(false);
-  const [examLinkOpen, setExamLinkOpen] = useState(false);
+  const [examResolveOpen, setExamResolveOpen] = useState(false);
+
+  const examByAcgihId = useMemo(() => {
+    const map = new Map(
+      (examPreview?.items ?? []).map((item) => [
+        item.acgihBeiIndicatorId,
+        item.examLink,
+      ]),
+    );
+    return map;
+  }, [examPreview?.items]);
 
   const filteredItems = useMemo(() => {
     const items = data?.items ?? [];
@@ -111,6 +126,15 @@ export const AcgihRiskCorrelationPage: FC = () => {
     onlyBlockers,
     onlyMultiples,
   ]);
+
+  const tableRows = useMemo(
+    () =>
+      filteredItems.map((item) => ({
+        ...item,
+        examLink: examByAcgihId.get(item.acgihBeiIndicatorId),
+      })),
+    [filteredItems, examByAcgihId],
+  );
 
   const summary = data?.summary;
 
@@ -181,11 +205,11 @@ export const AcgihRiskCorrelationPage: FC = () => {
               ACGIH/BEI — Correlação com Fatores de Risco
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Correlação entre os indicadores ACGIH/BEI promovidos e os Fatores
-              de Risco do sistema. Combina match automático (reuso NR-7, CAS
-              exato, CAS em grupo, nome/sinônimo) com overrides manuais
-              versionados. A consolidação cria apenas vínculos de risco — não
-              cria regras na Biblioteca Risco × Exame.
+              Central de consolidação ACGIH/BEI: promoção, vínculo com Fatores
+              de Risco e vínculo com exames do sistema. Combina match automático
+              com overrides manuais. Use &quot;Resolver exames ACGIH/BEI&quot;
+              para vincular ou criar exames sistêmicos antes de sincronizar a
+              Biblioteca Risco × Exame.
             </Typography>
             <Box display="flex" gap={2} flexWrap="wrap" mt={0.5}>
               <Button
@@ -221,9 +245,9 @@ export const AcgihRiskCorrelationPage: FC = () => {
             <Button
               variant="outlined"
               disabled={!canConsolidate}
-              onClick={() => setExamLinkOpen(true)}
+              onClick={() => setExamResolveOpen(true)}
             >
-              Vincular exames ACGIH/BEI
+              Resolver exames ACGIH/BEI
             </Button>
           </Box>
         </Box>
@@ -283,6 +307,35 @@ export const AcgihRiskCorrelationPage: FC = () => {
               </Typography>
             </Paper>
           ))}
+          {examPreview?.totals && (
+            <>
+              <Paper sx={{ px: 2, py: 1, minWidth: 130, textAlign: 'center' }}>
+                <Typography variant="h6" color="success.main">
+                  {examPreview.totals.linked}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Exames vinculados
+                </Typography>
+              </Paper>
+              <Paper sx={{ px: 2, py: 1, minWidth: 130, textAlign: 'center' }}>
+                <Typography variant="h6" color="error.main">
+                  {examPreview.totals.notLinked +
+                    examPreview.totals.readyToCreate}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Exames pendentes
+                </Typography>
+              </Paper>
+              <Paper sx={{ px: 2, py: 1, minWidth: 130, textAlign: 'center' }}>
+                <Typography variant="h6" color="warning.main">
+                  {examPreview.totals.ambiguous}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Exames ambíguos
+                </Typography>
+              </Paper>
+            </>
+          )}
         </Box>
 
         <Paper sx={{ p: 2 }}>
@@ -412,8 +465,8 @@ export const AcgihRiskCorrelationPage: FC = () => {
           </Typography>
 
           <AcgihRiskCorrelationTable
-            data={filteredItems}
-            isLoading={isLoading}
+            data={tableRows}
+            isLoading={isLoading || examPreviewLoading}
             onOpenDetail={setDetailTarget}
           />
         </Paper>
@@ -439,9 +492,9 @@ export const AcgihRiskCorrelationPage: FC = () => {
         notPromotedCount={summary?.notPromotedCount ?? 0}
       />
 
-      <AcgihExamLinkDialog
-        open={examLinkOpen}
-        onClose={() => setExamLinkOpen(false)}
+      <AcgihExamResolveDialog
+        open={examResolveOpen}
+        onClose={() => setExamResolveOpen(false)}
       />
     </SAuthShow>
   );
