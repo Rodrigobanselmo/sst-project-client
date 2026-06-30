@@ -144,8 +144,10 @@ export const AcgihRiskCorrelationTable: FC<Props> = ({
         const status = row.examLink?.status ?? 'NO_MATCH';
         const tooltip =
           status === 'LINKED' && row.examLink?.examName
-            ? `Exame vinculado: ${row.examLink.examName}`
-            : examLinkStatusTooltips[status];
+            ? `Exame confirmado: ${row.examLink.examName}`
+            : status === 'LINKED_PENDING_CONFIRMATION' && row.examLink?.examName
+              ? `Exame pendente de confirmação: ${row.examLink.examName}`
+              : examLinkStatusTooltips[status];
         return (
           <Box display="flex" justifyContent="center" width="100%">
             <Tooltip title={tooltip}>

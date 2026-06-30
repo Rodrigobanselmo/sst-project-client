@@ -251,6 +251,7 @@ export interface IAcgihExamLinkSyncResponse {
 /** Estado consolidado de exame por indicador ACGIH/BEI (read-only). */
 export type AcgihExamPreviewStatus =
   | 'LINKED'
+  | 'LINKED_PENDING_CONFIRMATION'
   | 'NOT_LINKED'
   | 'AMBIGUOUS'
   | 'NO_MATCH'
@@ -279,6 +280,7 @@ export interface IAcgihExamPreviewItem {
 export interface IAcgihExamPreviewTotals {
   indicators: number;
   linked: number;
+  linkedPendingConfirmation: number;
   notLinked: number;
   ambiguous: number;
   readyToCreate: number;

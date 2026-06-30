@@ -167,7 +167,8 @@ export const cardinalityTooltips: Record<
 };
 
 export const examLinkStatusLabels: Record<AcgihExamPreviewStatus, string> = {
-  LINKED: 'Vinculado',
+  LINKED: 'Confirmado',
+  LINKED_PENDING_CONFIRMATION: 'Pendente confirmação',
   NOT_LINKED: 'Não vinculado',
   AMBIGUOUS: 'Ambíguo',
   NO_MATCH: 'Sem sugestão',
@@ -176,6 +177,7 @@ export const examLinkStatusLabels: Record<AcgihExamPreviewStatus, string> = {
 
 export const examLinkStatusColors: Record<AcgihExamPreviewStatus, ChipColor> = {
   LINKED: 'success',
+  LINKED_PENDING_CONFIRMATION: 'warning',
   NOT_LINKED: 'error',
   AMBIGUOUS: 'warning',
   NO_MATCH: 'error',
@@ -183,7 +185,10 @@ export const examLinkStatusColors: Record<AcgihExamPreviewStatus, ChipColor> = {
 };
 
 export const examLinkStatusTooltips: Record<AcgihExamPreviewStatus, string> = {
-  LINKED: 'Exame do sistema vinculado ao indicador ACGIH/BEI.',
+  LINKED:
+    'Exame do sistema vinculado e confirmado — elegível para sync da Biblioteca.',
+  LINKED_PENDING_CONFIRMATION:
+    'Há vínculo de exame, mas ainda não confirmado. Confirme antes do sync da Biblioteca.',
   NOT_LINKED:
     'Este indicador ACGIH/BEI ainda não possui exame do sistema vinculado.',
   AMBIGUOUS: 'Múltiplos exames candidatos — escolha manual necessária.',
@@ -206,7 +211,11 @@ export const formatExamSuggestion = (examLink?: IAcgihExamPreviewLink): string =
     case 'AMBIGUOUS':
       return 'Ambíguo';
     case 'LINKED':
-      return examLink.examName ?? 'Vinculado';
+      return examLink.examName ?? 'Confirmado';
+    case 'LINKED_PENDING_CONFIRMATION':
+      return examLink.examName
+        ? `Pendente: ${examLink.examName}`
+        : 'Pendente confirmação';
     case 'NO_MATCH':
       return 'Sem sugestão';
     default:

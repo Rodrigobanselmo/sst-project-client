@@ -314,7 +314,15 @@ export const AcgihRiskCorrelationPage: FC = () => {
                   {examPreview.totals.linked}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Exames vinculados
+                  Exames confirmados
+                </Typography>
+              </Paper>
+              <Paper sx={{ px: 2, py: 1, minWidth: 130, textAlign: 'center' }}>
+                <Typography variant="h6" color="warning.main">
+                  {examPreview.totals.linkedPendingConfirmation ?? 0}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Exames pendentes confirmação
                 </Typography>
               </Paper>
               <Paper sx={{ px: 2, py: 1, minWidth: 130, textAlign: 'center' }}>
