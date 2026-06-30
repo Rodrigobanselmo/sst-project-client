@@ -18,6 +18,20 @@ export enum ExamOriginEnum {
   OTHER = 'OTHER',
 }
 
+/**
+ * Fonte técnica/normativa acumulativa de um exame. Diferente de
+ * {@link ExamOriginEnum} (bucket único legado), um exame pode carregar várias
+ * fontes ao mesmo tempo — ex.: ["NR_07", "ACGIH_BEI"]. SYSTEM/CLIENT/OTHER só
+ * aparecem quando não há fonte normativa específica.
+ */
+export enum ExamOriginSourceEnum {
+  NR_07 = 'NR_07',
+  ACGIH_BEI = 'ACGIH_BEI',
+  SYSTEM = 'SYSTEM',
+  CLIENT = 'CLIENT',
+  OTHER = 'OTHER',
+}
+
 export enum ClinicScheduleTypeEnum {
   PHONE = 'PHONE',
   EMAIL = 'EMAIL',
@@ -42,6 +56,8 @@ export interface IExam {
   analyses: string;
   deleted_at: Date;
   origin?: ExamOriginEnum;
+  /** Fontes técnicas/normativas acumulativas (ex.: ["NR_07", "ACGIH_BEI"]). */
+  originSources?: ExamOriginSourceEnum[];
   examToClinic: IExamToClinic[];
   examToRiskData: IExamRiskData[];
   examsRiskData: IExamRiskData;

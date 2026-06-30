@@ -8,8 +8,9 @@ import STooltip from 'components/atoms/STooltip';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
 import {
-  getExamOriginChipSx,
+  getExamOriginSourceChipSx,
   normalizeExamOrigin,
+  normalizeExamOriginSource,
 } from 'components/organisms/tables/ExamsTable/exam-origin.constants';
 import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
@@ -20,7 +21,11 @@ import { SExamIcon } from 'assets/icons/SExamIcon';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
-import { ExamOriginEnum, IExam } from 'core/interfaces/api/IExam';
+import {
+  ExamOriginEnum,
+  ExamOriginSourceEnum,
+  IExam,
+} from 'core/interfaces/api/IExam';
 import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryPcmsoExamDefaults } from 'core/services/hooks/queries/useQueryPcmsoExamDefaults/useQueryPcmsoExamDefaults';
 import { mapPcmsoDefaultsToExamRisk } from 'core/utils/helpers/pcmsoExamDefaults';
@@ -28,15 +33,60 @@ import { mapPcmsoDefaultsToExamRisk } from 'core/utils/helpers/pcmsoExamDefaults
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IExamSelectProps } from './types';
 
-// B.1 — rótulos de origem exibidos no dropdown do seletor de exames. Reaproveita
-// o estilo do chip da tabela "Exames Cadastrados", mas com os rótulos definidos
-// para este seletor (NR-7 / Sistema / Empresa / Outro). Não distingue ACGIH/BEI
-// nem eSocial nesta fase: a API ainda classifica esses casos como SYSTEM/OTHER.
-const EXAM_SELECT_ORIGIN_LABELS: Record<ExamOriginEnum, string> = {
-  [ExamOriginEnum.NR07]: 'NR-7',
-  [ExamOriginEnum.SYSTEM]: 'Sistema',
-  [ExamOriginEnum.CLIENT]: 'Empresa',
-  [ExamOriginEnum.OTHER]: 'Outro',
+// Rótulos por fonte técnica/normativa acumulativa exibidos no dropdown do
+// seletor. Um exame pode ter mais de uma fonte (ex.: NR-7 + ACGIH/BEI), então
+// renderizamos um chip por fonte. ACGIH/BEI deixa de ser mascarado como
+// "Sistema".
+const EXAM_SELECT_SOURCE_LABELS: Record<ExamOriginSourceEnum, string> = {
+  [ExamOriginSourceEnum.NR_07]: 'NR-7',
+  [ExamOriginSourceEnum.ACGIH_BEI]: 'ACGIH/BEI',
+  [ExamOriginSourceEnum.SYSTEM]: 'Sistema',
+  [ExamOriginSourceEnum.CLIENT]: 'Empresa',
+  [ExamOriginSourceEnum.OTHER]: 'Outro',
+};
+
+const EXAM_SELECT_SOURCE_TOOLTIPS: Record<ExamOriginSourceEnum, string> = {
+  [ExamOriginSourceEnum.NR_07]: 'Exame vinculado a indicador NR-7.',
+  [ExamOriginSourceEnum.ACGIH_BEI]: 'Exame vinculado a indicador ACGIH/BEI.',
+  [ExamOriginSourceEnum.SYSTEM]: 'Exame sistêmico sem fonte normativa específica.',
+  [ExamOriginSourceEnum.CLIENT]: 'Exame cadastrado pela empresa.',
+  [ExamOriginSourceEnum.OTHER]: 'Exame sem fonte normativa específica.',
+};
+
+// Mapeia a origem legada (campo `origin`, bucket único) para uma fonte, usado
+// como fallback quando a API não envia `originSources` (telas/respostas antigas).
+const LEGACY_ORIGIN_TO_SOURCE: Record<ExamOriginEnum, ExamOriginSourceEnum> = {
+  [ExamOriginEnum.NR07]: ExamOriginSourceEnum.NR_07,
+  [ExamOriginEnum.SYSTEM]: ExamOriginSourceEnum.SYSTEM,
+  [ExamOriginEnum.CLIENT]: ExamOriginSourceEnum.CLIENT,
+  [ExamOriginEnum.OTHER]: ExamOriginSourceEnum.OTHER,
+};
+
+/**
+ * Resolve as fontes técnicas/normativas a exibir para um exame. Prefere o campo
+ * acumulativo `originSources`; quando ausente (retrocompatibilidade), faz
+ * fallback para a origem legada `origin` como fonte única. Mantém a ordem e
+ * deduplica.
+ */
+const resolveExamSources = (exam?: IExam): ExamOriginSourceEnum[] => {
+  if (exam?.originSources?.length) {
+    const seen = new Set<ExamOriginSourceEnum>();
+    const sources: ExamOriginSourceEnum[] = [];
+    exam.originSources.forEach((raw) => {
+      const source = normalizeExamOriginSource(raw);
+      if (source && !seen.has(source)) {
+        seen.add(source);
+        sources.push(source);
+      }
+    });
+    if (sources.length) return sources;
+  }
+
+  if (exam?.origin) {
+    return [LEGACY_ORIGIN_TO_SOURCE[normalizeExamOrigin(exam.origin)]];
+  }
+
+  return [];
 };
 
 export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
@@ -207,19 +257,24 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       isLoading={isLoading}
       loading={tagLoading}
       endAdornment={(option: IExam | undefined) => {
-        const origin = option?.origin
-          ? normalizeExamOrigin(option.origin)
-          : undefined;
+        const sources = resolveExamSources(option);
 
         return (
           <Box display="flex" alignItems="center" gap={0.5} flexShrink={0}>
-            {origin && (
-              <Chip
-                size="small"
-                label={EXAM_SELECT_ORIGIN_LABELS[origin]}
-                sx={getExamOriginChipSx(origin)}
-              />
-            )}
+            {sources.map((source) => (
+              <STooltip
+                key={source}
+                enterDelay={600}
+                withWrapper
+                title={EXAM_SELECT_SOURCE_TOOLTIPS[source]}
+              >
+                <Chip
+                  size="small"
+                  label={EXAM_SELECT_SOURCE_LABELS[source]}
+                  sx={getExamOriginSourceChipSx(source)}
+                />
+              </STooltip>
+            ))}
             <STooltip enterDelay={1200} withWrapper title={'editar'}>
               <SIconButton
                 onClick={(e) => handleEditExam(e, option)}

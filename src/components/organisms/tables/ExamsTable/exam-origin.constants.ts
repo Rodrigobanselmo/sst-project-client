@@ -1,6 +1,6 @@
 import { SxProps, Theme } from '@mui/material';
 
-import { ExamOriginEnum } from 'core/interfaces/api/IExam';
+import { ExamOriginEnum, ExamOriginSourceEnum } from 'core/interfaces/api/IExam';
 
 type ChipColor =
   | 'default'
@@ -71,6 +71,88 @@ export function getExamOriginChipSx(origin: ExamOriginEnum): SxProps<Theme> {
         borderColor: 'grey.400',
       };
     case ExamOriginEnum.CLIENT:
+      return {
+        ...base,
+        backgroundColor: 'success.main',
+        color: 'common.white',
+        border: '1px solid',
+        borderColor: 'success.main',
+      };
+    default:
+      return {
+        ...base,
+        backgroundColor: 'warning.main',
+        color: 'text.primary',
+        border: '1px solid',
+        borderColor: 'warning.main',
+      };
+  }
+}
+
+/**
+ * Normaliza variantes da fonte técnica/normativa acumulativa (NR07/NR_07,
+ * ACGIH-BEI/ACGIH_BEI, espaços) para ExamOriginSourceEnum. Retorna undefined
+ * para valores desconhecidos, para que o chamador possa ignorá-los.
+ */
+export function normalizeExamOriginSource(
+  value?: string | null,
+): ExamOriginSourceEnum | undefined {
+  if (value == null || String(value).trim() === '') return undefined;
+
+  const compact = String(value).trim().toUpperCase().replace(/[-_\s]/g, '');
+  switch (compact) {
+    case 'NR07':
+      return ExamOriginSourceEnum.NR_07;
+    case 'ACGIHBEI':
+      return ExamOriginSourceEnum.ACGIH_BEI;
+    case 'SYSTEM':
+      return ExamOriginSourceEnum.SYSTEM;
+    case 'CLIENT':
+    case 'COMPANY':
+      return ExamOriginSourceEnum.CLIENT;
+    case 'OTHER':
+      return ExamOriginSourceEnum.OTHER;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Estilo do chip por fonte técnica/normativa. NR-7 reaproveita o azul
+ * (secondary); ACGIH/BEI recebe uma cor distinta (info) para diferenciar a
+ * fonte técnica; SYSTEM/CLIENT/OTHER seguem o padrão da origem legada.
+ */
+export function getExamOriginSourceChipSx(
+  source: ExamOriginSourceEnum,
+): SxProps<Theme> {
+  const base: SxProps<Theme> = { fontWeight: 600, height: 24 };
+
+  switch (source) {
+    case ExamOriginSourceEnum.NR_07:
+      return {
+        ...base,
+        backgroundColor: 'secondary.main',
+        color: 'secondary.contrastText',
+        border: '1px solid',
+        borderColor: 'secondary.main',
+      };
+    case ExamOriginSourceEnum.ACGIH_BEI:
+      return {
+        ...base,
+        backgroundColor: 'info.main',
+        color: 'common.white',
+        border: '1px solid',
+        borderColor: 'info.main',
+      };
+    case ExamOriginSourceEnum.SYSTEM:
+      return {
+        ...base,
+        backgroundColor: 'grey.100',
+        color: 'text.primary',
+        border: '1px solid',
+        borderColor: 'grey.400',
+      };
+    case ExamOriginSourceEnum.CLIENT:
       return {
         ...base,
         backgroundColor: 'success.main',
