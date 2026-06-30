@@ -32,6 +32,7 @@ export interface ICreateExamRisk {
   toAge?: number | null;
   startDate?: Date;
   endDate?: Date;
+  publishAsSystemRule?: boolean;
 }
 
 export async function createExam(data: ICreateExamRisk, companyId?: string) {

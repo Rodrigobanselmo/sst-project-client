@@ -59,6 +59,9 @@ export interface IExam {
   origin?: ExamOriginEnum;
   /** Fontes técnicas/normativas acumulativas (ex.: ["NR_07", "ACGIH_BEI"]). */
   originSources?: ExamOriginSourceEnum[];
+  esocial27Code?: string | null;
+  /** Item da Tabela 27/eSocial ainda não materializado no catálogo operacional. */
+  isEsocialT27Unpublished?: boolean;
   examToClinic: IExamToClinic[];
   examToRiskData: IExamRiskData[];
   examsRiskData: IExamRiskData;

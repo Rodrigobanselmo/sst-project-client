@@ -2,6 +2,7 @@
 import React from 'react';
 
 import { Box, Switch } from '@mui/material';
+import { SSwitch } from 'components/atoms/SSwitch';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
@@ -17,7 +18,6 @@ import { isQuantity } from 'core/utils/helpers/isQuantity';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
-import { SSwitch } from 'components/atoms/SSwitch';
 
 export const ModalExamStep = ({
   examData,
@@ -26,6 +26,7 @@ export const ModalExamStep = ({
   setValue,
   setExamData,
   loading,
+  isMasterAdmin,
 }: IUseEditExam) => {
   const riskType = examData.risk?.type;
 
@@ -257,6 +258,26 @@ export const ModalExamStep = ({
             riskType={riskType}
             sx={{ mt: 2 }}
           />
+          {isMasterAdmin && examData.riskId && !examData.isAll && !examData.id && (
+            <Box mt={3}>
+              <SCheckBox
+                label="Criar também regra padrão na Biblioteca Risco × Exame"
+                checked={examData.publishAsSystemRule}
+                onChange={(e) =>
+                  setExamData({
+                    ...examData,
+                    publishAsSystemRule: e.target.checked,
+                  })
+                }
+              />
+              <SText sx={{ fontSize: 12, color: 'text.light', mt: 1 }}>
+                Esta ação cria uma sugestão padrão do sistema para este Fator de
+                Risco × Exame. Ela não aplica automaticamente o exame em outras
+                empresas; apenas fará com que o sistema recomende essa relação
+                quando o risco existir.
+              </SText>
+            </Box>
+          )}
         </Box>
 
         <Box ml={6}>

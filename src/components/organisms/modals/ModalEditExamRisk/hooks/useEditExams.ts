@@ -4,6 +4,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 
+import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -49,6 +50,7 @@ export const initialExamRiskState = {
     risk: false,
     exam: false,
   },
+  publishAsSystemRule: true,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: Partial<IExamToRisk> | null) => {},
 };
@@ -70,6 +72,7 @@ export const useEditExams = () => {
   const switchRef = useRef<HTMLInputElement>(null);
   const { companyId, userCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
+  const { isMasterAdmin } = usePermissionsAccess();
 
   const { handleSubmit, control, setValue, reset, getValues } = useForm<any>({
     resolver: yupResolver(examRiskSchema),
@@ -192,6 +195,12 @@ export const useEditExams = () => {
       ...examData,
       riskId,
       realCompanyId: companyId,
+      ...(isMasterAdmin &&
+      examData.publishAsSystemRule &&
+      examData.riskId &&
+      !examData.isAll
+        ? { publishAsSystemRule: true }
+        : {}),
       fromAge: fromAge ? parseInt(fromAge, 10) : null,
       toAge: toAge ? parseInt(toAge, 10) : null,
       validityInMonths: validityInMonths
@@ -219,6 +228,22 @@ export const useEditExams = () => {
       if (!submitData.id) {
         delete submitData.id;
         const exam = await createMutation.mutateAsync(submitData);
+        if ((exam as any)?.systemRule) {
+          const systemRule = (exam as any).systemRule;
+          if (systemRule.action === 'created') {
+            enqueueSnackbar('Regra padrão publicada na Biblioteca Risco × Exame.', {
+              variant: 'info',
+            });
+          } else if (systemRule.action === 'alreadyExists') {
+            enqueueSnackbar(
+              systemRule.reason ||
+                'Regra padrão já existente na Biblioteca para este agente e exame.',
+              { variant: 'info' },
+            );
+          } else if (systemRule.reason) {
+            enqueueSnackbar(systemRule.reason, { variant: 'warning' });
+          }
+        }
         examData.callback(exam);
       } else {
         const exam = await updateMutation.mutateAsync(submitData);
@@ -278,6 +303,7 @@ export const useEditExams = () => {
     onSelectCheck,
     onRemove,
     setValue,
+    isMasterAdmin,
   };
 };
 
