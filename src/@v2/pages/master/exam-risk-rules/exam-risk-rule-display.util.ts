@@ -10,10 +10,12 @@ const normalize = (value: string | null | undefined): string | null => {
 
 /**
  * Nome exibível do fator de risco SimpleSST para a Biblioteca Risco × Exame.
- * Prioriza `riskNameSnapshot` (preenchido no sync NR-7/ACGIH) sobre o rótulo
- * normativo bruto em `agentName` (substância NR-7).
+ * Prioriza campos enriquecidos da API; fallback local para compatibilidade.
  */
 export const resolveRiskFactorDisplayName = (rule: IExamRiskRule): string => {
+  const fromApi = normalize(rule.riskFactorDisplayName);
+  if (fromApi) return fromApi;
+
   switch (rule.scope) {
     case ExamRiskRuleScopeEnum.RISK:
       return normalize(rule.riskNameSnapshot) ?? rule.riskFactorId ?? '—';
@@ -42,6 +44,9 @@ export const resolveRiskFactorDisplayName = (rule: IExamRiskRule): string => {
 export const resolveNormativeOriginLabel = (
   rule: IExamRiskRule,
 ): string | null => {
+  const fromApi = normalize(rule.normativeOriginLabel);
+  if (fromApi) return fromApi;
+
   if (rule.scope !== ExamRiskRuleScopeEnum.AGENT) return null;
 
   const normative = normalize(rule.agentName);

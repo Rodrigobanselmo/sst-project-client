@@ -90,6 +90,10 @@ export interface IExamRiskRule {
   sourceIndicatorId: string | null;
   isCurated: boolean;
   createdById: number | null;
+  /** Read-model: fator de risco SimpleSST para exibição (browse enriquecido). */
+  linkedRiskFactorId?: string | null;
+  riskFactorDisplayName?: string | null;
+  normativeOriginLabel?: string | null;
   exams: IExamRiskRuleExam[];
   // Fontes complementares ativas (Fase 4I) — read-only no browse.
   references?: IExamRiskRuleReference[];
