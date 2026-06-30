@@ -32,6 +32,7 @@ import { RoleEnum } from 'project/enum/roles.enums';
 import { AcgihRiskCorrelationApplyDialog } from './components/AcgihRiskCorrelationApplyDialog';
 import { AcgihRiskCorrelationConsolidateDialog } from './components/AcgihRiskCorrelationConsolidateDialog';
 import { AcgihExamResolveDialog } from './components/AcgihExamResolveDialog';
+import { AcgihExamConfirmSafeDialog } from './components/AcgihExamConfirmSafeDialog';
 import { AcgihRiskCorrelationDetailDialog } from './components/AcgihRiskCorrelationDetailDialog';
 import { AcgihRiskCorrelationTable } from './components/AcgihRiskCorrelationTable';
 import {
@@ -97,6 +98,7 @@ export const AcgihRiskCorrelationPage: FC = () => {
   const [applyOpen, setApplyOpen] = useState(false);
   const [consolidateOpen, setConsolidateOpen] = useState(false);
   const [examResolveOpen, setExamResolveOpen] = useState(false);
+  const [examConfirmSafeOpen, setExamConfirmSafeOpen] = useState(false);
 
   const examByAcgihId = useMemo(() => {
     const map = new Map(
@@ -157,6 +159,9 @@ export const AcgihRiskCorrelationPage: FC = () => {
   // Mostra a ação de promoção completa (os 65) enquanto houver faltantes.
   const canPromoteMissing =
     !isLoading && !isError && hasData && summary.notPromotedCount > 0;
+  const pendingExamConfirmations =
+    examPreview?.totals.linkedPendingConfirmation ?? 0;
+  const canConfirmSafePending = pendingExamConfirmations > 0;
 
   const renderCountChips = (counts?: Record<string, number>, kind?: string) => {
     if (!counts) return null;
@@ -249,6 +254,15 @@ export const AcgihRiskCorrelationPage: FC = () => {
             >
               Resolver exames ACGIH/BEI
             </Button>
+            {canConfirmSafePending && (
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={() => setExamConfirmSafeOpen(true)}
+              >
+                Confirmar pendentes seguros ({pendingExamConfirmations})
+              </Button>
+            )}
           </Box>
         </Box>
 
@@ -503,6 +517,11 @@ export const AcgihRiskCorrelationPage: FC = () => {
       <AcgihExamResolveDialog
         open={examResolveOpen}
         onClose={() => setExamResolveOpen(false)}
+      />
+
+      <AcgihExamConfirmSafeDialog
+        open={examConfirmSafeOpen}
+        onClose={() => setExamConfirmSafeOpen(false)}
       />
     </SAuthShow>
   );

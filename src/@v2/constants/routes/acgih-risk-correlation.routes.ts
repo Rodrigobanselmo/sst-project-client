@@ -16,4 +16,6 @@ export const AcgihRiskCorrelationRoutes = {
   EXAM_LINK_SYNC: '/v2/master/biological-indicators/acgih-exam-links/sync',
   EXAM_LINK_PREVIEW: '/v2/master/biological-indicators/acgih-exam-links/preview',
   EXAM_LINK_RESOLVE: '/v2/master/biological-indicators/acgih-exam-links/resolve',
+  EXAM_LINK_CONFIRM_SAFE_PENDING:
+    '/v2/master/biological-indicators/acgih-exam-links/confirm-safe-pending',
 } as const;

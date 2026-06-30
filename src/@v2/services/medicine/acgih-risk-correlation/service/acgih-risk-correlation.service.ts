@@ -9,6 +9,8 @@ import type {
   IAcgihExamPreviewResponse,
   IAcgihExamResolveParams,
   IAcgihExamResolveResponse,
+  IAcgihExamConfirmSafeParams,
+  IAcgihExamConfirmSafeResponse,
   IAcgihRiskCorrelationApplyParams,
   IAcgihRiskCorrelationApplyResponse,
   IAcgihRiskCorrelationParams,
@@ -115,6 +117,24 @@ export async function resolveAcgihExamLinks(
       dryRun: params.dryRun,
       createMissingExams: params.createMissingExams,
       linkSafeMatches: params.linkSafeMatches,
+    },
+  );
+  return response.data;
+}
+
+/**
+ * Confirma vínculos ACGIH/BEI → Exame pendentes que passam na regra segura
+ * determinante + matriz embutida. Exige confirmText literal. Não cria exame nem
+ * regra da Biblioteca.
+ */
+export async function confirmSafeAcgihExamLinks(
+  params: IAcgihExamConfirmSafeParams,
+): Promise<IAcgihExamConfirmSafeResponse> {
+  const response = await api.post<IAcgihExamConfirmSafeResponse>(
+    AcgihRiskCorrelationRoutes.EXAM_LINK_CONFIRM_SAFE_PENDING,
+    {
+      confirmText: params.confirmText,
+      dryRun: params.dryRun,
     },
   );
   return response.data;

@@ -337,3 +337,43 @@ export interface IAcgihExamResolveResponse {
   totals: IAcgihExamResolveTotals;
   items: IAcgihExamResolveItemResult[];
 }
+
+/** Confirma vínculos pendentes seguros (determinante + matriz embutida). */
+export const ACGIH_EXAM_LINK_CONFIRM_SAFE_PENDING_TEXT =
+  'CONFIRMAR EXAMES ACGIH';
+
+export type AcgihExamConfirmSafeAction =
+  | 'confirmed'
+  | 'alreadyConfirmed'
+  | 'skipped'
+  | 'failed';
+
+export interface IAcgihExamConfirmSafeItemResult {
+  indicatorId: string;
+  substanceName: string;
+  determinant: string;
+  matrix: string;
+  examId?: number;
+  examName?: string;
+  action: AcgihExamConfirmSafeAction;
+  reason?: string;
+}
+
+export interface IAcgihExamConfirmSafeTotals {
+  pending: number;
+  confirmed: number;
+  alreadyConfirmed: number;
+  skipped: number;
+  failed: number;
+}
+
+export interface IAcgihExamConfirmSafeParams {
+  confirmText: string;
+  dryRun?: boolean;
+}
+
+export interface IAcgihExamConfirmSafeResponse {
+  dryRun: boolean;
+  totals: IAcgihExamConfirmSafeTotals;
+  items: IAcgihExamConfirmSafeItemResult[];
+}
