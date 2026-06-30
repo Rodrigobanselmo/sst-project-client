@@ -37,6 +37,7 @@ import {
   examRiskRuleStatusLabels,
 } from './exam-risk-rule-labels';
 import { ExamRiskRuleFormModal } from './components/ExamRiskRuleFormModal';
+import { ExamRiskRuleAcgihSyncDialog } from './components/ExamRiskRuleAcgihSyncDialog';
 import { ExamRiskRuleImportExportMenu } from './components/ExamRiskRuleImportExportMenu';
 import { ExamRiskRuleReferencesModal } from './components/ExamRiskRuleReferencesModal';
 import { ExamRiskRuleTable } from './components/ExamRiskRuleTable';
@@ -58,6 +59,7 @@ export const ExamRiskRuleListPage: FC = () => {
   const [editing, setEditing] = useState<IExamRiskRule | null>(null);
   const [toDelete, setToDelete] = useState<IExamRiskRule | null>(null);
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
+  const [acgihSyncOpen, setAcgihSyncOpen] = useState(false);
   const [syncSummary, setSyncSummary] =
     useState<IExamRiskRuleNr07SyncSummary | null>(null);
   const [referencesRuleId, setReferencesRuleId] = useState<string | null>(null);
@@ -132,6 +134,12 @@ export const ExamRiskRuleListPage: FC = () => {
               disabled={syncMutation.isPending}
             >
               Sincronizar NR-07
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setAcgihSyncOpen(true)}
+            >
+              Sincronizar ACGIH/BEI
             </Button>
             <Button variant="contained" onClick={handleOpenCreate}>
               Nova regra
@@ -238,6 +246,11 @@ export const ExamRiskRuleListPage: FC = () => {
       <ExamRiskRuleReferencesModal
         rule={referencesRule}
         onClose={() => setReferencesRuleId(null)}
+      />
+
+      <ExamRiskRuleAcgihSyncDialog
+        open={acgihSyncOpen}
+        onClose={() => setAcgihSyncOpen(false)}
       />
 
       <Dialog open={Boolean(toDelete)} onClose={() => setToDelete(null)}>

@@ -6,6 +6,7 @@ import {
   deleteExamRiskRule,
   deleteExamRiskRuleReference,
   syncExamRiskRulesNr07,
+  syncExamRiskRulesAcgihBei,
   updateExamRiskRule,
   updateExamRiskRuleStatus,
 } from '../service/exam-risk-rule.service';
@@ -47,6 +48,15 @@ export const useMutateSyncExamRiskRulesNr07 = () => {
   const { onErrorMessage } = useApiResponseHandler();
   return useMutate({
     mutationFn: syncExamRiskRulesNr07,
+    invalidateManyQueryKeys: invalidate,
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateSyncExamRiskRulesAcgihBei = () => {
+  const { onErrorMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: syncExamRiskRulesAcgihBei,
     invalidateManyQueryKeys: invalidate,
     onError: onErrorMessage,
   });

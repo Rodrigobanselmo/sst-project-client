@@ -3,6 +3,7 @@ export const ExamRiskRuleRoutes = {
   RISK_CANDIDATES: '/v2/master/exam-risk-rules/risk-candidates',
   EXAM_CANDIDATES: '/v2/master/exam-risk-rules/exam-candidates',
   SYNC_NR07: '/v2/master/exam-risk-rules/sync-nr07',
+  SYNC_ACGIH_BEI: '/v2/master/exam-risk-rules/sync-acgih-bei',
   EXPORT: '/v2/master/exam-risk-rules/export',
   TEMPLATE: '/v2/master/exam-risk-rules/template',
   IMPORT_PREVIEW: '/v2/master/exam-risk-rules/import/preview',

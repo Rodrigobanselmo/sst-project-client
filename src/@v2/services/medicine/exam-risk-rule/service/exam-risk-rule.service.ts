@@ -8,6 +8,8 @@ import type {
   IExamRiskRule,
   IExamRiskRuleExamCandidate,
   IExamRiskRuleNr07SyncSummary,
+  IExamRiskRuleAcgihSyncParams,
+  IExamRiskRuleAcgihSyncResponse,
   IExamRiskRuleReference,
   IExamRiskRuleRiskCandidate,
   IUpdateExamRiskRulePayload,
@@ -71,6 +73,20 @@ export async function deleteExamRiskRule(id: string): Promise<void> {
 export async function syncExamRiskRulesNr07(): Promise<IExamRiskRuleNr07SyncSummary> {
   const response = await api.post<IExamRiskRuleNr07SyncSummary>(
     ExamRiskRuleRoutes.SYNC_NR07,
+  );
+  return response.data;
+}
+
+/** Sincroniza indicadores ACGIH/BEI consolidados com a Biblioteca Risco × Exame. */
+export async function syncExamRiskRulesAcgihBei(
+  params: IExamRiskRuleAcgihSyncParams,
+): Promise<IExamRiskRuleAcgihSyncResponse> {
+  const response = await api.post<IExamRiskRuleAcgihSyncResponse>(
+    ExamRiskRuleRoutes.SYNC_ACGIH_BEI,
+    {
+      confirmText: params.confirmText,
+      dryRun: params.dryRun,
+    },
   );
   return response.data;
 }

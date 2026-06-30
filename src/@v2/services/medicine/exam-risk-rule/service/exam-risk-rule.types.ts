@@ -108,6 +108,49 @@ export interface IExamRiskRuleNr07SyncSummary {
   draftReasons: Record<string, number>;
 }
 
+export const EXAM_RISK_RULE_SYNC_ACGIH_CONFIRM_TEXT = 'SINCRONIZAR ACGIH';
+
+export type ExamRiskRuleAcgihSyncAction =
+  | 'ruleCreated'
+  | 'referenceCreated'
+  | 'alreadySynced'
+  | 'blocked'
+  | 'failed';
+
+export interface IExamRiskRuleAcgihSyncItem {
+  indicatorId: string;
+  substanceName: string;
+  riskFactorId?: string;
+  riskName?: string;
+  examId?: number;
+  examName?: string;
+  action: ExamRiskRuleAcgihSyncAction;
+  reason?: string;
+  ruleId?: string;
+  referenceId?: string;
+}
+
+export interface IExamRiskRuleAcgihSyncTotals {
+  indicators: number;
+  eligible: number;
+  rulesCreated: number;
+  referencesCreated: number;
+  alreadySynced: number;
+  blocked: number;
+  failed: number;
+}
+
+export interface IExamRiskRuleAcgihSyncResponse {
+  dryRun: boolean;
+  totals: IExamRiskRuleAcgihSyncTotals;
+  items: IExamRiskRuleAcgihSyncItem[];
+}
+
+export interface IExamRiskRuleAcgihSyncParams {
+  confirmText: string;
+  dryRun?: boolean;
+}
+
 export interface IBrowseExamRiskRulesResponse {
   count: number;
   data: IExamRiskRule[];
