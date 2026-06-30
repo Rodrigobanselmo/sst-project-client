@@ -13,6 +13,7 @@ import { STableRow } from '@v2/components/organisms/STable/common/STableRow/STab
 import { IAcgihPromotionPreviewItem } from '@v2/services/medicine/acgih-promotion-preview/service/acgih-promotion-preview.types';
 
 import {
+  blockerChipColor,
   duplicateRiskColors,
   duplicateRiskLabels,
   eligibilityStatusColors,
@@ -143,7 +144,7 @@ export const AcgihPromotionPreviewTable: FC<Props> = ({
     },
     {
       column: 'minmax(140px, 0.9fr)',
-      header: <STableHRow justify="center">Duplicidade</STableHRow>,
+      header: <STableHRow justify="center">Status da promoção</STableHRow>,
       row: (row) => (
         <Box display="flex" justifyContent="center" width="100%">
           <Chip
@@ -170,7 +171,7 @@ export const AcgihPromotionPreviewTable: FC<Props> = ({
                 key={code}
                 size="small"
                 variant="outlined"
-                color="error"
+                color={blockerChipColor(code)}
                 label={formatBlocker(code)}
                 sx={{
                   cursor: 'default',

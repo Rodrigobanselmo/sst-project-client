@@ -28,6 +28,7 @@ import { SAuthShow } from 'components/molecules/SAuthShow';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
 
+import { AcgihRiskCorrelationApplyDialog } from './components/AcgihRiskCorrelationApplyDialog';
 import { AcgihRiskCorrelationDetailDialog } from './components/AcgihRiskCorrelationDetailDialog';
 import { AcgihRiskCorrelationTable } from './components/AcgihRiskCorrelationTable';
 import {
@@ -86,6 +87,7 @@ export const AcgihRiskCorrelationPage: FC = () => {
 
   const [detailTarget, setDetailTarget] =
     useState<IAcgihRiskCorrelationItem | null>(null);
+  const [applyOpen, setApplyOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
     const items = data?.items ?? [];
@@ -107,6 +109,23 @@ export const AcgihRiskCorrelationPage: FC = () => {
   ]);
 
   const summary = data?.summary;
+
+  // Vínculos esperados = soma dos vínculos de todos os itens sem bloqueio (TDI
+  // contribui com 2). Reflete o que o apply A.3 criaria (66 no cenário-alvo).
+  const expectedLinks = useMemo(
+    () =>
+      (data?.items ?? []).reduce(
+        (acc, item) => acc + (item.blockers.length === 0 ? item.links.length : 0),
+        0,
+      ),
+    [data?.items],
+  );
+
+  const hasData = !!summary && summary.total > 0;
+  const allPromoted = hasData && summary.notPromotedCount === 0;
+  const noBlockers = !!summary && summary.blockersCount === 0;
+  const canConsolidate =
+    !isLoading && !isError && allPromoted && noBlockers;
 
   const renderCountChips = (counts?: Record<string, number>, kind?: string) => {
     if (!counts) return null;
@@ -143,36 +162,75 @@ export const AcgihRiskCorrelationPage: FC = () => {
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
-        <Box>
-          <Typography variant="h5">
-            ACGIH/BEI — Correlação com Fatores de Risco
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Preview somente leitura da correlação entre os indicadores ACGIH/BEI
-            e os Fatores de Risco do sistema. Combina match automático (reuso
-            NR-7, CAS exato, CAS em grupo, nome/sinônimo) com overrides manuais
-            versionados. Nenhum vínculo, indicador ou regra é criado nesta etapa.
-          </Typography>
-          <Box display="flex" gap={2} flexWrap="wrap" mt={0.5}>
-            <Button
-              variant="text"
-              size="small"
-              startIcon={<ArrowBackIcon />}
-              onClick={() =>
-                router.push(RoutesEnum.DATABASE_ACGIH_BEI_PROMOTION_PREVIEW)
-              }
-              sx={{ px: 0 }}
-            >
-              Ir para Promoção ACGIH/BEI (preview)
-            </Button>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          gap={2}
+          flexWrap="wrap"
+        >
+          <Box>
+            <Typography variant="h5">
+              ACGIH/BEI — Correlação com Fatores de Risco
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Correlação entre os indicadores ACGIH/BEI promovidos e os Fatores
+              de Risco do sistema. Combina match automático (reuso NR-7, CAS
+              exato, CAS em grupo, nome/sinônimo) com overrides manuais
+              versionados. A consolidação cria apenas vínculos de risco — não
+              cria regras na Biblioteca Risco × Exame.
+            </Typography>
+            <Box display="flex" gap={2} flexWrap="wrap" mt={0.5}>
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<ArrowBackIcon />}
+                onClick={() =>
+                  router.push(RoutesEnum.DATABASE_ACGIH_BEI_PROMOTION_PREVIEW)
+                }
+                sx={{ px: 0 }}
+              >
+                Ir para Promoção ACGIH/BEI (preview)
+              </Button>
+            </Box>
           </Box>
+          <Button
+            variant="contained"
+            disabled={!canConsolidate}
+            onClick={() => setApplyOpen(true)}
+          >
+            Consolidar vínculos com Fatores de Risco
+          </Button>
         </Box>
 
-        <Alert severity="info">
-          Tela somente leitura. Não há ações de escrita (sem aplicar, sincronizar
-          ou editar). O vínculo real (apply) será tratado em fase posterior, após
-          homologação desta correlação.
-        </Alert>
+        {hasData && !allPromoted && (
+          <Alert
+            severity="warning"
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() =>
+                  router.push(RoutesEnum.DATABASE_ACGIH_BEI_PROMOTION_PREVIEW)
+                }
+              >
+                Ir para Promoção
+              </Button>
+            }
+          >
+            Ainda existem <strong>{summary?.notPromotedCount}</strong> ACGIH/BEI
+            não promovidos. Promova todos os elegíveis na tela de Promoção antes
+            de consolidar vínculos.
+          </Alert>
+        )}
+
+        {canConsolidate && (
+          <Alert severity="success">
+            Todos os <strong>{summary?.total}</strong> indicadores estão
+            promovidos e não há bloqueios. Você pode consolidar os vínculos com
+            os Fatores de Risco ({expectedLinks} vínculos esperados).
+          </Alert>
+        )}
 
         {isAuthError && (
           <Alert severity="warning">
@@ -340,6 +398,13 @@ export const AcgihRiskCorrelationPage: FC = () => {
       <AcgihRiskCorrelationDetailDialog
         item={detailTarget}
         onClose={() => setDetailTarget(null)}
+      />
+
+      <AcgihRiskCorrelationApplyDialog
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        promotedCount={summary?.promotedCount ?? 0}
+        expectedLinks={expectedLinks}
       />
     </SAuthShow>
   );

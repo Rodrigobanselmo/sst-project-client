@@ -86,3 +86,69 @@ export interface IAcgihRiskCorrelationResponse {
   summary: IAcgihRiskCorrelationSummary;
   items: IAcgihRiskCorrelationItem[];
 }
+
+/**
+ * Frente A.3 — apply real. Alinhado 1:1 com a API. O servidor é autoritativo
+ * (reexecuta o preview); o Client envia apenas a seleção opcional, o opt-in de
+ * simulação e a confirmação literal. Nenhuma correlação é enviada pelo Client.
+ */
+export const ACGIH_RISK_CORRELATION_APPLY_CONFIRM_TEXT = 'VINCULAR ACGIH RISCOS';
+
+export type AcgihRiskLinkResultStatus =
+  | 'created'
+  | 'alreadyLinked'
+  | 'failed';
+
+export type AcgihRiskCorrelationApplyItemStatus =
+  | 'created'
+  | 'alreadyLinked'
+  | 'skipped'
+  | 'failed';
+
+export type AcgihRiskCorrelationApplySkipReason =
+  | 'NOT_PROMOTED'
+  | 'HAS_BLOCKERS'
+  | 'NO_LINKS'
+  | 'NOT_ELIGIBLE_STATUS';
+
+export interface IAcgihRiskCorrelationApplyParams {
+  acgihBeiIndicatorIds?: string[];
+  dryRun?: boolean;
+  confirmText: string;
+}
+
+export interface IAcgihRiskLinkResult {
+  riskFactorId: string;
+  riskName: string;
+  status: AcgihRiskLinkResultStatus;
+  linkId?: string;
+  isPrimary: boolean;
+  error?: string;
+}
+
+export interface IAcgihRiskCorrelationApplyItemResult {
+  acgihBeiIndicatorId: string;
+  substanceName: string;
+  officialIndicatorId: string | null;
+  finalStatus: AcgihRiskCorrelationFinalStatus;
+  cardinality: AcgihRiskCorrelationCardinality;
+  status: AcgihRiskCorrelationApplyItemStatus;
+  skipReason?: AcgihRiskCorrelationApplySkipReason;
+  links: IAcgihRiskLinkResult[];
+  error?: string;
+}
+
+export interface IAcgihRiskCorrelationApplyTotals {
+  requestedItems: number;
+  eligibleItems: number;
+  createdLinks: number;
+  alreadyLinked: number;
+  skipped: number;
+  failed: number;
+}
+
+export interface IAcgihRiskCorrelationApplyResponse {
+  dryRun: boolean;
+  totals: IAcgihRiskCorrelationApplyTotals;
+  items: IAcgihRiskCorrelationApplyItemResult[];
+}

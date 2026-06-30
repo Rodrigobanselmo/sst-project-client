@@ -2,6 +2,8 @@ import { AcgihRiskCorrelationRoutes } from '@v2/constants/routes/acgih-risk-corr
 import { api } from 'core/services/apiClient';
 
 import type {
+  IAcgihRiskCorrelationApplyParams,
+  IAcgihRiskCorrelationApplyResponse,
   IAcgihRiskCorrelationParams,
   IAcgihRiskCorrelationResponse,
 } from './acgih-risk-correlation.types';
@@ -20,6 +22,27 @@ export async function getAcgihRiskCorrelationPreview(
       params: {
         search: params.search,
       },
+    },
+  );
+  return response.data;
+}
+
+/**
+ * Frente A.3 — consolida (cria) os vínculos ACGIH/BEI × Fatores de Risco. Exige
+ * confirmText literal. O servidor reexecuta o preview e cria apenas vínculos
+ * BiologicalIndicatorToRisk para itens promovidos, sem bloqueios e com status
+ * elegível. `dryRun=true` simula sem gravar. Nenhuma correlação é enviada pelo
+ * Client.
+ */
+export async function applyAcgihRiskCorrelation(
+  params: IAcgihRiskCorrelationApplyParams,
+): Promise<IAcgihRiskCorrelationApplyResponse> {
+  const response = await api.post<IAcgihRiskCorrelationApplyResponse>(
+    AcgihRiskCorrelationRoutes.APPLY,
+    {
+      acgihBeiIndicatorIds: params.acgihBeiIndicatorIds,
+      dryRun: params.dryRun,
+      confirmText: params.confirmText,
     },
   );
   return response.data;

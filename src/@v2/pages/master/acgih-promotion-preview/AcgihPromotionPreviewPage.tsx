@@ -78,6 +78,17 @@ export const AcgihPromotionPreviewPage: FC = () => {
         ? 'Nenhum candidato elegível para promover.'
         : 'Promover candidatos elegíveis como indicadores oficiais DRAFT.';
 
+  // "Promover todos elegíveis": garante que primários E derivados elegíveis
+  // entrem no preview/apply. Liga o opt-in de divergência antes de abrir o modal
+  // (refetch dos totais) e o apply é feito com includeDivergenceDerived=true.
+  const handleOpenApply = () => {
+    if (!includeDivergenceDerived) {
+      setIncludeDivergenceDerived(true);
+      setPage(1);
+    }
+    setApplyOpen(true);
+  };
+
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
@@ -116,9 +127,9 @@ export const AcgihPromotionPreviewPage: FC = () => {
               <Button
                 variant="contained"
                 disabled={!canApply}
-                onClick={() => setApplyOpen(true)}
+                onClick={handleOpenApply}
               >
-                Sincronizar ACGIH/BEI (4P.2)
+                Promover todos elegíveis
               </Button>
             </span>
           </Tooltip>

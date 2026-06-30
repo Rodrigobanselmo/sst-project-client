@@ -62,19 +62,21 @@ export const duplicateRiskLabels: Record<
   AcgihPromotionDuplicateRiskEnum,
   string
 > = {
-  [AcgihPromotionDuplicateRiskEnum.NONE]: 'Sem duplicidade',
+  [AcgihPromotionDuplicateRiskEnum.NONE]: 'Pode promover',
   [AcgihPromotionDuplicateRiskEnum.ALREADY_PROMOTED]: 'Já promovido',
   [AcgihPromotionDuplicateRiskEnum.NEAR_DUPLICATE_NR7]: 'Quase-duplicado NR-7',
   [AcgihPromotionDuplicateRiskEnum.NEAR_DUPLICATE_OFFICIAL]:
     'Quase-duplicado oficial ACGIH',
 };
 
+// "Já promovido" é um desfecho positivo (não um erro): verde. Quase-duplicados
+// seguem em amarelo (atenção), e "Pode promover" fica neutro/positivo.
 export const duplicateRiskColors: Record<
   AcgihPromotionDuplicateRiskEnum,
   ChipColor
 > = {
-  [AcgihPromotionDuplicateRiskEnum.NONE]: 'default',
-  [AcgihPromotionDuplicateRiskEnum.ALREADY_PROMOTED]: 'error',
+  [AcgihPromotionDuplicateRiskEnum.NONE]: 'success',
+  [AcgihPromotionDuplicateRiskEnum.ALREADY_PROMOTED]: 'success',
   [AcgihPromotionDuplicateRiskEnum.NEAR_DUPLICATE_NR7]: 'warning',
   [AcgihPromotionDuplicateRiskEnum.NEAR_DUPLICATE_OFFICIAL]: 'warning',
 };
@@ -144,6 +146,14 @@ export const missingFieldLabels: Record<string, string> = {
 
 export const formatBlocker = (code: string): string =>
   blockerLabels[code] ?? code;
+
+/**
+ * Cor do chip de bloqueio/aviso. "Já promovido para indicador oficial" é um
+ * desfecho positivo/informativo (verde), não um erro impeditivo. Os demais
+ * códigos de bloqueio permanecem em vermelho (erro real / pendência crítica).
+ */
+export const blockerChipColor = (code: string): ChipColor =>
+  code === 'ALREADY_PROMOTED' ? 'success' : 'error';
 
 export const formatMissingField = (code: string): string =>
   missingFieldLabels[code] ?? code;

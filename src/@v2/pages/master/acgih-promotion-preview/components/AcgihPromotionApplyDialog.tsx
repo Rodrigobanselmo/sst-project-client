@@ -118,7 +118,7 @@ export const AcgihPromotionApplyDialog: FC<Props> = ({
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       {!result ? (
         <>
-          <DialogTitle>Sincronizar ACGIH/BEI — confirmar promoção</DialogTitle>
+          <DialogTitle>Promover todos elegíveis — confirmar</DialogTitle>
           <DialogContent dividers>
             <Box display="flex" gap={1.5} flexWrap="wrap" mb={2}>
               <Count label="Elegíveis" value={eligible} />
@@ -132,14 +132,17 @@ export const AcgihPromotionApplyDialog: FC<Props> = ({
             </Box>
 
             <Alert severity="warning" sx={{ mb: 1.5 }}>
-              Serão criados <strong>{eligible}</strong> indicador(es) oficial(is)
-              ACGIH/BEI em status <strong>DRAFT</strong>. Apenas itens{' '}
-              <strong>elegíveis</strong> do preview atual são promovidos.
+              Esta ação criará indicadores oficiais ACGIH/BEI (status{' '}
+              <strong>DRAFT</strong>) para todos os itens{' '}
+              <strong>elegíveis</strong> ainda não promovidos (primários e
+              derivados elegíveis). <strong>Não cria vínculos com Fatores de
+              Risco</strong> e <strong>não cria regras na Biblioteca Risco ×
+              Exame</strong>.
             </Alert>
 
             <Typography variant="body2" color="text.secondary" component="div">
               <ul style={{ margin: 0, paddingLeft: 18 }}>
-                <li>Não serão criadas regras na Biblioteca Risco × Exame.</li>
+                <li>Itens já promovidos são ignorados (idempotente).</li>
                 <li>Não haverá vínculo automático com risco/exame.</li>
                 <li>Os indicadores criados ficam como DRAFT e exigem curadoria.</li>
                 <li>
