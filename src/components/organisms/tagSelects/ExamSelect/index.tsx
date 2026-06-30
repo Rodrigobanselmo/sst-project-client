@@ -1,7 +1,6 @@
 import React, { FC, MouseEvent, useMemo, useState } from 'react';
 
 import { Icon, Box, Chip } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import SIconButton from 'components/atoms/SIconButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
@@ -19,17 +18,13 @@ import { useDebouncedCallback } from 'use-debounce';
 import EditIcon from 'assets/icons/SEditIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
 
-import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
-import { materializeEsocialT27Exam } from '@v2/services/medicine/esocial-t27-exam/esocial-t27-exam.service';
 import {
-  buildExamFromMaterializedT27,
   isEsocialT27UnpublishedOption,
   mapEsocialT27CandidateToOption,
   useQueryUnpublishedEsocialT27Exams,
 } from '@v2/services/medicine/esocial-t27-exam/hooks/useQueryUnpublishedEsocialT27Exams';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import {
   ExamOriginEnum,
@@ -116,10 +111,6 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [showAllExams, setShowAllExams] = useState(false);
-  const [materializing, setMaterializing] = useState(false);
-  const { isMasterAdmin } = usePermissionsAccess();
-  const { companyId } = useGetCompanyId();
-  const { enqueueSnackbar } = useSnackbar();
   // Fase 2B — quando há agente em contexto e o toggle "Mostrar todos os exames"
   // está desligado, envia o agente para a API restringir aos exames recomendados.
   // Com o toggle ligado, includeIncompatible=true faz a API ignorar a recomendação
@@ -172,40 +163,35 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
     setSearch(value);
   }, 300);
 
-  const handleSelectExam = async (options: IExam) => {
-    let selectedExam =
+  const handleSelectExam = (options: IExam) => {
+    const selectedExam =
       data.find((exam) => exam.id === options.id) ?? options;
 
     if (isEsocialT27UnpublishedOption(selectedExam)) {
-      try {
-        setMaterializing(true);
-        const materialized = await materializeEsocialT27Exam({
-          esocial27Code: selectedExam.esocial27Code,
-          companyId,
-          asSystem: isMasterAdmin,
-        });
-        selectedExam = {
-          ...(selectedExam as IExam),
-          ...buildExamFromMaterializedT27(materialized),
-        } as IExam;
-
-        if (materialized.warning) {
-          enqueueSnackbar(materialized.warning, { variant: 'warning' });
-        } else if (materialized.created) {
-          enqueueSnackbar('Exame publicado no catálogo a partir da Tabela 27/eSocial.', {
-            variant: 'success',
-          });
-        }
-      } catch (error: any) {
-        enqueueSnackbar(
-          error?.response?.data?.message ||
-            'Não foi possível materializar o procedimento eSocial T27.',
-          { variant: 'error' },
-        );
-        return;
-      } finally {
-        setMaterializing(false);
-      }
+      onStackOpenModal<Partial<typeof initialExamState>>(ModalEnum.EXAMS_ADD, {
+        name:
+          selectedExam.esocial27ProcedureName ||
+          selectedExam.name.replace(/^[\d.]+\s*—\s*/, ''),
+        esocial27Code: selectedExam.esocial27Code,
+        callback: (exam) => {
+          if (!exam) return;
+          if (onlyExam) {
+            handleSelect?.(exam);
+            return;
+          }
+          onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
+            onSubmit: handleSelect,
+            riskType,
+            risk,
+            ...exam,
+            examRiskData: {
+              ...initialExamDataState.examRiskData,
+              ...mapPcmsoDefaultsToExamRisk(pcmsoDefaults),
+            },
+          } as Partial<typeof initialExamDataState>);
+        },
+      });
+      return;
     }
 
     if (onlyExam) {
@@ -294,7 +280,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
     Boolean(selected?.length) ||
     Boolean(text && text !== 'selecione um exame');
 
-  const tagLoading = (isLoading || isLoadingT27 || materializing) && !hasSelectedExam;
+  const tagLoading = (isLoading || isLoadingT27) && !hasSelectedExam;
 
   return (
     <STagSearchSelect
@@ -311,7 +297,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       large={large}
       handleSelectMenu={handleSelectExam}
       selected={selected || []}
-      isLoading={isLoading || isLoadingT27 || materializing}
+      isLoading={isLoading || isLoadingT27}
       loading={tagLoading}
       endAdornment={(option: IExam | undefined) => {
         const isUnpublishedT27 = isEsocialT27UnpublishedOption(option);
@@ -328,7 +314,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
                 withWrapper
                 title={
                   isUnpublishedT27
-                    ? 'Procedimento da Tabela 27/eSocial ainda não publicado como exame operacional.'
+                    ? 'Procedimento da Tabela 27/eSocial ainda não publicado como exame. Clique para criar usando o cadastro completo.'
                     : EXAM_SELECT_SOURCE_TOOLTIPS[source]
                 }
               >
@@ -343,11 +329,11 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
               <STooltip
                 enterDelay={600}
                 withWrapper
-                title="Procedimento da Tabela 27/eSocial ainda não publicado como exame operacional."
+                title="Procedimento da Tabela 27/eSocial ainda não publicado como exame. Clique para criar usando o cadastro completo."
               >
                 <Chip
                   size="small"
-                  label="Não publicado"
+                  label="Criar no catálogo"
                   sx={{ fontSize: 11, height: 22 }}
                 />
               </STooltip>

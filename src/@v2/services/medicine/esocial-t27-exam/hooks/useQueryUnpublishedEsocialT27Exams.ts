@@ -4,7 +4,6 @@ import {
   searchUnpublishedEsocialT27Exams,
   IEsocialT27SearchItem,
 } from '@v2/services/medicine/esocial-t27-exam/esocial-t27-exam.service';
-import { ExamOriginSourceEnum, IExam } from 'core/interfaces/api/IExam';
 
 const ESOCIAL_T27_SEARCH_MIN_LENGTH = 3;
 
@@ -32,23 +31,17 @@ export function useQueryUnpublishedEsocialT27Exams(
 
 export const isEsocialT27UnpublishedOption = (
   option: { isEsocialT27Unpublished?: boolean } | null | undefined,
-): option is { isEsocialT27Unpublished: true; esocial27Code: string; name: string } =>
-  Boolean(option?.isEsocialT27Unpublished);
+): option is {
+  isEsocialT27Unpublished: true;
+  esocial27Code: string;
+  name: string;
+  esocial27ProcedureName?: string;
+} => Boolean(option?.isEsocialT27Unpublished);
 
 export const mapEsocialT27CandidateToOption = (item: IEsocialT27SearchItem) => ({
   id: -Number.parseInt(item.code, 10),
-  name: item.name,
+  name: `${item.code} — ${item.name}`,
   esocial27Code: item.code,
+  esocial27ProcedureName: item.name,
   isEsocialT27Unpublished: true as const,
-});
-
-export const buildExamFromMaterializedT27 = (result: {
-  examId: number;
-  examName: string;
-  esocial27Code: string;
-}): Partial<IExam> => ({
-  id: result.examId,
-  name: result.examName,
-  esocial27Code: result.esocial27Code,
-  originSources: [ExamOriginSourceEnum.ESOCIAL_T27],
 });

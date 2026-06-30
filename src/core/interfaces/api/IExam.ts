@@ -62,6 +62,8 @@ export interface IExam {
   esocial27Code?: string | null;
   /** Item da Tabela 27/eSocial ainda não materializado no catálogo operacional. */
   isEsocialT27Unpublished?: boolean;
+  /** Nome oficial do procedimento T27 (sem prefixo de código). */
+  esocial27ProcedureName?: string;
   examToClinic: IExamToClinic[];
   examToRiskData: IExamRiskData[];
   examsRiskData: IExamRiskData;
