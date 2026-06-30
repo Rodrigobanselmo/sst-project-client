@@ -25,6 +25,7 @@ export enum ExamOriginEnum {
  * aparecem quando não há fonte normativa específica.
  */
 export enum ExamOriginSourceEnum {
+  ESOCIAL_T27 = 'ESOCIAL_T27',
   NR_07 = 'NR_07',
   ACGIH_BEI = 'ACGIH_BEI',
   SYSTEM = 'SYSTEM',

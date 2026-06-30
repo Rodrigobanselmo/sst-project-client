@@ -38,6 +38,7 @@ import { IExamSelectProps } from './types';
 // renderizamos um chip por fonte. ACGIH/BEI deixa de ser mascarado como
 // "Sistema".
 const EXAM_SELECT_SOURCE_LABELS: Record<ExamOriginSourceEnum, string> = {
+  [ExamOriginSourceEnum.ESOCIAL_T27]: 'eSocial T27',
   [ExamOriginSourceEnum.NR_07]: 'NR-7',
   [ExamOriginSourceEnum.ACGIH_BEI]: 'ACGIH/BEI',
   [ExamOriginSourceEnum.SYSTEM]: 'Sistema',
@@ -46,6 +47,7 @@ const EXAM_SELECT_SOURCE_LABELS: Record<ExamOriginSourceEnum, string> = {
 };
 
 const EXAM_SELECT_SOURCE_TOOLTIPS: Record<ExamOriginSourceEnum, string> = {
+  [ExamOriginSourceEnum.ESOCIAL_T27]: 'Exame da Tabela 27 do eSocial.',
   [ExamOriginSourceEnum.NR_07]: 'Exame vinculado a indicador NR-7.',
   [ExamOriginSourceEnum.ACGIH_BEI]: 'Exame vinculado a indicador ACGIH/BEI.',
   [ExamOriginSourceEnum.SYSTEM]: 'Exame sistêmico sem fonte normativa específica.',

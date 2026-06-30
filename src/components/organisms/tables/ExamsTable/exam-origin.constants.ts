@@ -101,6 +101,11 @@ export function normalizeExamOriginSource(
 
   const compact = String(value).trim().toUpperCase().replace(/[-_\s]/g, '');
   switch (compact) {
+    case 'ESOCIALT27':
+    case 'ESOCIAL':
+    case 'T27':
+    case 'TABELA27':
+      return ExamOriginSourceEnum.ESOCIAL_T27;
     case 'NR07':
       return ExamOriginSourceEnum.NR_07;
     case 'ACGIHBEI':
@@ -128,6 +133,16 @@ export function getExamOriginSourceChipSx(
   const base: SxProps<Theme> = { fontWeight: 600, height: 24 };
 
   switch (source) {
+    case ExamOriginSourceEnum.ESOCIAL_T27:
+      // Azul-acinzentado informativo — distinto de NR-7 (azul) e ACGIH/BEI
+      // (info), sem cor de erro/alerta.
+      return {
+        ...base,
+        backgroundColor: '#475569',
+        color: 'common.white',
+        border: '1px solid',
+        borderColor: '#475569',
+      };
     case ExamOriginSourceEnum.NR_07:
       return {
         ...base,
