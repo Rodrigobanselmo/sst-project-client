@@ -7,4 +7,8 @@ export const AcgihRiskCorrelationRoutes = {
   PREVIEW:
     '/v2/master/biological-indicators/acgih-risk-correlation/preview',
   APPLY: '/v2/master/biological-indicators/acgih-risk-correlation/apply',
+  // Fix — consolidação completa: promove TODOS os ACGIH/BEI (os 65) a indicador
+  // oficial. Cria APENAS OccupationalBiologicalIndicator. MASTER-only.
+  CONSOLIDATE:
+    '/v2/master/biological-indicators/acgih-risk-correlation/consolidate-official-indicators',
 } as const;

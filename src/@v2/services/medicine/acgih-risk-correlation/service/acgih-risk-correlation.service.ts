@@ -2,6 +2,8 @@ import { AcgihRiskCorrelationRoutes } from '@v2/constants/routes/acgih-risk-corr
 import { api } from 'core/services/apiClient';
 
 import type {
+  IAcgihConsolidateParams,
+  IAcgihConsolidateResponse,
   IAcgihRiskCorrelationApplyParams,
   IAcgihRiskCorrelationApplyResponse,
   IAcgihRiskCorrelationParams,
@@ -42,6 +44,24 @@ export async function applyAcgihRiskCorrelation(
     {
       acgihBeiIndicatorIds: params.acgihBeiIndicatorIds,
       dryRun: params.dryRun,
+      confirmText: params.confirmText,
+    },
+  );
+  return response.data;
+}
+
+/**
+ * Fix — consolida (promove) TODOS os ACGIH/BEI da correlação (os 65) como
+ * indicador oficial. Exige confirmText literal. O servidor reexecuta o preview
+ * e cria apenas OccupationalBiologicalIndicator (idempotente por item); não cria
+ * vínculos de risco. Nenhuma seleção/correlação é enviada pelo Client.
+ */
+export async function consolidateAcgihOfficialIndicators(
+  params: IAcgihConsolidateParams,
+): Promise<IAcgihConsolidateResponse> {
+  const response = await api.post<IAcgihConsolidateResponse>(
+    AcgihRiskCorrelationRoutes.CONSOLIDATE,
+    {
       confirmText: params.confirmText,
     },
   );

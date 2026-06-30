@@ -152,3 +152,38 @@ export interface IAcgihRiskCorrelationApplyResponse {
   totals: IAcgihRiskCorrelationApplyTotals;
   items: IAcgihRiskCorrelationApplyItemResult[];
 }
+
+/**
+ * Fix — consolidação completa dos ACGIH/BEI (os 65) como indicador oficial.
+ * Alinhado 1:1 com a API. O servidor reexecuta o preview de correlação e cria
+ * apenas OccupationalBiologicalIndicator (não cria vínculos de risco). O Client
+ * envia apenas a confirmação literal.
+ */
+export const ACGIH_RISK_CORRELATION_CONSOLIDATE_CONFIRM_TEXT = 'CONSOLIDAR ACGIH';
+
+export type AcgihConsolidateItemStatus =
+  | 'created'
+  | 'alreadyPromoted'
+  | 'skipped'
+  | 'failed';
+
+export interface IAcgihConsolidateParams {
+  confirmText: string;
+}
+
+export interface IAcgihConsolidateItemResult {
+  acgihBeiIndicatorId: string;
+  substanceName: string;
+  officialIndicatorId: string | null;
+  status: AcgihConsolidateItemStatus;
+  reason?: string;
+}
+
+export interface IAcgihConsolidateResponse {
+  totalAcgih: number;
+  alreadyPromoted: number;
+  created: number;
+  skipped: number;
+  failed: number;
+  items: IAcgihConsolidateItemResult[];
+}

@@ -129,11 +129,33 @@ export const AcgihPromotionPreviewPage: FC = () => {
                 disabled={!canApply}
                 onClick={handleOpenApply}
               >
-                Promover todos elegíveis
+                Promover elegíveis (recorte operacional)
               </Button>
             </span>
           </Tooltip>
         </Box>
+
+        <Alert
+          severity="info"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() =>
+                router.push(RoutesEnum.DATABASE_ACGIH_BEI_RISK_CORRELATION)
+              }
+            >
+              Ir para Correlação
+            </Button>
+          }
+        >
+          Esta tela promove apenas o <strong>recorte operacional</strong>{' '}
+          (candidatos sem match / divergências reais). Para consolidar{' '}
+          <strong>toda a base ACGIH/BEI</strong> como indicador oficial —
+          inclusive itens com cobertura NR-7 — use{' '}
+          <strong>Promover ACGIH/BEI faltantes</strong> na tela de Correlação
+          ACGIH/BEI × Fatores de Risco.
+        </Alert>
 
         <Alert severity="info">
           Preview somente leitura. Nenhum indicador será criado nesta etapa.
