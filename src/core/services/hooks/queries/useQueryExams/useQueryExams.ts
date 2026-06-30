@@ -36,6 +36,12 @@ export interface IQueryExam {
   // vínculos de indicadores biológicos). Sem esses params, comportamento atual.
   agentCas?: string;
   agentName?: string;
+  // Caminho consolidado ACGIH/BEI: id do fator de risco da empresa em contexto.
+  // Quando enviado com includeIncompatible=false, a API inclui nos recomendados
+  // os exames alcançados por BiologicalIndicatorToRisk → BiologicalIndicatorToExam.
+  // Resolve grupos/isômeros (ex.: "Heptano, todos os isômeros" vs "n-Heptano"),
+  // onde o casamento por CAS/nome falha. Sem esse param, comportamento atual.
+  riskFactorId?: string;
 }
 
 /** Metadado retornado pela API quando o filtro por agente é aplicado (Fase 2B). */

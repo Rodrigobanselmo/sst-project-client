@@ -58,11 +58,15 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   // está desligado, envia o agente para a API restringir aos exames recomendados.
   // Com o toggle ligado, includeIncompatible=true faz a API ignorar a recomendação
   // e devolver o catálogo amplo, então não enviamos agente.
+  // Também envia o riskFactorId (caminho consolidado ACGIH/BEI), que resolve
+  // grupos/isômeros via BiologicalIndicatorToRisk → BiologicalIndicatorToExam
+  // independentemente do casamento por CAS/nome.
   const agentParams =
     risk && !showAllExams
       ? {
           ...(risk.cas ? { agentCas: risk.cas } : {}),
           ...(risk.name ? { agentName: risk.name } : {}),
+          ...(risk.id ? { riskFactorId: risk.id } : {}),
         }
       : {};
   const { data, agentFilter, isLoading } = useQueryExams(
