@@ -160,20 +160,27 @@ export const ExamRiskRuleTable: FC<Props> = ({
       header: <STableHRow>Fonte</STableHRow>,
       row: (row) => {
         const summary = referencesSummary(row);
+        const sourceLabel =
+          row.sourceDisplayLabel ??
+          examRiskRuleSourceLabels[row.source];
+        const sourceOriginType =
+          row.sourceOriginType ??
+          (row.source === ExamRiskRuleSourceEnum.NR_07 ? 'NR_07' : null);
+        const sourceOriginId =
+          row.sourceOriginId ??
+          (row.source === ExamRiskRuleSourceEnum.NR_07
+            ? row.sourceIndicatorId
+            : null);
         return (
           <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
-            <STextRow
-              text={examRiskRuleSourceLabels[row.source]}
-              lineNumber={1}
-            />
-            {row.source === ExamRiskRuleSourceEnum.NR_07 &&
-              row.sourceIndicatorId && (
+            <STextRow text={sourceLabel} lineNumber={1} />
+            {sourceOriginType === 'NR_07' && sourceOriginId && (
                 <Tooltip title="Abrir indicador NR-7 de origem">
                   <IconButton
                     size="small"
                     onClick={() =>
                       router.push(
-                        `${RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}/${row.sourceIndicatorId}`,
+                        `${RoutesEnum.DATABASE_BIOLOGICAL_INDICATORS}/${sourceOriginId}`,
                       )
                     }
                   >
@@ -181,6 +188,20 @@ export const ExamRiskRuleTable: FC<Props> = ({
                   </IconButton>
                 </Tooltip>
               )}
+            {row.sourceOriginType === 'ACGIH_BEI' && row.sourceOriginId && (
+              <Tooltip title="Abrir indicador ACGIH/BEI de origem">
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    router.push(
+                      `${RoutesEnum.DATABASE_ACGIH_BEI_INDICATORS}?id=${row.sourceOriginId}`,
+                    )
+                  }
+                >
+                  <LaunchIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
             {row.isCurated && (
               <Tooltip title="Regra editada manualmente (não sobrescrita pelo sync)">
                 <Chip size="small" color="info" label="Curada" />

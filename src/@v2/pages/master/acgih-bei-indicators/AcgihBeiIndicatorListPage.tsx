@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -20,6 +20,7 @@ import { persistKeys } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useFetchBrowseAcgihBeiIndicators } from '@v2/services/medicine/acgih-bei-indicator/hooks/useFetchBrowseAcgihBeiIndicators';
 import { useMutateDeleteAcgihBeiIndicator } from '@v2/services/medicine/acgih-bei-indicator/hooks/useMutateAcgihBeiIndicator';
+import { getAcgihBeiIndicatorById } from '@v2/services/medicine/acgih-bei-indicator/service/acgih-bei-indicator.service';
 import {
   AcgihBeiIndicatorConfidenceEnum,
   AcgihBeiIndicatorStatusEnum,
@@ -82,6 +83,24 @@ export const AcgihBeiIndicatorListPage: FC = () => {
     setEditing(item);
     setFormOpen(true);
   };
+
+  useEffect(() => {
+    const id = router.query.id;
+    if (typeof id !== 'string' || !id.trim()) return;
+
+    let cancelled = false;
+    getAcgihBeiIndicatorById(id.trim())
+      .then((indicator) => {
+        if (cancelled) return;
+        setEditing(indicator);
+        setFormOpen(true);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router.query.id]);
 
   const handleConfirmDelete = () => {
     if (!toDelete) return;

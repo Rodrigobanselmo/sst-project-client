@@ -94,6 +94,16 @@ export interface IExamRiskRule {
   linkedRiskFactorId?: string | null;
   riskFactorDisplayName?: string | null;
   normativeOriginLabel?: string | null;
+  /** Read-model: rótulo e origem da coluna Fonte (browse enriquecido). */
+  sourceDisplayLabel?: string | null;
+  sourceOriginType?:
+    | 'NR_07'
+    | 'ACGIH_BEI'
+    | 'TECHNICAL'
+    | 'SIMPLE_SST'
+    | 'OTHER'
+    | null;
+  sourceOriginId?: string | null;
   exams: IExamRiskRuleExam[];
   // Fontes complementares ativas (Fase 4I) — read-only no browse.
   references?: IExamRiskRuleReference[];
