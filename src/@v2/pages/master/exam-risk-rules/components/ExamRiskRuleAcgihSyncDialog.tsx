@@ -151,7 +151,13 @@ export const ExamRiskRuleAcgihSyncDialog: FC<Props> = ({ open, onClose }) => {
               <Alert severity="warning" sx={{ mb: 2 }}>
                 {totals.blocked} item(ns) bloqueado(s) — em geral por falta de
                 exame vinculado ao indicador ACGIH/BEI. Eles não gerarão regra
-                incompleta.
+                incompleta.{' '}
+                <strong>
+                  Vincule os exames ACGIH/BEI aos indicadores antes de
+                  sincronizar a Biblioteca
+                </strong>{' '}
+                (tela Correlação ACGIH/BEI × Fatores de Risco → “Vincular exames
+                ACGIH/BEI”).
               </Alert>
             )}
 

@@ -11,4 +11,7 @@ export const AcgihRiskCorrelationRoutes = {
   // oficial. Cria APENAS OccupationalBiologicalIndicator. MASTER-only.
   CONSOLIDATE:
     '/v2/master/biological-indicators/acgih-risk-correlation/consolidate-official-indicators',
+  // Vínculo ACGIH/BEI → Exame: cria APENAS BiologicalIndicatorToExam (pré-requisito
+  // do sync da Biblioteca Risco × Exame). MASTER-only.
+  EXAM_LINK_SYNC: '/v2/master/biological-indicators/acgih-exam-links/sync',
 } as const;

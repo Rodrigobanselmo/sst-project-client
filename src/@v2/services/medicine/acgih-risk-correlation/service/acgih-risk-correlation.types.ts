@@ -187,3 +187,63 @@ export interface IAcgihConsolidateResponse {
   failed: number;
   items: IAcgihConsolidateItemResult[];
 }
+
+/**
+ * Vínculo ACGIH/BEI → Exame. Alinhado 1:1 com a API. O servidor é autoritativo:
+ * faz o match (reuso NR-7 / determinante / nome) e cria APENAS
+ * BiologicalIndicatorToExam. O Client envia apenas a confirmação literal e o
+ * opt-in de simulação (dryRun). Não cria regra da Biblioteca nem ExamToRisk.
+ */
+export const ACGIH_EXAM_LINK_SYNC_CONFIRM_TEXT = 'VINCULAR EXAMES ACGIH';
+
+export type AcgihExamLinkAction =
+  | 'linkCreated'
+  | 'alreadyLinked'
+  | 'blocked'
+  | 'failed';
+
+export type AcgihExamLinkReason =
+  | 'NO_EXAM_MATCH'
+  | 'AMBIGUOUS_EXAM_MATCH'
+  | 'NO_OFFICIAL_INDICATOR'
+  | 'MISSING_DETERMINANT'
+  | 'P2002_ALREADY_LINKED';
+
+export interface IAcgihExamLinkCandidate {
+  examId: number;
+  examName: string;
+  confidence: string;
+  reason: string;
+}
+
+export interface IAcgihExamLinkItemResult {
+  indicatorId: string;
+  substanceName: string;
+  determinant: string;
+  matrix: string;
+  examId?: number;
+  examName?: string;
+  action: AcgihExamLinkAction;
+  reason?: AcgihExamLinkReason;
+  candidates?: IAcgihExamLinkCandidate[];
+}
+
+export interface IAcgihExamLinkTotals {
+  indicators: number;
+  eligible: number;
+  linksCreated: number;
+  alreadyLinked: number;
+  blocked: number;
+  failed: number;
+}
+
+export interface IAcgihExamLinkSyncParams {
+  confirmText: string;
+  dryRun?: boolean;
+}
+
+export interface IAcgihExamLinkSyncResponse {
+  dryRun: boolean;
+  totals: IAcgihExamLinkTotals;
+  items: IAcgihExamLinkItemResult[];
+}

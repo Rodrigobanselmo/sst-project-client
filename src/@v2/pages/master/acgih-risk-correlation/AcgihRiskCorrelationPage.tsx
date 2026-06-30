@@ -30,6 +30,7 @@ import { RoleEnum } from 'project/enum/roles.enums';
 
 import { AcgihRiskCorrelationApplyDialog } from './components/AcgihRiskCorrelationApplyDialog';
 import { AcgihRiskCorrelationConsolidateDialog } from './components/AcgihRiskCorrelationConsolidateDialog';
+import { AcgihExamLinkDialog } from './components/AcgihExamLinkDialog';
 import { AcgihRiskCorrelationDetailDialog } from './components/AcgihRiskCorrelationDetailDialog';
 import { AcgihRiskCorrelationTable } from './components/AcgihRiskCorrelationTable';
 import {
@@ -90,6 +91,7 @@ export const AcgihRiskCorrelationPage: FC = () => {
     useState<IAcgihRiskCorrelationItem | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
   const [consolidateOpen, setConsolidateOpen] = useState(false);
+  const [examLinkOpen, setExamLinkOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
     const items = data?.items ?? [];
@@ -215,6 +217,13 @@ export const AcgihRiskCorrelationPage: FC = () => {
               onClick={() => setApplyOpen(true)}
             >
               Consolidar vínculos com Fatores de Risco
+            </Button>
+            <Button
+              variant="outlined"
+              disabled={!canConsolidate}
+              onClick={() => setExamLinkOpen(true)}
+            >
+              Vincular exames ACGIH/BEI
             </Button>
           </Box>
         </Box>
@@ -428,6 +437,11 @@ export const AcgihRiskCorrelationPage: FC = () => {
         totalCount={summary?.total ?? 0}
         promotedCount={summary?.promotedCount ?? 0}
         notPromotedCount={summary?.notPromotedCount ?? 0}
+      />
+
+      <AcgihExamLinkDialog
+        open={examLinkOpen}
+        onClose={() => setExamLinkOpen(false)}
       />
     </SAuthShow>
   );

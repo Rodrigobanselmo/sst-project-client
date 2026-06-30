@@ -4,6 +4,8 @@ import { api } from 'core/services/apiClient';
 import type {
   IAcgihConsolidateParams,
   IAcgihConsolidateResponse,
+  IAcgihExamLinkSyncParams,
+  IAcgihExamLinkSyncResponse,
   IAcgihRiskCorrelationApplyParams,
   IAcgihRiskCorrelationApplyResponse,
   IAcgihRiskCorrelationParams,
@@ -63,6 +65,25 @@ export async function consolidateAcgihOfficialIndicators(
     AcgihRiskCorrelationRoutes.CONSOLIDATE,
     {
       confirmText: params.confirmText,
+    },
+  );
+  return response.data;
+}
+
+/**
+ * Vincula os exames corretos aos indicadores oficiais ACGIH/BEI (pré-requisito
+ * do sync da Biblioteca Risco × Exame). Exige confirmText literal. `dryRun=true`
+ * gera prévia sem escrita. O servidor faz o match e cria apenas
+ * BiologicalIndicatorToExam (idempotente). Nada de match é enviado pelo Client.
+ */
+export async function syncAcgihExamLinks(
+  params: IAcgihExamLinkSyncParams,
+): Promise<IAcgihExamLinkSyncResponse> {
+  const response = await api.post<IAcgihExamLinkSyncResponse>(
+    AcgihRiskCorrelationRoutes.EXAM_LINK_SYNC,
+    {
+      confirmText: params.confirmText,
+      dryRun: params.dryRun,
     },
   );
   return response.data;
