@@ -66,7 +66,12 @@ export const queryExams = async (
   return response.data;
 };
 
-export function useQueryExams(page = 1, query = {} as IQueryExam, take = 20) {
+export function useQueryExams(
+  page = 1,
+  query = {} as IQueryExam,
+  take = 20,
+  keepPreviousData = true,
+) {
   const { user } = useGetCompanyId();
   const pagination: IPagination = {
     skip: (page - 1) * (take || 20),
@@ -80,6 +85,7 @@ export function useQueryExams(page = 1, query = {} as IQueryExam, take = 20) {
     () => queryExams(pagination, { ...query, companyId }),
     {
       staleTime: 30_000,
+      keepPreviousData,
     },
   );
 

@@ -118,6 +118,8 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   // Também envia o riskFactorId (caminho consolidado ACGIH/BEI), que resolve
   // grupos/isômeros via BiologicalIndicatorToRisk → BiologicalIndicatorToExam
   // independentemente do casamento por CAS/nome.
+  const trimmedSearch = search.trim();
+  const catalogTake = showAllExams && trimmedSearch ? 30 : 15;
   const agentParams =
     risk && !showAllExams
       ? {
@@ -129,7 +131,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   const { data, agentFilter, isLoading } = useQueryExams(
     1,
     {
-      search,
+      search: trimmedSearch || undefined,
       status: StatusEnum.ACTIVE,
       ...query,
       ...(riskType
@@ -137,7 +139,8 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
         : {}),
       ...agentParams,
     },
-    15,
+    catalogTake,
+    !showAllExams,
   );
   const { data: unpublishedT27, isLoading: isLoadingT27 } =
     useQueryUnpublishedEsocialT27Exams(search);
@@ -255,15 +258,21 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
           <SSwitch
             checked={showAllExams}
             onChange={() => setShowAllExams((prev) => !prev)}
-            label="Mostrar todos os exames"
+            label="Buscar em todos os exames acessíveis"
             formControlProps={{ sx: { m: 0, width: '100%' } }}
             sx={{ ml: 0 }}
             color="text.light"
           />
+          {showAllExams && !trimmedSearch && (
+            <SText sx={{ fontSize: 12, color: 'text.light', mt: 1, mx: 1 }}>
+              Digite para buscar no catálogo completo acessível (globais, da
+              empresa e de prestadoras).
+            </SText>
+          )}
           {hasNoRecommendedExams && (
             <SText sx={{ fontSize: 12, color: 'text.light', mt: 1, mx: 1 }}>
-              Nenhum exame recomendado para este agente. Ative “Mostrar todos os
-              exames” para buscar no catálogo completo.
+              Nenhum exame recomendado para este agente. Ative “Buscar em todos
+              os exames acessíveis” para pesquisar no catálogo completo.
             </SText>
           )}
         </Box>
