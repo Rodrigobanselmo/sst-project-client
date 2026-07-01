@@ -258,7 +258,7 @@ export const ModalExamStep = ({
             riskType={riskType}
             sx={{ mt: 2 }}
           />
-          {isMasterAdmin && examData.riskId && !examData.isAll && !examData.id && (
+          {isMasterAdmin && examData.riskId && examData.examId && !examData.isAll && (
             <Box mt={3}>
               <SCheckBox
                 label="Criar também regra padrão na Biblioteca Risco × Exame"

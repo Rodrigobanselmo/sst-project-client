@@ -112,6 +112,9 @@ export const useEditExams = () => {
         const newData = {
           ...oldData,
           ...initialData,
+          publishAsSystemRule: initialData.id
+            ? false
+            : initialData.publishAsSystemRule ?? true,
         };
 
         initialDataRef.current = newData;
@@ -247,6 +250,22 @@ export const useEditExams = () => {
         examData.callback(exam);
       } else {
         const exam = await updateMutation.mutateAsync(submitData);
+        if ((exam as any)?.systemRule) {
+          const systemRule = (exam as any).systemRule;
+          if (systemRule.action === 'created') {
+            enqueueSnackbar('Regra padrão publicada na Biblioteca Risco × Exame.', {
+              variant: 'info',
+            });
+          } else if (systemRule.action === 'alreadyExists') {
+            enqueueSnackbar(
+              systemRule.reason ||
+                'Regra padrão já existente na Biblioteca para este agente e exame.',
+              { variant: 'info' },
+            );
+          } else if (systemRule.reason) {
+            enqueueSnackbar(systemRule.reason, { variant: 'warning' });
+          }
+        }
         examData.callback(exam);
       }
 
