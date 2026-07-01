@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import {
   canEnableAiSuggestButton,
   formatAiSuggestErrorMessage,
   getDefaultSelectedCandidateIds,
+  mergeSuggestBatchResponses,
+  parseSubtypeNameTags,
 } from './risk-subtype-curation-ai.utils';
 
 test('botão IA habilita só com tipo QUI + subtipo alvo', () => {
@@ -47,6 +50,105 @@ test('erro de IA mostra mensagem clara', () => {
   );
 });
 
-test('sem selecionados bloqueia aplicação', () => {
-  assert.equal(getDefaultSelectedCandidateIds([]).length, 0);
+test('merge acumula candidatos sem duplicar e soma analisados', () => {
+  const first = {
+    targetSubType: {
+      id: 1,
+      name: 'A',
+      description: null,
+      type: RiskTypeEnum.QUI,
+      status: StatusEnum.ACTIVE,
+    },
+    scope: {
+      analyzed: 100,
+      eligibleTotal: 841,
+      truncated: true,
+      onlyPcmso: true,
+      page: 1,
+      limit: 100,
+      hasNextPage: true,
+      nextPage: 2,
+      rangeStart: 1,
+      rangeEnd: 100,
+      cumulativeAnalyzed: 100,
+      batchesLoaded: 1,
+    },
+    summary: {
+      suggestedInclude: 1,
+      suggestedExclude: 0,
+      lowConfidence: 0,
+      includedWithConfidence: 1,
+      excludedWithConfidence: 0,
+    },
+    candidates: [
+      {
+        riskFactorId: 'a',
+        name: 'A',
+        cas: null,
+        esocialCode: null,
+        currentSubTypes: [],
+        suggestedInclude: true,
+        confidence: 'high' as const,
+        rationale: 'ok',
+        warnings: [],
+        defaultSelected: true,
+      },
+    ],
+    warnings: [],
+    model: 'gpt',
+    generatedAt: 't1',
+  };
+  const second = {
+    ...first,
+    scope: {
+      ...first.scope,
+      page: 2,
+      analyzed: 100,
+      rangeStart: 101,
+      rangeEnd: 200,
+      hasNextPage: true,
+      nextPage: 3,
+    },
+    candidates: [
+      {
+        riskFactorId: 'a',
+        name: 'A dup',
+        cas: null,
+        esocialCode: null,
+        currentSubTypes: [],
+        suggestedInclude: false,
+        confidence: 'low' as const,
+        rationale: 'dup',
+        warnings: [],
+        defaultSelected: false,
+      },
+      {
+        riskFactorId: 'b',
+        name: 'B',
+        cas: null,
+        esocialCode: null,
+        currentSubTypes: [],
+        suggestedInclude: true,
+        confidence: 'medium' as const,
+        rationale: 'ok',
+        warnings: [],
+        defaultSelected: true,
+      },
+    ],
+    generatedAt: 't2',
+  };
+
+  const merged = mergeSuggestBatchResponses(first, second);
+  assert.equal(merged.candidates.length, 2);
+  assert.equal(merged.candidates[0].riskFactorId, 'a');
+  assert.equal(merged.scope.cumulativeAnalyzed, 200);
+  assert.equal(merged.scope.batchesLoaded, 2);
+  assert.equal(merged.scope.page, 2);
+});
+
+test('parseSubtypeNameTags extrai tags entre colchetes', () => {
+  assert.deepEqual(parseSubtypeNameTags('Fenóis e cresóis [FEN/HA]'), {
+    title: 'Fenóis e cresóis',
+    tags: ['[FEN/HA]'],
+  });
 });

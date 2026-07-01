@@ -46,7 +46,60 @@ export type ISuggestRiskSubtypeCandidatesParams = {
   subTypeId: number;
   onlyPcmso?: boolean;
   search?: string;
+  page?: number;
+  limit?: number;
+  /** @deprecated Use `limit` */
   maxCandidates?: number;
+  customPrompt?: string;
+  model?: string;
+};
+
+export type IRiskSubTypeAiInstruction = {
+  subTypeId: number;
+  useSystemDefault: boolean;
+  instructions: string | null;
+  positiveExamples: string | null;
+  negativeExamples: string | null;
+  cautionRules: string | null;
+  preferredModel: string | null;
+  revision: number;
+  updatedById: number | null;
+  updatedAt: string | null;
+};
+
+export type IUpsertRiskSubTypeAiInstructionParams = {
+  subTypeId: number;
+  useSystemDefault: boolean;
+  instructions?: string | null;
+  positiveExamples?: string | null;
+  negativeExamples?: string | null;
+  cautionRules?: string | null;
+  preferredModel?: string | null;
+};
+
+export type IPreviewRiskSubtypeCurationAiPromptParams = {
+  subTypeId: number;
+  useSystemDefault?: boolean;
+  instructions?: string | null;
+  positiveExamples?: string | null;
+  negativeExamples?: string | null;
+  cautionRules?: string | null;
+  preferredModel?: string | null;
+  customPrompt?: string;
+  model?: string;
+};
+
+export type IRiskSubtypeCurationAiPromptPreview = {
+  assembledPrompt: string;
+  sections: { name: string; source: string; content: string }[];
+  selectedModel: string;
+  sources: {
+    globalPrompt: string;
+    instruction: string;
+    sessionCustom: boolean;
+  };
+  useSystemDefault: boolean;
+  revision?: number;
 };
 
 export type IRiskSubtypeCurationSuggestCandidate = {
@@ -91,7 +144,17 @@ export type ISuggestRiskSubtypeCandidatesResponse = {
     truncated: boolean;
     onlyPcmso: boolean;
     search?: string | null;
+    page: number;
+    limit: number;
+    hasNextPage: boolean;
+    nextPage: number | null;
+    rangeStart: number;
+    rangeEnd: number;
+    /** @deprecated Use `limit` */
     maxCandidates?: number;
+    /** Preenchido no client ao acumular lotes */
+    cumulativeAnalyzed?: number;
+    batchesLoaded?: number;
   };
   summary: {
     suggestedInclude: number;

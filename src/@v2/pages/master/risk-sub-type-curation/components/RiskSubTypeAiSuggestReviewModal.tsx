@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Alert,
@@ -28,10 +28,15 @@ import {
   isLowConfidenceCandidate,
   matchesCandidateModalFilters,
 } from '../utils/risk-subtype-curation-ai-display.utils';
+import {
+  formatSuggestBatchLabel,
+  getDefaultSelectedCandidateIds,
+} from '../utils/risk-subtype-curation-ai.utils';
 
 type Props = {
   open: boolean;
   loading?: boolean;
+  loadingNextBatch?: boolean;
   error?: string | null;
   data: ISuggestRiskSubtypeCandidatesResponse | null;
   subTypeName?: string;
@@ -39,11 +44,13 @@ type Props = {
   onApplySelected: (riskFactorIds: string[]) => void;
   applying?: boolean;
   onRefineSearch?: () => void;
+  onLoadNextBatch?: () => void;
 };
 
 export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
   open,
   loading,
+  loadingNextBatch,
   error,
   data,
   subTypeName,
@@ -51,30 +58,55 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
   onApplySelected,
   applying,
   onRefineSearch,
+  onLoadNextBatch,
 }) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showSuggestedInclude, setShowSuggestedInclude] = useState(true);
   const [showExcluded, setShowExcluded] = useState(true);
   const [showLowConfidence, setShowLowConfidence] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
+  const initializedSessionRef = useRef<string | null>(null);
+  const knownCandidateIdsRef = useRef<Set<string>>(new Set());
 
-  const initializedFor = data?.generatedAt ?? null;
+  const sessionKey = data
+    ? `${data.targetSubType.id}:${data.scope.search ?? ''}:${data.scope.onlyPcmso}`
+    : null;
 
   useEffect(() => {
     if (!data) {
       setSelectedIds([]);
+      initializedSessionRef.current = null;
+      knownCandidateIdsRef.current = new Set();
       return;
     }
-    setSelectedIds(
-      data.candidates
-        .filter((candidate) => candidate.defaultSelected)
-        .map((candidate) => candidate.riskFactorId),
+
+    const isNewSession = initializedSessionRef.current !== sessionKey;
+    if (isNewSession) {
+      setSelectedIds(getDefaultSelectedCandidateIds(data.candidates));
+      setShowSuggestedInclude(true);
+      setShowExcluded(true);
+      setShowLowConfidence(false);
+      setFilterSearch('');
+      initializedSessionRef.current = sessionKey;
+      knownCandidateIdsRef.current = new Set(
+        data.candidates.map((candidate) => candidate.riskFactorId),
+      );
+      return;
+    }
+
+    const freshCandidates = data.candidates.filter(
+      (candidate) => !knownCandidateIdsRef.current.has(candidate.riskFactorId),
     );
-    setShowSuggestedInclude(true);
-    setShowExcluded(true);
-    setShowLowConfidence(false);
-    setFilterSearch('');
-  }, [initializedFor, data]);
+    if (freshCandidates.length) {
+      const freshDefaults = getDefaultSelectedCandidateIds(freshCandidates);
+      if (freshDefaults.length) {
+        setSelectedIds((current) => [...new Set([...current, ...freshDefaults])]);
+      }
+      for (const candidate of freshCandidates) {
+        knownCandidateIdsRef.current.add(candidate.riskFactorId);
+      }
+    }
+  }, [data, sessionKey]);
 
   const hiddenLowCount = useMemo(() => {
     if (!data || showLowConfidence) return 0;
@@ -123,10 +155,14 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
     filteredCandidates.length > 0 &&
     filteredCandidates.every((c) => selectedIds.includes(c.riskFactorId));
 
+  const cumulativeAnalyzed =
+    data?.scope.cumulativeAnalyzed ?? data?.scope.analyzed ?? 0;
+  const batchesLoaded = data?.scope.batchesLoaded ?? 1;
+
   const scopeDescription = useMemo(() => {
     if (!data) return '';
     const parts = [
-      `A IA analisou até ${data.scope.maxCandidates ?? data.scope.analyzed} dos ${data.scope.eligibleTotal} riscos químicos elegíveis (sem subtipo, catálogo global)`,
+      `A IA analisa lotes de até ${data.scope.limit} dos ${data.scope.eligibleTotal} riscos químicos elegíveis (sem subtipo, catálogo global)`,
       data.scope.onlyPcmso ? 'somente PCMSO' : 'incluindo não-PCMSO',
     ];
     if (data.scope.search) {
@@ -165,12 +201,32 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
 
         {data && !loading && (
           <>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               {scopeDescription}
             </Typography>
 
+            <Typography variant="subtitle2" sx={{ mb: 2 }}>
+              {formatSuggestBatchLabel(data.scope)}
+              {batchesLoaded > 1
+                ? ` · ${batchesLoaded} lotes carregados`
+                : ''}
+            </Typography>
+
             <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-              <Chip label={`Analisados: ${data.scope.analyzed}`} size="small" />
+              <Chip
+                label={`Analisados (lote): ${data.scope.analyzed}`}
+                size="small"
+              />
+              <Chip
+                label={`Total analisado: ${cumulativeAnalyzed}`}
+                size="small"
+                variant="outlined"
+              />
+              <Chip
+                label={`Acumulados na revisão: ${data.candidates.length}`}
+                size="small"
+                variant="outlined"
+              />
               <Chip
                 label={`Sugeridos p/ incluir: ${data.summary.includedWithConfidence ?? data.summary.suggestedInclude}`}
                 size="small"
@@ -184,9 +240,9 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
                 label={`Baixa confiança: ${data.summary.lowConfidence}`}
                 size="small"
               />
-              {data.scope.truncated && (
+              {data.scope.hasNextPage && (
                 <Chip
-                  label={`Truncado (${data.scope.eligibleTotal} elegíveis)`}
+                  label={`Há mais lotes (${data.scope.eligibleTotal} elegíveis)`}
                   size="small"
                   color="warning"
                 />
@@ -220,8 +276,8 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
             )}
 
             <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-              Exibindo {filteredCandidates.length} de {data.scope.analyzed} analisados
-              nesta execução.
+              Exibindo {filteredCandidates.length} de {data.candidates.length}{' '}
+              acumulados ({cumulativeAnalyzed} analisados no total).
             </Typography>
 
             <Box display="flex" flexWrap="wrap" gap={2} mb={2} alignItems="center">
@@ -264,7 +320,26 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
                   Refinar busca na lista e analisar outro recorte
                 </Button>
               )}
+              {data.scope.hasNextPage && onLoadNextBatch && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={loadingNextBatch}
+                  onClick={onLoadNextBatch}
+                >
+                  {loadingNextBatch ? 'Analisando próximo lote…' : 'Analisar próximo lote'}
+                </Button>
+              )}
             </Box>
+
+            {loadingNextBatch && (
+              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                <CircularProgress size={20} />
+                <Typography variant="body2" color="text.secondary">
+                  Carregando lote {data.scope.nextPage ?? data.scope.page + 1}…
+                </Typography>
+              </Box>
+            )}
 
             <Box sx={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -372,6 +447,12 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
                     <tr>
                       <td colSpan={6} style={{ padding: 12 }}>
                         Nenhum candidato para os filtros atuais.
+                        {data.scope.hasNextPage && onLoadNextBatch && (
+                          <>
+                            {' '}
+                            Você pode analisar o próximo lote para continuar a busca.
+                          </>
+                        )}
                       </td>
                     </tr>
                   )}
@@ -385,7 +466,7 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
         <Button onClick={onClose}>Fechar</Button>
         <Button
           variant="contained"
-          disabled={!selectedIds.length || applying || loading}
+          disabled={!selectedIds.length || applying || loading || loadingNextBatch}
           onClick={() => onApplySelected(selectedIds)}
         >
           Aplicar selecionados ({selectedIds.length})

@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,6 +17,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
+import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
+import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
 import { persistKeys } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
@@ -40,11 +42,14 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { RiskSubTypeFormModal } from './components/RiskSubTypeFormModal';
 import { RiskSubTypeAiSuggestReviewModal } from './components/RiskSubTypeAiSuggestReviewModal';
+import { RiskSubtypeCurationAiConfigDialog } from './components/RiskSubtypeCurationAiConfigDialog';
+import { RiskSubTypeCompactListItem } from './components/RiskSubTypeCompactListItem';
 import { useMutateSuggestRiskSubtypeCandidates } from '@v2/services/security/risk/sub-type/risk-subtype-curation/hooks/useMutateSuggestRiskSubtypeCandidates';
 import type { ISuggestRiskSubtypeCandidatesResponse } from '@v2/services/security/risk/sub-type/risk-subtype-curation/risk-subtype-curation.types';
 import {
   canEnableAiSuggestButton,
   formatAiSuggestErrorMessage,
+  mergeSuggestBatchResponses,
 } from './utils/risk-subtype-curation-ai.utils';
 
 const ALL = 'ALL';
@@ -75,6 +80,9 @@ export const RiskSubTypeCurationPage: FC = () => {
     useState<ISuggestRiskSubtypeCandidatesResponse | null>(null);
   const [aiSuggestError, setAiSuggestError] = useState<string | null>(null);
   const [pendingAiApplyIds, setPendingAiApplyIds] = useState<string[]>([]);
+  const [expandedSubtypeId, setExpandedSubtypeId] = useState<number | null>(null);
+  const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
 
   const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
     useTablePageLimit(undefined, persistKeys.LIMIT_RISK_SUB_TYPE_CURATION);
@@ -122,6 +130,13 @@ export const RiskSubTypeCurationPage: FC = () => {
 
   const subTypes = subTypesData?.results ?? [];
   const risks = risksData?.results ?? [];
+
+  const selectedSubtype = useMemo(
+    () => subTypes.find((item) => item.id === selectedSubtypeId),
+    [selectedSubtypeId, subTypes],
+  );
+
+  const masterAiOverrides = buildMasterAiRequestOverrides(canAccess, aiMasterConfig);
 
   const allSelected =
     risks.length > 0 && risks.every((r) => selectedRiskIds.includes(r.riskFactorId));
@@ -220,14 +235,55 @@ export const RiskSubTypeCurationPage: FC = () => {
         subTypeId: Number(selectedSubtypeId),
         onlyPcmso,
         search: riskSearch.trim() || undefined,
+        page: 1,
+        limit: 100,
+        ...masterAiOverrides,
       },
       {
         onSuccess: (data) => {
-          setAiSuggestData(data);
+          setAiSuggestData({
+            ...data,
+            scope: {
+              ...data.scope,
+              cumulativeAnalyzed: data.scope.analyzed,
+              batchesLoaded: 1,
+            },
+          });
           setAiSuggestError(null);
         },
         onError: (error) => {
           setAiSuggestData(null);
+          setAiSuggestError(formatAiSuggestErrorMessage(error));
+        },
+      },
+    );
+  };
+
+  const handleLoadNextAiBatch = () => {
+    if (!canSuggestWithAi || selectedSubtypeId === '' || !aiSuggestData?.scope.hasNextPage) {
+      return;
+    }
+    const nextPage = aiSuggestData.scope.nextPage;
+    if (!nextPage) return;
+
+    suggestCandidates.mutate(
+      {
+        type: RiskTypeEnum.QUI,
+        subTypeId: Number(selectedSubtypeId),
+        onlyPcmso,
+        search: riskSearch.trim() || undefined,
+        page: nextPage,
+        limit: aiSuggestData.scope.limit,
+        ...masterAiOverrides,
+      },
+      {
+        onSuccess: (data) => {
+          setAiSuggestData((current) =>
+            current ? mergeSuggestBatchResponses(current, data) : data,
+          );
+          setAiSuggestError(null);
+        },
+        onError: (error) => {
           setAiSuggestError(formatAiSuggestErrorMessage(error));
         },
       },
@@ -280,14 +336,19 @@ export const RiskSubTypeCurationPage: FC = () => {
           A IA sugere riscos compatíveis com o subtipo selecionado. A aplicação
           depende de revisão e confirmação manual do MASTER.
           <Box mt={1}>
-            <Button
-              size="small"
-              variant="outlined"
-              disabled={!canSuggestWithAi || suggestCandidates.isPending}
-              onClick={handleSuggestWithAi}
-            >
-              Sugerir candidatos com IA
-            </Button>
+            <AiActionButtonGroup
+              variant="mui-outlined"
+              label={
+                suggestCandidates.isPending
+                  ? 'Analisando com IA…'
+                  : 'Sugerir candidatos com IA'
+              }
+              loading={suggestCandidates.isPending}
+              disabled={!canSuggestWithAi}
+              onExecute={handleSuggestWithAi}
+              onConfigure={() => setAiConfigDialogOpen(true)}
+              isMaster={canAccess}
+            />
             {!canSuggestWithAi && (
               <Typography variant="caption" display="block" mt={0.5}>
                 Disponível apenas para riscos químicos (QUI) com subtipo alvo
@@ -349,7 +410,12 @@ export const RiskSubTypeCurationPage: FC = () => {
             onChange={(e) => setSubtypeSearch(e.target.value)}
             sx={{ mb: 2, minWidth: 280 }}
           />
-          <Box display="flex" flexDirection="column" gap={1}>
+          <Box
+            display="flex"
+            flexDirection="column"
+            gap={0.75}
+            sx={{ maxHeight: { xs: 220, md: 280 }, overflowY: 'auto', pr: 0.5 }}
+          >
             {loadingSubTypes && (
               <Typography variant="body2">Carregando...</Typography>
             )}
@@ -359,53 +425,20 @@ export const RiskSubTypeCurationPage: FC = () => {
               </Typography>
             )}
             {subTypes.map((subtype) => (
-              <Box
+              <RiskSubTypeCompactListItem
                 key={subtype.id}
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-                gap={1}
-                p={1}
-                border="1px solid"
-                borderColor="divider"
-                borderRadius={1}
-              >
-                <Box>
-                  <Typography variant="body2" fontWeight={600}>
-                    {subtype.name}
-                    {subtype.system && (
-                      <Chip
-                        size="small"
-                        label="Sistema"
-                        sx={{ ml: 1 }}
-                        variant="outlined"
-                      />
-                    )}
-                    {subtype.status === StatusEnum.INACTIVE && (
-                      <Chip
-                        size="small"
-                        label="Inativo"
-                        color="warning"
-                        sx={{ ml: 1 }}
-                      />
-                    )}
-                  </Typography>
-                  {subtype.description && (
-                    <Typography variant="caption" color="text.secondary">
-                      {subtype.description}
-                    </Typography>
-                  )}
-                </Box>
-                <Button
-                  size="small"
-                  onClick={() => {
-                    setEditingSubtype(subtype);
-                    setFormOpen(true);
-                  }}
-                >
-                  Editar
-                </Button>
-              </Box>
+                subtype={subtype}
+                expanded={expandedSubtypeId === subtype.id}
+                onToggleExpand={() =>
+                  setExpandedSubtypeId((current) =>
+                    current === subtype.id ? null : subtype.id,
+                  )
+                }
+                onEdit={() => {
+                  setEditingSubtype(subtype);
+                  setFormOpen(true);
+                }}
+              />
             ))}
           </Box>
         </Paper>
@@ -678,7 +711,8 @@ export const RiskSubTypeCurationPage: FC = () => {
 
         <RiskSubTypeAiSuggestReviewModal
           open={aiModalOpen}
-          loading={suggestCandidates.isPending}
+          loading={suggestCandidates.isPending && !aiSuggestData}
+          loadingNextBatch={suggestCandidates.isPending && !!aiSuggestData}
           error={aiSuggestError}
           data={aiSuggestData}
           subTypeName={selectedSubtypeName}
@@ -689,12 +723,23 @@ export const RiskSubTypeCurationPage: FC = () => {
             setAiSuggestError(null);
           }}
           onApplySelected={handleAiApplySelected}
+          onLoadNextBatch={handleLoadNextAiBatch}
           onRefineSearch={() => {
             setAiModalOpen(false);
             setAiSuggestData(null);
             setAiSuggestError(null);
           }}
         />
+
+        {canAccess && selectedSubtypeId !== '' && selectedSubtype && (
+          <RiskSubtypeCurationAiConfigDialog
+            open={aiConfigDialogOpen}
+            onClose={() => setAiConfigDialogOpen(false)}
+            onApply={setAiMasterConfig}
+            subTypeId={Number(selectedSubtypeId)}
+            subTypeName={selectedSubtype.name}
+          />
+        )}
 
         <Dialog open={confirmClearOpen} onClose={() => setConfirmClearOpen(false)}>
           <DialogTitle>Confirmar remoção em massa</DialogTitle>
