@@ -168,11 +168,14 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       data.find((exam) => exam.id === options.id) ?? options;
 
     if (isEsocialT27UnpublishedOption(selectedExam)) {
+      const t27Name =
+        selectedExam.esocial27ProcedureName ||
+        selectedExam.name.replace(/^[\d.]+\s*—\s*/, '');
+
       onStackOpenModal<Partial<typeof initialExamState>>(ModalEnum.EXAMS_ADD, {
-        name:
-          selectedExam.esocial27ProcedureName ||
-          selectedExam.name.replace(/^[\d.]+\s*—\s*/, ''),
+        name: t27Name,
         esocial27Code: selectedExam.esocial27Code,
+        analyses: t27Name,
         callback: (exam) => {
           if (!exam) return;
           if (onlyExam) {

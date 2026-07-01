@@ -57,6 +57,10 @@ export const ModalExamStep = ({
             }}
             onGetValue={(option) => {
               setValue('esocial27Code', option?.code);
+              if (!examData.analyses?.trim() && option?.name) {
+                setValue('analyses', option.name);
+                setExamData((prev) => ({ ...prev, analyses: option.name }));
+              }
               return option.name;
             }}
             setValue={(v: any) =>
@@ -87,7 +91,7 @@ export const ModalExamStep = ({
           <InputForm
             setValue={setValue}
             defaultValue={examData.analyses}
-            label="Análise"
+            label="Determinante/análise"
             labelPosition="center"
             control={control}
             placeholder={'ex: quantitativo, imagem...'}
@@ -98,7 +102,7 @@ export const ModalExamStep = ({
         <Box flex={8}>
           <InputForm
             defaultValue={examData.material}
-            label="Material"
+            label="Matriz/material"
             setValue={setValue}
             labelPosition="center"
             control={control}
@@ -159,6 +163,10 @@ export const ModalExamStep = ({
       /> */}
       <SText fontSize="14px" mb={2} mt={5} color="text.label">
         Instruções
+      </SText>
+      <SText fontSize="12px" mb={4} color="text.secondary">
+        Use para momento de coleta, preparo, observações técnicas e orientações
+        ao trabalhador/clínica.
       </SText>
       {[...(examData?.instruction?.split('(//)') || [])].map(
         (instruction, index) => {
