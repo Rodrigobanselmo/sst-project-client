@@ -228,6 +228,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_EXAM_RISK_RULES,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.riskSubTypeCuration]: {
+      text: 'Subtipos de risco',
+      description:
+        'Curadoria de subtipos do catálogo global e aplicação em massa (MASTER)',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_RISK_SUB_TYPE_CURATION,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.esocialProcedures]: {
       text: 'eSocial T-27 — Procedimentos curados',
       description:
@@ -538,10 +546,22 @@ export const useDrawerItems = () => {
             ? [
                 {
                   ...items[DrawerItemsEnum.systemStandardsGroup],
-                  items: [items[DrawerItemsEnum.examRiskRules]],
+                  items: [
+                    items[DrawerItemsEnum.examRiskRules],
+                    ...(featureFlags.riskSubTypeCuration
+                      ? [items[DrawerItemsEnum.riskSubTypeCuration]]
+                      : []),
+                  ],
                 },
               ]
-            : []),
+            : featureFlags.riskSubTypeCuration
+              ? [
+                  {
+                    ...items[DrawerItemsEnum.systemStandardsGroup],
+                    items: [items[DrawerItemsEnum.riskSubTypeCuration]],
+                  },
+                ]
+              : []),
           // Bases de curadoria → fontes técnicas/oficiais (matéria-prima).
           {
             ...items[DrawerItemsEnum.curationBasesGroup],

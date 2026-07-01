@@ -10,6 +10,7 @@ import { useAppSelector } from './useAppSelector';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
+import { isMaster as isMasterUser } from 'core/utils/auth/validateUserPermissions';
 
 export interface IAccessFilterBase {
   text: string;
@@ -45,7 +46,14 @@ export const useAccess = () => {
   const roles = useAppSelector(selectUserRoles);
   const permissions = useAppSelector(selectUserPermissions);
 
-  const isMaster = useMemo(() => roles?.includes(RoleEnum.MASTER), [roles]);
+  const isMaster = useMemo(
+    () =>
+      isMasterUser({
+        roles: roles ?? [],
+        permissions: permissions ?? [],
+      }),
+    [roles, permissions],
+  );
   const permissionsValue = useMemo(
     () => permissions?.map((p) => p.split('-')[0]),
     [permissions],

@@ -24,6 +24,7 @@ export enum persistKeys {
   COLUMNS_ESOCIAL_TABLE_27 = 'COLUMNS_ESOCIAL_TABLE_27',
   LIMIT_ESOCIAL_TABLE_27 = 'LIMIT_ESOCIAL_TABLE_27',
   LIMIT_EXAM_RISK_RULES = 'LIMIT_EXAM_RISK_RULES',
+  LIMIT_RISK_SUB_TYPE_CURATION = 'LIMIT_RISK_SUB_TYPE_CURATION',
   LIMIT_ESOCIAL_PROCEDURES = 'LIMIT_ESOCIAL_PROCEDURES',
   LIMIT_ACGIH_BEI_INDICATORS = 'LIMIT_ACGIH_BEI_INDICATORS',
   LIMIT_ACGIH_BEI_COMPARISON = 'LIMIT_ACGIH_BEI_COMPARISON',
@@ -51,15 +52,20 @@ export function usePersistedState<T>(
   initialState: T,
 ): Response<T> {
   const [state, setState] = useState(() => {
-    const storageValue = localStorage.getItem(key);
+    if (typeof window === 'undefined') return initialState;
 
-    if (storageValue) {
-      return JSON.parse(storageValue);
+    try {
+      const storageValue = localStorage.getItem(key);
+      if (storageValue) return JSON.parse(storageValue) as T;
+    } catch {
+      // storage corrompido — ignora e usa o default
     }
+
     return initialState;
   });
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     localStorage.setItem(key, JSON.stringify(state));
   }, [key, state]);
 

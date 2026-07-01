@@ -20,6 +20,7 @@ export enum DrawerItemsEnum {
   acgihBeiPromotionPreview = 'acgihBeiPromotionPreview',
   acgihBeiRiskCorrelation = 'acgihBeiRiskCorrelation',
   examRiskRules = 'examRiskRules',
+  riskSubTypeCuration = 'riskSubTypeCuration',
   allCompaniesData = 'allCompaniesData',
   allClinicsData = 'allClinicsData',
   oneClinicsData = 'oneClinicsData',

@@ -49,4 +49,9 @@ export const featureFlags = {
   acgihBeiRiskCorrelation: isFlagEnabledByDefault(
     process.env.NEXT_PUBLIC_FEATURE_ACGIH_BEI_RISK_CORRELATION,
   ),
+  // Curadoria MASTER de subtipos de fatores de risco e aplicação em massa no
+  // catálogo global. Ativa por padrão; kill-switch visual via env=false.
+  riskSubTypeCuration: isFlagEnabledByDefault(
+    process.env.NEXT_PUBLIC_FEATURE_RISK_SUB_TYPE_CURATION,
+  ),
 } as const;
