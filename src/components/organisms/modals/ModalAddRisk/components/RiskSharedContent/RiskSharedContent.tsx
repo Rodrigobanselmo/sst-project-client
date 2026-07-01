@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
@@ -26,6 +26,9 @@ import {
   isAiSuggestionSupportedRiskType,
 } from '@v2/constants/risk-factor-severity-options.constant';
 import type { RiskFactorAiSuggestionFormSource } from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/build-risk-factor-ai-suggestion-payload.util';
+import { useAccess } from 'core/hooks/useAccess';
+import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
+import { ModalCreateRiskSubType } from '../ModalCreateRiskSubType/ModalCreateRiskSubType';
 
 export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
   ...props
@@ -42,16 +45,23 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
       ? { width: '100%' }
       : { width: ['100%', 600] };
   const { companyId } = useGetCompanyId();
+  const { isMaster } = useAccess();
+  const [createSubTypeOpen, setCreateSubTypeOpen] = useState(false);
 
-  const { subTypes } = useFetchBrowseRiskSubType({
+  const { subTypes, refetch: refetchSubTypes } = useFetchBrowseRiskSubType({
     companyId: companyId || riskData.companyId,
     filters: {
-      types: [type],
+      types: type ? [type as RiskTypeEnum] : undefined,
     },
     pagination: {
       page: 1,
+      limit: 200,
     },
   });
+
+  const showSubTypeSection =
+    Boolean(type) &&
+    (Boolean(subTypes?.results.length) || isMaster);
 
   const severityOptions = useMemo(
     () =>
@@ -101,23 +111,47 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           mt={3}
           columns={5}
         />
-        {!!subTypes?.results.length && (
-          <RadioFormText
-            setValue={setValue}
-            type="radio"
-            label="Subtipo"
-            defaultValue={riskData.subType}
-            control={control}
-            optionsFieldName={{
-              contentField: 'name',
-              valueField: 'id',
-            }}
-            options={[{ id: null, name: '-' }, ...subTypes.results]}
-            name="subType"
-            mt={6}
-            columns={5}
-          />
+        {showSubTypeSection && (
+          <Box mt={6}>
+            <RadioFormText
+              setValue={setValue}
+              type="radio"
+              label="Subtipo"
+              defaultValue={riskData.subType}
+              control={control}
+              optionsFieldName={{
+                contentField: 'name',
+                valueField: 'id',
+              }}
+              options={[{ id: null, name: '-' }, ...(subTypes?.results ?? [])]}
+              name="subType"
+              columns={5}
+            />
+            {isMaster && (
+              <Button
+                size="small"
+                variant="outlined"
+                sx={{ mt: 2 }}
+                onClick={() => setCreateSubTypeOpen(true)}
+              >
+                Criar subtipo
+              </Button>
+            )}
+          </Box>
         )}
+        <ModalCreateRiskSubType
+          open={createSubTypeOpen}
+          onClose={() => setCreateSubTypeOpen(false)}
+          riskType={type as RiskTypeEnum}
+            onCreated={(created) => {
+            void refetchSubTypes();
+            setValue('subType', created.id);
+            setRiskData((current) => ({
+              ...current,
+              subType: String(created.id),
+            }));
+          }}
+        />
         <RadioFormText
           type="radio"
           setValue={setValue}
