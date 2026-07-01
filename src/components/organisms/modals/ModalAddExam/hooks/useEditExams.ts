@@ -6,6 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { useQueryExamTechnicalSuggestion } from '@v2/services/medicine/exam-technical-suggestion/hooks/useQueryExamTechnicalSuggestion';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
@@ -37,6 +38,13 @@ export const initialExamState = {
   esocial27Code: '',
   isAttendance: undefined as boolean | undefined,
   isAvaliation: undefined as boolean | undefined,
+  technicalContext: undefined as
+    | {
+        riskFactorId: string;
+        riskName?: string;
+      }
+    | undefined,
+  technicalSuggestionNotes: [] as string[],
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: IExam | null) => {},
 };
@@ -54,7 +62,7 @@ export const useEditExams = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { enqueueSnackbar } = useSnackbar();
   const { onCloseModal } = useModal();
-  const { user } = useGetCompanyId();
+  const { user, companyId } = useGetCompanyId();
 
   const { data: company } = useQueryCompany();
   const { data: userCompany } = useQueryCompany(user?.companyId);
@@ -79,6 +87,60 @@ export const useEditExams = () => {
   });
 
   const isManyCompanies = companies.length > 1;
+
+  const technicalSuggestionQuery = useQueryExamTechnicalSuggestion({
+    companyId: examData.companyId || companyId,
+    riskFactorId: examData.technicalContext?.riskFactorId,
+    examId: examData.id || undefined,
+    enabled: Boolean(examData.id && examData.technicalContext?.riskFactorId),
+  });
+
+  const appliedSuggestionRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const suggestion = technicalSuggestionQuery.data;
+    if (!suggestion || suggestion.source === 'NONE') return;
+
+    const signature = JSON.stringify({
+      examId: examData.id,
+      riskFactorId: examData.technicalContext?.riskFactorId,
+      source: suggestion.source,
+      shouldApply: suggestion.shouldApply,
+    });
+    if (appliedSuggestionRef.current === signature) return;
+    appliedSuggestionRef.current = signature;
+
+    setExamData((current) => {
+      const next = { ...current };
+
+      if (suggestion.shouldApply.material && suggestion.material) {
+        next.material = suggestion.material;
+      }
+      if (suggestion.shouldApply.analyses && suggestion.analyses) {
+        next.analyses = suggestion.analyses;
+      }
+      if (suggestion.shouldApply.instruction && suggestion.instruction) {
+        next.instruction = suggestion.instruction;
+      }
+      if (suggestion.notes.length) {
+        next.technicalSuggestionNotes = suggestion.notes;
+      }
+
+      return next;
+    });
+
+    if (suggestion.shouldApply.material && suggestion.material) {
+      setValue('material', suggestion.material);
+    }
+    if (suggestion.shouldApply.analyses && suggestion.analyses) {
+      setValue('analyses', suggestion.analyses);
+    }
+  }, [
+    technicalSuggestionQuery.data,
+    examData.id,
+    examData.technicalContext?.riskFactorId,
+    setValue,
+  ]);
 
   useEffect(() => {
     const initialData =
@@ -105,6 +167,7 @@ export const useEditExams = () => {
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
+    appliedSuggestionRef.current = null;
     setExamData(initialExamState);
     reset();
   };

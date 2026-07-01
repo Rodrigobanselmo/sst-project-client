@@ -222,6 +222,14 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       onStackOpenModal<Partial<typeof initialExamState>>(ModalEnum.EXAMS_ADD, {
         ...option,
         esocial27Code: option.esocial27Code ?? undefined,
+        ...(risk?.id
+          ? {
+              technicalContext: {
+                riskFactorId: risk.id,
+                riskName: risk.name,
+              },
+            }
+          : {}),
       });
   };
 

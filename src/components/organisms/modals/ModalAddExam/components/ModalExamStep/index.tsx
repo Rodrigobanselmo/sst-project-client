@@ -168,6 +168,15 @@ export const ModalExamStep = ({
         Use para momento de coleta, preparo, observações técnicas e orientações
         ao trabalhador/clínica.
       </SText>
+      {!!examData.technicalSuggestionNotes?.length && (
+        <Box sx={{ mb: 4 }}>
+          {examData.technicalSuggestionNotes.map((note) => (
+            <SText key={note} fontSize="12px" color="warning.main" mb={1}>
+              {note}
+            </SText>
+          ))}
+        </Box>
+      )}
       {[...(examData?.instruction?.split('(//)') || [])].map(
         (instruction, index) => {
           return (
