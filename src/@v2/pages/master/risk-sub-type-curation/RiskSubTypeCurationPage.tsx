@@ -39,6 +39,13 @@ import { RoleEnum } from 'project/enum/roles.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { RiskSubTypeFormModal } from './components/RiskSubTypeFormModal';
+import { RiskSubTypeAiSuggestReviewModal } from './components/RiskSubTypeAiSuggestReviewModal';
+import { useMutateSuggestRiskSubtypeCandidates } from '@v2/services/security/risk/sub-type/risk-subtype-curation/hooks/useMutateSuggestRiskSubtypeCandidates';
+import type { ISuggestRiskSubtypeCandidatesResponse } from '@v2/services/security/risk/sub-type/risk-subtype-curation/risk-subtype-curation.types';
+import {
+  canEnableAiSuggestButton,
+  formatAiSuggestErrorMessage,
+} from './utils/risk-subtype-curation-ai.utils';
 
 const ALL = 'ALL';
 
@@ -63,6 +70,11 @@ export const RiskSubTypeCurationPage: FC = () => {
   const [confirmAssignOpen, setConfirmAssignOpen] = useState(false);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [lastBulkResult, setLastBulkResult] = useState<string | null>(null);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiSuggestData, setAiSuggestData] =
+    useState<ISuggestRiskSubtypeCandidatesResponse | null>(null);
+  const [aiSuggestError, setAiSuggestError] = useState<string | null>(null);
+  const [pendingAiApplyIds, setPendingAiApplyIds] = useState<string[]>([]);
 
   const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
     useTablePageLimit(undefined, persistKeys.LIMIT_RISK_SUB_TYPE_CURATION);
@@ -104,6 +116,9 @@ export const RiskSubTypeCurationPage: FC = () => {
   const updateSubtype = useMutateUpdateRiskSubTypeMaster();
   const bulkAssign = useMutateBulkAssignRiskSubtype();
   const bulkClear = useMutateBulkClearRiskSubtype();
+  const suggestCandidates = useMutateSuggestRiskSubtypeCandidates();
+
+  const canSuggestWithAi = canEnableAiSuggestButton(riskType, selectedSubtypeId);
 
   const subTypes = subTypesData?.results ?? [];
   const risks = risksData?.results ?? [];
@@ -169,15 +184,22 @@ export const RiskSubTypeCurationPage: FC = () => {
   };
 
   const handleBulkAssign = () => {
-    if (!selectedSubtypeId || !selectedRiskIds.length) return;
+    const riskFactorIds = pendingAiApplyIds.length
+      ? pendingAiApplyIds
+      : selectedRiskIds;
+    if (!selectedSubtypeId || !riskFactorIds.length) return;
     bulkAssign.mutate(
       {
-        riskFactorIds: selectedRiskIds,
+        riskFactorIds,
         subTypeId: Number(selectedSubtypeId),
       },
       {
         onSuccess: (result) => {
           setConfirmAssignOpen(false);
+          setAiModalOpen(false);
+          setAiSuggestData(null);
+          setAiSuggestError(null);
+          setPendingAiApplyIds([]);
           setLastBulkResult(
             `Atualizados: ${result.updated}. Ignorados: ${result.skipped}.`,
           );
@@ -185,6 +207,37 @@ export const RiskSubTypeCurationPage: FC = () => {
         },
       },
     );
+  };
+
+  const handleSuggestWithAi = () => {
+    if (!canSuggestWithAi || selectedSubtypeId === '') return;
+    setAiModalOpen(true);
+    setAiSuggestData(null);
+    setAiSuggestError(null);
+    suggestCandidates.mutate(
+      {
+        type: RiskTypeEnum.QUI,
+        subTypeId: Number(selectedSubtypeId),
+        onlyPcmso,
+        search: riskSearch.trim() || undefined,
+      },
+      {
+        onSuccess: (data) => {
+          setAiSuggestData(data);
+          setAiSuggestError(null);
+        },
+        onError: (error) => {
+          setAiSuggestData(null);
+          setAiSuggestError(formatAiSuggestErrorMessage(error));
+        },
+      },
+    );
+  };
+
+  const handleAiApplySelected = (riskFactorIds: string[]) => {
+    if (!riskFactorIds.length) return;
+    setPendingAiApplyIds(riskFactorIds);
+    setConfirmAssignOpen(true);
   };
 
   const handleBulkClear = () => {
@@ -224,12 +277,23 @@ export const RiskSubTypeCurationPage: FC = () => {
         </Box>
 
         <Alert severity="info">
-          A IA poderá sugerir riscos compatíveis com o subtipo, mas a aplicação
-          dependerá de aprovação manual do MASTER.
+          A IA sugere riscos compatíveis com o subtipo selecionado. A aplicação
+          depende de revisão e confirmação manual do MASTER.
           <Box mt={1}>
-            <Button size="small" variant="outlined" disabled>
-              Sugerir candidatos com IA — próxima fase
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={!canSuggestWithAi || suggestCandidates.isPending}
+              onClick={handleSuggestWithAi}
+            >
+              Sugerir candidatos com IA
             </Button>
+            {!canSuggestWithAi && (
+              <Typography variant="caption" display="block" mt={0.5}>
+                Disponível apenas para riscos químicos (QUI) com subtipo alvo
+                selecionado em &quot;Aplicar subtipo&quot;.
+              </Typography>
+            )}
           </Box>
         </Alert>
 
@@ -581,13 +645,18 @@ export const RiskSubTypeCurationPage: FC = () => {
           loading={createSubtype.isPending || updateSubtype.isPending}
         />
 
-        <Dialog open={confirmAssignOpen} onClose={() => setConfirmAssignOpen(false)}>
+        <Dialog open={confirmAssignOpen} onClose={() => {
+          setConfirmAssignOpen(false);
+          setPendingAiApplyIds([]);
+        }}>
           <DialogTitle>Confirmar aplicação em massa</DialogTitle>
           <DialogContent>
             <DialogContentText>
               Aplicar o subtipo <strong>{selectedSubtypeName}</strong> a{' '}
-              <strong>{selectedRiskIds.length}</strong> fator(es) de risco
-              selecionado(s)?
+              <strong>
+                {pendingAiApplyIds.length || selectedRiskIds.length}
+              </strong>{' '}
+              fator(es) de risco selecionado(s)?
               <br />
               <br />
               Esta ação altera o catálogo global de fatores de risco. Não altera
@@ -595,12 +664,37 @@ export const RiskSubTypeCurationPage: FC = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmAssignOpen(false)}>Cancelar</Button>
+            <Button onClick={() => {
+              setConfirmAssignOpen(false);
+              setPendingAiApplyIds([]);
+            }}>
+              Cancelar
+            </Button>
             <Button variant="contained" onClick={handleBulkAssign}>
               Confirmar
             </Button>
           </DialogActions>
         </Dialog>
+
+        <RiskSubTypeAiSuggestReviewModal
+          open={aiModalOpen}
+          loading={suggestCandidates.isPending}
+          error={aiSuggestError}
+          data={aiSuggestData}
+          subTypeName={selectedSubtypeName}
+          applying={bulkAssign.isPending}
+          onClose={() => {
+            setAiModalOpen(false);
+            setAiSuggestData(null);
+            setAiSuggestError(null);
+          }}
+          onApplySelected={handleAiApplySelected}
+          onRefineSearch={() => {
+            setAiModalOpen(false);
+            setAiSuggestData(null);
+            setAiSuggestError(null);
+          }}
+        />
 
         <Dialog open={confirmClearOpen} onClose={() => setConfirmClearOpen(false)}>
           <DialogTitle>Confirmar remoção em massa</DialogTitle>

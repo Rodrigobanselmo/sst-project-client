@@ -5,6 +5,8 @@ import type {
   IBrowseCurationRisksParams,
   IBrowseCurationRisksResponse,
   IBulkRiskSubtypeResult,
+  ISuggestRiskSubtypeCandidatesParams,
+  ISuggestRiskSubtypeCandidatesResponse,
 } from './risk-subtype-curation.types';
 
 export async function browseCurationRisks(
@@ -33,6 +35,16 @@ export async function bulkClearRiskSubtype(params: {
 }): Promise<IBulkRiskSubtypeResult> {
   const response = await api.patch<IBulkRiskSubtypeResult>(
     RiskSubtypeCurationRoutes.BULK_CLEAR,
+    params,
+  );
+  return response.data;
+}
+
+export async function suggestRiskSubtypeCandidates(
+  params: ISuggestRiskSubtypeCandidatesParams,
+): Promise<ISuggestRiskSubtypeCandidatesResponse> {
+  const response = await api.post<ISuggestRiskSubtypeCandidatesResponse>(
+    RiskSubtypeCurationRoutes.SUGGEST_CANDIDATES,
     params,
   );
   return response.data;
