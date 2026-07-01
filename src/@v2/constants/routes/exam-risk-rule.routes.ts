@@ -13,4 +13,5 @@ export const ExamRiskRuleRoutes = {
   REFERENCES: '/v2/master/exam-risk-rules/:ruleId/references',
   REFERENCE_BY_ID:
     '/v2/master/exam-risk-rules/:ruleId/references/:referenceId',
+  COVERAGE_GAPS: '/v2/master/exam-risk-rules/coverage-gaps',
 } as const;

@@ -10,6 +10,8 @@ import {
   DialogTitle,
   MenuItem,
   Paper,
+  Tab,
+  Tabs,
   TextField,
   Typography,
 } from '@mui/material';
@@ -41,10 +43,14 @@ import { ExamRiskRuleAcgihSyncDialog } from './components/ExamRiskRuleAcgihSyncD
 import { ExamRiskRuleImportExportMenu } from './components/ExamRiskRuleImportExportMenu';
 import { ExamRiskRuleReferencesModal } from './components/ExamRiskRuleReferencesModal';
 import { ExamRiskRuleTable } from './components/ExamRiskRuleTable';
+import { ExamRiskRuleCoverageGapsPanel } from './components/ExamRiskRuleCoverageGapsPanel';
 
 const ALL = 'ALL';
 
+type LibraryTab = 'rules' | 'coverage';
+
 export const ExamRiskRuleListPage: FC = () => {
+  const [activeTab, setActiveTab] = useState<LibraryTab>('rules');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [scope, setScope] = useState<ExamRiskRuleScopeEnum | typeof ALL>(ALL);
@@ -127,26 +133,42 @@ export const ExamRiskRuleListPage: FC = () => {
             </Typography>
           </Box>
           <Box display="flex" gap={1}>
-            <ExamRiskRuleImportExportMenu />
-            <Button
-              variant="outlined"
-              onClick={() => setSyncConfirmOpen(true)}
-              disabled={syncMutation.isPending}
-            >
-              Sincronizar NR-07
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setAcgihSyncOpen(true)}
-            >
-              Sincronizar ACGIH/BEI
-            </Button>
-            <Button variant="contained" onClick={handleOpenCreate}>
-              Nova regra
-            </Button>
+            {activeTab === 'rules' && (
+              <>
+                <ExamRiskRuleImportExportMenu />
+                <Button
+                  variant="outlined"
+                  onClick={() => setSyncConfirmOpen(true)}
+                  disabled={syncMutation.isPending}
+                >
+                  Sincronizar NR-07
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => setAcgihSyncOpen(true)}
+                >
+                  Sincronizar ACGIH/BEI
+                </Button>
+                <Button variant="contained" onClick={handleOpenCreate}>
+                  Nova regra
+                </Button>
+              </>
+            )}
           </Box>
         </Box>
 
+        <Tabs
+          value={activeTab}
+          onChange={(_event, value: LibraryTab) => setActiveTab(value)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="Regras" value="rules" />
+          <Tab label="Cobertura / Gaps" value="coverage" />
+        </Tabs>
+
+        {activeTab === 'coverage' ? (
+          <ExamRiskRuleCoverageGapsPanel />
+        ) : (
         <Paper sx={{ p: 2 }}>
           <Box display="flex" gap={2} flexWrap="wrap" mb={2}>
             <TextField
@@ -235,6 +257,7 @@ export const ExamRiskRuleListPage: FC = () => {
             onManageReferences={(rule) => setReferencesRuleId(rule.id)}
           />
         </Paper>
+        )}
       </Box>
 
       <ExamRiskRuleFormModal

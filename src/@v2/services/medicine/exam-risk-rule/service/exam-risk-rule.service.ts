@@ -16,6 +16,10 @@ import type {
   ExamRiskRuleCategoryEnum,
   ExamRiskRuleStatusEnum,
 } from './exam-risk-rule.types';
+import type {
+  IBrowseExamRiskRuleCoverageGapsParams,
+  IExamRiskRuleCoverageGapsResponse,
+} from './exam-risk-rule-coverage-gaps.types';
 
 export async function browseExamRiskRules(
   params: IBrowseExamRiskRulesParams,
@@ -135,4 +139,14 @@ export async function deleteExamRiskRuleReference(params: {
       params.ruleId,
     ).replace(':referenceId', params.referenceId),
   );
+}
+
+export async function browseExamRiskRuleCoverageGaps(
+  params: IBrowseExamRiskRuleCoverageGapsParams,
+): Promise<IExamRiskRuleCoverageGapsResponse> {
+  const response = await api.get<IExamRiskRuleCoverageGapsResponse>(
+    ExamRiskRuleRoutes.COVERAGE_GAPS,
+    { params },
+  );
+  return response.data;
 }

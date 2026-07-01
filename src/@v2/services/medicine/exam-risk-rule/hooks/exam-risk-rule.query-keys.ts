@@ -1,10 +1,16 @@
 import type { IBrowseExamRiskRulesParams } from '../service/exam-risk-rule.types';
+import type { IBrowseExamRiskRuleCoverageGapsParams } from '../service/exam-risk-rule-coverage-gaps.types';
 
 export const examRiskRuleQueryKeys = {
   all: () => ['exam-risk-rule'],
   browse: (params?: IBrowseExamRiskRulesParams) => [
     'exam-risk-rule',
     'browse',
+    params ?? {},
+  ],
+  coverageGaps: (params?: IBrowseExamRiskRuleCoverageGapsParams) => [
+    'exam-risk-rule',
+    'coverage-gaps',
     params ?? {},
   ],
   detail: (id: string) => ['exam-risk-rule', 'detail', id],
