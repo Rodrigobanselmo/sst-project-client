@@ -160,6 +160,31 @@ export const RiskSubTypeCurationPage: FC = () => {
     [subTypes, selectedSubtypeId],
   );
 
+  const aiLoadingScope = useMemo(() => {
+    if (!suggestCandidates.isPending) return undefined;
+
+    if (aiSuggestData?.scope.hasNextPage) {
+      const nextPage =
+        aiSuggestData.scope.nextPage ?? aiSuggestData.scope.page + 1;
+      const limit = aiSuggestData.scope.limit;
+      const eligibleTotal = aiSuggestData.scope.eligibleTotal;
+      const skip = (nextPage - 1) * limit;
+
+      return {
+        page: nextPage,
+        limit,
+        eligibleTotal,
+        rangeStart: eligibleTotal > 0 ? skip + 1 : 0,
+        rangeEnd: Math.min(skip + limit, eligibleTotal),
+      };
+    }
+
+    return {
+      page: 1,
+      limit: 100,
+    };
+  }, [aiSuggestData, suggestCandidates.isPending]);
+
   const handleSaveSubtype = (values: {
     name: string;
     description?: string;
@@ -713,6 +738,7 @@ export const RiskSubTypeCurationPage: FC = () => {
           open={aiModalOpen}
           loading={suggestCandidates.isPending && !aiSuggestData}
           loadingNextBatch={suggestCandidates.isPending && !!aiSuggestData}
+          loadingScope={aiLoadingScope}
           error={aiSuggestError}
           data={aiSuggestData}
           subTypeName={selectedSubtypeName}

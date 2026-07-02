@@ -33,10 +33,19 @@ import {
   getDefaultSelectedCandidateIds,
 } from '../utils/risk-subtype-curation-ai.utils';
 
+type LoadingScope = {
+  page: number;
+  limit: number;
+  eligibleTotal?: number;
+  rangeStart?: number;
+  rangeEnd?: number;
+};
+
 type Props = {
   open: boolean;
   loading?: boolean;
   loadingNextBatch?: boolean;
+  loadingScope?: LoadingScope;
   error?: string | null;
   data: ISuggestRiskSubtypeCandidatesResponse | null;
   subTypeName?: string;
@@ -51,6 +60,7 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
   open,
   loading,
   loadingNextBatch,
+  loadingScope,
   error,
   data,
   subTypeName,
@@ -173,6 +183,46 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
     return `${parts.join(', ')}.`;
   }, [data]);
 
+  const isProcessingBatch = loading || loadingNextBatch;
+
+  const loadingBatchLabel = useMemo(() => {
+    if (!loadingScope) {
+      return subTypeName ? ` para “${subTypeName}”` : '';
+    }
+    if (loadingScope.rangeStart && loadingScope.rangeEnd) {
+      const totalSuffix = loadingScope.eligibleTotal
+        ? ` de ${loadingScope.eligibleTotal}`
+        : '';
+      return ` — lote ${loadingScope.page}, itens ${loadingScope.rangeStart}–${loadingScope.rangeEnd}${totalSuffix}`;
+    }
+    return ` — lote ${loadingScope.page} (até ${loadingScope.limit} itens)`;
+  }, [loadingScope, subTypeName]);
+
+  const renderProcessingState = (compact?: boolean) => (
+    <Box
+      display="flex"
+      flexDirection={compact ? 'row' : 'column'}
+      alignItems={compact ? 'center' : 'flex-start'}
+      gap={compact ? 1 : 1.5}
+      py={compact ? 0 : 2}
+      mb={compact ? 2 : 0}
+    >
+      <Box display="flex" alignItems="center" gap={1.5}>
+        <CircularProgress size={compact ? 20 : 28} />
+        <Typography variant={compact ? 'body2' : 'body1'} color="text.secondary">
+          Processando lote com enriquecimento químico e IA. Lotes grandes podem
+          levar alguns minutos.
+          {loadingBatchLabel}
+        </Typography>
+      </Box>
+      {!compact && (
+        <Typography variant="body2" color="text.secondary" sx={{ pl: 5.5 }}>
+          Para acelerar, use busca por nome/CAS antes de rodar IA.
+        </Typography>
+      )}
+    </Box>
+  );
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>Revisão de candidatos sugeridos por IA</DialogTitle>
@@ -183,15 +233,7 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
           excluir — não é severidade toxicológica.
         </Alert>
 
-        {loading && (
-          <Box display="flex" alignItems="center" gap={2} py={4}>
-            <CircularProgress size={28} />
-            <Typography>
-              Analisando riscos químicos sem subtipo
-              {subTypeName ? ` para “${subTypeName}”` : ''}…
-            </Typography>
-          </Box>
-        )}
+        {loading && renderProcessingState()}
 
         {error && !loading && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -324,22 +366,20 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
                 <Button
                   size="small"
                   variant="outlined"
-                  disabled={loadingNextBatch}
-                  onClick={onLoadNextBatch}
+                  disabled={isProcessingBatch}
+                  onClick={() => {
+                    if (isProcessingBatch) return;
+                    onLoadNextBatch();
+                  }}
                 >
-                  {loadingNextBatch ? 'Analisando próximo lote…' : 'Analisar próximo lote'}
+                  {loadingNextBatch
+                    ? 'Analisando próximo lote…'
+                    : 'Analisar próximo lote'}
                 </Button>
               )}
             </Box>
 
-            {loadingNextBatch && (
-              <Box display="flex" alignItems="center" gap={1} mb={2}>
-                <CircularProgress size={20} />
-                <Typography variant="body2" color="text.secondary">
-                  Carregando lote {data.scope.nextPage ?? data.scope.page + 1}…
-                </Typography>
-              </Box>
-            )}
+            {loadingNextBatch && renderProcessingState(true)}
 
             <Box sx={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -466,7 +506,7 @@ export const RiskSubTypeAiSuggestReviewModal: FC<Props> = ({
         <Button onClick={onClose}>Fechar</Button>
         <Button
           variant="contained"
-          disabled={!selectedIds.length || applying || loading || loadingNextBatch}
+          disabled={!selectedIds.length || applying || isProcessingBatch}
           onClick={() => onApplySelected(selectedIds)}
         >
           Aplicar selecionados ({selectedIds.length})
