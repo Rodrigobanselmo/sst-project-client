@@ -5,6 +5,7 @@ import {
   createExamRiskRule,
   deleteExamRiskRule,
   deleteExamRiskRuleReference,
+  dryRunExamRiskRuleAiSuggestions,
   syncExamRiskRulesNr07,
   syncExamRiskRulesAcgihBei,
   updateExamRiskRule,
@@ -78,6 +79,15 @@ export const useMutateDeleteExamRiskRuleReference = () => {
     mutationFn: deleteExamRiskRuleReference,
     invalidateManyQueryKeys: invalidate,
     onSuccess: () => onSuccessMessage('Fonte complementar removida'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateDryRunExamRiskRuleAiSuggestions = () => {
+  const { onErrorMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: dryRunExamRiskRuleAiSuggestions,
+    invalidateQueryKey: false,
     onError: onErrorMessage,
   });
 };

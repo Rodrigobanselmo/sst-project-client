@@ -44,6 +44,7 @@ import { ExamRiskRuleImportExportMenu } from './components/ExamRiskRuleImportExp
 import { ExamRiskRuleReferencesModal } from './components/ExamRiskRuleReferencesModal';
 import { ExamRiskRuleTable } from './components/ExamRiskRuleTable';
 import { ExamRiskRuleCoverageGapsPanel } from './components/ExamRiskRuleCoverageGapsPanel';
+import { ExamRiskRuleAiAssistantDialog } from './components/ExamRiskRuleAiAssistantDialog';
 
 const ALL = 'ALL';
 
@@ -66,6 +67,7 @@ export const ExamRiskRuleListPage: FC = () => {
   const [toDelete, setToDelete] = useState<IExamRiskRule | null>(null);
   const [syncConfirmOpen, setSyncConfirmOpen] = useState(false);
   const [acgihSyncOpen, setAcgihSyncOpen] = useState(false);
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   const [syncSummary, setSyncSummary] =
     useState<IExamRiskRuleNr07SyncSummary | null>(null);
   const [referencesRuleId, setReferencesRuleId] = useState<string | null>(null);
@@ -136,6 +138,12 @@ export const ExamRiskRuleListPage: FC = () => {
             {activeTab === 'rules' && (
               <>
                 <ExamRiskRuleImportExportMenu />
+                <Button
+                  variant="outlined"
+                  onClick={() => setAiAssistantOpen(true)}
+                >
+                  Assistente de padrões
+                </Button>
                 <Button
                   variant="outlined"
                   onClick={() => setSyncConfirmOpen(true)}
@@ -274,6 +282,11 @@ export const ExamRiskRuleListPage: FC = () => {
       <ExamRiskRuleAcgihSyncDialog
         open={acgihSyncOpen}
         onClose={() => setAcgihSyncOpen(false)}
+      />
+
+      <ExamRiskRuleAiAssistantDialog
+        open={aiAssistantOpen}
+        onClose={() => setAiAssistantOpen(false)}
       />
 
       <Dialog open={Boolean(toDelete)} onClose={() => setToDelete(null)}>

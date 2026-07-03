@@ -228,6 +228,111 @@ export interface IExamRiskRuleExamCandidate {
   esocial27Code: string | null;
 }
 
+export enum ExamRiskRuleAiSuggestionMode {
+  FROM_RULE = 'FROM_RULE',
+  FROM_EXAM = 'FROM_EXAM',
+  MANUAL = 'MANUAL',
+}
+
+export type ExamRiskRuleAiDecision = 'include' | 'exclude' | 'ambiguous';
+
+export interface IExamRiskRuleAiSuggestionRequest {
+  mode: ExamRiskRuleAiSuggestionMode;
+  modelRuleId?: string;
+  exam?: {
+    examId?: number;
+    examName?: string;
+    technicalObjective?: string;
+    applicationCriteria?: string;
+  };
+  filters?: {
+    riskType?: ExamRiskRuleCategoryEnum;
+    includedSubTypeIds?: number[];
+    excludedSubTypeIds?: number[];
+    onlyActive?: boolean;
+    onlyPcmso?: boolean;
+    onlyWithoutRuleForExam?: boolean;
+    search?: string;
+    limit?: number;
+  };
+  suggestedRuleDefaults?: {
+    source?: ExamRiskRuleSourceEnum;
+    status?: ExamRiskRuleStatusEnum;
+    rationalePrefix?: string;
+    copyExamConfigFromModelRule?: boolean;
+  };
+  aiConfig?: {
+    instructions?: string;
+    positiveExamples?: string;
+    negativeExamples?: string;
+    cautionRules?: string;
+    sessionInstruction?: string;
+    model?: string;
+  };
+}
+
+export interface IExamRiskRuleAiSuggestionCandidate {
+  riskFactorId: string;
+  riskName: string;
+  riskType: ExamRiskRuleCategoryEnum;
+  cas: string | null;
+  esocialCode: string | null;
+  subTypes: { id: number; name: string }[];
+  decision: ExamRiskRuleAiDecision;
+  confidence: number;
+  rationale: string;
+  inclusionReason?: string;
+  exclusionReason?: string;
+  cautions: string[];
+  suggestedSource: ExamRiskRuleSourceEnum;
+  sourceRationale: string;
+  existingRule: {
+    id: string;
+    scope: ExamRiskRuleScopeEnum;
+    source: ExamRiskRuleSourceEnum;
+    status: ExamRiskRuleStatusEnum;
+    matchedBy: ExamRiskRuleScopeEnum;
+    examId: number | null;
+    examName: string | null;
+  } | null;
+  wouldCreate?: {
+    scope: ExamRiskRuleScopeEnum.RISK;
+    riskFactorId: string;
+    examId: number | null;
+    examNameSnapshot: string;
+    source: ExamRiskRuleSourceEnum;
+    status: ExamRiskRuleStatusEnum.DRAFT;
+    rationale: string;
+    copiedFromModelRule?: { ruleId: string; fields: string[] };
+    examConfig?: Record<string, unknown>;
+  };
+}
+
+export interface IExamRiskRuleAiSuggestionResponse {
+  dryRun: true;
+  sourceContext: {
+    mode: ExamRiskRuleAiSuggestionMode;
+    modelRuleId?: string;
+    examId: number | null;
+    examName: string;
+    technicalObjective?: string | null;
+    applicationCriteria?: string | null;
+    source: ExamRiskRuleSourceEnum;
+  };
+  totals: {
+    candidatesLoaded: number;
+    analyzed: number;
+    include: number;
+    exclude: number;
+    ambiguous: number;
+    skippedByExistingRule: number;
+    skippedBySubtypeFilter: number;
+  };
+  candidates: IExamRiskRuleAiSuggestionCandidate[];
+  warnings: string[];
+  promptPreview: string;
+}
+
 // ── Import/Export Excel (Fase 4A.1) ─────────────────────────────────────────
 
 export type ExamRiskRuleImportClassification =

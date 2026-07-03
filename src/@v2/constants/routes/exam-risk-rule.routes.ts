@@ -8,6 +8,8 @@ export const ExamRiskRuleRoutes = {
   TEMPLATE: '/v2/master/exam-risk-rules/template',
   IMPORT_PREVIEW: '/v2/master/exam-risk-rules/import/preview',
   IMPORT_APPLY: '/v2/master/exam-risk-rules/import/apply',
+  AI_SUGGESTIONS_DRY_RUN:
+    '/v2/master/exam-risk-rules/ai-suggestions/dry-run',
   BY_ID: '/v2/master/exam-risk-rules/:id',
   STATUS: '/v2/master/exam-risk-rules/:id/status',
   REFERENCES: '/v2/master/exam-risk-rules/:ruleId/references',

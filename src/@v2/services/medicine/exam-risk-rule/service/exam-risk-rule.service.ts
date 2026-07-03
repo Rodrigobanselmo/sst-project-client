@@ -12,6 +12,8 @@ import type {
   IExamRiskRuleAcgihSyncResponse,
   IExamRiskRuleReference,
   IExamRiskRuleRiskCandidate,
+  IExamRiskRuleAiSuggestionRequest,
+  IExamRiskRuleAiSuggestionResponse,
   IUpdateExamRiskRulePayload,
   ExamRiskRuleCategoryEnum,
   ExamRiskRuleStatusEnum,
@@ -114,6 +116,16 @@ export async function searchExamRiskRuleExamCandidates(params: {
   const response = await api.get<IExamRiskRuleExamCandidate[]>(
     ExamRiskRuleRoutes.EXAM_CANDIDATES,
     { params },
+  );
+  return response.data;
+}
+
+export async function dryRunExamRiskRuleAiSuggestions(
+  payload: IExamRiskRuleAiSuggestionRequest,
+): Promise<IExamRiskRuleAiSuggestionResponse> {
+  const response = await api.post<IExamRiskRuleAiSuggestionResponse>(
+    ExamRiskRuleRoutes.AI_SUGGESTIONS_DRY_RUN,
+    payload,
   );
   return response.data;
 }
