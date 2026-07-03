@@ -1,4 +1,7 @@
-import type { IBrowseExamRiskRulesParams } from '../service/exam-risk-rule.types';
+import type {
+  IBrowseExamRiskRuleAiPresetsParams,
+  IBrowseExamRiskRulesParams,
+} from '../service/exam-risk-rule.types';
 import type { IBrowseExamRiskRuleCoverageGapsParams } from '../service/exam-risk-rule-coverage-gaps.types';
 
 export const examRiskRuleQueryKeys = {
@@ -25,4 +28,11 @@ export const examRiskRuleQueryKeys = {
     'exam-candidates',
     search ?? '',
   ],
+  aiPresetsRoot: () => ['exam-risk-rule', 'ai-presets'],
+  aiPresets: (params?: IBrowseExamRiskRuleAiPresetsParams) => [
+    'exam-risk-rule',
+    'ai-presets',
+    params ?? {},
+  ],
+  aiPresetDetail: (id: string) => ['exam-risk-rule', 'ai-presets', id],
 };

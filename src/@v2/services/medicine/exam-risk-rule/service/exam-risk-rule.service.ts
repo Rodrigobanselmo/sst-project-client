@@ -14,6 +14,10 @@ import type {
   IExamRiskRuleRiskCandidate,
   IExamRiskRuleAiSuggestionRequest,
   IExamRiskRuleAiSuggestionResponse,
+  IExamRiskRuleAiPreset,
+  IBrowseExamRiskRuleAiPresetsParams,
+  ICreateExamRiskRuleAiPresetPayload,
+  IUpdateExamRiskRuleAiPresetPayload,
   IUpdateExamRiskRulePayload,
   ExamRiskRuleCategoryEnum,
   ExamRiskRuleStatusEnum,
@@ -128,6 +132,61 @@ export async function dryRunExamRiskRuleAiSuggestions(
     payload,
   );
   return response.data;
+}
+
+export async function browseExamRiskRuleAiPresets(
+  params: IBrowseExamRiskRuleAiPresetsParams = {},
+): Promise<IExamRiskRuleAiPreset[]> {
+  const response = await api.get<IExamRiskRuleAiPreset[]>(
+    ExamRiskRuleRoutes.AI_SUGGESTION_PRESETS,
+    { params },
+  );
+  return response.data;
+}
+
+export async function getExamRiskRuleAiPresetById(
+  presetId: string,
+): Promise<IExamRiskRuleAiPreset> {
+  const response = await api.get<IExamRiskRuleAiPreset>(
+    ExamRiskRuleRoutes.AI_SUGGESTION_PRESET_BY_ID.replace(
+      ':presetId',
+      presetId,
+    ),
+  );
+  return response.data;
+}
+
+export async function createExamRiskRuleAiPreset(
+  payload: ICreateExamRiskRuleAiPresetPayload,
+): Promise<IExamRiskRuleAiPreset> {
+  const response = await api.post<IExamRiskRuleAiPreset>(
+    ExamRiskRuleRoutes.AI_SUGGESTION_PRESETS,
+    payload,
+  );
+  return response.data;
+}
+
+export async function updateExamRiskRuleAiPreset(params: {
+  presetId: string;
+  payload: IUpdateExamRiskRuleAiPresetPayload;
+}): Promise<IExamRiskRuleAiPreset> {
+  const response = await api.patch<IExamRiskRuleAiPreset>(
+    ExamRiskRuleRoutes.AI_SUGGESTION_PRESET_BY_ID.replace(
+      ':presetId',
+      params.presetId,
+    ),
+    params.payload,
+  );
+  return response.data;
+}
+
+export async function deleteExamRiskRuleAiPreset(presetId: string): Promise<void> {
+  await api.delete(
+    ExamRiskRuleRoutes.AI_SUGGESTION_PRESET_BY_ID.replace(
+      ':presetId',
+      presetId,
+    ),
+  );
 }
 
 // ── Fontes complementares (Fase 4I) ─────────────────────────────────────────

@@ -2,18 +2,22 @@ import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
 
 import {
+  createExamRiskRuleAiPreset,
   createExamRiskRule,
+  deleteExamRiskRuleAiPreset,
   deleteExamRiskRule,
   deleteExamRiskRuleReference,
   dryRunExamRiskRuleAiSuggestions,
   syncExamRiskRulesNr07,
   syncExamRiskRulesAcgihBei,
+  updateExamRiskRuleAiPreset,
   updateExamRiskRule,
   updateExamRiskRuleStatus,
 } from '../service/exam-risk-rule.service';
 import { examRiskRuleQueryKeys } from './exam-risk-rule.query-keys';
 
 const invalidate = () => [examRiskRuleQueryKeys.all()];
+const invalidateAiPresets = () => [examRiskRuleQueryKeys.aiPresetsRoot()];
 
 export const useMutateCreateExamRiskRule = () => {
   const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
@@ -88,6 +92,37 @@ export const useMutateDryRunExamRiskRuleAiSuggestions = () => {
   return useMutate({
     mutationFn: dryRunExamRiskRuleAiSuggestions,
     invalidateQueryKey: false,
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateCreateExamRiskRuleAiPreset = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: createExamRiskRuleAiPreset,
+    invalidateManyQueryKeys: invalidateAiPresets,
+    onSuccess: () => onSuccessMessage('Modelo salvo'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateUpdateExamRiskRuleAiPreset = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: updateExamRiskRuleAiPreset,
+    invalidateManyQueryKeys: invalidateAiPresets,
+    onSuccess: () => onSuccessMessage('Modelo atualizado'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateDeleteExamRiskRuleAiPreset = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: ({ presetId }: { presetId: string }) =>
+      deleteExamRiskRuleAiPreset(presetId),
+    invalidateManyQueryKeys: invalidateAiPresets,
+    onSuccess: () => onSuccessMessage('Modelo inativado'),
     onError: onErrorMessage,
   });
 };

@@ -30,15 +30,25 @@ import {
   Typography,
 } from '@mui/material';
 import { useFetchBrowseExamRiskRules } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchBrowseExamRiskRules';
+import { useFetchExamRiskRuleAiPresets } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleAiPresets';
 import { useFetchExamRiskRuleExamCandidates } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleCandidates';
-import { useMutateDryRunExamRiskRuleAiSuggestions } from '@v2/services/medicine/exam-risk-rule/hooks/useMutateExamRiskRule';
 import {
+  useMutateCreateExamRiskRuleAiPreset,
+  useMutateDeleteExamRiskRuleAiPreset,
+  useMutateDryRunExamRiskRuleAiSuggestions,
+  useMutateUpdateExamRiskRuleAiPreset,
+} from '@v2/services/medicine/exam-risk-rule/hooks/useMutateExamRiskRule';
+import { getExamRiskRuleById } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.service';
+import {
+  ICreateExamRiskRuleAiPresetPayload,
   ExamRiskRuleAiDecision,
   ExamRiskRuleAiSuggestionMode,
   ExamRiskRuleCategoryEnum,
   ExamRiskRuleSourceEnum,
   ExamRiskRuleStatusEnum,
   IExamRiskRule,
+  IExamRiskRuleAiPreset,
+  IExamRiskRuleAiSuggestionRequest,
   IExamRiskRuleAiSuggestionResponse,
   IExamRiskRuleExamCandidate,
 } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
@@ -89,7 +99,18 @@ const ruleLabel = (rule: IExamRiskRule): string => {
 const examLabel = (exam: IExamRiskRuleExamCandidate): string =>
   exam.esocial27Code ? `${exam.name} (${exam.esocial27Code})` : exam.name;
 
+const presetLabel = (preset: IExamRiskRuleAiPreset): string =>
+  preset.examName ? `${preset.name} · ${preset.examName}` : preset.name;
+
 export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
+  const [presetSearch, setPresetSearch] = useState('');
+  const [selectedPreset, setSelectedPreset] =
+    useState<IExamRiskRuleAiPreset | null>(null);
+  const [presetName, setPresetName] = useState('');
+  const [presetDescription, setPresetDescription] = useState('');
+  const [presetMessage, setPresetMessage] = useState('');
+  const [isLoadingPreset, setIsLoadingPreset] = useState(false);
+
   const [mode, setMode] = useState<ExamRiskRuleAiSuggestionMode>(
     ExamRiskRuleAiSuggestionMode.FROM_RULE,
   );
@@ -132,6 +153,16 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
   );
   const [validationMessage, setValidationMessage] = useState('');
 
+  const {
+    data: presets = [],
+    isLoading: isLoadingPresets,
+    refetch: refetchPresets,
+  } =
+    useFetchExamRiskRuleAiPresets(
+      { search: presetSearch.trim() || undefined },
+      open,
+    );
+
   const { data: rulesData, isLoading: isLoadingRules } =
     useFetchBrowseExamRiskRules(
       { page: 1, limit: 20, search: ruleSearch.trim() || undefined },
@@ -152,12 +183,21 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
   });
 
   const dryRunMutation = useMutateDryRunExamRiskRuleAiSuggestions();
+  const createPresetMutation = useMutateCreateExamRiskRuleAiPreset();
+  const updatePresetMutation = useMutateUpdateExamRiskRuleAiPreset();
+  const deletePresetMutation = useMutateDeleteExamRiskRuleAiPreset();
 
   const modelRuleExams = selectedRule?.exams ?? [];
   const subTypeOptions = useMemo(
     () => subTypesData?.results ?? [],
     [subTypesData?.results],
   );
+  const presetOptions = useMemo(() => {
+    const byId = new Map<string, IExamRiskRuleAiPreset>();
+    presets.forEach((preset) => byId.set(preset.id, preset));
+    if (selectedPreset) byId.set(selectedPreset.id, selectedPreset);
+    return Array.from(byId.values());
+  }, [presets, selectedPreset]);
 
   useEffect(() => {
     if (!selectedRule) {
@@ -168,15 +208,259 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
     const examIds = selectedRule.exams
       .map((exam) => exam.examId)
       .filter((examId): examId is number => examId != null);
-    setSelectedRuleExamId(examIds.length === 1 ? examIds[0] : '');
+    setSelectedRuleExamId((current) => {
+      if (current && examIds.includes(Number(current))) return current;
+      return examIds.length === 1 ? examIds[0] : '';
+    });
   }, [selectedRule]);
 
   useEffect(() => {
     if (!open) {
       setValidationMessage('');
+      setPresetMessage('');
       setResult(null);
     }
   }, [open]);
+
+  const resolveSubTypesByIds = (
+    ids: number[],
+    nextRiskType: ExamRiskRuleCategoryEnum,
+  ): IRiskSubTypeMasterItem[] =>
+    ids.map((id) => {
+      const option = subTypeOptions.find((subType) => subType.id === id);
+      return (
+        option ?? {
+          id,
+          name: `Subtipo #${id}`,
+          slug: String(id),
+          type: nextRiskType as unknown as RiskTypeEnum,
+          status: StatusEnum.ACTIVE,
+          system: true,
+        }
+      );
+    });
+
+  const getCurrentExamName = (): string | null => {
+    if (mode === ExamRiskRuleAiSuggestionMode.MANUAL) {
+      return manualExamName.trim() || null;
+    }
+    if (mode === ExamRiskRuleAiSuggestionMode.FROM_EXAM) {
+      return selectedExam?.name ?? null;
+    }
+    const selectedModelExam = modelRuleExams.find(
+      (exam) => exam.examId === selectedRuleExamId,
+    );
+    return (
+      selectedModelExam?.examNameSnapshot ??
+      modelRuleExams[0]?.examNameSnapshot ??
+      null
+    );
+  };
+
+  const buildDryRunPayload = (): IExamRiskRuleAiSuggestionRequest => ({
+    mode,
+    modelRuleId:
+      mode === ExamRiskRuleAiSuggestionMode.FROM_RULE
+        ? selectedRule?.id
+        : undefined,
+    exam: {
+      examId:
+        mode === ExamRiskRuleAiSuggestionMode.FROM_RULE
+          ? selectedRuleExamId || undefined
+          : selectedExam?.id,
+      examName:
+        mode === ExamRiskRuleAiSuggestionMode.MANUAL
+          ? manualExamName.trim()
+          : selectedExam?.name,
+      technicalObjective: technicalObjective.trim() || undefined,
+      applicationCriteria: applicationCriteria.trim() || undefined,
+    },
+    filters: {
+      riskType,
+      includedSubTypeIds: includedSubTypes.map((subType) => subType.id),
+      excludedSubTypeIds: excludedSubTypes.map((subType) => subType.id),
+      onlyActive,
+      onlyPcmso,
+      onlyWithoutRuleForExam,
+      search: riskSearch.trim() || undefined,
+      limit,
+    },
+    suggestedRuleDefaults: {
+      source: ExamRiskRuleSourceEnum.TECHNICAL,
+      status: ExamRiskRuleStatusEnum.DRAFT,
+      rationalePrefix: rationalePrefix.trim() || undefined,
+      copyExamConfigFromModelRule: copyExamConfig,
+    },
+    aiConfig: {
+      instructions: instructions.trim() || undefined,
+      positiveExamples: positiveExamples.trim() || undefined,
+      negativeExamples: negativeExamples.trim() || undefined,
+      cautionRules: cautionRules.trim() || undefined,
+      sessionInstruction: sessionInstruction.trim() || undefined,
+      model: model.trim() || undefined,
+    },
+  });
+
+  const buildPresetPayload = (): ICreateExamRiskRuleAiPresetPayload => {
+    const payload = buildDryRunPayload();
+    return {
+      name: presetName.trim(),
+      description: presetDescription.trim() || null,
+      mode: payload.mode,
+      modelRuleId: payload.modelRuleId ?? null,
+      examId: payload.exam?.examId ?? null,
+      examName: getCurrentExamName(),
+      technicalObjective: payload.exam?.technicalObjective ?? null,
+      applicationCriteria: payload.exam?.applicationCriteria ?? null,
+      riskType: payload.filters?.riskType ?? null,
+      riskSearch: payload.filters?.search ?? null,
+      includedSubTypeIds: payload.filters?.includedSubTypeIds ?? [],
+      excludedSubTypeIds: payload.filters?.excludedSubTypeIds ?? [],
+      onlyActive: payload.filters?.onlyActive ?? true,
+      onlyPcmso: payload.filters?.onlyPcmso ?? true,
+      onlyWithoutRuleForExam: payload.filters?.onlyWithoutRuleForExam ?? false,
+      copyExamConfigFromModelRule:
+        payload.suggestedRuleDefaults?.copyExamConfigFromModelRule ?? false,
+      limit: payload.filters?.limit ?? 30,
+      suggestedSource:
+        payload.suggestedRuleDefaults?.source ?? ExamRiskRuleSourceEnum.TECHNICAL,
+      rationalePrefix: payload.suggestedRuleDefaults?.rationalePrefix ?? null,
+      instructions: payload.aiConfig?.instructions ?? null,
+      positiveExamples: payload.aiConfig?.positiveExamples ?? null,
+      negativeExamples: payload.aiConfig?.negativeExamples ?? null,
+      cautionRules: payload.aiConfig?.cautionRules ?? null,
+      sessionInstruction: payload.aiConfig?.sessionInstruction ?? null,
+      model: payload.aiConfig?.model ?? null,
+    };
+  };
+
+  const applyPreset = async (preset: IExamRiskRuleAiPreset) => {
+    setSelectedPreset(preset);
+    setPresetName(preset.name);
+    setPresetDescription(preset.description ?? '');
+    setPresetMessage('');
+    setValidationMessage('');
+    setResult(null);
+    setIsLoadingPreset(true);
+
+    const nextMode = preset.mode;
+    const nextRiskType = preset.riskType ?? ExamRiskRuleCategoryEnum.QUI;
+    setMode(nextMode);
+    setRiskType(nextRiskType);
+    setManualExamName(nextMode === ExamRiskRuleAiSuggestionMode.MANUAL ? preset.examName ?? '' : '');
+    setTechnicalObjective(preset.technicalObjective ?? '');
+    setApplicationCriteria(preset.applicationCriteria ?? '');
+    setRiskSearch(preset.riskSearch ?? '');
+    setIncludedSubTypes(resolveSubTypesByIds(preset.includedSubTypeIds, nextRiskType));
+    setExcludedSubTypes(resolveSubTypesByIds(preset.excludedSubTypeIds, nextRiskType));
+    setOnlyActive(preset.onlyActive);
+    setOnlyPcmso(preset.onlyPcmso);
+    setOnlyWithoutRuleForExam(preset.onlyWithoutRuleForExam);
+    setCopyExamConfig(preset.copyExamConfigFromModelRule);
+    setLimit(preset.limit);
+    setInstructions(preset.instructions ?? '');
+    setPositiveExamples(preset.positiveExamples ?? '');
+    setNegativeExamples(preset.negativeExamples ?? '');
+    setCautionRules(preset.cautionRules ?? '');
+    setSessionInstruction(preset.sessionInstruction ?? '');
+    setModel(preset.model ?? '');
+    setRationalePrefix(preset.rationalePrefix ?? '');
+
+    if (nextMode === ExamRiskRuleAiSuggestionMode.FROM_EXAM) {
+      setSelectedExam(
+        preset.examId || preset.examName
+          ? {
+              id: preset.examId ?? 0,
+              name: preset.examName ?? `Exame ${preset.examId}`,
+              type: null,
+              esocial27Code: null,
+            }
+          : null,
+      );
+    } else {
+      setSelectedExam(null);
+    }
+
+    if (nextMode === ExamRiskRuleAiSuggestionMode.FROM_RULE && preset.modelRuleId) {
+      try {
+        const rule = await getExamRiskRuleById(preset.modelRuleId);
+        setSelectedRule(rule);
+        setSelectedRuleExamId(preset.examId ?? '');
+      } catch {
+        setSelectedRule(null);
+        setSelectedRuleExamId(preset.examId ?? '');
+        setValidationMessage(
+          'Modelo carregado, mas a regra modelo não foi encontrada para preenchimento automático.',
+        );
+      } finally {
+        setIsLoadingPreset(false);
+      }
+      return;
+    }
+
+    setSelectedRule(null);
+    setSelectedRuleExamId(preset.examId ?? '');
+    setIsLoadingPreset(false);
+  };
+
+  const handleSaveNewPreset = () => {
+    const payload = buildPresetPayload();
+    if (!payload.name) {
+      setPresetMessage('Informe um nome para salvar o modelo.');
+      return;
+    }
+    createPresetMutation.mutate(payload, {
+      onSuccess: (preset) => {
+        setSelectedPreset(preset);
+        setPresetSearch('');
+        setPresetMessage('Modelo salvo e carregado.');
+        void refetchPresets();
+      },
+    });
+  };
+
+  const handleUpdatePreset = () => {
+    if (!selectedPreset) {
+      setPresetMessage('Carregue um modelo antes de atualizar.');
+      return;
+    }
+    const payload = buildPresetPayload();
+    if (!payload.name) {
+      setPresetMessage('Informe um nome para atualizar o modelo.');
+      return;
+    }
+    updatePresetMutation.mutate(
+      { presetId: selectedPreset.id, payload },
+      {
+        onSuccess: (preset) => {
+          setSelectedPreset(preset);
+          setPresetSearch('');
+          setPresetMessage('Modelo atualizado.');
+          void refetchPresets();
+        },
+      },
+    );
+  };
+
+  const handleDeletePreset = () => {
+    if (!selectedPreset) return;
+    deletePresetMutation.mutate(
+      { presetId: selectedPreset.id },
+      {
+        onSuccess: () => {
+          setSelectedPreset(null);
+          setPresetSearch('');
+          setPresetMessage('Modelo inativado.');
+          void refetchPresets();
+        },
+      },
+    );
+  };
+
+  const conflictingSubTypes = useMemo(() => {
+    const excludedIds = new Set(excludedSubTypes.map((subType) => subType.id));
+    return includedSubTypes.filter((subType) => excludedIds.has(subType.id));
+  }, [excludedSubTypes, includedSubTypes]);
 
   const validate = (): boolean => {
     if (mode === ExamRiskRuleAiSuggestionMode.FROM_RULE && !selectedRule) {
@@ -215,49 +499,7 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
 
     setResult(null);
     dryRunMutation.mutate(
-      {
-        mode,
-        modelRuleId:
-          mode === ExamRiskRuleAiSuggestionMode.FROM_RULE
-            ? selectedRule?.id
-            : undefined,
-        exam: {
-          examId:
-            mode === ExamRiskRuleAiSuggestionMode.FROM_RULE
-              ? selectedRuleExamId || undefined
-              : selectedExam?.id,
-          examName:
-            mode === ExamRiskRuleAiSuggestionMode.MANUAL
-              ? manualExamName.trim()
-              : selectedExam?.name,
-          technicalObjective: technicalObjective.trim() || undefined,
-          applicationCriteria: applicationCriteria.trim() || undefined,
-        },
-        filters: {
-          riskType,
-          includedSubTypeIds: includedSubTypes.map((subType) => subType.id),
-          excludedSubTypeIds: excludedSubTypes.map((subType) => subType.id),
-          onlyActive,
-          onlyPcmso,
-          onlyWithoutRuleForExam,
-          search: riskSearch.trim() || undefined,
-          limit,
-        },
-        suggestedRuleDefaults: {
-          source: ExamRiskRuleSourceEnum.TECHNICAL,
-          status: ExamRiskRuleStatusEnum.DRAFT,
-          rationalePrefix: rationalePrefix.trim() || undefined,
-          copyExamConfigFromModelRule: copyExamConfig,
-        },
-        aiConfig: {
-          instructions: instructions.trim() || undefined,
-          positiveExamples: positiveExamples.trim() || undefined,
-          negativeExamples: negativeExamples.trim() || undefined,
-          cautionRules: cautionRules.trim() || undefined,
-          sessionInstruction: sessionInstruction.trim() || undefined,
-          model: model.trim() || undefined,
-        },
-      },
+      buildDryRunPayload(),
       {
         onSuccess: setResult,
       },
@@ -278,6 +520,112 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
             MVP dry-run: a IA apenas sugere pertinência técnica. Nenhuma regra é
             criada, alterada, ativada ou aplicada.
           </Alert>
+
+          <Stack spacing={2}>
+            <Typography variant="subtitle1">Modelo salvo</Typography>
+            <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
+              <Autocomplete
+                sx={{ minWidth: 360, flex: 1 }}
+                options={presetOptions}
+                value={selectedPreset}
+                openOnFocus
+                loading={isLoadingPresets || isLoadingPreset}
+                getOptionLabel={presetLabel}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                filterOptions={(options) => options}
+                onOpen={() => {
+                  setPresetSearch('');
+                  void refetchPresets();
+                }}
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') setPresetSearch(value);
+                  if (reason === 'clear') {
+                    setPresetSearch('');
+                    setSelectedPreset(null);
+                  }
+                }}
+                onChange={(_, value) => {
+                  if (value) {
+                    void applyPreset(value);
+                  } else {
+                    setSelectedPreset(null);
+                    setPresetSearch('');
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Carregar modelo salvo" />
+                )}
+              />
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setSelectedPreset(null);
+                  setPresetSearch('');
+                  setPresetMessage('Modelo carregado limpo. A configuração atual foi mantida.');
+                }}
+              >
+                Limpar modelo carregado
+              </Button>
+            </Box>
+
+            <Box display="flex" gap={2} flexWrap="wrap">
+              <TextField
+                label="Nome do modelo"
+                value={presetName}
+                onChange={(event) => setPresetName(event.target.value)}
+                sx={{ minWidth: 320, flex: 1 }}
+              />
+              <TextField
+                label="Descrição do modelo"
+                value={presetDescription}
+                onChange={(event) => setPresetDescription(event.target.value)}
+                sx={{ minWidth: 420, flex: 2 }}
+              />
+            </Box>
+
+            <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
+              <Button
+                variant="outlined"
+                onClick={handleSaveNewPreset}
+                disabled={createPresetMutation.isPending}
+              >
+                Salvar como novo modelo
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleUpdatePreset}
+                disabled={!selectedPreset || updatePresetMutation.isPending}
+              >
+                Atualizar modelo carregado
+              </Button>
+              <Button
+                color="warning"
+                variant="outlined"
+                onClick={handleDeletePreset}
+                disabled={!selectedPreset || deletePresetMutation.isPending}
+              >
+                Inativar modelo
+              </Button>
+              {selectedPreset && (
+                <Chip
+                  variant="outlined"
+                  label={`Carregado: ${selectedPreset.name}`}
+                />
+              )}
+            </Box>
+
+            {presetMessage && <Alert severity="info">{presetMessage}</Alert>}
+
+            {conflictingSubTypes.length > 0 && (
+              <Alert severity="warning">
+                Há subtipo em candidatos e excluídos:{' '}
+                {conflictingSubTypes.map((subType) => subType.name).join(', ')}.
+                A exclusão continua vencendo no dry-run.
+              </Alert>
+            )}
+          </Stack>
+
+          <Divider />
 
           {validationMessage && <Alert severity="warning">{validationMessage}</Alert>}
 

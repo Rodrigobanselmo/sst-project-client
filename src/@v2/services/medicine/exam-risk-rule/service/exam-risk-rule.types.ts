@@ -234,6 +234,11 @@ export enum ExamRiskRuleAiSuggestionMode {
   MANUAL = 'MANUAL',
 }
 
+export enum ExamRiskRuleAiAssistantPresetStatusEnum {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
 export type ExamRiskRuleAiDecision = 'include' | 'exclude' | 'ambiguous';
 
 export interface IExamRiskRuleAiSuggestionRequest {
@@ -332,6 +337,65 @@ export interface IExamRiskRuleAiSuggestionResponse {
   warnings: string[];
   promptPreview: string;
 }
+
+export interface IExamRiskRuleAiPreset {
+  id: string;
+  name: string;
+  description: string | null;
+  mode: ExamRiskRuleAiSuggestionMode;
+  modelRuleId: string | null;
+  examId: number | null;
+  examName: string | null;
+  technicalObjective: string | null;
+  applicationCriteria: string | null;
+  riskType: ExamRiskRuleCategoryEnum | null;
+  riskSearch: string | null;
+  includedSubTypeIds: number[];
+  excludedSubTypeIds: number[];
+  onlyActive: boolean;
+  onlyPcmso: boolean;
+  onlyWithoutRuleForExam: boolean;
+  copyExamConfigFromModelRule: boolean;
+  limit: number;
+  suggestedSource: ExamRiskRuleSourceEnum;
+  rationalePrefix: string | null;
+  instructions: string | null;
+  positiveExamples: string | null;
+  negativeExamples: string | null;
+  cautionRules: string | null;
+  sessionInstruction: string | null;
+  model: string | null;
+  status: ExamRiskRuleAiAssistantPresetStatusEnum;
+  createdById: number | null;
+  updatedById: number | null;
+  deletedById: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface IBrowseExamRiskRuleAiPresetsParams {
+  search?: string;
+  status?: ExamRiskRuleAiAssistantPresetStatusEnum;
+  includeInactive?: boolean;
+}
+
+export type ICreateExamRiskRuleAiPresetPayload = Omit<
+  IExamRiskRuleAiPreset,
+  | 'id'
+  | 'status'
+  | 'createdById'
+  | 'updatedById'
+  | 'deletedById'
+  | 'created_at'
+  | 'updated_at'
+  | 'deleted_at'
+> & {
+  status?: ExamRiskRuleAiAssistantPresetStatusEnum;
+};
+
+export type IUpdateExamRiskRuleAiPresetPayload =
+  Partial<ICreateExamRiskRuleAiPresetPayload>;
 
 // ── Import/Export Excel (Fase 4A.1) ─────────────────────────────────────────
 
