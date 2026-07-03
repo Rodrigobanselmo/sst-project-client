@@ -33,6 +33,7 @@ import { useFetchBrowseExamRiskRules } from '@v2/services/medicine/exam-risk-rul
 import { useFetchExamRiskRuleAiPresets } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleAiPresets';
 import { useFetchExamRiskRuleExamCandidates } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleCandidates';
 import {
+  useMutateCreateExamRiskRuleAiDrafts,
   useMutateCreateExamRiskRuleAiPreset,
   useMutateDeleteExamRiskRuleAiPreset,
   useMutateDryRunExamRiskRuleAiSuggestions,
@@ -41,6 +42,7 @@ import {
 import { getExamRiskRuleById } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.service';
 import {
   ICreateExamRiskRuleAiPresetPayload,
+  ICreateExamRiskRuleAiDraftsPayload,
   ExamRiskRuleAiDecision,
   ExamRiskRuleAiSuggestionMode,
   ExamRiskRuleCategoryEnum,
@@ -49,6 +51,7 @@ import {
   IExamRiskRule,
   IExamRiskRuleAiPreset,
   IExamRiskRuleAiSuggestionRequest,
+  ICreateExamRiskRuleAiDraftsResponse,
   IExamRiskRuleAiSuggestionResponse,
   IExamRiskRuleExamCandidate,
 } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
@@ -151,6 +154,13 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
   const [result, setResult] = useState<IExamRiskRuleAiSuggestionResponse | null>(
     null,
   );
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [draftConfirmOpen, setDraftConfirmOpen] = useState(false);
+  const [confirmAmbiguousOnly, setConfirmAmbiguousOnly] = useState(false);
+  const [draftReport, setDraftReport] =
+    useState<ICreateExamRiskRuleAiDraftsResponse | null>(null);
   const [validationMessage, setValidationMessage] = useState('');
 
   const {
@@ -183,6 +193,7 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
   });
 
   const dryRunMutation = useMutateDryRunExamRiskRuleAiSuggestions();
+  const createDraftsMutation = useMutateCreateExamRiskRuleAiDrafts();
   const createPresetMutation = useMutateCreateExamRiskRuleAiPreset();
   const updatePresetMutation = useMutateUpdateExamRiskRuleAiPreset();
   const deletePresetMutation = useMutateDeleteExamRiskRuleAiPreset();
@@ -221,6 +232,15 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
       setResult(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!result) {
+      setSelectedCandidateIds(new Set());
+      setDraftReport(null);
+      setDraftConfirmOpen(false);
+      setConfirmAmbiguousOnly(false);
+    }
+  }, [result]);
 
   const resolveSubTypesByIds = (
     ids: number[],
@@ -462,6 +482,31 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
     return includedSubTypes.filter((subType) => excludedIds.has(subType.id));
   }, [excludedSubTypes, includedSubTypes]);
 
+  const selectedCandidates = useMemo(
+    () =>
+      result?.candidates.filter((candidate) =>
+        selectedCandidateIds.has(candidate.riskFactorId),
+      ) ?? [],
+    [result?.candidates, selectedCandidateIds],
+  );
+
+  const selectedCounts = useMemo(
+    () => ({
+      total: selectedCandidates.length,
+      include: selectedCandidates.filter(
+        (candidate) => candidate.decision === 'include',
+      ).length,
+      ambiguous: selectedCandidates.filter(
+        (candidate) => candidate.decision === 'ambiguous',
+      ).length,
+    }),
+    [selectedCandidates],
+  );
+
+  const hasOnlyAmbiguousSelected =
+    selectedCounts.total > 0 &&
+    selectedCounts.ambiguous === selectedCounts.total;
+
   const validate = (): boolean => {
     if (mode === ExamRiskRuleAiSuggestionMode.FROM_RULE && !selectedRule) {
       setValidationMessage('Selecione uma regra modelo.');
@@ -501,7 +546,17 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
     dryRunMutation.mutate(
       buildDryRunPayload(),
       {
-        onSuccess: setResult,
+        onSuccess: (response) => {
+          setResult(response);
+          setDraftReport(null);
+          setSelectedCandidateIds(
+            new Set(
+              response.candidates
+                .filter((candidate) => candidate.decision === 'include')
+                .map((candidate) => candidate.riskFactorId),
+            ),
+          );
+        },
       },
     );
   };
@@ -511,14 +566,97 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
     void navigator.clipboard?.writeText(JSON.stringify(result, null, 2));
   };
 
+  const handleSelectIncludes = () => {
+    if (!result) return;
+    setSelectedCandidateIds(
+      new Set(
+        result.candidates
+          .filter((candidate) => candidate.decision === 'include')
+          .map((candidate) => candidate.riskFactorId),
+      ),
+    );
+  };
+
+  const handleClearSelection = () => {
+    setSelectedCandidateIds(new Set());
+  };
+
+  const handleToggleCandidate = (
+    candidate: IExamRiskRuleAiSuggestionResponse['candidates'][number],
+    checked: boolean,
+  ) => {
+    if (candidate.decision === 'exclude') return;
+    setSelectedCandidateIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(candidate.riskFactorId);
+      else next.delete(candidate.riskFactorId);
+      return next;
+    });
+  };
+
+  const handleOpenDraftConfirmation = () => {
+    if (!result) return;
+    if (!result.sourceContext.examId) {
+      setValidationMessage(
+        'Para criar rascunhos, selecione um exame com examId no catálogo.',
+      );
+      return;
+    }
+    if (!selectedCounts.total) return;
+    setConfirmAmbiguousOnly(false);
+    setDraftConfirmOpen(true);
+  };
+
+  const buildDraftCreationPayload =
+    (): ICreateExamRiskRuleAiDraftsPayload | null => {
+      if (!result?.sourceContext.examId) return null;
+
+      return {
+        sourceContext: {
+          ...result.sourceContext,
+          examId: result.sourceContext.examId,
+          onlyPcmso,
+        },
+        selectedCandidates: selectedCandidates.map((candidate) => ({
+          riskFactorId: candidate.riskFactorId,
+          riskName: candidate.riskName,
+          decision: candidate.decision,
+          confidence: candidate.confidence,
+          rationale: candidate.rationale,
+          suggestedSource: candidate.suggestedSource,
+          sourceRationale: candidate.sourceRationale,
+          copiedFromModelRule: candidate.wouldCreate?.copiedFromModelRule,
+          examConfig: candidate.wouldCreate?.examConfig,
+        })),
+        options: {
+          allowAmbiguous: selectedCounts.ambiguous > 0,
+          rationalePrefix: rationalePrefix.trim() || undefined,
+          copyExamConfigFromModelRule: copyExamConfig,
+        },
+      };
+    };
+
+  const handleCreateSelectedDrafts = () => {
+    const payload = buildDraftCreationPayload();
+    if (!payload) return;
+
+    createDraftsMutation.mutate(payload, {
+      onSuccess: (response) => {
+        setDraftReport(response);
+        setDraftConfirmOpen(false);
+      },
+    });
+  };
+
   return (
+    <>
     <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
       <DialogTitle>Assistente de padrões Risco × Exame</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={3}>
           <Alert severity="info">
-            MVP dry-run: a IA apenas sugere pertinência técnica. Nenhuma regra é
-            criada, alterada, ativada ou aplicada.
+            A IA apenas sugere pertinência técnica. O MASTER pode revisar e criar
+            rascunhos selecionados; nenhuma regra ACTIVE é criada automaticamente.
           </Alert>
 
           <Stack spacing={2}>
@@ -923,6 +1061,76 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
                 />
               </Box>
 
+              <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
+                <Chip
+                  color={selectedCounts.total > 0 ? 'primary' : 'default'}
+                  label={`Selecionados: ${selectedCounts.total}`}
+                />
+                <Chip color="success" label={`Includes: ${selectedCounts.include}`} />
+                <Chip
+                  color="warning"
+                  label={`Ambíguos: ${selectedCounts.ambiguous}`}
+                />
+                <Button variant="outlined" onClick={handleSelectIncludes}>
+                  Selecionar includes
+                </Button>
+                <Button variant="outlined" onClick={handleClearSelection}>
+                  Limpar seleção
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleOpenDraftConfirmation}
+                  disabled={
+                    selectedCounts.total === 0 || createDraftsMutation.isPending
+                  }
+                >
+                  Criar rascunhos selecionados
+                </Button>
+              </Box>
+
+              {selectedCounts.ambiguous > 0 && (
+                <Alert severity="warning">
+                  Você selecionou itens ambíguos. Eles serão criados como DRAFT
+                  para revisão manual.
+                </Alert>
+              )}
+
+              {draftReport && (
+                <Alert severity={draftReport.totals.failed ? 'warning' : 'success'}>
+                  <Box>
+                    Relatório: {draftReport.totals.created} criados,{' '}
+                    {draftReport.totals.skippedByExistingRule} ignorados por regra
+                    existente, {draftReport.totals.skippedByDecision} ignorados por
+                    decisão não permitida, {draftReport.totals.failed} falhas,{' '}
+                    {draftReport.totals.totalSelected} selecionados.
+                  </Box>
+                  {draftReport.created.length > 0 && (
+                    <Box>
+                      Criados:{' '}
+                      {draftReport.created
+                        .map((item) => `${item.riskName} (${item.status})`)
+                        .join('; ')}
+                    </Box>
+                  )}
+                  {draftReport.skippedExistingRule.length > 0 && (
+                    <Box>
+                      Ignorados por regra existente:{' '}
+                      {draftReport.skippedExistingRule
+                        .map((item) => `${item.riskName}: ${item.reason}`)
+                        .join('; ')}
+                    </Box>
+                  )}
+                  {draftReport.failed.length > 0 && (
+                    <Box>
+                      Falhas:{' '}
+                      {draftReport.failed
+                        .map((item) => `${item.riskName}: ${item.reason}`)
+                        .join('; ')}
+                    </Box>
+                  )}
+                </Alert>
+              )}
+
               {result.warnings.length > 0 && (
                 <Alert severity="warning">
                   {result.warnings.map((warning) => (
@@ -935,6 +1143,7 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
                 <MuiTable size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
+                      <TableCell>Selecionar</TableCell>
                       <TableCell>Risco</TableCell>
                       <TableCell>Subtipo</TableCell>
                       <TableCell>Decisão</TableCell>
@@ -947,6 +1156,18 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
                   <TableBody>
                     {result.candidates.map((candidate) => (
                       <TableRow key={candidate.riskFactorId} hover>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedCandidateIds.has(candidate.riskFactorId)}
+                            disabled={
+                              candidate.decision === 'exclude' ||
+                              createDraftsMutation.isPending
+                            }
+                            onChange={(event) =>
+                              handleToggleCandidate(candidate, event.target.checked)
+                            }
+                          />
+                        </TableCell>
                         <TableCell sx={{ minWidth: 220 }}>
                           <Typography variant="body2">{candidate.riskName}</Typography>
                           <Typography variant="caption" color="text.secondary">
@@ -986,7 +1207,7 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
                               color="text.secondary"
                               component="div"
                             >
-                              Simulação: criaria DRAFT, sem aplicar neste MVP.
+                              Simulação: criaria rascunho DRAFT, sem ACTIVE.
                             </Typography>
                           )}
                         </TableCell>
@@ -1032,6 +1253,64 @@ export const ExamRiskRuleAiAssistantDialog: FC<Props> = ({ open, onClose }) => {
         </Button>
       </DialogActions>
     </Dialog>
+    <Dialog
+      open={draftConfirmOpen}
+      onClose={() => setDraftConfirmOpen(false)}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle>Criar rascunhos selecionados</DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={2}>
+          <Alert severity="info">
+            Nenhuma regra ACTIVE será criada. Regras existentes serão ignoradas e
+            todos os itens criados ficarão como DRAFT para revisão manual.
+          </Alert>
+          <Box display="flex" gap={1} flexWrap="wrap">
+            <Chip label={`Selecionados: ${selectedCounts.total}`} />
+            <Chip color="success" label={`Includes: ${selectedCounts.include}`} />
+            <Chip
+              color="warning"
+              label={`Ambíguos: ${selectedCounts.ambiguous}`}
+            />
+          </Box>
+          {selectedCounts.ambiguous > 0 && (
+            <Alert severity="warning">
+              Você selecionou itens ambíguos. Eles serão criados como DRAFT para
+              revisão manual.
+            </Alert>
+          )}
+          {hasOnlyAmbiguousSelected && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={confirmAmbiguousOnly}
+                  onChange={(event) =>
+                    setConfirmAmbiguousOnly(event.target.checked)
+                  }
+                />
+              }
+              label="Confirmo criar apenas itens ambíguos como DRAFT para revisão manual"
+            />
+          )}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setDraftConfirmOpen(false)}>Cancelar</Button>
+        <Button
+          variant="contained"
+          onClick={handleCreateSelectedDrafts}
+          disabled={
+            createDraftsMutation.isPending ||
+            selectedCounts.total === 0 ||
+            (hasOnlyAmbiguousSelected && !confirmAmbiguousOnly)
+          }
+        >
+          Criar rascunhos selecionados
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 };
 

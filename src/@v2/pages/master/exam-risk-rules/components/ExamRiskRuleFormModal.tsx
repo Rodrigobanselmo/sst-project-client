@@ -69,11 +69,38 @@ const emptyExam = (): ExamDraft => ({
   minRiskDegreeQuantity: null,
 });
 
-const toNumberOrNull = (value: string): number | null => {
-  if (value.trim() === '') return null;
+const toNumberOrNull = (
+  value: string | number | null | undefined,
+): number | null => {
+  if (value == null) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
   const parsed = Number(value);
   return Number.isNaN(parsed) ? null : parsed;
 };
+
+const riskDegreeOptions = [
+  { value: 1, label: 'Muito baixo' },
+  { value: 2, label: 'Baixo' },
+  { value: 3, label: 'Moderado' },
+  { value: 4, label: 'Alto' },
+  { value: 5, label: 'Muito alto' },
+];
+
+const normalizeRiskDegree = (value?: number | null): number | null =>
+  value != null && value >= 1 && value <= 5 ? value : null;
+
+const toRiskDegreeOrNull = (
+  value: string | number | null | undefined,
+): number | null => normalizeRiskDegree(toNumberOrNull(value));
+
+const hasExamApplicability = (exam: IExamRiskRule['exams'][number]) =>
+  Boolean(
+    exam.isAdmission ||
+      exam.isPeriodic ||
+      exam.isChange ||
+      exam.isReturn ||
+      exam.isDismissal,
+  );
 
 export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
   const isEdit = Boolean(rule);
@@ -134,6 +161,19 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
           _key: exam.id,
           examId: exam.examId ?? undefined,
           examNameSnapshot: exam.examNameSnapshot ?? undefined,
+          isAdmission: Boolean(exam.isAdmission),
+          isPeriodic: hasExamApplicability(exam)
+            ? Boolean(exam.isPeriodic)
+            : true,
+          isChange: Boolean(exam.isChange),
+          isReturn: Boolean(exam.isReturn),
+          isDismissal: Boolean(exam.isDismissal),
+          isMale: exam.isMale ?? true,
+          isFemale: exam.isFemale ?? true,
+          minRiskDegree: normalizeRiskDegree(exam.minRiskDegree),
+          minRiskDegreeQuantity: normalizeRiskDegree(
+            exam.minRiskDegreeQuantity,
+          ),
         })),
       );
     } else {
@@ -152,11 +192,13 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
   }, [open, rule]);
 
   const riskOptions = useMemo(() => {
-    const options = (riskCandidates ?? []).map((risk) => ({
-      id: risk.id,
-      label: risk.cas ? `${risk.name} (${risk.cas})` : risk.name,
-    }));
-    if (riskFactorId && !options.some((option) => option.id === riskFactorId)) {
+    const options = (riskCandidates ?? [])
+      .filter((risk) => risk.id !== riskFactorId)
+      .map((risk) => ({
+        id: risk.id,
+        label: risk.cas ? `${risk.name} (${risk.cas})` : risk.name,
+      }));
+    if (riskFactorId) {
       options.unshift({ id: riskFactorId, label: riskName ?? riskFactorId });
     }
     return options;
@@ -274,7 +316,9 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                 setRiskFactorId(option?.id ?? null);
                 setRiskName(option?.label ?? null);
               }}
-              onInputChange={(_, value) => setRiskSearch(value)}
+              onInputChange={(_, value, reason) => {
+                if (reason === 'input') setRiskSearch(value);
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -356,14 +400,13 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
           )}
 
           {exams.map((exam) => {
-            const examOptions = (examCandidates ?? []).map((candidate) => ({
-              id: candidate.id,
-              label: candidate.name,
-            }));
-            if (
-              exam.examId &&
-              !examOptions.some((option) => option.id === exam.examId)
-            ) {
+            const examOptions = (examCandidates ?? [])
+              .filter((candidate) => candidate.id !== exam.examId)
+              .map((candidate) => ({
+                id: candidate.id,
+                label: candidate.name,
+              }));
+            if (exam.examId) {
               examOptions.unshift({
                 id: exam.examId,
                 label: exam.examNameSnapshot ?? String(exam.examId),
@@ -401,7 +444,9 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                         examNameSnapshot: option?.label,
                       })
                     }
-                    onInputChange={(_, value) => setExamSearch(value)}
+                    onInputChange={(_, value, reason) => {
+                      if (reason === 'input') setExamSearch(value);
+                    }}
                     renderInput={(params) => (
                       <TextField {...params} label="Exame (catálogo global)" />
                     )}
@@ -522,31 +567,45 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                     sx={{ width: 120 }}
                   />
                   <TextField
+                    select
                     label="Qualitativo mín."
-                    type="number"
                     size="small"
                     value={exam.minRiskDegree ?? ''}
                     onChange={(event) =>
                       updateExam(exam._key, {
-                        minRiskDegree: toNumberOrNull(event.target.value),
+                        minRiskDegree: toRiskDegreeOrNull(event.target.value),
                       })
                     }
                     sx={{ width: 150 }}
-                  />
+                  >
+                    <MenuItem value="">Não informado</MenuItem>
+                    {riskDegreeOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                   <TextField
+                    select
                     label="Quantitativo mín."
-                    type="number"
                     size="small"
                     value={exam.minRiskDegreeQuantity ?? ''}
                     onChange={(event) =>
                       updateExam(exam._key, {
-                        minRiskDegreeQuantity: toNumberOrNull(
+                        minRiskDegreeQuantity: toRiskDegreeOrNull(
                           event.target.value,
                         ),
                       })
                     }
                     sx={{ width: 160 }}
-                  />
+                  >
+                    <MenuItem value="">Não informado</MenuItem>
+                    {riskDegreeOptions.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Box>
               </Box>
             );

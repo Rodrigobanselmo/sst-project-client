@@ -14,6 +14,8 @@ import type {
   IExamRiskRuleRiskCandidate,
   IExamRiskRuleAiSuggestionRequest,
   IExamRiskRuleAiSuggestionResponse,
+  ICreateExamRiskRuleAiDraftsPayload,
+  ICreateExamRiskRuleAiDraftsResponse,
   IExamRiskRuleAiPreset,
   IBrowseExamRiskRuleAiPresetsParams,
   ICreateExamRiskRuleAiPresetPayload,
@@ -129,6 +131,16 @@ export async function dryRunExamRiskRuleAiSuggestions(
 ): Promise<IExamRiskRuleAiSuggestionResponse> {
   const response = await api.post<IExamRiskRuleAiSuggestionResponse>(
     ExamRiskRuleRoutes.AI_SUGGESTIONS_DRY_RUN,
+    payload,
+  );
+  return response.data;
+}
+
+export async function createExamRiskRuleAiDrafts(
+  payload: ICreateExamRiskRuleAiDraftsPayload,
+): Promise<ICreateExamRiskRuleAiDraftsResponse> {
+  const response = await api.post<ICreateExamRiskRuleAiDraftsResponse>(
+    ExamRiskRuleRoutes.AI_SUGGESTIONS_CREATE_DRAFTS,
     payload,
   );
   return response.data;

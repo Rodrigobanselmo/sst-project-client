@@ -2,6 +2,7 @@ import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
 
 import {
+  createExamRiskRuleAiDrafts,
   createExamRiskRuleAiPreset,
   createExamRiskRule,
   deleteExamRiskRuleAiPreset,
@@ -92,6 +93,16 @@ export const useMutateDryRunExamRiskRuleAiSuggestions = () => {
   return useMutate({
     mutationFn: dryRunExamRiskRuleAiSuggestions,
     invalidateQueryKey: false,
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateCreateExamRiskRuleAiDrafts = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: createExamRiskRuleAiDrafts,
+    invalidateManyQueryKeys: invalidate,
+    onSuccess: () => onSuccessMessage('Rascunhos criados'),
     onError: onErrorMessage,
   });
 };

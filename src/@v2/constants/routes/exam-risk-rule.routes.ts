@@ -10,6 +10,8 @@ export const ExamRiskRuleRoutes = {
   IMPORT_APPLY: '/v2/master/exam-risk-rules/import/apply',
   AI_SUGGESTIONS_DRY_RUN:
     '/v2/master/exam-risk-rules/ai-suggestions/dry-run',
+  AI_SUGGESTIONS_CREATE_DRAFTS:
+    '/v2/master/exam-risk-rules/ai-suggestions/create-drafts',
   AI_SUGGESTION_PRESETS:
     '/v2/master/exam-risk-rules/ai-suggestions/presets',
   AI_SUGGESTION_PRESET_BY_ID:

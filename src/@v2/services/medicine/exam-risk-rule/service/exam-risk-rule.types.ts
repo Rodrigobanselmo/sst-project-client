@@ -338,6 +338,71 @@ export interface IExamRiskRuleAiSuggestionResponse {
   promptPreview: string;
 }
 
+export interface ICreateExamRiskRuleAiDraftsPayload {
+  sourceContext: IExamRiskRuleAiSuggestionResponse['sourceContext'] & {
+    examId: number;
+    onlyPcmso?: boolean;
+  };
+  selectedCandidates: Array<{
+    riskFactorId: string;
+    riskName: string;
+    decision: ExamRiskRuleAiDecision;
+    confidence: number;
+    rationale: string;
+    suggestedSource?: ExamRiskRuleSourceEnum;
+    sourceRationale?: string;
+    copiedFromModelRule?: { ruleId?: string; fields?: string[] };
+    examConfig?: Record<string, unknown>;
+  }>;
+  options?: {
+    allowAmbiguous?: boolean;
+    rationalePrefix?: string;
+    copyExamConfigFromModelRule?: boolean;
+  };
+}
+
+export interface ICreateExamRiskRuleAiDraftsResponse {
+  created: Array<{
+    riskFactorId: string;
+    riskName: string;
+    decision: ExamRiskRuleAiDecision;
+    ruleId: string;
+    status: ExamRiskRuleStatusEnum.DRAFT;
+    source: ExamRiskRuleSourceEnum;
+  }>;
+  skippedExistingRule: Array<{
+    riskFactorId: string;
+    riskName: string;
+    decision: ExamRiskRuleAiDecision;
+    reason: string;
+    existingRule: {
+      id: string;
+      scope: ExamRiskRuleScopeEnum;
+      matchedBy: ExamRiskRuleScopeEnum;
+      status: ExamRiskRuleStatusEnum;
+    };
+  }>;
+  skippedDecision: Array<{
+    riskFactorId: string;
+    riskName: string;
+    decision: ExamRiskRuleAiDecision;
+    reason: string;
+  }>;
+  failed: Array<{
+    riskFactorId: string;
+    riskName: string;
+    decision: ExamRiskRuleAiDecision;
+    reason: string;
+  }>;
+  totals: {
+    totalSelected: number;
+    created: number;
+    skippedByExistingRule: number;
+    skippedByDecision: number;
+    failed: number;
+  };
+}
+
 export interface IExamRiskRuleAiPreset {
   id: string;
   name: string;
