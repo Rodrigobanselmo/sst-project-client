@@ -15,6 +15,10 @@ import {
 import { SeverityEnum } from 'project/enum/severity.enums';
 
 import { enumToArray } from 'core/utils/helpers/convertEnum';
+import {
+  formatRiskSubTypeButtonLabel,
+} from 'core/utils/risk-subtype-display.util';
+import type { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
 import { RiskActivityContent } from '../RiskActivityContent/RiskActivityContent';
@@ -71,6 +75,39 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
     [type],
   );
 
+  const subTypeRadioOptions = useMemo(() => {
+    const browsed = subTypes?.results ?? [];
+    const merged: { id: number; name: string }[] = browsed.map((item) => ({
+      id: Number(item.id),
+      name: item.name,
+    }));
+
+    const linked = (
+      riskData as { subTypes?: IRiskFactors['subTypes'] }
+    ).subTypes?.[0]?.sub_type;
+
+    if (linked?.id != null && linked.name) {
+      const linkedId = Number(linked.id);
+      if (!merged.some((item) => item.id === linkedId)) {
+        merged.push({ id: linkedId, name: linked.name });
+      }
+    }
+
+    return [
+      { id: null, name: '-', tooltip: 'Sem subtipo' },
+      ...merged.map((item) => ({
+        id: item.id,
+        name: formatRiskSubTypeButtonLabel(item.name),
+        tooltip: item.name,
+      })),
+    ];
+  }, [riskData, subTypes?.results]);
+
+  const selectedSubTypeValue =
+    riskData.subType != null && riskData.subType !== ''
+      ? String(riskData.subType)
+      : '';
+
   return (
     <>
       <Box mt={8}>
@@ -117,15 +154,29 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
               setValue={setValue}
               type="radio"
               label="Subtipo"
-              defaultValue={riskData.subType}
+              defaultValue={selectedSubTypeValue}
               control={control}
+              controlled
+              syncDefaultValue={false}
+              unmountOnChangeDefault={false}
               optionsFieldName={{
                 contentField: 'name',
                 valueField: 'id',
               }}
-              options={[{ id: null, name: '-' }, ...(subTypes?.results ?? [])]}
+              options={subTypeRadioOptions}
               name="subType"
               columns={5}
+              onChange={(event) => {
+                const rawValue = event.target.value;
+                const nextSubType =
+                  rawValue === '' || rawValue === 'null'
+                    ? undefined
+                    : String(rawValue);
+                setRiskData((current) => ({
+                  ...current,
+                  subType: nextSubType,
+                }));
+              }}
             />
             {isMaster && (
               <Button
@@ -145,7 +196,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           riskType={type as RiskTypeEnum}
             onCreated={(created) => {
             void refetchSubTypes();
-            setValue('subType', created.id);
+            setValue('subType', String(created.id));
             setRiskData((current) => ({
               ...current,
               subType: String(created.id),

@@ -28,6 +28,7 @@ import { useMutDeleteRisk } from 'core/services/hooks/mutations/checklist/risk/u
 import { useAccess } from 'core/hooks/useAccess';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { isRiskFactorCatalogReadOnly } from 'core/utils/risk-factor-catalog-scope.util';
+import { resolveLinkedRiskSubTypeId } from 'core/utils/risk-subtype-display.util';
 import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 import type { RiskFactorAiSuggestionSourceContextPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 
@@ -114,10 +115,15 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
 
   const [riskData, setRiskData] = useState(initialAddRiskState);
 
-  const { data: risk, isLoading: riskLoading } = useQueryRisk({
-    id: riskData.id,
-    companyId: riskData.companyId,
-  });
+  const { data: risk, isLoading: riskLoading } = useQueryRisk(
+    {
+      id: riskData.id,
+      companyId: riskData.companyId,
+    },
+    options?.riskEditorLayout === 'inline'
+      ? { refetchOnMount: 'always' }
+      : undefined,
+  );
 
   const catalogRiskSource = risk ?? riskData;
 
@@ -132,7 +138,14 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   );
 
   useEffect(() => {
-    const subTypeId = risk?.subTypes[0]?.sub_type?.id;
+    const subTypeId =
+      resolveLinkedRiskSubTypeId(risk) ??
+      resolveLinkedRiskSubTypeId(
+        options?.initialData as {
+          subTypes?: IRiskFactors['subTypes'];
+          subType?: string | number | null;
+        },
+      );
     const modalData = getModalData<any>(ModalEnum.RISK_ADD) || {};
     const initialDataProps = {
       ...modalData,
@@ -185,7 +198,9 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
 
     setValue('otherAppendix', risk?.otherAppendix);
 
-    setValue('subType', subTypeId);
+    if (!getFieldState('subType').isDirty) {
+      setValue('subType', subTypeId ?? '');
+    }
 
     setValue('grauInsalubridade', risk?.grauInsalubridade ?? null);
 

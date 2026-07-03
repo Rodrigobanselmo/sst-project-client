@@ -14,6 +14,11 @@ export interface IQueryRisk {
   id: string;
 }
 
+export type UseQueryRiskOptions = {
+  refetchOnMount?: boolean | 'always';
+  staleTime?: number;
+};
+
 export const queryRisk = async ({ companyId, id, ...query }: IQueryRisk) => {
   const queries = queryString.stringify(query);
 
@@ -27,7 +32,10 @@ export const queryRisk = async ({ companyId, id, ...query }: IQueryRisk) => {
   return response.data;
 };
 
-export function useQueryRisk(query = {} as IQueryRisk) {
+export function useQueryRisk(
+  query = {} as IQueryRisk,
+  options?: UseQueryRiskOptions,
+) {
   const { getCompanyId } = useGetCompanyId();
   const companyId = getCompanyId(query);
 
@@ -35,8 +43,9 @@ export function useQueryRisk(query = {} as IQueryRisk) {
     [QueryEnum.RISK, companyId, { ...query }],
     () => queryRisk({ ...query, companyId }),
     {
-      staleTime: 1000 * 60 * 60, // 1 hour
-      enabled: !!companyId,
+      staleTime: options?.staleTime ?? 1000 * 60 * 60, // 1 hour
+      refetchOnMount: options?.refetchOnMount ?? false,
+      enabled: !!companyId && !!query.id,
     },
   );
 

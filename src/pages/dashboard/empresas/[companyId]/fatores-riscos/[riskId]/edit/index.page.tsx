@@ -22,7 +22,10 @@ const RiskEditPage: NextPage = () => {
   const riskId = router.query.riskId as string;
 
   // Fetch the risk data using the dedicated endpoint
-  const { data: risk, isLoading, isError } = useQueryRisk({ companyId, id: riskId });
+  const { data: risk, isLoading, isError } = useQueryRisk(
+    { companyId, id: riskId },
+    { refetchOnMount: 'always' },
+  );
 
   const handleBackToList = () => {
     router.push(RoutesEnum.RISKS.replace(/:companyId/g, companyId));
