@@ -338,6 +338,103 @@ export interface IExamRiskRuleAiSuggestionResponse {
   promptPreview: string;
 }
 
+export type ExamRiskRuleRiskToExamAiDecision =
+  | 'suggest'
+  | 'exclude'
+  | 'ambiguous';
+
+export interface IExamRiskRuleRiskToExamAiSuggestionRequest {
+  context: 'MASTER_LIBRARY';
+  selectedRiskFactorIds: string[];
+  examFilters?: {
+    search?: string;
+    examType?: string;
+    onlyESocial?: boolean;
+    limit?: number;
+  };
+  options?: {
+    includeExistingRules?: boolean;
+    includeIndirectCoverage?: boolean;
+    onlyWithoutExamCoverage?: boolean;
+  };
+  aiConfig?: {
+    instructions?: string;
+    positiveExamples?: string;
+    negativeExamples?: string;
+    cautionRules?: string;
+    sessionInstruction?: string;
+    model?: string;
+  };
+}
+
+export interface IExamRiskRuleRiskToExamAiSuggestion {
+  examId: number;
+  examName: string;
+  examType?: string | null;
+  esocial27Code?: string | null;
+  decision: ExamRiskRuleRiskToExamAiDecision;
+  confidence: number;
+  rationale: string;
+  inclusionReason?: string;
+  exclusionReason?: string;
+  cautions?: string[];
+  suggestedSource: ExamRiskRuleSourceEnum;
+  sourceRationale: string;
+  existingRule: {
+    id: string;
+    scope: ExamRiskRuleScopeEnum;
+    source: ExamRiskRuleSourceEnum;
+    status: ExamRiskRuleStatusEnum;
+    matchedBy: ExamRiskRuleScopeEnum;
+  } | null;
+  existingIndirectCoverage?: Array<{
+    indicatorId: string;
+    substanceName: string;
+    examId: number | null;
+    examName: string | null;
+  }>;
+  wouldCreateGlobalDraft?: {
+    scope: ExamRiskRuleScopeEnum.RISK;
+    riskFactorId: string;
+    examId: number;
+    source: ExamRiskRuleSourceEnum;
+    status: ExamRiskRuleStatusEnum.DRAFT;
+    rationale: string;
+  };
+}
+
+export interface IExamRiskRuleRiskToExamAiRiskResult {
+  riskFactorId: string;
+  riskName: string;
+  riskType: ExamRiskRuleCategoryEnum;
+  cas: string | null;
+  esocialCode: string | null;
+  subTypes: { id: number; name: string }[];
+  existingCoverage?: {
+    matchedRuleIds: string[];
+    matchedRuleScopes: ExamRiskRuleScopeEnum[];
+    indirectCoverageCount: number;
+  };
+  suggestions: IExamRiskRuleRiskToExamAiSuggestion[];
+}
+
+export interface IExamRiskRuleRiskToExamAiSuggestionResponse {
+  dryRun: true;
+  context: 'MASTER_LIBRARY';
+  totals: {
+    risksLoaded: number;
+    examsLoaded: number;
+    analyzedPairs: number;
+    suggest: number;
+    exclude: number;
+    ambiguous: number;
+    skippedExistingRule: number;
+  };
+  risks: IExamRiskRuleRiskToExamAiRiskResult[];
+  warnings: string[];
+  promptPreview?: string;
+}
+
 export interface ICreateExamRiskRuleAiDraftsPayload {
   sourceContext: IExamRiskRuleAiSuggestionResponse['sourceContext'] & {
     examId: number;

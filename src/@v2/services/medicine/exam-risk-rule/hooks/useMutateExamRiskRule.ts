@@ -9,6 +9,7 @@ import {
   deleteExamRiskRule,
   deleteExamRiskRuleReference,
   dryRunExamRiskRuleAiSuggestions,
+  dryRunExamRiskRuleRiskToExamAiSuggestions,
   syncExamRiskRulesNr07,
   syncExamRiskRulesAcgihBei,
   updateExamRiskRuleAiPreset,
@@ -92,6 +93,15 @@ export const useMutateDryRunExamRiskRuleAiSuggestions = () => {
   const { onErrorMessage } = useApiResponseHandler();
   return useMutate({
     mutationFn: dryRunExamRiskRuleAiSuggestions,
+    invalidateQueryKey: false,
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateDryRunExamRiskRuleRiskToExamAiSuggestions = () => {
+  const { onErrorMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: dryRunExamRiskRuleRiskToExamAiSuggestions,
     invalidateQueryKey: false,
     onError: onErrorMessage,
   });

@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 
 import {
   Box,
@@ -15,10 +15,12 @@ import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useFetchExamRiskRuleCoverageGaps } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleCoverageGaps';
 import {
   ExamRiskRuleCoverageStatusEnum,
+  IExamRiskRuleCoverageGapItem,
 } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule-coverage-gaps.types';
 import { ExamRiskRuleCategoryEnum } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
 
 import { examRiskRuleCategoryLabels } from '../exam-risk-rule-labels';
+import { ExamRiskRuleRiskToExamAiAssistantDialog } from './ExamRiskRuleRiskToExamAiAssistantDialog';
 import { ExamRiskRuleCoverageGapsTable } from './ExamRiskRuleCoverageGapsTable';
 import { ExamRiskRuleCoverageSummaryCards } from './ExamRiskRuleCoverageSummaryCards';
 
@@ -40,6 +42,10 @@ export const ExamRiskRuleCoverageGapsPanel: FC = () => {
   >(ALL);
   const [includeIndirect, setIncludeIndirect] = useState(true);
   const [onlyPcmso, setOnlyPcmso] = useState(true);
+  const [riskToExamAssistantOpen, setRiskToExamAssistantOpen] = useState(false);
+  const [selectedRisksById, setSelectedRisksById] = useState<
+    Record<string, IExamRiskRuleCoverageGapItem>
+  >({});
 
   const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
     useTablePageLimit(undefined, persistKeys.LIMIT_EXAM_RISK_RULES);
@@ -57,6 +63,45 @@ export const ExamRiskRuleCoverageGapsPanel: FC = () => {
     includeIndirect,
     onlyPcmso,
   });
+
+  const selectedRisks = useMemo(
+    () => Object.values(selectedRisksById),
+    [selectedRisksById],
+  );
+
+  const selectedRiskIds = useMemo(
+    () => selectedRisks.map((risk) => risk.riskFactorId),
+    [selectedRisks],
+  );
+
+  const handleToggleRisk = (riskFactorId: string, checked: boolean) => {
+    const risk = data?.items.find((item) => item.riskFactorId === riskFactorId);
+    setSelectedRisksById((current) => {
+      const next = { ...current };
+      if (!checked) {
+        delete next[riskFactorId];
+        return next;
+      }
+      if (risk) next[riskFactorId] = risk;
+      return next;
+    });
+  };
+
+  const handleTogglePage = (riskFactorIds: string[], checked: boolean) => {
+    setSelectedRisksById((current) => {
+      const next = { ...current };
+      if (!checked) {
+        riskFactorIds.forEach((riskFactorId) => delete next[riskFactorId]);
+        return next;
+      }
+      data?.items
+        .filter((item) => riskFactorIds.includes(item.riskFactorId))
+        .forEach((risk) => {
+          next[risk.riskFactorId] = risk;
+        });
+      return next;
+    });
+  };
 
   return (
     <Box display="flex" flexDirection="column" gap={2}>
@@ -148,9 +193,23 @@ export const ExamRiskRuleCoverageGapsPanel: FC = () => {
             }
             label="Somente riscos PCMSO"
           />
-          <Button variant="outlined" disabled title="Próxima fase">
-            Criar regra / analisar com IA — próxima fase
+          <Button
+            variant="contained"
+            disabled={selectedRisks.length === 0}
+            onClick={() => {
+              if (selectedRisks.length > 0) setRiskToExamAssistantOpen(true);
+            }}
+          >
+            Sugerir exames com IA
           </Button>
+          {selectedRisks.length > 0 && (
+            <Button
+              variant="text"
+              onClick={() => setSelectedRisksById({})}
+            >
+              Limpar seleção ({selectedRisks.length})
+            </Button>
+          )}
         </Box>
 
         <ExamRiskRuleCoverageGapsTable
@@ -164,8 +223,17 @@ export const ExamRiskRuleCoverageGapsPanel: FC = () => {
           setPage={setPage}
           pageSizeOptions={pageSizeOptions}
           onPageSizeChange={onPageSizeChange}
+          selectedRiskIds={selectedRiskIds}
+          onToggleRisk={handleToggleRisk}
+          onTogglePage={handleTogglePage}
         />
       </Paper>
+
+      <ExamRiskRuleRiskToExamAiAssistantDialog
+        open={riskToExamAssistantOpen}
+        onClose={() => setRiskToExamAssistantOpen(false)}
+        selectedRisks={selectedRisks}
+      />
     </Box>
   );
 };

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { Box, Chip, Tooltip, Typography } from '@mui/material';
+import { Box, Checkbox, Chip, Tooltip, Typography } from '@mui/material';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '@v2/components/organisms/STable/addons/addons-table/STablePagination/STablePagination';
 import { STable } from '@v2/components/organisms/STable/common/STable/STable';
@@ -26,6 +26,9 @@ type Props = {
   setPage: (page: number) => void;
   pageSizeOptions: number[];
   onPageSizeChange: (size: number) => void;
+  selectedRiskIds?: string[];
+  onToggleRisk?: (riskFactorId: string, checked: boolean) => void;
+  onTogglePage?: (riskFactorIds: string[], checked: boolean) => void;
 };
 
 const MultiLineCell: FC<{ text: string; tooltipMinLength?: number }> = ({
@@ -42,8 +45,39 @@ export const ExamRiskRuleCoverageGapsTable: FC<Props> = ({
   setPage,
   pageSizeOptions,
   onPageSizeChange,
+  selectedRiskIds = [],
+  onToggleRisk,
+  onTogglePage,
 }) => {
+  const pageRiskIds = data.map((item) => item.riskFactorId);
+  const selectedOnPageCount = pageRiskIds.filter((id) =>
+    selectedRiskIds.includes(id),
+  ).length;
+  const allPageSelected =
+    pageRiskIds.length > 0 && selectedOnPageCount === pageRiskIds.length;
+
   const tableData: ITableData<IExamRiskRuleCoverageGapItem>[] = [
+    {
+      column: '54px',
+      header: (
+        <Checkbox
+          size="small"
+          checked={allPageSelected}
+          indeterminate={selectedOnPageCount > 0 && !allPageSelected}
+          disabled={!pageRiskIds.length || !onTogglePage}
+          onChange={(event) => onTogglePage?.(pageRiskIds, event.target.checked)}
+        />
+      ),
+      row: (item) => (
+        <Checkbox
+          size="small"
+          checked={selectedRiskIds.includes(item.riskFactorId)}
+          onChange={(event) =>
+            onToggleRisk?.(item.riskFactorId, event.target.checked)
+          }
+        />
+      ),
+    },
     {
       column: 'minmax(220px, 1.2fr)',
       header: <STableHRow>Fator de risco</STableHRow>,
