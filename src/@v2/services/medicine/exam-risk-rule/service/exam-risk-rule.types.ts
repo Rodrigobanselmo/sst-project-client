@@ -69,6 +69,7 @@ export interface IExamRiskRuleExam {
   toAge: number | null;
   minRiskDegree: number | null;
   minRiskDegreeQuantity: number | null;
+  quantitativeLimitApplicable?: boolean;
   collectionToleranceDays: number | null;
   collectionMoment: string | null;
 }
@@ -94,6 +95,7 @@ export interface IExamRiskRule {
   linkedRiskFactorId?: string | null;
   riskFactorDisplayName?: string | null;
   normativeOriginLabel?: string | null;
+  quantitativeLimitApplicable?: boolean;
   /** Read-model: rótulo e origem da coluna Fonte (browse enriquecido). */
   sourceDisplayLabel?: string | null;
   sourceOriginType?:
@@ -219,6 +221,7 @@ export interface IExamRiskRuleRiskCandidate {
   name: string;
   type: ExamRiskRuleCategoryEnum;
   cas: string | null;
+  quantitativeLimitApplicable: boolean;
 }
 
 export interface IExamRiskRuleExamCandidate {

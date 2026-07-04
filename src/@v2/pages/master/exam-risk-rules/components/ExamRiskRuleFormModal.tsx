@@ -16,6 +16,7 @@ import {
   MenuItem,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import {
@@ -86,6 +87,10 @@ const riskDegreeOptions = [
   { value: 5, label: 'Muito alto' },
 ];
 
+const QUANTITATIVE_NOT_APPLICABLE = 'NOT_APPLICABLE';
+const quantitativeNotApplicableMessage =
+  'Este fator de risco não possui limite de tolerância cadastrado; portanto, critério quantitativo não se aplica.';
+
 const normalizeRiskDegree = (value?: number | null): number | null =>
   value != null && value >= 1 && value <= 5 ? value : null;
 
@@ -123,6 +128,8 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
   const [riskSubTypeId, setRiskSubTypeId] = useState<string>('');
   const [agentCas, setAgentCas] = useState('');
   const [agentName, setAgentName] = useState('');
+  const [quantitativeLimitApplicable, setQuantitativeLimitApplicable] =
+    useState(false);
 
   const [exams, setExams] = useState<ExamDraft[]>([]);
 
@@ -155,6 +162,9 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
       setRiskSubTypeId(rule.riskSubTypeId ? String(rule.riskSubTypeId) : '');
       setAgentCas(rule.agentCas ?? '');
       setAgentName(rule.agentName ?? '');
+      setQuantitativeLimitApplicable(
+        Boolean(rule.quantitativeLimitApplicable),
+      );
       setExams(
         (rule.exams ?? []).map((exam) => ({
           ...exam,
@@ -187,6 +197,7 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
       setRiskSubTypeId('');
       setAgentCas('');
       setAgentName('');
+      setQuantitativeLimitApplicable(false);
       setExams([]);
     }
   }, [open, rule]);
@@ -197,12 +208,17 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
       .map((risk) => ({
         id: risk.id,
         label: risk.cas ? `${risk.name} (${risk.cas})` : risk.name,
+        quantitativeLimitApplicable: risk.quantitativeLimitApplicable,
       }));
     if (riskFactorId) {
-      options.unshift({ id: riskFactorId, label: riskName ?? riskFactorId });
+      options.unshift({
+        id: riskFactorId,
+        label: riskName ?? riskFactorId,
+        quantitativeLimitApplicable,
+      });
     }
     return options;
-  }, [riskCandidates, riskFactorId, riskName]);
+  }, [riskCandidates, riskFactorId, riskName, quantitativeLimitApplicable]);
 
   const updateExam = (key: string, patch: Partial<ExamDraft>) => {
     setExams((prev) =>
@@ -229,7 +245,12 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
       scope === ExamRiskRuleScopeEnum.AGENT
         ? agentName.trim() || null
         : null,
-    exams: exams.map(({ _key, ...rest }) => rest),
+    exams: exams.map(({ _key, ...rest }) => ({
+      ...rest,
+      minRiskDegreeQuantity: quantitativeLimitApplicable
+        ? rest.minRiskDegreeQuantity
+        : null,
+    })),
   });
 
   const handleSubmit = () => {
@@ -256,9 +277,13 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
               select
               label="Escopo"
               value={scope}
-              onChange={(event) =>
-                setScope(event.target.value as ExamRiskRuleScopeEnum)
-              }
+              onChange={(event) => {
+                const nextScope = event.target.value as ExamRiskRuleScopeEnum;
+                setScope(nextScope);
+                if (nextScope !== ExamRiskRuleScopeEnum.RISK) {
+                  setQuantitativeLimitApplicable(false);
+                }
+              }}
               sx={{ minWidth: 200 }}
             >
               {Object.values(ExamRiskRuleScopeEnum).map((value) => (
@@ -315,6 +340,17 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
               onChange={(_, option) => {
                 setRiskFactorId(option?.id ?? null);
                 setRiskName(option?.label ?? null);
+                setQuantitativeLimitApplicable(
+                  Boolean(option?.quantitativeLimitApplicable),
+                );
+                if (!option?.quantitativeLimitApplicable) {
+                  setExams((prev) =>
+                    prev.map((exam) => ({
+                      ...exam,
+                      minRiskDegreeQuantity: null,
+                    })),
+                  );
+                }
               }}
               onInputChange={(_, value, reason) => {
                 if (reason === 'input') setRiskSearch(value);
@@ -585,27 +621,57 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                       </MenuItem>
                     ))}
                   </TextField>
-                  <TextField
-                    select
-                    label="Quantitativo mín."
-                    size="small"
-                    value={exam.minRiskDegreeQuantity ?? ''}
-                    onChange={(event) =>
-                      updateExam(exam._key, {
-                        minRiskDegreeQuantity: toRiskDegreeOrNull(
-                          event.target.value,
-                        ),
-                      })
+                  <Tooltip
+                    title={
+                      quantitativeLimitApplicable
+                        ? ''
+                        : quantitativeNotApplicableMessage
                     }
-                    sx={{ width: 160 }}
                   >
-                    <MenuItem value="">Não informado</MenuItem>
-                    {riskDegreeOptions.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    <span>
+                      <TextField
+                        select
+                        disabled={!quantitativeLimitApplicable}
+                        label="Quantitativo mín."
+                        size="small"
+                        value={
+                          quantitativeLimitApplicable
+                            ? exam.minRiskDegreeQuantity ?? ''
+                            : QUANTITATIVE_NOT_APPLICABLE
+                        }
+                        onChange={(event) =>
+                          updateExam(exam._key, {
+                            minRiskDegreeQuantity: toRiskDegreeOrNull(
+                              event.target.value,
+                            ),
+                          })
+                        }
+                        helperText={
+                          quantitativeLimitApplicable
+                            ? undefined
+                            : 'Não aplicável'
+                        }
+                        sx={{ width: 180 }}
+                      >
+                        {quantitativeLimitApplicable ? (
+                          [
+                            <MenuItem key="empty" value="">
+                              Não informado
+                            </MenuItem>,
+                            ...riskDegreeOptions.map((option) => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            )),
+                          ]
+                        ) : (
+                          <MenuItem value={QUANTITATIVE_NOT_APPLICABLE}>
+                            Não aplicável
+                          </MenuItem>
+                        )}
+                      </TextField>
+                    </span>
+                  </Tooltip>
                 </Box>
               </Box>
             );
