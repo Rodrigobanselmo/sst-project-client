@@ -5,6 +5,7 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
   Chip,
   Dialog,
   DialogActions,
@@ -26,6 +27,7 @@ import {
 import { useFetchExamRiskRuleRiskToExamAiPresets } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleRiskToExamAiPresets';
 import {
   useMutateCreateExamRiskRuleRiskToExamAiPreset,
+  useMutateCreateExamRiskRuleRiskToExamAiDrafts,
   useMutateDeleteExamRiskRuleRiskToExamAiPreset,
   useMutateDryRunExamRiskRuleRiskToExamAiSuggestions,
   useMutateUpdateExamRiskRuleRiskToExamAiPreset,
@@ -35,6 +37,7 @@ import type {
   ExamRiskRuleRiskToExamAiAnalysisStatus,
   ExamRiskRuleRiskToExamAiCandidateCompatibility,
   ExamRiskRuleRiskToExamAiDecision,
+  ICreateExamRiskRuleRiskToExamAiDraftsResponse,
   ICreateExamRiskRuleRiskToExamAiPresetPayload,
   IExamRiskRuleRiskToExamAiPreset,
   IExamRiskRuleRiskToExamAiSuggestion,
@@ -110,6 +113,30 @@ const candidateCompatibilityColors: Record<
 
 const presetLabel = (preset: IExamRiskRuleRiskToExamAiPreset) => preset.name;
 
+const suggestionKey = (riskFactorId: string, examId: number) =>
+  `${riskFactorId}:${examId}`;
+
+const getSelectionBlockReason = (
+  riskFactorId: string,
+  suggestion: IExamRiskRuleRiskToExamAiSuggestion,
+): string | null => {
+  if (!riskFactorId) return 'Risco inválido.';
+  if (!suggestion.examId) return 'Exame inválido.';
+  if (suggestion.decision !== 'suggest') {
+    return 'Apenas itens com decisão sugerir podem criar rascunho.';
+  }
+  if (suggestion.analysisStatus !== 'AI_ANALYZED') {
+    return 'Apenas pares retornados pela IA podem criar rascunho.';
+  }
+  if (suggestion.candidateCompatibility === 'LOW_RELEVANCE') {
+    return 'Candidato de baixa relevância não pode ser selecionado.';
+  }
+  if (suggestion.existingRule) {
+    return 'Já existe regra para este risco/exame ou escopo equivalente.';
+  }
+  return null;
+};
+
 export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   open,
   onClose,
@@ -136,8 +163,19 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   const [presetMessage, setPresetMessage] = useState('');
   const [result, setResult] =
     useState<IExamRiskRuleRiskToExamAiSuggestionResponse | null>(null);
+  const [selectedSuggestionKeys, setSelectedSuggestionKeys] = useState<
+    string[]
+  >([]);
+  const [createdDraftsByKey, setCreatedDraftsByKey] = useState<
+    Record<string, { ruleId: string; status: 'DRAFT' }>
+  >({});
+  const [draftCreationResult, setDraftCreationResult] =
+    useState<ICreateExamRiskRuleRiskToExamAiDraftsResponse | null>(null);
+  const [confirmCreateDraftsOpen, setConfirmCreateDraftsOpen] = useState(false);
 
   const dryRunMutation = useMutateDryRunExamRiskRuleRiskToExamAiSuggestions();
+  const createDraftsMutation =
+    useMutateCreateExamRiskRuleRiskToExamAiDrafts();
   const createPresetMutation = useMutateCreateExamRiskRuleRiskToExamAiPreset();
   const updatePresetMutation = useMutateUpdateExamRiskRuleRiskToExamAiPreset();
   const deletePresetMutation = useMutateDeleteExamRiskRuleRiskToExamAiPreset();
@@ -173,6 +211,16 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     if (selectedPreset) byId.set(selectedPreset.id, selectedPreset);
     return Array.from(byId.values());
   }, [presets, selectedPreset]);
+
+  const selectedRows = useMemo(
+    () =>
+      rows.filter(({ riskFactorId, suggestion }) =>
+        selectedSuggestionKeys.includes(
+          suggestionKey(riskFactorId, suggestion.examId),
+        ),
+      ),
+    [rows, selectedSuggestionKeys],
+  );
 
   const buildPresetPayload =
     (): ICreateExamRiskRuleRiskToExamAiPresetPayload => ({
@@ -222,6 +270,9 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     setSessionInstruction(config.aiConfig?.sessionInstruction ?? '');
     setModel(config.aiConfig?.model ?? '');
     setResult(null);
+    setSelectedSuggestionKeys([]);
+    setCreatedDraftsByKey({});
+    setDraftCreationResult(null);
     setPresetMessage(
       'Modelo carregado. Os riscos selecionados não foram alterados e o resultado anterior foi limpo.',
     );
@@ -275,6 +326,50 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     );
   };
 
+  const handleToggleSuggestion = (key: string, checked: boolean) => {
+    setSelectedSuggestionKeys((current) =>
+      checked ? Array.from(new Set([...current, key])) : current.filter((item) => item !== key),
+    );
+  };
+
+  const handleCreateSelectedDrafts = () => {
+    if (!selectedRows.length) return;
+
+    createDraftsMutation.mutate(
+      {
+        context: 'MASTER_LIBRARY',
+        items: selectedRows.map(({ riskFactorId, suggestion }) => ({
+          riskFactorId,
+          examId: suggestion.examId,
+          decision: suggestion.decision,
+          source: suggestion.suggestedSource,
+          rationale: suggestion.rationale,
+          sourceRationale: suggestion.sourceRationale,
+          confidence: suggestion.confidence,
+          aiStatus: suggestion.analysisStatus,
+          preTriageLevel: suggestion.candidateCompatibility,
+        })),
+      },
+      {
+        onSuccess: (response) => {
+          setDraftCreationResult(response);
+          setConfirmCreateDraftsOpen(false);
+          setSelectedSuggestionKeys([]);
+          setCreatedDraftsByKey((current) => {
+            const next = { ...current };
+            response.created.forEach((item) => {
+              next[suggestionKey(item.riskFactorId, item.examId)] = {
+                ruleId: item.ruleId,
+                status: item.status,
+              };
+            });
+            return next;
+          });
+        },
+      },
+    );
+  };
+
   const handleDryRun = () => {
     if (!selectedRiskIds.length) return;
 
@@ -302,7 +397,14 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
           model: model.trim() || undefined,
         },
       },
-      { onSuccess: setResult },
+      {
+        onSuccess: (response) => {
+          setResult(response);
+          setSelectedSuggestionKeys([]);
+          setCreatedDraftsByKey({});
+          setDraftCreationResult(null);
+        },
+      },
     );
   };
 
@@ -312,8 +414,12 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
       <DialogContent dividers>
         <Stack spacing={3}>
           <Alert severity="warning">
-            MVP dry-run: a IA apenas sugere exames. Nenhuma regra ou vínculo
-            será criado.
+            O dry-run apenas sugere exames. A criação só ocorre para itens
+            selecionados e confirmados, sempre como rascunho global.
+          </Alert>
+          <Alert severity="info">
+            Ao criar rascunhos, nenhuma regra será ativada automaticamente. O
+            MASTER deve revisar e ativar manualmente cada regra.
           </Alert>
 
           {selectedRisks.length === 0 ? (
@@ -573,7 +679,7 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
             />
           </Stack>
 
-          <Box>
+          <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
             <Button
               variant="contained"
               onClick={handleDryRun}
@@ -585,7 +691,34 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                 ? 'Rodando dry-run...'
                 : 'Rodar dry-run'}
             </Button>
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={() => setConfirmCreateDraftsOpen(true)}
+              disabled={
+                selectedRows.length === 0 || createDraftsMutation.isPending
+              }
+            >
+              Criar rascunhos selecionados
+            </Button>
+            <Typography variant="body2" color="text.secondary">
+              {selectedRows.length} item(ns) elegível(is) selecionado(s)
+            </Typography>
           </Box>
+
+          {draftCreationResult && (
+            <Alert severity="success">
+              Rascunhos criados: {draftCreationResult.totals.created}. Ignorados:{' '}
+              {draftCreationResult.totals.skipped}. Duplicados:{' '}
+              {draftCreationResult.totals.duplicates}. Inválidos:{' '}
+              {draftCreationResult.totals.invalid}.
+              {draftCreationResult.warnings.map((warning) => (
+                <Typography key={warning} variant="body2">
+                  {warning}
+                </Typography>
+              ))}
+            </Alert>
+          )}
 
           {result && (
             <Stack spacing={2}>
@@ -611,6 +744,7 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                 <Table stickyHeader size="small">
                   <TableHead>
                     <TableRow>
+                      <TableCell>Selecionar</TableCell>
                       <TableCell>Risco</TableCell>
                       <TableCell>Exame sugerido</TableCell>
                       <TableCell>Decisão</TableCell>
@@ -625,7 +759,7 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                   <TableBody>
                     {rows.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9}>
+                        <TableCell colSpan={10}>
                           Nenhuma sugestão retornada para os filtros atuais.
                         </TableCell>
                       </TableRow>
@@ -633,8 +767,16 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                       rows.map(({ riskFactorId, riskName, suggestion }) => (
                         <ResultRow
                           key={`${riskFactorId}-${suggestion.examId}`}
+                          riskFactorId={riskFactorId}
                           riskName={riskName}
                           suggestion={suggestion}
+                          selected={selectedSuggestionKeys.includes(
+                            suggestionKey(riskFactorId, suggestion.examId),
+                          )}
+                          createdDraft={createdDraftsByKey[
+                            suggestionKey(riskFactorId, suggestion.examId)
+                          ]}
+                          onToggle={handleToggleSuggestion}
                         />
                       ))
                     )}
@@ -645,6 +787,36 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
           )}
         </Stack>
       </DialogContent>
+      <Dialog open={confirmCreateDraftsOpen} onClose={() => setConfirmCreateDraftsOpen(false)}>
+        <DialogTitle>Confirmar criação de rascunhos</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            <Alert severity="warning">
+              Serão criadas regras globais em rascunho. Nenhuma regra será
+              ativada automaticamente.
+            </Alert>
+            <Typography>
+              Itens selecionados: {selectedRows.length}. O MASTER deve revisar e
+              ativar manualmente cada regra.
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmCreateDraftsOpen(false)}>
+            Cancelar
+          </Button>
+          <Button
+            color="warning"
+            variant="contained"
+            onClick={handleCreateSelectedDrafts}
+            disabled={!selectedRows.length || createDraftsMutation.isPending}
+          >
+            {createDraftsMutation.isPending
+              ? 'Criando rascunhos...'
+              : 'Criar rascunhos'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <DialogActions>
         <Button onClick={onClose}>Fechar</Button>
       </DialogActions>
@@ -653,15 +825,43 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
 };
 
 const ResultRow: FC<{
+  riskFactorId: string;
   riskName: string;
   suggestion: IExamRiskRuleRiskToExamAiSuggestion;
-}> = ({ riskName, suggestion }) => {
+  selected: boolean;
+  createdDraft?: { ruleId: string; status: 'DRAFT' };
+  onToggle: (key: string, checked: boolean) => void;
+}> = ({
+  riskFactorId,
+  riskName,
+  suggestion,
+  selected,
+  createdDraft,
+  onToggle,
+}) => {
   const analysisStatus = suggestion.analysisStatus ?? 'AI_ANALYZED';
   const candidateCompatibility =
     suggestion.candidateCompatibility ?? 'UNASSESSED';
+  const key = suggestionKey(riskFactorId, suggestion.examId);
+  const blockReason = createdDraft
+    ? 'Rascunho já criado nesta sessão.'
+    : getSelectionBlockReason(riskFactorId, suggestion);
+  const canSelect = !blockReason;
 
   return (
     <TableRow>
+      <TableCell>
+        <Checkbox
+          checked={selected}
+          disabled={!canSelect}
+          onChange={(event) => onToggle(key, event.target.checked)}
+        />
+        {blockReason && (
+          <Typography variant="caption" color="text.secondary" display="block">
+            {blockReason}
+          </Typography>
+        )}
+      </TableCell>
       <TableCell>{riskName}</TableCell>
       <TableCell>
         <Typography variant="body2">{suggestion.examName}</Typography>
@@ -712,7 +912,14 @@ const ResultRow: FC<{
         </Typography>
       </TableCell>
       <TableCell>
-        {suggestion.existingRule ? (
+        {createdDraft ? (
+          <Box>
+            <Chip size="small" color="warning" label="Rascunho criado" />
+            <Typography variant="caption" color="text.secondary" display="block">
+              DRAFT · {createdDraft.ruleId}
+            </Typography>
+          </Box>
+        ) : suggestion.existingRule ? (
           <Typography variant="body2">
             {suggestion.existingRule.scope} · {suggestion.existingRule.status} ·{' '}
             {suggestion.existingRule.matchedBy}

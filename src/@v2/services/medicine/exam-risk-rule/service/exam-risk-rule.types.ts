@@ -491,6 +491,45 @@ export interface ICreateExamRiskRuleRiskToExamAiPresetPayload {
 export type IUpdateExamRiskRuleRiskToExamAiPresetPayload =
   Partial<ICreateExamRiskRuleRiskToExamAiPresetPayload>;
 
+export interface ICreateExamRiskRuleRiskToExamAiDraftsPayload {
+  context: 'MASTER_LIBRARY';
+  items: {
+    riskFactorId: string;
+    examId: number;
+    decision: ExamRiskRuleRiskToExamAiDecision;
+    source: ExamRiskRuleSourceEnum;
+    rationale: string;
+    sourceRationale?: string;
+    confidence?: number;
+    aiStatus?: ExamRiskRuleRiskToExamAiAnalysisStatus;
+    preTriageLevel?: ExamRiskRuleRiskToExamAiCandidateCompatibility;
+  }[];
+}
+
+export interface ICreateExamRiskRuleRiskToExamAiDraftsResponse {
+  created: {
+    riskFactorId: string;
+    examId: number;
+    ruleId: string;
+    status: 'DRAFT';
+    source: ExamRiskRuleSourceEnum;
+  }[];
+  skipped: {
+    riskFactorId: string | null;
+    examId: number | null;
+    reason: string;
+    category: 'duplicate' | 'invalid' | 'skipped';
+  }[];
+  totals: {
+    requested: number;
+    created: number;
+    skipped: number;
+    duplicates: number;
+    invalid: number;
+  };
+  warnings: string[];
+}
+
 export interface ICreateExamRiskRuleAiDraftsPayload {
   sourceContext: IExamRiskRuleAiSuggestionResponse['sourceContext'] & {
     examId: number;

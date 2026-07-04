@@ -20,6 +20,8 @@ import type {
   IBrowseExamRiskRuleRiskToExamAiPresetsParams,
   ICreateExamRiskRuleRiskToExamAiPresetPayload,
   IUpdateExamRiskRuleRiskToExamAiPresetPayload,
+  ICreateExamRiskRuleRiskToExamAiDraftsPayload,
+  ICreateExamRiskRuleRiskToExamAiDraftsResponse,
   ICreateExamRiskRuleAiDraftsPayload,
   ICreateExamRiskRuleAiDraftsResponse,
   IExamRiskRuleAiPreset,
@@ -195,6 +197,17 @@ export async function deleteExamRiskRuleRiskToExamAiPreset(
       presetId,
     ),
   );
+}
+
+export async function createExamRiskRuleRiskToExamAiDrafts(
+  payload: ICreateExamRiskRuleRiskToExamAiDraftsPayload,
+): Promise<ICreateExamRiskRuleRiskToExamAiDraftsResponse> {
+  const response =
+    await api.post<ICreateExamRiskRuleRiskToExamAiDraftsResponse>(
+      ExamRiskRuleRoutes.AI_SUGGESTIONS_RISK_TO_EXAMS_CREATE_DRAFTS,
+      payload,
+    );
+  return response.data;
 }
 
 export async function createExamRiskRuleAiDrafts(
