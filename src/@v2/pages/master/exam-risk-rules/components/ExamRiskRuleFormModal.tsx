@@ -88,6 +88,7 @@ const riskDegreeOptions = [
 ];
 
 const QUANTITATIVE_NOT_APPLICABLE = 'NOT_APPLICABLE';
+const RISK_DEGREE_NOT_INFORMED = '';
 const quantitativeNotApplicableMessage =
   'Este fator de risco não possui limite de tolerância cadastrado; portanto, critério quantitativo não se aplica.';
 
@@ -97,6 +98,25 @@ const normalizeRiskDegree = (value?: number | null): number | null =>
 const toRiskDegreeOrNull = (
   value: string | number | null | undefined,
 ): number | null => normalizeRiskDegree(toNumberOrNull(value));
+
+const toRiskDegreeSelectValue = (value?: number | null): string =>
+  value == null ? RISK_DEGREE_NOT_INFORMED : String(value);
+
+const renderRiskDegreeSelectValue = (selected: unknown): string => {
+  if (selected === RISK_DEGREE_NOT_INFORMED || selected == null) {
+    return 'Não informado';
+  }
+
+  const option = riskDegreeOptions.find(
+    (item) => String(item.value) === String(selected),
+  );
+  return option?.label ?? 'Não informado';
+};
+
+const riskDegreeSelectProps = {
+  displayEmpty: true,
+  renderValue: renderRiskDegreeSelectValue,
+} as const;
 
 const hasExamApplicability = (exam: IExamRiskRule['exams'][number]) =>
   Boolean(
@@ -670,17 +690,23 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                     select
                     label="Qualitativo mín."
                     size="small"
-                    value={exam.minRiskDegree ?? ''}
+                    value={toRiskDegreeSelectValue(exam.minRiskDegree)}
                     onChange={(event) =>
                       updateExam(exam._key, {
                         minRiskDegree: toRiskDegreeOrNull(event.target.value),
                       })
                     }
+                    SelectProps={riskDegreeSelectProps}
                     sx={{ width: 150 }}
                   >
-                    <MenuItem value="">Não informado</MenuItem>
+                    <MenuItem value={RISK_DEGREE_NOT_INFORMED}>
+                      Não informado
+                    </MenuItem>
                     {riskDegreeOptions.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
+                      <MenuItem
+                        key={option.value}
+                        value={String(option.value)}
+                      >
                         {option.label}
                       </MenuItem>
                     ))}
@@ -700,7 +726,9 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                         size="small"
                         value={
                           quantitativeLimitApplicable
-                            ? exam.minRiskDegreeQuantity ?? ''
+                            ? toRiskDegreeSelectValue(
+                                exam.minRiskDegreeQuantity,
+                              )
                             : QUANTITATIVE_NOT_APPLICABLE
                         }
                         onChange={(event) =>
@@ -709,6 +737,11 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                               event.target.value,
                             ),
                           })
+                        }
+                        SelectProps={
+                          quantitativeLimitApplicable
+                            ? riskDegreeSelectProps
+                            : undefined
                         }
                         helperText={
                           quantitativeLimitApplicable
@@ -719,11 +752,17 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                       >
                         {quantitativeLimitApplicable ? (
                           [
-                            <MenuItem key="empty" value="">
+                            <MenuItem
+                              key="empty"
+                              value={RISK_DEGREE_NOT_INFORMED}
+                            >
                               Não informado
                             </MenuItem>,
                             ...riskDegreeOptions.map((option) => (
-                              <MenuItem key={option.value} value={option.value}>
+                              <MenuItem
+                                key={option.value}
+                                value={String(option.value)}
+                              >
                                 {option.label}
                               </MenuItem>
                             )),
