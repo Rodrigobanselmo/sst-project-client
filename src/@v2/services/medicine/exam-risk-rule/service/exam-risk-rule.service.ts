@@ -16,6 +16,10 @@ import type {
   IExamRiskRuleAiSuggestionResponse,
   IExamRiskRuleRiskToExamAiSuggestionRequest,
   IExamRiskRuleRiskToExamAiSuggestionResponse,
+  IExamRiskRuleRiskToExamAiPreset,
+  IBrowseExamRiskRuleRiskToExamAiPresetsParams,
+  ICreateExamRiskRuleRiskToExamAiPresetPayload,
+  IUpdateExamRiskRuleRiskToExamAiPresetPayload,
   ICreateExamRiskRuleAiDraftsPayload,
   ICreateExamRiskRuleAiDraftsResponse,
   IExamRiskRuleAiPreset,
@@ -148,6 +152,51 @@ export async function dryRunExamRiskRuleRiskToExamAiSuggestions(
   return response.data;
 }
 
+export async function browseExamRiskRuleRiskToExamAiPresets(
+  params: IBrowseExamRiskRuleRiskToExamAiPresetsParams = {},
+): Promise<IExamRiskRuleRiskToExamAiPreset[]> {
+  const response = await api.get<IExamRiskRuleRiskToExamAiPreset[]>(
+    ExamRiskRuleRoutes.AI_SUGGESTIONS_RISK_TO_EXAMS_PRESETS,
+    { params },
+  );
+  return response.data;
+}
+
+export async function createExamRiskRuleRiskToExamAiPreset(
+  payload: ICreateExamRiskRuleRiskToExamAiPresetPayload,
+): Promise<IExamRiskRuleRiskToExamAiPreset> {
+  const response = await api.post<IExamRiskRuleRiskToExamAiPreset>(
+    ExamRiskRuleRoutes.AI_SUGGESTIONS_RISK_TO_EXAMS_PRESETS,
+    payload,
+  );
+  return response.data;
+}
+
+export async function updateExamRiskRuleRiskToExamAiPreset(params: {
+  presetId: string;
+  payload: IUpdateExamRiskRuleRiskToExamAiPresetPayload;
+}): Promise<IExamRiskRuleRiskToExamAiPreset> {
+  const response = await api.patch<IExamRiskRuleRiskToExamAiPreset>(
+    ExamRiskRuleRoutes.AI_SUGGESTIONS_RISK_TO_EXAMS_PRESET_BY_ID.replace(
+      ':presetId',
+      params.presetId,
+    ),
+    params.payload,
+  );
+  return response.data;
+}
+
+export async function deleteExamRiskRuleRiskToExamAiPreset(
+  presetId: string,
+): Promise<void> {
+  await api.delete(
+    ExamRiskRuleRoutes.AI_SUGGESTIONS_RISK_TO_EXAMS_PRESET_BY_ID.replace(
+      ':presetId',
+      presetId,
+    ),
+  );
+}
+
 export async function createExamRiskRuleAiDrafts(
   payload: ICreateExamRiskRuleAiDraftsPayload,
 ): Promise<ICreateExamRiskRuleAiDraftsResponse> {
@@ -204,7 +253,9 @@ export async function updateExamRiskRuleAiPreset(params: {
   return response.data;
 }
 
-export async function deleteExamRiskRuleAiPreset(presetId: string): Promise<void> {
+export async function deleteExamRiskRuleAiPreset(
+  presetId: string,
+): Promise<void> {
   await api.delete(
     ExamRiskRuleRoutes.AI_SUGGESTION_PRESET_BY_ID.replace(
       ':presetId',

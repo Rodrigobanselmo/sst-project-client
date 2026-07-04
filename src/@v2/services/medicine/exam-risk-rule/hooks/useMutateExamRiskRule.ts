@@ -4,8 +4,10 @@ import { useMutate } from '@v2/hooks/api/useMutate';
 import {
   createExamRiskRuleAiDrafts,
   createExamRiskRuleAiPreset,
+  createExamRiskRuleRiskToExamAiPreset,
   createExamRiskRule,
   deleteExamRiskRuleAiPreset,
+  deleteExamRiskRuleRiskToExamAiPreset,
   deleteExamRiskRule,
   deleteExamRiskRuleReference,
   dryRunExamRiskRuleAiSuggestions,
@@ -13,6 +15,7 @@ import {
   syncExamRiskRulesNr07,
   syncExamRiskRulesAcgihBei,
   updateExamRiskRuleAiPreset,
+  updateExamRiskRuleRiskToExamAiPreset,
   updateExamRiskRule,
   updateExamRiskRuleStatus,
 } from '../service/exam-risk-rule.service';
@@ -20,6 +23,9 @@ import { examRiskRuleQueryKeys } from './exam-risk-rule.query-keys';
 
 const invalidate = () => [examRiskRuleQueryKeys.all()];
 const invalidateAiPresets = () => [examRiskRuleQueryKeys.aiPresetsRoot()];
+const invalidateRiskToExamAiPresets = () => [
+  examRiskRuleQueryKeys.riskToExamAiPresetsRoot(),
+];
 
 export const useMutateCreateExamRiskRule = () => {
   const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
@@ -143,6 +149,37 @@ export const useMutateDeleteExamRiskRuleAiPreset = () => {
     mutationFn: ({ presetId }: { presetId: string }) =>
       deleteExamRiskRuleAiPreset(presetId),
     invalidateManyQueryKeys: invalidateAiPresets,
+    onSuccess: () => onSuccessMessage('Modelo inativado'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateCreateExamRiskRuleRiskToExamAiPreset = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: createExamRiskRuleRiskToExamAiPreset,
+    invalidateManyQueryKeys: invalidateRiskToExamAiPresets,
+    onSuccess: () => onSuccessMessage('Modelo salvo'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateUpdateExamRiskRuleRiskToExamAiPreset = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: updateExamRiskRuleRiskToExamAiPreset,
+    invalidateManyQueryKeys: invalidateRiskToExamAiPresets,
+    onSuccess: () => onSuccessMessage('Modelo atualizado'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateDeleteExamRiskRuleRiskToExamAiPreset = () => {
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: ({ presetId }: { presetId: string }) =>
+      deleteExamRiskRuleRiskToExamAiPreset(presetId),
+    invalidateManyQueryKeys: invalidateRiskToExamAiPresets,
     onSuccess: () => onSuccessMessage('Modelo inativado'),
     onError: onErrorMessage,
   });

@@ -441,6 +441,56 @@ export interface IExamRiskRuleRiskToExamAiSuggestionResponse {
   promptPreview?: string;
 }
 
+export interface IExamRiskRuleRiskToExamAiPresetConfig {
+  examFilters?: {
+    search?: string | null;
+    examType?: string | null;
+    onlyESocial?: boolean;
+    limit?: number;
+  };
+  options?: {
+    includeExistingRules?: boolean;
+    includeIndirectCoverage?: boolean;
+    onlyWithoutExamCoverage?: boolean;
+  };
+  aiConfig?: {
+    instructions?: string | null;
+    positiveExamples?: string | null;
+    negativeExamples?: string | null;
+    cautionRules?: string | null;
+    sessionInstruction?: string | null;
+    model?: string | null;
+  };
+}
+
+export interface IExamRiskRuleRiskToExamAiPreset {
+  id: string;
+  name: string;
+  description: string | null;
+  config: IExamRiskRuleRiskToExamAiPresetConfig;
+  status: ExamRiskRuleAiAssistantPresetStatusEnum;
+  createdById: number | null;
+  updatedById: number | null;
+  deletedById: number | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface IBrowseExamRiskRuleRiskToExamAiPresetsParams {
+  search?: string;
+  includeInactive?: boolean;
+}
+
+export interface ICreateExamRiskRuleRiskToExamAiPresetPayload {
+  name: string;
+  description?: string | null;
+  config: IExamRiskRuleRiskToExamAiPresetConfig;
+}
+
+export type IUpdateExamRiskRuleRiskToExamAiPresetPayload =
+  Partial<ICreateExamRiskRuleRiskToExamAiPresetPayload>;
+
 export interface ICreateExamRiskRuleAiDraftsPayload {
   sourceContext: IExamRiskRuleAiSuggestionResponse['sourceContext'] & {
     examId: number;

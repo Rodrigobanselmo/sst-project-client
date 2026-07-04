@@ -2,6 +2,7 @@ import { FC, useMemo, useState } from 'react';
 
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Chip,
@@ -22,12 +23,20 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useMutateDryRunExamRiskRuleRiskToExamAiSuggestions } from '@v2/services/medicine/exam-risk-rule/hooks/useMutateExamRiskRule';
+import { useFetchExamRiskRuleRiskToExamAiPresets } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleRiskToExamAiPresets';
+import {
+  useMutateCreateExamRiskRuleRiskToExamAiPreset,
+  useMutateDeleteExamRiskRuleRiskToExamAiPreset,
+  useMutateDryRunExamRiskRuleRiskToExamAiSuggestions,
+  useMutateUpdateExamRiskRuleRiskToExamAiPreset,
+} from '@v2/services/medicine/exam-risk-rule/hooks/useMutateExamRiskRule';
 import type { IExamRiskRuleCoverageGapItem } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule-coverage-gaps.types';
 import type {
   ExamRiskRuleRiskToExamAiAnalysisStatus,
   ExamRiskRuleRiskToExamAiCandidateCompatibility,
   ExamRiskRuleRiskToExamAiDecision,
+  ICreateExamRiskRuleRiskToExamAiPresetPayload,
+  IExamRiskRuleRiskToExamAiPreset,
   IExamRiskRuleRiskToExamAiSuggestion,
   IExamRiskRuleRiskToExamAiSuggestionResponse,
 } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
@@ -99,6 +108,8 @@ const candidateCompatibilityColors: Record<
   UNASSESSED: 'default',
 };
 
+const presetLabel = (preset: IExamRiskRuleRiskToExamAiPreset) => preset.name;
+
 export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   open,
   onClose,
@@ -117,10 +128,27 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   const [cautionRules, setCautionRules] = useState('');
   const [sessionInstruction, setSessionInstruction] = useState('');
   const [model, setModel] = useState('');
+  const [presetSearch, setPresetSearch] = useState('');
+  const [presetName, setPresetName] = useState('');
+  const [presetDescription, setPresetDescription] = useState('');
+  const [selectedPreset, setSelectedPreset] =
+    useState<IExamRiskRuleRiskToExamAiPreset | null>(null);
+  const [presetMessage, setPresetMessage] = useState('');
   const [result, setResult] =
     useState<IExamRiskRuleRiskToExamAiSuggestionResponse | null>(null);
 
   const dryRunMutation = useMutateDryRunExamRiskRuleRiskToExamAiSuggestions();
+  const createPresetMutation = useMutateCreateExamRiskRuleRiskToExamAiPreset();
+  const updatePresetMutation = useMutateUpdateExamRiskRuleRiskToExamAiPreset();
+  const deletePresetMutation = useMutateDeleteExamRiskRuleRiskToExamAiPreset();
+  const {
+    data: presets = [],
+    isLoading: isLoadingPresets,
+    refetch: refetchPresets,
+  } = useFetchExamRiskRuleRiskToExamAiPresets(
+    { search: presetSearch.trim() || undefined },
+    open,
+  );
 
   const selectedRiskIds = useMemo(
     () => selectedRisks.map((risk) => risk.riskFactorId),
@@ -138,6 +166,114 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
       ) ?? [],
     [result],
   );
+
+  const presetOptions = useMemo(() => {
+    const byId = new Map<string, IExamRiskRuleRiskToExamAiPreset>();
+    presets.forEach((preset) => byId.set(preset.id, preset));
+    if (selectedPreset) byId.set(selectedPreset.id, selectedPreset);
+    return Array.from(byId.values());
+  }, [presets, selectedPreset]);
+
+  const buildPresetPayload =
+    (): ICreateExamRiskRuleRiskToExamAiPresetPayload => ({
+      name: presetName.trim(),
+      description: presetDescription.trim() || null,
+      config: {
+        examFilters: {
+          search: examSearch.trim() || null,
+          examType: examType || null,
+          onlyESocial,
+          limit,
+        },
+        options: {
+          includeExistingRules,
+          includeIndirectCoverage,
+          onlyWithoutExamCoverage,
+        },
+        aiConfig: {
+          instructions: instructions.trim() || null,
+          positiveExamples: positiveExamples.trim() || null,
+          negativeExamples: negativeExamples.trim() || null,
+          cautionRules: cautionRules.trim() || null,
+          sessionInstruction: sessionInstruction.trim() || null,
+          model: model.trim() || null,
+        },
+      },
+    });
+
+  const applyPreset = (preset: IExamRiskRuleRiskToExamAiPreset) => {
+    const { config } = preset;
+    setSelectedPreset(preset);
+    setPresetName(preset.name);
+    setPresetDescription(preset.description ?? '');
+    setExamSearch(config.examFilters?.search ?? '');
+    setExamType(config.examFilters?.examType ?? '');
+    setOnlyESocial(config.examFilters?.onlyESocial ?? false);
+    setLimit(config.examFilters?.limit ?? 30);
+    setIncludeExistingRules(config.options?.includeExistingRules ?? true);
+    setIncludeIndirectCoverage(config.options?.includeIndirectCoverage ?? true);
+    setOnlyWithoutExamCoverage(
+      config.options?.onlyWithoutExamCoverage ?? false,
+    );
+    setInstructions(config.aiConfig?.instructions ?? '');
+    setPositiveExamples(config.aiConfig?.positiveExamples ?? '');
+    setNegativeExamples(config.aiConfig?.negativeExamples ?? '');
+    setCautionRules(config.aiConfig?.cautionRules ?? '');
+    setSessionInstruction(config.aiConfig?.sessionInstruction ?? '');
+    setModel(config.aiConfig?.model ?? '');
+    setResult(null);
+    setPresetMessage(
+      'Modelo carregado. Os riscos selecionados não foram alterados e o resultado anterior foi limpo.',
+    );
+  };
+
+  const handleSaveNewPreset = () => {
+    if (!presetName.trim()) {
+      setPresetMessage('Informe um nome para salvar o modelo.');
+      return;
+    }
+    createPresetMutation.mutate(buildPresetPayload(), {
+      onSuccess: (preset) => {
+        setSelectedPreset(preset);
+        setPresetMessage(
+          'Modelo salvo. Ele não inclui riscos selecionados nem resultados.',
+        );
+      },
+    });
+  };
+
+  const handleUpdatePreset = () => {
+    if (!selectedPreset) return;
+    if (!presetName.trim()) {
+      setPresetMessage('Informe um nome para atualizar o modelo.');
+      return;
+    }
+    updatePresetMutation.mutate(
+      { presetId: selectedPreset.id, payload: buildPresetPayload() },
+      {
+        onSuccess: (preset) => {
+          setSelectedPreset(preset);
+          setPresetMessage(
+            'Modelo atualizado sem alterar riscos selecionados.',
+          );
+        },
+      },
+    );
+  };
+
+  const handleDeletePreset = () => {
+    if (!selectedPreset) return;
+    const presetId = selectedPreset.id;
+    deletePresetMutation.mutate(
+      { presetId },
+      {
+        onSuccess: () => {
+          setSelectedPreset(null);
+          setPresetMessage('Modelo excluído/inativado.');
+        },
+      },
+    );
+  };
 
   const handleDryRun = () => {
     if (!selectedRiskIds.length) return;
@@ -198,6 +334,108 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
               </Box>
             </Stack>
           )}
+
+          <Stack spacing={2}>
+            <Typography variant="subtitle1">Modelos de pesquisa</Typography>
+            <Alert severity="info">
+              O modelo salva apenas filtros e instruções. Ele não salva os
+              riscos selecionados nem resultados.
+            </Alert>
+            <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
+              <Autocomplete
+                sx={{ minWidth: 360, flex: 1 }}
+                options={presetOptions}
+                value={selectedPreset}
+                openOnFocus
+                loading={isLoadingPresets}
+                getOptionLabel={presetLabel}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                filterOptions={(options) => options}
+                onOpen={() => {
+                  setPresetSearch('');
+                  void refetchPresets();
+                }}
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') setPresetSearch(value);
+                  if (reason === 'clear') {
+                    setPresetSearch('');
+                    setSelectedPreset(null);
+                  }
+                }}
+                onChange={(_, value) => {
+                  if (value) {
+                    applyPreset(value);
+                  } else {
+                    setSelectedPreset(null);
+                    setPresetSearch('');
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} label="Carregar modelo" />
+                )}
+              />
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setSelectedPreset(null);
+                  setPresetSearch('');
+                  setPresetMessage(
+                    'Modelo carregado limpo. A configuração atual foi mantida.',
+                  );
+                }}
+              >
+                Limpar modelo
+              </Button>
+            </Box>
+
+            <Box display="flex" gap={2} flexWrap="wrap">
+              <TextField
+                label="Nome do modelo"
+                value={presetName}
+                onChange={(event) => setPresetName(event.target.value)}
+                sx={{ minWidth: 320, flex: 1 }}
+              />
+              <TextField
+                label="Descrição do modelo"
+                value={presetDescription}
+                onChange={(event) => setPresetDescription(event.target.value)}
+                sx={{ minWidth: 420, flex: 2 }}
+              />
+            </Box>
+
+            <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
+              <Button
+                variant="outlined"
+                onClick={handleSaveNewPreset}
+                disabled={createPresetMutation.isPending}
+              >
+                Salvar modelo
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleUpdatePreset}
+                disabled={!selectedPreset || updatePresetMutation.isPending}
+              >
+                Atualizar modelo
+              </Button>
+              <Button
+                color="warning"
+                variant="outlined"
+                onClick={handleDeletePreset}
+                disabled={!selectedPreset || deletePresetMutation.isPending}
+              >
+                Excluir
+              </Button>
+              {selectedPreset && (
+                <Chip
+                  variant="outlined"
+                  label={`Carregado: ${selectedPreset.name}`}
+                />
+              )}
+            </Box>
+
+            {presetMessage && <Alert severity="info">{presetMessage}</Alert>}
+          </Stack>
 
           <Stack spacing={2}>
             <Typography variant="subtitle1">Filtros de exames</Typography>

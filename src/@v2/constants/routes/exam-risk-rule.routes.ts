@@ -12,6 +12,10 @@ export const ExamRiskRuleRoutes = {
     '/v2/master/exam-risk-rules/ai-suggestions/dry-run',
   AI_SUGGESTIONS_RISK_TO_EXAMS_DRY_RUN:
     '/v2/master/exam-risk-rules/ai-suggestions/risk-to-exams/dry-run',
+  AI_SUGGESTIONS_RISK_TO_EXAMS_PRESETS:
+    '/v2/master/exam-risk-rules/ai-suggestions/risk-to-exams/presets',
+  AI_SUGGESTIONS_RISK_TO_EXAMS_PRESET_BY_ID:
+    '/v2/master/exam-risk-rules/ai-suggestions/risk-to-exams/presets/:presetId',
   AI_SUGGESTIONS_CREATE_DRAFTS:
     '/v2/master/exam-risk-rules/ai-suggestions/create-drafts',
   AI_SUGGESTION_PRESETS:
