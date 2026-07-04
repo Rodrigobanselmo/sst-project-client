@@ -25,6 +25,8 @@ import {
 import { useMutateDryRunExamRiskRuleRiskToExamAiSuggestions } from '@v2/services/medicine/exam-risk-rule/hooks/useMutateExamRiskRule';
 import type { IExamRiskRuleCoverageGapItem } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule-coverage-gaps.types';
 import type {
+  ExamRiskRuleRiskToExamAiAnalysisStatus,
+  ExamRiskRuleRiskToExamAiCandidateCompatibility,
   ExamRiskRuleRiskToExamAiDecision,
   IExamRiskRuleRiskToExamAiSuggestion,
   IExamRiskRuleRiskToExamAiSuggestionResponse,
@@ -57,6 +59,44 @@ const decisionColors: Record<
   suggest: 'success',
   exclude: 'default',
   ambiguous: 'warning',
+};
+
+const analysisStatusLabels: Record<
+  ExamRiskRuleRiskToExamAiAnalysisStatus,
+  string
+> = {
+  AI_ANALYZED: 'IA analisou',
+  AI_FALLBACK: 'Fallback IA',
+  AI_MISSING_ITEM: 'Par ausente',
+};
+
+const analysisStatusColors: Record<
+  ExamRiskRuleRiskToExamAiAnalysisStatus,
+  'success' | 'warning' | 'error'
+> = {
+  AI_ANALYZED: 'success',
+  AI_FALLBACK: 'error',
+  AI_MISSING_ITEM: 'warning',
+};
+
+const candidateCompatibilityLabels: Record<
+  ExamRiskRuleRiskToExamAiCandidateCompatibility,
+  string
+> = {
+  DIRECT: 'Direta',
+  POSSIBLE: 'Possível',
+  LOW_RELEVANCE: 'Baixa',
+  UNASSESSED: 'Sem foco',
+};
+
+const candidateCompatibilityColors: Record<
+  ExamRiskRuleRiskToExamAiCandidateCompatibility,
+  'success' | 'info' | 'warning' | 'default'
+> = {
+  DIRECT: 'success',
+  POSSIBLE: 'info',
+  LOW_RELEVANCE: 'warning',
+  UNASSESSED: 'default',
 };
 
 export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
@@ -136,12 +176,14 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
       <DialogContent dividers>
         <Stack spacing={3}>
           <Alert severity="warning">
-            MVP dry-run: a IA apenas sugere exames. Nenhuma regra ou vínculo será
-            criado.
+            MVP dry-run: a IA apenas sugere exames. Nenhuma regra ou vínculo
+            será criado.
           </Alert>
 
           {selectedRisks.length === 0 ? (
-            <Alert severity="info">Selecione ao menos um risco na tabela.</Alert>
+            <Alert severity="info">
+              Selecione ao menos um risco na tabela.
+            </Alert>
           ) : (
             <Stack spacing={1}>
               <Typography variant="subtitle1">Riscos selecionados</Typography>
@@ -186,7 +228,9 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                 type="number"
                 value={limit}
                 onChange={(event) =>
-                  setLimit(Math.min(60, Math.max(1, Number(event.target.value) || 1)))
+                  setLimit(
+                    Math.min(60, Math.max(1, Number(event.target.value) || 1)),
+                  )
                 }
                 size="small"
                 sx={{ width: 110 }}
@@ -248,7 +292,11 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
               minRows={2}
               fullWidth
             />
-            <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={2}>
+            <Box
+              display="grid"
+              gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }}
+              gap={2}
+            >
               <TextField
                 label="Exemplos positivos"
                 value={positiveExamples}
@@ -291,9 +339,13 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
             <Button
               variant="contained"
               onClick={handleDryRun}
-              disabled={selectedRiskIds.length === 0 || dryRunMutation.isPending}
+              disabled={
+                selectedRiskIds.length === 0 || dryRunMutation.isPending
+              }
             >
-              {dryRunMutation.isPending ? 'Rodando dry-run...' : 'Rodar dry-run'}
+              {dryRunMutation.isPending
+                ? 'Rodando dry-run...'
+                : 'Rodar dry-run'}
             </Button>
           </Box>
 
@@ -301,10 +353,10 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
             <Stack spacing={2}>
               <Alert severity="info">
                 Dry-run concluído: {result.totals.risksLoaded} risco(s),{' '}
-                {result.totals.examsLoaded} exame(s), {result.totals.analyzedPairs}{' '}
-                par(es) analisados. Sugestões: {result.totals.suggest};
-                ambíguos: {result.totals.ambiguous}; excluídos:{' '}
-                {result.totals.exclude}.
+                {result.totals.examsLoaded} exame(s),{' '}
+                {result.totals.analyzedPairs} par(es) analisados. Sugestões:{' '}
+                {result.totals.suggest}; ambíguos: {result.totals.ambiguous};
+                excluídos: {result.totals.exclude}.
               </Alert>
 
               {result.warnings.length > 0 && (
@@ -324,6 +376,8 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                       <TableCell>Risco</TableCell>
                       <TableCell>Exame sugerido</TableCell>
                       <TableCell>Decisão</TableCell>
+                      <TableCell>Status IA</TableCell>
+                      <TableCell>Triagem pré-IA</TableCell>
                       <TableCell>Confiança</TableCell>
                       <TableCell>Fonte</TableCell>
                       <TableCell>Regra existente</TableCell>
@@ -333,7 +387,7 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                   <TableBody>
                     {rows.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7}>
+                        <TableCell colSpan={9}>
                           Nenhuma sugestão retornada para os filtros atuais.
                         </TableCell>
                       </TableRow>
@@ -363,52 +417,89 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
 const ResultRow: FC<{
   riskName: string;
   suggestion: IExamRiskRuleRiskToExamAiSuggestion;
-}> = ({ riskName, suggestion }) => (
-  <TableRow>
-    <TableCell>{riskName}</TableCell>
-    <TableCell>
-      <Typography variant="body2">{suggestion.examName}</Typography>
-      <Typography variant="caption" color="text.secondary">
-        {suggestion.examType ?? 'Tipo não informado'} · eSocial{' '}
-        {suggestion.esocial27Code ?? '—'}
-      </Typography>
-    </TableCell>
-    <TableCell>
-      <Chip
-        size="small"
-        label={decisionLabels[suggestion.decision]}
-        color={decisionColors[suggestion.decision]}
-        variant={suggestion.decision === 'exclude' ? 'outlined' : 'filled'}
-      />
-    </TableCell>
-    <TableCell>{Math.round(suggestion.confidence * 100)}%</TableCell>
-    <TableCell>
-      <Typography variant="body2">{suggestion.suggestedSource}</Typography>
-      <Typography variant="caption" color="text.secondary">
-        {suggestion.sourceRationale}
-      </Typography>
-    </TableCell>
-    <TableCell>
-      {suggestion.existingRule ? (
-        <Typography variant="body2">
-          {suggestion.existingRule.scope} · {suggestion.existingRule.status} ·{' '}
-          {suggestion.existingRule.matchedBy}
+}> = ({ riskName, suggestion }) => {
+  const analysisStatus = suggestion.analysisStatus ?? 'AI_ANALYZED';
+  const candidateCompatibility =
+    suggestion.candidateCompatibility ?? 'UNASSESSED';
+
+  return (
+    <TableRow>
+      <TableCell>{riskName}</TableCell>
+      <TableCell>
+        <Typography variant="body2">{suggestion.examName}</Typography>
+        <Typography variant="caption" color="text.secondary">
+          {suggestion.examType ?? 'Tipo não informado'} · eSocial{' '}
+          {suggestion.esocial27Code ?? '—'}
         </Typography>
-      ) : suggestion.existingIndirectCoverage?.length ? (
-        <Typography variant="body2">
-          Indireta ({suggestion.existingIndirectCoverage.length})
+      </TableCell>
+      <TableCell>
+        <Chip
+          size="small"
+          label={decisionLabels[suggestion.decision]}
+          color={decisionColors[suggestion.decision]}
+          variant={suggestion.decision === 'exclude' ? 'outlined' : 'filled'}
+        />
+      </TableCell>
+      <TableCell>
+        <Chip
+          size="small"
+          label={analysisStatusLabels[analysisStatus]}
+          color={analysisStatusColors[analysisStatus]}
+          variant={analysisStatus === 'AI_ANALYZED' ? 'outlined' : 'filled'}
+        />
+        {suggestion.analysisStatusReason && (
+          <Typography variant="caption" color="text.secondary" display="block">
+            {suggestion.analysisStatusReason}
+          </Typography>
+        )}
+      </TableCell>
+      <TableCell>
+        <Chip
+          size="small"
+          label={candidateCompatibilityLabels[candidateCompatibility]}
+          color={candidateCompatibilityColors[candidateCompatibility]}
+          variant={candidateCompatibility === 'DIRECT' ? 'filled' : 'outlined'}
+        />
+        {suggestion.candidateCompatibilityReason && (
+          <Typography variant="caption" color="text.secondary" display="block">
+            {suggestion.candidateCompatibilityReason}
+          </Typography>
+        )}
+      </TableCell>
+      <TableCell>{Math.round(suggestion.confidence * 100)}%</TableCell>
+      <TableCell>
+        <Typography variant="body2">{suggestion.suggestedSource}</Typography>
+        <Typography variant="caption" color="text.secondary">
+          {suggestion.sourceRationale}
         </Typography>
-      ) : (
-        '—'
-      )}
-    </TableCell>
-    <TableCell>
-      <Typography variant="body2">{suggestion.rationale}</Typography>
-      {suggestion.cautions?.map((caution) => (
-        <Typography key={caution} variant="caption" color="warning.main" display="block">
-          {caution}
-        </Typography>
-      ))}
-    </TableCell>
-  </TableRow>
-);
+      </TableCell>
+      <TableCell>
+        {suggestion.existingRule ? (
+          <Typography variant="body2">
+            {suggestion.existingRule.scope} · {suggestion.existingRule.status} ·{' '}
+            {suggestion.existingRule.matchedBy}
+          </Typography>
+        ) : suggestion.existingIndirectCoverage?.length ? (
+          <Typography variant="body2">
+            Indireta ({suggestion.existingIndirectCoverage.length})
+          </Typography>
+        ) : (
+          '—'
+        )}
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2">{suggestion.rationale}</Typography>
+        {suggestion.cautions?.map((caution) => (
+          <Typography
+            key={caution}
+            variant="caption"
+            color="warning.main"
+            display="block"
+          >
+            {caution}
+          </Typography>
+        ))}
+      </TableCell>
+    </TableRow>
+  );
+};

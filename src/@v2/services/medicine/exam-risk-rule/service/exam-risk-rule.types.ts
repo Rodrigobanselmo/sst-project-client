@@ -339,9 +339,11 @@ export interface IExamRiskRuleAiSuggestionResponse {
 }
 
 export type ExamRiskRuleRiskToExamAiDecision =
-  | 'suggest'
-  | 'exclude'
-  | 'ambiguous';
+  'suggest' | 'exclude' | 'ambiguous';
+export type ExamRiskRuleRiskToExamAiAnalysisStatus =
+  'AI_ANALYZED' | 'AI_FALLBACK' | 'AI_MISSING_ITEM';
+export type ExamRiskRuleRiskToExamAiCandidateCompatibility =
+  'DIRECT' | 'POSSIBLE' | 'LOW_RELEVANCE' | 'UNASSESSED';
 
 export interface IExamRiskRuleRiskToExamAiSuggestionRequest {
   context: 'MASTER_LIBRARY';
@@ -375,6 +377,10 @@ export interface IExamRiskRuleRiskToExamAiSuggestion {
   decision: ExamRiskRuleRiskToExamAiDecision;
   confidence: number;
   rationale: string;
+  analysisStatus?: ExamRiskRuleRiskToExamAiAnalysisStatus;
+  analysisStatusReason?: string;
+  candidateCompatibility?: ExamRiskRuleRiskToExamAiCandidateCompatibility;
+  candidateCompatibilityReason?: string;
   inclusionReason?: string;
   exclusionReason?: string;
   cautions?: string[];
