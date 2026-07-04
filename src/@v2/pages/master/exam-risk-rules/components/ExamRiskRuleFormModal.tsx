@@ -107,6 +107,11 @@ const hasExamApplicability = (exam: IExamRiskRule['exams'][number]) =>
       exam.isDismissal,
   );
 
+const scopesWithoutQuantitativeLimit = new Set<ExamRiskRuleScopeEnum>([
+  ExamRiskRuleScopeEnum.CATEGORY,
+  ExamRiskRuleScopeEnum.GROUP,
+]);
+
 export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
   const isEdit = Boolean(rule);
 
@@ -226,6 +231,67 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
     );
   };
 
+  const clearExamQuantitativeValues = () => {
+    setExams((prev) =>
+      prev.map((exam) => ({ ...exam, minRiskDegreeQuantity: null })),
+    );
+  };
+
+  const restoreAgentQuantitativeFromRule = () => {
+    if (!rule) return;
+
+    const applicable = Boolean(rule.quantitativeLimitApplicable);
+    setQuantitativeLimitApplicable(applicable);
+
+    if (!applicable) {
+      clearExamQuantitativeValues();
+      return;
+    }
+
+    setExams((prev) =>
+      prev.map((exam, index) => {
+        const sourceExam = rule.exams?.[index];
+        if (!sourceExam) {
+          return { ...exam, minRiskDegreeQuantity: null };
+        }
+
+        return {
+          ...exam,
+          minRiskDegreeQuantity: normalizeRiskDegree(
+            sourceExam.minRiskDegreeQuantity,
+          ),
+        };
+      }),
+    );
+  };
+
+  const handleScopeChange = (nextScope: ExamRiskRuleScopeEnum) => {
+    setScope(nextScope);
+
+    if (nextScope === ExamRiskRuleScopeEnum.RISK) {
+      setQuantitativeLimitApplicable(false);
+      clearExamQuantitativeValues();
+      return;
+    }
+
+    if (scopesWithoutQuantitativeLimit.has(nextScope)) {
+      setQuantitativeLimitApplicable(false);
+      clearExamQuantitativeValues();
+      return;
+    }
+
+    if (nextScope === ExamRiskRuleScopeEnum.AGENT) {
+      if (isEdit && rule?.scope === ExamRiskRuleScopeEnum.AGENT) {
+        restoreAgentQuantitativeFromRule();
+        return;
+      }
+
+      // Criação AGENT nova: aplicabilidade só é conhecida após persistência/API.
+      setQuantitativeLimitApplicable(false);
+      clearExamQuantitativeValues();
+    }
+  };
+
   const buildPayload = () => ({
     scope,
     source,
@@ -278,11 +344,9 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
               label="Escopo"
               value={scope}
               onChange={(event) => {
-                const nextScope = event.target.value as ExamRiskRuleScopeEnum;
-                setScope(nextScope);
-                if (nextScope !== ExamRiskRuleScopeEnum.RISK) {
-                  setQuantitativeLimitApplicable(false);
-                }
+                handleScopeChange(
+                  event.target.value as ExamRiskRuleScopeEnum,
+                );
               }}
               sx={{ minWidth: 200 }}
             >
