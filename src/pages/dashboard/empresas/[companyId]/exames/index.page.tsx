@@ -34,7 +34,7 @@ const ExamsPage: NextPage = () => {
               <ExamsTable />
             </Box>
             <Box sx={{ px: 5, pb: 10 }}>
-              <ExamsRiskTable enableBulkActions />
+              <ExamsRiskTable enableBulkActions showPcmsoStatus />
             </Box>
           </Wizard>
         </SWizardBox>

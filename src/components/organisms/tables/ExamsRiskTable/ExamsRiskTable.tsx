@@ -1,9 +1,10 @@
-import { cloneElement, FC, ReactElement, useState } from 'react';
+import { cloneElement, FC, ReactElement, useMemo, useState } from 'react';
 
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import { Box, BoxProps } from '@mui/material';
+import { Alert, Box, BoxProps, FormControlLabel, Switch } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import STooltip from 'components/atoms/STooltip';
 import {
@@ -60,8 +61,16 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { mapPcmsoDefaultsToExamRisk } from 'core/utils/helpers/pcmsoExamDefaults';
 import SFlex from 'components/atoms/SFlex';
 import { SButton } from 'components/atoms/SButton';
+import { ApplyExamRiskSuggestionsModal } from './ApplyExamRiskSuggestionsModal';
 import { BulkEditExamRiskModal } from './BulkEditExamRiskModal';
 import { PcmsoExamDefaultsModal } from './PcmsoExamDefaultsModal';
+import { PcmsoLinkStatusChip } from './PcmsoLinkStatusChip';
+import { getExamAge, getExamPeriodic } from './exam-risk-display.util';
+import { useFetchExamRiskLinkStatus } from '@v2/services/medicine/company-exam-risk-link-status/hooks/useFetchExamRiskLinkStatus';
+import { examRiskLinkStatusQueryKeys } from '@v2/services/medicine/company-exam-risk-link-status/hooks/exam-risk-link-status.query-keys';
+import type { IExamRiskLinkStatusItem } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { isPcmsoPendingStatus } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
 const PERIODICITY_LEGEND =
   'A = Admissional · P = Periódico · M = Mudança · R = Retorno · D = Demissional';
@@ -85,28 +94,7 @@ const renderLegendCell = (text: string, tooltip?: string) => {
   );
 };
 
-export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
-  const periodic = [] as string[];
-
-  if (row.isAdmission) periodic.push('Admissional');
-  if (row.isPeriodic) periodic.push('Periódico');
-  if (row.isChange) periodic.push('Mudança');
-  if (row.isReturn) periodic.push('Retorno');
-  if (row.isDismissal) periodic.push('Demissional');
-
-  return {
-    text: periodic.map((p) => p.substring(0, 1)).join(', '),
-    tooltip: periodic.join(', '),
-  };
-};
-
-export const getExamAge = (exam: Partial<IExamToRisk>) => {
-  if (!exam.toAge && !exam.fromAge) return 'todas';
-  if (!exam.toAge && exam.fromAge)
-    return 'a partir de ' + exam.fromAge + ' anos';
-  if (exam.toAge && !exam.fromAge) return 'até ' + exam.toAge + ' anos';
-  return exam.fromAge + ' a ' + exam.toAge + ' anos';
-};
+export { getExamAge, getExamPeriodic } from './exam-risk-display.util';
 
 // Rótulo amigável do grau de risco (qualitativo/quantitativo). Vazio/null/0
 // (não informado) → '-'. Níveis 1..5 usam o label do mapa da matriz.
@@ -115,9 +103,22 @@ const getRiskDegreeLabel = (value?: number | null) => {
   return matrixRiskMap[value as keyof typeof matrixRiskMap]?.label || '-';
 };
 
+const canShowApplyRecommendedExams = (
+  statusItem?: IExamRiskLinkStatusItem,
+) =>
+  statusItem?.pcmsoStatus === PcmsoLinkStatusEnum.ADJUSTMENT_RECOMMENDED &&
+  (statusItem.missingRecommendedExams?.length ?? 0) > 0;
+
+type ApplySuggestionsContext = {
+  riskId: string;
+  riskName: string;
+  missingExams: IExamRiskLinkStatusItem['missingRecommendedExams'];
+};
+
 type ExamRiskColumnKey =
   | 'RISK'
   | 'EXAM'
+  | 'PCMSO_STATUS'
   | 'PERIODICITY'
   | 'SEX'
   | 'AGE'
@@ -159,11 +160,6 @@ const COLUMN_DEFS: ColumnDef[] = [
   { key: 'MIN_QUANTITATIVE', label: 'Quantitativo mínimo', width: '130px' },
 ];
 
-const COLUMNS_CONFIG = COLUMN_DEFS.map(({ key, label }) => ({
-  value: key,
-  label,
-}));
-
 export const ExamsRiskTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
@@ -173,6 +169,8 @@ export const ExamsRiskTable: FC<
       companyFlowSticky?: boolean;
       companyFlowBelowTabs?: boolean;
       enableBulkActions?: boolean;
+      showPcmsoStatus?: boolean;
+      workspaceId?: string;
     }
 > = ({
   rowsPerPage,
@@ -182,11 +180,15 @@ export const ExamsRiskTable: FC<
   companyFlowSticky = false,
   companyFlowBelowTabs = false,
   enableBulkActions = false,
+  showPcmsoStatus = false,
+  workspaceId,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const [sort, setSort] = useState<{ field: SortField; order: 'asc' | 'desc' } | null>(
     null,
   );
+  const [severitySort, setSeveritySort] = useState<'asc' | 'desc' | null>(null);
+  const [showPendingOnly, setShowPendingOnly] = useState(false);
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<string, boolean>
   >(persistKeys.COLUMNS_EXAM_RISK, {});
@@ -215,11 +217,85 @@ export const ExamsRiskTable: FC<
     page,
     {
       search,
+      workspaceId,
       ...restQuery,
       ...(sort ? { orderBy: sort.field, orderByDirection: sort.order } : {}),
     },
     effectiveLimit,
   );
+
+  const linkIds = useMemo(
+    () => (exams?.length ? exams.map((exam) => exam.id).join(',') : undefined),
+    [exams],
+  );
+
+  const {
+    data: pcmsoStatusData,
+    isLoading: loadPcmsoStatus,
+    isError: pcmsoStatusError,
+  } = useFetchExamRiskLinkStatus(
+    {
+      companyId: companyId || '',
+      workspaceId,
+      linkIds,
+      onlyPcmso: true,
+      includeSummary: true,
+    },
+    showPcmsoStatus && Boolean(companyId) && Boolean(linkIds),
+  );
+
+  const statusByLinkId = useMemo(() => {
+    const map = new Map<number, IExamRiskLinkStatusItem>();
+    pcmsoStatusData?.items.forEach((item) => map.set(item.linkId, item));
+    return map;
+  }, [pcmsoStatusData]);
+
+  const columnDefs = useMemo(() => {
+    if (!showPcmsoStatus) return COLUMN_DEFS;
+    const examIndex = COLUMN_DEFS.findIndex((def) => def.key === 'EXAM');
+    const next = [...COLUMN_DEFS];
+    next.splice(examIndex + 1, 0, {
+      key: 'PCMSO_STATUS',
+      label: 'Status PCMSO',
+      width: '170px',
+    });
+    return next;
+  }, [showPcmsoStatus]);
+
+  const columnsConfig = useMemo(
+    () => columnDefs.map(({ key, label }) => ({ value: key, label })),
+    [columnDefs],
+  );
+
+  const displayExams = useMemo(() => {
+    let rows = [...(exams ?? [])];
+
+    if (showPcmsoStatus && showPendingOnly) {
+      rows = rows.filter((row) =>
+        isPcmsoPendingStatus(statusByLinkId.get(row.id)?.pcmsoStatus),
+      );
+    }
+
+    if (showPcmsoStatus && severitySort) {
+      rows.sort((left, right) => {
+        const leftOrder =
+          statusByLinkId.get(left.id)?.severityOrder ?? Number.MAX_SAFE_INTEGER;
+        const rightOrder =
+          statusByLinkId.get(right.id)?.severityOrder ?? Number.MAX_SAFE_INTEGER;
+        return severitySort === 'asc'
+          ? leftOrder - rightOrder
+          : rightOrder - leftOrder;
+      });
+    }
+
+    return rows;
+  }, [
+    exams,
+    showPcmsoStatus,
+    showPendingOnly,
+    severitySort,
+    statusByLinkId,
+  ]);
 
   const { onStackOpenModal } = useModal();
   const copyExamMutation = useMutCopyExamRisk();
@@ -233,6 +309,9 @@ export const ExamsRiskTable: FC<
   );
   const pcmsoDefaultsMutation = useMutUpdatePcmsoExamDefaults();
   const [pcmsoDefaultsOpen, setPcmsoDefaultsOpen] = useState(false);
+  const [applySuggestionsOpen, setApplySuggestionsOpen] = useState(false);
+  const [applySuggestionsContext, setApplySuggestionsContext] =
+    useState<ApplySuggestionsContext | null>(null);
 
   const isBulkMode = enableBulkActions && !isSelect;
   const {
@@ -264,6 +343,7 @@ export const ExamsRiskTable: FC<
   });
 
   const onToggleSort = (field: SortField) => {
+    setSeveritySort(null);
     setSort((prev) => {
       if (prev?.field !== field) return { field, order: 'asc' };
       if (prev.order === 'asc') return { field, order: 'desc' };
@@ -272,10 +352,19 @@ export const ExamsRiskTable: FC<
     setPage(1);
   };
 
+  const onToggleSeveritySort = () => {
+    setSort(null);
+    setSeveritySort((prev) => {
+      if (!prev) return 'asc';
+      if (prev === 'asc') return 'desc';
+      return null;
+    });
+  };
+
   const isHidden = (key: ExamRiskColumnKey) =>
     key in hiddenColumns ? hiddenColumns[key] : false;
 
-  const visibleDefs = COLUMN_DEFS.filter((def) => !isHidden(def.key));
+  const visibleDefs = columnDefs.filter((def) => !isHidden(def.key));
 
   const onImportExams = () => {
     onStackOpenModal(ModalEnum.COMPANY_SELECT, {
@@ -333,7 +422,22 @@ export const ExamsRiskTable: FC<
     // invalidate next or previous pages
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
+    queryClient.invalidateQueries(examRiskLinkStatusQueryKeys.all());
   }, 1000);
+
+  const onOpenApplySuggestions = (statusItem: IExamRiskLinkStatusItem) => {
+    setApplySuggestionsContext({
+      riskId: statusItem.riskId,
+      riskName: statusItem.risk.name,
+      missingExams: statusItem.missingRecommendedExams,
+    });
+    setApplySuggestionsOpen(true);
+  };
+
+  const onCloseApplySuggestions = () => {
+    setApplySuggestionsOpen(false);
+    setApplySuggestionsContext(null);
+  };
 
   const onClearSelection = () => setSelectedIds([]);
 
@@ -360,7 +464,7 @@ export const ExamsRiskTable: FC<
 
   const tableColumns = `${isBulkMode ? '40px ' : selectedData ? '15px ' : ''}${visibleDefs
     .map((def) => def.width)
-    .join(' ')} 80px`;
+    .join(' ')} ${showPcmsoStatus ? '120px' : '80px'}`;
 
   const renderSortableHeader = (def: ColumnDef): ReactElement => {
     const active = sort?.field === def.sortField;
@@ -414,11 +518,30 @@ export const ExamsRiskTable: FC<
       >
         <Box ml={2}>
           <STableColumnsButton
-            columns={COLUMNS_CONFIG}
+            columns={columnsConfig}
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
           />
         </Box>
+        {showPcmsoStatus && !isSelect && (
+          <Box ml={2}>
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={showPendingOnly}
+                  onChange={(event) => setShowPendingOnly(event.target.checked)}
+                />
+              }
+              label={
+                <SText fontSize={12} whiteSpace="nowrap">
+                  Mostrar só pendências
+                </SText>
+              }
+              sx={{ mr: 0 }}
+            />
+          </Box>
+        )}
         {!isSelect && (
           <Box ml={2}>
             <SButton
@@ -432,6 +555,47 @@ export const ExamsRiskTable: FC<
           </Box>
         )}
       </STableSearch>
+      {showPcmsoStatus && !isSelect && pcmsoStatusData?.summary && (
+        <Alert
+          severity={
+            pcmsoStatusData.summary.riskNotCharacterized > 0 ||
+            pcmsoStatusData.summary.adjustmentRecommended > 0
+              ? 'warning'
+              : 'info'
+          }
+          sx={{ mt: 2, mb: 1, py: 0.5 }}
+        >
+          <SText fontSize={12}>
+            {pcmsoStatusData.summary.riskNotCharacterized > 0 &&
+              `${pcmsoStatusData.summary.riskNotCharacterized} risco(s) não caracterizado(s)`}
+            {pcmsoStatusData.summary.riskNotCharacterized > 0 &&
+              pcmsoStatusData.summary.adjustmentRecommended > 0 &&
+              ' · '}
+            {pcmsoStatusData.summary.adjustmentRecommended > 0 &&
+              `${pcmsoStatusData.summary.adjustmentRecommended} ajuste(s) recomendado(s)`}
+            {(pcmsoStatusData.summary.riskNotCharacterized > 0 ||
+              pcmsoStatusData.summary.adjustmentRecommended > 0) &&
+              pcmsoStatusData.summary.noLibraryReference > 0 &&
+              ' · '}
+            {pcmsoStatusData.summary.noLibraryReference > 0 &&
+              `${pcmsoStatusData.summary.noLibraryReference} sem referência`}
+            {(pcmsoStatusData.summary.riskNotCharacterized > 0 ||
+              pcmsoStatusData.summary.adjustmentRecommended > 0 ||
+              pcmsoStatusData.summary.noLibraryReference > 0) &&
+              pcmsoStatusData.summary.ok > 0 &&
+              ' · '}
+            {pcmsoStatusData.summary.ok > 0 &&
+              `${pcmsoStatusData.summary.ok} OK`}
+          </SText>
+        </Alert>
+      )}
+      {showPcmsoStatus && pcmsoStatusError && (
+        <Alert severity="warning" sx={{ mt: 2, mb: 1, py: 0.5 }}>
+          <SText fontSize={12}>
+            Não foi possível carregar o status PCMSO desta página.
+          </SText>
+        </Alert>
+      )}
       {isBulkMode && selectedIds.length > 0 && (
         <SFlex
           align="center"
@@ -493,7 +657,26 @@ export const ExamsRiskTable: FC<
         selectedData && <STableHRow></STableHRow>
       )}
       {visibleDefs.map((def) =>
-        def.sortField ? (
+        def.key === 'PCMSO_STATUS' ? (
+          <STableHRow
+            key={def.key}
+            sx={{ cursor: 'pointer', userSelect: 'none' }}
+            onClick={onToggleSeveritySort}
+          >
+            {def.label}
+            {!severitySort && (
+              <UnfoldMoreIcon sx={{ fontSize: 14, ml: 0.5, color: 'grey.400' }} />
+            )}
+            {severitySort === 'asc' && (
+              <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }} />
+            )}
+            {severitySort === 'desc' && (
+              <ArrowDownwardIcon
+                sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }}
+              />
+            )}
+          </STableHRow>
+        ) : def.sortField ? (
           cloneElement(renderSortableHeader(def), { key: def.key })
         ) : (
           <STableHRow key={def.key} justifyContent={def.justify as any}>
@@ -511,6 +694,18 @@ export const ExamsRiskTable: FC<
         return <TextIconRow clickable text={row.risk?.name || '-'} />;
       case 'EXAM':
         return <TextIconRow clickable text={row.exam?.name || '-'} />;
+      case 'PCMSO_STATUS': {
+        const statusItem = statusByLinkId.get(row.id);
+        return (
+          <Box onClick={(event) => event.stopPropagation()}>
+            <PcmsoLinkStatusChip
+              status={statusItem?.pcmsoStatus}
+              message={statusItem?.message}
+              loading={loadPcmsoStatus}
+            />
+          </Box>
+        );
+      }
       case 'PERIODICITY':
         return renderLegendCell(
           getExamPeriodic(row).text || '-',
@@ -567,13 +762,15 @@ export const ExamsRiskTable: FC<
 
   const tableBody = (
     <STableBody<(typeof exams)[0]>
-      rowsData={exams}
+      rowsData={displayExams}
       hideLoadMore
       rowsInitialNumber={effectiveLimit}
       contentEmpty={
         isError
           ? 'Erro ao carregar os exames. Tente recarregar.'
-          : 'Nenhum exame vinculado a risco encontrado.'
+          : showPendingOnly
+            ? 'Nenhuma pendência PCMSO nesta página.'
+            : 'Nenhum exame vinculado a risco encontrado.'
       }
       renderRow={(row) => {
         return (
@@ -610,6 +807,18 @@ export const ExamsRiskTable: FC<
               return cell ? cloneElement(cell, { key: def.key }) : null;
             })}
             <SFlex>
+              {showPcmsoStatus &&
+                canShowApplyRecommendedExams(statusByLinkId.get(row.id)) && (
+                  <IconButtonRow
+                    icon={<PlaylistAddIcon />}
+                    tooltipTitle="Adicionar exames recomendados"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const statusItem = statusByLinkId.get(row.id);
+                      if (statusItem) onOpenApplySuggestions(statusItem);
+                    }}
+                  />
+                )}
               <IconButtonRow
                 icon={<EditIcon />}
                 onClick={(e) => {
@@ -656,6 +865,20 @@ export const ExamsRiskTable: FC<
     />
   ) : null;
 
+  const applySuggestionsModal =
+    showPcmsoStatus && applySuggestionsContext && companyId ? (
+      <ApplyExamRiskSuggestionsModal
+        open={applySuggestionsOpen}
+        companyId={companyId}
+        workspaceId={workspaceId}
+        riskId={applySuggestionsContext.riskId}
+        riskName={applySuggestionsContext.riskName}
+        missingExams={applySuggestionsContext.missingExams}
+        onClose={onCloseApplySuggestions}
+        onSuccess={onRefetchThrottle}
+      />
+    ) : null;
+
   if (companyFlowSticky) {
     return (
       <>
@@ -672,6 +895,7 @@ export const ExamsRiskTable: FC<
         </CompanyFlowTableSection>
         {bulkEditModal}
         {pcmsoDefaultsModal}
+        {applySuggestionsModal}
       </>
     );
   }
@@ -690,6 +914,7 @@ export const ExamsRiskTable: FC<
       {tablePagination}
       {bulkEditModal}
       {pcmsoDefaultsModal}
+      {applySuggestionsModal}
     </>
   );
 };
