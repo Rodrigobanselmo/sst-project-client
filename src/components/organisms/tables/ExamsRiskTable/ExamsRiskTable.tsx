@@ -62,6 +62,8 @@ import { mapPcmsoDefaultsToExamRisk } from 'core/utils/helpers/pcmsoExamDefaults
 import SFlex from 'components/atoms/SFlex';
 import { SButton } from 'components/atoms/SButton';
 import { ApplyExamRiskSuggestionsModal } from './ApplyExamRiskSuggestionsModal';
+import { CompanyExamRiskAiSuggestionsModal } from './CompanyExamRiskAiSuggestionsModal';
+import { UncoveredRisksAiSection } from './UncoveredRisksAiSection';
 import { BulkEditExamRiskModal } from './BulkEditExamRiskModal';
 import { PcmsoExamDefaultsModal } from './PcmsoExamDefaultsModal';
 import { PcmsoLinkStatusChip } from './PcmsoLinkStatusChip';
@@ -113,6 +115,11 @@ type ApplySuggestionsContext = {
   riskId: string;
   riskName: string;
   missingExams: IExamRiskLinkStatusItem['missingRecommendedExams'];
+};
+
+type AiSuggestionsContext = {
+  riskId: string;
+  riskName: string;
 };
 
 type ExamRiskColumnKey =
@@ -241,7 +248,7 @@ export const ExamsRiskTable: FC<
       onlyPcmso: true,
       includeSummary: true,
     },
-    showPcmsoStatus && Boolean(companyId) && Boolean(linkIds),
+    showPcmsoStatus && Boolean(companyId),
   );
 
   const statusByLinkId = useMemo(() => {
@@ -312,6 +319,9 @@ export const ExamsRiskTable: FC<
   const [applySuggestionsOpen, setApplySuggestionsOpen] = useState(false);
   const [applySuggestionsContext, setApplySuggestionsContext] =
     useState<ApplySuggestionsContext | null>(null);
+  const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(false);
+  const [aiSuggestionsContext, setAiSuggestionsContext] =
+    useState<AiSuggestionsContext | null>(null);
 
   const isBulkMode = enableBulkActions && !isSelect;
   const {
@@ -437,6 +447,16 @@ export const ExamsRiskTable: FC<
   const onCloseApplySuggestions = () => {
     setApplySuggestionsOpen(false);
     setApplySuggestionsContext(null);
+  };
+
+  const onOpenAiSuggestions = (context: AiSuggestionsContext) => {
+    setAiSuggestionsContext(context);
+    setAiSuggestionsOpen(true);
+  };
+
+  const onCloseAiSuggestions = () => {
+    setAiSuggestionsOpen(false);
+    setAiSuggestionsContext(null);
   };
 
   const onClearSelection = () => setSelectedIds([]);
@@ -879,11 +899,38 @@ export const ExamsRiskTable: FC<
       />
     ) : null;
 
+  const aiSuggestionsModal =
+    showPcmsoStatus && aiSuggestionsContext && companyId ? (
+      <CompanyExamRiskAiSuggestionsModal
+        open={aiSuggestionsOpen}
+        companyId={companyId}
+        workspaceId={workspaceId}
+        riskId={aiSuggestionsContext.riskId}
+        riskName={aiSuggestionsContext.riskName}
+        onClose={onCloseAiSuggestions}
+        onApplied={onRefetchThrottle}
+      />
+    ) : null;
+
+  const uncoveredRisksSection =
+    showPcmsoStatus ? (
+      <UncoveredRisksAiSection
+        risks={pcmsoStatusData?.uncoveredRisks ?? []}
+        onSuggestExams={(risk) =>
+          onOpenAiSuggestions({
+            riskId: risk.riskId,
+            riskName: risk.riskName,
+          })
+        }
+      />
+    ) : null;
+
   if (companyFlowSticky) {
     return (
       <>
         <CompanyFlowTableSection
           chrome={tableChrome}
+          supplementary={uncoveredRisksSection}
           columns={tableColumns}
           loading={loadExams || copyExamMutation.isLoading}
           rowsNumber={effectiveLimit}
@@ -896,6 +943,7 @@ export const ExamsRiskTable: FC<
         {bulkEditModal}
         {pcmsoDefaultsModal}
         {applySuggestionsModal}
+        {aiSuggestionsModal}
       </>
     );
   }
@@ -903,6 +951,7 @@ export const ExamsRiskTable: FC<
   return (
     <>
       {tableChrome}
+      {uncoveredRisksSection}
       <STable
         columns={tableColumns}
         loading={loadExams || copyExamMutation.isLoading}
@@ -915,6 +964,7 @@ export const ExamsRiskTable: FC<
       {bulkEditModal}
       {pcmsoDefaultsModal}
       {applySuggestionsModal}
+      {aiSuggestionsModal}
     </>
   );
 };

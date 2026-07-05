@@ -13,6 +13,8 @@ type Props = {
   header: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
+  /** Conteúdo complementar entre o sticky chrome e o corpo rolável da tabela. */
+  supplementary?: ReactNode;
   /** Cola o chrome abaixo das abas do módulo (Caracterização, Documentos). */
   belowModuleTabs?: boolean;
 };
@@ -29,6 +31,7 @@ export function CompanyFlowTableSection({
   header,
   footer,
   children,
+  supplementary,
   belowModuleTabs = false,
 }: Props): JSX.Element {
   return (
@@ -39,6 +42,7 @@ export function CompanyFlowTableSection({
           {header}
         </STable>
       </CompanyFlowStickySubheader>
+      {supplementary}
       <STable columns={columns} loading={loading} rowsNumber={rowsNumber}>
         {children}
       </STable>

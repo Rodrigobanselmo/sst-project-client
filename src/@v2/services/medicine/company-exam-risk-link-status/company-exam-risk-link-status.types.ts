@@ -66,8 +66,18 @@ export type IExamRiskLinkStatusSummary = {
   risksWithPendingIssues: number;
 };
 
+export type IExamRiskUncoveredRiskItem = {
+  riskId: string;
+  riskName: string;
+  riskType?: string;
+  workspaceId?: string;
+  libraryCoverage: CompanyExamRiskLibraryCoverageEnum.NO_GLOBAL_REFERENCE;
+  reason: string;
+};
+
 export type IExamRiskLinkStatusResponse = {
   items: IExamRiskLinkStatusItem[];
+  uncoveredRisks: IExamRiskUncoveredRiskItem[];
   summary: IExamRiskLinkStatusSummary;
   meta: {
     companyId: string;

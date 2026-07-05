@@ -2,7 +2,6 @@ import { FC, useMemo, useState } from 'react';
 
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
   Checkbox,
@@ -11,26 +10,33 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
-  MenuItem,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from '@mui/material';
-import { useFetchExamRiskRuleRiskToExamAiPresets } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchExamRiskRuleRiskToExamAiPresets';
+import { ExamRiskAiAssistantConfigForm } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantConfigForm';
+import { ExamRiskAiAssistantPresetSection } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantPresetSection';
 import {
-  useMutateCreateExamRiskRuleRiskToExamAiPreset,
+  buildRiskToExamAiPresetConfig,
+  mapExamRiskAiPresetToState,
+} from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant-preset.util';
+import {
+  EXAM_RISK_AI_ANALYSIS_STATUS_COLORS,
+  EXAM_RISK_AI_ANALYSIS_STATUS_LABELS,
+  EXAM_RISK_AI_CANDIDATE_COMPATIBILITY_COLORS,
+  EXAM_RISK_AI_CANDIDATE_COMPATIBILITY_LABELS,
+  EXAM_RISK_AI_DECISION_COLORS,
+  EXAM_RISK_AI_DECISION_LABELS,
+} from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant.constants';
+import type { ExamRiskAiAssistantFormValues } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant.types';
+import {
   useMutateCreateExamRiskRuleRiskToExamAiDrafts,
-  useMutateDeleteExamRiskRuleRiskToExamAiPreset,
   useMutateDryRunExamRiskRuleRiskToExamAiSuggestions,
-  useMutateUpdateExamRiskRuleRiskToExamAiPreset,
 } from '@v2/services/medicine/exam-risk-rule/hooks/useMutateExamRiskRule';
 import type { IExamRiskRuleCoverageGapItem } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule-coverage-gaps.types';
 import type {
@@ -38,7 +44,6 @@ import type {
   ExamRiskRuleRiskToExamAiCandidateCompatibility,
   ExamRiskRuleRiskToExamAiDecision,
   ICreateExamRiskRuleRiskToExamAiDraftsResponse,
-  ICreateExamRiskRuleRiskToExamAiPresetPayload,
   IExamRiskRuleRiskToExamAiPreset,
   IExamRiskRuleRiskToExamAiSuggestion,
   IExamRiskRuleRiskToExamAiSuggestionResponse,
@@ -49,69 +54,6 @@ type Props = {
   onClose: () => void;
   selectedRisks: IExamRiskRuleCoverageGapItem[];
 };
-
-const examTypeOptions = [
-  { value: '', label: 'Todos' },
-  { value: 'LAB', label: 'Laboratorial' },
-  { value: 'AUDIO', label: 'Audiometria' },
-  { value: 'VISUAL', label: 'Visual' },
-  { value: 'OTHERS', label: 'Outros' },
-];
-
-const decisionLabels: Record<ExamRiskRuleRiskToExamAiDecision, string> = {
-  suggest: 'Sugerir',
-  exclude: 'Excluir',
-  ambiguous: 'Ambíguo',
-};
-
-const decisionColors: Record<
-  ExamRiskRuleRiskToExamAiDecision,
-  'success' | 'default' | 'warning'
-> = {
-  suggest: 'success',
-  exclude: 'default',
-  ambiguous: 'warning',
-};
-
-const analysisStatusLabels: Record<
-  ExamRiskRuleRiskToExamAiAnalysisStatus,
-  string
-> = {
-  AI_ANALYZED: 'IA analisou',
-  AI_FALLBACK: 'Fallback IA',
-  AI_MISSING_ITEM: 'Par ausente',
-};
-
-const analysisStatusColors: Record<
-  ExamRiskRuleRiskToExamAiAnalysisStatus,
-  'success' | 'warning' | 'error'
-> = {
-  AI_ANALYZED: 'success',
-  AI_FALLBACK: 'error',
-  AI_MISSING_ITEM: 'warning',
-};
-
-const candidateCompatibilityLabels: Record<
-  ExamRiskRuleRiskToExamAiCandidateCompatibility,
-  string
-> = {
-  DIRECT: 'Direta',
-  POSSIBLE: 'Possível',
-  LOW_RELEVANCE: 'Baixa',
-  UNASSESSED: 'Sem foco',
-};
-
-const candidateCompatibilityColors: Record<
-  ExamRiskRuleRiskToExamAiCandidateCompatibility,
-  'success' | 'info' | 'warning' | 'default'
-> = {
-  DIRECT: 'success',
-  POSSIBLE: 'info',
-  LOW_RELEVANCE: 'warning',
-  UNASSESSED: 'default',
-};
-
-const presetLabel = (preset: IExamRiskRuleRiskToExamAiPreset) => preset.name;
 
 const suggestionKey = (riskFactorId: string, examId: number) =>
   `${riskFactorId}:${examId}`;
@@ -131,6 +73,9 @@ const getSelectionBlockReason = (
   if (suggestion.candidateCompatibility === 'LOW_RELEVANCE') {
     return 'Candidato de baixa relevância não pode ser selecionado.';
   }
+  if (suggestion.candidateCompatibility === 'UNASSESSED') {
+    return 'Sem foco automático pré-IA; ajuste filtros, exemplos positivos ou instruções.';
+  }
   if (suggestion.existingRule) {
     return 'Já existe regra para este risco/exame ou escopo equivalente.';
   }
@@ -142,25 +87,21 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   onClose,
   selectedRisks,
 }) => {
-  const [examSearch, setExamSearch] = useState('');
-  const [examType, setExamType] = useState('');
-  const [onlyESocial, setOnlyESocial] = useState(false);
-  const [limit, setLimit] = useState(30);
+  const [formValues, setFormValues] = useState<ExamRiskAiAssistantFormValues>({
+    examSearch: '',
+    examType: '',
+    onlyESocial: false,
+    limit: 30,
+    instructions: '',
+    positiveExamples: '',
+    negativeExamples: '',
+    cautionRules: '',
+    sessionInstruction: '',
+    model: '',
+  });
   const [includeExistingRules, setIncludeExistingRules] = useState(true);
   const [includeIndirectCoverage, setIncludeIndirectCoverage] = useState(true);
   const [onlyWithoutExamCoverage, setOnlyWithoutExamCoverage] = useState(false);
-  const [instructions, setInstructions] = useState('');
-  const [positiveExamples, setPositiveExamples] = useState('');
-  const [negativeExamples, setNegativeExamples] = useState('');
-  const [cautionRules, setCautionRules] = useState('');
-  const [sessionInstruction, setSessionInstruction] = useState('');
-  const [model, setModel] = useState('');
-  const [presetSearch, setPresetSearch] = useState('');
-  const [presetName, setPresetName] = useState('');
-  const [presetDescription, setPresetDescription] = useState('');
-  const [selectedPreset, setSelectedPreset] =
-    useState<IExamRiskRuleRiskToExamAiPreset | null>(null);
-  const [presetMessage, setPresetMessage] = useState('');
   const [result, setResult] =
     useState<IExamRiskRuleRiskToExamAiSuggestionResponse | null>(null);
   const [selectedSuggestionKeys, setSelectedSuggestionKeys] = useState<
@@ -176,17 +117,6 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   const dryRunMutation = useMutateDryRunExamRiskRuleRiskToExamAiSuggestions();
   const createDraftsMutation =
     useMutateCreateExamRiskRuleRiskToExamAiDrafts();
-  const createPresetMutation = useMutateCreateExamRiskRuleRiskToExamAiPreset();
-  const updatePresetMutation = useMutateUpdateExamRiskRuleRiskToExamAiPreset();
-  const deletePresetMutation = useMutateDeleteExamRiskRuleRiskToExamAiPreset();
-  const {
-    data: presets = [],
-    isLoading: isLoadingPresets,
-    refetch: refetchPresets,
-  } = useFetchExamRiskRuleRiskToExamAiPresets(
-    { search: presetSearch.trim() || undefined },
-    open,
-  );
 
   const selectedRiskIds = useMemo(
     () => selectedRisks.map((risk) => risk.riskFactorId),
@@ -205,13 +135,6 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     [result],
   );
 
-  const presetOptions = useMemo(() => {
-    const byId = new Map<string, IExamRiskRuleRiskToExamAiPreset>();
-    presets.forEach((preset) => byId.set(preset.id, preset));
-    if (selectedPreset) byId.set(selectedPreset.id, selectedPreset);
-    return Array.from(byId.values());
-  }, [presets, selectedPreset]);
-
   const selectedRows = useMemo(
     () =>
       rows.filter(({ riskFactorId, suggestion }) =>
@@ -222,108 +145,31 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     [rows, selectedSuggestionKeys],
   );
 
-  const buildPresetPayload =
-    (): ICreateExamRiskRuleRiskToExamAiPresetPayload => ({
-      name: presetName.trim(),
-      description: presetDescription.trim() || null,
-      config: {
-        examFilters: {
-          search: examSearch.trim() || null,
-          examType: examType || null,
-          onlyESocial,
-          limit,
-        },
-        options: {
-          includeExistingRules,
-          includeIndirectCoverage,
-          onlyWithoutExamCoverage,
-        },
-        aiConfig: {
-          instructions: instructions.trim() || null,
-          positiveExamples: positiveExamples.trim() || null,
-          negativeExamples: negativeExamples.trim() || null,
-          cautionRules: cautionRules.trim() || null,
-          sessionInstruction: sessionInstruction.trim() || null,
-          model: model.trim() || null,
-        },
-      },
+  const updateFormField = <K extends keyof ExamRiskAiAssistantFormValues>(
+    key: K,
+    value: ExamRiskAiAssistantFormValues[K],
+  ) => {
+    setFormValues((current) => ({ ...current, [key]: value }));
+  };
+
+  const buildPresetConfig = () =>
+    buildRiskToExamAiPresetConfig({
+      formValues,
+      includeExistingRules,
+      includeIndirectCoverage,
+      onlyWithoutExamCoverage,
     });
 
-  const applyPreset = (preset: IExamRiskRuleRiskToExamAiPreset) => {
-    const { config } = preset;
-    setSelectedPreset(preset);
-    setPresetName(preset.name);
-    setPresetDescription(preset.description ?? '');
-    setExamSearch(config.examFilters?.search ?? '');
-    setExamType(config.examFilters?.examType ?? '');
-    setOnlyESocial(config.examFilters?.onlyESocial ?? false);
-    setLimit(config.examFilters?.limit ?? 30);
-    setIncludeExistingRules(config.options?.includeExistingRules ?? true);
-    setIncludeIndirectCoverage(config.options?.includeIndirectCoverage ?? true);
-    setOnlyWithoutExamCoverage(
-      config.options?.onlyWithoutExamCoverage ?? false,
-    );
-    setInstructions(config.aiConfig?.instructions ?? '');
-    setPositiveExamples(config.aiConfig?.positiveExamples ?? '');
-    setNegativeExamples(config.aiConfig?.negativeExamples ?? '');
-    setCautionRules(config.aiConfig?.cautionRules ?? '');
-    setSessionInstruction(config.aiConfig?.sessionInstruction ?? '');
-    setModel(config.aiConfig?.model ?? '');
+  const handleApplyPreset = (preset: IExamRiskRuleRiskToExamAiPreset) => {
+    const mapped = mapExamRiskAiPresetToState(preset);
+    setFormValues(mapped.formValues);
+    setIncludeExistingRules(mapped.includeExistingRules);
+    setIncludeIndirectCoverage(mapped.includeIndirectCoverage);
+    setOnlyWithoutExamCoverage(mapped.onlyWithoutExamCoverage);
     setResult(null);
     setSelectedSuggestionKeys([]);
     setCreatedDraftsByKey({});
     setDraftCreationResult(null);
-    setPresetMessage(
-      'Modelo carregado. Os riscos selecionados não foram alterados e o resultado anterior foi limpo.',
-    );
-  };
-
-  const handleSaveNewPreset = () => {
-    if (!presetName.trim()) {
-      setPresetMessage('Informe um nome para salvar o modelo.');
-      return;
-    }
-    createPresetMutation.mutate(buildPresetPayload(), {
-      onSuccess: (preset) => {
-        setSelectedPreset(preset);
-        setPresetMessage(
-          'Modelo salvo. Ele não inclui riscos selecionados nem resultados.',
-        );
-      },
-    });
-  };
-
-  const handleUpdatePreset = () => {
-    if (!selectedPreset) return;
-    if (!presetName.trim()) {
-      setPresetMessage('Informe um nome para atualizar o modelo.');
-      return;
-    }
-    updatePresetMutation.mutate(
-      { presetId: selectedPreset.id, payload: buildPresetPayload() },
-      {
-        onSuccess: (preset) => {
-          setSelectedPreset(preset);
-          setPresetMessage(
-            'Modelo atualizado sem alterar riscos selecionados.',
-          );
-        },
-      },
-    );
-  };
-
-  const handleDeletePreset = () => {
-    if (!selectedPreset) return;
-    const presetId = selectedPreset.id;
-    deletePresetMutation.mutate(
-      { presetId },
-      {
-        onSuccess: () => {
-          setSelectedPreset(null);
-          setPresetMessage('Modelo excluído/inativado.');
-        },
-      },
-    );
   };
 
   const handleToggleSuggestion = (key: string, checked: boolean) => {
@@ -378,10 +224,10 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
         context: 'MASTER_LIBRARY',
         selectedRiskFactorIds: selectedRiskIds,
         examFilters: {
-          search: examSearch.trim() || undefined,
-          examType: examType || undefined,
-          onlyESocial,
-          limit,
+          search: formValues.examSearch.trim() || undefined,
+          examType: formValues.examType || undefined,
+          onlyESocial: formValues.onlyESocial,
+          limit: formValues.limit,
         },
         options: {
           includeExistingRules,
@@ -389,12 +235,12 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
           onlyWithoutExamCoverage,
         },
         aiConfig: {
-          instructions: instructions.trim() || undefined,
-          positiveExamples: positiveExamples.trim() || undefined,
-          negativeExamples: negativeExamples.trim() || undefined,
-          cautionRules: cautionRules.trim() || undefined,
-          sessionInstruction: sessionInstruction.trim() || undefined,
-          model: model.trim() || undefined,
+          instructions: formValues.instructions.trim() || undefined,
+          positiveExamples: formValues.positiveExamples.trim() || undefined,
+          negativeExamples: formValues.negativeExamples.trim() || undefined,
+          cautionRules: formValues.cautionRules.trim() || undefined,
+          sessionInstruction: formValues.sessionInstruction.trim() || undefined,
+          model: formValues.model.trim() || undefined,
         },
       },
       {
@@ -441,243 +287,36 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
             </Stack>
           )}
 
-          <Stack spacing={2}>
-            <Typography variant="subtitle1">Modelos de pesquisa</Typography>
-            <Alert severity="info">
-              O modelo salva apenas filtros e instruções. Ele não salva os
-              riscos selecionados nem resultados.
-            </Alert>
-            <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
-              <Autocomplete
-                sx={{ minWidth: 360, flex: 1 }}
-                options={presetOptions}
-                value={selectedPreset}
-                openOnFocus
-                loading={isLoadingPresets}
-                getOptionLabel={presetLabel}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                filterOptions={(options) => options}
-                onOpen={() => {
-                  setPresetSearch('');
-                  void refetchPresets();
-                }}
-                onInputChange={(_, value, reason) => {
-                  if (reason === 'input') setPresetSearch(value);
-                  if (reason === 'clear') {
-                    setPresetSearch('');
-                    setSelectedPreset(null);
-                  }
-                }}
-                onChange={(_, value) => {
-                  if (value) {
-                    applyPreset(value);
-                  } else {
-                    setSelectedPreset(null);
-                    setPresetSearch('');
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField {...params} label="Carregar modelo" />
-                )}
-              />
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setSelectedPreset(null);
-                  setPresetSearch('');
-                  setPresetMessage(
-                    'Modelo carregado limpo. A configuração atual foi mantida.',
-                  );
-                }}
-              >
-                Limpar modelo
-              </Button>
-            </Box>
+          <ExamRiskAiAssistantPresetSection
+            open={open}
+            buildPresetConfig={buildPresetConfig}
+            onApplyPreset={handleApplyPreset}
+          />
 
-            <Box display="flex" gap={2} flexWrap="wrap">
-              <TextField
-                label="Nome do modelo"
-                value={presetName}
-                onChange={(event) => setPresetName(event.target.value)}
-                sx={{ minWidth: 320, flex: 1 }}
-              />
-              <TextField
-                label="Descrição do modelo"
-                value={presetDescription}
-                onChange={(event) => setPresetDescription(event.target.value)}
-                sx={{ minWidth: 420, flex: 2 }}
-              />
-            </Box>
-
-            <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-              <Button
-                variant="outlined"
-                onClick={handleSaveNewPreset}
-                disabled={createPresetMutation.isPending}
-              >
-                Salvar modelo
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={handleUpdatePreset}
-                disabled={!selectedPreset || updatePresetMutation.isPending}
-              >
-                Atualizar modelo
-              </Button>
-              <Button
-                color="warning"
-                variant="outlined"
-                onClick={handleDeletePreset}
-                disabled={!selectedPreset || deletePresetMutation.isPending}
-              >
-                Excluir
-              </Button>
-              {selectedPreset && (
-                <Chip
-                  variant="outlined"
-                  label={`Carregado: ${selectedPreset.name}`}
-                />
-              )}
-            </Box>
-
-            {presetMessage && <Alert severity="info">{presetMessage}</Alert>}
-          </Stack>
-
-          <Stack spacing={2}>
-            <Typography variant="subtitle1">Filtros de exames</Typography>
-            <Box display="flex" gap={2} flexWrap="wrap">
-              <TextField
-                label="Buscar exame"
-                value={examSearch}
-                onChange={(event) => setExamSearch(event.target.value)}
-                size="small"
-                sx={{ minWidth: 280, flex: 1 }}
-              />
-              <TextField
-                select
-                label="Tipo de exame"
-                value={examType}
-                onChange={(event) => setExamType(event.target.value)}
-                size="small"
-                sx={{ minWidth: 180 }}
-              >
-                {examTypeOptions.map((option) => (
-                  <MenuItem key={option.value || 'ALL'} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Limite"
-                type="number"
-                value={limit}
-                onChange={(event) =>
-                  setLimit(
-                    Math.min(60, Math.max(1, Number(event.target.value) || 1)),
-                  )
-                }
-                size="small"
-                sx={{ width: 110 }}
-              />
-            </Box>
-            <Box display="flex" gap={2} flexWrap="wrap">
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={onlyESocial}
-                    onChange={(event) => setOnlyESocial(event.target.checked)}
-                  />
-                }
-                label="Somente exames com eSocial"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={includeExistingRules}
-                    onChange={(event) =>
-                      setIncludeExistingRules(event.target.checked)
-                    }
-                  />
-                }
-                label="Mostrar regras existentes"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={includeIndirectCoverage}
-                    onChange={(event) =>
-                      setIncludeIndirectCoverage(event.target.checked)
-                    }
-                  />
-                }
-                label="Considerar cobertura indireta"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={onlyWithoutExamCoverage}
-                    onChange={(event) =>
-                      setOnlyWithoutExamCoverage(event.target.checked)
-                    }
-                  />
-                }
-                label="Somente pares sem cobertura"
-              />
-            </Box>
-          </Stack>
-
-          <Stack spacing={2}>
-            <Typography variant="subtitle1">Prompt e instruções</Typography>
-            <TextField
-              label="Instruções"
-              value={instructions}
-              onChange={(event) => setInstructions(event.target.value)}
-              multiline
-              minRows={2}
-              fullWidth
-            />
-            <Box
-              display="grid"
-              gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }}
-              gap={2}
-            >
-              <TextField
-                label="Exemplos positivos"
-                value={positiveExamples}
-                onChange={(event) => setPositiveExamples(event.target.value)}
-                multiline
-                minRows={2}
-              />
-              <TextField
-                label="Exemplos negativos"
-                value={negativeExamples}
-                onChange={(event) => setNegativeExamples(event.target.value)}
-                multiline
-                minRows={2}
-              />
-              <TextField
-                label="Cautelas"
-                value={cautionRules}
-                onChange={(event) => setCautionRules(event.target.value)}
-                multiline
-                minRows={2}
-              />
-              <TextField
-                label="Instrução adicional da sessão"
-                value={sessionInstruction}
-                onChange={(event) => setSessionInstruction(event.target.value)}
-                multiline
-                minRows={2}
-              />
-            </Box>
-            <TextField
-              label="Modelo IA opcional"
-              value={model}
-              onChange={(event) => setModel(event.target.value)}
-              size="small"
-              sx={{ maxWidth: 360 }}
-            />
-          </Stack>
+          <ExamRiskAiAssistantConfigForm
+            values={formValues}
+            onFieldChange={updateFormField}
+            optionSwitches={[
+              {
+                key: 'includeExistingRules',
+                label: 'Mostrar regras existentes',
+                checked: includeExistingRules,
+                onChange: setIncludeExistingRules,
+              },
+              {
+                key: 'includeIndirectCoverage',
+                label: 'Considerar cobertura indireta',
+                checked: includeIndirectCoverage,
+                onChange: setIncludeIndirectCoverage,
+              },
+              {
+                key: 'onlyWithoutExamCoverage',
+                label: 'Somente pares sem cobertura',
+                checked: onlyWithoutExamCoverage,
+                onChange: setOnlyWithoutExamCoverage,
+              },
+            ]}
+          />
 
           <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
             <Button
@@ -873,16 +512,16 @@ const ResultRow: FC<{
       <TableCell>
         <Chip
           size="small"
-          label={decisionLabels[suggestion.decision]}
-          color={decisionColors[suggestion.decision]}
+          label={EXAM_RISK_AI_DECISION_LABELS[suggestion.decision]}
+          color={EXAM_RISK_AI_DECISION_COLORS[suggestion.decision]}
           variant={suggestion.decision === 'exclude' ? 'outlined' : 'filled'}
         />
       </TableCell>
       <TableCell>
         <Chip
           size="small"
-          label={analysisStatusLabels[analysisStatus]}
-          color={analysisStatusColors[analysisStatus]}
+          label={EXAM_RISK_AI_ANALYSIS_STATUS_LABELS[analysisStatus]}
+          color={EXAM_RISK_AI_ANALYSIS_STATUS_COLORS[analysisStatus]}
           variant={analysisStatus === 'AI_ANALYZED' ? 'outlined' : 'filled'}
         />
         {suggestion.analysisStatusReason && (
@@ -894,8 +533,12 @@ const ResultRow: FC<{
       <TableCell>
         <Chip
           size="small"
-          label={candidateCompatibilityLabels[candidateCompatibility]}
-          color={candidateCompatibilityColors[candidateCompatibility]}
+          label={
+            EXAM_RISK_AI_CANDIDATE_COMPATIBILITY_LABELS[candidateCompatibility]
+          }
+          color={
+            EXAM_RISK_AI_CANDIDATE_COMPATIBILITY_COLORS[candidateCompatibility]
+          }
           variant={candidateCompatibility === 'DIRECT' ? 'filled' : 'outlined'}
         />
         {suggestion.candidateCompatibilityReason && (
