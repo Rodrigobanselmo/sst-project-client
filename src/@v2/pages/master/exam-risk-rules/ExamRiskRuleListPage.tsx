@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 
 import {
   Box,
@@ -19,6 +19,7 @@ import { persistKeys } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useFetchBrowseExamRiskRules } from '@v2/services/medicine/exam-risk-rule/hooks/useFetchBrowseExamRiskRules';
 import {
+  useMutateApplyExamRiskRulePcmsoDefaults,
   useMutateDeleteExamRiskRule,
   useMutateSyncExamRiskRulesNr07,
 } from '@v2/services/medicine/exam-risk-rule/hooks/useMutateExamRiskRule';
@@ -26,9 +27,14 @@ import {
   ExamRiskRuleScopeEnum,
   ExamRiskRuleSourceEnum,
   ExamRiskRuleStatusEnum,
+  IApplyExamRiskRulePcmsoDefaultsPatch,
+  IApplyExamRiskRulePcmsoDefaultsResult,
   IExamRiskRule,
   IExamRiskRuleNr07SyncSummary,
 } from '@v2/services/medicine/exam-risk-rule/service/exam-risk-rule.types';
+import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
+import { extractApiError } from '@v2/utils/extract-api-error';
+import { IErrorResp } from '@v2/types/error.type';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import { RoleEnum } from 'project/enum/roles.enums';
 
@@ -45,8 +51,15 @@ import { ExamRiskRuleReferencesModal } from './components/ExamRiskRuleReferences
 import { ExamRiskRuleTable } from './components/ExamRiskRuleTable';
 import { ExamRiskRuleCoverageGapsPanel } from './components/ExamRiskRuleCoverageGapsPanel';
 import { ExamRiskRuleAiAssistantDialog } from './components/ExamRiskRuleAiAssistantDialog';
+import { ExamRiskRuleGlobalPcmsoDefaultsModal } from './components/ExamRiskRuleGlobalPcmsoDefaultsModal';
+import { ExamRiskRuleApplyPcmsoDefaultsResultDialog } from './components/ExamRiskRuleApplyPcmsoDefaultsResultDialog';
 
 const ALL = 'ALL';
+
+type SelectedRuleRef = {
+  id: string;
+  status: ExamRiskRuleStatusEnum;
+};
 
 type LibraryTab = 'rules' | 'coverage';
 
@@ -71,6 +84,14 @@ export const ExamRiskRuleListPage: FC = () => {
   const [syncSummary, setSyncSummary] =
     useState<IExamRiskRuleNr07SyncSummary | null>(null);
   const [referencesRuleId, setReferencesRuleId] = useState<string | null>(null);
+  const [selectedRules, setSelectedRules] = useState<
+    Record<string, SelectedRuleRef>
+  >({});
+  const [pcmsoDefaultsOpen, setPcmsoDefaultsOpen] = useState(false);
+  const [applyPcmsoResult, setApplyPcmsoResult] =
+    useState<IApplyExamRiskRulePcmsoDefaultsResult | null>(null);
+
+  const { onErrorMessage } = useApiResponseHandler();
 
   const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
     useTablePageLimit(undefined, persistKeys.LIMIT_EXAM_RISK_RULES);
@@ -90,6 +111,95 @@ export const ExamRiskRuleListPage: FC = () => {
 
   const deleteMutation = useMutateDeleteExamRiskRule();
   const syncMutation = useMutateSyncExamRiskRulesNr07();
+  const applyPcmsoDefaultsMutation = useMutateApplyExamRiskRulePcmsoDefaults();
+
+  const selectedRuleIds = useMemo(
+    () => Object.keys(selectedRules),
+    [selectedRules],
+  );
+
+  const activeSelectedCount = useMemo(
+    () =>
+      Object.values(selectedRules).filter(
+        (rule) => rule.status === ExamRiskRuleStatusEnum.ACTIVE,
+      ).length,
+    [selectedRules],
+  );
+
+  const handleToggleRule = useCallback(
+    (rule: IExamRiskRule, checked: boolean) => {
+      setSelectedRules((prev) => {
+        const next = { ...prev };
+        if (checked) {
+          next[rule.id] = { id: rule.id, status: rule.status };
+        } else {
+          delete next[rule.id];
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleTogglePage = useCallback(
+    (rules: IExamRiskRule[], checked: boolean) => {
+      setSelectedRules((prev) => {
+        const next = { ...prev };
+        if (checked) {
+          rules.forEach((rule) => {
+            next[rule.id] = { id: rule.id, status: rule.status };
+          });
+        } else {
+          rules.forEach((rule) => {
+            delete next[rule.id];
+          });
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleApplyPcmsoDefaults = (params: {
+    patch: IApplyExamRiskRulePcmsoDefaultsPatch;
+    confirmApplyToActive?: boolean;
+  }) => {
+    if (!selectedRuleIds.length) return;
+
+    applyPcmsoDefaultsMutation.mutate(
+      {
+        ruleIds: selectedRuleIds,
+        patch: params.patch,
+        confirmApplyToActive: params.confirmApplyToActive,
+      },
+      {
+        onSuccess: (result) => {
+          setPcmsoDefaultsOpen(false);
+          setApplyPcmsoResult(result);
+          setSelectedRules({});
+        },
+        onError: (error) => {
+          if (typeof error === 'string') {
+            onErrorMessage(error);
+            return;
+          }
+          const message =
+            extractApiError(error as IErrorResp) ??
+            'Erro ao aplicar padrões de PCMSO.';
+          if (
+            message.includes('confirmApplyToActive') ||
+            message.includes('ACTIVE')
+          ) {
+            onErrorMessage(
+              'Confirmação obrigatória para aplicar padrões em regras ativas.',
+            );
+            return;
+          }
+          onErrorMessage(message);
+        },
+      },
+    );
+  };
 
   const handleConfirmSync = () => {
     syncMutation.mutate(undefined, {
@@ -249,6 +359,25 @@ export const ExamRiskRuleListPage: FC = () => {
             </TextField>
           </Box>
 
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={2}
+            mb={2}
+            flexWrap="wrap"
+          >
+            <Typography variant="body2" color="text.secondary">
+              {selectedRuleIds.length} regra(s) selecionada(s)
+            </Typography>
+            <Button
+              variant="outlined"
+              disabled={selectedRuleIds.length === 0}
+              onClick={() => setPcmsoDefaultsOpen(true)}
+            >
+              Padrões globais de PCMSO
+            </Button>
+          </Box>
+
           <ExamRiskRuleTable
             data={data?.data ?? []}
             isLoading={isLoading}
@@ -263,6 +392,9 @@ export const ExamRiskRuleListPage: FC = () => {
             onEdit={handleEdit}
             onDelete={setToDelete}
             onManageReferences={(rule) => setReferencesRuleId(rule.id)}
+            selectedRuleIds={selectedRuleIds}
+            onToggleRule={handleToggleRule}
+            onTogglePage={handleTogglePage}
           />
         </Paper>
         )}
@@ -287,6 +419,20 @@ export const ExamRiskRuleListPage: FC = () => {
       <ExamRiskRuleAiAssistantDialog
         open={aiAssistantOpen}
         onClose={() => setAiAssistantOpen(false)}
+      />
+
+      <ExamRiskRuleGlobalPcmsoDefaultsModal
+        open={pcmsoDefaultsOpen}
+        selectedCount={selectedRuleIds.length}
+        activeSelectedCount={activeSelectedCount}
+        isSaving={applyPcmsoDefaultsMutation.isPending}
+        onClose={() => setPcmsoDefaultsOpen(false)}
+        onApply={handleApplyPcmsoDefaults}
+      />
+
+      <ExamRiskRuleApplyPcmsoDefaultsResultDialog
+        result={applyPcmsoResult}
+        onClose={() => setApplyPcmsoResult(null)}
       />
 
       <Dialog open={Boolean(toDelete)} onClose={() => setToDelete(null)}>

@@ -724,3 +724,48 @@ export interface IExamRiskRuleImportApplyResult {
   totals: IExamRiskRuleImportTotals;
   affectedRuleIds: string[];
 }
+
+export interface IApplyExamRiskRulePcmsoDefaultsPatch {
+  isAdmission?: boolean;
+  isPeriodic?: boolean;
+  isChange?: boolean;
+  isReturn?: boolean;
+  isDismissal?: boolean;
+  isMale?: boolean;
+  isFemale?: boolean;
+  fromAge?: number | null;
+  toAge?: number | null;
+  validityInMonths?: number | null;
+  considerBetweenDays?: number | null;
+  minRiskDegree?: number | null;
+  minRiskDegreeQuantity?: number | null;
+}
+
+export interface IApplyExamRiskRulePcmsoDefaultsPayload {
+  ruleIds: string[];
+  patch: IApplyExamRiskRulePcmsoDefaultsPatch;
+  confirmApplyToActive?: boolean;
+}
+
+export interface IApplyExamRiskRulePcmsoDefaultsResult {
+  totals: {
+    requestedRules: number;
+    updatedRules: number;
+    updatedExams: number;
+    quantitativeApplied: number;
+    quantitativeNotApplicable: number;
+    skippedRules: number;
+  };
+  updated: Array<{
+    ruleId: string;
+    ruleName: string;
+    status: string;
+    examsUpdated: number;
+    quantitativeApplied: boolean;
+  }>;
+  skipped: Array<{
+    ruleId: string;
+    reason: string;
+  }>;
+  warnings: string[];
+}

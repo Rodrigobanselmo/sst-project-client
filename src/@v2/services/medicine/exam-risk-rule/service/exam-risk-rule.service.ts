@@ -2,6 +2,8 @@ import { ExamRiskRuleRoutes } from '@v2/constants/routes/exam-risk-rule.routes';
 import { api } from 'core/services/apiClient';
 
 import type {
+  IApplyExamRiskRulePcmsoDefaultsPayload,
+  IApplyExamRiskRulePcmsoDefaultsResult,
   IBrowseExamRiskRulesParams,
   IBrowseExamRiskRulesResponse,
   ICreateExamRiskRulePayload,
@@ -306,6 +308,16 @@ export async function browseExamRiskRuleCoverageGaps(
   const response = await api.get<IExamRiskRuleCoverageGapsResponse>(
     ExamRiskRuleRoutes.COVERAGE_GAPS,
     { params },
+  );
+  return response.data;
+}
+
+export async function applyExamRiskRulePcmsoDefaults(
+  payload: IApplyExamRiskRulePcmsoDefaultsPayload,
+): Promise<IApplyExamRiskRulePcmsoDefaultsResult> {
+  const response = await api.post<IApplyExamRiskRulePcmsoDefaultsResult>(
+    ExamRiskRuleRoutes.APPLY_PCMSO_DEFAULTS,
+    payload,
   );
   return response.data;
 }

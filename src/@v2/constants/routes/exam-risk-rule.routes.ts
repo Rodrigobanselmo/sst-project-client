@@ -30,4 +30,6 @@ export const ExamRiskRuleRoutes = {
   REFERENCE_BY_ID:
     '/v2/master/exam-risk-rules/:ruleId/references/:referenceId',
   COVERAGE_GAPS: '/v2/master/exam-risk-rules/coverage-gaps',
+  APPLY_PCMSO_DEFAULTS:
+    '/v2/master/exam-risk-rules/apply-pcmso-defaults',
 } as const;

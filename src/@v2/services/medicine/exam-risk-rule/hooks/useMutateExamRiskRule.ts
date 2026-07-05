@@ -2,6 +2,7 @@ import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
 
 import {
+  applyExamRiskRulePcmsoDefaults,
   createExamRiskRuleAiDrafts,
   createExamRiskRuleRiskToExamAiDrafts,
   createExamRiskRuleAiPreset,
@@ -192,6 +193,15 @@ export const useMutateDeleteExamRiskRuleRiskToExamAiPreset = () => {
       deleteExamRiskRuleRiskToExamAiPreset(presetId),
     invalidateManyQueryKeys: invalidateRiskToExamAiPresets,
     onSuccess: () => onSuccessMessage('Modelo inativado'),
+    onError: onErrorMessage,
+  });
+};
+
+export const useMutateApplyExamRiskRulePcmsoDefaults = () => {
+  const { onErrorMessage } = useApiResponseHandler();
+  return useMutate({
+    mutationFn: applyExamRiskRulePcmsoDefaults,
+    invalidateManyQueryKeys: invalidate,
     onError: onErrorMessage,
   });
 };

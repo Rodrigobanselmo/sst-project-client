@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { Box, Chip, IconButton, Tooltip, Typography } from '@mui/material';
+import { Box, Checkbox, Chip, IconButton, Tooltip, Typography } from '@mui/material';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '@v2/components/organisms/STable/addons/addons-table/STablePagination/STablePagination';
 import { STable } from '@v2/components/organisms/STable/common/STable/STable';
@@ -37,6 +37,9 @@ type Props = {
   onEdit: (rule: IExamRiskRule) => void;
   onDelete: (rule: IExamRiskRule) => void;
   onManageReferences: (rule: IExamRiskRule) => void;
+  selectedRuleIds?: string[];
+  onToggleRule?: (rule: IExamRiskRule, checked: boolean) => void;
+  onTogglePage?: (rules: IExamRiskRule[], checked: boolean) => void;
 };
 
 /** Resumo legível das fontes complementares ativas de uma regra (Fase 4I). */
@@ -141,10 +144,39 @@ export const ExamRiskRuleTable: FC<Props> = ({
   onEdit,
   onDelete,
   onManageReferences,
+  selectedRuleIds = [],
+  onToggleRule,
+  onTogglePage,
 }) => {
   const router = useRouter();
 
+  const pageRuleIds = data.map((rule) => rule.id);
+  const selectedOnPageCount = pageRuleIds.filter((id) =>
+    selectedRuleIds.includes(id),
+  ).length;
+  const allPageSelected =
+    pageRuleIds.length > 0 && selectedOnPageCount === pageRuleIds.length;
+
   const tableData: ITableData<IExamRiskRule>[] = [
+    {
+      column: '54px',
+      header: (
+        <Checkbox
+          size="small"
+          checked={allPageSelected}
+          indeterminate={selectedOnPageCount > 0 && !allPageSelected}
+          disabled={!pageRuleIds.length || !onTogglePage}
+          onChange={(event) => onTogglePage?.(data, event.target.checked)}
+        />
+      ),
+      row: (row) => (
+        <Checkbox
+          size="small"
+          checked={selectedRuleIds.includes(row.id)}
+          onChange={(event) => onToggleRule?.(row, event.target.checked)}
+        />
+      ),
+    },
     {
       column: 'minmax(240px, 1.1fr)',
       header: <STableHRow>Fator de Risco</STableHRow>,
