@@ -5,6 +5,23 @@ export const examSchema = yup.object().shape({
   type: yup.string().trim().required('tipo obrigatório'),
 });
 
+const PERIODIC_VALIDITY_MESSAGE =
+  'Informe a periodicidade para exames periódicos';
+
 export const examRiskSchema = yup.object().shape({
-  validityInMonths: yup.string().trim().required('campo obrigatório'),
+  isPeriodic: yup.boolean().optional(),
+  validityInMonths: yup
+    .string()
+    .trim()
+    .when('isPeriodic', {
+      is: true,
+      then: (schema) =>
+        schema
+          .required(PERIODIC_VALIDITY_MESSAGE)
+          .test('positive-int', PERIODIC_VALIDITY_MESSAGE, (value) => {
+            const parsed = parseInt(String(value ?? '').trim(), 10);
+            return !Number.isNaN(parsed) && parsed > 0;
+          }),
+      otherwise: (schema) => schema.optional(),
+    }),
 });

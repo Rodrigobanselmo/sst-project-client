@@ -139,6 +139,8 @@ export const ModalExamStep = ({
               labelPosition: 'top',
               placeholder: 'meses...',
               name: 'validityInMonths',
+              helpText:
+                'Obrigatório apenas quando Periódico estiver marcado.',
             }}
             setValue={(v) => setValue('validityInMonths', String(v))}
             defaultValue={examData.validityInMonths || ''}

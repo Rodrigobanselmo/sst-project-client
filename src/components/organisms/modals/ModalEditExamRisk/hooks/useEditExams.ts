@@ -75,9 +75,11 @@ export const useEditExams = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { isMasterAdmin } = usePermissionsAccess();
 
-  const { handleSubmit, control, setValue, reset, getValues } = useForm<any>({
-    resolver: yupResolver(examRiskSchema),
-  });
+  const { handleSubmit, control, setValue, reset, getValues, clearErrors, trigger } =
+    useForm<any>({
+      resolver: yupResolver(examRiskSchema),
+      defaultValues: { isPeriodic: initialExamRiskState.isPeriodic },
+    });
 
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
@@ -125,6 +127,10 @@ export const useEditExams = () => {
       });
     }
   }, [getModalData]);
+
+  useEffect(() => {
+    setValue('isPeriodic', examData.isPeriodic);
+  }, [examData.isPeriodic, setValue]);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.EXAM_RISK, data);
@@ -283,6 +289,12 @@ export const useEditExams = () => {
       ...oldData,
       [type]: isChecked,
     }));
+
+    if (type === 'isPeriodic') {
+      setValue('isPeriodic', isChecked);
+      clearErrors('validityInMonths');
+      void trigger('validityInMonths');
+    }
   };
 
   const onRemove = () => {
