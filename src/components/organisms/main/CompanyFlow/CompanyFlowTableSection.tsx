@@ -34,6 +34,22 @@ export function CompanyFlowTableSection({
   supplementary,
   belowModuleTabs = false,
 }: Props): JSX.Element {
+  if (supplementary) {
+    return (
+      <>
+        <CompanyFlowStickySubheader belowModuleTabs={belowModuleTabs}>
+          {chrome}
+        </CompanyFlowStickySubheader>
+        {supplementary}
+        <STable columns={columns} loading={loading} rowsNumber={rowsNumber}>
+          {header}
+          {children}
+        </STable>
+        {footer}
+      </>
+    );
+  }
+
   return (
     <>
       <CompanyFlowStickySubheader belowModuleTabs={belowModuleTabs}>
@@ -42,7 +58,6 @@ export function CompanyFlowTableSection({
           {header}
         </STable>
       </CompanyFlowStickySubheader>
-      {supplementary}
       <STable columns={columns} loading={loading} rowsNumber={rowsNumber}>
         {children}
       </STable>
