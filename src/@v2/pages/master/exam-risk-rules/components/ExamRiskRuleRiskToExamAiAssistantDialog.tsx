@@ -20,7 +20,10 @@ import {
   Typography,
 } from '@mui/material';
 import { ExamRiskAiAssistantConfigForm } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantConfigForm';
+import { ExamRiskAiAccumulatedSelectionPanel } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAccumulatedSelectionPanel';
 import { ExamRiskAiAssistantPresetSection } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantPresetSection';
+import { buildRiskExamAccumulationKey } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant-accumulated.util';
+import { useExamRiskAiAccumulatedSuggestions } from '@v2/components/medicine/exam-risk-ai-assistant/useExamRiskAiAccumulatedSuggestions';
 import {
   buildRiskToExamAiPresetConfig,
   mapExamRiskAiPresetToState,
@@ -56,7 +59,16 @@ type Props = {
 };
 
 const suggestionKey = (riskFactorId: string, examId: number) =>
-  `${riskFactorId}:${examId}`;
+  buildRiskExamAccumulationKey(riskFactorId, examId);
+
+type MasterAccumulatedSuggestion = {
+  riskFactorId: string;
+  riskName: string;
+  suggestion: IExamRiskRuleRiskToExamAiSuggestion;
+};
+
+const getMasterAccumulationKey = (item: MasterAccumulatedSuggestion) =>
+  suggestionKey(item.riskFactorId, item.suggestion.examId);
 
 const getSelectionBlockReason = (
   riskFactorId: string,
@@ -114,6 +126,8 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     useState<ICreateExamRiskRuleRiskToExamAiDraftsResponse | null>(null);
   const [confirmCreateDraftsOpen, setConfirmCreateDraftsOpen] = useState(false);
 
+  const accumulated = useExamRiskAiAccumulatedSuggestions(getMasterAccumulationKey);
+
   const dryRunMutation = useMutateDryRunExamRiskRuleRiskToExamAiSuggestions();
   const createDraftsMutation =
     useMutateCreateExamRiskRuleRiskToExamAiDrafts();
@@ -145,6 +159,30 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     [rows, selectedSuggestionKeys],
   );
 
+  const accumulatedRows = useMemo(
+    () =>
+      accumulated.items.map((item) => ({
+        key: getMasterAccumulationKey(item),
+        riskLabel: item.riskName,
+        examLabel: item.suggestion.examName,
+        decision: item.suggestion.decision,
+        confidence: item.suggestion.confidence,
+        alreadyCreated: Boolean(
+          createdDraftsByKey[getMasterAccumulationKey(item)],
+        ),
+      })),
+    [accumulated.items, createdDraftsByKey],
+  );
+
+  const isSuggestionAllowedForAccumulation = (
+    riskFactorId: string,
+    suggestion: IExamRiskRuleRiskToExamAiSuggestion,
+  ) => {
+    const key = suggestionKey(riskFactorId, suggestion.examId);
+    if (createdDraftsByKey[key]) return false;
+    return !getSelectionBlockReason(riskFactorId, suggestion);
+  };
+
   const updateFormField = <K extends keyof ExamRiskAiAssistantFormValues>(
     key: K,
     value: ExamRiskAiAssistantFormValues[K],
@@ -170,6 +208,22 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     setSelectedSuggestionKeys([]);
     setCreatedDraftsByKey({});
     setDraftCreationResult(null);
+    accumulated.clear();
+  };
+
+  const handleAddSelectedToAccumulated = () => {
+    if (!selectedRows.length) return;
+    const items: MasterAccumulatedSuggestion[] = selectedRows.map(
+      ({ riskFactorId, riskName, suggestion }) => ({
+        riskFactorId,
+        riskName,
+        suggestion,
+      }),
+    );
+    accumulated.addItems(items, (item) =>
+      isSuggestionAllowedForAccumulation(item.riskFactorId, item.suggestion),
+    );
+    setSelectedSuggestionKeys([]);
   };
 
   const handleToggleSuggestion = (key: string, checked: boolean) => {
@@ -179,12 +233,17 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   };
 
   const handleCreateSelectedDrafts = () => {
-    if (!selectedRows.length) return;
+    if (!accumulated.items.length) return;
+
+    const pendingItems = accumulated.items.filter(
+      (item) => !createdDraftsByKey[getMasterAccumulationKey(item)],
+    );
+    if (!pendingItems.length) return;
 
     createDraftsMutation.mutate(
       {
         context: 'MASTER_LIBRARY',
-        items: selectedRows.map(({ riskFactorId, suggestion }) => ({
+        items: pendingItems.map(({ riskFactorId, suggestion }) => ({
           riskFactorId,
           examId: suggestion.examId,
           decision: suggestion.decision,
@@ -201,6 +260,12 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
           setDraftCreationResult(response);
           setConfirmCreateDraftsOpen(false);
           setSelectedSuggestionKeys([]);
+          const createdKeys = new Set(
+            response.created.map((item) =>
+              suggestionKey(item.riskFactorId, item.examId),
+            ),
+          );
+          createdKeys.forEach((key) => accumulated.removeItem(key));
           setCreatedDraftsByKey((current) => {
             const next = { ...current };
             response.created.forEach((item) => {
@@ -247,7 +312,6 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
         onSuccess: (response) => {
           setResult(response);
           setSelectedSuggestionKeys([]);
-          setCreatedDraftsByKey({});
           setDraftCreationResult(null);
         },
       },
@@ -262,6 +326,10 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
           <Alert severity="warning">
             O dry-run apenas sugere exames. A criação só ocorre para itens
             selecionados e confirmados, sempre como rascunho global.
+          </Alert>
+          <Alert severity="info">
+            Você pode rodar vários dry-runs, adicionar sugestões à lista
+            acumulada e criar todos os rascunhos de uma vez ao final.
           </Alert>
           <Alert severity="info">
             Ao criar rascunhos, nenhuma regra será ativada automaticamente. O
@@ -318,6 +386,14 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
             ]}
           />
 
+          {accumulated.count > 0 && (
+            <ExamRiskAiAccumulatedSelectionPanel
+              title="Selecionados para criar rascunhos"
+              rows={accumulatedRows}
+              onRemove={accumulated.removeItem}
+            />
+          )}
+
           <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
             <Button
               variant="contained"
@@ -332,16 +408,24 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
             </Button>
             <Button
               variant="outlined"
+              onClick={handleAddSelectedToAccumulated}
+              disabled={selectedRows.length === 0}
+            >
+              Adicionar selecionados à lista
+            </Button>
+            <Button
+              variant="outlined"
               color="warning"
               onClick={() => setConfirmCreateDraftsOpen(true)}
               disabled={
-                selectedRows.length === 0 || createDraftsMutation.isPending
+                accumulated.count === 0 || createDraftsMutation.isPending
               }
             >
-              Criar rascunhos selecionados
+              Criar rascunhos selecionados ({accumulated.count})
             </Button>
             <Typography variant="body2" color="text.secondary">
-              {selectedRows.length} item(ns) elegível(is) selecionado(s)
+              {selectedRows.length} item(ns) no dry-run atual ·{' '}
+              {accumulated.count} na lista acumulada
             </Typography>
           </Box>
 
@@ -412,6 +496,9 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
                           selected={selectedSuggestionKeys.includes(
                             suggestionKey(riskFactorId, suggestion.examId),
                           )}
+                          alreadyAccumulated={accumulated.isAccumulated(
+                            suggestionKey(riskFactorId, suggestion.examId),
+                          )}
                           createdDraft={createdDraftsByKey[
                             suggestionKey(riskFactorId, suggestion.examId)
                           ]}
@@ -435,8 +522,8 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
               ativada automaticamente.
             </Alert>
             <Typography>
-              Itens selecionados: {selectedRows.length}. O MASTER deve revisar e
-              ativar manualmente cada regra.
+              Itens na lista acumulada: {accumulated.count}. O MASTER deve
+              revisar e ativar manualmente cada regra.
             </Typography>
           </Stack>
         </DialogContent>
@@ -448,7 +535,7 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
             color="warning"
             variant="contained"
             onClick={handleCreateSelectedDrafts}
-            disabled={!selectedRows.length || createDraftsMutation.isPending}
+            disabled={!accumulated.count || createDraftsMutation.isPending}
           >
             {createDraftsMutation.isPending
               ? 'Criando rascunhos...'
@@ -468,6 +555,7 @@ const ResultRow: FC<{
   riskName: string;
   suggestion: IExamRiskRuleRiskToExamAiSuggestion;
   selected: boolean;
+  alreadyAccumulated: boolean;
   createdDraft?: { ruleId: string; status: 'DRAFT' };
   onToggle: (key: string, checked: boolean) => void;
 }> = ({
@@ -475,6 +563,7 @@ const ResultRow: FC<{
   riskName,
   suggestion,
   selected,
+  alreadyAccumulated,
   createdDraft,
   onToggle,
 }) => {
@@ -484,7 +573,9 @@ const ResultRow: FC<{
   const key = suggestionKey(riskFactorId, suggestion.examId);
   const blockReason = createdDraft
     ? 'Rascunho já criado nesta sessão.'
-    : getSelectionBlockReason(riskFactorId, suggestion);
+    : alreadyAccumulated
+      ? 'Já adicionado à lista.'
+      : getSelectionBlockReason(riskFactorId, suggestion);
   const canSelect = !blockReason;
 
   return (
@@ -495,7 +586,12 @@ const ResultRow: FC<{
           disabled={!canSelect}
           onChange={(event) => onToggle(key, event.target.checked)}
         />
-        {blockReason && (
+        {alreadyAccumulated && !createdDraft && (
+          <Typography variant="caption" color="success.main" display="block">
+            Já adicionado
+          </Typography>
+        )}
+        {blockReason && !alreadyAccumulated && (
           <Typography variant="caption" color="text.secondary" display="block">
             {blockReason}
           </Typography>

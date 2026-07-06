@@ -24,7 +24,10 @@ import {
 } from '@mui/material';
 
 import { ExamRiskAiAssistantConfigForm } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantConfigForm';
+import { ExamRiskAiAccumulatedSelectionPanel } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAccumulatedSelectionPanel';
 import { ExamRiskAiAssistantPresetSection } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantPresetSection';
+import { buildRiskExamAccumulationKey } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant-accumulated.util';
+import { useExamRiskAiAccumulatedSuggestions } from '@v2/components/medicine/exam-risk-ai-assistant/useExamRiskAiAccumulatedSuggestions';
 import {
   buildRiskToExamAiPresetConfig,
   mapCompanyPresetToState,
@@ -207,8 +210,9 @@ const ApplyPreviewTable: FC<{
 const SuggestionResultRow: FC<{
   item: ICompanyExamRiskAiSuggestionItem;
   selected: boolean;
+  alreadyAccumulated: boolean;
   onToggle: (suggestionKey: string) => void;
-}> = ({ item, selected, onToggle }) => {
+}> = ({ item, selected, alreadyAccumulated, onToggle }) => {
   const decisionLabel =
     EXAM_RISK_AI_DECISION_LABELS[
       item.decision as keyof typeof EXAM_RISK_AI_DECISION_LABELS
@@ -223,10 +227,15 @@ const SuggestionResultRow: FC<{
       <TableCell>
         <Checkbox
           checked={selected}
-          disabled={!item.isSelectable}
+          disabled={!item.isSelectable || alreadyAccumulated}
           onChange={() => onToggle(item.suggestionKey)}
         />
-        {item.selectionBlockReason && (
+        {alreadyAccumulated && (
+          <Typography variant="caption" color="success.main" display="block">
+            Já adicionado
+          </Typography>
+        )}
+        {item.selectionBlockReason && !alreadyAccumulated && (
           <Typography variant="caption" color="text.secondary" display="block">
             {item.selectionBlockReason}
           </Typography>
@@ -328,6 +337,13 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   const applyMutation = useApplyCompanyExamRiskAiSuggestions();
   const { isMasterAdmin } = usePermissionsAccess();
 
+  const getAccumulationKey = (item: ICompanyExamRiskAiSuggestionItem) =>
+    buildRiskExamAccumulationKey(riskId, item.examId);
+
+  const accumulated = useExamRiskAiAccumulatedSuggestions(
+    getAccumulationKey,
+  );
+
   const [step, setStep] = useState<Step>('setup');
   const [formValues, setFormValues] = useState<ExamRiskAiAssistantFormValues>(
     createDefaultExamRiskAiAssistantFormValues(),
@@ -353,6 +369,17 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     return dryRunData.suggestions.filter((item) => keySet.has(item.suggestionKey));
   }, [dryRunData, selectedKeys]);
 
+  const accumulatedRows = useMemo(
+    () =>
+      accumulated.items.map((item) => ({
+        key: getAccumulationKey(item),
+        examLabel: item.examName,
+        decision: item.decision,
+        confidence: item.confidence,
+      })),
+    [accumulated.items, riskId],
+  );
+
   useEffect(() => {
     if (!open) return;
     setStep('setup');
@@ -363,6 +390,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     setSelectedKeys([]);
     setPreviewData(null);
     setResultData(null);
+    accumulated.clear();
     dryRunMutation.reset();
     applyMutation.reset();
   }, [open, riskId]);
@@ -393,7 +421,17 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     setSelectedKeys([]);
     setPreviewData(null);
     setResultData(null);
+    accumulated.clear();
     setStep('setup');
+  };
+
+  const onAddSelectedToAccumulated = () => {
+    if (!selectedSuggestions.length) return;
+    accumulated.addItems(
+      selectedSuggestions,
+      (item) => item.isSelectable,
+    );
+    setSelectedKeys([]);
   };
 
   const onGenerateSuggestions = async () => {
@@ -424,18 +462,25 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
 
   const onToggleAllSelectable = (checked: boolean) => {
     setSelectedKeys(
-      checked ? selectableSuggestions.map((item) => item.suggestionKey) : [],
+      checked
+        ? selectableSuggestions
+            .filter(
+              (item) =>
+                !accumulated.isAccumulated(getAccumulationKey(item)),
+            )
+            .map((item) => item.suggestionKey)
+        : [],
     );
   };
 
   const buildApplyItems = () =>
-    selectedSuggestions.map((item) => ({
+    accumulated.items.map((item) => ({
       examId: item.examId,
       rationale: item.rationale,
     }));
 
   const onPreviewApply = async () => {
-    if (!selectedKeys.length) return;
+    if (!accumulated.count) return;
     const response = await applyMutation.mutateAsync({
       companyId,
       riskId,
@@ -448,7 +493,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   };
 
   const onConfirmApply = async () => {
-    if (!previewData || !selectedKeys.length) return;
+    if (!previewData || !accumulated.count) return;
     const response = await applyMutation.mutateAsync({
       companyId,
       riskId,
@@ -477,6 +522,15 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     result: 'Resultado da criação',
   }[step];
 
+  const accumulatedPanel =
+    accumulated.count > 0 ? (
+      <ExamRiskAiAccumulatedSelectionPanel
+        title="Selecionados para aplicar"
+        rows={accumulatedRows}
+        onRemove={accumulated.removeItem}
+      />
+    ) : null;
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -501,6 +555,10 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
                 O dry-run não cria vínculos. A confirmação gera apenas vínculos
                 ExamToRisk nesta empresa e não altera a Biblioteca global.
                 Revise cada sugestão antes de aplicar.
+              </Alert>
+              <Alert severity="info">
+                Você pode rodar vários dry-runs, adicionar sugestões à lista
+                acumulada e aplicar todos os vínculos de uma vez ao final.
               </Alert>
 
               {isMasterAdmin && (
@@ -530,11 +588,13 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
                   },
                 ]}
               />
+              {accumulatedPanel}
             </>
           )}
 
           {step === 'select' && dryRunData && (
             <Stack spacing={2}>
+              {accumulatedPanel}
               <Alert severity="info">
                 Dry-run concluído: {dryRunData.totals.pairsAnalyzed} par(es)
                 analisado(s). Sugestões: {dryRunData.totals.suggested}; ambíguos:{' '}
@@ -604,6 +664,9 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
                           key={item.suggestionKey}
                           item={item}
                           selected={selectedKeys.includes(item.suggestionKey)}
+                          alreadyAccumulated={accumulated.isAccumulated(
+                            getAccumulationKey(item),
+                          )}
                           onToggle={onToggleSuggestion}
                         />
                       ))
@@ -616,7 +679,8 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
 
           {step === 'preview' && previewData && (
             <Box>
-              <Alert severity="info" sx={{ mb: 2 }}>
+              {accumulatedPanel}
+              <Alert severity="info" sx={{ mb: 2, mt: accumulated.count ? 2 : 0 }}>
                 Serão criados vínculos novos no catálogo desta empresa. Nenhum
                 vínculo existente será alterado e nenhuma regra global será
                 publicada.
@@ -661,6 +725,15 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
         {step === 'setup' && (
           <>
             <Button onClick={onClose}>Cancelar</Button>
+            {accumulated.count > 0 && (
+              <Button
+                variant="outlined"
+                disabled={isLoading}
+                onClick={onPreviewApply}
+              >
+                Pré-visualizar vínculos ({accumulated.count})
+              </Button>
+            )}
             <Button
               variant="contained"
               disabled={isLoading}
@@ -687,11 +760,18 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
               Cancelar
             </Button>
             <Button
-              variant="contained"
+              variant="outlined"
               disabled={!selectedKeys.length || isLoading}
+              onClick={onAddSelectedToAccumulated}
+            >
+              Adicionar selecionados à lista
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!accumulated.count || isLoading}
               onClick={onPreviewApply}
             >
-              Próximo
+              Pré-visualizar vínculos ({accumulated.count})
             </Button>
           </>
         )}
