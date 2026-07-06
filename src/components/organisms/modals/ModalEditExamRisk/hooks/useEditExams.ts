@@ -20,7 +20,7 @@ import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { examRiskSchema } from 'core/utils/schemas/exam.schema';
 import { queryClient } from 'core/services/queryClient';
 import { QueryEnum } from 'core/enums/query.enums';
-import { examRiskLinkStatusQueryKeys } from '@v2/services/medicine/company-exam-risk-link-status/hooks/exam-risk-link-status.query-keys';
+import { refetchExamRiskLinkStatusQueries } from '@v2/services/medicine/company-exam-risk-link-status/hooks/refetch-exam-risk-link-status';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { useSnackbar } from 'notistack';
@@ -98,7 +98,7 @@ export const useEditExams = () => {
 
   const refetchExamsRiskList = async () => {
     await queryClient.refetchQueries([QueryEnum.EXAMS_RISK]);
-    await queryClient.invalidateQueries(examRiskLinkStatusQueryKeys.all());
+    await refetchExamRiskLinkStatusQueries();
   };
 
   useEffect(() => {

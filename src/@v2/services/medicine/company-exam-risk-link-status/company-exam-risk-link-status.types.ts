@@ -5,6 +5,19 @@ export enum PcmsoLinkStatusEnum {
   NO_LIBRARY_REFERENCE = 'NO_LIBRARY_REFERENCE',
 }
 
+export enum ExamRiskCharacterizationStatusEnum {
+  IN_CHARACTERIZATION = 'IN_CHARACTERIZATION',
+  OUT_OF_CHARACTERIZATION = 'OUT_OF_CHARACTERIZATION',
+}
+
+export enum ExamRiskLibraryStatusEnum {
+  OK = 'OK',
+  NO_LIBRARY_RULE = 'NO_LIBRARY_RULE',
+  EXAM_NOT_RECOMMENDED = 'EXAM_NOT_RECOMMENDED',
+  MISSING_RECOMMENDED_EXAMS = 'MISSING_RECOMMENDED_EXAMS',
+  INDIRECT_BIOLOGICAL_ONLY = 'INDIRECT_BIOLOGICAL_ONLY',
+}
+
 export enum CompanyExamRiskLibraryCoverageEnum {
   MATCHED_BY_RULE = 'MATCHED_BY_RULE',
   BIOLOGICAL_INDIRECT_ONLY = 'BIOLOGICAL_INDIRECT_ONLY',
@@ -45,6 +58,11 @@ export type IExamRiskLinkStatusItem = {
   libraryCoverage: CompanyExamRiskLibraryCoverageEnum;
   libraryCoverageNotes: string[];
   matchedRules: IExamRiskLinkMatchedRule[];
+  isRiskCharacterized?: boolean;
+  characterizationStatus?: ExamRiskCharacterizationStatusEnum;
+  libraryStatus?: ExamRiskLibraryStatusEnum;
+  hasActiveLibraryRule?: boolean;
+  isLinkedExamRecommended?: boolean;
   risk: {
     id: string;
     name: string;
@@ -66,6 +84,18 @@ export type IExamRiskLinkStatusSummary = {
   risksWithPendingIssues: number;
 };
 
+export type IExamRiskCharacterizationSummary = {
+  outOfCharacterization: number;
+};
+
+export type IExamRiskLibrarySummary = {
+  ok: number;
+  noLibraryRule: number;
+  examNotRecommended: number;
+  missingRecommendedExams: number;
+  indirectBiologicalOnly?: number;
+};
+
 export type IExamRiskUncoveredRiskItem = {
   riskId: string;
   riskName: string;
@@ -79,6 +109,8 @@ export type IExamRiskLinkStatusResponse = {
   items: IExamRiskLinkStatusItem[];
   uncoveredRisks: IExamRiskUncoveredRiskItem[];
   summary: IExamRiskLinkStatusSummary;
+  characterizationSummary?: IExamRiskCharacterizationSummary;
+  librarySummary?: IExamRiskLibrarySummary;
   meta: {
     companyId: string;
     workspaceId: string | null;

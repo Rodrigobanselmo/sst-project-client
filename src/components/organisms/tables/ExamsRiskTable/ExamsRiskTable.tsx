@@ -66,16 +66,18 @@ import { CompanyExamRiskAiSuggestionsModal } from './CompanyExamRiskAiSuggestion
 import { UncoveredRisksAiSection } from './UncoveredRisksAiSection';
 import { BulkEditExamRiskModal } from './BulkEditExamRiskModal';
 import { PcmsoExamDefaultsModal } from './PcmsoExamDefaultsModal';
-import { PcmsoLinkStatusChip } from './PcmsoLinkStatusChip';
+import { CharacterizationStatusChip } from './CharacterizationStatusChip';
+import { LibraryStatusChip } from './LibraryStatusChip';
 import { getExamAge, getExamPeriodic } from './exam-risk-display.util';
 import { useFetchExamRiskLinkStatus } from '@v2/services/medicine/company-exam-risk-link-status/hooks/useFetchExamRiskLinkStatus';
-import { examRiskLinkStatusQueryKeys } from '@v2/services/medicine/company-exam-risk-link-status/hooks/exam-risk-link-status.query-keys';
+import { refetchExamRiskLinkStatusQueries } from '@v2/services/medicine/company-exam-risk-link-status/hooks/refetch-exam-risk-link-status';
 import type { IExamRiskLinkStatusItem } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
-import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
 import {
-  formatPcmsoSummaryNoLibraryReference,
-  formatPcmsoSummaryRiskNotCharacterized,
-  isPcmsoPendingStatus,
+  buildExamRiskStatusBannerParts,
+  canShowApplyRecommendedExams,
+  hasExamRiskStatusBannerWarnings,
+  isExamRiskLinkPending,
+  resolveApplyRecommendedExams,
 } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
 const PERIODICITY_LEGEND =
@@ -109,12 +111,6 @@ const getRiskDegreeLabel = (value?: number | null) => {
   return matrixRiskMap[value as keyof typeof matrixRiskMap]?.label || '-';
 };
 
-const canShowApplyRecommendedExams = (
-  statusItem?: IExamRiskLinkStatusItem,
-) =>
-  statusItem?.pcmsoStatus === PcmsoLinkStatusEnum.ADJUSTMENT_RECOMMENDED &&
-  (statusItem.missingRecommendedExams?.length ?? 0) > 0;
-
 type ApplySuggestionsContext = {
   riskId: string;
   riskName: string;
@@ -129,7 +125,7 @@ type AiSuggestionsContext = {
 type ExamRiskColumnKey =
   | 'RISK'
   | 'EXAM'
-  | 'PCMSO_STATUS'
+  | 'LIBRARY_STATUS'
   | 'PERIODICITY'
   | 'SEX'
   | 'AGE'
@@ -261,14 +257,48 @@ export const ExamsRiskTable: FC<
     return map;
   }, [pcmsoStatusData]);
 
+  const statusByRiskExamKey = useMemo(() => {
+    const map = new Map<string, IExamRiskLinkStatusItem>();
+    pcmsoStatusData?.items.forEach((item) => {
+      map.set(`${item.riskId}:${item.examId}`, item);
+    });
+    return map;
+  }, [pcmsoStatusData]);
+
+  const getStatusItemForRow = (row: IExamToRisk) =>
+    statusByLinkId.get(row.id) ??
+    statusByRiskExamKey.get(`${row.riskId}:${row.examId}`);
+
+  const missingExamsByRiskId = useMemo(() => {
+    const map = new Map<string, IExamRiskLinkStatusItem['missingRecommendedExams']>();
+
+    pcmsoStatusData?.items.forEach((item) => {
+      if (!item.missingRecommendedExams?.length) return;
+
+      const current = map.get(item.riskId) ?? [];
+      if (item.missingRecommendedExams.length >= current.length) {
+        map.set(item.riskId, item.missingRecommendedExams);
+      }
+    });
+
+    return map;
+  }, [pcmsoStatusData]);
+
+  const applyRecommendedExamsContext = useMemo(
+    () => ({
+      missingExamsByRiskId,
+    }),
+    [missingExamsByRiskId],
+  );
+
   const columnDefs = useMemo(() => {
     if (!showPcmsoStatus) return COLUMN_DEFS;
     const examIndex = COLUMN_DEFS.findIndex((def) => def.key === 'EXAM');
     const next = [...COLUMN_DEFS];
     next.splice(examIndex + 1, 0, {
-      key: 'PCMSO_STATUS',
-      label: 'Status PCMSO',
-      width: '170px',
+      key: 'LIBRARY_STATUS',
+      label: 'Na Biblioteca?',
+      width: '140px',
     });
     return next;
   }, [showPcmsoStatus]);
@@ -283,16 +313,16 @@ export const ExamsRiskTable: FC<
 
     if (showPcmsoStatus && showPendingOnly) {
       rows = rows.filter((row) =>
-        isPcmsoPendingStatus(statusByLinkId.get(row.id)?.pcmsoStatus),
+        isExamRiskLinkPending(getStatusItemForRow(row)),
       );
     }
 
     if (showPcmsoStatus && severitySort) {
       rows.sort((left, right) => {
         const leftOrder =
-          statusByLinkId.get(left.id)?.severityOrder ?? Number.MAX_SAFE_INTEGER;
+          getStatusItemForRow(left)?.severityOrder ?? Number.MAX_SAFE_INTEGER;
         const rightOrder =
-          statusByLinkId.get(right.id)?.severityOrder ?? Number.MAX_SAFE_INTEGER;
+          getStatusItemForRow(right)?.severityOrder ?? Number.MAX_SAFE_INTEGER;
         return severitySort === 'asc'
           ? leftOrder - rightOrder
           : rightOrder - leftOrder;
@@ -306,6 +336,7 @@ export const ExamsRiskTable: FC<
     showPendingOnly,
     severitySort,
     statusByLinkId,
+    statusByRiskExamKey,
   ]);
 
   const { onStackOpenModal } = useModal();
@@ -433,17 +464,23 @@ export const ExamsRiskTable: FC<
 
   const onRefetchThrottle = useThrottle(() => {
     refetch();
-    // invalidate next or previous pages
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
-    queryClient.invalidateQueries(examRiskLinkStatusQueryKeys.all());
+    void refetchExamRiskLinkStatusQueries();
   }, 1000);
 
   const onOpenApplySuggestions = (statusItem: IExamRiskLinkStatusItem) => {
+    const missingExams = resolveApplyRecommendedExams(
+      statusItem,
+      applyRecommendedExamsContext,
+    );
+
+    if (!missingExams.length) return;
+
     setApplySuggestionsContext({
       riskId: statusItem.riskId,
       riskName: statusItem.risk.name,
-      missingExams: statusItem.missingRecommendedExams,
+      missingExams,
     });
     setApplySuggestionsOpen(true);
   };
@@ -488,7 +525,7 @@ export const ExamsRiskTable: FC<
 
   const tableColumns = `${isBulkMode ? '40px ' : selectedData ? '15px ' : ''}${visibleDefs
     .map((def) => def.width)
-    .join(' ')} ${showPcmsoStatus ? '120px' : '80px'}`;
+    .join(' ')} ${showPcmsoStatus ? '108px' : '80px'}`;
 
   const renderSortableHeader = (def: ColumnDef): ReactElement => {
     const active = sort?.field === def.sortField;
@@ -582,38 +619,12 @@ export const ExamsRiskTable: FC<
       {showPcmsoStatus && !isSelect && pcmsoStatusData?.summary && (
         <Alert
           severity={
-            pcmsoStatusData.summary.riskNotCharacterized > 0 ||
-            pcmsoStatusData.summary.adjustmentRecommended > 0
-              ? 'warning'
-              : 'info'
+            hasExamRiskStatusBannerWarnings(pcmsoStatusData) ? 'warning' : 'info'
           }
           sx={{ mt: 2, mb: 1, py: 0.5 }}
         >
           <SText fontSize={12}>
-            {pcmsoStatusData.summary.riskNotCharacterized > 0 &&
-              formatPcmsoSummaryRiskNotCharacterized(
-                pcmsoStatusData.summary.riskNotCharacterized,
-              )}
-            {pcmsoStatusData.summary.riskNotCharacterized > 0 &&
-              pcmsoStatusData.summary.adjustmentRecommended > 0 &&
-              ' · '}
-            {pcmsoStatusData.summary.adjustmentRecommended > 0 &&
-              `${pcmsoStatusData.summary.adjustmentRecommended} ajuste(s) recomendado(s)`}
-            {(pcmsoStatusData.summary.riskNotCharacterized > 0 ||
-              pcmsoStatusData.summary.adjustmentRecommended > 0) &&
-              pcmsoStatusData.summary.noLibraryReference > 0 &&
-              ' · '}
-            {pcmsoStatusData.summary.noLibraryReference > 0 &&
-              formatPcmsoSummaryNoLibraryReference(
-                pcmsoStatusData.summary.noLibraryReference,
-              )}
-            {(pcmsoStatusData.summary.riskNotCharacterized > 0 ||
-              pcmsoStatusData.summary.adjustmentRecommended > 0 ||
-              pcmsoStatusData.summary.noLibraryReference > 0) &&
-              pcmsoStatusData.summary.ok > 0 &&
-              ' · '}
-            {pcmsoStatusData.summary.ok > 0 &&
-              `${pcmsoStatusData.summary.ok} OK`}
+            {buildExamRiskStatusBannerParts(pcmsoStatusData).join(' · ')}
           </SText>
         </Alert>
       )}
@@ -685,7 +696,7 @@ export const ExamsRiskTable: FC<
         selectedData && <STableHRow></STableHRow>
       )}
       {visibleDefs.map((def) =>
-        def.key === 'PCMSO_STATUS' ? (
+        def.key === 'LIBRARY_STATUS' ? (
           <STableHRow
             key={def.key}
             sx={{ cursor: 'pointer', userSelect: 'none' }}
@@ -718,18 +729,44 @@ export const ExamsRiskTable: FC<
 
   const renderCell = (def: ColumnDef, row: IExamToRisk): ReactElement | null => {
     switch (def.key) {
-      case 'RISK':
-        return <TextIconRow clickable text={row.risk?.name || '-'} />;
+      case 'RISK': {
+        if (!showPcmsoStatus) {
+          return <TextIconRow clickable text={row.risk?.name || '-'} />;
+        }
+
+        const statusItem = getStatusItemForRow(row);
+
+        return (
+          <TextIconRow clickable sx={{ minWidth: 0, width: '100%' }}>
+            <SFlex align="center" gap={1} sx={{ minWidth: 0, width: '100%' }}>
+              <Box onClick={(event) => event.stopPropagation()}>
+                <CharacterizationStatusChip
+                  statusItem={statusItem}
+                  loading={loadPcmsoStatus}
+                />
+              </Box>
+              <SText
+                fontSize={12}
+                lineNumber={1}
+                className="table-row-text"
+                sx={{ minWidth: 0, flex: 1 }}
+              >
+                {row.risk?.name || '-'}
+              </SText>
+            </SFlex>
+          </TextIconRow>
+        );
+      }
       case 'EXAM':
         return <TextIconRow clickable text={row.exam?.name || '-'} />;
-      case 'PCMSO_STATUS': {
-        const statusItem = statusByLinkId.get(row.id);
+      case 'LIBRARY_STATUS': {
+        const statusItem = getStatusItemForRow(row);
         return (
           <Box onClick={(event) => event.stopPropagation()}>
-            <PcmsoLinkStatusChip
-              status={statusItem?.pcmsoStatus}
-              message={statusItem?.message}
+            <LibraryStatusChip
+              statusItem={statusItem}
               loading={loadPcmsoStatus}
+              applyRecommendedExamsContext={applyRecommendedExamsContext}
             />
           </Box>
         );
@@ -834,21 +871,35 @@ export const ExamsRiskTable: FC<
               const cell = renderCell(def, row);
               return cell ? cloneElement(cell, { key: def.key }) : null;
             })}
-            <SFlex>
-              {showPcmsoStatus &&
-                canShowApplyRecommendedExams(statusByLinkId.get(row.id)) && (
+            <SFlex
+              center
+              gap={0.5}
+              sx={{ justifyContent: 'center', width: '100%', minWidth: 72 }}
+            >
+              {showPcmsoStatus && (() => {
+                const statusItem = getStatusItemForRow(row);
+                const showPlaylistAdd = canShowApplyRecommendedExams(
+                  statusItem,
+                  applyRecommendedExamsContext,
+                );
+
+                if (!showPlaylistAdd || !statusItem) return null;
+
+                return (
                   <IconButtonRow
                     icon={<PlaylistAddIcon />}
                     tooltipTitle="Adicionar exames recomendados"
+                    sx={{ mx: 0 }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      const statusItem = statusByLinkId.get(row.id);
-                      if (statusItem) onOpenApplySuggestions(statusItem);
+                      onOpenApplySuggestions(statusItem);
                     }}
                   />
-                )}
+                );
+              })()}
               <IconButtonRow
                 icon={<EditIcon />}
+                sx={{ mx: 0 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onEditExam(row);

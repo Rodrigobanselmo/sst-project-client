@@ -18,8 +18,8 @@ const UNCOVERED_RISKS_MAX_HEIGHT = 280;
 
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import type { IExamRiskUncoveredRiskItem } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
-import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
-import { pcmsoLinkStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
+import { ExamRiskLibraryStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { libraryStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
 type Props = {
   risks: IExamRiskUncoveredRiskItem[];
@@ -57,7 +57,7 @@ export const UncoveredRisksAiSection: FC<Props> = ({
           <TableHead>
             <TableRow>
               <TableCell>Fator de risco</TableCell>
-              <TableCell width={180}>Status Biblioteca</TableCell>
+              <TableCell width={140}>Na Biblioteca?</TableCell>
               <TableCell width={120} align="right">
                 Ação
               </TableCell>
@@ -71,12 +71,20 @@ export const UncoveredRisksAiSection: FC<Props> = ({
                   <Chip
                     size="small"
                     label={
-                      pcmsoLinkStatusLabels[
-                        PcmsoLinkStatusEnum.NO_LIBRARY_REFERENCE
+                      libraryStatusLabels[
+                        ExamRiskLibraryStatusEnum.NO_LIBRARY_RULE
                       ]
                     }
-                    color="info"
-                    variant="outlined"
+                    sx={{
+                      height: 24,
+                      borderRadius: '999px',
+                      fontWeight: 600,
+                      bgcolor: '#FFF4E5',
+                      color: 'text.primary',
+                      border: '1px solid',
+                      borderColor: 'warning.main',
+                      '& .MuiChip-label': { px: 1.25, fontSize: 12 },
+                    }}
                   />
                 </TableCell>
                 <TableCell align="right">
