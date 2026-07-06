@@ -29,6 +29,8 @@ import {
   type IResolvedExamRiskConfig,
 } from '@v2/services/medicine/company-exam-risk-suggestions/company-exam-risk-suggestions.types';
 import type { IExamRiskLinkMissingExam } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { pcmsoLinkStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
 import { getExamAge, getExamPeriodic } from './exam-risk-display.util';
 
@@ -91,9 +93,9 @@ const getItemStatusLabel = (
     case ApplyExamRiskSuggestionItemStatusEnum.SKIPPED_NOT_RECOMMENDED:
       return 'Não recomendado';
     case ApplyExamRiskSuggestionItemStatusEnum.SKIPPED_NOT_CHARACTERIZED:
-      return 'Risco não caracterizado';
+      return pcmsoLinkStatusLabels[PcmsoLinkStatusEnum.RISK_NOT_CHARACTERIZED];
     case ApplyExamRiskSuggestionItemStatusEnum.SKIPPED_NO_LIBRARY_REFERENCE:
-      return 'Sem referência na biblioteca';
+      return pcmsoLinkStatusLabels[PcmsoLinkStatusEnum.NO_LIBRARY_REFERENCE];
     case ApplyExamRiskSuggestionItemStatusEnum.SKIPPED_NOT_SELECTED:
       return 'Não selecionado';
     case ApplyExamRiskSuggestionItemStatusEnum.ERROR:

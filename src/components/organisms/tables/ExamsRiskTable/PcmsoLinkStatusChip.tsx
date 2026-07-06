@@ -6,6 +6,7 @@ import { STag } from 'components/atoms/STag';
 import {
   pcmsoLinkStatusColors,
   pcmsoLinkStatusLabels,
+  resolvePcmsoLinkStatusTooltip,
 } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
 
@@ -35,10 +36,12 @@ export const PcmsoLinkStatusChip: FC<Props> = ({
     />
   );
 
-  if (!message) return chip;
+  const tooltip = resolvePcmsoLinkStatusTooltip(status, message);
+
+  if (!tooltip) return chip;
 
   return (
-    <STooltip title={message} minLength={0} withWrapper placement="top">
+    <STooltip title={tooltip} minLength={0} withWrapper placement="top">
       {chip}
     </STooltip>
   );

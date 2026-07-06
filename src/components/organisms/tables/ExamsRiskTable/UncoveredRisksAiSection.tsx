@@ -18,6 +18,8 @@ const UNCOVERED_RISKS_MAX_HEIGHT = 280;
 
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import type { IExamRiskUncoveredRiskItem } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { pcmsoLinkStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
 type Props = {
   risks: IExamRiskUncoveredRiskItem[];
@@ -39,8 +41,8 @@ export const UncoveredRisksAiSection: FC<Props> = ({
           Riscos caracterizados sem exames vinculados
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Sugira exames com IA para riscos sem vínculo na empresa e sem referência
-          ativa na Biblioteca SimpleSST.
+          Sugira exames com IA para riscos sem vínculo na empresa e sem regra na
+          Biblioteca Risco × Exame.
         </Typography>
       </Box>
       <TableContainer
@@ -66,7 +68,16 @@ export const UncoveredRisksAiSection: FC<Props> = ({
               <TableRow key={risk.riskId} hover>
                 <TableCell>{risk.riskName}</TableCell>
                 <TableCell>
-                  <Chip size="small" label="Sem referência" color="info" variant="outlined" />
+                  <Chip
+                    size="small"
+                    label={
+                      pcmsoLinkStatusLabels[
+                        PcmsoLinkStatusEnum.NO_LIBRARY_REFERENCE
+                      ]
+                    }
+                    color="info"
+                    variant="outlined"
+                  />
                 </TableCell>
                 <TableCell align="right">
                   <IconButtonRow

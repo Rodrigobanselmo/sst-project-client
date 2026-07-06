@@ -58,6 +58,8 @@ import {
   type IDryRunCompanyExamRiskAiSuggestionsResponse,
 } from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestions.types';
 import type { IResolvedExamRiskConfig } from '@v2/services/medicine/company-exam-risk-suggestions/company-exam-risk-suggestions.types';
+import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
+import { pcmsoLinkStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
 import { getExamAge, getExamPeriodic } from './exam-risk-display.util';
 
@@ -124,9 +126,9 @@ const getApplyItemStatusLabel = (
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_DUPLICATE_REQUEST:
       return 'Duplicado na solicitação';
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_NOT_CHARACTERIZED:
-      return 'Risco não caracterizado';
+      return pcmsoLinkStatusLabels[PcmsoLinkStatusEnum.RISK_NOT_CHARACTERIZED];
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_NO_LIBRARY_REFERENCE:
-      return 'Sem referência na biblioteca';
+      return pcmsoLinkStatusLabels[PcmsoLinkStatusEnum.NO_LIBRARY_REFERENCE];
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_NOT_ELIGIBLE:
       return 'Não elegível';
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_LOW_RELEVANCE:

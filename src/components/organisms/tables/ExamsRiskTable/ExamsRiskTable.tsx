@@ -72,7 +72,11 @@ import { useFetchExamRiskLinkStatus } from '@v2/services/medicine/company-exam-r
 import { examRiskLinkStatusQueryKeys } from '@v2/services/medicine/company-exam-risk-link-status/hooks/exam-risk-link-status.query-keys';
 import type { IExamRiskLinkStatusItem } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
 import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
-import { isPcmsoPendingStatus } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
+import {
+  formatPcmsoSummaryNoLibraryReference,
+  formatPcmsoSummaryRiskNotCharacterized,
+  isPcmsoPendingStatus,
+} from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
 const PERIODICITY_LEGEND =
   'A = Admissional · P = Periódico · M = Mudança · R = Retorno · D = Demissional';
@@ -587,7 +591,9 @@ export const ExamsRiskTable: FC<
         >
           <SText fontSize={12}>
             {pcmsoStatusData.summary.riskNotCharacterized > 0 &&
-              `${pcmsoStatusData.summary.riskNotCharacterized} risco(s) não caracterizado(s)`}
+              formatPcmsoSummaryRiskNotCharacterized(
+                pcmsoStatusData.summary.riskNotCharacterized,
+              )}
             {pcmsoStatusData.summary.riskNotCharacterized > 0 &&
               pcmsoStatusData.summary.adjustmentRecommended > 0 &&
               ' · '}
@@ -598,7 +604,9 @@ export const ExamsRiskTable: FC<
               pcmsoStatusData.summary.noLibraryReference > 0 &&
               ' · '}
             {pcmsoStatusData.summary.noLibraryReference > 0 &&
-              `${pcmsoStatusData.summary.noLibraryReference} sem referência`}
+              formatPcmsoSummaryNoLibraryReference(
+                pcmsoStatusData.summary.noLibraryReference,
+              )}
             {(pcmsoStatusData.summary.riskNotCharacterized > 0 ||
               pcmsoStatusData.summary.adjustmentRecommended > 0 ||
               pcmsoStatusData.summary.noLibraryReference > 0) &&
