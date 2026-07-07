@@ -11,9 +11,6 @@ export const useFetchExamRiskLinkStatus = (
   useFetch({
     queryKey: examRiskLinkStatusQueryKeys.browse(params),
     queryFn: () => browseExamRiskLinkStatus(params),
-    enabled:
-      enabled &&
-      Boolean(params.companyId) &&
-      Boolean(params.linkIds?.length),
+    enabled: enabled && Boolean(params.companyId),
     refetchOnMount: true,
   });
