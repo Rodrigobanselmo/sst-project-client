@@ -33,6 +33,10 @@ export interface ICreateExamRisk {
   startDate?: Date;
   endDate?: Date;
   publishAsSystemRule?: boolean;
+  riskFactorEquivalence?: {
+    canonicalRiskId: string;
+    equivalenceType: 'TECHNICAL_DUPLICATE' | 'SEMANTIC_ALIAS';
+  };
 }
 
 export async function createExam(data: ICreateExamRisk, companyId?: string) {

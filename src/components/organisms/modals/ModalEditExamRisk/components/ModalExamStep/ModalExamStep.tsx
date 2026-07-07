@@ -18,6 +18,8 @@ import { isQuantity } from 'core/utils/helpers/isQuantity';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
+import { RiskFactorEquivalencePublishBlock } from '../../components/RiskFactorEquivalencePublishBlock';
+import { enrichRiskWithSystemFlag } from '../../utils/risk-system-flag.util';
 
 export const ModalExamStep = ({
   examData,
@@ -27,6 +29,7 @@ export const ModalExamStep = ({
   setExamData,
   loading,
   isMasterAdmin,
+  companyId,
 }: IUseEditExam) => {
   const riskType = examData.risk?.type;
 
@@ -211,6 +214,8 @@ export const ModalExamStep = ({
                   error: { ...examData.error, risk: false },
                   risk: option,
                   riskId: option.id,
+                  selectedCanonicalRisk: null,
+                  existingEquivalence: null,
                 })
               }
               text={examData.risk?.name || 'selecione um risco'}
@@ -265,12 +270,21 @@ export const ModalExamStep = ({
               <SCheckBox
                 label="Criar também regra padrão na Biblioteca Risco × Exame"
                 checked={examData.publishAsSystemRule}
-                onChange={(e) =>
-                  setExamData({
-                    ...examData,
-                    publishAsSystemRule: e.target.checked,
-                  })
-                }
+                onChange={(e) => {
+                  const publishAsSystemRule = e.target.checked;
+                  setExamData((oldData) => {
+                    const enrichedRisk =
+                      publishAsSystemRule && oldData.risk?.id
+                        ? enrichRiskWithSystemFlag(oldData.risk)
+                        : oldData.risk;
+
+                    return {
+                      ...oldData,
+                      publishAsSystemRule,
+                      ...(enrichedRisk ? { risk: enrichedRisk } : {}),
+                    };
+                  });
+                }}
               />
               <SText sx={{ fontSize: 12, color: 'text.light', mt: 1 }}>
                 Esta ação cria uma sugestão padrão do sistema para este Fator de
@@ -278,6 +292,22 @@ export const ModalExamStep = ({
                 empresas; apenas fará com que o sistema recomende essa relação
                 quando o risco existir.
               </SText>
+              <RiskFactorEquivalencePublishBlock
+                companyId={companyId}
+                risk={examData.risk}
+                publishAsSystemRule={examData.publishAsSystemRule}
+                equivalenceType={examData.equivalenceType}
+                selectedCanonicalRisk={examData.selectedCanonicalRisk}
+                onEquivalenceTypeChange={(equivalenceType) =>
+                  setExamData({ ...examData, equivalenceType })
+                }
+                onCanonicalRiskChange={(selectedCanonicalRisk) =>
+                  setExamData({ ...examData, selectedCanonicalRisk })
+                }
+                onExistingEquivalenceChange={(existingEquivalence) =>
+                  setExamData({ ...examData, existingEquivalence })
+                }
+              />
             </Box>
           )}
         </Box>

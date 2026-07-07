@@ -33,6 +33,10 @@ export interface IUpdateExamRisk {
   minRiskDegreeQuantity?: number | null;
   minRiskDegree?: number | null;
   publishAsSystemRule?: boolean;
+  riskFactorEquivalence?: {
+    canonicalRiskId: string;
+    equivalenceType: 'TECHNICAL_DUPLICATE' | 'SEMANTIC_ALIAS';
+  };
 }
 
 export async function updateExam(data: IUpdateExamRisk, companyId?: string) {

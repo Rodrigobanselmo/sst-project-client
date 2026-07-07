@@ -25,6 +25,14 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { useSnackbar } from 'notistack';
 import { useMutDeleteExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutDeleteExamRisk/useMutDeleteExamRisk';
+import type {
+  RiskFactorEquivalencePayload,
+  SystemRiskSearchItem,
+} from '@v2/services/risk-factor-equivalence/risk-factor-equivalence.types';
+import {
+  enrichRiskWithSystemFlag,
+  isNonSystemRisk,
+} from '../utils/risk-system-flag.util';
 
 export const initialExamRiskState = {
   id: 0,
@@ -52,6 +60,12 @@ export const initialExamRiskState = {
     exam: false,
   },
   publishAsSystemRule: true,
+  equivalenceType: 'SEMANTIC_ALIAS' as RiskFactorEquivalencePayload['equivalenceType'],
+  selectedCanonicalRisk: null as SystemRiskSearchItem | null,
+  existingEquivalence: null as {
+    canonicalRiskId: string;
+    canonicalLabel: string;
+  } | null,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: Partial<IExamToRisk> | null) => {},
 };
@@ -113,12 +127,24 @@ export const useEditExams = () => {
       !(initialData as any).passBack
     ) {
       setExamData((oldData) => {
+        const mergedRisk = initialData.risk
+          ? enrichRiskWithSystemFlag(initialData.risk as IRiskFactors)
+          : oldData.risk;
+
         const newData = {
           ...oldData,
           ...initialData,
+          ...(mergedRisk ? { risk: mergedRisk } : {}),
           publishAsSystemRule: initialData.id
             ? false
             : initialData.publishAsSystemRule ?? true,
+          ...(initialData.id
+            ? {
+                selectedCanonicalRisk: null,
+                existingEquivalence: null,
+                equivalenceType: 'SEMANTIC_ALIAS' as const,
+              }
+            : {}),
         };
 
         initialDataRef.current = newData;
@@ -202,6 +228,22 @@ export const useEditExams = () => {
       return;
     }
 
+    const requiresCanonicalForPublish =
+      isMasterAdmin &&
+      examData.publishAsSystemRule &&
+      examData.riskId &&
+      !examData.isAll &&
+      isNonSystemRisk(examData.risk) &&
+      !examData.existingEquivalence;
+
+    if (requiresCanonicalForPublish && !examData.selectedCanonicalRisk?.id) {
+      enqueueSnackbar(
+        'Selecione um fator de risco do catálogo SimpleSST para publicar na Biblioteca, ou desmarque a publicação da regra padrão.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
     const submitData: ICreateExamRisk & { id?: number } = {
       ...examData,
       riskId,
@@ -210,7 +252,19 @@ export const useEditExams = () => {
       examData.publishAsSystemRule &&
       examData.riskId &&
       !examData.isAll
-        ? { publishAsSystemRule: true }
+        ? {
+            publishAsSystemRule: true,
+            ...(isNonSystemRisk(examData.risk) &&
+            !examData.existingEquivalence &&
+            examData.selectedCanonicalRisk?.id
+              ? {
+                  riskFactorEquivalence: {
+                    canonicalRiskId: examData.selectedCanonicalRisk.id,
+                    equivalenceType: examData.equivalenceType,
+                  },
+                }
+              : {}),
+          }
         : {}),
       fromAge: fromAge ? parseInt(fromAge, 10) : null,
       toAge: toAge ? parseInt(toAge, 10) : null,
@@ -251,9 +305,22 @@ export const useEditExams = () => {
                 'Regra padrão já existente na Biblioteca para este agente e exame.',
               { variant: 'info' },
             );
+          } else if (systemRule.action === 'skipped' && systemRule.reason) {
+            enqueueSnackbar(systemRule.reason, { variant: 'warning' });
           } else if (systemRule.reason) {
             enqueueSnackbar(systemRule.reason, { variant: 'warning' });
           }
+        } else if (
+          isMasterAdmin &&
+          examData.publishAsSystemRule &&
+          isNonSystemRisk(examData.risk) &&
+          !examData.existingEquivalence &&
+          !examData.selectedCanonicalRisk?.id
+        ) {
+          enqueueSnackbar(
+            'Vínculo salvo. Regra padrão da Biblioteca não foi publicada.',
+            { variant: 'info' },
+          );
         }
         examData.callback(exam);
       } else {
@@ -270,9 +337,22 @@ export const useEditExams = () => {
                 'Regra padrão já existente na Biblioteca para este agente e exame.',
               { variant: 'info' },
             );
+          } else if (systemRule.action === 'skipped' && systemRule.reason) {
+            enqueueSnackbar(systemRule.reason, { variant: 'warning' });
           } else if (systemRule.reason) {
             enqueueSnackbar(systemRule.reason, { variant: 'warning' });
           }
+        } else if (
+          isMasterAdmin &&
+          examData.publishAsSystemRule &&
+          isNonSystemRisk(examData.risk) &&
+          !examData.existingEquivalence &&
+          !examData.selectedCanonicalRisk?.id
+        ) {
+          enqueueSnackbar(
+            'Vínculo salvo. Regra padrão da Biblioteca não foi publicada.',
+            { variant: 'info' },
+          );
         }
         examData.callback(exam);
       }
@@ -337,6 +417,7 @@ export const useEditExams = () => {
     onRemove,
     setValue,
     isMasterAdmin,
+    companyId,
   };
 };
 
