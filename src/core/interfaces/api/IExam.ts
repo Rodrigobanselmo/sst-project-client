@@ -112,7 +112,7 @@ export interface IExamToRisk {
   fromAge?: number;
   toAge?: number;
   minRiskDegree?: number;
-  minRiskDegreeQuantity?: number;
+  minRiskDegreeQuantity?: number | null;
 }
 
 export interface IExamRiskData {
@@ -134,7 +134,7 @@ export interface IExamRiskData {
   fromAge?: number;
   toAge?: number;
   minRiskDegree?: number;
-  minRiskDegreeQuantity?: number;
+  minRiskDegreeQuantity?: number | null;
   isStandard?: boolean;
 }
 

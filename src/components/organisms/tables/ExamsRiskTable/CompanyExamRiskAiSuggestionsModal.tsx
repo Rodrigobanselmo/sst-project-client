@@ -49,7 +49,10 @@ import {
   createDefaultExamRiskAiAssistantFormValues,
   type ExamRiskAiAssistantFormValues,
 } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant.types';
-import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
+import {
+  formatExamRiskQualitativeDegreeLabel,
+  formatExamRiskQuantitativeDegreeLabel,
+} from 'core/utils/helpers/exam-risk-degree-display.util';
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 
 import { useApplyCompanyExamRiskAiSuggestions } from '@v2/services/medicine/company-exam-risk-ai-suggestions/hooks/useApplyCompanyExamRiskAiSuggestions';
@@ -82,11 +85,6 @@ type Props = {
   riskCas?: string | null;
   riskEsocialCode?: string | null;
   onApplied: () => void;
-};
-
-const getRiskDegreeLabel = (value?: number | null) => {
-  if (!value) return '-';
-  return matrixRiskMap[value as keyof typeof matrixRiskMap]?.label || '-';
 };
 
 const getConfigSourceLabel = (source: IResolvedExamRiskConfig['configSource']) => {
@@ -177,7 +175,8 @@ const getCandidateCompatibilityColor = (value: string) =>
 const ApplyPreviewTable: FC<{
   items: IApplyCompanyExamRiskAiSuggestionItemResult[];
   dryRun: boolean;
-}> = ({ items, dryRun }) => (
+  riskRef?: { type?: string; esocialCode?: string | null };
+}> = ({ items, dryRun, riskRef }) => (
   <Table size="small">
     <TableHead>
       <TableRow>
@@ -203,10 +202,15 @@ const ApplyPreviewTable: FC<{
           <TableCell>{item.proposedConfig.validityInMonths ?? '-'}</TableCell>
           <TableCell>{item.proposedConfig.considerBetweenDays ?? '-'}</TableCell>
           <TableCell>
-            {getRiskDegreeLabel(item.proposedConfig.minRiskDegree)}
+            {formatExamRiskQualitativeDegreeLabel(
+              item.proposedConfig.minRiskDegree,
+            )}
           </TableCell>
           <TableCell>
-            {getRiskDegreeLabel(item.proposedConfig.minRiskDegreeQuantity)}
+            {formatExamRiskQuantitativeDegreeLabel(
+              item.proposedConfig.minRiskDegreeQuantity,
+              riskRef,
+            )}
           </TableCell>
           <TableCell>
             {getConfigSourceLabel(item.proposedConfig.configSource)}
@@ -784,7 +788,14 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
                   {previewData.warnings.join(' ')}
                 </Alert>
               )}
-              <ApplyPreviewTable items={previewData.items} dryRun />
+              <ApplyPreviewTable
+                items={previewData.items}
+                dryRun
+                riskRef={{
+                  type: displayRiskContext.riskType,
+                  esocialCode: displayRiskContext.riskEsocialCode,
+                }}
+              />
             </Box>
           )}
 
@@ -803,7 +814,14 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
                   {resultData.warnings.join(' ')}
                 </Alert>
               )}
-              <ApplyPreviewTable items={resultData.items} dryRun={false} />
+              <ApplyPreviewTable
+                items={resultData.items}
+                dryRun={false}
+                riskRef={{
+                  type: displayRiskContext.riskType,
+                  esocialCode: displayRiskContext.riskEsocialCode,
+                }}
+              />
             </Box>
           )}
 

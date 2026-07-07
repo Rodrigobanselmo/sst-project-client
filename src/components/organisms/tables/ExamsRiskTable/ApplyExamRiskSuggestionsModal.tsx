@@ -19,7 +19,10 @@ import {
   Typography,
 } from '@mui/material';
 
-import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
+import {
+  formatExamRiskQualitativeDegreeLabel,
+  formatExamRiskQuantitativeDegreeLabel,
+} from 'core/utils/helpers/exam-risk-degree-display.util';
 
 import { useApplyExamRiskSuggestions } from '@v2/services/medicine/company-exam-risk-suggestions/hooks/useApplyExamRiskSuggestions';
 import {
@@ -42,14 +45,11 @@ type Props = {
   workspaceId?: string;
   riskId: string;
   riskName: string;
+  riskType?: string;
+  riskEsocialCode?: string | null;
   missingExams: IExamRiskLinkMissingExam[];
   onClose: () => void;
   onSuccess: () => void;
-};
-
-const getRiskDegreeLabel = (value?: number | null) => {
-  if (!value) return '-';
-  return matrixRiskMap[value as keyof typeof matrixRiskMap]?.label || '-';
 };
 
 const getConfigSourceLabel = (source: IResolvedExamRiskConfig['configSource']) => {
@@ -105,10 +105,11 @@ const getItemStatusLabel = (
   }
 };
 
-const PreviewTable: FC<{ items: IApplyExamRiskSuggestionItem[]; dryRun: boolean }> = ({
-  items,
-  dryRun,
-}) => (
+const PreviewTable: FC<{
+  items: IApplyExamRiskSuggestionItem[];
+  dryRun: boolean;
+  riskRef?: { type?: string; esocialCode?: string | null };
+}> = ({ items, dryRun, riskRef }) => (
   <Table size="small">
     <TableHead>
       <TableRow>
@@ -138,10 +139,15 @@ const PreviewTable: FC<{ items: IApplyExamRiskSuggestionItem[]; dryRun: boolean 
             {item.proposedConfig.considerBetweenDays ?? '-'}
           </TableCell>
           <TableCell>
-            {getRiskDegreeLabel(item.proposedConfig.minRiskDegree)}
+            {formatExamRiskQualitativeDegreeLabel(
+              item.proposedConfig.minRiskDegree,
+            )}
           </TableCell>
           <TableCell>
-            {getRiskDegreeLabel(item.proposedConfig.minRiskDegreeQuantity)}
+            {formatExamRiskQuantitativeDegreeLabel(
+              item.proposedConfig.minRiskDegreeQuantity,
+              riskRef,
+            )}
           </TableCell>
           <TableCell>
             {getConfigSourceLabel(item.proposedConfig.configSource)}
@@ -159,6 +165,8 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
   workspaceId,
   riskId,
   riskName,
+  riskType,
+  riskEsocialCode,
   missingExams,
   onClose,
   onSuccess,
@@ -174,6 +182,11 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
   const allExamIds = useMemo(
     () => missingExams.map((exam) => exam.examId),
     [missingExams],
+  );
+
+  const riskRef = useMemo(
+    () => ({ type: riskType, esocialCode: riskEsocialCode }),
+    [riskEsocialCode, riskType],
   );
 
   useEffect(() => {
@@ -295,7 +308,7 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
                 {previewData.warnings.join(' ')}
               </Alert>
             )}
-            <PreviewTable items={previewItems} dryRun />
+            <PreviewTable items={previewItems} dryRun riskRef={riskRef} />
           </Box>
         )}
 
@@ -313,7 +326,7 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
                 {resultData.warnings.join(' ')}
               </Alert>
             )}
-            <PreviewTable items={resultItems} dryRun={false} />
+            <PreviewTable items={resultItems} dryRun={false} riskRef={riskRef} />
           </Box>
         )}
 

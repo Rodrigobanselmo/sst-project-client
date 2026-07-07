@@ -46,15 +46,15 @@ describe('examRiskDegreeSubmit.util', () => {
       expect(result.minRiskDegree).toBe(2);
     });
 
-    it('preserva valor armazenado quando form não envia grau', () => {
+    it('limpa quantitativo quando risco não é quantitativo', () => {
       const result = resolveExamRiskMinDegreesOnSubmit({
         storedMinRiskDegree: 3,
         storedMinRiskDegreeQuantity: 4,
-        risk: null,
+        risk: { type: 'ERG' as never, esocialCode: null } as never,
       });
 
       expect(result.minRiskDegree).toBe(3);
-      expect(result.minRiskDegreeQuantity).toBe(4);
+      expect(result.minRiskDegreeQuantity).toBeNull();
       expect(result.isQuantitativeApplicable).toBe(false);
     });
   });

@@ -361,7 +361,7 @@ export const ModalExamStep = ({
               }))}
           />
         </Box>
-        {isQuantity(examData.risk) && (
+        {isQuantity(examData.risk) ? (
           <Box flex={1} maxWidth={200}>
             <SelectForm
               fullWidth
@@ -381,6 +381,17 @@ export const ModalExamStep = ({
                 }))}
             />
           </Box>
+        ) : (
+          examData.risk?.id && (
+            <Box flex={1} maxWidth={280}>
+              <SText color="text.label" fontSize={14} mb={1}>
+                Quantitativo
+              </SText>
+              <SText fontSize={14} color="text.light">
+                Não aplicável para este fator de risco
+              </SText>
+            </Box>
+          )
         )}
       </SFlex>
     </SFlex>

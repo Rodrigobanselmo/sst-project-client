@@ -34,7 +34,7 @@ export const resolveExamRiskMinDegreesOnSubmit = (params: {
       ? params.storedMinRiskDegree
       : 1);
 
-  let minRiskDegreeQuantity: number | undefined;
+  let minRiskDegreeQuantity: number | null = null;
   if (isQuantitativeApplicable) {
     const fromFormQuantitative = parseDegree(params.minRiskDegreeQuantity);
     minRiskDegreeQuantity =
@@ -42,13 +42,11 @@ export const resolveExamRiskMinDegreesOnSubmit = (params: {
       (params.storedMinRiskDegreeQuantity != null
         ? params.storedMinRiskDegreeQuantity
         : 1);
-  } else if (params.storedMinRiskDegreeQuantity != null) {
-    minRiskDegreeQuantity = params.storedMinRiskDegreeQuantity;
   }
 
   return {
     minRiskDegree,
-    ...(minRiskDegreeQuantity != null ? { minRiskDegreeQuantity } : {}),
+    minRiskDegreeQuantity,
     isQuantitativeApplicable,
   };
 };

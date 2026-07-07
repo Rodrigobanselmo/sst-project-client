@@ -31,7 +31,6 @@ import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import EditIcon from 'assets/icons/SEditIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
 
-import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -103,17 +102,16 @@ const renderLegendCell = (text: string, tooltip?: string) => {
 };
 
 export { getExamAge, getExamPeriodic } from './exam-risk-display.util';
-
-// Rótulo amigável do grau de risco (qualitativo/quantitativo). Vazio/null/0
-// (não informado) → '-'. Níveis 1..5 usam o label do mapa da matriz.
-const getRiskDegreeLabel = (value?: number | null) => {
-  if (!value) return '-';
-  return matrixRiskMap[value as keyof typeof matrixRiskMap]?.label || '-';
-};
+import {
+  formatExamRiskQualitativeDegreeLabel,
+  formatExamRiskQuantitativeDegreeLabel,
+} from 'core/utils/helpers/exam-risk-degree-display.util';
 
 type ApplySuggestionsContext = {
   riskId: string;
   riskName: string;
+  riskType?: string;
+  riskEsocialCode?: string | null;
   missingExams: IExamRiskLinkStatusItem['missingRecommendedExams'];
 };
 
@@ -484,6 +482,7 @@ export const ExamsRiskTable: FC<
     setApplySuggestionsContext({
       riskId: statusItem.riskId,
       riskName: statusItem.risk.name,
+      riskType: statusItem.risk.type,
       missingExams,
     });
     setApplySuggestionsOpen(true);
@@ -815,13 +814,16 @@ export const ExamsRiskTable: FC<
         );
       case 'MIN_QUALITATIVE':
         return (
-          <TextIconRow clickable text={getRiskDegreeLabel(row?.minRiskDegree)} />
+          <TextIconRow clickable text={formatExamRiskQualitativeDegreeLabel(row?.minRiskDegree)} />
         );
       case 'MIN_QUANTITATIVE':
         return (
           <TextIconRow
             clickable
-            text={getRiskDegreeLabel(row?.minRiskDegreeQuantity)}
+            text={formatExamRiskQuantitativeDegreeLabel(
+              row?.minRiskDegreeQuantity,
+              row?.risk,
+            )}
           />
         );
       default:
@@ -956,6 +958,8 @@ export const ExamsRiskTable: FC<
         workspaceId={workspaceId}
         riskId={applySuggestionsContext.riskId}
         riskName={applySuggestionsContext.riskName}
+        riskType={applySuggestionsContext.riskType}
+        riskEsocialCode={applySuggestionsContext.riskEsocialCode}
         missingExams={applySuggestionsContext.missingExams}
         onClose={onCloseApplySuggestions}
         onSuccess={onRefetchThrottle}
