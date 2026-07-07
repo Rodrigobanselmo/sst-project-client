@@ -216,6 +216,7 @@ export const ModalExamStep = ({
                   riskId: option.id,
                   selectedCanonicalRisk: null,
                   existingEquivalence: null,
+                  riskIsCatalogForPublish: false,
                 })
               }
               text={examData.risk?.name || 'selecione um risco'}
@@ -281,6 +282,9 @@ export const ModalExamStep = ({
                     return {
                       ...oldData,
                       publishAsSystemRule,
+                      riskIsCatalogForPublish: false,
+                      selectedCanonicalRisk: null,
+                      existingEquivalence: null,
                       ...(enrichedRisk ? { risk: enrichedRisk } : {}),
                     };
                   });
@@ -306,6 +310,12 @@ export const ModalExamStep = ({
                 }
                 onExistingEquivalenceChange={(existingEquivalence) =>
                   setExamData({ ...examData, existingEquivalence })
+                }
+                onCatalogRiskResolved={(riskIsCatalogForPublish) =>
+                  setExamData((oldData) => ({
+                    ...oldData,
+                    riskIsCatalogForPublish,
+                  }))
                 }
               />
             </Box>

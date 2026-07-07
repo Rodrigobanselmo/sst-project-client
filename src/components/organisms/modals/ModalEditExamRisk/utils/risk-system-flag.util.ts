@@ -1,6 +1,17 @@
 import { QueryEnum } from 'core/enums/query.enums';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { queryClient } from 'core/services/queryClient';
+import type { SystemRiskSearchItem } from '@v2/services/risk-factor-equivalence/risk-factor-equivalence.types';
+
+export function normalizeAgentName(value?: string | null): string | null {
+  if (!value) return null;
+  const normalized = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+  return normalized || null;
+}
 
 export function findRiskInClientCache(
   riskId: string,
@@ -21,8 +32,8 @@ export function findRiskInClientCache(
 }
 
 /**
- * Exam-risk list omits `system`. Enrich from React Query cache only — not via
- * GET /risk/:companyId/:id, which 404s for consultant-owned risks (e.g. CONNAPA aliases).
+ * Enrich from React Query cache only — not via GET /risk/:companyId/:id,
+ * which 404s for consultant-owned risks (e.g. CONNAPA aliases).
  */
 export function enrichRiskWithSystemFlag(
   risk?: IRiskFactors,
@@ -41,8 +52,50 @@ export function enrichRiskWithSystemFlag(
   };
 }
 
-/** Non-system when explicitly false, or when `system` is absent (exam-risk list omits it). */
-export function isNonSystemRisk(risk?: IRiskFactors | null): boolean {
-  if (!risk?.id) return false;
-  return risk.system !== true;
+export function isCatalogSystemRisk(risk?: IRiskFactors | null): boolean {
+  return risk?.system === true;
+}
+
+export function isExplicitNonSystemRisk(risk?: IRiskFactors | null): boolean {
+  return risk?.system === false;
+}
+
+export function isRiskIdInSystemSearchResults(
+  riskId: string | undefined,
+  systemRisks: SystemRiskSearchItem[],
+): boolean {
+  if (!riskId) return false;
+  return systemRisks.some((item) => item.id === riskId);
+}
+
+export function findExactCanonicalSuggestion(
+  risk: IRiskFactors | undefined,
+  systemRisks: SystemRiskSearchItem[],
+): SystemRiskSearchItem | null {
+  if (!risk?.id || !risk.name || !risk.type) return null;
+
+  const normalizedAlias = normalizeAgentName(risk.name);
+  if (!normalizedAlias) return null;
+
+  return (
+    systemRisks.find(
+      (item) =>
+        item.id !== risk.id &&
+        item.type === risk.type &&
+        normalizeAgentName(item.name) === normalizedAlias,
+    ) ?? null
+  );
+}
+
+export function requiresEquivalenceForPublish(params: {
+  risk?: IRiskFactors | null;
+  riskIsCatalogForPublish?: boolean;
+  existingEquivalence?: { canonicalRiskId: string } | null;
+}): boolean {
+  if (!params.risk?.id) return false;
+  if (params.riskIsCatalogForPublish || isCatalogSystemRisk(params.risk)) {
+    return false;
+  }
+  if (params.existingEquivalence) return false;
+  return true;
 }

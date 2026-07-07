@@ -31,7 +31,7 @@ import type {
 } from '@v2/services/risk-factor-equivalence/risk-factor-equivalence.types';
 import {
   enrichRiskWithSystemFlag,
-  isNonSystemRisk,
+  requiresEquivalenceForPublish,
 } from '../utils/risk-system-flag.util';
 
 export const initialExamRiskState = {
@@ -66,6 +66,7 @@ export const initialExamRiskState = {
     canonicalRiskId: string;
     canonicalLabel: string;
   } | null,
+  riskIsCatalogForPublish: false,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: Partial<IExamToRisk> | null) => {},
 };
@@ -143,6 +144,7 @@ export const useEditExams = () => {
                 selectedCanonicalRisk: null,
                 existingEquivalence: null,
                 equivalenceType: 'SEMANTIC_ALIAS' as const,
+                riskIsCatalogForPublish: false,
               }
             : {}),
         };
@@ -233,8 +235,11 @@ export const useEditExams = () => {
       examData.publishAsSystemRule &&
       examData.riskId &&
       !examData.isAll &&
-      isNonSystemRisk(examData.risk) &&
-      !examData.existingEquivalence;
+      requiresEquivalenceForPublish({
+        risk: examData.risk,
+        riskIsCatalogForPublish: examData.riskIsCatalogForPublish,
+        existingEquivalence: examData.existingEquivalence,
+      });
 
     if (requiresCanonicalForPublish && !examData.selectedCanonicalRisk?.id) {
       enqueueSnackbar(
@@ -254,8 +259,11 @@ export const useEditExams = () => {
       !examData.isAll
         ? {
             publishAsSystemRule: true,
-            ...(isNonSystemRisk(examData.risk) &&
-            !examData.existingEquivalence &&
+            ...(requiresEquivalenceForPublish({
+              risk: examData.risk,
+              riskIsCatalogForPublish: examData.riskIsCatalogForPublish,
+              existingEquivalence: examData.existingEquivalence,
+            }) &&
             examData.selectedCanonicalRisk?.id
               ? {
                   riskFactorEquivalence: {
@@ -313,8 +321,11 @@ export const useEditExams = () => {
         } else if (
           isMasterAdmin &&
           examData.publishAsSystemRule &&
-          isNonSystemRisk(examData.risk) &&
-          !examData.existingEquivalence &&
+          requiresEquivalenceForPublish({
+            risk: examData.risk,
+            riskIsCatalogForPublish: examData.riskIsCatalogForPublish,
+            existingEquivalence: examData.existingEquivalence,
+          }) &&
           !examData.selectedCanonicalRisk?.id
         ) {
           enqueueSnackbar(
@@ -345,8 +356,11 @@ export const useEditExams = () => {
         } else if (
           isMasterAdmin &&
           examData.publishAsSystemRule &&
-          isNonSystemRisk(examData.risk) &&
-          !examData.existingEquivalence &&
+          requiresEquivalenceForPublish({
+            risk: examData.risk,
+            riskIsCatalogForPublish: examData.riskIsCatalogForPublish,
+            existingEquivalence: examData.existingEquivalence,
+          }) &&
           !examData.selectedCanonicalRisk?.id
         ) {
           enqueueSnackbar(

@@ -12,7 +12,12 @@ import type {
   SystemRiskSearchItem,
 } from '@v2/services/risk-factor-equivalence/risk-factor-equivalence.types';
 import type { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
-import { isNonSystemRisk } from '../utils/risk-system-flag.util';
+import {
+  findExactCanonicalSuggestion,
+  isCatalogSystemRisk,
+  isExplicitNonSystemRisk,
+  isRiskIdInSystemSearchResults,
+} from '../utils/risk-system-flag.util';
 
 type Props = {
   companyId?: string;
@@ -25,6 +30,7 @@ type Props = {
   onExistingEquivalenceChange: (
     equivalence: { canonicalRiskId: string; canonicalLabel: string } | null,
   ) => void;
+  onCatalogRiskResolved?: (isCatalog: boolean) => void;
 };
 
 const equivalenceTypeOptions = [
@@ -47,27 +53,54 @@ export const RiskFactorEquivalencePublishBlock: FC<Props> = ({
   onEquivalenceTypeChange,
   onCanonicalRiskChange,
   onExistingEquivalenceChange,
+  onCatalogRiskResolved,
 }) => {
   const [search, setSearch] = useState(risk?.name || '');
 
-  const shouldShow =
-    publishAsSystemRule && Boolean(risk?.id) && isNonSystemRisk(risk);
+  const isExplicitCatalog = isCatalogSystemRisk(risk);
+  const needsCatalogProbe =
+    publishAsSystemRule && Boolean(risk?.id) && !isExplicitCatalog;
 
-  const { data: equivalences = [], isLoading: loadingEquivalence } =
-    useFetchBrowseRiskFactorEquivalences({
-      companyId,
-      aliasRiskId: risk?.id,
-      enabled: shouldShow,
-    });
-
-  const activeEquivalence = equivalences.find((item) => !item.revokedAt);
+  const shouldFetchSystemRisks =
+    publishAsSystemRule && Boolean(risk?.id) && !isExplicitCatalog;
 
   const { data: systemRisks = [], isLoading: loadingSystemRisks } =
     useFetchSearchSystemRisks({
       search,
       type: risk?.type,
-      enabled: shouldShow && !activeEquivalence,
+      enabled: shouldFetchSystemRisks,
     });
+
+  const catalogViaSearch = useMemo(
+    () => isRiskIdInSystemSearchResults(risk?.id, systemRisks),
+    [risk?.id, systemRisks],
+  );
+
+  const isCatalogRisk = isExplicitCatalog || catalogViaSearch;
+
+  const shouldShowEquivalenceBlock =
+    publishAsSystemRule &&
+    Boolean(risk?.id) &&
+    !isCatalogRisk &&
+    (isExplicitNonSystemRisk(risk) ||
+      (needsCatalogProbe && !loadingSystemRisks));
+
+  const { data: equivalences = [], isLoading: loadingEquivalence } =
+    useFetchBrowseRiskFactorEquivalences({
+      companyId,
+      aliasRiskId: risk?.id,
+      enabled: shouldShowEquivalenceBlock,
+    });
+
+  const activeEquivalence = equivalences.find((item) => !item.revokedAt);
+
+  const exactCanonicalSuggestion = useMemo(
+    () =>
+      shouldShowEquivalenceBlock && !activeEquivalence
+        ? findExactCanonicalSuggestion(risk, systemRisks)
+        : null,
+    [activeEquivalence, risk, shouldShowEquivalenceBlock, systemRisks],
+  );
 
   const selectedOption = useMemo(
     () =>
@@ -78,8 +111,35 @@ export const RiskFactorEquivalencePublishBlock: FC<Props> = ({
     [selectedCanonicalRisk, systemRisks],
   );
 
+  const hasExactAliasSuggestion = Boolean(exactCanonicalSuggestion);
+
   useEffect(() => {
-    if (!shouldShow) return;
+    if (!publishAsSystemRule || !risk?.id) {
+      onCatalogRiskResolved?.(false);
+      return;
+    }
+
+    if (isExplicitCatalog) {
+      onCatalogRiskResolved?.(true);
+      return;
+    }
+
+    if (needsCatalogProbe && !loadingSystemRisks) {
+      onCatalogRiskResolved?.(catalogViaSearch);
+    }
+    // onCatalogRiskResolved vem inline do parent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    publishAsSystemRule,
+    risk?.id,
+    isExplicitCatalog,
+    catalogViaSearch,
+    loadingSystemRisks,
+    needsCatalogProbe,
+  ]);
+
+  useEffect(() => {
+    if (!shouldShowEquivalenceBlock) return;
 
     if (activeEquivalence) {
       onExistingEquivalenceChange({
@@ -101,7 +161,7 @@ export const RiskFactorEquivalencePublishBlock: FC<Props> = ({
     // Callbacks vêm do parent inline; incluí-los nas deps causa loop de render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    shouldShow,
+    shouldShowEquivalenceBlock,
     activeEquivalence?.id,
     activeEquivalence?.canonicalRiskId,
     activeEquivalence?.canonicalLabel,
@@ -109,10 +169,67 @@ export const RiskFactorEquivalencePublishBlock: FC<Props> = ({
   ]);
 
   useEffect(() => {
+    if (
+      !shouldShowEquivalenceBlock ||
+      activeEquivalence ||
+      selectedCanonicalRisk ||
+      !exactCanonicalSuggestion
+    ) {
+      return;
+    }
+
+    onCanonicalRiskChange(exactCanonicalSuggestion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    shouldShowEquivalenceBlock,
+    exactCanonicalSuggestion?.id,
+    activeEquivalence?.id,
+    selectedCanonicalRisk?.id,
+  ]);
+
+  useEffect(() => {
     setSearch(risk?.name || '');
   }, [risk?.id, risk?.name]);
 
-  if (!shouldShow) return null;
+  if (!publishAsSystemRule || !risk?.id) return null;
+
+  if (needsCatalogProbe && loadingSystemRisks) {
+    return (
+      <SText fontSize={12} color="text.light" mt={3}>
+        Verificando fator no catálogo SimpleSST...
+      </SText>
+    );
+  }
+
+  if (isCatalogRisk) {
+    return (
+      <Box
+        mt={3}
+        p={2}
+        sx={{
+          border: '1px solid',
+          borderColor: 'success.light',
+          borderRadius: 1,
+          bgcolor: 'success.50',
+        }}
+      >
+        <SText fontSize={12}>
+          Este vínculo já usa um fator do catálogo SimpleSST. A publicação na
+          Biblioteca usará este fator diretamente.
+        </SText>
+      </Box>
+    );
+  }
+
+  if (!shouldShowEquivalenceBlock) return null;
+
+  const title = hasExactAliasSuggestion
+    ? 'Este vínculo usa uma cópia/alias de um fator do catálogo SimpleSST.'
+    : 'Para publicar na Biblioteca, vincule este fator ao catálogo SimpleSST.';
+
+  const subtitle = hasExactAliasSuggestion
+    ? 'Confirme o fator oficial para publicar na Biblioteca.'
+    : 'Selecione o fator de risco oficial do catálogo SimpleSST.';
 
   return (
     <Box
@@ -126,11 +243,10 @@ export const RiskFactorEquivalencePublishBlock: FC<Props> = ({
       }}
     >
       <SText fontSize={13} fontWeight={600} mb={1}>
-        Este risco não pertence ao catálogo SimpleSST.
+        {title}
       </SText>
       <SText fontSize={12} color="text.light" mb={3}>
-        Para publicar como padrão da Biblioteca, vincule-o a um fator de risco
-        do catálogo.
+        {subtitle}
       </SText>
 
       {loadingEquivalence ? (
