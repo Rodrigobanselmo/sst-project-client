@@ -10,6 +10,7 @@ import { ExamOriginEnum, IExam, IExamRiskData } from 'core/interfaces/api/IExam'
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+import { resolveExamRiskMinDegreesOnSubmit } from 'core/utils/helpers/examRiskDegreeSubmit.util';
 
 export const initialExamDataState = {
   id: 0,
@@ -131,16 +132,13 @@ export const useEditExams = () => {
         considerBetweenDays: considerBetweenDays
           ? parseInt(considerBetweenDays, 10)
           : undefined,
-        minRiskDegree: examData.isAttendance
-          ? 0
-          : minRiskDegree
-            ? parseInt(minRiskDegree, 10)
-            : 1,
-        minRiskDegreeQuantity: examData.isAttendance
-          ? 0
-          : minRiskDegreeQuantity
-            ? parseInt(minRiskDegreeQuantity, 10)
-            : 1,
+        ...resolveExamRiskMinDegreesOnSubmit({
+          minRiskDegree,
+          minRiskDegreeQuantity,
+          storedMinRiskDegree: examData.examRiskData.minRiskDegree,
+          storedMinRiskDegreeQuantity: examData.examRiskData.minRiskDegreeQuantity,
+          risk: examData.risk,
+        }),
       },
     };
 

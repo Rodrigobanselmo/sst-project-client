@@ -17,6 +17,7 @@ import {
 } from 'core/services/hooks/mutations/checklist/exams/useMutCreateExamRisk/useMutCreateExamRisk';
 import { useMutUpdateExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutUpdateExamRisk/useMutUpdateExamRisk';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+import { resolveExamRiskMinDegreesOnSubmit } from 'core/utils/helpers/examRiskDegreeSubmit.util';
 import { examRiskSchema } from 'core/utils/schemas/exam.schema';
 import { queryClient } from 'core/services/queryClient';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -285,16 +286,13 @@ export const useEditExams = () => {
       considerBetweenDays: considerBetweenDays
         ? parseInt(considerBetweenDays, 10)
         : null,
-      minRiskDegree: examData.exam.isAttendance
-        ? 0
-        : minRiskDegree
-          ? parseInt(minRiskDegree, 10)
-          : 1,
-      minRiskDegreeQuantity: examData.exam.isAttendance
-        ? 0
-        : minRiskDegreeQuantity
-          ? parseInt(minRiskDegreeQuantity, 10)
-          : 1,
+      ...resolveExamRiskMinDegreesOnSubmit({
+        minRiskDegree,
+        minRiskDegreeQuantity,
+        storedMinRiskDegree: examData.minRiskDegree,
+        storedMinRiskDegreeQuantity: examData.minRiskDegreeQuantity,
+        risk: examData.risk,
+      }),
     };
 
     try {

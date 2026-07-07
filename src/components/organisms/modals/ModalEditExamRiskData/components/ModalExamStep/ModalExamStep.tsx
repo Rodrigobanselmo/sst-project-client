@@ -184,56 +184,52 @@ export const ModalExamStep = ({
         options={[30, 60, 90, 120, 180, 240, 300]}
       />
 
-      {!examData.isAttendance && (
-        <>
-          <SText color="text.label" fontSize={14} mb={3} mt={5}>
-            Grau de risco mínimo
-          </SText>
-          <SFlex gap={5} mt={2} maxWidth={400} flexWrap="wrap">
-            <Box flex={1} width={200}>
-              <SelectForm
-                defaultValue={String(examData.examRiskData.minRiskDegree || 1)}
-                label="Qualitativo"
-                control={control}
-                placeholder="grau de risco..."
-                name="minRiskDegree"
-                setValue={setValue}
-                labelPosition="center"
-                size="small"
-                options={Object.values(matrixRiskMap)
-                  .filter((m) => m.level > 0 && m.level < 6)
-                  .map((value) => ({
-                    value: value.level,
-                    content: value.label,
-                  }))}
-              />
-            </Box>
-            {isQuantity(examData.risk) && (
-              <Box flex={1} maxWidth={200}>
-                <SelectForm
-                  fullWidth
-                  defaultValue={String(
-                    examData.examRiskData.minRiskDegreeQuantity || 1,
-                  )}
-                  label="Quantitativo"
-                  control={control}
-                  setValue={setValue}
-                  placeholder="grau de risco..."
-                  name="minRiskDegreeQuantity"
-                  labelPosition="center"
-                  size="small"
-                  options={Object.values(matrixRiskMap)
-                    .filter((m) => m.level > 0 && m.level < 6)
-                    .map((value) => ({
-                      value: value.level,
-                      content: value.label,
-                    }))}
-                />
-              </Box>
-            )}
-          </SFlex>
-        </>
-      )}
+      <SText color="text.label" fontSize={14} mb={3} mt={5}>
+        Grau de risco mínimo
+      </SText>
+      <SFlex gap={5} mt={2} maxWidth={400} flexWrap="wrap">
+        <Box flex={1} width={200}>
+          <SelectForm
+            defaultValue={String(examData.examRiskData.minRiskDegree ?? 1)}
+            label="Qualitativo"
+            control={control}
+            placeholder="grau de risco..."
+            name="minRiskDegree"
+            setValue={setValue}
+            labelPosition="center"
+            size="small"
+            options={Object.values(matrixRiskMap)
+              .filter((m) => m.level > 0 && m.level < 6)
+              .map((value) => ({
+                value: value.level,
+                content: value.label,
+              }))}
+          />
+        </Box>
+        {isQuantity(examData.risk) && (
+          <Box flex={1} maxWidth={200}>
+            <SelectForm
+              fullWidth
+              defaultValue={String(
+                examData.examRiskData.minRiskDegreeQuantity ?? 1,
+              )}
+              label="Quantitativo"
+              control={control}
+              setValue={setValue}
+              placeholder="grau de risco..."
+              name="minRiskDegreeQuantity"
+              labelPosition="center"
+              size="small"
+              options={Object.values(matrixRiskMap)
+                .filter((m) => m.level > 0 && m.level < 6)
+                .map((value) => ({
+                  value: value.level,
+                  content: value.label,
+                }))}
+            />
+          </Box>
+        )}
+      </SFlex>
     </SFlex>
   );
 };
