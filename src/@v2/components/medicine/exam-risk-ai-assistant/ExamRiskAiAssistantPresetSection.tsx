@@ -24,6 +24,10 @@ import type {
 
 type Props = {
   open: boolean;
+  presetName: string;
+  presetDescription: string;
+  onPresetNameChange: (value: string) => void;
+  onPresetDescriptionChange: (value: string) => void;
   buildPresetConfig: () => ICreateExamRiskRuleRiskToExamAiPresetPayload['config'];
   onApplyPreset: (preset: IExamRiskRuleRiskToExamAiPreset) => void;
   contextNote?: string;
@@ -33,13 +37,15 @@ const presetLabel = (preset: IExamRiskRuleRiskToExamAiPreset) => preset.name;
 
 export const ExamRiskAiAssistantPresetSection: FC<Props> = ({
   open,
+  presetName,
+  presetDescription,
+  onPresetNameChange,
+  onPresetDescriptionChange,
   buildPresetConfig,
   onApplyPreset,
   contextNote,
 }) => {
   const [presetSearch, setPresetSearch] = useState('');
-  const [presetName, setPresetName] = useState('');
-  const [presetDescription, setPresetDescription] = useState('');
   const [selectedPreset, setSelectedPreset] =
     useState<IExamRiskRuleRiskToExamAiPreset | null>(null);
   const [presetMessage, setPresetMessage] = useState('');
@@ -65,8 +71,8 @@ export const ExamRiskAiAssistantPresetSection: FC<Props> = ({
 
   const handleApplyPreset = (preset: IExamRiskRuleRiskToExamAiPreset) => {
     setSelectedPreset(preset);
-    setPresetName(preset.name);
-    setPresetDescription(preset.description ?? '');
+    onPresetNameChange(preset.name);
+    onPresetDescriptionChange(preset.description ?? '');
     onApplyPreset(preset);
     setPresetMessage(
       contextNote
@@ -193,13 +199,13 @@ export const ExamRiskAiAssistantPresetSection: FC<Props> = ({
         <TextField
           label="Nome do modelo"
           value={presetName}
-          onChange={(event) => setPresetName(event.target.value)}
+          onChange={(event) => onPresetNameChange(event.target.value)}
           sx={{ minWidth: 320, flex: 1 }}
         />
         <TextField
           label="Descrição do modelo"
           value={presetDescription}
-          onChange={(event) => setPresetDescription(event.target.value)}
+          onChange={(event) => onPresetDescriptionChange(event.target.value)}
           sx={{ minWidth: 420, flex: 2 }}
         />
       </Box>

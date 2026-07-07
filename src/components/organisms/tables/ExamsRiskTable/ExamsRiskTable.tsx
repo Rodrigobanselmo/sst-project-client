@@ -120,6 +120,10 @@ type ApplySuggestionsContext = {
 type AiSuggestionsContext = {
   riskId: string;
   riskName: string;
+  riskType?: string;
+  riskSubTypes?: { id: number; name: string }[];
+  riskCas?: string | null;
+  riskEsocialCode?: string | null;
 };
 
 type ExamRiskColumnKey =
@@ -966,6 +970,10 @@ export const ExamsRiskTable: FC<
         workspaceId={workspaceId}
         riskId={aiSuggestionsContext.riskId}
         riskName={aiSuggestionsContext.riskName}
+        riskType={aiSuggestionsContext.riskType}
+        riskSubTypes={aiSuggestionsContext.riskSubTypes}
+        riskCas={aiSuggestionsContext.riskCas}
+        riskEsocialCode={aiSuggestionsContext.riskEsocialCode}
         onClose={onCloseAiSuggestions}
         onApplied={onRefetchThrottle}
       />
@@ -979,6 +987,10 @@ export const ExamsRiskTable: FC<
           onOpenAiSuggestions({
             riskId: risk.riskId,
             riskName: risk.riskName,
+            riskType: risk.riskType,
+            riskSubTypes: risk.riskSubTypes,
+            riskCas: risk.riskCas,
+            riskEsocialCode: risk.riskEsocialCode,
           })
         }
       />

@@ -26,6 +26,10 @@ import {
 import { ExamRiskAiAssistantConfigForm } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantConfigForm';
 import { ExamRiskAiAccumulatedSelectionPanel } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAccumulatedSelectionPanel';
 import { ExamRiskAiAssistantPresetSection } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiAssistantPresetSection';
+import { ExamRiskAiPromptDraftSection } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiPromptDraftSection';
+import { ExamRiskAiRiskContextHeader } from '@v2/components/medicine/exam-risk-ai-assistant/ExamRiskAiRiskContextHeader';
+import type { ExamRiskAiRiskContextDisplay } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-risk-context-display.util';
+import type { ExamRiskAiPromptDraftCurrentState } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-prompt-draft-merge.util';
 import { buildRiskExamAccumulationKey } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant-accumulated.util';
 import { useExamRiskAiAccumulatedSuggestions } from '@v2/components/medicine/exam-risk-ai-assistant/useExamRiskAiAccumulatedSuggestions';
 import {
@@ -73,6 +77,10 @@ type Props = {
   workspaceId?: string;
   riskId: string;
   riskName: string;
+  riskType?: string;
+  riskSubTypes?: { id: number; name: string }[];
+  riskCas?: string | null;
+  riskEsocialCode?: string | null;
   onApplied: () => void;
 };
 
@@ -335,6 +343,10 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   workspaceId,
   riskId,
   riskName,
+  riskType,
+  riskSubTypes,
+  riskCas,
+  riskEsocialCode,
   onApplied,
 }) => {
   const dryRunMutation = useDryRunCompanyExamRiskAiSuggestions();
@@ -352,6 +364,8 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   const [formValues, setFormValues] = useState<ExamRiskAiAssistantFormValues>(
     createDefaultExamRiskAiAssistantFormValues(),
   );
+  const [presetName, setPresetName] = useState('');
+  const [presetDescription, setPresetDescription] = useState('');
   const [includeExistingLinks, setIncludeExistingLinks] = useState(false);
   const [onlyWithoutCompanyLink, setOnlyWithoutCompanyLink] = useState(true);
   const [dryRunData, setDryRunData] =
@@ -361,6 +375,40 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     useState<IApplyCompanyExamRiskAiSuggestionsResponse | null>(null);
   const [resultData, setResultData] =
     useState<IApplyCompanyExamRiskAiSuggestionsResponse | null>(null);
+  const [resolvedRiskContext, setResolvedRiskContext] =
+    useState<ExamRiskAiRiskContextDisplay>({ riskName });
+
+  useEffect(() => {
+    if (!open) return;
+
+    setResolvedRiskContext({
+      riskName,
+      riskType,
+      riskSubTypes,
+      riskCas,
+      riskEsocialCode,
+    });
+  }, [open, riskCas, riskEsocialCode, riskName, riskSubTypes, riskType]);
+
+  const displayRiskContext = useMemo<ExamRiskAiRiskContextDisplay>(
+    () => ({
+      riskName: dryRunData?.riskName ?? resolvedRiskContext.riskName ?? riskName,
+      riskType: resolvedRiskContext.riskType ?? riskType,
+      riskTypeLabel: resolvedRiskContext.riskTypeLabel,
+      riskSubTypes: resolvedRiskContext.riskSubTypes ?? riskSubTypes,
+      riskCas: resolvedRiskContext.riskCas ?? riskCas,
+      riskEsocialCode: resolvedRiskContext.riskEsocialCode ?? riskEsocialCode,
+    }),
+    [
+      dryRunData?.riskName,
+      resolvedRiskContext,
+      riskCas,
+      riskEsocialCode,
+      riskName,
+      riskSubTypes,
+      riskType,
+    ],
+  );
 
   const selectableSuggestions = useMemo(
     () =>
@@ -386,10 +434,21 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     [accumulated.items, riskId],
   );
 
+  const promptDraftCurrentState = useMemo<ExamRiskAiPromptDraftCurrentState>(
+    () => ({
+      presetName,
+      presetDescription,
+      formValues,
+    }),
+    [presetName, presetDescription, formValues],
+  );
+
   useEffect(() => {
     if (!open) return;
     setStep('setup');
     setFormValues(createDefaultExamRiskAiAssistantFormValues());
+    setPresetName('');
+    setPresetDescription('');
     setIncludeExistingLinks(false);
     setOnlyWithoutCompanyLink(true);
     setDryRunData(null);
@@ -421,6 +480,8 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   ) => {
     const mapped = mapCompanyPresetToState(preset);
     setFormValues(mapped.formValues);
+    setPresetName(preset.name);
+    setPresetDescription(preset.description ?? '');
     setIncludeExistingLinks(mapped.includeExistingLinks);
     setOnlyWithoutCompanyLink(mapped.onlyWithoutCompanyLink);
     setDryRunData(null);
@@ -429,6 +490,12 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     setResultData(null);
     accumulated.clear();
     setStep('setup');
+  };
+
+  const handleApplyPromptDraft = (next: ExamRiskAiPromptDraftCurrentState) => {
+    setPresetName(next.presetName);
+    setPresetDescription(next.presetDescription);
+    setFormValues(next.formValues);
   };
 
   const onAddSelectedToAccumulated = () => {
@@ -546,9 +613,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
 
       <DialogContent dividers>
         <Stack spacing={3}>
-          <Typography variant="body2" color="text.secondary">
-            Risco: <strong>{dryRunData?.riskName ?? riskName}</strong>
-          </Typography>
+          <ExamRiskAiRiskContextHeader {...displayRiskContext} />
 
           {step === 'setup' && (
             <>
@@ -570,11 +635,34 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
               {isMasterAdmin && (
                 <ExamRiskAiAssistantPresetSection
                   open={open}
+                  presetName={presetName}
+                  presetDescription={presetDescription}
+                  onPresetNameChange={setPresetName}
+                  onPresetDescriptionChange={setPresetDescription}
                   buildPresetConfig={buildPresetConfig}
                   onApplyPreset={handleApplyPreset}
                   contextNote="O risco selecionado e o resultado anterior foram mantidos/limpos conforme o fluxo da empresa."
                 />
               )}
+
+              <ExamRiskAiPromptDraftSection
+                companyId={companyId}
+                riskId={riskId}
+                workspaceId={workspaceId}
+                isMasterAdmin={isMasterAdmin}
+                currentState={promptDraftCurrentState}
+                onApplyDraft={handleApplyPromptDraft}
+                onRiskContextResolved={(draft) =>
+                  setResolvedRiskContext({
+                    riskName: draft.riskName,
+                    riskType: draft.riskType,
+                    riskTypeLabel: draft.riskTypeLabel,
+                    riskSubTypes: draft.riskSubTypes,
+                    riskCas: draft.riskCas,
+                    riskEsocialCode: draft.riskEsocialCode,
+                  })
+                }
+              />
 
               <ExamRiskAiAssistantConfigForm
                 values={formValues}

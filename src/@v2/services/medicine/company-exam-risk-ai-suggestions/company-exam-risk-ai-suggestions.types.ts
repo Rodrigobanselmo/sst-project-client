@@ -35,6 +35,54 @@ export type ICompanyExamRiskAiSuggestionItem = {
   selectionBlockReason?: string;
 };
 
+export type IGenerateCompanyExamRiskAiPromptDraftCurrentFields = {
+  modelName?: string;
+  modelDescription?: string;
+  examSearch?: string;
+  examType?: string;
+  suggestedCandidateLimit?: number;
+  instructions?: string;
+  positiveExamples?: string;
+  negativeExamples?: string;
+  cautions?: string;
+  sessionAdditionalInstruction?: string;
+};
+
+export type IGenerateCompanyExamRiskAiPromptDraftParams = {
+  companyId: string;
+  riskId: string;
+  workspaceId?: string;
+  userGuidance?: string;
+  currentFields?: IGenerateCompanyExamRiskAiPromptDraftCurrentFields;
+  model?: string;
+  sessionCustomPrompt?: string;
+};
+
+export type IGenerateCompanyExamRiskAiPromptDraftResponse = {
+  riskId: string;
+  riskName: string;
+  riskType: 'ACI' | 'ERG' | 'QUI' | 'FIS' | 'BIO' | 'OUTROS';
+  riskTypeLabel?: string;
+  riskSubTypes?: { id: number; name: string }[];
+  riskCas?: string | null;
+  riskEsocialCode?: string | null;
+  modelName: string;
+  modelDescription: string;
+  examSearch: string;
+  examType?: string;
+  suggestedCandidateLimit: number;
+  instructions: string;
+  positiveExamples: string;
+  negativeExamples: string;
+  cautions: string;
+  sessionAdditionalInstruction: string;
+  warnings: string[];
+  meta: {
+    generatedAt: string;
+    model: string;
+  };
+};
+
 export type IDryRunCompanyExamRiskAiSuggestionsParams = {
   companyId: string;
   riskId: string;

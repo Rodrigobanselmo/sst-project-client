@@ -111,6 +111,8 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
     sessionInstruction: '',
     model: '',
   });
+  const [presetName, setPresetName] = useState('');
+  const [presetDescription, setPresetDescription] = useState('');
   const [includeExistingRules, setIncludeExistingRules] = useState(true);
   const [includeIndirectCoverage, setIncludeIndirectCoverage] = useState(true);
   const [onlyWithoutExamCoverage, setOnlyWithoutExamCoverage] = useState(false);
@@ -201,6 +203,8 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
   const handleApplyPreset = (preset: IExamRiskRuleRiskToExamAiPreset) => {
     const mapped = mapExamRiskAiPresetToState(preset);
     setFormValues(mapped.formValues);
+    setPresetName(preset.name);
+    setPresetDescription(preset.description ?? '');
     setIncludeExistingRules(mapped.includeExistingRules);
     setIncludeIndirectCoverage(mapped.includeIndirectCoverage);
     setOnlyWithoutExamCoverage(mapped.onlyWithoutExamCoverage);
@@ -357,6 +361,10 @@ export const ExamRiskRuleRiskToExamAiAssistantDialog: FC<Props> = ({
 
           <ExamRiskAiAssistantPresetSection
             open={open}
+            presetName={presetName}
+            presetDescription={presetDescription}
+            onPresetNameChange={setPresetName}
+            onPresetDescriptionChange={setPresetDescription}
             buildPresetConfig={buildPresetConfig}
             onApplyPreset={handleApplyPreset}
           />

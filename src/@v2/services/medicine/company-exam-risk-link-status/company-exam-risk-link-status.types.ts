@@ -100,6 +100,9 @@ export type IExamRiskUncoveredRiskItem = {
   riskId: string;
   riskName: string;
   riskType?: string;
+  riskSubTypes?: { id: number; name: string }[];
+  riskCas?: string | null;
+  riskEsocialCode?: string | null;
   workspaceId?: string;
   libraryCoverage: CompanyExamRiskLibraryCoverageEnum.NO_GLOBAL_REFERENCE;
   reason: string;

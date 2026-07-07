@@ -6,7 +6,20 @@ import type {
   IApplyCompanyExamRiskAiSuggestionsResponse,
   IDryRunCompanyExamRiskAiSuggestionsParams,
   IDryRunCompanyExamRiskAiSuggestionsResponse,
+  IGenerateCompanyExamRiskAiPromptDraftParams,
+  IGenerateCompanyExamRiskAiPromptDraftResponse,
 } from './company-exam-risk-ai-suggestions.types';
+
+export async function generateCompanyExamRiskAiPromptDraft(
+  params: IGenerateCompanyExamRiskAiPromptDraftParams,
+): Promise<IGenerateCompanyExamRiskAiPromptDraftResponse> {
+  const { companyId, ...body } = params;
+  const response = await api.post<IGenerateCompanyExamRiskAiPromptDraftResponse>(
+    CompanyExamRiskAiSuggestionsRoutes.PROMPT_DRAFT(companyId),
+    body,
+  );
+  return response.data;
+}
 
 export async function dryRunCompanyExamRiskAiSuggestions(
   params: IDryRunCompanyExamRiskAiSuggestionsParams,
