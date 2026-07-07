@@ -57,6 +57,7 @@ import {
   type ICompanyExamRiskAiSuggestionItem,
   type IDryRunCompanyExamRiskAiSuggestionsResponse,
 } from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestions.types';
+import { isCompanyExamRiskAiSuggestionSelectable } from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestion-selectable.util';
 import type { IResolvedExamRiskConfig } from '@v2/services/medicine/company-exam-risk-suggestions/company-exam-risk-suggestions.types';
 import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
 import { pcmsoLinkStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
@@ -142,7 +143,7 @@ const getApplyItemStatusLabel = (
 
 const buildDefaultSelectedKeys = (suggestions: ICompanyExamRiskAiSuggestionItem[]) =>
   suggestions
-    .filter((item) => item.isSelectable && item.decision === 'suggest')
+    .filter(isCompanyExamRiskAiSuggestionSelectable)
     .map((item) => item.suggestionKey);
 
 const getAnalysisStatusLabel = (status: string) =>
@@ -215,6 +216,7 @@ const SuggestionResultRow: FC<{
   alreadyAccumulated: boolean;
   onToggle: (suggestionKey: string) => void;
 }> = ({ item, selected, alreadyAccumulated, onToggle }) => {
+  const isSelectable = isCompanyExamRiskAiSuggestionSelectable(item);
   const decisionLabel =
     EXAM_RISK_AI_DECISION_LABELS[
       item.decision as keyof typeof EXAM_RISK_AI_DECISION_LABELS
@@ -229,7 +231,7 @@ const SuggestionResultRow: FC<{
       <TableCell>
         <Checkbox
           checked={selected}
-          disabled={!item.isSelectable || alreadyAccumulated}
+          disabled={!isSelectable || alreadyAccumulated}
           onChange={() => onToggle(item.suggestionKey)}
         />
         {alreadyAccumulated && (
@@ -237,7 +239,7 @@ const SuggestionResultRow: FC<{
             Já adicionado
           </Typography>
         )}
-        {item.selectionBlockReason && !alreadyAccumulated && (
+        {item.selectionBlockReason && !isSelectable && !alreadyAccumulated && (
           <Typography variant="caption" color="text.secondary" display="block">
             {item.selectionBlockReason}
           </Typography>
@@ -361,7 +363,9 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     useState<IApplyCompanyExamRiskAiSuggestionsResponse | null>(null);
 
   const selectableSuggestions = useMemo(
-    () => dryRunData?.suggestions.filter((item) => item.isSelectable) ?? [],
+    () =>
+      dryRunData?.suggestions.filter(isCompanyExamRiskAiSuggestionSelectable) ??
+      [],
     [dryRunData],
   );
 
@@ -431,7 +435,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     if (!selectedSuggestions.length) return;
     accumulated.addItems(
       selectedSuggestions,
-      (item) => item.isSelectable,
+      isCompanyExamRiskAiSuggestionSelectable,
     );
     setSelectedKeys([]);
   };
