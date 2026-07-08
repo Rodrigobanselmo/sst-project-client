@@ -19,6 +19,11 @@ import {
   getPgrFullDownloadLabel,
   getPgrMainDocumentDownloadLabel,
 } from '../../helpers/pgr-download-labels.util';
+import {
+  buildPcmsoConsolidatedDownloadUrl,
+  getPcmsoFullDownloadLabel,
+  getPcmsoMainDocumentDownloadLabel,
+} from '../../helpers/pcmso-download-labels.util';
 import { IUseDocs } from '../../hooks/useModalViewDocDownload';
 
 export const ModalContentDoc = ({
@@ -32,6 +37,7 @@ export const ModalContentDoc = ({
   const isPgrOrFrps =
     doc.documentType === DocumentTypeEnum.PGR ||
     doc.documentType === DocumentTypeEnum.FRPS;
+  const isPcmso = doc.documentType === DocumentTypeEnum.PCSMO;
 
   const essentialConsolidatedUrl = buildPgrConsolidatedDownloadUrl({
     docId: doc.id,
@@ -43,6 +49,11 @@ export const ModalContentDoc = ({
     docId: doc.id,
     companyId: resolvedCompanyId,
     profile: 'full',
+  });
+
+  const pcmsoConsolidatedUrl = buildPcmsoConsolidatedDownloadUrl({
+    docId: doc.id,
+    companyId: resolvedCompanyId,
   });
 
   const isDownloading = (url: string) =>
@@ -84,7 +95,9 @@ export const ModalContentDoc = ({
           text={
             isPgrOrFrps && doc.documentType
               ? getPgrMainDocumentDownloadLabel(doc.documentType)
-              : 'Baixar documento'
+              : isPcmso
+                ? getPcmsoMainDocumentDownloadLabel()
+                : 'Baixar documento'
           }
           loading={isDownloading(mainDocumentUrl)}
           onClick={() => downloadMutation.mutate(mainDocumentUrl)}
@@ -111,6 +124,16 @@ export const ModalContentDoc = ({
               icon={SDownloadIcon}
             />
           </>
+        )}
+        {isPcmso && (
+          <STagButton
+            text={getPcmsoFullDownloadLabel()}
+            loading={isDownloading(pcmsoConsolidatedUrl)}
+            onClick={() => downloadMutation.mutate(pcmsoConsolidatedUrl)}
+            width={'100%'}
+            large
+            icon={SDownloadIcon}
+          />
         )}
         <SText mt={4} mb={0} color="text.light">
           Anexos
