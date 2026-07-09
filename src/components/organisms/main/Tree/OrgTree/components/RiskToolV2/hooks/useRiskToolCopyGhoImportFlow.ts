@@ -25,9 +25,12 @@ type CopyHomoMutate = UseMutationResult<unknown, unknown, ICopyHomo>;
 export function useRiskToolCopyGhoImportFlow(
   riskGroupIdMemo: string,
   copyHomoMutation: CopyHomoMutate,
+  options?: { defaultWorkspaceId?: string },
 ) {
   const { onStackOpenModal } = useModal();
   const { companyId, workspaceId } = useGetCompanyId();
+  const defaultWorkspaceId =
+    options?.defaultWorkspaceId || workspaceId || undefined;
 
   const handleCopyGHO = useCallback(
     (data: IGho | IHierarchyTreeMapObject | IHierarchy) => {
@@ -100,7 +103,7 @@ export function useRiskToolCopyGhoImportFlow(
 
       onStackOpenModal(ModalEnum.COPY_RISK_IMPORT_ENTRY, {
         defaultCompanyId: companyId || '',
-        defaultWorkspaceId: workspaceId,
+        defaultWorkspaceId,
         onContinue: ({
           sourceCompanyId: sid,
           workspaceId: ws,
@@ -126,7 +129,13 @@ export function useRiskToolCopyGhoImportFlow(
         },
       } as Partial<typeof initialCopyRiskImportEntryState>);
     },
-    [companyId, copyHomoMutation, onStackOpenModal, riskGroupIdMemo, workspaceId],
+    [
+      companyId,
+      copyHomoMutation,
+      defaultWorkspaceId,
+      onStackOpenModal,
+      riskGroupIdMemo,
+    ],
   );
 
   return { handleCopyGHO, loadingCopy: copyHomoMutation.isLoading };

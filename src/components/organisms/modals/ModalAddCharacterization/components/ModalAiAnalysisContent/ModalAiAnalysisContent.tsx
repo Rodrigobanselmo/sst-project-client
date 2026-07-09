@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 
 import {
   Alert,
@@ -40,10 +40,16 @@ import {
   isCharacterizationTextInsufficient,
 } from './characterization-text-insufficient.util';
 import { filterNewAiRiskSuggestions } from './filter-new-ai-risk-suggestions.util';
+import { useRiskToolCopyGhoImportFlow } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/hooks/useRiskToolCopyGhoImportFlow';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { IGho } from 'core/interfaces/api/IGho';
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
+import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useQueryRiskDataByGho } from 'core/services/hooks/queries/useQueryRiskDataByGho';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
-import { IRiskData } from 'core/interfaces/api/IRiskData';
+import { queryClient } from 'core/services/queryClient';
 
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
@@ -301,6 +307,8 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
 
   const aiAnalyzeMutation = useMutateAiAnalyzeCharacterization();
   const upsertRiskDataMutation = useMutUpsertRiskData();
+  const copyHomoMutation = useMutCopyHomo();
+  const { companyId: contextCompanyId } = useGetCompanyId();
   const { data: riskGroupData } = useQueryRiskGroupData(
     characterizationData.companyId || undefined,
   );
@@ -308,10 +316,77 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     () => getCurrentRiskGroupId(riskGroupData),
     [riskGroupData],
   );
-  const { data: existingRiskData = [] } = useQueryRiskDataByGho(
-    riskGroupId || '',
-    characterizationData.id || '',
+  const {
+    data: existingRiskData = [],
+    refetch: refetchExistingRiskData,
+  } = useQueryRiskDataByGho(riskGroupId || '', characterizationData.id || '');
+
+  const refreshExistingRisksAfterImport = useCallback(async () => {
+    const companyIdForQuery =
+      characterizationData.companyId || contextCompanyId;
+
+    await queryClient.invalidateQueries([
+      QueryEnum.RISK_DATA,
+      companyIdForQuery,
+    ]);
+
+    if (riskGroupId && characterizationData.id) {
+      await queryClient.invalidateQueries([
+        QueryEnum.RISK_DATA,
+        companyIdForQuery,
+        riskGroupId,
+        characterizationData.id,
+      ]);
+    }
+
+    await refetchExistingRiskData();
+  }, [
+    characterizationData.companyId,
+    characterizationData.id,
+    contextCompanyId,
+    refetchExistingRiskData,
+    riskGroupId,
+  ]);
+
+  const importCopyHomoMutationRef = useRef(copyHomoMutation);
+  importCopyHomoMutationRef.current = copyHomoMutation;
+
+  const importCopyHomoMutation = useMemo(
+    () =>
+      ({
+        get isLoading() {
+          return importCopyHomoMutationRef.current.isLoading;
+        },
+        mutateAsync: async (
+          variables: Parameters<typeof copyHomoMutation.mutateAsync>[0],
+        ) => {
+          const result =
+            await importCopyHomoMutationRef.current.mutateAsync(variables);
+          await refreshExistingRisksAfterImport();
+          return result;
+        },
+      }) as typeof copyHomoMutation,
+    [refreshExistingRisksAfterImport],
   );
+
+  const { handleCopyGHO, loadingCopy } = useRiskToolCopyGhoImportFlow(
+    riskGroupId || '',
+    importCopyHomoMutation,
+    {
+      defaultWorkspaceId: characterizationData.workspaceId || undefined,
+    },
+  );
+
+  const canImportRisks = Boolean(characterizationData.id && riskGroupId);
+
+  const handleImportRisks = () => {
+    if (!canImportRisks) return;
+
+    handleCopyGHO({
+      id: characterizationData.id,
+      name: characterizationData.name || 'Caracterização atual',
+    } as IGho);
+  };
 
   const sortedExistingRiskData = useMemo(
     () => sortExistingRiskData(existingRiskData),
@@ -850,12 +925,34 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 }}
               >
                 <SFlex direction="column" gap={2}>
-                  <SText variant="subtitle2" color="text.primary">
-                    Riscos já cadastrados no GSE
-                  </SText>
+                  <SFlex
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    gap={2}
+                    sx={{ flexWrap: 'wrap' }}
+                  >
+                    <SText variant="subtitle2" color="text.primary">
+                      Riscos já caracterizados no GSE
+                    </SText>
+                    <SButton
+                      text="Importar riscos"
+                      variant="outlined"
+                      color="primary"
+                      size="s"
+                      loading={loadingCopy}
+                      disabled={!canImportRisks || loadingCopy}
+                      onClick={handleImportRisks}
+                      buttonProps={{
+                        sx: { alignSelf: 'flex-start', minWidth: 'auto' },
+                      }}
+                    />
+                  </SFlex>
                   <SText variant="body2" color="text.secondary">
                     A lista abaixo mostra riscos já vinculados ao GSE. A IA não
-                    os adicionará novamente como novos riscos.
+                    os adicionará novamente como novos riscos. Use “Importar
+                    riscos” para trazer riscos de outra origem antes de rodar a
+                    IA.
                   </SText>
 
                   {!riskGroupId ? (

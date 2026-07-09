@@ -104,22 +104,48 @@ export const ModalCopyRiskImportEntry: FC = () => {
 
   const showWorkspaceSelect = workspaces.length > 1;
 
+  const preferredWorkspaceId = useMemo(() => {
+    const preferred = selectData.defaultWorkspaceId
+      ? String(selectData.defaultWorkspaceId)
+      : undefined;
+    if (!preferred) return undefined;
+    const exists = sortedWorkspaces.some((w) => String(w.id) === preferred);
+    return exists ? preferred : undefined;
+  }, [selectData.defaultWorkspaceId, sortedWorkspaces]);
+
   const effectiveWorkspaceId = useMemo(() => {
     if (!workspaces.length) return undefined;
     if (workspaces.length === 1) return String(workspaces[0].id);
-    return workspaceId;
-  }, [workspaces, workspaceId]);
+    if (workspaceId) return String(workspaceId);
+    return preferredWorkspaceId;
+  }, [workspaces, workspaceId, preferredWorkspaceId]);
 
   useEffect(() => {
-    if (showWorkspaceSelect && workspaceId) {
-      const ok = sortedWorkspaces.some((w) => String(w.id) === workspaceId);
-      if (!ok && sortedWorkspaces[0])
-        setWorkspaceId(String(sortedWorkspaces[0].id));
+    if (!showWorkspaceSelect || !sortedWorkspaces.length) return;
+
+    const current =
+      workspaceId !== undefined && workspaceId !== null
+        ? String(workspaceId)
+        : undefined;
+    const currentExists = current
+      ? sortedWorkspaces.some((w) => String(w.id) === current)
+      : false;
+
+    if (currentExists) return;
+
+    if (preferredWorkspaceId) {
+      setWorkspaceId(preferredWorkspaceId);
+      return;
     }
-    if (showWorkspaceSelect && !workspaceId && sortedWorkspaces[0]) {
-      setWorkspaceId(String(sortedWorkspaces[0].id));
-    }
-  }, [showWorkspaceSelect, sortedWorkspaces, workspaceId]);
+
+    // Fallback only when the current workspace is unavailable in the source list.
+    setWorkspaceId(String(sortedWorkspaces[0].id));
+  }, [
+    preferredWorkspaceId,
+    showWorkspaceSelect,
+    sortedWorkspaces,
+    workspaceId,
+  ]);
 
   const onCloseNoSelect = () => {
     setSelectData(initialCopyRiskImportEntryState);
