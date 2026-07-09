@@ -3,18 +3,41 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DetailedRisk } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 
 import { mergeAiRiskSuggestions } from '../components/ModalAiAnalysisContent/merge-ai-risk-suggestions.util';
+import {
+  AiRiskAnalysisSessionKeyParams,
+  AiRiskAnalysisSessionSnapshot,
+  buildAiRiskAnalysisSessionKey,
+  readAiRiskAnalysisSession,
+  writeAiRiskAnalysisSession,
+} from '../utils/ai-risk-analysis-session-storage.util';
 
-const createEmptyState = () => ({
-  suggestions: [] as DetailedRisk[],
-  addedRiskIds: [] as string[],
-  dismissedRiskIds: [] as string[],
-  modifiedRisks: {} as Record<string, DetailedRisk>,
+const createEmptyState = (): AiRiskAnalysisSessionSnapshot => ({
+  suggestions: [],
+  addedRiskIds: [],
+  dismissedRiskIds: [],
+  modifiedRisks: {},
   userGuidance: '',
 });
 
 export const useCharacterizationAiRiskAnalysisState = (
-  characterizationId?: string,
+  params: AiRiskAnalysisSessionKeyParams,
 ) => {
+  const sessionKey = useMemo(
+    () =>
+      buildAiRiskAnalysisSessionKey({
+        characterizationId: params.characterizationId,
+        riskGroupId: params.riskGroupId,
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      }),
+    [
+      params.characterizationId,
+      params.riskGroupId,
+      params.companyId,
+      params.workspaceId,
+    ],
+  );
+
   const [suggestions, setSuggestions] = useState<DetailedRisk[]>(
     () => createEmptyState().suggestions,
   );
@@ -30,21 +53,50 @@ export const useCharacterizationAiRiskAnalysisState = (
   const [userGuidance, setUserGuidance] = useState(
     () => createEmptyState().userGuidance,
   );
-
-  const sessionCharacterizationIdRef = useRef<string>('');
+  const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!characterizationId) return;
-    if (sessionCharacterizationIdRef.current === characterizationId) return;
+    if (!sessionKey) {
+      const emptyState = createEmptyState();
+      setSuggestions(emptyState.suggestions);
+      setAddedRiskIds(emptyState.addedRiskIds);
+      setDismissedRiskIds(emptyState.dismissedRiskIds);
+      setModifiedRisks(emptyState.modifiedRisks);
+      setUserGuidance(emptyState.userGuidance);
+      setHydratedKey(null);
+      return;
+    }
 
-    sessionCharacterizationIdRef.current = characterizationId;
-    const emptyState = createEmptyState();
-    setSuggestions(emptyState.suggestions);
-    setAddedRiskIds(emptyState.addedRiskIds);
-    setDismissedRiskIds(emptyState.dismissedRiskIds);
-    setModifiedRisks(emptyState.modifiedRisks);
-    setUserGuidance(emptyState.userGuidance);
-  }, [characterizationId]);
+    if (hydratedKey === sessionKey) return;
+
+    const restored = readAiRiskAnalysisSession(sessionKey) || createEmptyState();
+    setSuggestions(restored.suggestions);
+    setAddedRiskIds(restored.addedRiskIds);
+    setDismissedRiskIds(restored.dismissedRiskIds);
+    setModifiedRisks(restored.modifiedRisks);
+    setUserGuidance(restored.userGuidance);
+    setHydratedKey(sessionKey);
+  }, [hydratedKey, sessionKey]);
+
+  useEffect(() => {
+    if (!sessionKey || hydratedKey !== sessionKey) return;
+
+    writeAiRiskAnalysisSession(sessionKey, {
+      suggestions,
+      addedRiskIds,
+      dismissedRiskIds,
+      modifiedRisks,
+      userGuidance,
+    });
+  }, [
+    sessionKey,
+    hydratedKey,
+    suggestions,
+    addedRiskIds,
+    dismissedRiskIds,
+    modifiedRisks,
+    userGuidance,
+  ]);
 
   const visibleSuggestions = useMemo(
     () => suggestions.filter((risk) => !dismissedRiskIds.includes(risk.id)),
@@ -97,6 +149,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     mergeIncomingSuggestions,
     markRiskAdded,
     dismissSuggestion,
+    sessionKey,
   };
 };
 

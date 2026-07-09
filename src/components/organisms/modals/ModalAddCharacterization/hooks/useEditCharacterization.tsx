@@ -68,6 +68,8 @@ import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { initialWorkspaceSelectState } from '../../ModalSelectWorkspace';
 import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
+import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { getCurrentRiskGroupId } from '../utils/get-current-risk-group-id.util';
 import { useStartEndDate } from './useStartEndDate';
 import { useCharacterizationAiRiskAnalysisState } from './useCharacterizationAiRiskAnalysisState';
 
@@ -252,9 +254,19 @@ export const useEditCharacterization = (
     return !deepEqual(afterObject, beforeObject);
   }, [characterizationData, watchedFormFields, photos?.length]);
 
-  const aiRiskAnalysis = useCharacterizationAiRiskAnalysisState(
-    characterizationData.id,
+  const { data: riskGroupData } = useQueryRiskGroupData(
+    characterizationData.companyId || undefined,
   );
+  const currentRiskGroupId = useMemo(
+    () => getCurrentRiskGroupId(riskGroupData),
+    [riskGroupData],
+  );
+  const aiRiskAnalysis = useCharacterizationAiRiskAnalysisState({
+    characterizationId: characterizationData.id,
+    riskGroupId: currentRiskGroupId,
+    companyId: characterizationData.companyId,
+    workspaceId: characterizationData.workspaceId,
+  });
 
   useEffect(() => {
     const initialData =

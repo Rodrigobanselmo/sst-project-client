@@ -15,6 +15,7 @@ import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskG
 import {
   inlineRiskToolHeightSx,
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
+import { getCurrentRiskGroupId } from '../../utils/get-current-risk-group-id.util';
 import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
 
 const RiskToolForCharacterization: React.FC<{
@@ -81,10 +82,10 @@ export const ModalAddHierarchyRisk = (
 
   const { data: riskGroupData, isLoading: isLoadingRiskGroup } =
     useQueryRiskGroupData(data.companyId || undefined);
-  const riskGroupId = useMemo(() => {
-    if (!riskGroupData || riskGroupData.length === 0) return undefined;
-    return riskGroupData[riskGroupData.length - 1]?.id;
-  }, [riskGroupData]);
+  const riskGroupId = useMemo(
+    () => getCurrentRiskGroupId(riskGroupData),
+    [riskGroupData],
+  );
 
   return (
     <Box

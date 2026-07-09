@@ -6,6 +6,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Chip,
   IconButton,
   TextField,
 } from '@mui/material';
@@ -30,19 +31,38 @@ import {
   DetailedRisk,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
+import { getCurrentRiskGroupId } from '../../utils/get-current-risk-group-id.util';
+import { sortExistingRiskData } from '../../utils/sort-existing-risk-data.util';
 import {
   CHARACTERIZATION_AI_ANALYSIS_USES_SAVED_DATA_MESSAGE,
   CHARACTERIZATION_TEXT_INSUFFICIENT_MESSAGE,
   CHARACTERIZATION_UNSAVED_CHANGES_BEFORE_AI_ANALYSIS_MESSAGE,
   isCharacterizationTextInsufficient,
 } from './characterization-text-insufficient.util';
+import { filterNewAiRiskSuggestions } from './filter-new-ai-risk-suggestions.util';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
+import { useQueryRiskDataByGho } from 'core/services/hooks/queries/useQueryRiskDataByGho';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { useAccess } from 'core/hooks/useAccess';
+
+const summarizeRiskDataLabels = (
+  items: Array<{ name?: string; medName?: string; recName?: string }> | undefined,
+  limit = 3,
+): string => {
+  if (!items?.length) return '';
+  const labels = items
+    .map((item) => item.name || item.medName || item.recName || '')
+    .map((label) => label.trim())
+    .filter(Boolean);
+  if (!labels.length) return '';
+  if (labels.length <= limit) return labels.join(', ');
+  return `${labels.slice(0, limit).join(', ')} +${labels.length - limit}`;
+};
 
 // Removable Tag Component
 interface RemovableTagProps {
@@ -279,19 +299,71 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     [characterizationData],
   );
 
+  const aiAnalyzeMutation = useMutateAiAnalyzeCharacterization();
+  const upsertRiskDataMutation = useMutUpsertRiskData();
+  const { data: riskGroupData } = useQueryRiskGroupData(
+    characterizationData.companyId || undefined,
+  );
+  const riskGroupId = useMemo(
+    () => getCurrentRiskGroupId(riskGroupData),
+    [riskGroupData],
+  );
+  const { data: existingRiskData = [] } = useQueryRiskDataByGho(
+    riskGroupId || '',
+    characterizationData.id || '',
+  );
+
+  const sortedExistingRiskData = useMemo(
+    () => sortExistingRiskData(existingRiskData),
+    [existingRiskData],
+  );
+
+  const existingRiskIds = useMemo(
+    () =>
+      new Set(
+        sortedExistingRiskData.map((risk) => risk.riskId).filter(Boolean),
+      ),
+    [sortedExistingRiskData],
+  );
+
+  const suggestedExistingRiskIds = useMemo(
+    () =>
+      new Set(
+        visibleSuggestions
+          .map((risk) => risk.id)
+          .filter((riskId) => existingRiskIds.has(riskId)),
+      ),
+    [existingRiskIds, visibleSuggestions],
+  );
+
+  const newRiskSuggestions = useMemo(
+    () =>
+      filterNewAiRiskSuggestions({
+        suggestions: visibleSuggestions,
+        existingRiskIds,
+        addedRiskIds: addedRiskIdsSet,
+      }),
+    [addedRiskIdsSet, existingRiskIds, visibleSuggestions],
+  );
+
+  const sessionAddedNotYetInGse = useMemo(
+    () =>
+      visibleSuggestions.filter(
+        (risk) =>
+          addedRiskIdsSet.has(risk.id) && !existingRiskIds.has(risk.id),
+      ),
+    [addedRiskIdsSet, existingRiskIds, visibleSuggestions],
+  );
+
   useEffect(() => {
-    if (visibleSuggestions.length > 0) {
+    if (newRiskSuggestions.length > 0) {
       setExpandedAccordions((prev) => {
         const next = new Set(prev);
-        visibleSuggestions.forEach((risk) => next.add(risk.id));
+        newRiskSuggestions.forEach((risk) => next.add(risk.id));
         return next;
       });
     }
-  }, [visibleSuggestions]);
-
-  const aiAnalyzeMutation = useMutateAiAnalyzeCharacterization();
-  const upsertRiskDataMutation = useMutUpsertRiskData();
-  const { data: riskGroupData } = useQueryRiskGroupData();
+  }, [newRiskSuggestions]);
 
   const handleAnalyze = async () => {
     if (
@@ -614,11 +686,14 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       // Use the current (possibly modified) risk data
       const risk = getCurrentRisk(originalRisk.id) || originalRisk;
 
-      // Get the first available risk group
-      const riskGroupId = riskGroupData?.[0]?.id;
-
       if (!riskGroupId) {
         console.error('No risk group found');
+        return;
+      }
+
+      if (existingRiskIds.has(risk.id)) {
+        console.warn('Risk already linked to GSE; skipping create as new');
+        markRiskAdded(risk.id);
         return;
       }
 
@@ -765,7 +840,226 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 />
               </Box>
 
-              {hasVisibleSuggestions && (
+              <Box
+                sx={{
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 1,
+                  p: 3,
+                  backgroundColor: 'background.paper',
+                  mt: 1,
+                }}
+              >
+                <SFlex direction="column" gap={2}>
+                  <SText variant="subtitle2" color="text.primary">
+                    Riscos já cadastrados no GSE
+                  </SText>
+                  <SText variant="body2" color="text.secondary">
+                    A lista abaixo mostra riscos já vinculados ao GSE. A IA não
+                    os adicionará novamente como novos riscos.
+                  </SText>
+
+                  {!riskGroupId ? (
+                    <SText variant="body2" color="text.secondary">
+                      Nenhum inventário/grupo de risco disponível para carregar
+                      os riscos cadastrados.
+                    </SText>
+                  ) : sortedExistingRiskData.length === 0 &&
+                    sessionAddedNotYetInGse.length === 0 ? (
+                    <SText variant="body2" color="text.secondary">
+                      Nenhum risco vinculado a este GSE neste inventário.
+                    </SText>
+                  ) : (
+                    <SFlex direction="column" gap={1}>
+                      {sessionAddedNotYetInGse.map((risk) => (
+                        <Accordion
+                          key={`session-added-${risk.id}`}
+                          disableGutters
+                          sx={{
+                            border: '1px solid',
+                            borderColor: 'success.main',
+                            borderRadius: 1,
+                            '&:before': { display: 'none' },
+                            boxShadow: 'none',
+                          }}
+                        >
+                          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <SFlex
+                              direction="row"
+                              alignItems="center"
+                              gap={2}
+                              sx={{ width: '100%', pr: 1 }}
+                            >
+                              <SFlex
+                                direction="row"
+                                alignItems="center"
+                                gap={1}
+                                sx={{ flex: 1, minWidth: 0 }}
+                              >
+                                {risk.type && (
+                                  <SRiskChip
+                                    type={risk.type as unknown as RiskTypeEnum}
+                                  />
+                                )}
+                                <SText variant="body2" color="text.primary">
+                                  {risk.name}
+                                </SText>
+                              </SFlex>
+                              <Chip
+                                size="small"
+                                label="Já caracterizado"
+                                color="default"
+                                variant="outlined"
+                              />
+                              <Chip
+                                size="small"
+                                label="Adicionado nesta sessão"
+                                color="success"
+                                variant="outlined"
+                              />
+                            </SFlex>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                            <SText variant="caption" color="text.secondary">
+                              Risco adicionado nesta sessão. A lista do GSE será
+                              atualizada após a sincronização.
+                            </SText>
+                          </AccordionDetails>
+                        </Accordion>
+                      ))}
+                      {sortedExistingRiskData.map((riskData: IRiskData) => {
+                        const riskName =
+                          riskData.riskFactor?.name || 'Risco sem nome';
+                        const riskType = riskData.riskFactor?.type;
+                        const generateSourcesLabel = summarizeRiskDataLabels(
+                          riskData.generateSources,
+                        );
+                        const controlsLabel = summarizeRiskDataLabels([
+                          ...(riskData.engs || []),
+                          ...(riskData.adms || []),
+                        ]);
+                        const recommendationsLabel = summarizeRiskDataLabels(
+                          riskData.recs,
+                        );
+                        const alsoSuggestedByAi = suggestedExistingRiskIds.has(
+                          riskData.riskId,
+                        );
+                        const addedInSession = addedRiskIdsSet.has(
+                          riskData.riskId,
+                        );
+
+                        return (
+                          <Accordion
+                            key={riskData.id}
+                            disableGutters
+                            sx={{
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              borderRadius: 1,
+                              '&:before': { display: 'none' },
+                              boxShadow: 'none',
+                            }}
+                          >
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <SFlex
+                                direction="row"
+                                alignItems="center"
+                                gap={2}
+                                sx={{ width: '100%', pr: 1 }}
+                              >
+                                <SFlex
+                                  direction="row"
+                                  alignItems="center"
+                                  gap={1}
+                                  sx={{ flex: 1, minWidth: 0 }}
+                                >
+                                  {riskType && (
+                                    <SRiskChip
+                                      type={riskType as unknown as RiskTypeEnum}
+                                    />
+                                  )}
+                                  <SText
+                                    variant="body2"
+                                    color="text.primary"
+                                    sx={{
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {riskName}
+                                  </SText>
+                                </SFlex>
+                                <Chip
+                                  size="small"
+                                  label="Já caracterizado"
+                                  color="default"
+                                  variant="outlined"
+                                />
+                                {addedInSession && (
+                                  <Chip
+                                    size="small"
+                                    label="Adicionado nesta sessão"
+                                    color="success"
+                                    variant="outlined"
+                                  />
+                                )}
+                              </SFlex>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <SFlex direction="column" gap={1}>
+                                {alsoSuggestedByAi && (
+                                  <Alert severity="info" sx={{ py: 0.5 }}>
+                                    A IA também sugeriu este risco, mas ele já
+                                    está cadastrado.
+                                  </Alert>
+                                )}
+                                {typeof riskData.probability === 'number' && (
+                                  <SText variant="caption" color="text.secondary">
+                                    <strong>Probabilidade:</strong>{' '}
+                                    {riskData.probability}
+                                  </SText>
+                                )}
+                                {generateSourcesLabel && (
+                                  <SText variant="caption" color="text.secondary">
+                                    <strong>Fonte geradora:</strong>{' '}
+                                    {generateSourcesLabel}
+                                  </SText>
+                                )}
+                                {controlsLabel && (
+                                  <SText variant="caption" color="text.secondary">
+                                    <strong>Controles existentes:</strong>{' '}
+                                    {controlsLabel}
+                                  </SText>
+                                )}
+                                {recommendationsLabel && (
+                                  <SText variant="caption" color="text.secondary">
+                                    <strong>Recomendações:</strong>{' '}
+                                    {recommendationsLabel}
+                                  </SText>
+                                )}
+                                {!generateSourcesLabel &&
+                                  !controlsLabel &&
+                                  !recommendationsLabel &&
+                                  typeof riskData.probability !== 'number' && (
+                                    <SText
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      Sem detalhes adicionais disponíveis neste
+                                      resumo.
+                                    </SText>
+                                  )}
+                              </SFlex>
+                            </AccordionDetails>
+                          </Accordion>
+                        );
+                      })}
+                    </SFlex>
+                  )}
+                </SFlex>
+              </Box>
+
+              {newRiskSuggestions.length > 0 && (
                 <Box
                   sx={{
                     border: '1px solid #e0e0e0',
@@ -777,7 +1071,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 >
                   <SFlex direction="column" gap={3}>
                     <SText variant="subtitle2" color="text.primary">
-                      Resultado da Análise de Riscos
+                      Novos riscos sugeridos pela IA
                     </SText>
 
                     {hasInsufficientCharacterizationText && (
@@ -787,13 +1081,13 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                     )}
 
                     {/* Detailed Risks */}
-                    {visibleSuggestions.length > 0 && (
+                    {newRiskSuggestions.length > 0 && (
                       <Box>
                         <SText variant="body1" color="text.primary" mb={2}>
                           <strong>Detalhes dos Riscos:</strong>
                         </SText>
                         <SFlex direction="column" gap={2}>
-                          {visibleSuggestions.map((originalRisk) => {
+                          {newRiskSuggestions.map((originalRisk) => {
                             const isAdded = addedRiskIdsSet.has(originalRisk.id);
                             const risk =
                               getCurrentRisk(originalRisk.id) || originalRisk;
