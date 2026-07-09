@@ -6,6 +6,8 @@ export type AiRiskAnalysisSessionSnapshot = {
   dismissedRiskIds: string[];
   modifiedRisks: Record<string, DetailedRisk>;
   userGuidance: string;
+  /** Suggestion accordion ids the user left expanded in this browser session. */
+  expandedSuggestionIds: string[];
 };
 
 export type AiRiskAnalysisSessionKeyParams = {
@@ -62,6 +64,11 @@ export function readAiRiskAnalysisSession(
           : {},
       userGuidance:
         typeof parsed.userGuidance === 'string' ? parsed.userGuidance : '',
+      expandedSuggestionIds: Array.isArray(parsed.expandedSuggestionIds)
+        ? parsed.expandedSuggestionIds.filter(
+            (id): id is string => typeof id === 'string' && !!id,
+          )
+        : [],
     };
   } catch {
     return null;

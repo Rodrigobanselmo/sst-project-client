@@ -291,14 +291,14 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     mergeIncomingSuggestions,
     markRiskAdded,
     dismissSuggestion,
+    expandedSuggestionIdsSet,
+    setSuggestionExpanded,
+    expandAllSuggestions,
+    collapseAllSuggestions,
   } = aiRiskAnalysis;
   const { isMaster } = useAccess();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
-
-  const [expandedAccordions, setExpandedAccordions] = useState<Set<string>>(
-    new Set(),
-  );
 
   const hasInsufficientCharacterizationText = useMemo(
     () => isCharacterizationTextInsufficient(characterizationData),
@@ -430,15 +430,10 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     [addedRiskIdsSet, existingRiskIds, visibleSuggestions],
   );
 
-  useEffect(() => {
-    if (newRiskSuggestions.length > 0) {
-      setExpandedAccordions((prev) => {
-        const next = new Set(prev);
-        newRiskSuggestions.forEach((risk) => next.add(risk.id));
-        return next;
-      });
-    }
-  }, [newRiskSuggestions]);
+  const newRiskSuggestionIds = useMemo(
+    () => newRiskSuggestions.map((risk) => risk.id),
+    [newRiskSuggestions],
+  );
 
   const handleAnalyze = async () => {
     if (
@@ -716,18 +711,10 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     );
   };
 
-  // Handle accordion expansion/collapse
+  // Handle accordion expansion/collapse for AI suggestions
   const handleAccordionChange =
     (riskId: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
-      setExpandedAccordions((prev) => {
-        const newSet = new Set(prev);
-        if (isExpanded) {
-          newSet.add(riskId);
-        } else {
-          newSet.delete(riskId);
-        }
-        return newSet;
-      });
+      setSuggestionExpanded(riskId, isExpanded);
     };
 
   // Convert risk type string to RiskTypeEnum
@@ -822,16 +809,8 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
 
       // Mark risk as added
       markRiskAdded(risk.id);
+      setSuggestionExpanded(risk.id, false);
       console.log('Risk data created successfully with risk:', risk.name);
-
-      // Collapse the accordion after successfully adding the risk
-      setTimeout(() => {
-        setExpandedAccordions((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(risk.id);
-          return newSet;
-        });
-      }, 500); // Small delay to show the success state
     } catch (error) {
       console.error('Error creating risk data:', error);
     }
@@ -1167,9 +1146,39 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                   }}
                 >
                   <SFlex direction="column" gap={3}>
-                    <SText variant="subtitle2" color="text.primary">
-                      Novos riscos sugeridos pela IA
-                    </SText>
+                    <SFlex
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      gap={2}
+                      sx={{ flexWrap: 'wrap' }}
+                    >
+                      <SText variant="subtitle2" color="text.primary">
+                        Novos riscos sugeridos pela IA
+                      </SText>
+                      <SFlex direction="row" gap={1}>
+                        <SButton
+                          text="Expandir todos"
+                          variant="outlined"
+                          color="primary"
+                          size="s"
+                          onClick={() =>
+                            expandAllSuggestions(newRiskSuggestionIds)
+                          }
+                          buttonProps={{ sx: { minWidth: 'auto' } }}
+                        />
+                        <SButton
+                          text="Recolher todos"
+                          variant="outlined"
+                          color="primary"
+                          size="s"
+                          onClick={() =>
+                            collapseAllSuggestions(newRiskSuggestionIds)
+                          }
+                          buttonProps={{ sx: { minWidth: 'auto' } }}
+                        />
+                      </SFlex>
+                    </SFlex>
 
                     {hasInsufficientCharacterizationText && (
                       <Alert severity="warning">
@@ -1191,7 +1200,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                             return (
                               <Accordion
                                 key={risk.id}
-                                expanded={expandedAccordions.has(risk.id)}
+                                expanded={expandedSuggestionIdsSet.has(risk.id)}
                                 onChange={handleAccordionChange(risk.id)}
                                 sx={{
                                   border: '1px solid',

@@ -17,6 +17,7 @@ const createEmptyState = (): AiRiskAnalysisSessionSnapshot => ({
   dismissedRiskIds: [],
   modifiedRisks: {},
   userGuidance: '',
+  expandedSuggestionIds: [],
 });
 
 export const useCharacterizationAiRiskAnalysisState = (
@@ -53,6 +54,9 @@ export const useCharacterizationAiRiskAnalysisState = (
   const [userGuidance, setUserGuidance] = useState(
     () => createEmptyState().userGuidance,
   );
+  const [expandedSuggestionIds, setExpandedSuggestionIds] = useState<string[]>(
+    () => createEmptyState().expandedSuggestionIds,
+  );
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,6 +67,7 @@ export const useCharacterizationAiRiskAnalysisState = (
       setDismissedRiskIds(emptyState.dismissedRiskIds);
       setModifiedRisks(emptyState.modifiedRisks);
       setUserGuidance(emptyState.userGuidance);
+      setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
       setHydratedKey(null);
       return;
     }
@@ -75,6 +80,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     setDismissedRiskIds(restored.dismissedRiskIds);
     setModifiedRisks(restored.modifiedRisks);
     setUserGuidance(restored.userGuidance);
+    setExpandedSuggestionIds(restored.expandedSuggestionIds);
     setHydratedKey(sessionKey);
   }, [hydratedKey, sessionKey]);
 
@@ -87,6 +93,7 @@ export const useCharacterizationAiRiskAnalysisState = (
       dismissedRiskIds,
       modifiedRisks,
       userGuidance,
+      expandedSuggestionIds,
     });
   }, [
     sessionKey,
@@ -96,6 +103,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     dismissedRiskIds,
     modifiedRisks,
     userGuidance,
+    expandedSuggestionIds,
   ]);
 
   const visibleSuggestions = useMemo(
@@ -106,6 +114,11 @@ export const useCharacterizationAiRiskAnalysisState = (
   const addedRiskIdsSet = useMemo(
     () => new Set(addedRiskIds),
     [addedRiskIds],
+  );
+
+  const expandedSuggestionIdsSet = useMemo(
+    () => new Set(expandedSuggestionIds),
+    [expandedSuggestionIds],
   );
 
   const hasVisibleSuggestions = visibleSuggestions.length > 0;
@@ -133,6 +146,40 @@ export const useCharacterizationAiRiskAnalysisState = (
     setDismissedRiskIds((current) =>
       current.includes(riskId) ? current : [...current, riskId],
     );
+    setExpandedSuggestionIds((current) =>
+      current.filter((id) => id !== riskId),
+    );
+  }, []);
+
+  const setSuggestionExpanded = useCallback(
+    (riskId: string, isExpanded: boolean) => {
+      setExpandedSuggestionIds((current) => {
+        if (isExpanded) {
+          return current.includes(riskId) ? current : [...current, riskId];
+        }
+        return current.filter((id) => id !== riskId);
+      });
+    },
+    [],
+  );
+
+  const expandAllSuggestions = useCallback((riskIds: string[]) => {
+    setExpandedSuggestionIds((current) => {
+      const next = new Set(current);
+      riskIds.forEach((id) => next.add(id));
+      return Array.from(next);
+    });
+  }, []);
+
+  const collapseAllSuggestions = useCallback((riskIds?: string[]) => {
+    if (!riskIds) {
+      setExpandedSuggestionIds([]);
+      return;
+    }
+    const idsToCollapse = new Set(riskIds);
+    setExpandedSuggestionIds((current) =>
+      current.filter((id) => !idsToCollapse.has(id)),
+    );
   }, []);
 
   return {
@@ -145,10 +192,15 @@ export const useCharacterizationAiRiskAnalysisState = (
     setModifiedRisks,
     userGuidance,
     setUserGuidance,
+    expandedSuggestionIds,
+    expandedSuggestionIdsSet,
     hasVisibleSuggestions,
     mergeIncomingSuggestions,
     markRiskAdded,
     dismissSuggestion,
+    setSuggestionExpanded,
+    expandAllSuggestions,
+    collapseAllSuggestions,
     sessionKey,
   };
 };
