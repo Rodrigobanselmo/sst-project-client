@@ -32,7 +32,9 @@ import {
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
 import {
+  CHARACTERIZATION_AI_ANALYSIS_USES_SAVED_DATA_MESSAGE,
   CHARACTERIZATION_TEXT_INSUFFICIENT_MESSAGE,
+  CHARACTERIZATION_UNSAVED_CHANGES_BEFORE_AI_ANALYSIS_MESSAGE,
   isCharacterizationTextInsufficient,
 } from './characterization-text-insufficient.util';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
@@ -251,7 +253,7 @@ const RemovableTag: React.FC<RemovableTagProps> = ({
 };
 
 export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
-  const { data: characterizationData } = props;
+  const { data: characterizationData, hasUnsavedChanges } = props;
   const { isMaster } = useAccess();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
@@ -709,6 +711,16 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
             </Box>
           ) : (
             <>
+              <Alert severity="info">
+                {CHARACTERIZATION_AI_ANALYSIS_USES_SAVED_DATA_MESSAGE}
+              </Alert>
+
+              {hasUnsavedChanges && (
+                <Alert severity="warning">
+                  {CHARACTERIZATION_UNSAVED_CHANGES_BEFORE_AI_ANALYSIS_MESSAGE}
+                </Alert>
+              )}
+
               {hasInsufficientCharacterizationText && (
                 <Alert severity="warning">
                   {CHARACTERIZATION_TEXT_INSUFFICIENT_MESSAGE}

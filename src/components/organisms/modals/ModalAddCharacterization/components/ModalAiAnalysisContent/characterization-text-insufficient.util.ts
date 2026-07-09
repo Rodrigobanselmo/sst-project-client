@@ -29,3 +29,9 @@ export const isCharacterizationTextInsufficient = (
 
 export const CHARACTERIZATION_TEXT_INSUFFICIENT_MESSAGE =
   'A caracterização textual está vazia ou insuficiente. Recomenda-se usar o Assistente IA da Caracterização na aba Dados antes de executar a Análise IA de riscos.';
+
+export const CHARACTERIZATION_AI_ANALYSIS_USES_SAVED_DATA_MESSAGE =
+  'A Análise IA usa os dados salvos da caracterização. Se você aplicou sugestões do Assistente IA, salve a caracterização antes de analisar os riscos.';
+
+export const CHARACTERIZATION_UNSAVED_CHANGES_BEFORE_AI_ANALYSIS_MESSAGE =
+  'Há alterações não salvas nesta caracterização. Salve na aba Dados antes de analisar os riscos, pois a Análise IA usa apenas os dados persistidos no sistema.';

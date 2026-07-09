@@ -9,6 +9,7 @@ import SFlex from 'components/atoms/SFlex';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
 import dayjs from 'dayjs';
+import deepEqual from 'deep-equal';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import {
@@ -163,6 +164,7 @@ export const useEditCharacterization = (
     getValues,
     setValue,
     setError,
+    watch,
   } = useForm<any>({
     resolver: yupResolver(characterizationSchema),
   });
@@ -231,6 +233,23 @@ export const useEditCharacterization = (
     ? characterizationDataQuery.photos
     : characterizationData.photos;
   const isPrincipalNew = !characterizationData.id && !manyProfiles;
+
+  const watchedFormFields = watch(['name', 'description', 'type']);
+
+  const hasUnsavedChanges = useMemo(() => {
+    const [name, description, type] = watchedFormFields;
+    const afterObject = cleanObjectValues({
+      ...characterizationData,
+      ...cleanObjectValues({ name, description, type }),
+      photos: photos?.length,
+    });
+    const beforeObject = cleanObjectValues({
+      ...initialDataRef.current,
+      photos: initialDataRef.current.photos?.length,
+    });
+
+    return !deepEqual(afterObject, beforeObject);
+  }, [characterizationData, watchedFormFields, photos?.length]);
 
   useEffect(() => {
     const initialData =
@@ -1085,6 +1104,7 @@ export const useEditCharacterization = (
     setValue,
     handleCopy,
     isLoading,
+    hasUnsavedChanges,
   };
 };
 
