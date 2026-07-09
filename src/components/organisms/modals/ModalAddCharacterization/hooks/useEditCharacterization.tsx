@@ -69,6 +69,7 @@ import { initialWorkspaceSelectState } from '../../ModalSelectWorkspace';
 import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 import { useStartEndDate } from './useStartEndDate';
+import { useCharacterizationAiRiskAnalysisState } from './useCharacterizationAiRiskAnalysisState';
 
 export const initialCharacterizationState = {
   id: '',
@@ -250,6 +251,10 @@ export const useEditCharacterization = (
 
     return !deepEqual(afterObject, beforeObject);
   }, [characterizationData, watchedFormFields, photos?.length]);
+
+  const aiRiskAnalysis = useCharacterizationAiRiskAnalysisState(
+    characterizationData.id,
+  );
 
   useEffect(() => {
     const initialData =
@@ -1105,6 +1110,7 @@ export const useEditCharacterization = (
     handleCopy,
     isLoading,
     hasUnsavedChanges,
+    aiRiskAnalysis,
   };
 };
 

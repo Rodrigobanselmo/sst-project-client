@@ -27,7 +27,6 @@ import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPro
 
 import { useMutateAiAnalyzeCharacterization } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/hooks/useMutateAiAnalyzeCharacterization';
 import {
-  Result,
   DetailedRisk,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
@@ -253,21 +252,27 @@ const RemovableTag: React.FC<RemovableTagProps> = ({
 };
 
 export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
-  const { data: characterizationData, hasUnsavedChanges } = props;
+  const { data: characterizationData, hasUnsavedChanges, aiRiskAnalysis } =
+    props;
+  const {
+    visibleSuggestions,
+    addedRiskIdsSet,
+    modifiedRisks,
+    setModifiedRisks,
+    userGuidance,
+    setUserGuidance,
+    hasVisibleSuggestions,
+    mergeIncomingSuggestions,
+    markRiskAdded,
+    dismissSuggestion,
+  } = aiRiskAnalysis;
   const { isMaster } = useAccess();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
 
-  const [analysisResult, setAnalysisResult] = useState<Result | null>(null);
-  const [addedRisks, setAddedRisks] = useState<Set<string>>(new Set());
   const [expandedAccordions, setExpandedAccordions] = useState<Set<string>>(
     new Set(),
   );
-
-  // State to track modified risks (for removable tags)
-  const [modifiedRisks, setModifiedRisks] = useState<
-    Record<string, DetailedRisk>
-  >({});
 
   const hasInsufficientCharacterizationText = useMemo(
     () => isCharacterizationTextInsufficient(characterizationData),
@@ -275,12 +280,14 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   );
 
   useEffect(() => {
-    if (analysisResult?.detailedRisks) {
-      setExpandedAccordions(
-        new Set(analysisResult.detailedRisks.map((risk) => risk.id)),
-      );
+    if (visibleSuggestions.length > 0) {
+      setExpandedAccordions((prev) => {
+        const next = new Set(prev);
+        visibleSuggestions.forEach((risk) => next.add(risk.id));
+        return next;
+      });
     }
-  }, [analysisResult]);
+  }, [visibleSuggestions]);
 
   const aiAnalyzeMutation = useMutateAiAnalyzeCharacterization();
   const upsertRiskDataMutation = useMutUpsertRiskData();
@@ -301,12 +308,12 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       companyId: characterizationData.companyId,
       workspaceId: characterizationData.workspaceId,
       characterizationId: characterizationData.id,
+      userGuidance: userGuidance.trim() || undefined,
       customPrompt: masterOverrides.customPrompt,
       model: masterOverrides.model,
     });
 
-    setAnalysisResult(result);
-    setModifiedRisks({});
+    mergeIncomingSuggestions(result.detailedRisks);
   };
 
   // Helper functions for removing items from risk measures
@@ -317,7 +324,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [...currentRisk.existingEngineeringMeasures];
@@ -340,7 +347,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [...currentRisk.existingAdministrativeMeasures];
@@ -363,7 +370,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [...currentRisk.recommendedEngineeringMeasures];
@@ -386,7 +393,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [
@@ -408,7 +415,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       return {
@@ -426,7 +433,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       return {
@@ -447,7 +454,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [...currentRisk.existingEngineeringMeasures];
@@ -471,7 +478,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [...currentRisk.existingAdministrativeMeasures];
@@ -495,7 +502,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [...currentRisk.recommendedEngineeringMeasures];
@@ -519,7 +526,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       const updatedMeasures = [
@@ -541,7 +548,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks((prev) => {
       const currentRisk =
         prev[riskId] ||
-        analysisResult?.detailedRisks.find((r) => r.id === riskId);
+        visibleSuggestions.find((r) => r.id === riskId);
       if (!currentRisk) return prev;
 
       return {
@@ -558,7 +565,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   const getCurrentRisk = (riskId: string): DetailedRisk | undefined => {
     return (
       modifiedRisks[riskId] ||
-      analysisResult?.detailedRisks.find((r) => r.id === riskId)
+      visibleSuggestions.find((r) => r.id === riskId)
     );
   };
 
@@ -664,7 +671,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       });
 
       // Mark risk as added
-      setAddedRisks((prev) => new Set(prev).add(risk.id));
+      markRiskAdded(risk.id);
       console.log('Risk data created successfully with risk:', risk.name);
 
       // Collapse the accordion after successfully adding the risk
@@ -727,10 +734,25 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 </Alert>
               )}
 
+              <TextField
+                label="Orientações adicionais para análise de riscos"
+                placeholder="Ex.: avaliar queda ao mar, ruído, movimentação de cargas, trabalho em altura, intempéries..."
+                value={userGuidance}
+                onChange={(event) => setUserGuidance(event.target.value)}
+                multiline
+                minRows={3}
+                fullWidth
+                size="small"
+              />
+
               <Box>
                 <AiActionButtonGroup
                   variant="s-button-contained"
-                  label="Analisar riscos com IA"
+                  label={
+                    hasVisibleSuggestions
+                      ? 'Adicionar mais sugestões com IA'
+                      : 'Analisar riscos com IA'
+                  }
                   loading={aiAnalyzeMutation.isPending}
                   disabled={aiAnalyzeMutation.isPending}
                   onExecute={() => void handleAnalyze()}
@@ -743,7 +765,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 />
               </Box>
 
-              {analysisResult && (
+              {hasVisibleSuggestions && (
                 <Box
                   sx={{
                     border: '1px solid #e0e0e0',
@@ -765,14 +787,14 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                     )}
 
                     {/* Detailed Risks */}
-                    {analysisResult.detailedRisks.length > 0 && (
+                    {visibleSuggestions.length > 0 && (
                       <Box>
                         <SText variant="body1" color="text.primary" mb={2}>
                           <strong>Detalhes dos Riscos:</strong>
                         </SText>
                         <SFlex direction="column" gap={2}>
-                          {analysisResult.detailedRisks.map((originalRisk) => {
-                            const isAdded = addedRisks.has(originalRisk.id);
+                          {visibleSuggestions.map((originalRisk) => {
+                            const isAdded = addedRiskIdsSet.has(originalRisk.id);
                             const risk =
                               getCurrentRisk(originalRisk.id) || originalRisk;
                             return (
@@ -846,6 +868,25 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                                         {risk.name}
                                       </SText>
                                     </SFlex>
+                                    <SButton
+                                      text="Remover da lista"
+                                      variant="shade"
+                                      color="danger"
+                                      size="s"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        dismissSuggestion(originalRisk.id);
+                                      }}
+                                      buttonProps={{
+                                        sx: {
+                                          minWidth: 'auto',
+                                          px: 2,
+                                          py: 0.5,
+                                          mr: 1,
+                                          fontSize: '0.75rem',
+                                        },
+                                      }}
+                                    />
                                     <SButton
                                       text={
                                         isAdded
@@ -1187,7 +1228,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                     >
                       <SText variant="caption" color="text.secondary">
                         <strong>Caracterização Analisada:</strong>{' '}
-                        {analysisResult.characterization.name}
+                        {characterizationData.name}
                       </SText>
                       <SText
                         variant="caption"
@@ -1196,7 +1237,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                         mt={0.5}
                       >
                         <strong>Tipo:</strong>{' '}
-                        {analysisResult.characterization.type}
+                        {characterizationData.type}
                       </SText>
                     </Box>
                   </SFlex>
