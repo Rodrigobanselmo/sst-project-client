@@ -18,6 +18,7 @@ export enum ApiRoutesEnum {
   WORKSPACE = '/workspace',
   COMPANY_GROUP = '/company/:companyId/group',
   CONTACTS = '/company/:companyId/contact',
+  PCMSO_ATTENDANCE_SERVICES = '/company/:companyId/workspace/:workspaceId/pcmso-attendance-services',
   PROFESSIONAL_RESP = '/company/:companyId/professionals-responsible',
   DATABASE_TABLE = '/files/database-tables',
   DOCUMENTS_BASE = '/documents/base',

@@ -14,14 +14,18 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { useAccess } from 'core/hooks/useAccess';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 import { ModalWorkspaceStep } from './components/ModalWorkspaceStep';
+import { PcmsoAttendanceServicesTable } from 'components/organisms/tables/PcmsoAttendanceServicesTable/PcmsoAttendanceServicesTable';
+import { WorkspaceFirstAidSection } from './components/WorkspaceFirstAidSection/WorkspaceFirstAidSection';
 import { ConvertWorkspaceToCompanyModal } from './components/ConvertWorkspaceToCompanyModal/ConvertWorkspaceToCompanyModal';
 import { useEditWorkspace } from './hooks/useEditWorkspace';
 
 export const ModalAddWorkspace = () => {
   const props = useEditWorkspace();
   const { isMaster } = useAccess();
+  const { companyId } = useGetCompanyId();
   const [convertOpen, setConvertOpen] = useState(false);
   const {
     onSubmit,
@@ -62,6 +66,13 @@ export const ModalAddWorkspace = () => {
         />
 
         <ModalWorkspaceStep {...props} />
+
+        {companyData.id && (
+          <>
+            <WorkspaceFirstAidSection {...props} />
+            <PcmsoAttendanceServicesTable workspaceId={companyData.id} companyId={companyId} />
+          </>
+        )}
 
         <SModalButtons
           loading={loading}

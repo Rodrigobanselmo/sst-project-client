@@ -43,6 +43,8 @@ export const initialWorkspaceState = {
     isFromOtherCnpj?: boolean;
     useCustomSection?: boolean;
   },
+  hasFirstAidService: null as boolean | null,
+  firstAidServiceDescription: '',
 };
 
 interface ISubmit {
@@ -57,6 +59,7 @@ interface ISubmit {
   state: string;
   customSectionHTML?: string;
   primaryCnae?: ICnae;
+  firstAidServiceDescription?: string;
 }
 
 export const useEditWorkspace = () => {
@@ -96,6 +99,9 @@ export const useEditWorkspace = () => {
           ...oldData,
           ...initialData,
           cnpj: initialData?.companyJson?.cnpj,
+          hasFirstAidService: initialData.hasFirstAidService ?? null,
+          firstAidServiceDescription:
+            initialData.firstAidServiceDescription ?? '',
           // Set useCustomSection based on existing customSectionHTML data
           useCustomSection: !!(initialData as any).companyJson
             ?.customSectionHTML,
@@ -104,6 +110,10 @@ export const useEditWorkspace = () => {
         };
 
         initialDataRef.current = newData;
+        setValue(
+          'firstAidServiceDescription',
+          initialData.firstAidServiceDescription ?? '',
+        );
 
         return newData;
       });
@@ -211,6 +221,8 @@ export const useEditWorkspace = () => {
       isOwner: !companyData.isFromOtherCnpj,
       cnpj: companyData.cnpj,
       logoUrl: companyData.logoUrl,
+      hasFirstAidService: companyData.hasFirstAidService ?? null,
+      firstAidServiceDescription: data.firstAidServiceDescription?.trim() || null,
       address: {
         neighborhood: data.neighborhood,
         number: data.number,

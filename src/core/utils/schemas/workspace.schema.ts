@@ -10,6 +10,7 @@ export const workspaceSchema = yup.object().shape({
   state: yup.string().trim().required('Dado obrigatório'),
   complement: yup.string(),
   number: yup.string().trim().required('Dado obrigatório'),
+  firstAidServiceDescription: yup.string().trim(),
 });
 
 export type IWorkspaceSchema = Record<keyof typeof workspaceSchema, string>;

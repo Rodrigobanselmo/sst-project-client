@@ -144,6 +144,8 @@ export const WorkspaceTable: FC<
       status: row?.status,
       companyJson: row?.companyJson,
       logoUrl: row?.logoUrl,
+      hasFirstAidService: row?.hasFirstAidService ?? null,
+      firstAidServiceDescription: row?.firstAidServiceDescription || '',
     };
 
     onOpenModal(ModalEnum.WORKSPACE_ADD, data);

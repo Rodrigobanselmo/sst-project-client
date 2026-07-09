@@ -118,6 +118,8 @@ export interface IWorkspace {
   cnpj?: string;
   companyJson?: GetCNPJResponse;
   logoUrl?: string;
+  hasFirstAidService?: boolean | null;
+  firstAidServiceDescription?: string | null;
 }
 
 export interface IAddress {
