@@ -30,6 +30,7 @@ import SOrderIcon from 'assets/icons/SOrderIcon';
 
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 
+import { CharacterizationAiAssistModal } from '../CharacterizationAiAssistModal/CharacterizationAiAssistModal';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
 
 const StyledImage = styled('img')`
@@ -50,6 +51,7 @@ export const ModalCharacterizationContent = (
   props: IModalCharacterizationContentProps,
 ) => {
   const [showNameInput, setShowNameInput] = useState(false);
+  const [assistModalOpen, setAssistModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowNameInput(true), 1000);
@@ -264,6 +266,19 @@ export const ModalCharacterizationContent = (
 
         {characterizationData.type && (
           <>
+            <SFlex mb={4} align="center" justify="space-between" flexWrap="wrap" gap={2}>
+              <SText fontSize={14} color="text.light">
+                Use o assistente para gerar rascunho de descrição, processos e considerações antes da Análise IA de riscos.
+              </SText>
+              <SButton
+                color="primary"
+                variant="outlined"
+                onClick={() => setAssistModalOpen(true)}
+              >
+                Assistente IA da Caracterização
+              </SButton>
+            </SFlex>
+
             <SDisplaySimpleArray
               values={characterizationData.paragraphs.map((paragraph) => ({
                 type: paragraph.split('{type}=')[1],
@@ -552,6 +567,14 @@ export const ModalCharacterizationContent = (
           </SFlex>
         )}
       </SFlex>
+
+      <CharacterizationAiAssistModal
+        open={assistModalOpen}
+        onClose={() => setAssistModalOpen(false)}
+        data={characterizationData}
+        onEditArrayContent={onEditArrayContent}
+        setData={setCharacterizationData}
+      />
     </ModalAddHierarchyRisk>
   );
 };

@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 import {
+  Alert,
   Box,
   Accordion,
   AccordionSummary,
@@ -12,9 +13,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import RecommendIcon from '@mui/icons-material/Recommend';
 import SourceIcon from '@mui/icons-material/Source';
-import AssessmentIcon from '@mui/icons-material/Assessment';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
@@ -23,18 +24,17 @@ import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGrou
 import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
 import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
 import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
-import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
-import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
-import { ParagraphSelect } from 'components/organisms/tagSelects/ParagraphSelect';
-import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 import { useMutateAiAnalyzeCharacterization } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/hooks/useMutateAiAnalyzeCharacterization';
 import {
   Result,
   DetailedRisk,
-  WorkProcessItem,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
+import {
+  CHARACTERIZATION_TEXT_INSUFFICIENT_MESSAGE,
+  isCharacterizationTextInsufficient,
+} from './characterization-text-insufficient.util';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 
@@ -42,7 +42,6 @@ import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { useAccess } from 'core/hooks/useAccess';
-import { IdsEnum } from 'core/enums/ids.enums';
 
 // Removable Tag Component
 interface RemovableTagProps {
@@ -252,7 +251,7 @@ const RemovableTag: React.FC<RemovableTagProps> = ({
 };
 
 export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
-  const { data: characterizationData, onAddArray, onClose } = props;
+  const { data: characterizationData } = props;
   const { isMaster } = useAccess();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
@@ -268,192 +267,18 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     Record<string, DetailedRisk>
   >({});
 
-  // State to track modified work process items
-  const [workProcessItems, setWorkProcessItems] = useState<WorkProcessItem[]>(
-    [],
+  const hasInsufficientCharacterizationText = useMemo(
+    () => isCharacterizationTextInsufficient(characterizationData),
+    [characterizationData],
   );
 
-  // State to track saved items
-  const [savedDescription, setSavedDescription] = useState(false);
-  const [savedWorkProcess, setSavedWorkProcess] = useState(false);
-
-  // State to track description editing
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [editedDescription, setEditedDescription] = useState('');
-
-  // Initialize work process items when analysis result changes
   useEffect(() => {
-    if (analysisResult?.workProcess) {
-      setWorkProcessItems(analysisResult.workProcess);
-    }
-    if (analysisResult?.description) {
-      setEditedDescription(analysisResult.description);
-    }
-    // Initialize all accordions as expanded when new analysis result comes in
     if (analysisResult?.detailedRisks) {
       setExpandedAccordions(
         new Set(analysisResult.detailedRisks.map((risk) => risk.id)),
       );
     }
-    // Reset saved states when new analysis result comes in
-    setSavedDescription(false);
-    setSavedWorkProcess(false);
-    setIsEditingDescription(false);
   }, [analysisResult]);
-
-  // Local handlers for work process items
-  const onAddWorkProcess = (value: string, _: any, index?: number) => {
-    const newItem: WorkProcessItem = {
-      desc: value,
-      type: 'BULLET_0',
-    };
-
-    if (index !== undefined) {
-      const newItems = [...workProcessItems];
-      newItems.splice(index + 1, 0, newItem);
-      setWorkProcessItems(newItems);
-    } else {
-      setWorkProcessItems([...workProcessItems, newItem]);
-    }
-  };
-
-  const onDeleteWorkProcess = (_: string, __: any, index?: number) => {
-    if (index !== undefined) {
-      const newItems = workProcessItems.filter((_, i) => i !== index);
-      setWorkProcessItems(newItems);
-    }
-  };
-
-  const onEditWorkProcess = (
-    _: string,
-    paragraphType: ParagraphEnum,
-    __: any,
-    index: number,
-  ) => {
-    const newItems = [...workProcessItems];
-    if (newItems[index]) {
-      newItems[index] = {
-        ...newItems[index],
-        type: paragraphType as WorkProcessItem['type'],
-      };
-      setWorkProcessItems(newItems);
-    }
-  };
-
-  const onEditWorkProcessContent = (
-    values: { name: string; type: ParagraphEnum }[],
-  ) => {
-    const newItems: WorkProcessItem[] = values.map(({ name, type }) => ({
-      desc: name,
-      type: type as WorkProcessItem['type'],
-    }));
-    setWorkProcessItems(newItems);
-  };
-
-  // Handle description editing
-  const handleEditDescription = () => {
-    setIsEditingDescription(true);
-  };
-
-  const handleSaveDescriptionEdit = () => {
-    setIsEditingDescription(false);
-    // Update the analysis result with the edited description
-    if (analysisResult) {
-      setAnalysisResult({
-        ...analysisResult,
-        description: editedDescription,
-      });
-    }
-  };
-
-  const handleCancelDescriptionEdit = () => {
-    setEditedDescription(analysisResult?.description || '');
-    setIsEditingDescription(false);
-  };
-
-  // Save description to characterization and trigger main form save
-  const handleSaveDescription = () => {
-    const descriptionToSave = editedDescription || analysisResult?.description;
-    if (!descriptionToSave) return;
-
-    // Add description to local state
-    onAddArray(descriptionToSave, 'paragraphs');
-    setSavedDescription(true);
-
-    // Trigger main form save using the specific ID
-    setTimeout(() => {
-      const saveButton = document.getElementById(
-        IdsEnum.ADD_CHARACTERIZATION_ID,
-      );
-      if (saveButton) {
-        (saveButton as HTMLButtonElement).click();
-      }
-    }, 100);
-  };
-
-  // Convert AI type to ParagraphEnum
-  const convertAiTypeToParagraphEnum = (aiType: string): ParagraphEnum => {
-    switch (aiType) {
-      case 'PARAGRAPH':
-        return ParagraphEnum.PARAGRAPH;
-      case 'BULLET_0':
-      case 'BULLET-0':
-        return ParagraphEnum.BULLET_0;
-      case 'BULLET_1':
-      case 'BULLET-1':
-        return ParagraphEnum.BULLET_1;
-      case 'BULLET_2':
-      case 'BULLET-2':
-        return ParagraphEnum.BULLET_2;
-      default:
-        return ParagraphEnum.BULLET_0; // Default fallback
-    }
-  };
-
-  // Save work process to characterization activities and trigger main form save
-  const handleSaveWorkProcess = () => {
-    if (workProcessItems.length === 0) return;
-
-    // Convert work process items to the format expected by activities
-    // Add markdown-style prefixes based on type so onAddArray can process them correctly
-    const workProcessStrings = workProcessItems.map((item) => {
-      const paragraphType = convertAiTypeToParagraphEnum(item.type);
-      let prefix = '';
-
-      switch (paragraphType) {
-        case ParagraphEnum.BULLET_0:
-          prefix = '- ';
-          break;
-        case ParagraphEnum.BULLET_1:
-          prefix = '    - ';
-          break;
-        case ParagraphEnum.BULLET_2:
-          prefix = '        - ';
-          break;
-        case ParagraphEnum.PARAGRAPH:
-        default:
-          prefix = '';
-          break;
-      }
-
-      return `${prefix}${item.desc}`;
-    });
-
-    // Add to local state - combine all strings with newlines to add them all at once
-    const combinedWorkProcessText = workProcessStrings.join('\n\n');
-    onAddArray(combinedWorkProcessText, 'activities');
-    setSavedWorkProcess(true);
-
-    // Trigger main form save using the specific ID
-    setTimeout(() => {
-      const saveButton = document.getElementById(
-        IdsEnum.ADD_CHARACTERIZATION_ID,
-      );
-      if (saveButton) {
-        (saveButton as HTMLButtonElement).click();
-      }
-    }, 100);
-  };
 
   const aiAnalyzeMutation = useMutateAiAnalyzeCharacterization();
   const upsertRiskDataMutation = useMutUpsertRiskData();
@@ -859,7 +684,13 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     <Box sx={{ px: 5, pb: 10 }}>
         <SFlex direction="column" gap={4}>
           <SText variant="h6" color="text.primary">
-            Análise de IA da Caracterização
+            Análise IA de Riscos
+          </SText>
+          <SText variant="body2" color="text.secondary">
+            Sugere fatores de risco, fontes geradoras, controles existentes e
+            recomendações com base na caracterização já preenchida. Para gerar
+            descrição, processos e considerações, use o Assistente IA na aba
+            Dados.
           </SText>
 
           {isDisabled ? (
@@ -878,10 +709,16 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
             </Box>
           ) : (
             <>
+              {hasInsufficientCharacterizationText && (
+                <Alert severity="warning">
+                  {CHARACTERIZATION_TEXT_INSUFFICIENT_MESSAGE}
+                </Alert>
+              )}
+
               <Box>
                 <AiActionButtonGroup
                   variant="s-button-contained"
-                  label="Analisar com IA"
+                  label="Analisar riscos com IA"
                   loading={aiAnalyzeMutation.isPending}
                   disabled={aiAnalyzeMutation.isPending}
                   onExecute={() => void handleAnalyze()}
@@ -906,193 +743,14 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 >
                   <SFlex direction="column" gap={3}>
                     <SText variant="subtitle2" color="text.primary">
-                      Resultado da Análise de IA
+                      Resultado da Análise de Riscos
                     </SText>
 
-                    {/* Description Section */}
-                    {analysisResult.description && (
-                      <Box>
-                        <SFlex justify="space-between" align="center" mb={1}>
-                          <SectionHeader
-                            variant="primary"
-                            icon={<AssessmentIcon sx={{ fontSize: 18 }} />}
-                          >
-                            Descrição Extraída
-                          </SectionHeader>
-                          <SButton
-                            variant={
-                              savedDescription ? 'contained' : 'outlined'
-                            }
-                            size="s"
-                            onClick={handleSaveDescription}
-                            disabled={savedDescription}
-                            text={
-                              savedDescription
-                                ? '✓ Salvo na Caracterização'
-                                : 'Salvar na Caracterização'
-                            }
-                          />
-                        </SFlex>
-                        <Box
-                          sx={{
-                            p: 2,
-                            border: '1px solid',
-                            borderColor: isEditingDescription
-                              ? 'primary.200'
-                              : 'grey.200',
-                            borderRadius: 1,
-                            backgroundColor: isEditingDescription
-                              ? 'primary.50'
-                              : 'grey.50',
-                            cursor: !isEditingDescription
-                              ? 'pointer'
-                              : 'default',
-                            '&:hover': !isEditingDescription
-                              ? {
-                                  backgroundColor: 'grey.100',
-                                  borderColor: 'grey.300',
-                                }
-                              : {},
-                          }}
-                          onClick={
-                            !isEditingDescription
-                              ? handleEditDescription
-                              : undefined
-                          }
-                        >
-                          {isEditingDescription ? (
-                            <TextField
-                              value={editedDescription}
-                              onChange={(e) =>
-                                setEditedDescription(e.target.value)
-                              }
-                              onBlur={handleSaveDescriptionEdit}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && e.ctrlKey) {
-                                  handleSaveDescriptionEdit();
-                                } else if (e.key === 'Escape') {
-                                  handleCancelDescriptionEdit();
-                                }
-                              }}
-                              multiline
-                              rows={4}
-                              variant="standard"
-                              fullWidth
-                              autoFocus
-                              sx={{
-                                '& .MuiInput-root': {
-                                  fontSize: '0.875rem',
-                                  '&:before': {
-                                    borderBottom: 'none',
-                                  },
-                                  '&:after': {
-                                    borderBottom: '2px solid',
-                                    borderColor: 'primary.main',
-                                  },
-                                  '&:hover:not(.Mui-disabled):before': {
-                                    borderBottom: 'none',
-                                  },
-                                },
-                                '& .MuiInput-input': {
-                                  padding: 0,
-                                  color: 'text.primary',
-                                  lineHeight: 1.4,
-                                },
-                              }}
-                            />
-                          ) : (
-                            <SText
-                              variant="body2"
-                              color="text.primary"
-                              sx={{
-                                '&:hover': {
-                                  color: 'primary.main',
-                                },
-                              }}
-                            >
-                              {editedDescription || analysisResult.description}
-                            </SText>
-                          )}
-                        </Box>
-                      </Box>
+                    {hasInsufficientCharacterizationText && (
+                      <Alert severity="warning">
+                        {CHARACTERIZATION_TEXT_INSUFFICIENT_MESSAGE}
+                      </Alert>
                     )}
-
-                    {/* Work Process Section */}
-                    {analysisResult.workProcess &&
-                      analysisResult.workProcess.length > 0 && (
-                        <Box>
-                          <SFlex justify="space-between" align="center" mb={2}>
-                            <SText variant="body1" color="text.primary">
-                              <strong>Processo de Trabalho Extraído</strong>
-                            </SText>
-                            <SButton
-                              variant={
-                                savedWorkProcess ? 'contained' : 'outlined'
-                              }
-                              size="s"
-                              onClick={handleSaveWorkProcess}
-                              disabled={savedWorkProcess}
-                              text={
-                                savedWorkProcess
-                                  ? '✓ Salvo nas Atividades'
-                                  : 'Salvar nas Atividades'
-                              }
-                            />
-                          </SFlex>
-                          <SDisplaySimpleArray
-                            values={workProcessItems.map((item) => ({
-                              type: item.type,
-                              name: item.desc,
-                            }))}
-                            valueField="name"
-                            type={TypeInputModal.TEXT_AREA}
-                            onEdit={(_, values) =>
-                              onEditWorkProcessContent(values)
-                            }
-                            onAdd={(value, _, index) =>
-                              onAddWorkProcess(value, _, index)
-                            }
-                            onDelete={(value, _, index) =>
-                              onDeleteWorkProcess(value, _, index)
-                            }
-                            buttonLabel={'Adicionar Processo de Trabalho'}
-                            placeholder="descreva o processo..."
-                            modalLabel="Adicionar Processo de Trabalho"
-                            onRenderStartElement={(value, index) => (
-                              <ParagraphSelect
-                                handleSelectMenu={(option) => {
-                                  onEditWorkProcess(
-                                    (value as any).name,
-                                    option.value,
-                                    'workProcess',
-                                    index,
-                                  );
-                                }}
-                                selected={
-                                  (typeof value !== 'string' &&
-                                    'type' in value &&
-                                    Object.values(ParagraphEnum).includes(
-                                      (value as any).type,
-                                    ) &&
-                                    (value as any).type) ||
-                                  ParagraphEnum.BULLET_0
-                                }
-                                sx={{
-                                  boxShadow: 'none',
-                                  borderRightColor: 'grey.300',
-                                  borderRadius: '4px 5px 5px 4px',
-                                }}
-                                paragraphOptions={[
-                                  ParagraphEnum.PARAGRAPH,
-                                  ParagraphEnum.BULLET_0,
-                                  ParagraphEnum.BULLET_1,
-                                  ParagraphEnum.BULLET_2,
-                                ]}
-                              />
-                            )}
-                          />
-                        </Box>
-                      )}
 
                     {/* Detailed Risks */}
                     {analysisResult.detailedRisks.length > 0 && (
@@ -1567,8 +1225,8 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
             open={aiConfigDialogOpen}
             onClose={() => setAiConfigDialogOpen(false)}
             onApply={setAiMasterConfig}
-            title="Configurar Análise de IA da Caracterização"
-            description="Configuração válida apenas para esta sessão. Não há prompt padrão persistido para caracterização."
+            title="Configurar Análise IA de Riscos"
+            description="Configuração válida apenas para esta sessão. Esta análise usa a caracterização textual já preenchida e sugere apenas riscos."
             promptLabel="Prompt personalizado (opcional)"
             showSaveDefault={false}
             showRestoreDefault={false}

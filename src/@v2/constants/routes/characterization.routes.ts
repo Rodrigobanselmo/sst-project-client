@@ -5,6 +5,8 @@ export const CharacterizationRoutes = {
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/many',
     AI_ANALYZE:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-analyze',
+    AI_CHARACTERIZATION_ASSIST:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-characterization-assist',
   },
   PHOTO_RECOMMENDATION: {
     EDIT_MANY: 'v2/companies/:companyId/photo-recommendations/many',
