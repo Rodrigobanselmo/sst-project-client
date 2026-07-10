@@ -18,6 +18,7 @@ import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useHierarchyTreeLoad } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyTreeLoad';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { useCharacterizationInlineEditorOptional } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
+import { RiskToolByEntityTabContent } from './RiskToolByEntityTabContent';
 
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
@@ -34,6 +35,7 @@ export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) =>
     CharacterizationSubTabEnum.GSE,
     CharacterizationSubTabEnum.EXAMS,
     CharacterizationSubTabEnum.PROTOCOLS,
+    CharacterizationSubTabEnum.ENTITY_RISKS,
   ].map((tab) => ({
     label: CHARACTERIZATION_SUB_TAB_LABELS[tab],
   }));
@@ -96,6 +98,9 @@ export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) =>
         </>
         <>
           <ProtocolsRiskTable companyFlowSticky companyFlowBelowTabs />
+        </>
+        <>
+          <RiskToolByEntityTabContent />
         </>
       </Wizard>
     </Box>

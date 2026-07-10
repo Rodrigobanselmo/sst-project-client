@@ -91,7 +91,7 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
         <SFlex align="center">
           {hideViewSwitcher ? (
             <SText ml={4} fontSize={15} color="text.light" mr={5}>
-              GSE: {viewsDataOptionsConstant[ViewsDataEnum.GSE].short}
+              {viewsDataOptionsConstant[viewDataType]?.short || ''}
             </SText>
           ) : (
             <>

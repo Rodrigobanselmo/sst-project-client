@@ -7,6 +7,8 @@ export enum CharacterizationSubTabEnum {
   GSE = 2,
   EXAMS = 3,
   PROTOCOLS = 4,
+  /** Tela transversal de vínculo de riscos por entidade (Hierarquia / Ambientes / GSE). */
+  ENTITY_RISKS = 5,
 }
 
 export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
@@ -18,6 +20,7 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
   [CharacterizationSubTabEnum.GSE]: 'GSE',
   [CharacterizationSubTabEnum.EXAMS]: 'Exames',
   [CharacterizationSubTabEnum.PROTOCOLS]: 'Protocolos',
+  [CharacterizationSubTabEnum.ENTITY_RISKS]: 'Vínculo de Riscos',
 };
 
 export const CHARACTERIZATION_MODULE_LABEL = 'Caracterização';
@@ -40,6 +43,7 @@ const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.GSE,
   CharacterizationSubTabEnum.EXAMS,
   CharacterizationSubTabEnum.PROTOCOLS,
+  CharacterizationSubTabEnum.ENTITY_RISKS,
 ] as const;
 
 export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNavItem[] {
@@ -67,12 +71,14 @@ export function parseCharacterizationActiveTab(
 
   // Legado: índice 3 era "Plano de ação" (removido); hoje 3 = Exames.
   if (n === 3) return CharacterizationSubTabEnum.EXAMS;
-  // Legado: Protocolos era índice 5 antes da remoção do Plano de ação.
-  if (n === 5) return CharacterizationSubTabEnum.PROTOCOLS;
+
+  // Protocolos era índice 5 antes da remoção do Plano de ação; hoje Protocolos = 4.
+  // Índice 5 = Vínculo de Riscos. Bookmarks antigos active=5 abrem a nova aba.
+  // Use active=4 para Protocolos.
 
   if (
     n >= CharacterizationSubTabEnum.RISKS &&
-    n <= CharacterizationSubTabEnum.PROTOCOLS
+    n <= CharacterizationSubTabEnum.ENTITY_RISKS
   ) {
     return n as CharacterizationSubTabEnum;
   }

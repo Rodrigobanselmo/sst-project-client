@@ -57,21 +57,12 @@ const RiskToolForCharacterization: React.FC<{
     );
   }, [characterizationId, dispatch]);
 
-  const initializedForIdRef = React.useRef<string | null>(null);
-
   // Ambientes/Atividades: the edited characterization is the natural risk target.
   // Selecting it in Redux (without URL) keeps Add/Import enabled even when riskData = 0.
   useEffect(() => {
     if (!characterizationId) return;
     if (viewData !== ViewsDataEnum.CHARACTERIZATION) return;
-
-    const isInitialSelect =
-      initializedForIdRef.current !== characterizationId;
-    if (!isInitialSelect) {
-      // Respect a different environment the user picked in this view.
-      if (selectedGhoId && selectedGhoId !== characterizationId) return;
-      if (selectedGhoId === characterizationId) return;
-    }
+    if (selectedGhoId === characterizationId) return;
 
     const ghoFromQuery = ghoQuery?.find((g) => g.id === characterizationId);
     const ghoRecord =
@@ -92,7 +83,6 @@ const RiskToolForCharacterization: React.FC<{
         childrenIds: normalizeChildrenIds((ghoRecord as any)?.children),
       } as any),
     );
-    initializedForIdRef.current = characterizationId;
   }, [
     characterizationId,
     characterizationName,
@@ -107,6 +97,12 @@ const RiskToolForCharacterization: React.FC<{
       riskGroupId={riskGroupId}
       riskContextCompanyId={riskContextCompanyId}
       embedded
+      lockedViewData={ViewsDataEnum.CHARACTERIZATION}
+      lockedGhoId={characterizationId}
+      lockedGhoName={characterizationName}
+      hideViewSwitcher
+      hideGhoPicker
+      disableEditGho
     />
   );
 };
