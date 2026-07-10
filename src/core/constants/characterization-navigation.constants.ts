@@ -63,6 +63,20 @@ export function getCharacterizationSstPath(companyId: string) {
   return RoutesEnum.COMPANY_SST.replace(':companyId', companyId);
 }
 
+/** Atalho para Caracterização > Vínculo de Riscos (`active=5`), preservando estabelecimento. */
+export function getCharacterizationEntityRisksHref(params: {
+  companyId: string;
+  tabWorkspaceId?: string;
+}): string {
+  const query = new URLSearchParams({
+    active: String(CharacterizationSubTabEnum.ENTITY_RISKS),
+  });
+  if (params.tabWorkspaceId) {
+    query.set('tabWorkspaceId', params.tabWorkspaceId);
+  }
+  return `${getCharacterizationSstPath(params.companyId)}?${query.toString()}`;
+}
+
 export function parseCharacterizationActiveTab(
   active: string | string[] | undefined,
 ): CharacterizationSubTabEnum {
