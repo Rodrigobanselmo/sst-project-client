@@ -6,25 +6,45 @@ import { Box, CircularProgress, Grid } from '@mui/material';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { RiskToolV2 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/RiskTool';
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/view-data-type.constant';
+import { normalizeChildrenIds } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/normalizeChildrenIds';
 import { IUseEditCharacterization } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 import SText from 'components/atoms/SText';
 import SFlex from 'components/atoms/SFlex';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import {
   inlineRiskToolHeightSx,
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 import { getCurrentRiskGroupId } from '../../utils/get-current-risk-group-id.util';
 import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
+import {
+  selectGhoId,
+  setGhoSelectedId,
+  setGhoState,
+} from 'store/reducers/hierarchy/ghoSlice';
 import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useAppSelector } from 'core/hooks/useAppSelector';
+import { IGho } from 'core/interfaces/api/IGho';
 
 const RiskToolForCharacterization: React.FC<{
   riskGroupId: string;
   characterizationId: string;
+  characterizationName?: string;
   riskContextCompanyId?: string;
-}> = ({ riskGroupId, characterizationId, riskContextCompanyId }) => {
+}> = ({
+  riskGroupId,
+  characterizationId,
+  characterizationName,
+  riskContextCompanyId,
+}) => {
   const dispatch = useAppDispatch();
+  const { data: ghoQuery } = useQueryGHOAll();
+  const viewData = useAppSelector(
+    (state) => state.riskAdd.viewData,
+  ) as unknown as ViewsDataEnum;
+  const selectedGhoId = useAppSelector(selectGhoId);
 
   // Embedded: keep view in Redux only — do not rewrite parent page URL
   // (URL ghoId/viewData churn blanks the inline characterization shell).
@@ -36,6 +56,51 @@ const RiskToolForCharacterization: React.FC<{
       }),
     );
   }, [characterizationId, dispatch]);
+
+  const initializedForIdRef = React.useRef<string | null>(null);
+
+  // Ambientes/Atividades: the edited characterization is the natural risk target.
+  // Selecting it in Redux (without URL) keeps Add/Import enabled even when riskData = 0.
+  useEffect(() => {
+    if (!characterizationId) return;
+    if (viewData !== ViewsDataEnum.CHARACTERIZATION) return;
+
+    const isInitialSelect =
+      initializedForIdRef.current !== characterizationId;
+    if (!isInitialSelect) {
+      // Respect a different environment the user picked in this view.
+      if (selectedGhoId && selectedGhoId !== characterizationId) return;
+      if (selectedGhoId === characterizationId) return;
+    }
+
+    const ghoFromQuery = ghoQuery?.find((g) => g.id === characterizationId);
+    const ghoRecord =
+      ghoFromQuery ||
+      ({
+        id: characterizationId,
+        name: characterizationName || '',
+        description: characterizationName || '',
+      } as IGho);
+
+    const hierarchies =
+      ghoRecord.hierarchyOnHomogeneous?.map((h) => h.hierarchyId) || [];
+
+    dispatch(setGhoState({ data: ghoRecord, hierarchies }));
+    dispatch(
+      setGhoSelectedId({
+        ...ghoRecord,
+        childrenIds: normalizeChildrenIds((ghoRecord as any)?.children),
+      } as any),
+    );
+    initializedForIdRef.current = characterizationId;
+  }, [
+    characterizationId,
+    characterizationName,
+    dispatch,
+    ghoQuery,
+    selectedGhoId,
+    viewData,
+  ]);
 
   return (
     <RiskToolV2
@@ -224,6 +289,7 @@ export const ModalAddHierarchyRisk = (
               <RiskToolForCharacterization
                 riskGroupId={riskGroupId}
                 characterizationId={data.id}
+                characterizationName={data.name}
                 riskContextCompanyId={data.companyId}
               />
             </Box>

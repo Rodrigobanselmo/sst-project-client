@@ -144,10 +144,9 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
       {!isRiskGhoLoading && riskOrderedData.length === 0 && (
         <Box sx={{ py: 4, px: 2 }}>
           <SText color="text.secondary">
-            Nenhum fator de risco vinculado a este cargo/setor.
             {homoId
-              ? ' Você pode adicionar riscos pelo botão acima.'
-              : ' Selecione um cargo/setor para visualizar.'}
+              ? 'Nenhum fator de risco vinculado. Você pode adicionar riscos pelo botão acima.'
+              : 'Selecione um ambiente, cargo, setor ou GSE para visualizar os riscos.'}
           </SText>
         </Box>
       )}
