@@ -101,7 +101,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <STextRow justify="center" text={String(row.photos.length)} />
+        <STextRow justify="center" text={String(row.photos?.length ?? 0)} />
       ),
     },
     {
@@ -196,10 +196,10 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
       row: (row) => (
         <STextRow
           justify="center"
-          text={row.risks.length || '-'}
+          text={(row.risks ?? []).length || '-'}
           tooltipTitle={
             <div>
-              {row.risks.map((risk) => (
+              {(row.risks ?? []).map((risk) => (
                 <p key={risk.id}>{risk.name}</p>
               ))}
             </div>
@@ -225,10 +225,10 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
       row: (row) => (
         <STextRow
           justify="center"
-          text={row.profiles.length || '-'}
+          text={(row.profiles ?? []).length || '-'}
           tooltipTitle={
             <div>
-              {row.profiles.map((profile) => (
+              {(row.profiles ?? []).map((profile) => (
                 <p key={profile.id}>{profile.name}</p>
               ))}
             </div>
@@ -257,12 +257,13 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
       row: (row) => (
         <STextRow
           justify="center"
-          text={row.hierarchies.length || '-'}
+          text={(row.hierarchies ?? []).length || '-'}
           tooltipTitle={
             <div>
-              {row.hierarchies.map((hierarchy) => (
+              {(row.hierarchies ?? []).map((hierarchy) => (
                 <p key={hierarchy.id}>
-                  ({HirarchyTypeMap[hierarchy.type].label}) {hierarchy.name}
+                  ({HirarchyTypeMap[hierarchy.type]?.label || hierarchy.type}){' '}
+                  {hierarchy.name}
                 </p>
               ))}
             </div>

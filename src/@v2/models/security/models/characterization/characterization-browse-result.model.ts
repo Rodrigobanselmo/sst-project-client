@@ -44,10 +44,10 @@ export class CharacterizationBrowseResultModel {
     this.order = String(params.order || '-');
     this.status = params.status;
 
-    this.profiles = params.profiles;
-    this.hierarchies = params.hierarchies;
-    this.risks = params.risks;
-    this.photos = params.photos;
+    this.profiles = params.profiles ?? [];
+    this.hierarchies = params.hierarchies ?? [];
+    this.risks = params.risks ?? [];
+    this.photos = params.photos ?? [];
     this.stage = params.stage;
   }
 

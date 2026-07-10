@@ -37,9 +37,15 @@ export const CharacterizationEnvironmentsTabContent = ({
     return () => setInlineEditOpen(false);
   }, [editSession, setInlineEditOpen]);
 
+  useEffect(() => {
+    if (!editSession) return;
+    if (companyId && editSession.workspaceId) return;
+    setEditSession(null);
+  }, [companyId, editSession]);
+
   const openEditor = useCallback(
     (id: string, workspaceId: string) => {
-      if (!companyId || !workspaceId) return;
+      if (!companyId || !workspaceId || !id) return;
       setEditSession({ id, workspaceId });
     },
     [companyId],
@@ -47,7 +53,7 @@ export const CharacterizationEnvironmentsTabContent = ({
 
   const handleInlineEdit = useCallback(
     (row: CharacterizationBrowseResultModel) => {
-      if (!companyId || !tabWorkspaceId) return;
+      if (!companyId || !tabWorkspaceId || !row?.id) return;
       openEditor(row.id, tabWorkspaceId);
     },
     [companyId, openEditor, tabWorkspaceId],
@@ -58,7 +64,11 @@ export const CharacterizationEnvironmentsTabContent = ({
     openEditor('new', tabWorkspaceId);
   }, [companyId, openEditor, tabWorkspaceId]);
 
-  if (editSession && companyId) {
+  const closeEditor = useCallback(() => {
+    setEditSession(null);
+  }, []);
+
+  if (editSession && companyId && editSession.workspaceId) {
     return (
       <Box
         sx={{
@@ -70,12 +80,12 @@ export const CharacterizationEnvironmentsTabContent = ({
         }}
       >
         <CharacterizationEditView
-          key={editSession.id}
+          key={`${editSession.workspaceId}::${editSession.id}`}
           companyId={companyId}
           workspaceId={editSession.workspaceId}
           characterizationId={editSession.id}
           embedded
-          onBack={() => setEditSession(null)}
+          onBack={closeEditor}
         />
       </Box>
     );

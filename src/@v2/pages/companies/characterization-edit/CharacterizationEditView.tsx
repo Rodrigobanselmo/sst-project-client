@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
 import { SHeader } from '@v2/components/atoms/SHeader/SHeader';
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
 import { ModalCharacterizationContent } from 'components/organisms/modals/ModalAddCharacterization/components/ModalCharacterizationContent';
 import {
   initialCharacterizationState,
@@ -32,6 +33,7 @@ export const CharacterizationEditView = ({
   embedded = false,
 }: CharacterizationEditViewProps) => {
   const isNew = !characterizationId || characterizationId === 'new';
+  const hasMinimumContext = !!companyId && !!workspaceId && !!characterizationId;
 
   const initialData = useMemo<Partial<typeof initialCharacterizationState>>(
     () => ({
@@ -43,10 +45,10 @@ export const CharacterizationEditView = ({
   );
 
   const props = useEditCharacterization(undefined, {
-    initialData,
+    initialData: hasMinimumContext ? initialData : undefined,
     onCloseOverride: onBack,
-    companyId,
-    workspaceId,
+    companyId: hasMinimumContext ? companyId : undefined,
+    workspaceId: hasMinimumContext ? workspaceId : undefined,
   });
 
   const {
@@ -55,12 +57,89 @@ export const CharacterizationEditView = ({
     onCloseUnsaved,
     data: characterizationData,
     loading,
-    isEdit,
     saveRef,
     isLoading,
+    isDetailLoading,
+    isDetailError,
   } = props;
 
+  const hasHydratedType = !!characterizationData?.type;
+  const shouldWaitDetail =
+    !isNew && isDetailLoading && !hasHydratedType;
+  const shouldFallbackToList =
+    !hasMinimumContext || (!isNew && isDetailError && !hasHydratedType);
+
+  useEffect(() => {
+    if (!embedded) return;
+    if (!shouldFallbackToList) return;
+    onBack();
+  }, [embedded, shouldFallbackToList, onBack]);
+
   const title = isNew ? 'Nova Caracterização' : 'Editar Caracterização';
+
+  if (shouldFallbackToList) {
+    if (embedded) {
+      return null;
+    }
+
+    return (
+      <>
+        <SHeader title={'Caracterização'} />
+        <SContainer>
+          <SFlex
+            direction="column"
+            align="flex-start"
+            gap={3}
+            sx={{ py: 6, px: 2 }}
+          >
+            <SPageHeader mb={0} title={title} onBack={onBack} />
+            <SText color="text.secondary">
+              Não foi possível carregar os dados da caracterização. Volte para a
+              lista e tente novamente.
+            </SText>
+            <SButton variant="outlined" onClick={onBack}>
+              Voltar para a lista
+            </SButton>
+          </SFlex>
+        </SContainer>
+      </>
+    );
+  }
+
+  if (shouldWaitDetail) {
+    const loadingContent = (
+      <SFlex
+        align="center"
+        justify="center"
+        sx={{ minHeight: 200, width: '100%', py: 8 }}
+      >
+        <CircularProgress size={32} />
+      </SFlex>
+    );
+
+    if (embedded) {
+      return (
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          {loadingContent}
+        </Box>
+      );
+    }
+
+    return (
+      <>
+        <SHeader title={'Caracterização'} />
+        <SContainer>{loadingContent}</SContainer>
+      </>
+    );
+  }
 
   const actionButtons = (
     <SFlex align="center" gap={3} flexWrap="wrap" justifyContent="flex-end">

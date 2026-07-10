@@ -56,7 +56,7 @@ export const useListHierarchyQuery = (companyId?: string) => {
           name: node.name,
           parentsName: parentsName,
           parents,
-          workspacesNames: node.workspaceIds
+          workspacesNames: (node.workspaceIds ?? [])
             .map(
               (id) =>
                 company.workspace?.find((workspace) => workspace.id === id)

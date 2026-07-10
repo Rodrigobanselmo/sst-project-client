@@ -193,7 +193,9 @@ export const ModalCharacterizationContent = (
             large
             active={!!manyProfiles && !notPrincipalProfile}
             minWidth={80}
-            onClick={() => onChangeProfile(principalProfile.id)}
+            onClick={() =>
+              principalProfile?.id && onChangeProfile(principalProfile.id)
+            }
             bg={!!manyProfiles && !notPrincipalProfile ? 'gray.500' : undefined}
           />
           {profiles?.map((profile) => {
@@ -280,7 +282,7 @@ export const ModalCharacterizationContent = (
             </SFlex>
 
             <SDisplaySimpleArray
-              values={characterizationData.paragraphs.map((paragraph) => ({
+              values={(characterizationData.paragraphs ?? []).map((paragraph) => ({
                 type: paragraph.split('{type}=')[1],
                 name: paragraph.split('{type}=')[0],
               }))}
@@ -334,7 +336,7 @@ export const ModalCharacterizationContent = (
               )}
             />
             <SDisplaySimpleArray
-              values={characterizationData.activities.map((activity) => ({
+              values={(characterizationData.activities ?? []).map((activity) => ({
                 type: activity.split('{type}=')[1],
                 name: activity.split('{type}=')[0],
               }))}
@@ -493,7 +495,7 @@ export const ModalCharacterizationContent = (
               ))}
             </SFlex>
             <SDisplaySimpleArray
-              values={characterizationData.considerations.map(
+              values={(characterizationData.considerations ?? []).map(
                 (consideration) => ({
                   type: consideration.split('{type}=')[1],
                   name: consideration.split('{type}=')[0],

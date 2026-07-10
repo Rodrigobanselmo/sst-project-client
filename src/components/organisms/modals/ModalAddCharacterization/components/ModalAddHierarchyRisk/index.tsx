@@ -282,7 +282,7 @@ export const ModalAddHierarchyRisk = (
               gap: 2,
             }}
           >
-            {query.files?.map((file) => {
+            {query?.files?.map((file) => {
               const url = String(file?.url);
               const isAudio = url && url.includes('.mp3');
 
@@ -303,7 +303,7 @@ export const ModalAddHierarchyRisk = (
               mt: 5,
             }}
           >
-            {query.files?.map((file, i) => {
+            {query?.files?.map((file, i) => {
               const url = String(file?.url);
               const isVideo = url && url.includes('.mp4');
 

@@ -174,7 +174,7 @@ export const HierarchySelect: FC<
                     {`${option.parentsName}  > ${option.name}`}
                   </SText>
                   <SText fontSize={9} color="common.white">
-                    estabelecimentos: {`${option.workspacesNames.join(' || ')}`}
+                    estabelecimentos: {`${(option.workspacesNames ?? []).join(' || ')}`}
                   </SText>
                 </>
               ) : (

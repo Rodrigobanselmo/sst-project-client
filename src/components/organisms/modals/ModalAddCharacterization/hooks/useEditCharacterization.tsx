@@ -226,15 +226,15 @@ export const useEditCharacterization = (
   const isDetailError =
     isEdit && characterizationDetailError && !isDetailLoading;
   const principalProfile = characterizationDataQuery;
-  const profiles = characterizationDataQuery.profiles;
+  const profiles = characterizationDataQuery?.profiles ?? [];
   const manyProfiles =
-    principalProfile?.profiles?.length >= 1 ||
+    (principalProfile?.profiles?.length ?? 0) >= 1 ||
     !!characterizationData.profileParentId;
   const notPrincipalProfile =
     manyProfiles && !!characterizationData.profileParentId;
   const photos = notPrincipalProfile
-    ? characterizationDataQuery.photos
-    : characterizationData.photos;
+    ? characterizationDataQuery?.photos ?? []
+    : characterizationData.photos ?? [];
   const isPrincipalNew = !characterizationData.id && !manyProfiles;
 
   const watchedFormFields = watch(['name', 'description', 'type']);
@@ -446,12 +446,12 @@ export const useEditCharacterization = (
   }, [query.riskGroupId]);
 
   const hierarchies = useMemo(() => {
-    const data = characterizationData.hierarchies.map((hierarch) => ({
+    const data = (characterizationData.hierarchies ?? []).map((hierarch) => ({
       ...hierarch,
       id: `${String(hierarch.id).split('//')[0]}`,
     }));
 
-    if (characterizationQuery.hierarchies) {
+    if (characterizationQuery?.hierarchies) {
       return removeDuplicate(
         [
           ...(characterizationQuery?.hierarchies || []),
@@ -467,7 +467,7 @@ export const useEditCharacterization = (
       removeById: 'id',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [characterizationData.hierarchies, characterizationQuery.hierarchies]);
+  }, [characterizationData.hierarchies, characterizationQuery?.hierarchies]);
 
   const onClose = useCallback(
     (data?: any) => {
@@ -505,36 +505,48 @@ export const useEditCharacterization = (
   };
 
   const changeProfile = () => {
-    const characterizationQuery =
-      principalProfile?.profiles.find(
+    const profileSource =
+      principalProfile?.profiles?.find(
         (profile) => profile.id === saveRef.current,
       ) || principalProfile;
 
+    if (!profileSource || (!(profileSource as any)?.id && !principalProfile?.id)) {
+      return;
+    }
+
     setValue(
       'moisturePercentage',
-      characterizationQuery.moisturePercentage || '',
+      profileSource.moisturePercentage || '',
     );
     setValue('type', characterizationData.type);
     setValue('name', characterizationData.name);
-    setValue('description', characterizationQuery.description || '');
-    setValue('luminosity', characterizationQuery.luminosity || '');
-    setValue('temperature', characterizationQuery.temperature || '');
-    setValue('noiseValue', characterizationQuery.noiseValue || '');
-    setValue('profileName', characterizationQuery.profileName || '');
+    setValue('description', profileSource.description || '');
+    setValue('luminosity', profileSource.luminosity || '');
+    setValue('temperature', profileSource.temperature || '');
+    setValue('noiseValue', profileSource.noiseValue || '');
+    setValue('profileName', profileSource.profileName || '');
 
-    return setCharacterizationData({
-      ...(characterizationQuery as any),
-      activities: characterizationQuery.activities,
-      considerations: characterizationQuery.considerations,
-      paragraphs: characterizationQuery.paragraphs,
-      temperature: characterizationQuery.temperature,
-      luminosity: characterizationQuery.luminosity,
-      noiseValue: characterizationQuery.noiseValue,
-      moisturePercentage: characterizationQuery.moisturePercentage,
-      description: characterizationQuery.description,
-      type: principalProfile.type,
-      name: principalProfile.name,
-    });
+    return setCharacterizationData((oldData) => ({
+      ...oldData,
+      ...(profileSource as any),
+      activities: profileSource.activities ?? oldData.activities ?? [],
+      considerations:
+        profileSource.considerations ?? oldData.considerations ?? [],
+      paragraphs: profileSource.paragraphs ?? oldData.paragraphs ?? [],
+      photos: (profileSource as any).photos ?? oldData.photos ?? [],
+      hierarchies:
+        (profileSource as any).hierarchies ?? oldData.hierarchies ?? [],
+      profiles: (profileSource as any).profiles ?? oldData.profiles ?? [],
+      temperature: profileSource.temperature,
+      luminosity: profileSource.luminosity,
+      noiseValue: profileSource.noiseValue,
+      moisturePercentage: profileSource.moisturePercentage,
+      description: profileSource.description,
+      type: principalProfile?.type ?? oldData.type,
+      name: principalProfile?.name ?? oldData.name,
+      companyId: oldData.companyId || contextCompanyId || '',
+      workspaceId: oldData.workspaceId || contextWorkspaceId || '',
+    }));
   };
 
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
@@ -619,9 +631,12 @@ export const useEditCharacterization = (
               companyId: characterizationData.companyId,
               type: characterizationData.type,
               profileParentId: profileParentId,
-              activities: characterizationData.activities,
-              considerations: characterizationData.considerations,
-              paragraphs: characterizationData.paragraphs,
+              activities: characterizationData.activities ?? [],
+              considerations: characterizationData.considerations ?? [],
+              paragraphs: characterizationData.paragraphs ?? [],
+              photos: characterizationData.photos ?? [],
+              hierarchies: characterizationData.hierarchies ?? [],
+              profiles: characterizationData.profiles ?? [],
             });
           }
 
@@ -681,7 +696,7 @@ export const useEditCharacterization = (
           setCharacterizationData((oldData) => ({
             ...oldData,
             photos: [
-              ...oldData.photos,
+              ...(oldData.photos ?? []),
               {
                 photoUrl: src || photo.src || '',
                 file: photo.file,
@@ -708,7 +723,7 @@ export const useEditCharacterization = (
           if (characterization)
             setCharacterizationData((oldData) => ({
               ...oldData,
-              photos: characterization.photos,
+              photos: characterization.photos ?? oldData.photos ?? [],
             }));
         } else {
           addLocalPhoto();
@@ -718,7 +733,7 @@ export const useEditCharacterization = (
   };
 
   const handlePhotoRemove = async (index: number) => {
-    const photosCopy = [...characterizationData.photos];
+    const photosCopy = [...(characterizationData.photos ?? [])];
     const deletedPhoto = photosCopy.splice(index, 1);
 
     if (isEdit && deletedPhoto[0]?.id)
@@ -727,12 +742,12 @@ export const useEditCharacterization = (
         .catch(() => {});
 
     setCharacterizationData((oldData) => {
-      const photosCopy = [...oldData.photos];
-      photosCopy.splice(index, 1);
+      const nextPhotos = [...(oldData.photos ?? [])];
+      nextPhotos.splice(index, 1);
 
       return {
         ...oldData,
-        photos: photosCopy,
+        photos: nextPhotos,
       };
     });
   };
@@ -741,7 +756,7 @@ export const useEditCharacterization = (
     index: number,
     data: Partial<IUpdateCharacterizationPhoto>,
   ) => {
-    const photosCopy = [...characterizationData.photos];
+    const photosCopy = [...(characterizationData.photos ?? [])];
     const updatePhoto = photosCopy.splice(index, 1);
     setIsLoading(true);
 
@@ -751,7 +766,7 @@ export const useEditCharacterization = (
         .catch(() => {});
 
     setCharacterizationData((oldData) => {
-      const photosCopy = oldData.photos.map((photo, indexPhoto) => {
+      const nextPhotos = (oldData.photos ?? []).map((photo, indexPhoto) => {
         if (index === indexPhoto)
           return { ...photo, ...data, updated_at: new Date() };
         return photo;
@@ -759,7 +774,7 @@ export const useEditCharacterization = (
 
       return {
         ...oldData,
-        photos: photosCopy,
+        photos: nextPhotos,
       };
     });
 
@@ -767,7 +782,8 @@ export const useEditCharacterization = (
   };
 
   const handlePhotoName = async (index: number) => {
-    const updatePhoto = characterizationData.photos[index];
+    const updatePhoto = (characterizationData.photos ?? [])[index];
+    if (!updatePhoto) return;
 
     onStackOpenModal(ModalEnum.SINGLE_INPUT, {
       onConfirm: (name) => handlePhotoUpdate(index, { name: name }),
@@ -779,7 +795,8 @@ export const useEditCharacterization = (
   };
 
   const handleEditPhoto = async (index: number) => {
-    const updatePhoto = characterizationData.photos[index];
+    const updatePhoto = (characterizationData.photos ?? [])[index];
+    if (!updatePhoto) return;
     const name = updatePhoto.name;
 
     setIsLoading(true);
