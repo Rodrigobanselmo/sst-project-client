@@ -11,7 +11,6 @@ import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { useListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { matchesWorkspaceFilter } from 'core/utils/matches-workspace-filter.util';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { hierarchyFilter } from './constants/filters';
@@ -106,7 +105,7 @@ export const HierarchySelect: FC<
         (h) =>
           h.type === activeFilters[0] &&
           (!parentId || (parentId && h.parents.find((p) => p.id === parentId))) &&
-          matchesWorkspaceFilter(workspaceId, h.workspaceIds),
+          (!workspaceId || h.workspaceIds?.includes(workspaceId)),
       );
 
     if (
@@ -175,8 +174,7 @@ export const HierarchySelect: FC<
                     {`${option.parentsName}  > ${option.name}`}
                   </SText>
                   <SText fontSize={9} color="common.white">
-                    estabelecimentos:{' '}
-                    {`${(option.workspacesNames || []).join(' || ')}`}
+                    estabelecimentos: {`${option.workspacesNames.join(' || ')}`}
                   </SText>
                 </>
               ) : (

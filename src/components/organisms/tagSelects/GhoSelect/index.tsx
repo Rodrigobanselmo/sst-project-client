@@ -11,7 +11,6 @@ import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useListGhoQuery } from 'core/hooks/useListGhoQuery';
 import { IGho } from 'core/interfaces/api/IGho';
-import { matchesWorkspaceFilter } from 'core/utils/matches-workspace-filter.util';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { GhoFilter } from './constants/filters';
@@ -114,8 +113,10 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
         };
       })
       .filter((h) => (h.type || HomoTypeEnum.GSE) === activeFilters[0])
-      .filter((h) =>
-        matchesWorkspaceFilter(workspaceId, h.workspaceIds),
+      .filter(
+        (h) =>
+          !workspaceId ||
+          h.workspaceIds?.includes(workspaceId),
       );
 
     (!activeFilters ||
