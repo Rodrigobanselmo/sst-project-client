@@ -19,9 +19,9 @@ interface IViewsDataOptions extends Record<ViewsDataEnum, IViewsDataOption> {}
 export const viewsDataOptionsConstant: IViewsDataOptions = {
   [ViewsDataEnum.HIERARCHY]: {
     value: ViewsDataEnum.HIERARCHY,
-    name: 'por cargos, setores...',
-    short: 'Cargo',
-    placeholder: 'pesquisar por cargos, seto...',
+    name: 'por hierarquia: diretorias, setores, subsetores e cargos',
+    short: 'Hierarquia',
+    placeholder: 'pesquisar por hierarquia...',
   },
   [ViewsDataEnum.ENVIRONMENT]: {
     value: ViewsDataEnum.ENVIRONMENT,
