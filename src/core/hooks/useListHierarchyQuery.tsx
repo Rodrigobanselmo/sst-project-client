@@ -56,13 +56,15 @@ export const useListHierarchyQuery = (companyId?: string) => {
           name: node.name,
           parentsName: parentsName,
           parents,
-          workspacesNames: node.workspaceIds
-            .map(
-              (id) =>
-                company.workspace?.find((workspace) => workspace.id === id)
-                  ?.name,
-            )
-            .filter((i) => i),
+          workspacesNames: Array.isArray(node.workspaceIds)
+            ? node.workspaceIds
+                .map(
+                  (id) =>
+                    company.workspace?.find((workspace) => workspace.id === id)
+                      ?.name,
+                )
+                .filter((i): i is string => Boolean(i))
+            : [],
         };
       })
       .sort((a, b) => sortString(a, b, 'name'));
