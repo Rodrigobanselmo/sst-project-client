@@ -37,6 +37,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { useMutSyncDerivedMeasuresFromPlan } from 'core/services/hooks/mutations/checklist/riskData/useMutSyncDerivedMeasuresFromPlan';
 import { queryClient } from 'core/services/queryClient';
 import { useHorizontalScroll } from 'core/hooks/useHorizontalScroll';
@@ -148,14 +149,22 @@ export const RiskToolGhoHorizontal: FC<
   const { enqueueSnackbar } = useSnackbar();
   const syncPlanMutation = useMutSyncDerivedMeasuresFromPlan();
   const { companyId: userCompanyId } = useGetCompanyId(true);
+  const { workspaceId: tabWorkspaceId } = useTabWorkspaceId();
+
+  /**
+   * When a establishment is selected in the company flow, filter GHO/hierarchy
+   * lists to that workspace. If absent, keep company-wide listing (legacy).
+   */
+  const listFilterWorkspaceId = tabWorkspaceId || undefined;
 
   const planWorkspaceId = useMemo(() => {
+    if (tabWorkspaceId) return tabWorkspaceId;
     const fromQuery = query.workspaceId as string | undefined;
     if (fromQuery) return fromQuery;
     if (!selected?.id) return undefined;
     const parts = String(selected.id).split('//');
     return parts.length >= 2 ? parts[1] : undefined;
-  }, [query.workspaceId, selected?.id]);
+  }, [tabWorkspaceId, query.workspaceId, selected?.id]);
 
   const homoIdForRefetch = useMemo(
     () => String(selected?.id || '').split('//')[0],
@@ -245,6 +254,7 @@ export const RiskToolGhoHorizontal: FC<
               }}
               allFilters
               companyId={''}
+              workspaceId={listFilterWorkspaceId}
               renderButton={({ onClick, text }) => {
                 return (
                   <Box
