@@ -59,7 +59,9 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
         }}
       />
       {data &&
-        data.engs?.map((eng) => {
+        (data.engs ?? [])
+          .filter((eng): eng is IRecMed => !!eng && typeof eng.id === 'string' && !!eng.id)
+          .map((eng) => {
           const planStatus = getDerivedMeasurePlanStatus(
             data as IRiskData,
             eng.id,
@@ -73,7 +75,7 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
           return (
           <SelectedTableItem
             key={eng.id}
-            name={eng.medName}
+            name={eng.medName || 'Medida de engenharia'}
             planStatus={planStatus}
             planTooltipStatus={planTooltipStatus}
             itemTintSx={getCharacterizationPlanItemTintSx(

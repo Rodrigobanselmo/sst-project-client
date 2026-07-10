@@ -48,10 +48,12 @@ export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
         }}
       />
       {data &&
-        data.generateSources?.map((gs) => (
+        (data.generateSources ?? [])
+          .filter((gs) => !!gs && typeof gs.id === 'string' && !!gs.id)
+          .map((gs) => (
           <SelectedTableItem
             key={gs.id}
-            name={gs.name}
+            name={gs.name || 'Fonte geradora'}
             handleRemove={() =>
               handleRemove({
                 generateSources: [gs.id],

@@ -45,6 +45,7 @@ import {
 import { IHierarchyTreeMapObject } from '../../RiskToolViews/RiskToolRiskView/types';
 import { SideInput } from '../../SIdeInput';
 import { RiskToolColumns } from '../RiskToolColumns';
+import { normalizeChildrenIds } from '../../../utils/normalizeChildrenIds';
 import { SideSelectViewContentProps } from './types';
 
 export const getFilter = ({
@@ -199,14 +200,15 @@ export const RiskToolGhoHorizontal: FC<
 
   const handleSelect = useCallback(
     (data: IGho | IHierarchyTreeMapObject | IHierarchy) => {
+      const childrenIds = normalizeChildrenIds((data as any)?.children);
+
       dispatch(
         setGhoSelectedId({
-          childrenIds: (data as any)?.children?.map((i: any) => i?.id),
           ...data,
+          childrenIds,
         } as any),
       );
 
-      // Call the parent's handleSelectGHO to update URL and Redux state
       if (handleSelectGHO) {
         const isGho = 'hierarchyOnHomogeneous' in data;
         if (isGho) {
@@ -266,14 +268,17 @@ export const RiskToolGhoHorizontal: FC<
                     minWidth={285}
                     maxWidth={800}
                     width={
-                      text.length ? Math.max(text.length * 15, 285) : undefined
+                      text?.length
+                        ? Math.max(text.length * 15, 285)
+                        : undefined
                     }
                   >
                     <SInput
                       id={IdsEnum.INPUT_MENU_SEARCH_GHO_HIERARCHY}
                       onClick={onClick}
                       placeholder={
-                        viewsDataOptionsConstant[viewDataType].placeholder
+                        viewsDataOptionsConstant[viewDataType]?.placeholder ||
+                        'pesquisar...'
                       }
                       variant="outlined"
                       subVariant="search"

@@ -36,14 +36,16 @@ export const EpiColumn: FC<{ children?: any } & EpiColumnProps> = ({
         }}
       />
       {data &&
-        data.epis?.map((epi) => {
+        (data.epis ?? [])
+          .filter((epi) => !!epi && (!!epi.id || !!epi.ca || !!epi.equipment))
+          .map((epi) => {
           const isExpired = dayjs(epi.expiredDate).isBefore(dayjs());
           return (
             <SelectedTableItem
-              key={epi.ca}
+              key={epi.id || epi.ca || epi.equipment}
               isExpired={isExpired}
               handleEdit={() => !isNaEpi(epi.ca) && handleEdit(epi)}
-              name={isNaEpi(epi.ca) ? `${epi.equipment}` : `CA: ${epi.ca}`}
+              name={isNaEpi(epi.ca) ? `${epi.equipment || 'EPI'}` : `CA: ${epi.ca}`}
               tooltip={
                 isNaEpi(epi.ca)
                   ? ''

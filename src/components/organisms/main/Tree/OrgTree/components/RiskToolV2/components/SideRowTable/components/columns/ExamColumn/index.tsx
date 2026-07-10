@@ -48,7 +48,9 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
         }}
       />
 
-      {data?.exams?.map((exam) => {
+      {data?.exams
+        ?.filter((exam) => !!exam && typeof exam.id === 'string' && !!exam.id)
+        ?.map((exam) => {
         if (exam.examsRiskData?.isStandard) return null;
 
         return (
@@ -56,8 +58,8 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
             <SelectedTableItem
               // isExpired={isExpired}
               handleEdit={() => handleEdit(exam)}
-              name={`${exam.name}`}
-              tooltip={`${exam.name}`}
+              name={`${exam.name || 'Exame'}`}
+              tooltip={`${exam.name || 'Exame'}`}
               handleRemove={() => {
                 handleRemove({
                   exams: [exam.examsRiskData || exam],
@@ -85,14 +87,16 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
           }}
           mt={4}
         >
-          {data?.exams?.map((exam) => {
+          {data?.exams
+            ?.filter((exam) => !!exam && typeof exam.id === 'string' && !!exam.id)
+            ?.map((exam) => {
             if (!exam.examsRiskData?.isStandard) return null;
 
             return (
               <SelectedTableItem
                 key={exam.id + 'standard'}
-                name={exam.name}
-                tooltip={exam.name}
+                name={exam.name || 'Exame'}
+                tooltip={exam.name || 'Exame'}
               />
             );
           })}

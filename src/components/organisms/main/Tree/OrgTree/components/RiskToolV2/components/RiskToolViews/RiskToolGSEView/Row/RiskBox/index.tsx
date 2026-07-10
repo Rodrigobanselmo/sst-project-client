@@ -58,16 +58,20 @@ export const RiskToolGSEViewRowRiskBox: FC<
       );
   };
 
-  const isPsicologico = data.subTypes?.find(
-    (subType) => subType.sub_type.name === 'Psicossociais',
+  const riskTypeKey = (data?.type ?? '').toLowerCase();
+  const riskName = data?.name || '';
+  const riskTypeLabel = data?.type || '—';
+
+  const isPsicologico = data?.subTypes?.find(
+    (subType) => subType?.sub_type?.name === 'Psicossociais',
   );
 
   const subCategoryLabels = useMemo(() => {
-    if (!data.subTypes?.length) return '';
+    if (!data?.subTypes?.length) return '';
     const names = [
       ...new Set(
         data.subTypes
-          .map((s) => s.sub_type?.name)
+          .map((s) => s?.sub_type?.name)
           .filter((n): n is string => typeof n === 'string' && n.trim().length > 0),
       ),
     ];
@@ -75,7 +79,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
       ? names.filter((n) => n !== 'Psicossociais')
       : names;
     return filtered.length ? filtered.join(' · ') : '';
-  }, [data.subTypes, isPsicologico]);
+  }, [data?.subTypes, isPsicologico]);
 
   const displayNextToChip = useMemo(() => {
     if (!isRepresentAll && isPsicologico) {
@@ -118,7 +122,9 @@ export const RiskToolGSEViewRowRiskBox: FC<
                         fontWeight: 600,
                       }
                     : {
-                        backgroundColor: `risk.${data?.type.toLowerCase()}`,
+                        backgroundColor: riskTypeKey
+                          ? `risk.${riskTypeKey}`
+                          : 'grey.400',
                         color: 'common.white',
                       }
                   : {}),
@@ -126,13 +132,19 @@ export const RiskToolGSEViewRowRiskBox: FC<
                   ? {
                       backgroundColor: isPsicologico ? 'risk.psic' : 'risk.all',
                       border: '1px solid',
-                      borderColor: `risk.${data?.type.toLowerCase()}`,
-                      color: `risk.${data?.type.toLowerCase()}`,
+                      borderColor: riskTypeKey
+                        ? `risk.${riskTypeKey}`
+                        : 'grey.400',
+                      color: riskTypeKey ? `risk.${riskTypeKey}` : 'grey.700',
                     }
                   : {}),
               }}
             >
-              {!isRepresentAll ? (isPsicologico ? 'PSIC' : data.type) : 'PADRÃO'}
+              {!isRepresentAll
+                ? isPsicologico
+                  ? 'PSIC'
+                  : riskTypeLabel
+                : 'PADRÃO'}
             </Box>
             {!!displayNextToChip && (
               <SText
@@ -146,7 +158,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
             )}
           </SFlex>
           <Box sx={{ flexShrink: 0, ml: 1 }}>
-            {!hide && hasData && (
+            {!hide && hasData && data && (
               <STooltip withWrapper title={'Limpar dados'}>
                 <SIconButton
                   loading={deleteMutation.isLoading}
@@ -163,7 +175,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
           minLength={15}
           placement="right"
           enterDelay={3000}
-          title={data.name}
+          title={riskName}
         >
           <Box sx={{ width: '100%', minWidth: 0, px: 0.5, py: 0.5 }}>
             <SText
@@ -173,7 +185,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
                 display: 'block',
               }}
             >
-              {!isRepresentAll ? data.name : 'Informações gerais'}
+              {!isRepresentAll ? riskName || 'Risco sem nome' : 'Informações gerais'}
             </SText>
           </Box>
         </STooltip>

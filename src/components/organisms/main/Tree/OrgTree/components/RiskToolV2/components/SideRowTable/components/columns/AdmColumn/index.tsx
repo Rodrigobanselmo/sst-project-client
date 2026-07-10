@@ -58,7 +58,9 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
         }}
       />
       {data &&
-        data.adms?.map((adm) => {
+        (data.adms ?? [])
+          .filter((adm): adm is IRecMed => !!adm && typeof adm.id === 'string' && !!adm.id)
+          .map((adm) => {
           const planStatus = getDerivedMeasurePlanStatus(
             data as IRiskData,
             adm.id,
@@ -72,7 +74,7 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
           return (
           <SelectedTableItem
             key={adm.id}
-            name={adm.medName}
+            name={adm.medName || 'Medida administrativa'}
             planStatus={planStatus}
             planTooltipStatus={planTooltipStatus}
             itemTintSx={getCharacterizationPlanItemTintSx(

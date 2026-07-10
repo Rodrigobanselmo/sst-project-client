@@ -31,7 +31,7 @@ export const SideRowGho: FC<{ children?: any } & SideItemsProps> = ({
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return;
-    if (isHierarchy) return nodeTypesConstant[data.type].name;
+    if (isHierarchy) return nodeTypesConstant[data.type]?.name;
 
     if (data.description) {
       const splitValues = data.description.split('(//)');

@@ -55,14 +55,18 @@ export const useColumnAction = () => {
       if (value?.length)
         (submitData as any)[key] = [
           ...value,
-          ...((riskData as any)?.[key]?.map((rec: any) => rec.id) ?? []),
+          ...((riskData as any)?.[key] ?? [])
+            .filter((rec: any) => !!rec?.id)
+            .map((rec: any) => rec.id),
         ];
     });
     if (epis && epis?.length)
       submitData.epis = removeDuplicate(
         [
           ...epis,
-          ...(riskData?.epis?.map((epi) => epi.epiRiskData) || []),
+          ...(riskData?.epis ?? [])
+            .filter((epi) => !!epi)
+            .map((epi) => epi.epiRiskData),
         ].filter((i) => i),
         { removeById: 'epiId' },
       );
@@ -71,7 +75,9 @@ export const useColumnAction = () => {
       submitData.engs = removeDuplicate(
         [
           ...engs,
-          ...(riskData?.engs?.map((eng) => eng.engsRiskData) || []),
+          ...(riskData?.engs ?? [])
+            .filter((eng) => !!eng)
+            .map((eng) => eng.engsRiskData),
         ].filter((i) => i),
         { removeById: 'recMedId' },
       );
@@ -80,7 +86,9 @@ export const useColumnAction = () => {
       submitData.exams = removeDuplicate(
         [
           ...exams,
-          ...(riskData?.exams?.map((eng) => eng.examsRiskData) || []),
+          ...(riskData?.exams ?? [])
+            .filter((exam) => !!exam)
+            .map((exam) => exam.examsRiskData),
         ].filter((i) => i),
         { removeById: 'examId' },
       );

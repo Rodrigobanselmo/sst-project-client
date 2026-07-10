@@ -46,8 +46,14 @@ const isCurrentProbabilityLocked = (
 
   const rows = scopedRows(data, workspaceId);
   const links = scopedDerivedLinks(data, workspaceId);
+  const validRecs = (data.recs ?? []).filter(
+    (rec): rec is NonNullable<typeof rec> =>
+      !!rec && typeof rec.id === 'string' && !!rec.id,
+  );
 
-  return data.recs.every((rec) => {
+  if (!validRecs.length) return false;
+
+  return validRecs.every((rec) => {
     const row = rows.find((r) => r.recMedId === rec.id);
     if (!row || row.status !== StatusEnum.DONE) return false;
     return links.some((l) => l.sourceRecMedId === rec.id);

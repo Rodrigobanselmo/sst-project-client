@@ -1,6 +1,7 @@
 import React, { FC, useMemo } from 'react';
 
-import { LinearProgress } from '@mui/material';
+import { Box, LinearProgress } from '@mui/material';
+import SText from 'components/atoms/SText';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { selectGhoFilter } from 'store/reducers/hierarchy/ghoSlice';
 
@@ -101,11 +102,16 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
 
     if (homoId) data.push(...representAllRiskData);
 
+    const sortableData = data.filter(
+      (pair): pair is [IRiskData, IRiskFactors] =>
+        !!pair?.[0] && !!pair?.[1]?.id,
+    );
+
     if (
       (!selectedGhoFilter.value && !selectedGhoFilter.key) ||
       selectedGhoFilter?.value == 'none'
     )
-      return data
+      return sortableData
         .sort(([, a], [, b]) => sortNumber(a, b, 'name'))
         .sort(([, a], [, b]) =>
           sortNumber(a.representAll ? -1 : 1, b.representAll ? -1 : 1),
@@ -117,7 +123,7 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
           ),
         );
 
-    return data.sort(([, a], [, b]) =>
+    return sortableData.sort(([, a], [, b]) =>
       sortNumber(
         effectiveRiskOrderForGSEGrid(a),
         effectiveRiskOrderForGSEGrid(b),
@@ -135,9 +141,19 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
   return (
     <>
       {isRiskGhoLoading && <LinearProgress />}
+      {!isRiskGhoLoading && riskOrderedData.length === 0 && (
+        <Box sx={{ py: 4, px: 2 }}>
+          <SText color="text.secondary">
+            Nenhum fator de risco vinculado a este cargo/setor.
+            {homoId
+              ? ' Você pode adicionar riscos pelo botão acima.'
+              : ' Selecione um cargo/setor para visualizar.'}
+          </SText>
+        </Box>
+      )}
       {riskOrderedData.map(([riskData, risk]) => (
         <RiskToolGSEViewRow
-          key={riskData.id}
+          key={riskData?.id || risk?.id || riskData?.riskId}
           risk={risk}
           riskData={riskData}
           riskGroupId={riskGroupId}

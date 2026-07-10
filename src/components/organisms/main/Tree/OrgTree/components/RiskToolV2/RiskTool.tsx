@@ -47,6 +47,7 @@ import {
   IViewsDataOption,
   ViewsDataEnum,
 } from './utils/view-data-type.constant';
+import { normalizeChildrenIds } from './utils/normalizeChildrenIds';
 import {
   IViewsRiskOption,
   ViewTypeEnum,
@@ -132,6 +133,7 @@ export const RiskToolV2 = ({
 
   // Sync Redux state with URL on mount and when URL changes
   useEffect(() => {
+    if (embedded) return;
     if (lockedViewData && viewDataTypeFromUrl !== viewDataType) {
       dispatch(setRiskAddState({ viewData: viewDataTypeFromUrl as any }));
       return;
@@ -139,10 +141,11 @@ export const RiskToolV2 = ({
     if (viewDataTypeFromUrl !== viewDataType) {
       dispatch(setRiskAddState({ viewData: viewDataTypeFromUrl as any }));
     }
-  }, [viewDataTypeFromUrl, dispatch, viewDataType, lockedViewData]);
+  }, [viewDataTypeFromUrl, dispatch, viewDataType, lockedViewData, embedded]);
 
   // Sync selected GHO/Hierarchy from URL to Redux (page load, back/forward)
   useEffect(() => {
+    if (embedded) return;
     if (lockedGhoId) return;
     if (!selectedGhoIdFromUrl) return;
     // Skip if this URL change was triggered by a user selection we just made
@@ -161,8 +164,8 @@ export const RiskToolV2 = ({
       dispatch(setGhoState({ data: gho, hierarchies }));
       dispatch(
         setGhoSelectedId({
-          childrenIds: (gho as any)?.children?.map((i: any) => i?.id),
           ...gho,
+          childrenIds: normalizeChildrenIds((gho as any)?.children),
         } as any),
       );
       return;
@@ -176,8 +179,8 @@ export const RiskToolV2 = ({
       );
       dispatch(
         setGhoSelectedId({
-          childrenIds: hierarchy.children || [],
           ...hierarchy,
+          childrenIds: normalizeChildrenIds(hierarchy.children) || [],
         } as any),
       );
     }
@@ -272,9 +275,11 @@ export const RiskToolV2 = ({
         if (!selectExpanded) dispatch(setRiskAddToggleExpand());
         // Remove ghoId from URL when deselecting
         userSelectedIdRef.current = null;
-        const newQuery = { ...query };
-        delete newQuery.ghoId;
-        replace({ pathname, query: newQuery }, undefined, { shallow: true });
+        if (!embedded) {
+          const newQuery = { ...query };
+          delete newQuery.ghoId;
+          replace({ pathname, query: newQuery }, undefined, { shallow: true });
+        }
         return dispatch(setGhoState({ hierarchies: [], data: null }));
       }
 
@@ -296,10 +301,23 @@ export const RiskToolV2 = ({
 
       // Mark this as a user-initiated selection so URL sync skips it
       userSelectedIdRef.current = gho.id;
-      const newQuery = { ...query, ghoId: gho.id };
-      replace({ pathname, query: newQuery }, undefined, { shallow: true });
+      // Embedded characterization editor: do not mutate parent page URL
+      // (ghoId/viewData churn can blank the inline editor shell).
+      if (!embedded) {
+        const newQuery = { ...query, ghoId: gho.id };
+        replace({ pathname, query: newQuery }, undefined, { shallow: true });
+      }
     },
-    [dispatch, selectExpanded, selectedGhoId, query, pathname, replace, lockedGhoId],
+    [
+      dispatch,
+      selectExpanded,
+      selectedGhoId,
+      query,
+      pathname,
+      replace,
+      lockedGhoId,
+      embedded,
+    ],
   );
 
   const handleChangeView = (option: IViewsRiskOption) => {
@@ -329,10 +347,12 @@ export const RiskToolV2 = ({
     }
 
     // Update URL with new viewData parameter and remove stale ghoId
-    const newQuery: Record<string, any> = { ...query, viewData: option.value };
-    delete newQuery.ghoId;
     userSelectedIdRef.current = null;
-    replace({ pathname, query: newQuery }, undefined, { shallow: true });
+    if (!embedded) {
+      const newQuery: Record<string, any> = { ...query, viewData: option.value };
+      delete newQuery.ghoId;
+      replace({ pathname, query: newQuery }, undefined, { shallow: true });
+    }
 
     dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));
 
@@ -350,49 +370,47 @@ export const RiskToolV2 = ({
   };
 
   return (
-    <>
-      <STBoxContainer expanded={selectExpanded ? 1 : 0} risk_init={1} open={1}>
-        <RiskToolTopButtons
-          onChangeView={handleChangeView}
-          onChangeViewData={handleChangeViewData}
-          viewType={viewType}
-          viewDataType={effectiveViewDataType}
+    <STBoxContainer expanded={selectExpanded ? 1 : 0} risk_init={1} open={1}>
+      <RiskToolTopButtons
+        onChangeView={handleChangeView}
+        onChangeViewData={handleChangeViewData}
+        viewType={viewType}
+        viewDataType={effectiveViewDataType}
+        handleSelectGHO={handleSelectGHO}
+        riskInit={true}
+        riskGroupId={riskGroupIdMemo}
+        hideViewSwitcher={hideViewSwitcher}
+        hideCloseButton={embedded}
+      />
+      <STTableContainer>
+        <RiskToolHeader
+          handleCopyGHO={handleCopyGHO}
           handleSelectGHO={handleSelectGHO}
+          handleEditGHO={handleEditGHO}
+          handleAddGHO={handleAddGHO as any}
+          isAddLoading={addMutation.isLoading}
           riskInit={true}
+          inputRef={inputRef}
+          viewDataType={effectiveViewDataType}
+          viewType={viewType}
+          ghoQuery={ghoQuery}
+          loadingCopy={loadingCopyHomo}
           riskGroupId={riskGroupIdMemo}
-          hideViewSwitcher={hideViewSwitcher}
-          hideCloseButton={embedded}
+          companyId={companyId}
+          hideGhoPicker={hideGhoPicker}
+          lockedGhoName={lockedGhoName}
+          disableEditGho={disableEditGho}
         />
-        <STTableContainer>
-          <RiskToolHeader
-            handleCopyGHO={handleCopyGHO}
-            handleSelectGHO={handleSelectGHO}
-            handleEditGHO={handleEditGHO}
-            handleAddGHO={handleAddGHO as any}
-            isAddLoading={addMutation.isLoading}
-            riskInit={true}
-            inputRef={inputRef}
-            viewDataType={effectiveViewDataType}
-            viewType={viewType}
-            ghoQuery={ghoQuery}
-            loadingCopy={loadingCopyHomo}
-            riskGroupId={riskGroupIdMemo}
-            companyId={companyId}
-            hideGhoPicker={hideGhoPicker}
-            lockedGhoName={lockedGhoName}
-            disableEditGho={disableEditGho}
-          />
-          <STBoxStack
-            expanded={selectExpanded ? 1 : 0}
-            risk_init={1}
-            viewType={viewType}
-          >
-            {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
-              <RiskToolGSEView riskGroupId={riskGroupIdMemo} />
-            )}
-          </STBoxStack>
-        </STTableContainer>
-      </STBoxContainer>
-    </>
+        <STBoxStack
+          expanded={selectExpanded ? 1 : 0}
+          risk_init={1}
+          viewType={viewType}
+        >
+          {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
+            <RiskToolGSEView riskGroupId={riskGroupIdMemo} />
+          )}
+        </STBoxStack>
+      </STTableContainer>
+    </STBoxContainer>
   );
 };

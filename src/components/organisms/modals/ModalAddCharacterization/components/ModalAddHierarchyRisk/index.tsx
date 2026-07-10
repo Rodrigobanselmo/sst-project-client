@@ -10,50 +10,38 @@ import { IUseEditCharacterization } from 'components/organisms/modals/ModalAddCh
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 import SText from 'components/atoms/SText';
 import SFlex from 'components/atoms/SFlex';
-import { useRouter } from 'next/router';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import {
   inlineRiskToolHeightSx,
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 import { getCurrentRiskGroupId } from '../../utils/get-current-risk-group-id.util';
 import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
+import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 
 const RiskToolForCharacterization: React.FC<{
   riskGroupId: string;
   characterizationId: string;
   riskContextCompanyId?: string;
 }> = ({ riskGroupId, characterizationId, riskContextCompanyId }) => {
-  const router = useRouter();
+  const dispatch = useAppDispatch();
 
+  // Embedded: keep view in Redux only — do not rewrite parent page URL
+  // (URL ghoId/viewData churn blanks the inline characterization shell).
   useEffect(() => {
     if (!characterizationId) return;
-    const { query, pathname } = router;
-    if (
-      query.ghoId === characterizationId &&
-      query.viewData === ViewsDataEnum.CHARACTERIZATION
-    ) {
-      return;
-    }
-
-    router.replace(
-      {
-        pathname,
-        query: {
-          ...query,
-          viewData: ViewsDataEnum.CHARACTERIZATION,
-          ghoId: characterizationId,
-        },
-      },
-      undefined,
-      { shallow: true },
+    dispatch(
+      setRiskAddState({
+        viewData: ViewsDataEnum.CHARACTERIZATION as any,
+      }),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [characterizationId]);
+  }, [characterizationId, dispatch]);
 
   return (
     <RiskToolV2
       riskGroupId={riskGroupId}
       riskContextCompanyId={riskContextCompanyId}
+      embedded
     />
   );
 };

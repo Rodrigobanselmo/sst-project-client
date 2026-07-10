@@ -39,7 +39,7 @@ export const RiskToolGhoItem: FC<
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return '';
-    if (isHierarchy) return nodeTypesConstant[gho.type].name;
+    if (isHierarchy) return nodeTypesConstant[gho.type]?.name;
 
     if (gho.description) {
       const splitValues = gho.description.split('(//)');

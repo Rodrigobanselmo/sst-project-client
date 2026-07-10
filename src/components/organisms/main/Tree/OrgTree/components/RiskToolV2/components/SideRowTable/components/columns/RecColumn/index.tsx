@@ -29,6 +29,10 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   risk,
   planWorkspaceId,
 }) => {
+  const validRecs = (data?.recs ?? []).filter(
+    (rec): rec is IRecMed => !!rec && typeof rec.id === 'string' && !!rec.id,
+  );
+
   return (
     <Box>
       <RecSelect
@@ -53,7 +57,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
         }}
         handleSelect={(options) => {
           const op = options as IRecMed;
-          if (op.id)
+          if (op?.id)
             handleSelect(
               {
                 recs: [op.id],
@@ -62,34 +66,33 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             );
         }}
       />
-      {data &&
-        data.recs?.map((rec) => {
-          const planStatus = getRecommendationPlanStatus(
+      {validRecs.map((rec) => {
+        const planStatus = getRecommendationPlanStatus(
+          data as IRiskData,
+          rec.id,
+          planWorkspaceId,
+        );
+        const planTooltipStatus = getRecommendationPlanTooltipStatus(
+          data as IRiskData,
+          rec.id,
+          planWorkspaceId,
+        );
+        const canRemoveRec = isRecommendationDeletionAllowed(
+          data as IRiskData,
+          rec.id,
+          planWorkspaceId,
+        );
+        const showDerivedNote =
+          planTooltipStatus === StatusEnum.DONE &&
+          recommendationHasDerivedMeasureLink(
             data as IRiskData,
             rec.id,
             planWorkspaceId,
           );
-          const planTooltipStatus = getRecommendationPlanTooltipStatus(
-            data as IRiskData,
-            rec.id,
-            planWorkspaceId,
-          );
-          const canRemoveRec = isRecommendationDeletionAllowed(
-            data as IRiskData,
-            rec.id,
-            planWorkspaceId,
-          );
-          const showDerivedNote =
-            planTooltipStatus === StatusEnum.DONE &&
-            recommendationHasDerivedMeasureLink(
-              data as IRiskData,
-              rec.id,
-              planWorkspaceId,
-            );
-          return (
+        return (
           <SelectedTableItem
             key={rec.id}
-            name={rec.recName}
+            name={rec.recName || 'Recomendação'}
             planStatus={planStatus}
             planTooltipStatus={planTooltipStatus}
             showPlanDerivedTransformedNote={showDerivedNote}
@@ -107,8 +110,8 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
                 : undefined
             }
           />
-          );
-        })}
+        );
+      })}
     </Box>
   );
 };

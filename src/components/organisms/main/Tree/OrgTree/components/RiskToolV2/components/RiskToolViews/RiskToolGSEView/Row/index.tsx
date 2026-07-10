@@ -17,11 +17,17 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
   ({ risk, riskData, riskGroupId }) => {
     const searchSelected = useAppSelector((state) => state?.gho.searchRisk);
     const { hide, ref } = useObserverHide();
-    const isRepresentAll = risk.type === RiskEnum.OUTROS && risk.representAll;
+
+    if (!risk?.id) return null;
+
+    const isRepresentAll =
+      risk.type === RiskEnum.OUTROS && !!risk.representAll;
 
     const isToFilter =
-      searchSelected &&
-      !stringNormalize(risk.name).includes(stringNormalize(searchSelected));
+      !!searchSelected &&
+      !stringNormalize(risk.name ?? '').includes(
+        stringNormalize(searchSelected),
+      );
 
     return (
       <SFlex
