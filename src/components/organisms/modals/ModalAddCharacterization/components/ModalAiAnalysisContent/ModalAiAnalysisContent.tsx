@@ -70,6 +70,7 @@ import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { useAccess } from 'core/hooks/useAccess';
+import { AiTemporaryPdfSourceField } from '../AiTemporaryPdfSourceField/AiTemporaryPdfSourceField';
 
 const summarizeRiskDataLabels = (
   items: Array<{ name?: string; medName?: string; recName?: string }> | undefined,
@@ -303,6 +304,8 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     setModifiedRisks,
     userGuidance,
     setUserGuidance,
+    temporaryDocumentSource,
+    setTemporaryDocumentSource,
     hasVisibleSuggestions,
     hasAnalyzed,
     mergeIncomingSuggestions,
@@ -547,6 +550,9 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
         workspaceId: characterizationData.workspaceId,
         characterizationId: characterizationData.id,
         userGuidance: userGuidance.trim() || undefined,
+        temporaryDocumentSources: temporaryDocumentSource
+          ? [temporaryDocumentSource]
+          : undefined,
         customPrompt: masterOverrides.customPrompt,
         model: masterOverrides.model,
         signal: abortController.signal,
@@ -1160,6 +1166,15 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 minRows={3}
                 fullWidth
                 size="small"
+              />
+
+              <AiTemporaryPdfSourceField
+                companyId={characterizationData.companyId}
+                workspaceId={characterizationData.workspaceId}
+                characterizationId={characterizationData.id}
+                value={temporaryDocumentSource}
+                onChange={setTemporaryDocumentSource}
+                disabled={aiAnalyzeMutation.isPending}
               />
 
               <SFlex

@@ -1,4 +1,5 @@
 import {
+  AiTemporaryDocumentSource,
   DetailedRisk,
   ExistingRiskReview,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
@@ -10,6 +11,11 @@ export type AiRiskAnalysisSessionSnapshot = {
   dismissedRiskIds: string[];
   modifiedRisks: Record<string, DetailedRisk>;
   userGuidance: string;
+  /**
+   * Optional temporary PDF text/meta for this browser session only.
+   * Never stores the binary PDF; never uses localStorage.
+   */
+  temporaryDocumentSource: AiTemporaryDocumentSource | null;
   /** Suggestion accordion ids the user left expanded in this browser session. */
   expandedSuggestionIds: string[];
   appliedModularSuggestionKeys: string[];
@@ -25,6 +31,32 @@ export type AiRiskAnalysisSessionKeyParams = {
 };
 
 const STORAGE_PREFIX = 'characterization-ai-risk-analysis';
+
+function normalizeTemporaryDocumentSource(
+  value: unknown,
+): AiTemporaryDocumentSource | null {
+  if (!value || typeof value !== 'object') return null;
+  const source = value as Partial<AiTemporaryDocumentSource>;
+  if (
+    source.kind !== 'user_pdf' ||
+    typeof source.fileName !== 'string' ||
+    typeof source.extractedText !== 'string' ||
+    !source.extractedText.trim()
+  ) {
+    return null;
+  }
+  return {
+    kind: 'user_pdf',
+    fileName: source.fileName,
+    extractedText: source.extractedText,
+    charCount:
+      typeof source.charCount === 'number' ? source.charCount : undefined,
+    truncated:
+      typeof source.truncated === 'boolean' ? source.truncated : undefined,
+    pageCount:
+      typeof source.pageCount === 'number' ? source.pageCount : undefined,
+  };
+}
 
 export function buildAiRiskAnalysisSessionKey(
   params: AiRiskAnalysisSessionKeyParams,
@@ -74,6 +106,9 @@ export function readAiRiskAnalysisSession(
           : {},
       userGuidance:
         typeof parsed.userGuidance === 'string' ? parsed.userGuidance : '',
+      temporaryDocumentSource: normalizeTemporaryDocumentSource(
+        parsed.temporaryDocumentSource,
+      ),
       expandedSuggestionIds: Array.isArray(parsed.expandedSuggestionIds)
         ? parsed.expandedSuggestionIds.filter(
             (id): id is string => typeof id === 'string' && !!id,

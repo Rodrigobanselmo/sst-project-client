@@ -1,3 +1,7 @@
+import type { AiTemporaryDocumentSource } from '../../ai-temporary-source/ai-temporary-document-source.types';
+
+export type { AiTemporaryDocumentSource };
+
 export type AiCharacterizationAssistMode =
   | 'DRAFT'
   | 'REVIEW'
@@ -54,6 +58,7 @@ export interface AiCharacterizationAssistParams {
   questionnaire: AiCharacterizationAssistQuestionnaire;
   userObservations?: string;
   userProvidedSources?: string;
+  temporaryDocumentSources?: AiTemporaryDocumentSource[];
   customPrompt?: string;
   model?: string;
 }

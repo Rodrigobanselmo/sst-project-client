@@ -36,9 +36,11 @@ import type {
   AiCharacterizationAssistResult,
   AiCharacterizationAssistScope,
   AiCharacterizationAssistTarget,
+  AiTemporaryDocumentSource,
 } from '@v2/services/security/characterization/characterization/ai-characterization-assist/service/ai-characterization-assist.types';
 
 import type { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
+import { AiTemporaryPdfSourceField } from '../AiTemporaryPdfSourceField/AiTemporaryPdfSourceField';
 import {
   assistItemsToDisplayValues,
   assistItemsToStoredValues,
@@ -172,6 +174,8 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
 
   const [step, setStep] = useState<'form' | 'result'>('form');
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
+  const [temporaryDocumentSource, setTemporaryDocumentSource] =
+    useState<AiTemporaryDocumentSource | null>(null);
   const [result, setResult] = useState<AiCharacterizationAssistResult | null>(
     null,
   );
@@ -189,6 +193,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
   const resetModal = () => {
     setStep('form');
     setForm(DEFAULT_FORM);
+    setTemporaryDocumentSource(null);
     setResult(null);
   };
 
@@ -223,6 +228,9 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       },
       userObservations: form.userObservations.trim() || undefined,
       userProvidedSources: form.userProvidedSources.trim() || undefined,
+      temporaryDocumentSources: temporaryDocumentSource
+        ? [temporaryDocumentSource]
+        : undefined,
       customPrompt: masterOverrides.customPrompt,
       model: masterOverrides.model,
     });
@@ -496,6 +504,15 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                   sx={{ mt: 2 }}
                   placeholder="Cole links ou trechos. O sistema não verifica automaticamente essas fontes."
                   helperText="Tratado como informação fornecida pelo usuário, não como pesquisa externa automática."
+                />
+
+                <AiTemporaryPdfSourceField
+                  companyId={characterizationData.companyId}
+                  workspaceId={characterizationData.workspaceId}
+                  characterizationId={characterizationData.id as string}
+                  value={temporaryDocumentSource}
+                  onChange={setTemporaryDocumentSource}
+                  disabled={assistMutation.isPending}
                 />
               </Box>
             </Box>

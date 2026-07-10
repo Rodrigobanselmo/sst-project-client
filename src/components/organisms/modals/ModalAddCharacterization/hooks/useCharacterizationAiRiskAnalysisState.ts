@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  AiTemporaryDocumentSource,
   DetailedRisk,
   ExistingRiskReview,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
@@ -23,6 +24,7 @@ const createEmptyState = (): AiRiskAnalysisSessionSnapshot => ({
   dismissedRiskIds: [],
   modifiedRisks: {},
   userGuidance: '',
+  temporaryDocumentSource: null,
   expandedSuggestionIds: [],
   appliedModularSuggestionKeys: [],
   hasAnalyzed: false,
@@ -65,6 +67,10 @@ export const useCharacterizationAiRiskAnalysisState = (
   const [userGuidance, setUserGuidance] = useState(
     () => createEmptyState().userGuidance,
   );
+  const [temporaryDocumentSource, setTemporaryDocumentSource] =
+    useState<AiTemporaryDocumentSource | null>(
+      () => createEmptyState().temporaryDocumentSource,
+    );
   const [expandedSuggestionIds, setExpandedSuggestionIds] = useState<string[]>(
     () => createEmptyState().expandedSuggestionIds,
   );
@@ -84,6 +90,7 @@ export const useCharacterizationAiRiskAnalysisState = (
       setDismissedRiskIds(emptyState.dismissedRiskIds);
       setModifiedRisks(emptyState.modifiedRisks);
       setUserGuidance(emptyState.userGuidance);
+      setTemporaryDocumentSource(emptyState.temporaryDocumentSource);
       setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
       setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
       setHasAnalyzed(emptyState.hasAnalyzed);
@@ -100,6 +107,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     setDismissedRiskIds(restored.dismissedRiskIds);
     setModifiedRisks(restored.modifiedRisks);
     setUserGuidance(restored.userGuidance);
+    setTemporaryDocumentSource(restored.temporaryDocumentSource);
     setExpandedSuggestionIds(restored.expandedSuggestionIds);
     setAppliedModularSuggestionKeys(restored.appliedModularSuggestionKeys);
     setHasAnalyzed(restored.hasAnalyzed);
@@ -116,6 +124,7 @@ export const useCharacterizationAiRiskAnalysisState = (
       dismissedRiskIds,
       modifiedRisks,
       userGuidance,
+      temporaryDocumentSource,
       expandedSuggestionIds,
       appliedModularSuggestionKeys,
       hasAnalyzed,
@@ -129,6 +138,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     dismissedRiskIds,
     modifiedRisks,
     userGuidance,
+    temporaryDocumentSource,
     expandedSuggestionIds,
     appliedModularSuggestionKeys,
     hasAnalyzed,
@@ -275,6 +285,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     setDismissedRiskIds(emptyState.dismissedRiskIds);
     setModifiedRisks(emptyState.modifiedRisks);
     setUserGuidance(emptyState.userGuidance);
+    setTemporaryDocumentSource(emptyState.temporaryDocumentSource);
     setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
     setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
     setHasAnalyzed(emptyState.hasAnalyzed);
@@ -292,6 +303,8 @@ export const useCharacterizationAiRiskAnalysisState = (
     setModifiedRisks,
     userGuidance,
     setUserGuidance,
+    temporaryDocumentSource,
+    setTemporaryDocumentSource,
     expandedSuggestionIds,
     expandedSuggestionIdsSet,
     appliedModularSuggestionKeys,
