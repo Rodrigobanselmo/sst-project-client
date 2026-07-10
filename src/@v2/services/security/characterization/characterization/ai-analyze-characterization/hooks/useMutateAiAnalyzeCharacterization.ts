@@ -1,7 +1,8 @@
 import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
-import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
+import { IErrorResp } from '@v2/types/error.type';
 import { aiAnalyzeCharacterization } from '../service/ai-analyze-characterization.service';
+import { isAiAnalyzeRequestCanceled } from '../service/is-ai-analyze-request-canceled.util';
 
 export const useMutateAiAnalyzeCharacterization = () => {
   const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
@@ -10,7 +11,10 @@ export const useMutateAiAnalyzeCharacterization = () => {
     mutationFn: aiAnalyzeCharacterization,
     invalidateQueryKey: false,
     onSuccess: () => onSuccessMessage('Análise de IA realizada com sucesso'),
-    onError: onErrorMessage,
+    onError: (error: unknown) => {
+      if (isAiAnalyzeRequestCanceled(error)) return;
+      onErrorMessage(error as unknown as IErrorResp);
+    },
   });
 
   return mutate;

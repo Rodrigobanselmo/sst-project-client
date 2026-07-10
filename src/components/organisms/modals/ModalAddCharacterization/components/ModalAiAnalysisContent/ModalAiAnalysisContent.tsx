@@ -40,7 +40,22 @@ import {
   isCharacterizationTextInsufficient,
 } from './characterization-text-insufficient.util';
 import { filterNewAiRiskSuggestions } from './filter-new-ai-risk-suggestions.util';
+import {
+  buildModularSuggestionKey,
+  filterExistingRiskReviews,
+  getFieldChipColor,
+  getFieldLabel,
+  getSuggestionValues,
+  groupReviewSuggestions,
+} from './ai-risk-field-suggestion.util';
+import { isAiAnalyzeRequestCanceled } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/is-ai-analyze-request-canceled.util';
+import { buildModularRiskUpsert } from './build-modular-risk-upsert.util';
 import { useRiskToolCopyGhoImportFlow } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/hooks/useRiskToolCopyGhoImportFlow';
+import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
+import {
+  AiRiskFieldSuggestion,
+  ExistingRiskReview,
+} from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IGho } from 'core/interfaces/api/IGho';
@@ -282,23 +297,36 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     props;
   const {
     visibleSuggestions,
+    existingRiskReviews,
     addedRiskIdsSet,
     modifiedRisks,
     setModifiedRisks,
     userGuidance,
     setUserGuidance,
     hasVisibleSuggestions,
+    hasAnalyzed,
     mergeIncomingSuggestions,
+    mergeIncomingExistingRiskReviews,
+    markAnalyzed,
+    reconcileWithExistingRiskIds,
     markRiskAdded,
+    markModularSuggestionApplied,
     dismissSuggestion,
     expandedSuggestionIdsSet,
+    appliedModularSuggestionKeysSet,
     setSuggestionExpanded,
     expandAllSuggestions,
     collapseAllSuggestions,
   } = aiRiskAnalysis;
   const { isMaster } = useAccess();
+  const { showConfirmation } = useConfirmationModal();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const [applyingSuggestionKey, setApplyingSuggestionKey] = useState<
+    string | null
+  >(null);
+  const analyzeAbortControllerRef = useRef<AbortController | null>(null);
+  const analyzeRequestIdRef = useRef(0);
 
   const hasInsufficientCharacterizationText = useMemo(
     () => isCharacterizationTextInsufficient(characterizationData),
@@ -319,9 +347,10 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   const {
     data: existingRiskData = [],
     refetch: refetchExistingRiskData,
+    isFetching: isFetchingExistingRiskData,
   } = useQueryRiskDataByGho(riskGroupId || '', characterizationData.id || '');
 
-  const refreshExistingRisksAfterImport = useCallback(async () => {
+  const refreshExistingRisksFromGse = useCallback(async () => {
     const companyIdForQuery =
       characterizationData.companyId || contextCompanyId;
 
@@ -347,6 +376,17 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     refetchExistingRiskData,
     riskGroupId,
   ]);
+
+  const refreshExistingRisksAfterImport = refreshExistingRisksFromGse;
+
+  // Keep GSE list fresh when this panel remounts / characterization changes
+  // (e.g. after deletes in Fatores while RISK_DATA cache still looks fresh).
+  useEffect(() => {
+    if (!riskGroupId || !characterizationData.id) return;
+    void refreshExistingRisksFromGse();
+    // Intentionally keyed by ids only — avoid refetch loops from callback identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [characterizationData.id, riskGroupId]);
 
   const importCopyHomoMutationRef = useRef(copyHomoMutation);
   importCopyHomoMutationRef.current = copyHomoMutation;
@@ -401,6 +441,11 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     [sortedExistingRiskData],
   );
 
+  const existingRiskIdsKey = useMemo(
+    () => Array.from(existingRiskIds).sort().join('|'),
+    [existingRiskIds],
+  );
+
   const suggestedExistingRiskIds = useMemo(
     () =>
       new Set(
@@ -416,17 +461,11 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       filterNewAiRiskSuggestions({
         suggestions: visibleSuggestions,
         existingRiskIds,
-        addedRiskIds: addedRiskIdsSet,
+        // Only suppress "new" when the risk is still present in GSE.
+        addedRiskIds: new Set(
+          [...addedRiskIdsSet].filter((id) => existingRiskIds.has(id)),
+        ),
       }),
-    [addedRiskIdsSet, existingRiskIds, visibleSuggestions],
-  );
-
-  const sessionAddedNotYetInGse = useMemo(
-    () =>
-      visibleSuggestions.filter(
-        (risk) =>
-          addedRiskIdsSet.has(risk.id) && !existingRiskIds.has(risk.id),
-      ),
     [addedRiskIdsSet, existingRiskIds, visibleSuggestions],
   );
 
@@ -435,27 +474,276 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     [newRiskSuggestions],
   );
 
+  // Session badge / reviews must never invent "already characterized" rows.
+  useEffect(() => {
+    if (isFetchingExistingRiskData) return;
+    reconcileWithExistingRiskIds(existingRiskIds);
+    // Prefer stable key over Set identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    existingRiskIdsKey,
+    isFetchingExistingRiskData,
+    reconcileWithExistingRiskIds,
+  ]);
+
+  const visibleExistingRiskReviews = useMemo(
+    () =>
+      filterExistingRiskReviews({
+        reviews: existingRiskReviews.filter((review) =>
+          existingRiskIds.has(review.riskId),
+        ),
+        appliedKeys: appliedModularSuggestionKeysSet,
+      }),
+    [
+      appliedModularSuggestionKeysSet,
+      existingRiskIds,
+      existingRiskReviews,
+    ],
+  );
+
+  const reviewAccordionIds = useMemo(
+    () =>
+      visibleExistingRiskReviews.map(
+        (review) => `review:${review.riskId}`,
+      ),
+    [visibleExistingRiskReviews],
+  );
+
+  const existingRiskDataByRiskId = useMemo(() => {
+    const map = new Map<string, IRiskData>();
+    sortedExistingRiskData.forEach((riskData) => {
+      if (riskData.riskId) map.set(riskData.riskId, riskData);
+    });
+    return map;
+  }, [sortedExistingRiskData]);
+
+  const handleCancelAnalyze = () => {
+    analyzeAbortControllerRef.current?.abort();
+    analyzeAbortControllerRef.current = null;
+    analyzeRequestIdRef.current += 1;
+  };
+
   const handleAnalyze = async () => {
     if (
       !characterizationData.id ||
       !characterizationData.companyId ||
-      !characterizationData.workspaceId
+      !characterizationData.workspaceId ||
+      aiAnalyzeMutation.isPending
     ) {
       return;
     }
 
+    analyzeAbortControllerRef.current?.abort();
+    const abortController = new AbortController();
+    analyzeAbortControllerRef.current = abortController;
+    const requestId = analyzeRequestIdRef.current + 1;
+    analyzeRequestIdRef.current = requestId;
+
     const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
 
-    const result = await aiAnalyzeMutation.mutateAsync({
+    try {
+      const result = await aiAnalyzeMutation.mutateAsync({
+        companyId: characterizationData.companyId,
+        workspaceId: characterizationData.workspaceId,
+        characterizationId: characterizationData.id,
+        userGuidance: userGuidance.trim() || undefined,
+        customPrompt: masterOverrides.customPrompt,
+        model: masterOverrides.model,
+        signal: abortController.signal,
+      });
+
+      if (
+        analyzeRequestIdRef.current !== requestId ||
+        abortController.signal.aborted
+      ) {
+        return;
+      }
+
+      const incomingNewRisks =
+        result.newRiskSuggestions?.length
+          ? result.newRiskSuggestions
+          : result.detailedRisks;
+
+      mergeIncomingSuggestions(incomingNewRisks);
+      mergeIncomingExistingRiskReviews(result.existingRiskReviews || []);
+      markAnalyzed();
+      await refreshExistingRisksFromGse();
+    } catch (error) {
+      // Mutation onError already surfaces non-cancel failures; ignore abort.
+      if (isAiAnalyzeRequestCanceled(error)) return;
+    } finally {
+      if (analyzeAbortControllerRef.current === abortController) {
+        analyzeAbortControllerRef.current = null;
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      analyzeAbortControllerRef.current?.abort();
+    };
+  }, []);
+
+  const handleApplyModularSuggestion = async (params: {
+    review: ExistingRiskReview;
+    suggestion: AiRiskFieldSuggestion;
+    value: string | number;
+  }) => {
+    if (!riskGroupId || !characterizationData.id) return;
+
+    const riskData =
+      existingRiskDataByRiskId.get(params.review.riskId) ||
+      sortedExistingRiskData.find(
+        (item) => item.id === params.review.riskFactorDataId,
+      );
+
+    if (!riskData?.id) {
+      console.error('Existing risk data not found for modular apply');
+      return;
+    }
+
+    const suggestionKey = buildModularSuggestionKey(
+      params.review.riskId,
+      params.suggestion.field,
+      params.value,
+    );
+
+    if (params.suggestion.field === 'observation') {
+      return;
+    }
+
+    if (params.suggestion.field === 'probability') {
+      const currentProbability =
+        typeof params.suggestion.currentValues === 'number'
+          ? params.suggestion.currentValues
+          : riskData.probability;
+      const confirmed = await showConfirmation({
+        title: 'Aplicar probabilidade sugerida?',
+        message: `A probabilidade atual (${currentProbability ?? 'não informada'}) será substituída pela sugerida (${params.value}). Esta ação sobrescreve o valor atual.`,
+        confirmText: 'Aplicar probabilidade',
+        cancelText: 'Cancelar',
+        variant: 'warning',
+      });
+      if (!confirmed) return;
+    }
+
+    const payload = buildModularRiskUpsert({
+      field: params.suggestion.field,
+      value: params.value,
+      riskData,
+      riskGroupId,
       companyId: characterizationData.companyId,
       workspaceId: characterizationData.workspaceId,
-      characterizationId: characterizationData.id,
-      userGuidance: userGuidance.trim() || undefined,
-      customPrompt: masterOverrides.customPrompt,
-      model: masterOverrides.model,
+      homogeneousGroupId: characterizationData.id,
     });
 
-    mergeIncomingSuggestions(result.detailedRisks);
+    if (!payload) return;
+
+    try {
+      setApplyingSuggestionKey(suggestionKey);
+      await upsertRiskDataMutation.mutateAsync(payload);
+      markModularSuggestionApplied(suggestionKey);
+      await refetchExistingRiskData();
+    } catch (error) {
+      console.error('Error applying modular AI suggestion:', error);
+    } finally {
+      setApplyingSuggestionKey(null);
+    }
+  };
+
+  const renderSuggestionValue = (
+    review: ExistingRiskReview,
+    suggestion: AiRiskFieldSuggestion,
+    value: string | number,
+    options?: { showFieldChip?: boolean },
+  ) => {
+    const key = buildModularSuggestionKey(
+      review.riskId,
+      suggestion.field,
+      value,
+    );
+    const isApplied = appliedModularSuggestionKeysSet.has(key);
+    const isObservation = suggestion.field === 'observation';
+    const isProbability = suggestion.field === 'probability';
+    const showFieldChip = options?.showFieldChip !== false;
+    const currentLabel = Array.isArray(suggestion.currentValues)
+      ? suggestion.currentValues.join(', ') || '—'
+      : suggestion.currentValues ?? '—';
+
+    return (
+      <Box
+        key={key}
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          p: 1.5,
+        }}
+      >
+        <SFlex
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          gap={2}
+          sx={{ flexWrap: 'wrap' }}
+        >
+          <SFlex direction="column" gap={0.5} sx={{ flex: 1, minWidth: 0 }}>
+            {showFieldChip && (
+              <Chip
+                size="small"
+                label={getFieldLabel(suggestion.field)}
+                color={getFieldChipColor(suggestion.field)}
+                variant="outlined"
+                sx={{ alignSelf: 'flex-start' }}
+              />
+            )}
+            {isApplied && (
+              <Chip
+                size="small"
+                label="Aplicado"
+                color="success"
+                variant="outlined"
+                sx={{ alignSelf: 'flex-start' }}
+              />
+            )}
+            <SText variant="caption" color="text.secondary">
+              Valor atual: {String(currentLabel)}
+            </SText>
+            <SText variant="body2" color="text.primary">
+              Sugerido: {String(value)}
+            </SText>
+            {suggestion.rationale && (
+              <SText variant="caption" color="text.secondary">
+                {suggestion.rationale}
+              </SText>
+            )}
+            {isProbability && (
+              <SText variant="caption" color="warning.main">
+                Aplicar probabilidade sobrescreve o valor atual.
+              </SText>
+            )}
+          </SFlex>
+          {!isObservation && (
+            <SButton
+              text={isApplied ? 'Aplicado' : 'Aplicar'}
+              variant={isApplied ? 'shade' : 'outlined'}
+              color="primary"
+              size="s"
+              disabled={isApplied || applyingSuggestionKey === key}
+              loading={applyingSuggestionKey === key}
+              onClick={() =>
+                void handleApplyModularSuggestion({
+                  review,
+                  suggestion,
+                  value,
+                })
+              }
+              buttonProps={{ sx: { minWidth: 'auto' } }}
+            />
+          )}
+        </SFlex>
+      </Box>
+    );
   };
 
   // Helper functions for removing items from risk measures
@@ -874,7 +1162,12 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 size="small"
               />
 
-              <Box>
+              <SFlex
+                direction="row"
+                alignItems="center"
+                gap={1}
+                sx={{ flexWrap: 'wrap' }}
+              >
                 <AiActionButtonGroup
                   variant="s-button-contained"
                   label={
@@ -892,7 +1185,17 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                     buttonProps: { sx: { alignSelf: 'flex-start' } },
                   }}
                 />
-              </Box>
+                {aiAnalyzeMutation.isPending && (
+                  <SButton
+                    text="Cancelar análise"
+                    variant="outlined"
+                    color="primary"
+                    size="s"
+                    onClick={handleCancelAnalyze}
+                    buttonProps={{ sx: { minWidth: 'auto' } }}
+                  />
+                )}
+              </SFlex>
 
               <Box
                 sx={{
@@ -939,69 +1242,12 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                       Nenhum inventário/grupo de risco disponível para carregar
                       os riscos cadastrados.
                     </SText>
-                  ) : sortedExistingRiskData.length === 0 &&
-                    sessionAddedNotYetInGse.length === 0 ? (
+                  ) : sortedExistingRiskData.length === 0 ? (
                     <SText variant="body2" color="text.secondary">
                       Nenhum risco vinculado a este GSE neste inventário.
                     </SText>
                   ) : (
                     <SFlex direction="column" gap={1}>
-                      {sessionAddedNotYetInGse.map((risk) => (
-                        <Accordion
-                          key={`session-added-${risk.id}`}
-                          disableGutters
-                          sx={{
-                            border: '1px solid',
-                            borderColor: 'success.main',
-                            borderRadius: 1,
-                            '&:before': { display: 'none' },
-                            boxShadow: 'none',
-                          }}
-                        >
-                          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <SFlex
-                              direction="row"
-                              alignItems="center"
-                              gap={2}
-                              sx={{ width: '100%', pr: 1 }}
-                            >
-                              <SFlex
-                                direction="row"
-                                alignItems="center"
-                                gap={1}
-                                sx={{ flex: 1, minWidth: 0 }}
-                              >
-                                {risk.type && (
-                                  <SRiskChip
-                                    type={risk.type as unknown as RiskTypeEnum}
-                                  />
-                                )}
-                                <SText variant="body2" color="text.primary">
-                                  {risk.name}
-                                </SText>
-                              </SFlex>
-                              <Chip
-                                size="small"
-                                label="Já caracterizado"
-                                color="default"
-                                variant="outlined"
-                              />
-                              <Chip
-                                size="small"
-                                label="Adicionado nesta sessão"
-                                color="success"
-                                variant="outlined"
-                              />
-                            </SFlex>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            <SText variant="caption" color="text.secondary">
-                              Risco adicionado nesta sessão. A lista do GSE será
-                              atualizada após a sincronização.
-                            </SText>
-                          </AccordionDetails>
-                        </Accordion>
-                      ))}
                       {sortedExistingRiskData.map((riskData: IRiskData) => {
                         const riskName =
                           riskData.riskFactor?.name || 'Risco sem nome';
@@ -1134,6 +1380,188 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                   )}
                 </SFlex>
               </Box>
+
+              {(hasAnalyzed || visibleExistingRiskReviews.length > 0) && (
+                <Box
+                  sx={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 1,
+                    p: 3,
+                    backgroundColor: 'background.paper',
+                    mt: 3,
+                  }}
+                >
+                  <SFlex direction="column" gap={2}>
+                    <SFlex
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      gap={2}
+                      sx={{ flexWrap: 'wrap' }}
+                    >
+                      <SText variant="subtitle2" color="text.primary">
+                        Melhorias sugeridas pela IA
+                      </SText>
+                      {visibleExistingRiskReviews.length > 0 && (
+                        <SFlex direction="row" gap={1}>
+                          <SButton
+                            text="Expandir todos"
+                            variant="outlined"
+                            color="primary"
+                            size="s"
+                            onClick={() =>
+                              expandAllSuggestions(reviewAccordionIds)
+                            }
+                            buttonProps={{ sx: { minWidth: 'auto' } }}
+                          />
+                          <SButton
+                            text="Recolher todos"
+                            variant="outlined"
+                            color="primary"
+                            size="s"
+                            onClick={() =>
+                              collapseAllSuggestions(reviewAccordionIds)
+                            }
+                            buttonProps={{ sx: { minWidth: 'auto' } }}
+                          />
+                        </SFlex>
+                      )}
+                    </SFlex>
+                    <SText variant="body2" color="text.secondary">
+                      Sugestões modulares para riscos já caracterizados. Nada é
+                      aplicado automaticamente — escolha item a item.
+                    </SText>
+
+                    {visibleExistingRiskReviews.length === 0 ? (
+                      <SText variant="body2" color="text.secondary">
+                        Nenhuma melhoria sugerida para riscos já caracterizados
+                        nesta análise.
+                      </SText>
+                    ) : (
+                      <SFlex direction="column" gap={1}>
+                        {visibleExistingRiskReviews.map((review) => {
+                          const accordionId = `review:${review.riskId}`;
+                          return (
+                            <Accordion
+                              key={accordionId}
+                              disableGutters
+                              expanded={expandedSuggestionIdsSet.has(
+                                accordionId,
+                              )}
+                              onChange={(_, isExpanded) =>
+                                setSuggestionExpanded(accordionId, isExpanded)
+                              }
+                              sx={{
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: 1,
+                                '&:before': { display: 'none' },
+                                boxShadow: 'none',
+                              }}
+                            >
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <SFlex
+                                  direction="row"
+                                  alignItems="center"
+                                  gap={2}
+                                  sx={{ width: '100%', pr: 1 }}
+                                >
+                                  <SFlex
+                                    direction="row"
+                                    alignItems="center"
+                                    gap={1}
+                                    sx={{ flex: 1, minWidth: 0 }}
+                                  >
+                                    {review.type && (
+                                      <SRiskChip
+                                        type={
+                                          review.type as unknown as RiskTypeEnum
+                                        }
+                                      />
+                                    )}
+                                    <SText variant="body2" color="text.primary">
+                                      {review.name}
+                                    </SText>
+                                  </SFlex>
+                                  <Chip
+                                    size="small"
+                                    label="Já caracterizado"
+                                    color="default"
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    size="small"
+                                    label="Sugestão IA"
+                                    color="info"
+                                    variant="outlined"
+                                  />
+                                </SFlex>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                <SFlex direction="column" gap={2.5}>
+                                  {groupReviewSuggestions(review).map(
+                                    (group) => (
+                                      <Box key={group.categoryId}>
+                                        <SText
+                                          variant="subtitle2"
+                                          color="text.primary"
+                                          mb={1}
+                                        >
+                                          {group.title}
+                                        </SText>
+                                        <SFlex direction="column" gap={1.5}>
+                                          {group.subgroups.map((subgroup) => (
+                                            <Box
+                                              key={`${review.riskId}:${subgroup.field}`}
+                                            >
+                                              <Chip
+                                                size="small"
+                                                label={getFieldLabel(
+                                                  subgroup.field,
+                                                )}
+                                                color={getFieldChipColor(
+                                                  subgroup.field,
+                                                )}
+                                                variant="outlined"
+                                                sx={{ mb: 0.75 }}
+                                              />
+                                              <SFlex
+                                                direction="column"
+                                                gap={1}
+                                              >
+                                                {subgroup.suggestions.flatMap(
+                                                  (suggestion) =>
+                                                    getSuggestionValues(
+                                                      suggestion,
+                                                    ).map((value) =>
+                                                      renderSuggestionValue(
+                                                        review,
+                                                        suggestion,
+                                                        value,
+                                                        {
+                                                          // Field type chip is shown once per subgroup.
+                                                          showFieldChip: false,
+                                                        },
+                                                      ),
+                                                    ),
+                                                )}
+                                              </SFlex>
+                                            </Box>
+                                          ))}
+                                        </SFlex>
+                                      </Box>
+                                    ),
+                                  )}
+                                </SFlex>
+                              </AccordionDetails>
+                            </Accordion>
+                          );
+                        })}
+                      </SFlex>
+                    )}
+                  </SFlex>
+                </Box>
+              )}
 
               {newRiskSuggestions.length > 0 && (
                 <Box

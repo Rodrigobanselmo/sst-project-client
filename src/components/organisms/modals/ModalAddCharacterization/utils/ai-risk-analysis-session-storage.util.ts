@@ -1,13 +1,20 @@
-import { DetailedRisk } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
+import {
+  DetailedRisk,
+  ExistingRiskReview,
+} from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 
 export type AiRiskAnalysisSessionSnapshot = {
   suggestions: DetailedRisk[];
+  existingRiskReviews: ExistingRiskReview[];
   addedRiskIds: string[];
   dismissedRiskIds: string[];
   modifiedRisks: Record<string, DetailedRisk>;
   userGuidance: string;
   /** Suggestion accordion ids the user left expanded in this browser session. */
   expandedSuggestionIds: string[];
+  appliedModularSuggestionKeys: string[];
+  /** True after at least one AI analysis merge in this browser session. */
+  hasAnalyzed: boolean;
 };
 
 export type AiRiskAnalysisSessionKeyParams = {
@@ -52,6 +59,9 @@ export function readAiRiskAnalysisSession(
 
     return {
       suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+      existingRiskReviews: Array.isArray(parsed.existingRiskReviews)
+        ? parsed.existingRiskReviews
+        : [],
       addedRiskIds: Array.isArray(parsed.addedRiskIds)
         ? parsed.addedRiskIds
         : [],
@@ -69,6 +79,14 @@ export function readAiRiskAnalysisSession(
             (id): id is string => typeof id === 'string' && !!id,
           )
         : [],
+      appliedModularSuggestionKeys: Array.isArray(
+        parsed.appliedModularSuggestionKeys,
+      )
+        ? parsed.appliedModularSuggestionKeys.filter(
+            (id): id is string => typeof id === 'string' && !!id,
+          )
+        : [],
+      hasAnalyzed: parsed.hasAnalyzed === true,
     };
   } catch {
     return null;
@@ -85,5 +103,15 @@ export function writeAiRiskAnalysisSession(
     window.sessionStorage.setItem(key, JSON.stringify(snapshot));
   } catch {
     // Ignore quota / private-mode failures; in-memory state remains valid.
+  }
+}
+
+/** Clears only the AI analysis session snapshot for one characterization/group. */
+export function clearAiRiskAnalysisSession(key: string | null): void {
+  if (!key || typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // ignore
   }
 }

@@ -10,6 +10,7 @@ export async function aiAnalyzeCharacterization({
   companyId,
   workspaceId,
   characterizationId,
+  signal,
   ...body
 }: AiAnalyzeCharacterizationParams): Promise<Result> {
   const response = await api.post(
@@ -18,6 +19,7 @@ export async function aiAnalyzeCharacterization({
       pathParams: { companyId, workspaceId, characterizationId },
     }),
     body,
+    { signal },
   );
 
   return response.data;

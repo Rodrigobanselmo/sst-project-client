@@ -1,23 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { DetailedRisk } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
+import {
+  DetailedRisk,
+  ExistingRiskReview,
+} from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 
 import { mergeAiRiskSuggestions } from '../components/ModalAiAnalysisContent/merge-ai-risk-suggestions.util';
+import { mergeExistingRiskReviews } from '../components/ModalAiAnalysisContent/ai-risk-field-suggestion.util';
 import {
   AiRiskAnalysisSessionKeyParams,
   AiRiskAnalysisSessionSnapshot,
   buildAiRiskAnalysisSessionKey,
+  clearAiRiskAnalysisSession,
   readAiRiskAnalysisSession,
   writeAiRiskAnalysisSession,
 } from '../utils/ai-risk-analysis-session-storage.util';
 
 const createEmptyState = (): AiRiskAnalysisSessionSnapshot => ({
   suggestions: [],
+  existingRiskReviews: [],
   addedRiskIds: [],
   dismissedRiskIds: [],
   modifiedRisks: {},
   userGuidance: '',
   expandedSuggestionIds: [],
+  appliedModularSuggestionKeys: [],
+  hasAnalyzed: false,
 });
 
 export const useCharacterizationAiRiskAnalysisState = (
@@ -42,6 +50,9 @@ export const useCharacterizationAiRiskAnalysisState = (
   const [suggestions, setSuggestions] = useState<DetailedRisk[]>(
     () => createEmptyState().suggestions,
   );
+  const [existingRiskReviews, setExistingRiskReviews] = useState<
+    ExistingRiskReview[]
+  >(() => createEmptyState().existingRiskReviews);
   const [addedRiskIds, setAddedRiskIds] = useState<string[]>(
     () => createEmptyState().addedRiskIds,
   );
@@ -57,17 +68,25 @@ export const useCharacterizationAiRiskAnalysisState = (
   const [expandedSuggestionIds, setExpandedSuggestionIds] = useState<string[]>(
     () => createEmptyState().expandedSuggestionIds,
   );
+  const [appliedModularSuggestionKeys, setAppliedModularSuggestionKeys] =
+    useState<string[]>(() => createEmptyState().appliedModularSuggestionKeys);
+  const [hasAnalyzed, setHasAnalyzed] = useState(
+    () => createEmptyState().hasAnalyzed,
+  );
   const [hydratedKey, setHydratedKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!sessionKey) {
       const emptyState = createEmptyState();
       setSuggestions(emptyState.suggestions);
+      setExistingRiskReviews(emptyState.existingRiskReviews);
       setAddedRiskIds(emptyState.addedRiskIds);
       setDismissedRiskIds(emptyState.dismissedRiskIds);
       setModifiedRisks(emptyState.modifiedRisks);
       setUserGuidance(emptyState.userGuidance);
       setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
+      setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
+      setHasAnalyzed(emptyState.hasAnalyzed);
       setHydratedKey(null);
       return;
     }
@@ -76,11 +95,14 @@ export const useCharacterizationAiRiskAnalysisState = (
 
     const restored = readAiRiskAnalysisSession(sessionKey) || createEmptyState();
     setSuggestions(restored.suggestions);
+    setExistingRiskReviews(restored.existingRiskReviews);
     setAddedRiskIds(restored.addedRiskIds);
     setDismissedRiskIds(restored.dismissedRiskIds);
     setModifiedRisks(restored.modifiedRisks);
     setUserGuidance(restored.userGuidance);
     setExpandedSuggestionIds(restored.expandedSuggestionIds);
+    setAppliedModularSuggestionKeys(restored.appliedModularSuggestionKeys);
+    setHasAnalyzed(restored.hasAnalyzed);
     setHydratedKey(sessionKey);
   }, [hydratedKey, sessionKey]);
 
@@ -89,21 +111,27 @@ export const useCharacterizationAiRiskAnalysisState = (
 
     writeAiRiskAnalysisSession(sessionKey, {
       suggestions,
+      existingRiskReviews,
       addedRiskIds,
       dismissedRiskIds,
       modifiedRisks,
       userGuidance,
       expandedSuggestionIds,
+      appliedModularSuggestionKeys,
+      hasAnalyzed,
     });
   }, [
     sessionKey,
     hydratedKey,
     suggestions,
+    existingRiskReviews,
     addedRiskIds,
     dismissedRiskIds,
     modifiedRisks,
     userGuidance,
     expandedSuggestionIds,
+    appliedModularSuggestionKeys,
+    hasAnalyzed,
   ]);
 
   const visibleSuggestions = useMemo(
@@ -121,6 +149,11 @@ export const useCharacterizationAiRiskAnalysisState = (
     [expandedSuggestionIds],
   );
 
+  const appliedModularSuggestionKeysSet = useMemo(
+    () => new Set(appliedModularSuggestionKeys),
+    [appliedModularSuggestionKeys],
+  );
+
   const hasVisibleSuggestions = visibleSuggestions.length > 0;
 
   const dismissedRiskIdsRef = useRef(dismissedRiskIds);
@@ -136,9 +169,61 @@ export const useCharacterizationAiRiskAnalysisState = (
     );
   }, []);
 
+  const mergeIncomingExistingRiskReviews = useCallback(
+    (incoming: ExistingRiskReview[]) => {
+      setExistingRiskReviews((current) =>
+        mergeExistingRiskReviews({
+          existing: current,
+          incoming,
+        }),
+      );
+      setHasAnalyzed(true);
+    },
+    [],
+  );
+
+  const markAnalyzed = useCallback(() => {
+    setHasAnalyzed(true);
+  }, []);
+
+  /**
+   * Keep session-only badges aligned with GSE truth.
+   * Removed GSE risks must not keep "Adicionado nesta sessão".
+   * Reviews for deleted risks are dropped from session state.
+   */
+  const reconcileWithExistingRiskIds = useCallback(
+    (existingRiskIds: Set<string>) => {
+      setAddedRiskIds((current) => {
+        const next = current.filter((id) => existingRiskIds.has(id));
+        if (
+          next.length === current.length &&
+          next.every((id, index) => id === current[index])
+        ) {
+          return current;
+        }
+        return next;
+      });
+
+      setExistingRiskReviews((current) => {
+        const next = current.filter((review) =>
+          existingRiskIds.has(review.riskId),
+        );
+        if (next.length === current.length) return current;
+        return next;
+      });
+    },
+    [],
+  );
+
   const markRiskAdded = useCallback((riskId: string) => {
     setAddedRiskIds((current) =>
       current.includes(riskId) ? current : [...current, riskId],
+    );
+  }, []);
+
+  const markModularSuggestionApplied = useCallback((key: string) => {
+    setAppliedModularSuggestionKeys((current) =>
+      current.includes(key) ? current : [...current, key],
     );
   }, []);
 
@@ -182,8 +267,23 @@ export const useCharacterizationAiRiskAnalysisState = (
     );
   }, []);
 
+  const clearSessionState = useCallback(() => {
+    const emptyState = createEmptyState();
+    setSuggestions(emptyState.suggestions);
+    setExistingRiskReviews(emptyState.existingRiskReviews);
+    setAddedRiskIds(emptyState.addedRiskIds);
+    setDismissedRiskIds(emptyState.dismissedRiskIds);
+    setModifiedRisks(emptyState.modifiedRisks);
+    setUserGuidance(emptyState.userGuidance);
+    setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
+    setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
+    setHasAnalyzed(emptyState.hasAnalyzed);
+    clearAiRiskAnalysisSession(sessionKey);
+  }, [sessionKey]);
+
   return {
     suggestions,
+    existingRiskReviews,
     visibleSuggestions,
     addedRiskIds,
     addedRiskIdsSet,
@@ -194,13 +294,21 @@ export const useCharacterizationAiRiskAnalysisState = (
     setUserGuidance,
     expandedSuggestionIds,
     expandedSuggestionIdsSet,
+    appliedModularSuggestionKeys,
+    appliedModularSuggestionKeysSet,
     hasVisibleSuggestions,
+    hasAnalyzed,
     mergeIncomingSuggestions,
+    mergeIncomingExistingRiskReviews,
+    markAnalyzed,
+    reconcileWithExistingRiskIds,
     markRiskAdded,
+    markModularSuggestionApplied,
     dismissSuggestion,
     setSuggestionExpanded,
     expandAllSuggestions,
     collapseAllSuggestions,
+    clearSessionState,
     sessionKey,
   };
 };
