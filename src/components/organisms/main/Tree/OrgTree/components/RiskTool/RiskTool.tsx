@@ -32,8 +32,8 @@ import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/use
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
-import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { useHierarchyTreeLoad } from '../../hooks/useHierarchyTreeLoad';
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
@@ -66,7 +66,7 @@ export const RiskTool = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
-  const { data: ghoQuery } = useQueryGHOAll();
+  const { gho: ghoQuery } = useHierarchyTreeLoad();
   const { onStackOpenModal } = useModal();
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);

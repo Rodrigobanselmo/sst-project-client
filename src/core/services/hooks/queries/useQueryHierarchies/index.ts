@@ -33,9 +33,13 @@ export const queryHierarchies = async (companyId: string) => {
   return setMapHierarchies(response.data);
 };
 
-export function useQueryHierarchies(companyID?: string) {
+export function useQueryHierarchies(
+  companyID?: string,
+  options?: { enabled?: boolean },
+) {
   const { companyId } = useGetCompanyId();
   const company = companyID || companyId;
+  const enabled = options?.enabled ?? true;
 
   const { data, ...query } = useQuery(
     [QueryEnum.HIERARCHY, company],
@@ -45,6 +49,7 @@ export function useQueryHierarchies(companyID?: string) {
         : <Promise<IHierarchyMap>>emptyMapReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
+      enabled: enabled && !!company && company != '-',
     },
   );
 

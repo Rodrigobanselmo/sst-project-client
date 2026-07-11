@@ -24,7 +24,19 @@ function filterTreeMapByWorkspace(
   };
 }
 
-export const useHierarchyTreeLoad = () => {
+export type UseHierarchyTreeLoadOptions = {
+  /**
+   * When false, skips hierarchy + GHO/all network requests and does not
+   * overwrite the Redux tree. Defaults to true for existing call sites
+   * (e.g. organogram page).
+   */
+  enabled?: boolean;
+};
+
+export const useHierarchyTreeLoad = (
+  options?: UseHierarchyTreeLoadOptions,
+) => {
+  const enabled = options?.enabled ?? true;
   const router = useRouter();
   const pathname = router.pathname || '';
   const isHierarquiaPage =
@@ -32,8 +44,16 @@ export const useHierarchyTreeLoad = () => {
   const tabWorkspaceId = isHierarquiaPage
     ? (router.query.tabWorkspaceId as string | undefined)
     : undefined;
-  const { data } = useQueryHierarchies();
-  const { data: gho } = useQueryGHOAll();
+  const {
+    data,
+    isLoading: isHierarchiesLoading,
+    isFetching: isHierarchiesFetching,
+  } = useQueryHierarchies(undefined, { enabled });
+  const {
+    data: gho,
+    isLoading: isGhoLoading,
+    isFetching: isGhoFetching,
+  } = useQueryGHOAll(undefined, undefined, { enabled });
   const { data: company } = useQueryCompany();
   const store = useStore<any>();
 
@@ -41,6 +61,8 @@ export const useHierarchyTreeLoad = () => {
     useHierarchyTreeActions();
 
   useEffect(() => {
+    if (!enabled) return;
+
     const search = store.getState().hierarchy.search as string;
 
     if (data && company && gho) {
@@ -54,6 +76,7 @@ export const useHierarchyTreeLoad = () => {
       if (search) searchFilterNodes(search);
     }
   }, [
+    enabled,
     setTree,
     data,
     company,
@@ -65,5 +88,16 @@ export const useHierarchyTreeLoad = () => {
     searchFilterNodes,
   ]);
 
-  return { hierarchies: data, gho, company, store };
+  const isLoading = enabled && (isHierarchiesLoading || isGhoLoading);
+  const isFetching = enabled && (isHierarchiesFetching || isGhoFetching);
+
+  return {
+    hierarchies: data,
+    gho,
+    company,
+    store,
+    isLoading,
+    isFetching,
+    enabled,
+  };
 };

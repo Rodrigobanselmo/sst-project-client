@@ -17,7 +17,6 @@ import {
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
-import { useHierarchyTreeLoad } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyTreeLoad';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { useCharacterizationInlineEditorOptional } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
 import { RiskToolByEntityTabContent } from './RiskToolByEntityTabContent';
@@ -25,7 +24,8 @@ import { RiskToolByEntityTabContent } from './RiskToolByEntityTabContent';
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
 export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) => {
-  useHierarchyTreeLoad();
+  // Hierarchy + GHO/all are loaded on demand by RiskTool (Vínculo, GSE editor,
+  // Elementos > Fatores). Prefetching here blocked the default Riscos tab.
   const router = useRouter();
   const { workspaceId } = useTabWorkspaceId();
   const activeTab = parseCharacterizationActiveTab(query?.active);

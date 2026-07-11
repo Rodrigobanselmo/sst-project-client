@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { Box, CircularProgress } from '@mui/material';
 import { initialAutomateSubOfficeState } from 'components/organisms/modals/ModalAutomateSubOffice/hooks/useHandleActions';
 import { useRouter } from 'next/router';
 import { setGhoMultiState } from 'store/reducers/hierarchy/ghoMultiSlice';
@@ -30,8 +31,7 @@ import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
-import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
-import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
+import { useHierarchyTreeLoad } from '../../hooks/useHierarchyTreeLoad';
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
@@ -78,8 +78,11 @@ export const RiskToolV2 = ({
 }: RiskToolV2Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
-  const { data: ghoQuery } = useQueryGHOAll();
-  const { data: hierarchyMap } = useQueryHierarchies();
+  const {
+    gho: ghoQuery,
+    hierarchies: hierarchyMap,
+    isLoading: isHierarchyTreeLoading,
+  } = useHierarchyTreeLoad();
   const { onStackOpenModal } = useModal();
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);
@@ -369,7 +372,27 @@ export const RiskToolV2 = ({
     );
   };
 
-  return (
+  return isHierarchyTreeLoading ? (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1.5,
+        minHeight: 280,
+        width: '100%',
+      }}
+    >
+      <CircularProgress size={32} />
+      <Box
+        component="span"
+        sx={{ fontSize: 13, color: 'text.secondary', textAlign: 'center' }}
+      >
+        Carregando vínculos e hierarquia…
+      </Box>
+    </Box>
+  ) : (
     <STBoxContainer expanded={selectExpanded ? 1 : 0} risk_init={1} open={1}>
       <RiskToolTopButtons
         onChangeView={handleChangeView}

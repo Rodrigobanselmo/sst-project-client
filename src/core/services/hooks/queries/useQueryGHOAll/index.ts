@@ -38,9 +38,11 @@ export const queryGHO = async (
 export function useQueryGHOAll(
   companyIdProp?: string,
   filters?: QueryGHOListFilters,
+  options?: { enabled?: boolean },
 ): IReactQuery<IGho[]> {
   const { companyId } = useGetCompanyId();
   const companyIdSelected = companyIdProp || companyId;
+  const enabled = options?.enabled ?? true;
 
   const { data, ...query } = useQuery(
     [
@@ -55,6 +57,7 @@ export function useQueryGHOAll(
         : <Promise<IGho[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
+      enabled: enabled && !!companyIdSelected,
     },
   );
 
