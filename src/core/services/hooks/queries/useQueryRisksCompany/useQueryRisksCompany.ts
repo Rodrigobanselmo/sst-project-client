@@ -38,6 +38,7 @@ export function useQueryRisksCompany(
   page = 1,
   query = {} as IQueryRiskCompany,
   take = 20,
+  options?: { enabled?: boolean },
 ) {
   const { getCompanyId } = useGetCompanyId();
   const pagination: IPagination = {
@@ -52,6 +53,7 @@ export function useQueryRisksCompany(
     () => queryExams(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
+      enabled: options?.enabled ?? true,
     },
   );
 

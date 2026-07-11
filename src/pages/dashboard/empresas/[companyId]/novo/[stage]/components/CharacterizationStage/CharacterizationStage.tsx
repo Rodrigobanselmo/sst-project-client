@@ -17,17 +17,28 @@ import {
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
-import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
+import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
 import { useCharacterizationInlineEditorOptional } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
 import { RiskToolByEntityTabContent } from './RiskToolByEntityTabContent';
 
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
-export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) => {
+export const CharacterizationStage = ({
+  query,
+  sx,
+  company,
+  ...props
+}: ICompanyStage) => {
   // Hierarchy + GHO/all are loaded on demand by RiskTool (Vínculo, GSE editor,
   // Elementos > Fatores). Prefetching here blocked the default Riscos tab.
   const router = useRouter();
-  const { workspaceId } = useTabWorkspaceId();
+  const companyId = (query?.companyId as string | undefined) || company?.id;
+  const { workspaceId, isWorkspaceFilterReady } =
+    useEnsureCharacterizationTabWorkspace({
+      companyId,
+      companyWorkspaces: company?.workspace,
+      enabled: true,
+    });
   const activeTab = parseCharacterizationActiveTab(query?.active);
   const wizardStep = getCharacterizationWizardStep(activeTab);
   const inlineEditor = useCharacterizationInlineEditorOptional();
@@ -82,6 +93,7 @@ export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) =>
         <>
           <RiskCompanyTable
             workspaceId={workspaceId}
+            queryEnabled={isWorkspaceFilterReady}
             companyFlowSticky
             companyFlowBelowTabs
           />

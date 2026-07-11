@@ -33,13 +33,13 @@ import { ordenByCharacterizationTranslation } from '@v2/models/security/translat
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/characterization/browse-characterization/hooks/useFetchBrowseCharacterization';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
-import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
 import { CharacterizationTableFilter } from './components/CharacterizationTableFilter/CharacterizationTableFilter';
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
 import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
 import { CompanyFlowV2StickySection } from 'components/organisms/main/CompanyFlow/CompanyFlowV2StickySection';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback } from 'react';
+import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
 
 const table = TablesSelectEnum.CHARACTERIZATION;
 
@@ -64,45 +64,17 @@ export const CharacterizationTable = ({
   const router = useRouter();
 
   const companyId = router.query.companyId as string;
-  const workspaceId =
-    (router.query.workspaceId as string | undefined) ||
-    (router.query.tabWorkspaceId as string | undefined);
-  const hasWorkspaceSelected = !!workspaceId;
-
-  const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
-    companyId: companyId || '',
-  });
-
-  const soleEstablishmentId = useMemo(() => {
-    if (workspaces?.results?.length !== 1) return undefined;
-    return workspaces.results[0]?.id;
-  }, [workspaces?.results]);
-
   const isCharacterizationListRoute =
     router.pathname === CARACTERIZACAO_ROOT_PATHNAME ||
     (router.pathname === COMPANY_SST_PATHNAME &&
       router.query.stage === 'sst');
 
-  useEffect(() => {
-    if (!isCharacterizationListRoute) return;
-    if (isLoadingAllWorkspaces || !soleEstablishmentId) return;
-    if (router.query.tabWorkspaceId || router.query.workspaceId) return;
-
-    const nextQuery = { ...router.query };
-    nextQuery.tabWorkspaceId = soleEstablishmentId;
-    void router.replace(
-      { pathname: router.pathname, query: nextQuery },
-      undefined,
-      { shallow: true },
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: sync URL once when sole establishment resolves
-  }, [
-    isLoadingAllWorkspaces,
-    soleEstablishmentId,
-    isCharacterizationListRoute,
-    router.query.tabWorkspaceId,
-    router.query.workspaceId,
-  ]);
+  const { workspaceId, isWorkspaceFilterReady } =
+    useEnsureCharacterizationTabWorkspace({
+      companyId,
+      enabled: isCharacterizationListRoute,
+    });
+  const hasWorkspaceSelected = !!workspaceId;
 
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<CharacterizationColumnsEnum, boolean>
@@ -147,7 +119,7 @@ export const CharacterizationTable = ({
       },
     },
     {
-      enabled: hasWorkspaceSelected,
+      enabled: hasWorkspaceSelected && isWorkspaceFilterReady,
     },
   );
 

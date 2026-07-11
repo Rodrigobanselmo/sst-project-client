@@ -98,6 +98,8 @@ export const RiskCompanyTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
       workspaceId?: string;
+      /** Quando false, não dispara GET /risk/company (aguarda bootstrap do workspace). */
+      queryEnabled?: boolean;
       onSelectData?: (risk: IRiskFactors) => void;
       selectedData?: IRiskFactors[];
       query?: IQueryExam;
@@ -109,6 +111,7 @@ export const RiskCompanyTable: FC<
 > = ({
   rowsPerPage: rowsPerPageProp,
   workspaceId,
+  queryEnabled = true,
   onSelectData,
   selectedData,
   companyFlowSticky = false,
@@ -153,13 +156,17 @@ export const RiskCompanyTable: FC<
 
   const {
     data: risks,
-    isLoading: loadRisks,
+    isLoading: loadRisksQuery,
     count,
     companyId,
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryRisksCompany(page, queryWithSort, pageSize);
+  } = useQueryRisksCompany(page, queryWithSort, pageSize, {
+    enabled: queryEnabled,
+  });
+
+  const loadRisks = loadRisksQuery || !queryEnabled;
 
   const displayRisks = useMemo(
     () => sortRisksIdentifiedForVisualDisplay(risks),
