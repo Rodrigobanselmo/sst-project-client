@@ -372,12 +372,17 @@ export const RiskCompanyTable: FC<
     />
   );
 
+  const emptyMessage = workspaceId
+    ? 'Nenhum fator de risco vinculado a este estabelecimento.'
+    : 'Nenhum fator de risco identificado na empresa.';
+
   const tableBody = (
     <STableBody<IRiskFactors>
       key={pageSize}
       rowsData={displayRisks}
       hideLoadMore
       rowsInitialNumber={pageSize}
+      contentEmpty={emptyMessage}
       renderRow={(row) => {
             const isOpen = showOrigins || openId === row.id;
             return (
