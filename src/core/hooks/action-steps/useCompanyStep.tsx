@@ -107,6 +107,10 @@ export const useCompanyStep = () => {
       },
     );
   const hasCompany = !!company?.id;
+  const { push, pathname, query } = useRouter();
+  /** Skip action-plan workspace fan-out while Caracterização/SST is open. */
+  const isSstCharacterizationStage =
+    (query.stage as string | undefined) === CompanyActionEnum.SST_GROUP_PAGE;
   const homeMetrics = useMemo(() => {
     if (isGroupConsolidated && groupSummary) {
       return {
@@ -285,7 +289,11 @@ export const useCompanyStep = () => {
       company.id,
       actionPlanWorkspaceIds,
     ],
-    enabled: hasCompany && !isGroupConsolidated && actionPlanWorkspaceIds.length > 0,
+    enabled:
+      hasCompany &&
+      !isGroupConsolidated &&
+      actionPlanWorkspaceIds.length > 0 &&
+      !isSstCharacterizationStage,
     queryFn: async () => {
       const countByStatus = async (status?: ActionPlanStatusEnum) => {
         const totals = await Promise.all(
@@ -334,7 +342,6 @@ export const useCompanyStep = () => {
   );
 
   const { onStackOpenModal } = useOpenRiskTool();
-  const { push, pathname, query } = useRouter();
   const dispatch = useAppDispatch();
   const stepLocal = useAppSelector(selectStep(company.id));
   const { enqueueSnackbar } = useSnackbar();
