@@ -12,49 +12,54 @@ export interface ICharacterizationMap
 export const characterizationMap: ICharacterizationMap = {
   [CharacterizationTypeEnum.WORKSTATION]: {
     value: CharacterizationTypeEnum.WORKSTATION,
-    name: 'Posto de trabalho',
+    name: 'Posto de Trabalho',
     type: '',
     description:
-      'Posto de trabalho (local onde o empregado passa sua jornada de trabalho)',
+      'Use para caracterizar uma posição específica de trabalho, bancada, estação, posto fixo ou local onde uma função é executada de forma individualizada.',
   },
   [CharacterizationTypeEnum.ACTIVITIES]: {
     value: CharacterizationTypeEnum.ACTIVITIES,
     type: '',
-    name: 'Atividades',
-    description: 'Atividades com fatores de risco/perigo inerentes à ela',
+    name: 'Atividade',
+    description:
+      'Use para caracterizar uma tarefa, processo de trabalho, rotina operacional ou conjunto de ações executadas pelos trabalhadores, independentemente de um único local físico.',
   },
   [CharacterizationTypeEnum.EQUIPMENT]: {
     value: CharacterizationTypeEnum.EQUIPMENT,
     type: '',
     name: 'Equipamento',
-    description: 'Equipamentos com fatores de risco/perigo inerentes à ele',
+    description:
+      'Use para caracterizar máquinas, equipamentos, veículos, ferramentas, plataformas, sondas ou outros recursos técnicos relevantes para a exposição ocupacional.',
   },
   [CharacterizationTypeEnum.ADMINISTRATIVE]: {
     value: CharacterizationTypeEnum.ADMINISTRATIVE,
-    type: 'Ambiente',
-    name: 'Amb. Administrativo',
+    type: '',
+    name: 'Ambiente Administrativo',
     description:
-      'Nos ambientes administrativos são executadas atividades diversas sem relação direta com o processo produtivo e pouco relacionadas com riscos físicos, químicos e biológicos, mas é possível encontrar alguns fatores de riscos ergonômicos e até mesmo de acidentes, no entanto de baixa severidade.',
+      'Use para áreas administrativas, escritórios, salas de apoio administrativo, recepção, áreas de gestão ou espaços de trabalho predominantemente administrativos.',
   },
   [CharacterizationTypeEnum.OPERATION]: {
     value: CharacterizationTypeEnum.OPERATION,
-    type: 'Ambiente',
-    name: 'Amb. Operacional',
+    type: '',
+    name: 'Ambiente Operacional',
     description:
-      'Nos ambientes operacionais são executadas atividades que resultam no produto ou serviço fim da empresa, ou seja, onde ocorre o processo produtivo, normalmente são os ambientes de maior concentração de Fatores de Riscos e Perigos envolvendo quase sempre exposições primárias e secundárias.',
+      'Use para áreas produtivas, industriais, operacionais, frentes de serviço, áreas de processo, manutenção, armazenamento, circulação operacional ou execução de atividades técnicas.',
   },
   [CharacterizationTypeEnum.SUPPORT]: {
     value: CharacterizationTypeEnum.SUPPORT,
-    type: 'Ambiente de',
-    name: 'Amb. Apoio',
+    type: '',
+    name: 'Ambiente de Apoio',
     description:
-      'Nos ambientes de apoio são executadas atividades que dão suporte às atividades operacionais da empresa, normalmente envolvem Fatores de Riscos e Perigos característicos ao que é executado nos seus posto de trabalho gerando exposições primárias, são exemplos os seguintes ambientes: Oficinas diversa, laboratórios, estações de tratamento (efluentes), pátios de resíduos, etc.',
+      'Use para áreas de suporte à operação ou aos trabalhadores, como vestiários, refeitórios, almoxarifados, áreas de convivência, sanitários, depósitos, salas de apoio ou estruturas auxiliares.',
   },
   [CharacterizationTypeEnum.GENERAL]: {
     value: CharacterizationTypeEnum.GENERAL,
-    type: 'Ambiente',
+    type: '',
     name: 'Visão Geral',
     description:
-      'Nos ambientes considerados gerais são aqueles que não possuem uma destinação específica e certamente são isentos de riscos próprios, envolve áreas comuns de circulação e normalmente sem restrição de acesso ao público, tais como: Fachada da empresa, Roll de entrada, ambientes de espera, pátios, áreas de recreação, etc.',
+      'Use para uma descrição ampla do estabelecimento, unidade, operação, frente de trabalho, plataforma, sonda ou contexto geral da caracterização. No documento, este item compõe a seção de ambientes.',
   },
 };
+
+export const CHARACTERIZATION_TYPE_HELP_TEXT =
+  'Escolha o tipo que melhor representa o elemento caracterizado. Esses tipos organizam a caracterização do PGR e influenciam a forma como as informações são apresentadas nos documentos.';

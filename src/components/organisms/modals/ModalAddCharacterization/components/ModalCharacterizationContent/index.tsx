@@ -28,7 +28,10 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SOrderIcon from 'assets/icons/SOrderIcon';
 
-import { characterizationMap } from 'core/constants/maps/characterization.map';
+import {
+  CHARACTERIZATION_TYPE_HELP_TEXT,
+  characterizationMap,
+} from 'core/constants/maps/characterization.map';
 
 import { CharacterizationAiAssistModal } from '../CharacterizationAiAssistModal/CharacterizationAiAssistModal';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
@@ -86,12 +89,13 @@ export const ModalCharacterizationContent = (
 
   const isEnvironment = getIsEnvironment(characterizationData.type);
 
-  const environments = [
+  const typeOptions = [
     {
       content: characterizationMap[CharacterizationTypeEnum.GENERAL].name,
       value: CharacterizationTypeEnum.GENERAL,
       tooltip:
         characterizationMap[CharacterizationTypeEnum.GENERAL].description,
+      gridSize: { xs: 3 },
     },
     {
       content:
@@ -100,40 +104,42 @@ export const ModalCharacterizationContent = (
       tooltip:
         characterizationMap[CharacterizationTypeEnum.ADMINISTRATIVE]
           .description,
+      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.OPERATION].name,
       value: CharacterizationTypeEnum.OPERATION,
       tooltip:
         characterizationMap[CharacterizationTypeEnum.OPERATION].description,
+      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.SUPPORT].name,
       value: CharacterizationTypeEnum.SUPPORT,
       tooltip:
         characterizationMap[CharacterizationTypeEnum.SUPPORT].description,
+      gridSize: { xs: 3, sm: 1 },
     },
-  ];
-
-  const characterization = [
     {
       content: characterizationMap[CharacterizationTypeEnum.WORKSTATION].name,
-      value: characterizationMap[CharacterizationTypeEnum.WORKSTATION].value,
+      value: CharacterizationTypeEnum.WORKSTATION,
       tooltip:
         characterizationMap[CharacterizationTypeEnum.WORKSTATION].description,
+      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.ACTIVITIES].name,
       value: CharacterizationTypeEnum.ACTIVITIES,
       tooltip:
         characterizationMap[CharacterizationTypeEnum.ACTIVITIES].description,
+      gridSize: { xs: 3, sm: 1 },
     },
-
     {
       content: characterizationMap[CharacterizationTypeEnum.EQUIPMENT].name,
       value: CharacterizationTypeEnum.EQUIPMENT,
       tooltip:
         characterizationMap[CharacterizationTypeEnum.EQUIPMENT].description,
+      gridSize: { xs: 3, sm: 1 },
     },
   ];
 
@@ -151,7 +157,7 @@ export const ModalCharacterizationContent = (
             control={control}
             setValue={setValue}
             sx={{ width: ['100%'] }}
-            placeholder={'nome do ambiente / atividade...'}
+            placeholder={'nome do elemento caracterizado...'}
             name="name"
             size="small"
             firstLetterCapitalize
@@ -161,6 +167,9 @@ export const ModalCharacterizationContent = (
         ) : (
           <Skeleton variant="rounded" height={40} sx={{ width: '100%' }} />
         )}
+        <SText fontSize={13} color="text.secondary" mb={1}>
+          {CHARACTERIZATION_TYPE_HELP_TEXT}
+        </SText>
         <RadioFormText
           type="radio"
           setValue={setValue}
@@ -178,9 +187,9 @@ export const ModalCharacterizationContent = (
             }));
           }}
           defaultValue={String(characterizationData.type)}
-          options={[...environments, ...characterization]}
+          options={typeOptions}
           name="type"
-          columns={4}
+          columns={3}
           width="101%"
           {...(manyProfiles && notPrincipalProfile && { disabled: true })}
         />

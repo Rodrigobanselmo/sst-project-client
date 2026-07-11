@@ -9,11 +9,11 @@ export const CharacterizationTypeMap: Record<
   CharacterizationTypeMapValue
 > = {
   [CharacterizationTypeEnum.GENERAL]: { rowLabel: 'Visão Geral' },
-  [CharacterizationTypeEnum.SUPPORT]: { rowLabel: 'Amb. de Apoio' },
+  [CharacterizationTypeEnum.SUPPORT]: { rowLabel: 'Ambiente de Apoio' },
   [CharacterizationTypeEnum.ADMINISTRATIVE]: {
-    rowLabel: 'Amb. Administrativo',
+    rowLabel: 'Ambiente Administrativo',
   },
-  [CharacterizationTypeEnum.OPERATION]: { rowLabel: 'Amb. Operacional' },
+  [CharacterizationTypeEnum.OPERATION]: { rowLabel: 'Ambiente Operacional' },
   [CharacterizationTypeEnum.ACTIVITIES]: { rowLabel: 'Atividade' },
   [CharacterizationTypeEnum.EQUIPMENT]: { rowLabel: 'Equipamento' },
   [CharacterizationTypeEnum.WORKSTATION]: { rowLabel: 'Posto de Trabalho' },
