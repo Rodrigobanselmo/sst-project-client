@@ -59,7 +59,9 @@ export const RiskToolColumns: FC<
                 cursor: isSortable ? 'pointer' : 'default',
               }}
             >
-              <SText noBreak>{column.label}</SText>
+              <SText noBreak fontWeight={700} color="text.primary">
+                {column.label}
+              </SText>
               {isSortable && (
                 <StyledSArrowUpFilterIcon
                   filter={isFilterSelected ? selectedGhoFilter.value || '' : ''}

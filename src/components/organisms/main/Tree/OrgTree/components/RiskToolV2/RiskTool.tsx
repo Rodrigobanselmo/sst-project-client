@@ -35,6 +35,7 @@ import { useHierarchyTreeLoad } from '../../hooks/useHierarchyTreeLoad';
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
+import { RiskRowsExpandProvider } from './components/RiskToolViews/RiskToolGSEView/RiskRowsExpandContext';
 import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRiskView/types';
 import { useOpenRiskTool } from './hooks/useOpenRiskTool';
 import { useRiskToolCopyGhoImportFlow } from './hooks/useRiskToolCopyGhoImportFlow';
@@ -406,33 +407,35 @@ export const RiskToolV2 = ({
         hideCloseButton={embedded}
       />
       <STTableContainer>
-        <RiskToolHeader
-          handleCopyGHO={handleCopyGHO}
-          handleSelectGHO={handleSelectGHO}
-          handleEditGHO={handleEditGHO}
-          handleAddGHO={handleAddGHO as any}
-          isAddLoading={addMutation.isLoading}
-          riskInit={true}
-          inputRef={inputRef}
-          viewDataType={effectiveViewDataType}
-          viewType={viewType}
-          ghoQuery={ghoQuery}
-          loadingCopy={loadingCopyHomo}
-          riskGroupId={riskGroupIdMemo}
-          companyId={companyId}
-          hideGhoPicker={hideGhoPicker}
-          lockedGhoName={lockedGhoName}
-          disableEditGho={disableEditGho}
-        />
-        <STBoxStack
-          expanded={selectExpanded ? 1 : 0}
-          risk_init={1}
-          viewType={viewType}
-        >
-          {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
-            <RiskToolGSEView riskGroupId={riskGroupIdMemo} />
-          )}
-        </STBoxStack>
+        <RiskRowsExpandProvider>
+          <RiskToolHeader
+            handleCopyGHO={handleCopyGHO}
+            handleSelectGHO={handleSelectGHO}
+            handleEditGHO={handleEditGHO}
+            handleAddGHO={handleAddGHO as any}
+            isAddLoading={addMutation.isLoading}
+            riskInit={true}
+            inputRef={inputRef}
+            viewDataType={effectiveViewDataType}
+            viewType={viewType}
+            ghoQuery={ghoQuery}
+            loadingCopy={loadingCopyHomo}
+            riskGroupId={riskGroupIdMemo}
+            companyId={companyId}
+            hideGhoPicker={hideGhoPicker}
+            lockedGhoName={lockedGhoName}
+            disableEditGho={disableEditGho}
+          />
+          <STBoxStack
+            expanded={selectExpanded ? 1 : 0}
+            risk_init={1}
+            viewType={viewType}
+          >
+            {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
+              <RiskToolGSEView riskGroupId={riskGroupIdMemo} />
+            )}
+          </STBoxStack>
+        </RiskRowsExpandProvider>
       </STTableContainer>
     </STBoxContainer>
   );

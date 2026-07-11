@@ -47,6 +47,7 @@ import { IHierarchyTreeMapObject } from '../../RiskToolViews/RiskToolRiskView/ty
 import { SideInput } from '../../SIdeInput';
 import { RiskToolColumns } from '../RiskToolColumns';
 import { normalizeChildrenIds } from '../../../utils/normalizeChildrenIds';
+import { useRiskRowsExpandOptional } from '../../RiskToolViews/RiskToolGSEView/RiskRowsExpandContext';
 import { SideSelectViewContentProps } from './types';
 
 export const getFilter = ({
@@ -143,6 +144,7 @@ export const RiskToolGhoHorizontal: FC<
   const syncPlanMutation = useMutSyncDerivedMeasuresFromPlan();
   const { companyId: userCompanyId } = useGetCompanyId(true);
   const { workspaceId: tabWorkspaceId } = useTabWorkspaceId();
+  const expandCtx = useRiskRowsExpandOptional();
 
   /**
    * When a establishment is selected in the company flow, filter GHO/hierarchy
@@ -193,9 +195,8 @@ export const RiskToolGhoHorizontal: FC<
     userCompanyId,
   ]);
 
-  /** V2: `ENVIRONMENT` e `CHARACTERIZATION` compartilham o mesmo literal de enum. */
-  const showSyncPlanButton =
-    String(viewDataType) === String(ViewsDataEnum.CHARACTERIZATION);
+  /** Disponível em todos os modos do RiskTool V2 (Vínculo, Elementos, GSE…). */
+  const showSyncPlanButton = true;
 
   useEffect(() => {
     if (hideGhoPicker) return;
@@ -245,7 +246,7 @@ export const RiskToolGhoHorizontal: FC<
   return (
     <>
       <SFlex>
-        <SFlex justifyContent="space-between" flex={1}>
+      <SFlex justifyContent="space-between" flex={1} align="center" flexWrap="wrap" gap={2}>
           {hideGhoPicker ? (
             <Box minWidth={285}>
               <SInput
@@ -317,6 +318,24 @@ export const RiskToolGhoHorizontal: FC<
               {...(getFilter({ viewDataType }) as any)}
             />
           )}
+          {selected && (
+            <Box
+              sx={{
+                minWidth: 220,
+                maxWidth: 360,
+                flex: '1 1 220px',
+              }}
+            >
+              <SideInput
+                onSearch={(value) => dispatch(setGhoSearchRisk(value))}
+                handleSelectGHO={handleSelectGHO}
+                handleEditGHO={
+                  disableEditGho ? () => undefined : handleEditGHO
+                }
+                placeholder="Pesquisar por risco"
+              />
+            </Box>
+          )}
           {showSyncPlanButton && (
             <SButton
               variant="outlined"
@@ -332,7 +351,22 @@ export const RiskToolGhoHorizontal: FC<
               <SText sx={{ mr: 5 }}>
                 {syncPlanMutation.isLoading
                   ? 'Sincronizando…'
-                  : 'Sincronizar com plano'}
+                  : 'Sincronizar com o plano'}
+              </SText>
+            </SButton>
+          )}
+          {selected && expandCtx?.hasRows && (
+            <SButton
+              variant="outlined"
+              sx={{ height: 30 }}
+              onClick={() =>
+                expandCtx.allExpanded
+                  ? expandCtx.collapseAll()
+                  : expandCtx.expandAll()
+              }
+            >
+              <SText sx={{ mr: 5 }}>
+                {expandCtx.allExpanded ? 'Recolher todos' : 'Expandir todos'}
               </SText>
             </SButton>
           )}
@@ -352,18 +386,10 @@ export const RiskToolGhoHorizontal: FC<
       </SFlex>
       <Divider sx={{ mt: 8, mb: 8 }} />
 
-      {selected && (
-        <SFlex align="center" gap={4} mb={0} mt={4}>
-          <SideInput
-            onSearch={(value) => dispatch(setGhoSearchRisk(value))}
-            handleSelectGHO={handleSelectGHO}
-            handleEditGHO={
-              disableEditGho ? () => undefined : handleEditGHO
-            }
-            placeholder="Pesquisar por risco"
-          />
+      {selected && !expandCtx?.allCollapsed && (
+        <Box mb={0} mt={4}>
           <RiskToolColumns viewType={viewType} />
-        </SFlex>
+        </Box>
       )}
     </>
   );

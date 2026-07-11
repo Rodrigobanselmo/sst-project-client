@@ -1,6 +1,9 @@
 import React, { FC, useMemo } from 'react';
 
-import { Box, Divider, Icon } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Box, Icon } from '@mui/material';
+import { STag } from 'components/atoms/STag';
+import { ITagActionColors } from 'components/atoms/STag/types';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
@@ -9,18 +12,34 @@ import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacteriz
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
-import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
+import { getMatrizRisk } from 'core/utils/helpers/matriz';
 
+import { MatrixEquation } from './MatrixEquation';
 import { STBoxItem } from './styles';
 import { RiskToolGSEViewRowRiskBoxProps } from './types';
 
+function severityAction(severity?: number): ITagActionColors {
+  if (!severity || severity < 1) return 'none';
+  if (severity >= 6) return '6';
+  return String(Math.min(5, Math.max(1, severity))) as ITagActionColors;
+}
+
 export const RiskToolGSEViewRowRiskBox: FC<
   { children?: any } & RiskToolGSEViewRowRiskBoxProps
-> = ({ data, hide, riskData, riskGroupId, isRepresentAll }) => {
+> = ({
+  data,
+  hide,
+  riskData,
+  riskGroupId,
+  isRepresentAll,
+  expanded = true,
+  onToggleExpand,
+  framed = false,
+}) => {
   const deleteMutation = useMutDeleteManyRiskData();
   const upsertMutation = useMutUpsertRiskData();
   const { selectStartEndDate } = useStartEndDate();
@@ -29,9 +48,6 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const cleanData = (risk: IRiskFactors) => {
     if (hasData && riskData.homogeneousGroupId)
       deleteMutation.mutate({
-        // riskFactorGroupDataId: riskGroupId,
-        // homogeneousGroupIds: [riskData.homogeneousGroupId],
-        // riskIds: [risk.id],
         ids: [riskData.id],
       });
   };
@@ -49,7 +65,6 @@ export const RiskToolGSEViewRowRiskBox: FC<
             id: riskData.id,
           }),
         {
-          // eslint-disable-next-line prettier/prettier
           startDate: riskData.startDate
             ? new Date(riskData.startDate)
             : undefined,
@@ -61,6 +76,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const riskTypeKey = (data?.type ?? '').toLowerCase();
   const riskName = data?.name || '';
   const riskTypeLabel = data?.type || '—';
+  const severity = data?.severity;
 
   const isPsicologico = data?.subTypes?.find(
     (subType) => subType?.sub_type?.name === 'Psicossociais',
@@ -72,7 +88,9 @@ export const RiskToolGSEViewRowRiskBox: FC<
       ...new Set(
         data.subTypes
           .map((s) => s?.sub_type?.name)
-          .filter((n): n is string => typeof n === 'string' && n.trim().length > 0),
+          .filter(
+            (n): n is string => typeof n === 'string' && n.trim().length > 0,
+          ),
       ),
     ];
     const filtered = isPsicologico
@@ -90,116 +108,215 @@ export const RiskToolGSEViewRowRiskBox: FC<
     return subCategoryLabels;
   }, [isRepresentAll, isPsicologico, subCategoryLabels]);
 
+  // Mesma ordem de args usada em RowColumns (legado do getMatrizRisk).
+  const inherentMatrix = useMemo(
+    () => getMatrizRisk(riskData?.probability, data?.severity),
+    [data?.severity, riskData?.probability],
+  );
+
+  const hasRecs = !!(riskData?.recs && riskData.recs.length > 0);
+  const residualProbability =
+    hasRecs && riskData?.probabilityAfter
+      ? riskData.probabilityAfter
+      : undefined;
+
+  const residualMatrix = useMemo(
+    () =>
+      residualProbability
+        ? getMatrizRisk(residualProbability, data?.severity)
+        : null,
+    [data?.severity, residualProbability],
+  );
+
+  const showCollapsedSummary =
+    !expanded && !isRepresentAll && (!!severity || !!riskData?.probability);
+
   return (
-    <STBoxItem inactive={riskData?.endDate ? 1 : 0}>
-      <SFlex className="item_box" direction="column" align="stretch" gap={2}>
+    <STBoxItem
+      inactive={riskData?.endDate ? 1 : 0}
+      collapsed={expanded ? 0 : 1}
+      framed={framed ? 1 : 0}
+    >
+      <SFlex
+        className="item_box"
+        direction="row"
+        align="center"
+        gap={3}
+        sx={{
+          width: '100%',
+          cursor: onToggleExpand ? 'pointer' : 'default',
+          userSelect: 'none',
+        }}
+        onClick={() => onToggleExpand?.()}
+      >
+        {onToggleExpand && (
+          <ExpandMoreIcon
+            sx={{
+              fontSize: '1.4rem',
+              color: 'text.secondary',
+              flexShrink: 0,
+              transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+              transition: 'transform 0.15s ease',
+            }}
+          />
+        )}
+
         <SFlex
           align="center"
-          justify="space-between"
           gap={2}
-          sx={{ width: '100%', minHeight: 28 }}
+          flexWrap="wrap"
+          sx={{ minWidth: 0, flex: 1 }}
         >
-          <SFlex
-            align="center"
-            gap={2}
-            flexWrap="wrap"
-            sx={{ minWidth: 0, flex: 1 }}
-          >
-            <Box
-              sx={{
-                flexShrink: 0,
-                px: 4,
-                py: '1px',
-                borderRadius: 3,
-                fontSize: '12px',
-                ...(!isRepresentAll
-                  ? isPsicologico
-                    ? {
-                        backgroundColor: 'risk.psic',
-                        color: 'grey.900',
-                        border: '1px solid',
-                        borderColor: 'risk.erg',
-                        fontWeight: 600,
-                      }
-                    : {
-                        backgroundColor: riskTypeKey
-                          ? `risk.${riskTypeKey}`
-                          : 'grey.400',
-                        color: 'common.white',
-                      }
-                  : {}),
-                ...(isRepresentAll
+          <Box
+            sx={{
+              flexShrink: 0,
+              px: 4,
+              py: '1px',
+              borderRadius: 3,
+              fontSize: '12px',
+              ...(!isRepresentAll
+                ? isPsicologico
                   ? {
-                      backgroundColor: isPsicologico ? 'risk.psic' : 'risk.all',
+                      backgroundColor: 'risk.psic',
+                      color: 'grey.900',
                       border: '1px solid',
-                      borderColor: riskTypeKey
+                      borderColor: 'risk.erg',
+                      fontWeight: 600,
+                    }
+                  : {
+                      backgroundColor: riskTypeKey
                         ? `risk.${riskTypeKey}`
                         : 'grey.400',
-                      color: riskTypeKey ? `risk.${riskTypeKey}` : 'grey.700',
+                      color: 'common.white',
                     }
-                  : {}),
+                : {}),
+              ...(isRepresentAll
+                ? {
+                    backgroundColor: isPsicologico ? 'risk.psic' : 'risk.all',
+                    border: '1px solid',
+                    borderColor: riskTypeKey
+                      ? `risk.${riskTypeKey}`
+                      : 'grey.400',
+                    color: riskTypeKey ? `risk.${riskTypeKey}` : 'grey.700',
+                  }
+                : {}),
+            }}
+          >
+            {!isRepresentAll
+              ? isPsicologico
+                ? 'PSIC'
+                : riskTypeLabel
+              : 'PADRÃO'}
+          </Box>
+          {!!displayNextToChip && (
+            <SText
+              component="span"
+              fontSize={12}
+              color="text.secondary"
+              sx={{ lineHeight: 1.3, wordBreak: 'break-word' }}
+            >
+              {displayNextToChip}
+            </SText>
+          )}
+          <STooltip
+            minLength={20}
+            placement="top"
+            enterDelay={800}
+            title={riskName}
+          >
+            <SText
+              fontSize={14}
+              fontWeight={600}
+              sx={{
+                wordBreak: 'break-word',
+                lineHeight: 1.35,
               }}
             >
               {!isRepresentAll
-                ? isPsicologico
-                  ? 'PSIC'
-                  : riskTypeLabel
-                : 'PADRÃO'}
-            </Box>
-            {!!displayNextToChip && (
-              <SText
-                component="span"
-                fontSize={12}
-                color="text.secondary"
-                sx={{ lineHeight: 1.3, wordBreak: 'break-word' }}
-              >
-                {displayNextToChip}
-              </SText>
-            )}
-          </SFlex>
-          <Box sx={{ flexShrink: 0, ml: 1 }}>
-            {!hide && hasData && data && (
-              <STooltip withWrapper title={'Limpar dados'}>
-                <SIconButton
-                  loading={deleteMutation.isLoading}
-                  onClick={() => cleanData(data)}
-                  size="small"
-                >
-                  <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
-                </SIconButton>
-              </STooltip>
-            )}
-          </Box>
-        </SFlex>
-        <STooltip
-          minLength={15}
-          placement="right"
-          enterDelay={3000}
-          title={riskName}
-        >
-          <Box sx={{ width: '100%', minWidth: 0, px: 0.5, py: 0.5 }}>
-            <SText
-              fontSize={14}
-              sx={{
-                wordBreak: 'break-word',
-                display: 'block',
-              }}
-            >
-              {!isRepresentAll ? riskName || 'Risco sem nome' : 'Informações gerais'}
+                ? riskName || 'Risco sem nome'
+                : 'Informações gerais'}
             </SText>
-          </Box>
-        </STooltip>
-      </SFlex>
-      <STooltip title={'Editar data'}>
-        <SFlex className="item_end_date" onClick={onEditDate}>
-          <SText fontSize="11px" color="text.light" minWidth={110}>
-            inicio: {dateToString(riskData?.startDate)}
-          </SText>
-          <SText fontSize="11px" color="text.light">
-            fim: {dateToString(riskData?.endDate)}
-          </SText>
+          </STooltip>
         </SFlex>
-      </STooltip>
+
+        <SFlex
+          align="center"
+          gap={2}
+          flexWrap="wrap"
+          justifyContent="flex-end"
+          sx={{ flexShrink: 0, maxWidth: { xs: '100%', md: '58%' } }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {showCollapsedSummary ? (
+            <SFlex
+              align="center"
+              gap={3}
+              flexWrap="wrap"
+              justifyContent="flex-end"
+              sx={{ rowGap: 1 }}
+            >
+              <MatrixEquation
+                label="Inerente"
+                probability={riskData?.probability}
+                severity={severity}
+                resultLabel={inherentMatrix?.label}
+                resultLevel={inherentMatrix?.level}
+              />
+              <MatrixEquation
+                label="Residual"
+                probability={residualProbability}
+                severity={severity}
+                resultLabel={residualMatrix?.label}
+                resultLevel={residualMatrix?.level}
+                empty={!residualProbability}
+              />
+            </SFlex>
+          ) : (
+            !isRepresentAll &&
+            !!severity && (
+              <STag
+                text={`Severidade ${severity}`}
+                action={severityAction(severity)}
+                sx={{
+                  px: 3,
+                  py: 0.5,
+                  fontSize: 12,
+                  whiteSpace: 'nowrap',
+                  borderRadius: '999px',
+                }}
+              />
+            )
+          )}
+          {!hide && hasData && data && (
+            <STooltip withWrapper title={'Limpar dados'}>
+              <SIconButton
+                loading={deleteMutation.isLoading}
+                onClick={() => cleanData(data)}
+                size="small"
+              >
+                <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
+              </SIconButton>
+            </STooltip>
+          )}
+        </SFlex>
+      </SFlex>
+      {expanded && hasData && (
+        <STooltip title={'Editar data'}>
+          <SFlex
+            className="item_end_date"
+            onClick={onEditDate}
+            gap={4}
+            sx={{ opacity: 0.85 }}
+          >
+            <SText fontSize="10px" color="text.disabled" noBreak>
+              início: {dateToString(riskData?.startDate)}
+            </SText>
+            <SText fontSize="10px" color="text.disabled" noBreak>
+              fim: {dateToString(riskData?.endDate)}
+            </SText>
+          </SFlex>
+        </STooltip>
+      )}
     </STBoxItem>
   );
 };

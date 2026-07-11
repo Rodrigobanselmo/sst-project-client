@@ -7,4 +7,8 @@ export interface RiskToolGSEViewRowRiskBoxProps {
   data: IRiskFactors;
   riskData?: IRiskData;
   riskGroupId: string;
+  expanded?: boolean;
+  onToggleExpand?: () => void;
+  /** Borda externa vem do wrapper do bloco; remove borda própria. */
+  framed?: boolean;
 }

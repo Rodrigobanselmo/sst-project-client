@@ -6,6 +6,7 @@ import SText from 'components/atoms/SText';
 import { RiskToolV2 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/RiskTool';
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/view-data-type.constant';
 import { getCurrentRiskGroupId } from 'components/organisms/modals/ModalAddCharacterization/utils/get-current-risk-group-id.util';
+import { useRouter } from 'next/router';
 import {
   setGhoSelectedId,
   setGhoState,
@@ -16,12 +17,15 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 
+const VIEWS_DATA_VALUES = new Set<string>(Object.values(ViewsDataEnum));
+
 /**
  * Characterization sub-tab: transversal RiskTool for linking risks by entity
- * (Hierarchy / Environments / GSE) without opening an Ambiente or GSE editor.
+ * (GSE / Environments / Hierarchy) without opening an Ambiente or GSE editor.
  */
 export const RiskToolByEntityTabContent = () => {
   const dispatch = useAppDispatch();
+  const { query } = useRouter();
   const { companyId } = useGetCompanyId();
   const { data: riskGroupData, isLoading: isLoadingRiskGroup } =
     useQueryRiskGroupData(companyId || undefined);
@@ -32,11 +36,17 @@ export const RiskToolByEntityTabContent = () => {
   );
 
   useEffect(() => {
-    // Prefer Hierarchy as the entry view for this transversal screen.
-    // Do not force a ghoId — user picks the entity.
+    // Default de entrada: GSE (conceito clássico de vínculo por exposição).
+    // Se a URL já trouxer viewData explícito e válido, preservar.
+    const viewDataParam = query.viewData;
+    const fromUrl =
+      typeof viewDataParam === 'string' && VIEWS_DATA_VALUES.has(viewDataParam)
+        ? (viewDataParam as ViewsDataEnum)
+        : null;
+
     dispatch(
       setRiskAddState({
-        viewData: ViewsDataEnum.HIERARCHY as any,
+        viewData: (fromUrl ?? ViewsDataEnum.GSE) as any,
         isEdited: false,
       }),
     );
@@ -54,7 +64,7 @@ export const RiskToolByEntityTabContent = () => {
         }),
       );
     };
-  }, [dispatch]);
+  }, [dispatch, query.viewData]);
 
   if (isLoadingRiskGroup) {
     return (
@@ -104,7 +114,7 @@ export const RiskToolByEntityTabContent = () => {
     >
       <Box sx={{ px: 1, pt: 1, pb: 1.5, flexShrink: 0 }}>
         <SText color="text.secondary" fontSize={13}>
-          Fatores de riscos por entidade — Elementos Caracterizados, GSE e Hierarquia.
+          Fatores de riscos por entidade — GSE, Elementos Caracterizados e Hierarquia.
         </SText>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>

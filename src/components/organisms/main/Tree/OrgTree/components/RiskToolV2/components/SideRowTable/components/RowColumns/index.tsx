@@ -91,7 +91,14 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
       <STGridItem
         loading={isLoading ? 1 : 0}
         inactive={riskData?.endDate ? 1 : 0}
-        sx={{ gridTemplateColumns: columns.map((row) => row.grid).join(' ') }}
+        sx={{
+          gridTemplateColumns: columns.map((row) => row.grid).join(' '),
+          // Embutido no bloco expansível: sem borda/fundo cinza próprios.
+          // Não usar min-height:0 nos filhos (quebrava a altura do conteúdo).
+          border: 'none',
+          borderRadius: 0,
+          backgroundColor: 'background.paper',
+        }}
         onClick={() =>
           risk?.id
             ? null

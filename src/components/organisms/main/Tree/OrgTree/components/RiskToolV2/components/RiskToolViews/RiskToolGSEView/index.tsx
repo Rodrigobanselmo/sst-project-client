@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useEffect, useMemo } from 'react';
 
 import { Box, LinearProgress } from '@mui/material';
 import SText from 'components/atoms/SText';
@@ -17,6 +17,7 @@ import { sortFilter } from 'core/utils/sorts/filter.sort';
 import { effectiveRiskOrderForGSEGrid } from 'core/utils/sorts/risk-gse-grid-order';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 
+import { useRiskRowsExpandOptional } from './RiskRowsExpandContext';
 import { RiskToolGSEViewRow } from './Row';
 import { RiskToolGSEViewProps } from './types';
 
@@ -25,6 +26,7 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
 }) => {
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const selectedGho = useAppSelector((state) => state.gho.selected);
+  const expandCtx = useRiskRowsExpandOptional();
 
   const { companyId: userCompanyId } = useGetCompanyId(true);
 
@@ -137,6 +139,20 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
     selectedGhoFilter.key,
     riskGroupId,
   ]);
+
+  const knownRowIds = useMemo(
+    () =>
+      riskOrderedData
+        .map(([riskData, risk]) =>
+          String(riskData?.id || risk?.id || riskData?.riskId || ''),
+        )
+        .filter(Boolean),
+    [riskOrderedData],
+  );
+
+  useEffect(() => {
+    expandCtx?.setKnownRowIds(knownRowIds);
+  }, [expandCtx?.setKnownRowIds, knownRowIds]);
 
   return (
     <>
