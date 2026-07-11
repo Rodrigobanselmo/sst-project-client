@@ -16,7 +16,7 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
   string
 > = {
   [CharacterizationSubTabEnum.RISKS]: 'Riscos',
-  [CharacterizationSubTabEnum.ENVIRONMENTS]: 'Ambientes e Atividades',
+  [CharacterizationSubTabEnum.ENVIRONMENTS]: 'Elementos Caracterizados',
   [CharacterizationSubTabEnum.GSE]: 'GSE',
   [CharacterizationSubTabEnum.EXAMS]: 'Exames',
   [CharacterizationSubTabEnum.PROTOCOLS]: 'Protocolos',
@@ -39,8 +39,8 @@ export type CharacterizationSubareaNavItem = {
 
 const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.RISKS,
-  CharacterizationSubTabEnum.ENVIRONMENTS,
   CharacterizationSubTabEnum.GSE,
+  CharacterizationSubTabEnum.ENVIRONMENTS,
   CharacterizationSubTabEnum.EXAMS,
   CharacterizationSubTabEnum.PROTOCOLS,
   CharacterizationSubTabEnum.ENTITY_RISKS,
@@ -51,6 +51,25 @@ export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNav
     tab,
     label: CHARACTERIZATION_SUB_TAB_LABELS[tab],
   }));
+}
+
+/** Wizard step index for display order (may differ from stable enum values). */
+export function getCharacterizationWizardStep(
+  tab: CharacterizationSubTabEnum,
+): number {
+  const step = CHARACTERIZATION_SUBAREA_TABS.indexOf(
+    tab as (typeof CHARACTERIZATION_SUBAREA_TABS)[number],
+  );
+  return step >= 0 ? step : 0;
+}
+
+/** Resolve stable tab enum from current Wizard display step. */
+export function getCharacterizationTabFromWizardStep(
+  step: number,
+): CharacterizationSubTabEnum {
+  return (
+    CHARACTERIZATION_SUBAREA_TABS[step] ?? CharacterizationSubTabEnum.RISKS
+  );
 }
 
 export const CHARACTERIZATION_AMBIENTES_PATHNAME =

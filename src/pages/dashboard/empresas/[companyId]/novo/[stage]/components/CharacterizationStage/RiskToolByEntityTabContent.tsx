@@ -104,7 +104,7 @@ export const RiskToolByEntityTabContent = () => {
     >
       <Box sx={{ px: 1, pt: 1, pb: 1.5, flexShrink: 0 }}>
         <SText color="text.secondary" fontSize={13}>
-          Fatores de riscos por entidade — Ambientes, GSE e Hierarquia.
+          Fatores de riscos por entidade — Elementos Caracterizados, GSE e Hierarquia.
         </SText>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>

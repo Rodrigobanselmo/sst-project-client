@@ -879,9 +879,10 @@ export const useCompanyStep = () => {
         count: company.characterizationCount,
         icon: SCharacterizationIcon,
         onClick: () => handleAddCharacterization(),
-        nextStepLabel: 'Ambientes e Atividades',
-        text: 'Ambientes e Atividades',
-        tooltipText: 'Caracterização do Ambiente e Atividades da empresa',
+        nextStepLabel: 'Elementos Caracterizados',
+        text: 'Elementos Caracterizados',
+        tooltipText:
+          'Cadastre ambientes, atividades, postos de trabalho, equipamentos e visões gerais utilizados na caracterização do PGR.',
       },
 
       [CompanyActionEnum.EMPLOYEES_GROUP_PAGE]: {
@@ -904,7 +905,8 @@ export const useCompanyStep = () => {
         icon: SRiskFactorIcon,
         onClick: () => handleChangeStage(CompanyActionEnum.SST_GROUP_PAGE),
         text: 'Caracterização',
-        tooltipText: 'Caracterização dos riscos, exames e ambientes da empresa',
+        tooltipText:
+          'Caracterização dos riscos, exames e elementos caracterizados da empresa',
         roles: [],
         permissions: [],
         infos: [

@@ -266,8 +266,8 @@ export const CharacterizationTable = ({
       </STableSearch>
       {!hasWorkspaceSelected && (
         <Box mb={2} mt={1} color="text.secondary" fontSize={13}>
-          Selecione um estabelecimento no header para carregar os ambientes e
-          atividades.
+          Selecione um estabelecimento no header para carregar os elementos
+          caracterizados.
         </Box>
       )}
       <STableInfoSection>

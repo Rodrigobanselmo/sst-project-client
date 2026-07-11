@@ -25,9 +25,9 @@ export const viewsDataOptionsConstant: IViewsDataOptions = {
   },
   [ViewsDataEnum.CHARACTERIZATION]: {
     value: ViewsDataEnum.CHARACTERIZATION,
-    name: 'por ambientes e atividades',
-    short: 'Ambientes / Atividades',
-    placeholder: 'pesquisar por ambientes e atividades...',
+    name: 'por elementos caracterizados',
+    short: 'Elementos Caracterizados',
+    placeholder: 'pesquisar por elementos caracterizados...',
   },
   [ViewsDataEnum.EMPLOYEE]: {
     value: ViewsDataEnum.EMPLOYEE,

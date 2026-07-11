@@ -107,7 +107,7 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
               disabled={tabDisabled}
               tooltipTitle={
                 tabDisabled
-                  ? 'Selecione um estabelecimento no cabeçalho para listar e vincular ambientes e atividades a este organograma.'
+                  ? 'Selecione um estabelecimento no cabeçalho para listar e vincular elementos caracterizados a este organograma.'
                   : undefined
               }
             />

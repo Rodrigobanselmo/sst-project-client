@@ -7,11 +7,13 @@ import { ExamsRiskTableList } from 'components/organisms/tables/ExamsRiskTable/E
 import { GhoGseTabContent } from 'components/organisms/modals/ModalAddGHO';
 import { ProtocolsRiskTable } from 'components/organisms/tables/ProtocolsRiskTable/ProtocolsRiskTable';
 import { RiskCompanyTable } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
+import { useRouter } from 'next/router';
 import { Wizard } from 'react-use-wizard';
 
 import {
-  CharacterizationSubTabEnum,
-  CHARACTERIZATION_SUB_TAB_LABELS,
+  getCharacterizationSubareaNavItems,
+  getCharacterizationTabFromWizardStep,
+  getCharacterizationWizardStep,
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
@@ -24,20 +26,16 @@ export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
 export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) => {
   useHierarchyTreeLoad();
+  const router = useRouter();
   const { workspaceId } = useTabWorkspaceId();
   const activeTab = parseCharacterizationActiveTab(query?.active);
+  const wizardStep = getCharacterizationWizardStep(activeTab);
   const inlineEditor = useCharacterizationInlineEditorOptional();
   const isInlineCharacterizationEdit = inlineEditor?.isInlineEditOpen ?? false;
 
-  const tabOptions = [
-    CharacterizationSubTabEnum.RISKS,
-    CharacterizationSubTabEnum.ENVIRONMENTS,
-    CharacterizationSubTabEnum.GSE,
-    CharacterizationSubTabEnum.EXAMS,
-    CharacterizationSubTabEnum.PROTOCOLS,
-    CharacterizationSubTabEnum.ENTITY_RISKS,
-  ].map((tab) => ({
-    label: CHARACTERIZATION_SUB_TAB_LABELS[tab],
+  // Display order (enum values stay stable for deep-links / breadcrumb).
+  const tabOptions = getCharacterizationSubareaNavItems().map((item) => ({
+    label: item.label,
   }));
 
   return (
@@ -59,13 +57,28 @@ export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) =>
           <CompanyFlowStickySubheader>
             <WizardTabs
               shadow
-              onUrl
-              active={activeTab}
+              active={wizardStep}
               options={tabOptions}
+              onChangeTab={(step, goToStep) => {
+                goToStep(step);
+                const tab = getCharacterizationTabFromWizardStep(step);
+                void router.replace(
+                  {
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      active: String(tab),
+                    },
+                  },
+                  undefined,
+                  { shallow: true },
+                );
+              }}
             />
           </CompanyFlowStickySubheader>
         }
       >
+        {/* Steps follow CHARACTERIZATION_SUBAREA_TABS display order */}
         <>
           <RiskCompanyTable
             workspaceId={workspaceId}
@@ -74,14 +87,14 @@ export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) =>
           />
         </>
         <>
-          <CharacterizationEnvironmentsTabContent
+          <GhoGseTabContent
+            workspaceId={workspaceId}
             companyFlowSticky
             companyFlowBelowTabs
           />
         </>
         <>
-          <GhoGseTabContent
-            workspaceId={workspaceId}
+          <CharacterizationEnvironmentsTabContent
             companyFlowSticky
             companyFlowBelowTabs
           />

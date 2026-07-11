@@ -602,7 +602,7 @@ export const useCompanyRegisterActions = () => {
         addByEmployee: true,
       },
       {
-        name: 'Vincular por ambientes',
+        name: 'Vincular por elementos caracterizados',
         key: 'ambientes',
         viewsDataInit: ViewsDataEnum.ENVIRONMENT,
       },

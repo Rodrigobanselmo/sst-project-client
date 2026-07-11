@@ -146,7 +146,7 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
           <SText color="text.secondary">
             {homoId
               ? 'Nenhum fator de risco vinculado. Você pode adicionar riscos pelo botão acima.'
-              : 'Selecione um ambiente, cargo, setor ou GSE para visualizar os riscos.'}
+              : 'Selecione um GSE, elemento caracterizado, hierarquia ou funcionário para visualizar os riscos.'}
           </SText>
         </Box>
       )}

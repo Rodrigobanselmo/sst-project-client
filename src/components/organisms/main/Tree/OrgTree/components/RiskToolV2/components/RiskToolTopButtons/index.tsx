@@ -102,8 +102,8 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
                 active={viewDataType}
                 options={[
                   ViewsDataEnum.GSE,
-                  ViewsDataEnum.HIERARCHY,
                   ViewsDataEnum.CHARACTERIZATION,
+                  ViewsDataEnum.HIERARCHY,
                   ViewsDataEnum.EMPLOYEE,
                 ].map((key) => ({
                   ...viewsDataOptionsConstant[key],
