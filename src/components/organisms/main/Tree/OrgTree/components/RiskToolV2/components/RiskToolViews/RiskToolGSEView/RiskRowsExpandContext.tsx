@@ -2,6 +2,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -21,15 +22,16 @@ const RiskRowsExpandContext =
   createContext<RiskRowsExpandContextValue | null>(null);
 
 /**
- * Por padrão as linhas ficam expandidas (comportamento legado).
- * `collapsedIds` guarda apenas as que o usuário recolheu.
+ * Default: todos recolhidos (visão gerencial).
+ * `expandedIds` guarda apenas os que o usuário expandiu.
+ * Troca de lista de riscos (ex.: outra entidade) zera o estado.
  */
 export function RiskRowsExpandProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => new Set(),
   );
   const [knownRowIds, setKnownRowIdsState] = useState<string[]>([]);
@@ -46,13 +48,17 @@ export function RiskRowsExpandProvider({
     });
   }, []);
 
+  useEffect(() => {
+    setExpandedIds(new Set());
+  }, [knownRowIds]);
+
   const isExpanded = useCallback(
-    (riskRowId: string) => !collapsedIds.has(riskRowId),
-    [collapsedIds],
+    (riskRowId: string) => expandedIds.has(riskRowId),
+    [expandedIds],
   );
 
   const toggle = useCallback((riskRowId: string) => {
-    setCollapsedIds((prev) => {
+    setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(riskRowId)) next.delete(riskRowId);
       else next.add(riskRowId);
@@ -61,20 +67,20 @@ export function RiskRowsExpandProvider({
   }, []);
 
   const expandAll = useCallback(() => {
-    setCollapsedIds(new Set());
-  }, []);
-
-  const collapseAll = useCallback(() => {
-    setCollapsedIds(new Set(knownRowIds));
+    setExpandedIds(new Set(knownRowIds));
   }, [knownRowIds]);
 
+  const collapseAll = useCallback(() => {
+    setExpandedIds(new Set());
+  }, []);
+
   const allExpanded =
-    knownRowIds.length === 0 ||
-    knownRowIds.every((id) => !collapsedIds.has(id));
+    knownRowIds.length > 0 &&
+    knownRowIds.every((id) => expandedIds.has(id));
 
   const allCollapsed =
-    knownRowIds.length > 0 &&
-    knownRowIds.every((id) => collapsedIds.has(id));
+    knownRowIds.length === 0 ||
+    knownRowIds.every((id) => !expandedIds.has(id));
 
   const value = useMemo(
     () => ({

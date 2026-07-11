@@ -48,6 +48,7 @@ import { SideInput } from '../../SIdeInput';
 import { RiskToolColumns } from '../RiskToolColumns';
 import { normalizeChildrenIds } from '../../../utils/normalizeChildrenIds';
 import { useRiskRowsExpandOptional } from '../../RiskToolViews/RiskToolGSEView/RiskRowsExpandContext';
+import { useRiskToolWideViewOptional } from '../../RiskToolWideViewContext';
 import { SideSelectViewContentProps } from './types';
 
 export const getFilter = ({
@@ -145,6 +146,7 @@ export const RiskToolGhoHorizontal: FC<
   const { companyId: userCompanyId } = useGetCompanyId(true);
   const { workspaceId: tabWorkspaceId } = useTabWorkspaceId();
   const expandCtx = useRiskRowsExpandOptional();
+  const wideCtx = useRiskToolWideViewOptional();
 
   /**
    * When a establishment is selected in the company flow, filter GHO/hierarchy
@@ -369,6 +371,27 @@ export const RiskToolGhoHorizontal: FC<
                 {expandCtx.allExpanded ? 'Recolher todos' : 'Expandir todos'}
               </SText>
             </SButton>
+          )}
+          {wideCtx && (
+            <STooltip
+              title={
+                wideCtx.wideView
+                  ? 'Sair da visualização ampla'
+                  : 'Visualização ampla'
+              }
+            >
+              <SButton
+                variant="outlined"
+                sx={{ height: 30 }}
+                onClick={() => wideCtx.toggleWideView()}
+              >
+                <SText sx={{ mr: 5 }}>
+                  {wideCtx.wideView
+                    ? 'Sair da visualização ampla'
+                    : 'Visualização ampla'}
+                </SText>
+              </SButton>
+            </STooltip>
           )}
           <SButton
             onClick={() => {

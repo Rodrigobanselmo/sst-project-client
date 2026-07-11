@@ -36,13 +36,16 @@ export const STBoxStack = styled(Box)<{
   risk_init?: number;
   expanded?: number;
   viewType?: ViewTypeEnum;
+  wide?: number;
 }>`
   display: flex;
   flex-direction: column;
   gap: ${(props) => props.theme.spacing(4)};
   padding-bottom: ${(props) => props.theme.spacing(8)};
-  height: calc(100vh - 320px);
-  max-height: calc(100vh - 320px);
+  height: ${(props) =>
+    props.wide ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)'};
+  max-height: ${(props) =>
+    props.wide ? 'calc(100vh - 140px)' : 'calc(100vh - 320px)'};
   min-height: 0;
   overflow: auto;
   min-width: fit-content;

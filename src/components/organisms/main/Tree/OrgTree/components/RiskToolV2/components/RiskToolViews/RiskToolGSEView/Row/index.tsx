@@ -36,7 +36,7 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
         stringNormalize(searchSelected),
       );
 
-    const expanded = expandCtx ? expandCtx.isExpanded(rowId) : true;
+    const expanded = expandCtx ? expandCtx.isExpanded(rowId) : false;
     const borderColor = riskData?.endDate ? 'error.main' : 'grey.400';
 
     return (
