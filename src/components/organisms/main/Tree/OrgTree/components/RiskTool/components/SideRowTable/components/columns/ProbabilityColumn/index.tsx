@@ -2,6 +2,10 @@ import { FC } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
+import {
+  calculateSuggestedResidualProbability,
+  shouldAutoApplySuggestedResidual,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import { initialQuantityState } from 'components/organisms/modals/ModalAddQuantity/hooks/useModalAddQuantity';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -116,7 +120,38 @@ export const ProbabilityColumn: FC<
     <SFlex gap={0} direction="column">
       <SelectedNumber
         handleSelect={(number) => {
-          handleSelect({ probability: setProbability(number), ...dataSelect });
+          const nextProbability = setProbability(number);
+          const payload: Partial<IUpsertRiskData> = {
+            probability: nextProbability,
+            ...dataSelect,
+          };
+
+          const previousSuggested = calculateSuggestedResidualProbability(
+            data?.probability,
+            data?.recs,
+          );
+          const nextSuggested = calculateSuggestedResidualProbability(
+            nextProbability || data?.probability,
+            data?.recs,
+          );
+
+          if (
+            nextSuggested != null &&
+            shouldAutoApplySuggestedResidual(
+              data?.probabilityAfter,
+              previousSuggested,
+            )
+          ) {
+            payload.probabilityAfter = nextSuggested;
+          } else if (
+            data?.probabilityAfter &&
+            nextProbability &&
+            nextProbability < data.probabilityAfter
+          ) {
+            payload.probabilityAfter = undefined;
+          }
+
+          handleSelect(payload);
         }}
         selectedNumber={data?.probability}
         disabledGtEqual={7}
