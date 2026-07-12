@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import {
   Alert,
+  AlertTitle,
   Box,
   Button,
   Checkbox,
@@ -25,6 +27,7 @@ import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGrou
 import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
 import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
 import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
+import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { useAccess } from 'core/hooks/useAccess';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
@@ -54,6 +57,7 @@ type CharacterizationArrayField = 'paragraphs' | 'activities' | 'considerations'
 type FormState = AiCharacterizationAssistQuestionnaire & {
   userObservations: string;
   userProvidedSources: string;
+  enableWebSearch: boolean;
 };
 
 const DEFAULT_FORM: FormState = {
@@ -64,7 +68,19 @@ const DEFAULT_FORM: FormState = {
   useAttachedPhotos: true,
   userObservations: '',
   userProvidedSources: '',
+  enableWebSearch: false,
 };
+
+const WEB_SEARCH_CONSENT_MESSAGE =
+  'Você está ativando a consulta a fontes externas da web. O sistema poderá acessar links informados e/ou pesquisar fontes públicas para apoiar a caracterização. As informações obtidas serão usadas como apoio técnico, mas podem estar incompletas, desatualizadas ou incorretas. A validação da autenticidade, pertinência e aplicação das informações é responsabilidade do usuário/responsável técnico antes da aprovação final. O uso da pesquisa pode aumentar o tempo e o custo da operação.';
+
+const WEB_SEARCH_UNAVAILABLE_TITLE = 'Pesquisa web independente indisponível';
+
+const WEB_SEARCH_UNAVAILABLE_FOOTER =
+  'Consulte a administração do sistema para habilitação da pesquisa web independente.';
+
+/** Fallback legado / API warning sem título estruturado */
+const WEB_SEARCH_UNAVAILABLE_MESSAGE = `${WEB_SEARCH_UNAVAILABLE_TITLE}. Este recurso depende da habilitação do serviço de fontes externas e pode ser contratado sob demanda. Enquanto isso, você pode informar URLs específicas para que o sistema tente ler e utilizar como apoio técnico.`;
 
 type Props = Pick<
   IUseEditCharacterization,
@@ -78,7 +94,23 @@ const SOURCE_LABELS: Record<string, string> = {
   SYSTEM: 'Dados do sistema',
   USER: 'Informado pelo usuário',
   USER_PROVIDED_SOURCE: 'Fonte informada pelo usuário',
+  WEB_SEARCH: 'Pesquisa web independente',
   AI_INFERENCE: 'Inferência da IA',
+};
+
+const URL_STATUS_LABELS: Record<string, string> = {
+  READ_SUCCESS: 'Lida com sucesso',
+  READ_FAILED: 'Falha na leitura',
+  BLOCKED: 'Bloqueada',
+  TRUNCATED: 'Lida (conteúdo truncado)',
+};
+
+const WEB_SEARCH_STATUS_LABELS: Record<string, string> = {
+  SUCCESS: 'Concluída',
+  PARTIAL: 'Parcial',
+  UNAVAILABLE: 'Indisponível (serviço sob habilitação)',
+  FAILED: 'Falhou',
+  SKIPPED: 'Não solicitada',
 };
 
 const QuestionBlock: React.FC<{
@@ -182,6 +214,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
   );
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const ignoreAssistCloseRef = useRef(false);
 
   const canAssist = Boolean(
     characterizationData.id &&
@@ -196,11 +229,31 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
     setForm(DEFAULT_FORM);
     setTemporaryDocumentSource(null);
     setResult(null);
+    setAiMasterConfig({});
   };
 
   const handleClose = () => {
     resetModal();
     onClose();
+  };
+
+  const handleAssistDialogClose = () => {
+    // Nested SystemAiPromptConfigDialog close can fall through to this Dialog's backdrop.
+    if (aiConfigDialogOpen || ignoreAssistCloseRef.current) return;
+    handleClose();
+  };
+
+  const closePromptConfigDialog = () => {
+    ignoreAssistCloseRef.current = true;
+    setAiConfigDialogOpen(false);
+    window.setTimeout(() => {
+      ignoreAssistCloseRef.current = false;
+    }, 300);
+  };
+
+  const handleApplyPromptConfig = (config: SystemAiMasterConfig) => {
+    setAiMasterConfig(config);
+    closePromptConfigDialog();
   };
 
   const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -209,6 +262,19 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
 
   const handleGenerate = async () => {
     if (!canAssist) return;
+
+    let webSearchConsentAccepted = false;
+    if (form.enableWebSearch) {
+      const confirmed = await showConfirmation({
+        title: 'Confirmar pesquisa web independente',
+        message: WEB_SEARCH_CONSENT_MESSAGE,
+        confirmText: 'Concordo e gerar',
+        cancelText: 'Cancelar',
+        variant: 'warning',
+      });
+      if (!confirmed) return;
+      webSearchConsentAccepted = true;
+    }
 
     const masterOverrides = buildMasterAiRequestOverrides(
       isMaster,
@@ -232,6 +298,8 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       temporaryDocumentSources: temporaryDocumentSource
         ? [temporaryDocumentSource]
         : undefined,
+      enableWebSearch: form.enableWebSearch || undefined,
+      webSearchConsentAccepted: webSearchConsentAccepted || undefined,
       customPrompt: masterOverrides.customPrompt,
       model: masterOverrides.model,
     });
@@ -386,7 +454,13 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
 
   return (
     <>
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <Dialog
+        open={open}
+        onClose={handleAssistDialogClose}
+        maxWidth="md"
+        fullWidth
+        disableEscapeKeyDown={aiConfigDialogOpen}
+      >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AutoFixHighOutlinedIcon color="primary" fontSize="small" />
           Assistente IA da Caracterização
@@ -405,6 +479,17 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                 Responda às perguntas para orientar a IA sobre o papel real da
                 empresa avaliada. Nada será salvo automaticamente.
               </Alert>
+
+              {isMaster &&
+                Boolean(
+                  aiMasterConfig.customPrompt?.trim() || aiMasterConfig.model,
+                ) && (
+                  <Alert severity="success" sx={{ mb: 3 }}>
+                    Configuração temporária de prompt/modelo aplicada nesta sessão.
+                    A geração usará essa configuração até você fechar o Assistente
+                    IA.
+                  </Alert>
+                )}
 
               <QuestionBlock
                 title="1. Esta caracterização é de:"
@@ -503,9 +588,43 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                   fullWidth
                   size="small"
                   sx={{ mt: 2 }}
-                  placeholder="Cole links ou trechos. O sistema não verifica automaticamente essas fontes."
-                  helperText="Tratado como informação fornecida pelo usuário, não como pesquisa externa automática."
+                  placeholder="Cole links (https://...) e/ou trechos técnicos. O sistema tentará acessar as URLs informadas."
+                  helperText="URLs serão acessadas pelo sistema antes da geração. Se a leitura falhar, isso aparecerá nas cautelas/incertezas."
                 />
+
+                <FormControlLabel
+                  sx={{ mt: 2, alignItems: 'flex-start' }}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={form.enableWebSearch}
+                      onChange={(e) =>
+                        updateForm('enableWebSearch', e.target.checked)
+                      }
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body2">
+                        Pesquisar fontes externas na web
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Opcional e desmarcada por padrão. A leitura das URLs que
+                        você informar continua disponível. A pesquisa web
+                        independente depende da habilitação do serviço de fontes
+                        externas e pode ser contratada sob demanda; se não
+                        estiver habilitada, o resultado informará indisponível
+                        de forma controlada.
+                      </Typography>
+                    </Box>
+                  }
+                />
+
+                {form.enableWebSearch && (
+                  <Alert severity="warning" sx={{ mt: 1.5 }}>
+                    {WEB_SEARCH_CONSENT_MESSAGE}
+                  </Alert>
+                )}
 
                 <AiTemporaryPdfSourceField
                   companyId={characterizationData.companyId}
@@ -559,6 +678,110 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                       />
                     </Box>
                   )}
+                </Box>
+              )}
+
+              {result.externalSources && (
+                <Box sx={{ mb: 3 }}>
+                  <SText variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                    Fontes externas processadas
+                  </SText>
+                  {result.externalSources.userProvidedUrls.length === 0 ? (
+                    <SText variant="caption" color="text.secondary">
+                      Nenhuma URL detectada no campo de fontes.
+                    </SText>
+                  ) : (
+                    <SFlex gap={1} flexWrap="wrap" sx={{ mb: 1.5 }}>
+                      {result.externalSources.userProvidedUrls.map((item) => (
+                        <Chip
+                          key={`${item.url}-${item.status}`}
+                          size="small"
+                          color={
+                            item.status === 'READ_SUCCESS' ||
+                            item.status === 'TRUNCATED'
+                              ? 'success'
+                              : item.status === 'BLOCKED'
+                                ? 'warning'
+                                : 'default'
+                          }
+                          variant="outlined"
+                          label={`${URL_STATUS_LABELS[item.status] ?? item.status}: ${item.title || item.url}`}
+                        />
+                      ))}
+                    </SFlex>
+                  )}
+                  <Alert
+                    severity={
+                      result.externalSources.webSearch.status === 'UNAVAILABLE'
+                        ? 'warning'
+                        : result.externalSources.webSearch.status === 'FAILED'
+                          ? 'error'
+                          : 'info'
+                    }
+                    icon={
+                      result.externalSources.webSearch.status === 'UNAVAILABLE' ? (
+                        <WarningAmberRoundedIcon sx={{ fontSize: 32 }} />
+                      ) : undefined
+                    }
+                    sx={
+                      result.externalSources.webSearch.status === 'UNAVAILABLE'
+                        ? {
+                            mt: 2,
+                            py: 2.5,
+                            px: 2.5,
+                            border: '2px solid',
+                            borderColor: 'warning.dark',
+                            bgcolor: (theme) =>
+                              theme.palette.mode === 'dark'
+                                ? 'rgba(237, 108, 2, 0.16)'
+                                : 'rgba(255, 244, 229, 1)',
+                            '& .MuiAlert-icon': {
+                              color: 'warning.dark',
+                              alignItems: 'center',
+                              mr: 2,
+                            },
+                            '& .MuiAlert-message': { width: '100%', py: 0.5 },
+                          }
+                        : { mt: 1 }
+                    }
+                  >
+                    {result.externalSources.webSearch.status === 'UNAVAILABLE' ? (
+                      <>
+                        <AlertTitle sx={{ fontWeight: 800, mb: 1, fontSize: '1.05rem' }}>
+                          {WEB_SEARCH_UNAVAILABLE_TITLE}
+                        </AlertTitle>
+                        <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.55 }}>
+                          <strong>
+                            Este recurso depende da habilitação do serviço de fontes
+                            externas
+                          </strong>{' '}
+                          e pode ser contratado sob demanda. Enquanto isso, você pode
+                          informar URLs específicas para que o sistema tente ler e
+                          utilizar como apoio técnico.
+                        </Typography>
+                        <Typography variant="body2" sx={{ lineHeight: 1.5, opacity: 0.95 }}>
+                          {result.externalSources.webSearch.warning &&
+                          result.externalSources.webSearch.warning !==
+                            WEB_SEARCH_UNAVAILABLE_MESSAGE
+                            ? result.externalSources.webSearch.warning
+                            : WEB_SEARCH_UNAVAILABLE_FOOTER}
+                        </Typography>
+                      </>
+                    ) : (
+                      <>
+                        Pesquisa web:{' '}
+                        {WEB_SEARCH_STATUS_LABELS[
+                          result.externalSources.webSearch.status
+                        ] ?? result.externalSources.webSearch.status}
+                        {result.externalSources.webSearch.warning
+                          ? ` — ${result.externalSources.webSearch.warning}`
+                          : ''}
+                        {result.externalSources.webSearch.results.length > 0
+                          ? ` (${result.externalSources.webSearch.results.length} fonte(s))`
+                          : ''}
+                      </>
+                    )}
+                  </Alert>
                 </Box>
               )}
 
@@ -666,14 +889,15 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       {isMaster && (
         <SystemAiPromptConfigDialog
           open={aiConfigDialogOpen}
-          onClose={() => setAiConfigDialogOpen(false)}
-          onApply={setAiMasterConfig}
+          onClose={closePromptConfigDialog}
+          onApply={handleApplyPromptConfig}
+          initialConfig={aiMasterConfig}
+          promptKey={SystemAiPromptKeyEnum.CHARACTERIZATION_AI_ASSIST}
           title="Configurar Assistente IA da Caracterização"
-          description="Configuração avançada disponível apenas para usuários MASTER. A configuração aplicada vale apenas para esta sessão. Persistência do prompt padrão do sistema fica para um próximo slice (exige migration)."
+          description="Configuração avançada disponível apenas para usuários MASTER. Aplicar vale para esta sessão. Definir como prompt padrão persiste para todo o sistema."
           factoryDefaultPrompt={CHARACTERIZATION_AI_ASSIST_FACTORY_DEFAULT_PROMPT}
           promptLabel="Prompt completo do Assistente IA"
-          showSaveDefault={false}
-          showRestoreDefault
+          saveDefaultConfirmMessage="O conteúdo atual será salvo como prompt padrão do sistema para o Assistente IA da Caracterização. Deseja continuar?"
           maxWidth="xl"
           promptMinRows={8}
           promptMaxRows={30}

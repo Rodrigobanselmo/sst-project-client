@@ -39,7 +39,12 @@ export type AiCharacterizationAssistTextItem = {
 
 export type AiCharacterizationAssistSourceClassification = {
   label: string;
-  source: 'SYSTEM' | 'USER' | 'USER_PROVIDED_SOURCE' | 'AI_INFERENCE';
+  source:
+    | 'SYSTEM'
+    | 'USER'
+    | 'USER_PROVIDED_SOURCE'
+    | 'WEB_SEARCH'
+    | 'AI_INFERENCE';
 };
 
 export type AiCharacterizationAssistQuestionnaire = {
@@ -48,6 +53,43 @@ export type AiCharacterizationAssistQuestionnaire = {
   characterizationTarget: AiCharacterizationAssistTarget;
   outputIntent: AiCharacterizationAssistOutputIntent;
   useAttachedPhotos: boolean;
+};
+
+export type UserProvidedUrlReadStatus =
+  | 'READ_SUCCESS'
+  | 'READ_FAILED'
+  | 'BLOCKED'
+  | 'TRUNCATED';
+
+export type CharacterizationWebSearchStatus =
+  | 'SUCCESS'
+  | 'PARTIAL'
+  | 'UNAVAILABLE'
+  | 'FAILED'
+  | 'SKIPPED';
+
+export type CharacterizationExternalSourcesSummary = {
+  userProvidedUrls: Array<{
+    url: string;
+    status: UserProvidedUrlReadStatus;
+    title?: string;
+    charCount: number;
+    warning?: string;
+  }>;
+  webSearch: {
+    enabled: boolean;
+    status: CharacterizationWebSearchStatus;
+    provider?: string;
+    queries: string[];
+    results: Array<{
+      title: string;
+      url: string;
+      sourceType: 'OFFICIAL' | 'TECHNICAL' | 'GENERAL' | 'UNKNOWN';
+      snippet?: string;
+      warning?: string;
+    }>;
+    warning?: string;
+  };
 };
 
 export interface AiCharacterizationAssistParams {
@@ -59,6 +101,8 @@ export interface AiCharacterizationAssistParams {
   userObservations?: string;
   userProvidedSources?: string;
   temporaryDocumentSources?: AiTemporaryDocumentSource[];
+  enableWebSearch?: boolean;
+  webSearchConsentAccepted?: boolean;
   customPrompt?: string;
   model?: string;
 }
@@ -72,6 +116,7 @@ export type AiCharacterizationAssistResult = {
   inconsistencies: string[];
   cautions: string[];
   sourceClassification?: AiCharacterizationAssistSourceClassification[];
+  externalSources?: CharacterizationExternalSourcesSummary;
   metadata?: Record<string, unknown>;
   characterization: {
     id: string;

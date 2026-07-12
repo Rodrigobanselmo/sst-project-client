@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo } from 'react';
+import React, { FC, useEffect, useMemo } from 'react';
 
 import {
   Alert,
@@ -42,6 +42,11 @@ export type SystemAiPromptConfigDialogProps = {
   description?: string;
   promptKey?: SystemAiPromptKeyEnum;
   factoryDefaultPrompt?: string;
+  /**
+   * Session-applied MASTER overrides (from a previous "Aplicar configuração").
+   * When present, takes precedence over persisted SystemAiPrompt / factory on open.
+   */
+  initialConfig?: SystemAiMasterConfig;
   promptLabel?: string;
   modelLabel?: string;
   modelPlaceholder?: string;
@@ -65,6 +70,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
   description,
   promptKey,
   factoryDefaultPrompt = '',
+  initialConfig,
   promptLabel = 'Prompt do sistema',
   modelLabel = 'Modelo de IA',
   modelPlaceholder = 'Selecione o modelo de IA',
@@ -107,8 +113,34 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
     return factoryDefaultPrompt;
   }, [factoryDefaultPrompt, promptKey, systemAiPrompt?.defaultContent]);
 
+  const resolveModelOption = (modelValue?: string): AiModelOption => {
+    if (!modelValue) return getValues('model') ?? DEFAULT_MODEL;
+    return (
+      AI_MODEL_OPTIONS.find((option) => option.value === modelValue) ??
+      getValues('model') ??
+      DEFAULT_MODEL
+    );
+  };
+
   useEffect(() => {
     if (!open) return;
+
+    const sessionPrompt = initialConfig?.customPrompt?.trim();
+    const sessionModel = resolveModelOption(initialConfig?.model);
+
+    // Session-applied config wins over persisted SystemAiPrompt / factory.
+    if (sessionPrompt || initialConfig?.model) {
+      reset({
+        customPrompt:
+          sessionPrompt ||
+          systemAiPrompt?.content ||
+          factoryDefaultContent ||
+          getValues('customPrompt') ||
+          '',
+        model: sessionModel,
+      });
+      return;
+    }
 
     if (promptKey && systemAiPrompt) {
       reset({
@@ -132,9 +164,11 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
         model: getValues('model') ?? DEFAULT_MODEL,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getValues/resolveModelOption are stable enough; avoid reset loops
   }, [
     factoryDefaultContent,
-    getValues,
+    initialConfig?.customPrompt,
+    initialConfig?.model,
     isLoadingSystemAiPrompt,
     open,
     promptKey,
@@ -190,17 +224,33 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
     onClose();
   };
 
+  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    // MUI Dialog portals to document.body, but React still bubbles submit through the
+    // React tree. This dialog is often rendered under another <form> (e.g. Caracterização
+    // SModalPaper). Without stopPropagation, "Aplicar configuração" submits the parent
+    // form and can close the whole characterization modal (saveRef default = false → onClose).
+    event.preventDefault();
+    event.stopPropagation();
+    void handleSubmit(onSubmit)(event);
+  };
+
   const fetchErrorMessage =
     promptKey && isSystemAiPromptError
       ? getSystemAiPromptErrorMessage(systemAiPromptError as Error)
       : null;
 
-  const isLoadingPrompt = Boolean(promptKey) && isLoadingSystemAiPrompt;
+  const hasSessionAppliedConfig = Boolean(
+    initialConfig?.customPrompt?.trim() || initialConfig?.model,
+  );
+
+  // Session override can be shown immediately; still fetch for restore/save-default baseline.
+  const isLoadingPrompt =
+    Boolean(promptKey) && isLoadingSystemAiPrompt && !hasSessionAppliedConfig;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth>
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleFormSubmit}>
           <DialogTitle>{title}</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {description && (
@@ -269,7 +319,10 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
                 variant="contained"
                 text="Aplicar configuração"
                 disabled={isLoadingPrompt}
-                buttonProps={{ type: 'submit' }}
+                // type="button" avoids native nested-form submit; handleFormSubmit also
+                // stopPropagation for Enter/keyboard submit on the local form.
+                buttonProps={{ type: 'button' }}
+                onClick={() => void handleSubmit(onSubmit)()}
               />
             </SFlex>
           </DialogActions>
