@@ -10,15 +10,21 @@ import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-interface IQueryEpi {
-  ca: string;
+export interface IQueryEpi {
+  ca?: string;
+  equipment?: string;
 }
 
 export const queryEpis = async (
   { skip, take }: IPagination,
   query: IQueryEpi,
 ) => {
-  const queries = queryString.stringify(query);
+  const cleaned = Object.fromEntries(
+    Object.entries(query).filter(
+      ([, value]) => typeof value === 'string' && value.trim().length > 0,
+    ),
+  );
+  const queries = queryString.stringify(cleaned);
 
   const response = await api.get<IPaginationResult<IEpi[]>>(
     `${ApiRoutesEnum.EPI}?take=${take}&skip=${skip}&${queries}`,
@@ -27,9 +33,15 @@ export const queryEpis = async (
   return response.data;
 };
 
-export function useQueryEpis(page = 0, query = {} as IQueryEpi, take: number) {
+/** `page` é 0-based (EpiSelect usa 0). */
+export function useQueryEpis(
+  page = 0,
+  query = {} as IQueryEpi,
+  take: number,
+  options?: { enabled?: boolean },
+) {
   const pagination: IPagination = {
-    skip: page * 20,
+    skip: Math.max(0, page) * (take || 20),
     take: take || 20,
   };
 
@@ -37,7 +49,8 @@ export function useQueryEpis(page = 0, query = {} as IQueryEpi, take: number) {
     [QueryEnum.EPIS, page, { ...pagination, ...query }],
     () => queryEpis(pagination, query),
     {
-      staleTime: 1000 * 60 * 60, // 1 hour
+      staleTime: 1000 * 60 * 60,
+      enabled: options?.enabled !== false,
     },
   );
 

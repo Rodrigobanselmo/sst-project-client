@@ -34,6 +34,7 @@ export enum RoutesEnum {
   GHOS = '/dashboard/empresas/:companyId/grupos-homogenios',
   ACTION_PLAN = '/dashboard/empresas/:companyId/plano-de-acao',
   EXAMS = '/dashboard/empresas/:companyId/exames',
+  EPIS_AND_CA = '/dashboard/empresas/:companyId/epis-e-ca',
   HIERARCHY = '/dashboard/empresas/:companyId/hierarquia',
   LOGIN = '/login',
   MANAGER_SYSTEM = '/dashboard/empresas/:companyId/gestao-sst',

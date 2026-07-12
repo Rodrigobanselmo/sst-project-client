@@ -17,6 +17,7 @@ import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 import { SEmployeeIcon } from 'assets/icons/SEmployeeIcon';
 import SExamIcon from 'assets/icons/SExamIcon';
+import { SEpiIcon } from 'assets/icons/SEpiIcon';
 import SProfessionalIcon from 'assets/icons/SProfessionalIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
 import SReportIcon from 'assets/icons/SReportIcon';
@@ -361,6 +362,15 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.EXAM],
       shouldMatchExactHref: true,
     },
+    [DrawerItemsEnum.episAndCa]: {
+      text: 'EPIs e CA',
+      description:
+        'Consulta da base de EPIs e Certificados de Aprovação (CAEPI/MTE)',
+      Icon: SEpiIcon,
+      href: RoutesEnum.EPIS_AND_CA,
+      roles: [RoleEnum.SECURITY, RoleEnum.COMPANY, RoleEnum.EPI],
+      shouldMatchExactHref: true,
+    },
     [DrawerItemsEnum.risks]: {
       text: 'Fatores de Risco',
       description: 'Visualizar os riscos cadastrados',
@@ -636,6 +646,7 @@ export const useDrawerItems = () => {
             items: [items[DrawerItemsEnum.hoMethods]],
           },
           items[DrawerItemsEnum.exams],
+          items[DrawerItemsEnum.episAndCa],
           items[DrawerItemsEnum.professionals],
         ],
       },

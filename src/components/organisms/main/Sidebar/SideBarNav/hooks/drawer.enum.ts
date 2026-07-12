@@ -31,6 +31,7 @@ export enum DrawerItemsEnum {
   professionals = 'professionals',
   exams = 'exams',
   risks = 'risks',
+  episAndCa = 'episAndCa',
   hoMethodsGroup = 'hoMethodsGroup',
   hoMethods = 'hoMethods',
   schedule = 'schedule',
