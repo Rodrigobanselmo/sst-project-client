@@ -13,6 +13,18 @@ export interface IEpi {
   restriction: string;
   isValid: boolean;
   national: boolean;
+  /** Situação textual oficial CAEPI (ex.: VÁLIDO / VENCIDO) */
+  rawSituation?: string | null;
+  processNumber?: string | null;
+  manufacturerCnpj?: string | null;
+  manufacturerName?: string | null;
+  brand?: string | null;
+  reference?: string | null;
+  color?: string | null;
+  laboratoryCnpj?: string | null;
+  laboratoryName?: string | null;
+  reportNumber?: string | null;
+  standard?: string | null;
   epiRiskData: IEpiRiskData;
 }
 

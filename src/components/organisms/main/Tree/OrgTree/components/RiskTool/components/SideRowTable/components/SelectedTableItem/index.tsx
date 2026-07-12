@@ -7,12 +7,21 @@ import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
+import { SInfoIcon } from 'assets/icons/SInfoIcon';
 
 import { SelectedTableItemProps } from './types';
 
 export const SelectedTableItem: FC<
   { children?: any } & SelectedTableItemProps
-> = ({ name, tooltip, handleRemove, isExpired, handleEdit }) => {
+> = ({
+  name,
+  tooltip,
+  handleRemove,
+  isExpired,
+  handleEdit,
+  handleInfo,
+  infoTooltip,
+}) => {
   return (
     <STooltip title={tooltip || name}>
       <SFlex
@@ -40,6 +49,19 @@ export const SelectedTableItem: FC<
           >
             <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
           </SIconButton>
+        )}
+        {handleInfo && (
+          <STooltip title={infoTooltip || 'Ver detalhe do CA'}>
+            <SIconButton
+              sx={{ maxWidth: 10, maxHeight: 10 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleInfo();
+              }}
+            >
+              <Icon component={SInfoIcon} sx={{ fontSize: 14 }} />
+            </SIconButton>
+          </STooltip>
         )}
         <SText
           lineNumber={2}

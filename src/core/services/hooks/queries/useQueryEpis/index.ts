@@ -13,18 +13,46 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryEpi {
   ca?: string;
   equipment?: string;
+  situationOfficial?: string;
+  validity?: string;
+  national?: boolean;
+  status?: string;
+  manufacturerName?: string;
+  manufacturerCnpj?: string;
+  brand?: string;
+  reference?: string;
+  color?: string;
+  report?: string;
+  restriction?: string;
+  observation?: string;
+  laboratoryCnpj?: string;
+  laboratoryName?: string;
+  reportNumber?: string;
+  standard?: string;
+  processNumber?: string;
+  orderBy?: string;
+  order?: 'asc' | 'desc';
+}
+
+function cleanEpiQuery(query: IQueryEpi): Record<string, string | boolean | number> {
+  const cleaned: Record<string, string | boolean | number> = {};
+  Object.entries(query).forEach(([key, value]) => {
+    if (typeof value === 'boolean') {
+      cleaned[key] = value;
+      return;
+    }
+    if (typeof value === 'string' && value.trim().length > 0) {
+      cleaned[key] = value.trim();
+    }
+  });
+  return cleaned;
 }
 
 export const queryEpis = async (
   { skip, take }: IPagination,
   query: IQueryEpi,
 ) => {
-  const cleaned = Object.fromEntries(
-    Object.entries(query).filter(
-      ([, value]) => typeof value === 'string' && value.trim().length > 0,
-    ),
-  );
-  const queries = queryString.stringify(cleaned);
+  const queries = queryString.stringify(cleanEpiQuery(query));
 
   const response = await api.get<IPaginationResult<IEpi[]>>(
     `${ApiRoutesEnum.EPI}?take=${take}&skip=${skip}&${queries}`,
