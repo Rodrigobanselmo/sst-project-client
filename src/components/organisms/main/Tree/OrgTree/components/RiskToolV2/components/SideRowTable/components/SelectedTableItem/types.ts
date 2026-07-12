@@ -1,5 +1,6 @@
 import { SxProps } from '@mui/material';
 
+import { RecTypeEnum } from 'project/enum/recType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 export interface SelectedTableItemProps {
@@ -27,4 +28,10 @@ export interface SelectedTableItemProps {
    * `true` só com derivação real + status DONE no chip; `false` oculta; omitido mantém comportamento legado (só pelo chip).
    */
   showPlanDerivedTransformedNote?: boolean;
+  /** Alerta quando a recomendação não tem `recType` (ADM/ENG/EPI). */
+  showMissingTypeWarning?: boolean;
+  missingTypeTooltip?: string;
+  /** Correção rápida do tipo via Popover no ícone de alerta. */
+  onQuickClassifyRecType?: (recType: RecTypeEnum) => void | Promise<void>;
+  quickClassifyLoading?: boolean;
 }

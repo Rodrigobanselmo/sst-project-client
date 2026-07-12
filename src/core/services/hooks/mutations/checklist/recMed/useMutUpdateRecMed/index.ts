@@ -5,19 +5,24 @@ import { useSnackbar } from 'notistack';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { RecTypeEnum } from 'project/enum/recType.enum';
 
-interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
+interface IUpdateRecMed extends Pick<IRecMed, 'riskId'> {
   id: string;
   status?: string;
   companyId?: string;
+  recType?: RecTypeEnum | string;
+  recName?: string;
+  medName?: string;
+  medType?: string;
 }
 
-export async function updateRecMed(data: ICreateRecMed, companyId?: string) {
+export async function updateRecMed(data: IUpdateRecMed, companyId?: string) {
   if (!companyId) return null;
 
   const response = await api.patch<IRecMed>(
@@ -36,11 +41,13 @@ export function useMutUpdateRecMed() {
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: ICreateRecMed) =>
+    async (data: IUpdateRecMed) =>
       updateRecMed(data, data.companyId || user?.companyId),
     {
       onSuccess: async (newRecMed) => {
         queryClient.invalidateQueries([QueryEnum.REC_MED]);
+        // Atualiza `recs.recType` no RiskTool após classificar a recomendação.
+        queryClient.invalidateQueries([QueryEnum.RISK_DATA]);
 
         enqueueSnackbar(
           'Recomendação e/ou Medida de controle criado com sucesso',

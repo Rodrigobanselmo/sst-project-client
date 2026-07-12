@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 
 import { Box, Icon, Typography } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -6,9 +6,13 @@ import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { SInfoIcon } from 'assets/icons/SInfoIcon';
 import palette from 'configs/theme/palette';
+
+import { MissingRecTypeClassifyPopover } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/components/MissingRecTypeClassifyPopover';
 
 import { getPlanStatusTooltipDetails } from '../../../../utils/characterization-action-plan-visual';
 
@@ -32,7 +36,13 @@ export const SelectedTableItem: FC<
   planTooltipStatus,
   planDeleteBlockedHint,
   showPlanDerivedTransformedNote,
+  showMissingTypeWarning,
+  missingTypeTooltip,
+  onQuickClassifyRecType,
+  quickClassifyLoading,
 }) => {
+  const [classifyPopoverOpen, setClassifyPopoverOpen] = useState(false);
+
   const { tooltipTitle, tooltipSurfaceSx } = useMemo(() => {
     const tooltipSurfaceSxBase = {
       maxWidth: 360,
@@ -176,6 +186,10 @@ export const SelectedTableItem: FC<
   return (
     <STooltip
       title={tooltipTitle}
+      open={classifyPopoverOpen ? false : undefined}
+      disableHoverListener={classifyPopoverOpen}
+      disableFocusListener={classifyPopoverOpen}
+      disableTouchListener={classifyPopoverOpen}
       componentsProps={
         tooltipSurfaceSx
           ? {
@@ -197,6 +211,7 @@ export const SelectedTableItem: FC<
           ...(!handleRemove ? { pl: 5 } : {}),
           ...itemTintSx,
           ...(isExpired ? { borderColor: 'error.main' } : {}),
+          ...(showMissingTypeWarning ? { borderColor: 'warning.main' } : {}),
         }}
         mt={4}
         align="center"
@@ -224,6 +239,33 @@ export const SelectedTableItem: FC<
             >
               <Icon component={SInfoIcon} sx={{ fontSize: 14 }} />
             </SIconButton>
+          </STooltip>
+        )}
+        {showMissingTypeWarning && onQuickClassifyRecType && (
+          <MissingRecTypeClassifyPopover
+            onClassify={onQuickClassifyRecType}
+            loading={quickClassifyLoading}
+            tooltipFallback={missingTypeTooltip}
+            onOpenChange={setClassifyPopoverOpen}
+          />
+        )}
+        {showMissingTypeWarning && !onQuickClassifyRecType && (
+          <STooltip
+            title={
+              missingTypeTooltip ||
+              'Classifique esta recomendação como Administrativa, Engenharia ou EPI para que ela seja considerada no cálculo da probabilidade residual.'
+            }
+          >
+            <Icon
+              component={WarningAmberRoundedIcon}
+              sx={{
+                fontSize: 15,
+                color: 'warning.main',
+                flexShrink: 0,
+                mr: 0.25,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
           </STooltip>
         )}
         <SText

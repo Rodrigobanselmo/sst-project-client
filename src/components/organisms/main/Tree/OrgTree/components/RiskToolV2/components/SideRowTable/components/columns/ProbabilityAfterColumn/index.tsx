@@ -7,6 +7,10 @@ import {
   isResidualProbabilityEmpty,
   shouldAutoApplySuggestedResidual,
 } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
+import {
+  isRecommendationRecTypeMissing,
+  MISSING_REC_TYPE_RESIDUAL_HINT,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/isRecommendationRecTypeMissing.util';
 
 import { SelectedNumber } from '../../SelectedNumber';
 import { EpiColumnProps as ProbabilityColumnProps } from './types';
@@ -82,6 +86,11 @@ export const ProbabilityAfterColumn: FC<
     (isResidualProbabilityEmpty(data?.probabilityAfter) ||
       data?.probabilityAfter !== suggested);
 
+  const hasMissingRecType = useMemo(
+    () => (data?.recs ?? []).some((rec) => isRecommendationRecTypeMissing(rec?.recType)),
+    [data?.recs],
+  );
+
   return (
     <SFlex direction="column" gap={2} alignItems="flex-start">
       <SelectedNumber
@@ -102,6 +111,15 @@ export const ProbabilityAfterColumn: FC<
           onClick={() => handleSelect({ probabilityAfter: suggested })}
         >
           {`Sugestão pela hierarquia de controles: P${suggested}`}
+        </SText>
+      )}
+      {!disabled && hasMissingRecType && (
+        <SText
+          fontSize={10}
+          color="warning.main"
+          sx={{ lineHeight: 1.3, maxWidth: 170 }}
+        >
+          {MISSING_REC_TYPE_RESIDUAL_HINT}
         </SText>
       )}
     </SFlex>
