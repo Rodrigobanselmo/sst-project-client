@@ -18,6 +18,7 @@ import {
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 import { getCurrentRiskGroupId } from '../../utils/get-current-risk-group-id.util';
 import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
+import { ModalAiTraceabilityContent } from '../ModalAiTraceabilityContent/ModalAiTraceabilityContent';
 import {
   selectGhoId,
   setGhoSelectedId,
@@ -159,6 +160,7 @@ export const ModalAddHierarchyRisk = (
               { label: 'Fatores de Riscos', disabled: isDisable || !isEdit },
               { label: 'Audios e Videos', disabled: isDisable },
               { label: 'Análise IA', disabled: isDisable },
+              { label: 'Rastreabilidade IA', disabled: isDisable || !isEdit },
             ]}
           />
         }
@@ -378,6 +380,7 @@ export const ModalAddHierarchyRisk = (
           </Box>
         </Box>
         <ModalAiAnalysisContent {...props} />
+        <ModalAiTraceabilityContent {...props} />
       </Wizard>
     </Box>
   );

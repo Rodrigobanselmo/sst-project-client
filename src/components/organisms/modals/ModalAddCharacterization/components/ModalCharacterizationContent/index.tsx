@@ -85,6 +85,7 @@ export const ModalCharacterizationContent = (
     onEditArrayContent,
     isEdit,
     hideCharacterizationDelete = false,
+    registerAiAssistAppliedTrace,
   } = props;
 
   const isEnvironment = getIsEnvironment(characterizationData.type);
@@ -585,6 +586,7 @@ export const ModalCharacterizationContent = (
         data={characterizationData}
         onEditArrayContent={onEditArrayContent}
         setData={setCharacterizationData}
+        registerAiAssistAppliedTrace={registerAiAssistAppliedTrace}
       />
     </ModalAddHierarchyRisk>
   );

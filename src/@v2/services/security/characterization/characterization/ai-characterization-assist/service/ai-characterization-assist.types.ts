@@ -108,6 +108,7 @@ export interface AiCharacterizationAssistParams {
 }
 
 export type AiCharacterizationAssistResult = {
+  traceId?: string;
   description: AiCharacterizationAssistTextItem[];
   workActivities: AiCharacterizationAssistTextItem[];
   considerations: AiCharacterizationAssistTextItem[];

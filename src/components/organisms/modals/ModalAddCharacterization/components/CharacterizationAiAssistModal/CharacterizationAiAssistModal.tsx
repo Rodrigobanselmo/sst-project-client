@@ -41,6 +41,8 @@ import type {
   AiCharacterizationAssistTarget,
   AiTemporaryDocumentSource,
 } from '@v2/services/security/characterization/characterization/ai-characterization-assist/service/ai-characterization-assist.types';
+import { useMutateApplyCharacterizationAiAssistTrace } from '@v2/services/security/characterization/characterization/ai-characterization-assist-traceability/hooks/useMutateCharacterizationAiAssistTraceability';
+import type { CharacterizationAiAssistAppliedFieldName } from '@v2/services/security/characterization/characterization/ai-characterization-assist-traceability/service/ai-characterization-assist-traceability.types';
 
 import type { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
 import { AiTemporaryPdfSourceField } from '../AiTemporaryPdfSourceField/AiTemporaryPdfSourceField';
@@ -82,9 +84,18 @@ const WEB_SEARCH_UNAVAILABLE_FOOTER =
 /** Fallback legado / API warning sem título estruturado */
 const WEB_SEARCH_UNAVAILABLE_MESSAGE = `${WEB_SEARCH_UNAVAILABLE_TITLE}. Este recurso depende da habilitação do serviço de fontes externas e pode ser contratado sob demanda. Enquanto isso, você pode informar URLs específicas para que o sistema tente ler e utilizar como apoio técnico.`;
 
+const ARRAY_FIELD_TO_TRACE_FIELD: Record<
+  CharacterizationArrayField,
+  CharacterizationAiAssistAppliedFieldName
+> = {
+  paragraphs: 'description',
+  activities: 'workActivities',
+  considerations: 'considerations',
+};
+
 type Props = Pick<
   IUseEditCharacterization,
-  'data' | 'onEditArrayContent' | 'setData'
+  'data' | 'onEditArrayContent' | 'setData' | 'registerAiAssistAppliedTrace'
 > & {
   open: boolean;
   onClose: () => void;
@@ -229,10 +240,12 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
   data: characterizationData,
   onEditArrayContent,
   setData,
+  registerAiAssistAppliedTrace,
 }) => {
   const { isMaster } = useAccess();
   const { showConfirmation } = useConfirmationModal();
   const assistMutation = useMutateAiCharacterizationAssist();
+  const applyTraceMutation = useMutateApplyCharacterizationAiAssistTrace();
 
   const [step, setStep] = useState<'form' | 'result'>('form');
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
@@ -376,13 +389,29 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
         field,
         defaultType,
       );
-      return;
+    } else {
+      setData((oldData) => ({
+        ...oldData,
+        [field]: [...(oldData[field] || []), ...storedValues],
+      }));
     }
 
-    setData((oldData) => ({
-      ...oldData,
-      [field]: [...(oldData[field] || []), ...storedValues],
-    }));
+    if (result?.traceId) {
+      try {
+        await applyTraceMutation.mutateAsync({
+          companyId: characterizationData.companyId,
+          workspaceId: characterizationData.workspaceId,
+          characterizationId: characterizationData.id as string,
+          traceId: result.traceId,
+          field: ARRAY_FIELD_TO_TRACE_FIELD[field],
+          mode: mode === 'append' && hasContent ? 'append' : 'replace',
+          content: items,
+        });
+        registerAiAssistAppliedTrace?.(result.traceId);
+      } catch {
+        // A aplicação local já ocorreu; falha de rastreabilidade não deve reverter a decisão do usuário.
+      }
+    }
   };
 
   const convertDisplayType = (

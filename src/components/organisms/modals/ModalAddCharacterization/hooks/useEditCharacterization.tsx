@@ -46,6 +46,7 @@ import {
   IUpsertCharacterization,
   useMutUpsertCharacterization,
 } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
+import { useMutateMarkSavedCharacterizationAiAssistTrace } from '@v2/services/security/characterization/characterization/ai-characterization-assist-traceability/hooks/useMutateCharacterizationAiAssistTraceability';
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
@@ -141,6 +142,7 @@ export const useEditCharacterization = (
   const initialDataRef = useRef(initialCharacterizationState);
   const didHydratePropsInitialDataRef = useRef<string>('');
   const saveRef = useRef<boolean | string>(false);
+  const aiAssistAppliedTraceIdsRef = useRef<Set<string>>(new Set());
   const { query, push, asPath } = useRouter();
   const { selectStartEndDate } = useStartEndDate();
   const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHOAll();
@@ -175,6 +177,8 @@ export const useEditCharacterization = (
   const copyMutation = useMutCopyCharacterization();
   const deleteMutation = useMutDeleteCharacterization();
   const upsertMutation = useMutUpsertCharacterization();
+  const markSavedAiAssistTraceMutation =
+    useMutateMarkSavedCharacterizationAiAssistTrace();
   const addPhotoMutation = useMutAddCharacterizationPhoto();
   const deletePhotoMutation = useMutDeleteCharacterizationPhoto();
   const updatePhotoMutation = useMutUpdateCharacterizationPhoto();
@@ -600,8 +604,23 @@ export const useEditCharacterization = (
 
     await upsertMutation
       .mutateAsync(submitData)
-      .then((characterization) => {
+      .then(async (characterization) => {
         try {
+          const pendingTraceIds = Array.from(aiAssistAppliedTraceIdsRef.current);
+          if (pendingTraceIds.length) {
+            await Promise.allSettled(
+              pendingTraceIds.map((traceId) =>
+                markSavedAiAssistTraceMutation.mutateAsync({
+                  companyId: characterizationData.companyId,
+                  workspaceId: characterizationData.workspaceId,
+                  characterizationId: characterization.id,
+                  traceId,
+                }),
+              ),
+            );
+            aiAssistAppliedTraceIdsRef.current.clear();
+          }
+
           if (!characterizationData.id)
             queryClient.invalidateQueries([QueryEnum.GHO]);
 
@@ -1092,6 +1111,11 @@ export const useEditCharacterization = (
     query.workspaceId,
   ]);
 
+  const registerAiAssistAppliedTrace = useCallback((traceId: string) => {
+    if (!traceId) return;
+    aiAssistAppliedTraceIdsRef.current.add(traceId);
+  }, []);
+
   return {
     control,
     data: characterizationData,
@@ -1133,6 +1157,7 @@ export const useEditCharacterization = (
     profiles,
     query: characterizationQuery,
     registerModal,
+    registerAiAssistAppliedTrace,
     saveRef,
     setData: setCharacterizationData,
     setValue,
