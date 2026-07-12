@@ -2,10 +2,17 @@ import { ParagraphEnum } from 'project/enum/paragraph.enum';
 import type { AiCharacterizationAssistTextItem } from '@v2/services/security/characterization/characterization/ai-characterization-assist/service/ai-characterization-assist.types';
 
 const TECHNICAL_SOURCE_TOKEN_PATTERN =
-  /\[(SYSTEM|USER|USER_PROVIDED_SOURCE|AI_INFERENCE)\]|\b(SYSTEM|USER_PROVIDED_SOURCE|AI_INFERENCE)\b/gi;
+  /\[(SYSTEM|USER|USER_PROVIDED_SOURCE|AI_INFERENCE|WEB_SEARCH)\]|\b(SYSTEM|USER_PROVIDED_SOURCE|WEB_SEARCH|AI_INFERENCE)\b/gi;
+
+const STRUCTURAL_TYPE_MARKER_PATTERN =
+  /\[(?:PARAGRAPH|BULLET[_-][012])\]/gi;
 
 export const sanitizeApplicableAssistText = (text: string): string =>
-  text.replace(TECHNICAL_SOURCE_TOKEN_PATTERN, '').replace(/\s{2,}/g, ' ').trim();
+  text
+    .replace(STRUCTURAL_TYPE_MARKER_PATTERN, '')
+    .replace(TECHNICAL_SOURCE_TOKEN_PATTERN, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 
 export const convertAssistTypeToParagraphEnum = (
   aiType?: string,

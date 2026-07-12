@@ -180,16 +180,45 @@ const TextItemsPreview: React.FC<{
         bgcolor: 'grey.50',
       }}
     >
-      {items.map((item, index) => (
-        <Box key={`${item.text}-${index}`} sx={{ mb: index < items.length - 1 ? 1 : 0 }}>
-          <SText variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-            [{item.type || 'PARAGRAPH'}]
-          </SText>
-          <SText variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-            {sanitizeApplicableAssistText(item.text)}
-          </SText>
-        </Box>
-      ))}
+      {items.map((item, index) => {
+        const type = item.type || 'PARAGRAPH';
+        const text = sanitizeApplicableAssistText(item.text);
+        if (!text) return null;
+
+        const isBullet =
+          type === 'BULLET_0' || type === 'BULLET_1' || type === 'BULLET_2';
+        const indentPx =
+          type === 'BULLET_1' ? 2.5 : type === 'BULLET_2' ? 4.5 : isBullet ? 0.5 : 0;
+
+        return (
+          <Box
+            key={`${item.text}-${index}`}
+            sx={{
+              mb: index < items.length - 1 ? (isBullet ? 0.75 : 1.5) : 0,
+              pl: indentPx,
+              display: isBullet ? 'flex' : 'block',
+              alignItems: isBullet ? 'flex-start' : undefined,
+              gap: isBullet ? 1 : undefined,
+            }}
+          >
+            {isBullet && (
+              <SText
+                variant="body2"
+                component="span"
+                sx={{ lineHeight: 1.5, flexShrink: 0, userSelect: 'none' }}
+              >
+                •
+              </SText>
+            )}
+            <SText
+              variant="body2"
+              sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.55 }}
+            >
+              {text}
+            </SText>
+          </Box>
+        );
+      })}
     </Box>
   );
 };
