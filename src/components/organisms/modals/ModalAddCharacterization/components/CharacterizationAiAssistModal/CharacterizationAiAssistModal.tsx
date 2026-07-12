@@ -47,6 +47,7 @@ import {
   resolveAssistModeFromOutputIntent,
   sanitizeApplicableAssistText,
 } from './characterization-ai-assist.utils';
+import { CHARACTERIZATION_AI_ASSIST_FACTORY_DEFAULT_PROMPT } from './characterization-ai-assist-default-prompt.constant';
 
 type CharacterizationArrayField = 'paragraphs' | 'activities' | 'considerations';
 
@@ -668,12 +669,14 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
           onClose={() => setAiConfigDialogOpen(false)}
           onApply={setAiMasterConfig}
           title="Configurar Assistente IA da Caracterização"
-          description="Configuração válida apenas para esta sessão. TODO: migrar para prompt MASTER persistido."
-          promptLabel="Prompt personalizado (opcional)"
+          description="Configuração avançada disponível apenas para usuários MASTER. A configuração aplicada vale apenas para esta sessão. Persistência do prompt padrão do sistema fica para um próximo slice (exige migration)."
+          factoryDefaultPrompt={CHARACTERIZATION_AI_ASSIST_FACTORY_DEFAULT_PROMPT}
+          promptLabel="Prompt completo do Assistente IA"
           showSaveDefault={false}
-          showRestoreDefault={false}
-          promptMinRows={4}
-          promptMaxRows={8}
+          showRestoreDefault
+          maxWidth="xl"
+          promptMinRows={8}
+          promptMaxRows={30}
         />
       )}
     </>
