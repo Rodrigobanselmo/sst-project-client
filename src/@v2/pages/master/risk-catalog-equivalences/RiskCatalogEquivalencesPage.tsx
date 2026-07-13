@@ -55,8 +55,13 @@ import {
   RISK_CATALOG_GLOBAL_EQUIVALENCE_CONFIRM_MESSAGE,
   RISK_CATALOG_SYSTEM_CANONICAL_INFO,
 } from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-scope.util';
-import { isRiskCatalogGlobalEquivalenceMetadata } from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-global.util';
+import {
+  groupRiskCatalogEquivalences,
+  isEquivalenceItemGlobal,
+} from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-group.util';
 import { sortRiskCatalogSearchResults } from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-search-sort.util';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import { queryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
@@ -246,6 +251,9 @@ export const RiskCatalogEquivalencesPage: FC = () => {
   const [revokeTarget, setRevokeTarget] =
     useState<RiskCatalogEquivalence | null>(null);
   const [revokeReason, setRevokeReason] = useState('');
+  const [expandedEquivalenceGroups, setExpandedEquivalenceGroups] = useState<
+    Set<string>
+  >(() => new Set());
   const [companySearchInput, setCompanySearchInput] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [selectionMessage, setSelectionMessage] = useState<string | null>(null);
@@ -385,6 +393,28 @@ export const RiskCatalogEquivalencesPage: FC = () => {
 
   const { data: equivalences = [], isLoading: loadingEquivalences } =
     useFetchBrowseRiskCatalogEquivalences(browseParams);
+
+  const equivalenceGroups = useMemo(
+    () => groupRiskCatalogEquivalences(equivalences),
+    [equivalences],
+  );
+
+  const catalogItemById = useMemo(() => {
+    const map = new Map<string, RiskCatalogSearchItem>();
+    for (const item of sortedSearchResults) {
+      map.set(item.id, item);
+    }
+    return map;
+  }, [sortedSearchResults]);
+
+  const toggleEquivalenceGroup = (groupKey: string) => {
+    setExpandedEquivalenceGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) next.delete(groupKey);
+      else next.add(groupKey);
+      return next;
+    });
+  };
 
   const {
     previews: aliasPreviews,
@@ -1216,119 +1246,246 @@ export const RiskCatalogEquivalencesPage: FC = () => {
             />
           </Box>
           <Box display="flex" flexDirection="column" gap={2}>
-            {equivalences.map((eq) => {
-              const isSystemCanonical = systemCanonicalIds.has(eq.canonicalId);
-              const isGlobalEquivalence =
-                eq.isGlobalEquivalence === true ||
-                isRiskCatalogGlobalEquivalenceMetadata(eq.metadata);
+            {equivalenceGroups.map((group) => {
+              const isExpanded = expandedEquivalenceGroups.has(group.key);
+              const isSystemCanonical = systemCanonicalIds.has(
+                group.canonicalId,
+              );
 
               return (
-              <Paper
-                key={eq.id}
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  borderColor: isGlobalEquivalence ? 'warning.main' : 'divider',
-                  borderWidth: isGlobalEquivalence ? 2 : 1,
-                }}
-              >
-                <Box display="flex" justifyContent="space-between" gap={2} flexWrap="wrap">
-                  <Box flex={1} minWidth={280}>
-                    <Box display="flex" flexWrap="wrap" gap={0.5} mb={1} alignItems="center">
-                      <Chip size="small" label={formatKind(eq.kind)} />
-                      <Chip
-                        size="small"
-                        label={formatEquivalenceType(eq.equivalenceType)}
-                      />
-                      {isSystemCanonical && (
-                        <Chip size="small" color="primary" label="Sistema" />
-                      )}
-                      {isGlobalEquivalence && (
+                <Paper
+                  key={group.key}
+                  variant="outlined"
+                  sx={{
+                    p: 2,
+                    borderColor: group.hasGlobalEquivalence
+                      ? 'warning.main'
+                      : 'divider',
+                    borderWidth: group.hasGlobalEquivalence ? 2 : 1,
+                  }}
+                >
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    gap={2}
+                    flexWrap="wrap"
+                    alignItems="flex-start"
+                  >
+                    <Box flex={1} minWidth={280}>
+                      <Box
+                        display="flex"
+                        flexWrap="wrap"
+                        gap={0.5}
+                        mb={1}
+                        alignItems="center"
+                      >
+                        <Chip size="small" label={formatKind(group.kind)} />
                         <Chip
                           size="small"
-                          color="warning"
-                          label="Equivalência global"
-                          sx={{ fontWeight: 700 }}
+                          label={formatEquivalenceType(group.equivalenceType)}
                         />
-                      )}
-                      {eq.revokedAt && (
-                        <Chip size="small" color="default" label="Revogada" />
-                      )}
-                    </Box>
-                    {isGlobalEquivalence && (
-                      <Typography
-                        variant="caption"
-                        color="warning.dark"
-                        display="block"
-                        sx={{ mb: 1, fontWeight: 600 }}
+                        {isSystemCanonical && (
+                          <Chip
+                            size="small"
+                            color="primary"
+                            label="Sistema"
+                          />
+                        )}
+                        {group.hasGlobalEquivalence && (
+                          <Chip
+                            size="small"
+                            color="warning"
+                            label="Equivalência global"
+                            sx={{ fontWeight: 700 }}
+                          />
+                        )}
+                        {group.allRevoked && (
+                          <Chip
+                            size="small"
+                            color="default"
+                            label="Revogada"
+                          />
+                        )}
+                        {!group.allRevoked && group.hasRevoked && (
+                          <Chip
+                            size="small"
+                            color="default"
+                            label="Inclui revogadas"
+                          />
+                        )}
+                      </Box>
+
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 1.5,
+                          mb: 1,
+                          borderColor: 'success.light',
+                          bgcolor: 'success.50',
+                        }}
                       >
-                        Escopo: equivalência global (cross-company)
+                        <Typography
+                          variant="caption"
+                          color="success.dark"
+                          fontWeight={600}
+                        >
+                          Canônico
+                        </Typography>
+                        <Typography variant="body2" sx={fullTextSx}>
+                          {group.canonicalLabel}
+                        </Typography>
+                      </Paper>
+
+                      <Typography variant="body2" color="text.secondary">
+                        {group.aliasCount}{' '}
+                        {group.aliasCount === 1
+                          ? 'alias vinculado'
+                          : 'aliases vinculados'}
                       </Typography>
-                    )}
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 1.5,
-                        mb: 1,
-                        borderColor: 'success.light',
-                        bgcolor: 'success.50',
-                      }}
-                    >
-                      <Typography variant="caption" color="success.dark" fontWeight={600}>
-                        Canônico
-                      </Typography>
-                      <Typography variant="body2" sx={fullTextSx}>
-                        {eq.canonicalLabel}
-                      </Typography>
-                    </Paper>
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 1.5,
-                        borderColor: 'warning.light',
-                        bgcolor: 'warning.50',
-                      }}
-                    >
-                      <Typography variant="caption" color="warning.dark" fontWeight={600}>
-                        Alias
-                      </Typography>
-                      <Typography variant="body2" sx={fullTextSx}>
-                        {eq.aliasLabel}
-                      </Typography>
-                    </Paper>
-                    <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                      Confirmada em:{' '}
-                      {eq.confirmedAt
-                        ? new Date(eq.confirmedAt).toLocaleString('pt-BR')
-                        : '—'}
-                    </Typography>
-                    {eq.revokedAt && (
-                      <Typography variant="caption" display="block">
-                        Revogada em:{' '}
-                        {new Date(eq.revokedAt).toLocaleString('pt-BR')}
-                        {eq.revokeReason ? ` — ${eq.revokeReason}` : ''}
-                      </Typography>
-                    )}
-                  </Box>
-                  {!eq.revokedAt && (
+                    </Box>
+
                     <Button
                       size="small"
-                      color="error"
                       variant="outlined"
+                      color="inherit"
+                      startIcon={
+                        isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      }
+                      onClick={() => toggleEquivalenceGroup(group.key)}
                       sx={{ alignSelf: 'flex-start' }}
-                      onClick={() => {
-                        setRevokeTarget(eq);
-                        setRevokeReason('');
-                      }}
                     >
-                      Revogar
+                      {isExpanded ? 'Recolher' : 'Expandir'}
                     </Button>
+                  </Box>
+
+                  {isExpanded && (
+                    <Box
+                      display="flex"
+                      flexDirection="column"
+                      gap={1.5}
+                      mt={2}
+                    >
+                      {group.aliases.map((eq) => {
+                        const aliasGlobal = isEquivalenceItemGlobal(eq);
+                        const aliasCompany =
+                          catalogItemById.get(eq.aliasId)?.companyName;
+
+                        return (
+                          <Paper
+                            key={eq.id}
+                            variant="outlined"
+                            sx={{
+                              p: 1.5,
+                              borderColor: aliasGlobal
+                                ? 'warning.light'
+                                : 'divider',
+                              bgcolor: eq.revokedAt
+                                ? 'action.hover'
+                                : 'background.paper',
+                            }}
+                          >
+                            <Box
+                              display="flex"
+                              justifyContent="space-between"
+                              gap={2}
+                              flexWrap="wrap"
+                              alignItems="flex-start"
+                            >
+                              <Box flex={1} minWidth={240}>
+                                <Box
+                                  display="flex"
+                                  flexWrap="wrap"
+                                  gap={0.5}
+                                  mb={0.5}
+                                >
+                                  <Chip
+                                    size="small"
+                                    color="warning"
+                                    variant="outlined"
+                                    label="Alias"
+                                  />
+                                  {aliasGlobal && (
+                                    <Chip
+                                      size="small"
+                                      color="warning"
+                                      label="Global"
+                                    />
+                                  )}
+                                  {eq.revokedAt && (
+                                    <Chip
+                                      size="small"
+                                      color="default"
+                                      label="Revogada"
+                                    />
+                                  )}
+                                </Box>
+                                <Typography
+                                  variant="body2"
+                                  sx={fullTextSx}
+                                >
+                                  {eq.aliasLabel}
+                                </Typography>
+                                {aliasCompany && (
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    display="block"
+                                  >
+                                    Empresa: {aliasCompany}
+                                  </Typography>
+                                )}
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  display="block"
+                                  sx={{ mt: 0.5 }}
+                                >
+                                  Confirmada em:{' '}
+                                  {eq.confirmedAt
+                                    ? new Date(
+                                        eq.confirmedAt,
+                                      ).toLocaleString('pt-BR')
+                                    : '—'}
+                                </Typography>
+                                {eq.revokedAt && (
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    display="block"
+                                  >
+                                    Revogada em:{' '}
+                                    {new Date(
+                                      eq.revokedAt,
+                                    ).toLocaleString('pt-BR')}
+                                    {eq.revokeReason
+                                      ? ` — ${eq.revokeReason}`
+                                      : ''}
+                                  </Typography>
+                                )}
+                              </Box>
+                              {!eq.revokedAt && (
+                                <Button
+                                  size="small"
+                                  color="error"
+                                  variant="outlined"
+                                  onClick={() => {
+                                    setRevokeTarget(eq);
+                                    setRevokeReason('');
+                                  }}
+                                >
+                                  Revogar
+                                </Button>
+                              )}
+                            </Box>
+                          </Paper>
+                        );
+                      })}
+                    </Box>
                   )}
-                </Box>
-              </Paper>
-            );
+                </Paper>
+              );
             })}
-            {!loadingEquivalences && equivalences.length === 0 && (
+            {!loadingEquivalences && equivalenceGroups.length === 0 && (
               <Typography color="text.secondary">
                 Nenhuma equivalência encontrada para os filtros atuais.
               </Typography>
