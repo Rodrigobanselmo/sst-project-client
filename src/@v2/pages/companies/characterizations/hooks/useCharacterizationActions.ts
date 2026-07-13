@@ -158,12 +158,12 @@ export const useCharacterizationActions = ({
     onStackOpenModal(ModalEnum.COPY_RISK_IMPORT_ENTRY, {
       defaultCompanyId: companyId,
       defaultWorkspaceId: workspaceId,
-      title: 'Copiar caracterização — origem',
-      companyLabel: 'Empresa de origem (cópia)',
+      title: 'Importar caracterização — origem',
+      companyLabel: 'Empresa de origem',
       workspaceLabel: 'Estabelecimento de origem',
       changeCompanyLabel: 'Usar outra empresa',
       helperText:
-        'Na próxima etapa você escolhe as caracterizações de origem na empresa e estabelecimento indicados acima. A empresa e o estabelecimento da tela atual não são alterados.',
+        'Na próxima etapa você escolhe as caracterizações de origem na empresa e estabelecimento indicados acima. Os dados, fotos e riscos selecionados serão importados para o estabelecimento atual.',
       onContinue: ({
         sourceCompanyId,
         workspaceId: sourceWorkspaceId,

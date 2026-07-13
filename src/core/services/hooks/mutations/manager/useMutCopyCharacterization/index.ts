@@ -56,9 +56,12 @@ export function useMutCopyCharacterization() {
           type: 'active',
         });
 
-        enqueueSnackbar('Ambientes e/ou Atividades copiados com sucesso', {
-          variant: 'success',
-        });
+        enqueueSnackbar(
+          'Ambientes e/ou Atividades importados com sucesso',
+          {
+            variant: 'success',
+          },
+        );
       },
       onError: (error: IErrorResp) => {
         enqueueSnackbar(error.response.data.message, { variant: 'error' });

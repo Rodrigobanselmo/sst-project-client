@@ -210,7 +210,8 @@ export const CharacterizationTable = ({
               <STableAddButton onClick={handleCharacterizationAdd} />
               <STableButton
                 onClick={handleCharacterizationCopy}
-                text="Copiar caracterização"
+                text="Importar caracterização"
+                tooltip="Importe uma caracterização existente, trazendo seus dados, fotos e riscos para este estabelecimento."
                 icon={<ContentCopyOutlinedIcon sx={{ fontSize: 16 }} />}
                 color="success"
               />
