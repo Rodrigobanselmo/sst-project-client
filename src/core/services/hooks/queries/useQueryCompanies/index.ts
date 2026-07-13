@@ -45,6 +45,9 @@ export interface IQueryCompanies {
 
   listSortBy?: string;
   listSortOrder?: 'asc' | 'desc';
+
+  /** Inclui empresas inativas (soft-deleted) na listagem. */
+  includeInactive?: boolean;
 }
 
 export type IQueryCompaniesTypes = '/by-user' | '';

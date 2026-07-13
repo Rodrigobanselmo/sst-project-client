@@ -1,7 +1,7 @@
 import { FC, Fragment, useCallback, useMemo, useState } from 'react';
 
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
-import { BoxProps } from '@mui/material';
+import { BoxProps, FormControlLabel, Switch } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
@@ -11,7 +11,6 @@ import {
   STableHRow,
   STableRow,
 } from 'components/atoms/STable';
-import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { companyFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/companyFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
@@ -26,10 +25,9 @@ import { TableSortColumnHeader } from 'components/organisms/tables/common/TableS
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import EditIcon from 'assets/icons/SEditIcon';
-
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useAccess } from 'core/hooks/useAccess';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { ICompany } from 'core/interfaces/api/ICompany';
@@ -41,6 +39,7 @@ import {
 } from 'core/services/hooks/queries/useQueryCompanies';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
+import { CompanyActionsRow } from './CompanyActionsRow';
 import {
   COMPANIES_TABLE_PAGE_SIZES,
   DEFAULT_COMPANIES_PAGE_SIZE,
@@ -86,6 +85,8 @@ export const CompaniesTable: FC<
   const [searchInputKey, setSearchInputKey] = useState(0);
   const filterProps = useFilterTable(undefined, { setPage });
   const isSelect = !!onSelectData;
+  const { isMaster } = useAccess();
+  const [includeInactive, setIncludeInactive] = useState(false);
 
   const [sort, setSort] = useState<StoredCompaniesSort | null>(() =>
     loadCompaniesSort(),
@@ -110,8 +111,9 @@ export const CompaniesTable: FC<
         listSortBy: sort.field,
         listSortOrder: sort.order,
       }),
+      ...(includeInactive && { includeInactive: true }),
     }),
-    [search, query, filterProps.filtersQuery, sort],
+    [search, query, filterProps.filtersQuery, sort, includeInactive],
   );
 
   const { companies, count, isLoading } = useQueryCompanies(
@@ -125,10 +127,6 @@ export const CompaniesTable: FC<
   const uploadMutation = useMutUploadFile();
 
   const { push } = useRouter();
-
-  const handleEditStatus = (status: StatusEnum) => {
-    // TODO edit checklist status
-  };
 
   const handleGoToCompany = (companyId: string) => {
     push(RoutesEnum.COMPANY.replace(':companyId', companyId));
@@ -266,32 +264,15 @@ export const CompaniesTable: FC<
       case 'cnpj':
         return <TextIconRow clickable text={cnpjMask.mask(row.cnpj)} />;
       case 'edit':
-        return (
-          <IconButtonRow
-            icon={<EditIcon />}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          />
-        );
+        return isSelect ? null : <CompanyActionsRow company={row} />;
       case 'status':
         return (
           <StatusSelect
             large
             sx={{ maxWidth: '120px' }}
             selected={row.status}
-            disabled={isSelect}
-            statusOptions={
-              [
-                // StatusEnum.PENDING,
-                // StatusEnum.ACTIVE,
-                // StatusEnum.INACTIVE,
-              ]
-            }
-            handleSelectMenu={(option, e) => {
-              e.stopPropagation();
-              handleEditStatus(option.value);
-            }}
+            disabled
+            statusOptions={[]}
           />
         );
       default:
@@ -310,14 +291,32 @@ export const CompaniesTable: FC<
         {...(!isSelect && {
           onAddClick: () => onStackOpenModal(ModalEnum.COMPANY_EDIT),
           toolbarBeforeFilter: (
-            <STableColumnsButton<CompaniesTableColumnId>
-              showLabel
-              columns={columnPickerItems}
-              hiddenColumns={
-                hiddenColumns as Record<CompaniesTableColumnId, boolean>
-              }
-              setHiddenColumns={setHiddenColumnsFromPicker}
-            />
+            <>
+              {isMaster && (
+                <FormControlLabel
+                  sx={{ mr: 1, ml: 0, whiteSpace: 'nowrap' }}
+                  control={
+                    <Switch
+                      size="small"
+                      checked={includeInactive}
+                      onChange={(e) => {
+                        setIncludeInactive(e.target.checked);
+                        setPage(1);
+                      }}
+                    />
+                  }
+                  label="Incluir inativas"
+                />
+              )}
+              <STableColumnsButton<CompaniesTableColumnId>
+                showLabel
+                columns={columnPickerItems}
+                hiddenColumns={
+                  hiddenColumns as Record<CompaniesTableColumnId, boolean>
+                }
+                setHiddenColumns={setHiddenColumnsFromPicker}
+              />
+            </>
           ),
         })}
         onChange={(e) => handleSearchChange(e.target.value)}
