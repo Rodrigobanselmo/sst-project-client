@@ -107,6 +107,19 @@ export interface AiCharacterizationAssistParams {
   model?: string;
 }
 
+export type AiCharacterizationAssistSanitizationMeta = {
+  warnings: string[];
+  blockedReasons: string[];
+  needsRegeneration: boolean;
+  blockedFields: Array<'description' | 'workActivities' | 'considerations'>;
+  fieldsWithWarnings: Array<'description' | 'workActivities' | 'considerations'>;
+  problematicExcerpts: Array<{
+    field: 'description' | 'workActivities' | 'considerations';
+    excerpt: string;
+    rule: string;
+  }>;
+};
+
 export type AiCharacterizationAssistResult = {
   traceId?: string;
   description: AiCharacterizationAssistTextItem[];
@@ -119,6 +132,18 @@ export type AiCharacterizationAssistResult = {
   sourceClassification?: AiCharacterizationAssistSourceClassification[];
   externalSources?: CharacterizationExternalSourcesSummary;
   metadata?: Record<string, unknown>;
+  sanitization?: AiCharacterizationAssistSanitizationMeta;
+  needsRegeneration?: boolean;
+  blockedFields?: Array<'description' | 'workActivities' | 'considerations'>;
+  /** Effective model used for this generation. */
+  modelUsed?: string;
+  /** True when the system default/economic model was used. */
+  isSystemDefaultModel?: boolean;
+  /**
+   * Commercial/UX notice for default model usage.
+   * Must remain outside description/workActivities/considerations.
+   */
+  modelUsageNotice?: string;
   characterization: {
     id: string;
     name: string;

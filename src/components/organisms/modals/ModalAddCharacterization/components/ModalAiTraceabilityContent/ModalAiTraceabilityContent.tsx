@@ -208,7 +208,8 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
             )}
           </SFlex>
           <SText variant="caption" color="text.secondary">
-            {trace.generatedBy?.name || 'Usuário'} · modelo {trace.model || 'padrão'} ·{' '}
+            {trace.generatedBy?.name || 'Usuário'} · modelo{' '}
+            {trace.model || 'padrão do sistema'} ·{' '}
             {OUTPUT_INTENT_LABELS[trace.outputIntent] || trace.outputIntent}
           </SText>
         </SFlex>
@@ -216,6 +217,12 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
       <AccordionDetails>
         <SFlex gap={1} flexWrap="wrap" sx={{ mb: 2 }}>
           <Chip size="small" label={`Status: ${trace.status}`} />
+          <Chip
+            size="small"
+            color="info"
+            variant="outlined"
+            label={`Modelo: ${trace.model || 'padrão do sistema'}`}
+          />
           <Chip
             size="small"
             label={PROMPT_MODE_LABELS[trace.promptMode] || trace.promptMode}

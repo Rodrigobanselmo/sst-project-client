@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
@@ -53,6 +53,10 @@ import {
   sanitizeApplicableAssistText,
 } from './characterization-ai-assist.utils';
 import { CHARACTERIZATION_AI_ASSIST_FACTORY_DEFAULT_PROMPT } from './characterization-ai-assist-default-prompt.constant';
+import {
+  acknowledgeCharacterizationAiAssistDefaultModel,
+  hasAcknowledgedCharacterizationAiAssistDefaultModel,
+} from './characterization-ai-assist-model-notice.util';
 
 type CharacterizationArrayField = 'paragraphs' | 'activities' | 'considerations';
 
@@ -83,6 +87,8 @@ const WEB_SEARCH_UNAVAILABLE_FOOTER =
 
 /** Fallback legado / API warning sem título estruturado */
 const WEB_SEARCH_UNAVAILABLE_MESSAGE = `${WEB_SEARCH_UNAVAILABLE_TITLE}. Este recurso depende da habilitação do serviço de fontes externas e pode ser contratado sob demanda. Enquanto isso, você pode informar URLs específicas para que o sistema tente ler e utilizar como apoio técnico.`;
+
+type AssistModalStep = 'modelNotice' | 'premiumInfo' | 'form' | 'result';
 
 const ARRAY_FIELD_TO_TRACE_FIELD: Record<
   CharacterizationArrayField,
@@ -247,7 +253,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
   const assistMutation = useMutateAiCharacterizationAssist();
   const applyTraceMutation = useMutateApplyCharacterizationAiAssistTrace();
 
-  const [step, setStep] = useState<'form' | 'result'>('form');
+  const [step, setStep] = useState<AssistModalStep>('modelNotice');
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [temporaryDocumentSource, setTemporaryDocumentSource] =
     useState<AiTemporaryDocumentSource | null>(null);
@@ -264,14 +270,51 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       characterizationData.workspaceId,
   );
 
+  const modelNoticeScope = useMemo(
+    () =>
+      canAssist
+        ? {
+            companyId: characterizationData.companyId,
+            workspaceId: characterizationData.workspaceId,
+            characterizationId: String(characterizationData.id),
+          }
+        : null,
+    [
+      canAssist,
+      characterizationData.companyId,
+      characterizationData.workspaceId,
+      characterizationData.id,
+    ],
+  );
+
   const photosCount = characterizationData.photos?.length ?? 0;
 
   const resetModal = () => {
-    setStep('form');
+    setStep('modelNotice');
     setForm(DEFAULT_FORM);
     setTemporaryDocumentSource(null);
     setResult(null);
     setAiMasterConfig({});
+  };
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (!modelNoticeScope) {
+      setStep('form');
+      return;
+    }
+
+    const acknowledged =
+      hasAcknowledgedCharacterizationAiAssistDefaultModel(modelNoticeScope);
+    setStep(acknowledged ? 'form' : 'modelNotice');
+  }, [open, modelNoticeScope]);
+
+  const continueWithDefaultModel = () => {
+    if (modelNoticeScope) {
+      acknowledgeCharacterizationAiAssistDefaultModel(modelNoticeScope);
+    }
+    setStep('form');
   };
 
   const handleClose = () => {
@@ -531,6 +574,53 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
             </Alert>
           )}
 
+          {step === 'modelNotice' && (
+            <Box>
+              <SText variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                Você está usando o modelo padrão de IA
+              </SText>
+              <SText variant="body2" sx={{ mb: 2, lineHeight: 1.6 }}>
+                O modelo padrão do SimpleSST é indicado para gerar rascunhos
+                técnicos assistidos, organizar informações fornecidas e apoiar a
+                caracterização inicial do ambiente ou atividade.
+              </SText>
+              <SText variant="body2" sx={{ mb: 2, lineHeight: 1.6 }}>
+                Para casos mais complexos — como documentos antigos, múltiplas
+                fontes, fotos, divergências técnicas, unidades offshore,
+                ambientes industriais críticos ou caracterizações de terceiros —
+                o modelo premium pode oferecer uma análise mais consistente, com
+                melhor interpretação das fontes e maior qualidade textual.
+              </SText>
+              <SText variant="body2" sx={{ mb: 2, lineHeight: 1.6 }}>
+                A validação do responsável técnico continua necessária em
+                qualquer modelo.
+              </SText>
+              <Alert severity="info">
+                Quer mais precisão e acabamento técnico? O modelo premium pode
+                ser solicitado sob demanda.
+              </Alert>
+            </Box>
+          )}
+
+          {step === 'premiumInfo' && (
+            <Box>
+              <SText variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                Solicitar modelo premium
+              </SText>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Em breve, esta opção poderá ser contratada diretamente pelo
+                sistema. Por enquanto, solicite ao suporte ou comercial da
+                SimpleSST a liberação do modelo premium para esta
+                empresa/ambiente.
+              </Alert>
+              <SText variant="body2" sx={{ lineHeight: 1.6 }}>
+                Você pode continuar com o modelo padrão agora. O uso do modelo
+                padrão não fica bloqueado e a validação técnica pelo responsável
+                continua obrigatória.
+              </SText>
+            </Box>
+          )}
+
           {step === 'form' && (
             <Box>
               <Alert severity="info" sx={{ mb: 3 }}>
@@ -698,11 +788,63 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
 
           {step === 'result' && result && (
             <Box>
+              {result.modelUsed && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  <strong>Modelo utilizado:</strong> {result.modelUsed}
+                  {result.isSystemDefaultModel ? ' (padrão do sistema)' : ''}
+                </Alert>
+              )}
+
+              {result.isSystemDefaultModel && result.modelUsageNotice && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  {result.modelUsageNotice}
+                </Alert>
+              )}
+
               {result.suggestedName && (
                 <Alert severity="info" sx={{ mb: 2 }}>
                   <strong>Nome sugerido (não aplicado automaticamente):</strong>{' '}
                   {result.suggestedName}
                 </Alert>
+              )}
+
+              {(result.needsRegeneration ||
+                (result.sanitization?.blockedReasons?.length ?? 0) > 0 ||
+                (result.sanitization?.warnings?.length ?? 0) > 0) && (
+                <Box sx={{ mb: 2 }}>
+                  {result.needsRegeneration && (
+                    <Alert severity="error" sx={{ mb: 1 }}>
+                      A sanitização técnica identificou conflito crítico com o
+                      escopo declarado (terceiro/consultoria/sem operação
+                      direta). Revise o resultado antes de aplicar nos campos
+                      finais
+                      {result.blockedFields?.length
+                        ? ` (campos com atenção: ${result.blockedFields.join(', ')})`
+                        : ''}
+                      .
+                    </Alert>
+                  )}
+                  {(result.sanitization?.blockedReasons || []).map(
+                    (item, index) => (
+                      <Alert
+                        key={`blocked-reason-${index}`}
+                        severity="error"
+                        sx={{ mb: 1 }}
+                      >
+                        {item}
+                      </Alert>
+                    ),
+                  )}
+                  {(result.sanitization?.warnings || []).map((item, index) => (
+                    <Alert
+                      key={`sanitization-warning-${index}`}
+                      severity="warning"
+                      sx={{ mb: 1 }}
+                    >
+                      {item}
+                    </Alert>
+                  ))}
+                </Box>
               )}
 
               {(result.cautions.length > 0 ||
@@ -917,10 +1059,44 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
 
         <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
           <Button onClick={handleClose} color="inherit">
-            Fechar
+            {step === 'modelNotice' ? 'Voltar' : 'Fechar'}
           </Button>
 
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {step === 'modelNotice' && (
+              <>
+                <Button
+                  color="inherit"
+                  onClick={() => setStep('premiumInfo')}
+                  disabled={!canAssist}
+                >
+                  Solicitar modelo premium
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={continueWithDefaultModel}
+                  disabled={!canAssist}
+                >
+                  Continuar com modelo padrão
+                </Button>
+              </>
+            )}
+
+            {step === 'premiumInfo' && (
+              <>
+                <Button color="inherit" onClick={() => setStep('modelNotice')}>
+                  Voltar
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={continueWithDefaultModel}
+                  disabled={!canAssist}
+                >
+                  Continuar com modelo padrão
+                </Button>
+              </>
+            )}
+
             {step === 'result' && (
               <Button onClick={() => setStep('form')} color="inherit">
                 Voltar às perguntas
