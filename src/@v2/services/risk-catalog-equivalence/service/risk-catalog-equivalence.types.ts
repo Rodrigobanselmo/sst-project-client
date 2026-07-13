@@ -43,6 +43,8 @@ export type RiskCatalogEquivalence = {
   revokedAt: string | null;
   revokeReason: string | null;
   metadata: Record<string, unknown> | null;
+  /** Presente no browse Master quando a equivalência é global/cross-company. */
+  isGlobalEquivalence?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -113,6 +115,8 @@ export type CreateRiskCatalogEquivalenceParams = {
   aliasId: string;
   normalizedKey?: string;
   metadata?: Record<string, unknown>;
+  /** Equivalência global Master: permite companyId diferente. */
+  allowCrossScope?: boolean;
 };
 
 export type RevokeRiskCatalogEquivalenceParams = {

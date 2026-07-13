@@ -49,9 +49,13 @@ import {
 import { formatRiskCatalogEquivalenceError } from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-error.util';
 import {
   canAddAsAlias,
+  canAddAsGlobalAlias,
   getCatalogScopeBlockReason,
+  isAliasAcceptableForCanonical,
+  RISK_CATALOG_GLOBAL_EQUIVALENCE_CONFIRM_MESSAGE,
   RISK_CATALOG_SYSTEM_CANONICAL_INFO,
 } from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-scope.util';
+import { isRiskCatalogGlobalEquivalenceMetadata } from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-global.util';
 import { sortRiskCatalogSearchResults } from '@v2/services/risk-catalog-equivalence/utils/risk-catalog-equivalence-search-sort.util';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import { SAuthShow } from 'components/molecules/SAuthShow';
@@ -105,6 +109,11 @@ type BatchCreateResult = {
   alias: RiskCatalogSearchItem;
   success: boolean;
   error?: string;
+};
+
+type SelectedAlias = {
+  item: RiskCatalogSearchItem;
+  allowCrossScope: boolean;
 };
 
 function formatEquivalenceType(type: RiskCatalogEquivalenceType) {
@@ -228,11 +237,12 @@ export const RiskCatalogEquivalencesPage: FC = () => {
     );
   const [canonicalItem, setCanonicalItem] =
     useState<RiskCatalogSearchItem | null>(null);
-  const [selectedAliases, setSelectedAliases] = useState<
-    RiskCatalogSearchItem[]
-  >([]);
+  const [selectedAliases, setSelectedAliases] = useState<SelectedAlias[]>([]);
   const [includeRevoked, setIncludeRevoked] = useState(false);
   const [confirmCreateOpen, setConfirmCreateOpen] = useState(false);
+  const [confirmGlobalAliasOpen, setConfirmGlobalAliasOpen] = useState(false);
+  const [pendingGlobalAlias, setPendingGlobalAlias] =
+    useState<RiskCatalogSearchItem | null>(null);
   const [revokeTarget, setRevokeTarget] =
     useState<RiskCatalogEquivalence | null>(null);
   const [revokeReason, setRevokeReason] = useState('');
@@ -320,7 +330,7 @@ export const RiskCatalogEquivalencesPage: FC = () => {
   const effectiveRiskId = useMemo(() => {
     if (!canonicalItem) return risk?.id ?? null;
     const allSameRisk = selectedAliases.every(
-      (a) => a.riskId === canonicalItem.riskId,
+      (a) => a.item.riskId === canonicalItem.riskId,
     );
     if (selectedAliases.length && !allSameRisk) return null;
     return canonicalItem.riskId;
@@ -328,10 +338,15 @@ export const RiskCatalogEquivalencesPage: FC = () => {
 
   const validSelectedAliases = useMemo(() => {
     if (!canonicalItem) return [];
-    return selectedAliases.filter(
-      (alias) => getCatalogScopeBlockReason(canonicalItem, alias) === null,
+    return selectedAliases.filter((alias) =>
+      isAliasAcceptableForCanonical(canonicalItem, alias.item),
     );
   }, [canonicalItem, selectedAliases]);
+
+  const validSelectedAliasItems = useMemo(
+    () => validSelectedAliases.map((alias) => alias.item),
+    [validSelectedAliases],
+  );
 
   const browseParams = useMemo(
     () => ({
@@ -350,8 +365,13 @@ export const RiskCatalogEquivalencesPage: FC = () => {
   } = useFetchSearchRiskCatalogItems(searchParams);
 
   const sortedSearchResults = useMemo(
-    () => sortRiskCatalogSearchResults(searchResults, company?.id),
-    [searchResults, company?.id],
+    () =>
+      sortRiskCatalogSearchResults(
+        searchResults,
+        company?.id,
+        canonicalItem,
+      ),
+    [searchResults, company?.id, canonicalItem],
   );
 
   const systemCanonicalIds = useMemo(() => {
@@ -372,7 +392,7 @@ export const RiskCatalogEquivalencesPage: FC = () => {
     allLoaded: allPreviewsLoaded,
   } = useFetchBulkPreviewRiskCatalogEquivalenceImpact(
     canonicalItem,
-    validSelectedAliases,
+    validSelectedAliasItems,
     kind,
   );
 
@@ -407,6 +427,8 @@ export const RiskCatalogEquivalencesPage: FC = () => {
     setSelectedAliases([]);
     setSelectionMessage(null);
     setBatchCreateResults(null);
+    setPendingGlobalAlias(null);
+    setConfirmGlobalAliasOpen(false);
   };
 
   const handleApplySearch = () => {
@@ -457,17 +479,24 @@ export const RiskCatalogEquivalencesPage: FC = () => {
     if (item.isAliasActive) return;
 
     const incompatibleAlias = selectedAliases.find(
-      (alias) => getCatalogScopeBlockReason(item, alias) !== null,
+      (alias) => !isAliasAcceptableForCanonical(item, alias.item),
     );
     if (incompatibleAlias) {
       setSelectionMessage(
-        getCatalogScopeBlockReason(item, incompatibleAlias),
+        getCatalogScopeBlockReason(item, incompatibleAlias.item) ??
+          'Alias selecionado incompatível com o novo canônico.',
       );
       return;
     }
 
     setSelectionMessage(null);
     setCanonicalItem(item);
+    setSelectedAliases((prev) =>
+      prev.map((alias) => ({
+        item: alias.item,
+        allowCrossScope: canAddAsGlobalAlias(item, alias.item),
+      })),
+    );
     setBatchCreateResults(null);
   };
 
@@ -483,15 +512,53 @@ export const RiskCatalogEquivalencesPage: FC = () => {
       return;
     }
 
-    if (selectedAliases.some((alias) => alias.id === item.id)) return;
+    if (selectedAliases.some((alias) => alias.item.id === item.id)) return;
 
     setSelectionMessage(null);
-    setSelectedAliases((prev) => [...prev, item]);
+    setSelectedAliases((prev) => [
+      ...prev,
+      { item, allowCrossScope: false },
+    ]);
+    setBatchCreateResults(null);
+  };
+
+  const handleRequestGlobalAlias = (item: RiskCatalogSearchItem) => {
+    if (!canonicalItem) {
+      setSelectionMessage('Selecione primeiro um item canônico.');
+      return;
+    }
+
+    if (!canAddAsGlobalAlias(canonicalItem, item)) {
+      setSelectionMessage(
+        getCatalogScopeBlockReason(canonicalItem, item) ??
+          'Item não elegível para equivalência global.',
+      );
+      return;
+    }
+
+    if (selectedAliases.some((alias) => alias.item.id === item.id)) return;
+
+    setPendingGlobalAlias(item);
+    setConfirmGlobalAliasOpen(true);
+  };
+
+  const handleConfirmGlobalAlias = () => {
+    if (!pendingGlobalAlias) return;
+
+    setSelectedAliases((prev) => [
+      ...prev,
+      { item: pendingGlobalAlias, allowCrossScope: true },
+    ]);
+    setPendingGlobalAlias(null);
+    setConfirmGlobalAliasOpen(false);
+    setSelectionMessage(null);
     setBatchCreateResults(null);
   };
 
   const handleRemoveAlias = (itemId: string) => {
-    setSelectedAliases((prev) => prev.filter((alias) => alias.id !== itemId));
+    setSelectedAliases((prev) =>
+      prev.filter((alias) => alias.item.id !== itemId),
+    );
     setSelectionMessage(null);
     setBatchCreateResults(null);
   };
@@ -518,13 +585,20 @@ export const RiskCatalogEquivalencesPage: FC = () => {
           equivalenceType,
           riskId: effectiveRiskId,
           canonicalId: canonicalItem.id,
-          aliasId: alias.id,
-          metadata: { source: 'master-ui-catalog-consolidation' },
+          aliasId: alias.item.id,
+          allowCrossScope: alias.allowCrossScope || undefined,
+          metadata: alias.allowCrossScope
+            ? {
+                source: 'master-ui-catalog-global-equivalence',
+                crossScope: true,
+                globalEquivalence: true,
+              }
+            : { source: 'master-ui-catalog-consolidation' },
         });
-        results.push({ alias, success: true });
+        results.push({ alias: alias.item, success: true });
       } catch (error) {
         results.push({
-          alias,
+          alias: alias.item,
           success: false,
           error: formatRiskCatalogEquivalenceError(error),
         });
@@ -541,7 +615,8 @@ export const RiskCatalogEquivalencesPage: FC = () => {
       await invalidateCatalogQueries();
       setSelectedAliases((prev) =>
         prev.filter(
-          (alias) => !succeeded.some((result) => result.alias.id === alias.id),
+          (alias) =>
+            !succeeded.some((result) => result.alias.id === alias.item.id),
         ),
       );
       showSnackBar(
@@ -759,9 +834,10 @@ export const RiskCatalogEquivalencesPage: FC = () => {
           <Box display="flex" flexDirection="column" gap={2}>
             {sortedSearchResults.map((item) => {
               const isCanonical = canonicalItem?.id === item.id;
-              const isSelectedAlias = selectedAliases.some(
-                (alias) => alias.id === item.id,
+              const selectedAlias = selectedAliases.find(
+                (alias) => alias.item.id === item.id,
               );
+              const isSelectedAlias = Boolean(selectedAlias);
               const scopeBlockReason = canonicalItem
                 ? getCatalogScopeBlockReason(canonicalItem, item)
                 : null;
@@ -770,6 +846,12 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                 !isCanonical &&
                 !item.isAliasActive &&
                 canAddAsAlias(canonicalItem, item);
+              const canAddGlobal =
+                canonicalItem &&
+                !isCanonical &&
+                !item.isAliasActive &&
+                !isSelectedAlias &&
+                canAddAsGlobalAlias(canonicalItem, item);
               const favorSystemCanonical = !canonicalItem && item.system;
 
               return (
@@ -802,6 +884,13 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                             size="small"
                             color="primary"
                             label="Sistema / Canônico preferencial"
+                          />
+                        )}
+                        {selectedAlias?.allowCrossScope && (
+                          <Chip
+                            size="small"
+                            color="secondary"
+                            label="Alias global selecionado"
                           />
                         )}
                       </Box>
@@ -868,20 +957,32 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                           Remover alias
                         </Button>
                       ) : (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="warning"
-                          disabled={
-                            !canonicalItem ||
-                            isCanonical ||
-                            item.isAliasActive ||
-                            !canAdd
-                          }
-                          onClick={() => handleAddAlias(item)}
-                        >
-                          Adicionar alias
-                        </Button>
+                        <>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            disabled={
+                              !canonicalItem ||
+                              isCanonical ||
+                              item.isAliasActive ||
+                              !canAdd
+                            }
+                            onClick={() => handleAddAlias(item)}
+                          >
+                            Adicionar alias
+                          </Button>
+                          {canAddGlobal && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="secondary"
+                              onClick={() => handleRequestGlobalAlias(item)}
+                            >
+                              Adicionar alias global
+                            </Button>
+                          )}
+                        </>
                       )}
                     </Box>
                   </Box>
@@ -933,16 +1034,24 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                   <List dense disablePadding>
                     {selectedAliases.map((alias) => {
                       const blockReason = canonicalItem
-                        ? getCatalogScopeBlockReason(canonicalItem, alias)
+                        ? isAliasAcceptableForCanonical(
+                            canonicalItem,
+                            alias.item,
+                          )
+                          ? null
+                          : getCatalogScopeBlockReason(
+                              canonicalItem,
+                              alias.item,
+                            )
                         : null;
                       return (
                         <ListItem
-                          key={alias.id}
+                          key={alias.item.id}
                           secondaryAction={
                             <IconButton
                               edge="end"
                               aria-label="Remover alias"
-                              onClick={() => handleRemoveAlias(alias.id)}
+                              onClick={() => handleRemoveAlias(alias.item.id)}
                             >
                               <CloseIcon fontSize="small" />
                             </IconButton>
@@ -950,11 +1059,12 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                           sx={{ alignItems: 'flex-start', px: 0 }}
                         >
                           <ListItemText
-                            primary={alias.label}
+                            primary={alias.item.label}
                             secondary={
                               <>
-                                {alias.companyName}
-                                {alias.system ? ' · Sistema' : ''}
+                                {alias.item.companyName}
+                                {alias.item.system ? ' · Sistema' : ''}
+                                {alias.allowCrossScope ? ' · Global' : ''}
                                 {blockReason && (
                                   <Typography
                                     component="span"
@@ -1011,12 +1121,17 @@ export const RiskCatalogEquivalencesPage: FC = () => {
           </Typography>
           {selectionInvalid && !selectionMessage && (
             <Typography color="text.secondary">
-              Selecione canônico e ao menos um alias compatível (mesmo risco e
-              escopo) para carregar o preview.
+              Selecione canônico e ao menos um alias compatível (mesmo risco;
+              escopo normal ou equivalência global Master) para carregar o
+              preview.
             </Typography>
           )}
           {loadingPreview && <Typography>Calculando impacto…</Typography>}
-          {aliasPreviews.map((preview) => (
+          {aliasPreviews.map((preview) => {
+            const selected = selectedAliases.find(
+              (alias) => alias.item.id === preview.alias.id,
+            );
+            return (
             <Paper
               key={preview.alias.id}
               variant="outlined"
@@ -1024,11 +1139,14 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                 p: 2,
                 mt: 2,
                 overflow: 'hidden',
-                borderColor: 'warning.light',
+                borderColor: selected?.allowCrossScope
+                  ? 'secondary.light'
+                  : 'warning.light',
               }}
             >
               <Typography variant="subtitle2" gutterBottom sx={fullTextSx}>
                 Alias: {preview.alias.label}
+                {selected?.allowCrossScope ? ' (global)' : ''}
               </Typography>
               <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
                 {preview.alias.companyName}
@@ -1044,11 +1162,18 @@ export const RiskCatalogEquivalencesPage: FC = () => {
               )}
               {preview.data && renderSingleImpactPreview(preview.data)}
             </Paper>
-          ))}
+            );
+          })}
           {allPreviewsLoaded && validSelectedAliases.length > 0 && (
             <Alert severity="info" sx={{ mt: 2 }}>
               Nesta fase, nenhum vínculo antigo será migrado. A equivalência
               passa a orientar novos vínculos e dedupe futuro.
+            </Alert>
+          )}
+          {validSelectedAliases.some((alias) => alias.allowCrossScope) && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              Há alias(es) global(is) no lote. A confirmação registrará
+              equivalência cross-company apenas para esses itens.
             </Alert>
           )}
 
@@ -1093,12 +1218,23 @@ export const RiskCatalogEquivalencesPage: FC = () => {
           <Box display="flex" flexDirection="column" gap={2}>
             {equivalences.map((eq) => {
               const isSystemCanonical = systemCanonicalIds.has(eq.canonicalId);
+              const isGlobalEquivalence =
+                eq.isGlobalEquivalence === true ||
+                isRiskCatalogGlobalEquivalenceMetadata(eq.metadata);
 
               return (
-              <Paper key={eq.id} variant="outlined" sx={{ p: 2 }}>
+              <Paper
+                key={eq.id}
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  borderColor: isGlobalEquivalence ? 'warning.main' : 'divider',
+                  borderWidth: isGlobalEquivalence ? 2 : 1,
+                }}
+              >
                 <Box display="flex" justifyContent="space-between" gap={2} flexWrap="wrap">
                   <Box flex={1} minWidth={280}>
-                    <Box display="flex" flexWrap="wrap" gap={0.5} mb={1}>
+                    <Box display="flex" flexWrap="wrap" gap={0.5} mb={1} alignItems="center">
                       <Chip size="small" label={formatKind(eq.kind)} />
                       <Chip
                         size="small"
@@ -1107,10 +1243,28 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                       {isSystemCanonical && (
                         <Chip size="small" color="primary" label="Sistema" />
                       )}
+                      {isGlobalEquivalence && (
+                        <Chip
+                          size="small"
+                          color="warning"
+                          label="Equivalência global"
+                          sx={{ fontWeight: 700 }}
+                        />
+                      )}
                       {eq.revokedAt && (
                         <Chip size="small" color="default" label="Revogada" />
                       )}
                     </Box>
+                    {isGlobalEquivalence && (
+                      <Typography
+                        variant="caption"
+                        color="warning.dark"
+                        display="block"
+                        sx={{ mb: 1, fontWeight: 600 }}
+                      >
+                        Escopo: equivalência global (cross-company)
+                      </Typography>
+                    )}
                     <Paper
                       variant="outlined"
                       sx={{
@@ -1205,10 +1359,12 @@ export const RiskCatalogEquivalencesPage: FC = () => {
             </Typography>
             <List dense>
               {validSelectedAliases.map((alias) => (
-                <ListItem key={alias.id} disableGutters>
+                <ListItem key={alias.item.id} disableGutters>
                   <ListItemText
-                    primary={alias.label}
-                    secondary={`${alias.companyName}${alias.system ? ' · Sistema' : ''}`}
+                    primary={alias.item.label}
+                    secondary={`${alias.item.companyName}${
+                      alias.item.system ? ' · Sistema' : ''
+                    }${alias.allowCrossScope ? ' · Global' : ''}`}
                     primaryTypographyProps={{ sx: fullTextSx }}
                   />
                 </ListItem>
@@ -1217,6 +1373,11 @@ export const RiskCatalogEquivalencesPage: FC = () => {
             <Alert severity="warning" sx={{ mt: 2 }}>
               Vínculos existentes não serão migrados nesta fase.
             </Alert>
+            {validSelectedAliases.some((alias) => alias.allowCrossScope) && (
+              <Alert severity="warning" sx={{ mt: 1 }}>
+                {RISK_CATALOG_GLOBAL_EQUIVALENCE_CONFIRM_MESSAGE}
+              </Alert>
+            )}
             {batchCreateResults && (
               <Box mt={2} display="flex" flexDirection="column" gap={1}>
                 {batchCreateResults.map((result) => (
@@ -1251,6 +1412,55 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                 {isCreating ? 'Registrando…' : 'Confirmar'}
               </Button>
             )}
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={confirmGlobalAliasOpen}
+          onClose={() => {
+            setConfirmGlobalAliasOpen(false);
+            setPendingGlobalAlias(null);
+          }}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Adicionar alias global</DialogTitle>
+          <DialogContent>
+            <Typography gutterBottom>
+              Incluir este item de outra empresa como alias global do canônico?
+            </Typography>
+            <Typography variant="body2" sx={{ ...fullTextSx, mt: 1 }}>
+              <strong>Canônico:</strong> {canonicalItem?.label}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {canonicalItem?.companyName}
+            </Typography>
+            <Typography variant="body2" sx={{ ...fullTextSx, mt: 1 }}>
+              <strong>Alias:</strong> {pendingGlobalAlias?.label}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {pendingGlobalAlias?.companyName}
+            </Typography>
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              {RISK_CATALOG_GLOBAL_EQUIVALENCE_CONFIRM_MESSAGE}
+            </Alert>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                setConfirmGlobalAliasOpen(false);
+                setPendingGlobalAlias(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleConfirmGlobalAlias}
+            >
+              Confirmar alias global
+            </Button>
           </DialogActions>
         </Dialog>
 

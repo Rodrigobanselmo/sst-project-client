@@ -18,6 +18,9 @@ export const RISK_CATALOG_SCOPE_INCOMPATIBLE_FALLBACK_MESSAGE =
 export const RISK_CATALOG_SYSTEM_CANONICAL_INFO =
   'Canônico de sistema será usado como padrão global para novas seleções e dedupe.';
 
+export const RISK_CATALOG_GLOBAL_EQUIVALENCE_CONFIRM_MESSAGE =
+  'Esta equivalência global será usada para orientar deduplicação futura, novos vínculos e sugestões da IA. Ela não altera documentos já emitidos nem migra vínculos históricos.';
+
 /** Alinhado à API: canônico system aceita aliases de qualquer empresa com mesmo riskId/kind. */
 export function isCatalogScopeCompatible(
   canonical: RiskCatalogSearchItem,
@@ -69,4 +72,29 @@ export function canAddAsAlias(
 ): boolean {
   if (!canonical) return false;
   return getCatalogScopeBlockReason(canonical, item) === null;
+}
+
+/**
+ * Elegível a equivalência global Master: mesmo kind/riskId, bloqueio apenas por empresa.
+ * Não libera alias system nem tipo/risco diferente.
+ */
+export function canAddAsGlobalAlias(
+  canonical: RiskCatalogSearchItem | null,
+  item: RiskCatalogSearchItem,
+): boolean {
+  if (!canonical) return false;
+  if (item.isAliasActive || canonical.isAliasActive) return false;
+  if (canonical.id === item.id) return false;
+  if (canonical.kind !== item.kind) return false;
+  if (canonical.riskId !== item.riskId) return false;
+  if (canonical.system || item.system) return false;
+  if (isCatalogScopeCompatible(canonical, item)) return false;
+  return canonical.companyId !== item.companyId;
+}
+
+export function isAliasAcceptableForCanonical(
+  canonical: RiskCatalogSearchItem | null,
+  item: RiskCatalogSearchItem,
+): boolean {
+  return canAddAsAlias(canonical, item) || canAddAsGlobalAlias(canonical, item);
 }

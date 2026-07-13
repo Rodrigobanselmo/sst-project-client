@@ -9,7 +9,7 @@ import type {
   RiskCatalogKind,
   RiskCatalogSearchItem,
 } from '../service/risk-catalog-equivalence.types';
-import { getCatalogScopeBlockReason } from '../utils/risk-catalog-equivalence-scope.util';
+import { isAliasAcceptableForCanonical } from '../utils/risk-catalog-equivalence-scope.util';
 import { riskCatalogEquivalenceQueryKeys } from './risk-catalog-equivalence.query-keys';
 
 export type RiskCatalogAliasPreview = {
@@ -30,7 +30,7 @@ export const useFetchBulkPreviewRiskCatalogEquivalenceImpact = (
     if (!canonicalItem) return [];
 
     return aliasItems
-      .filter((alias) => !getCatalogScopeBlockReason(canonicalItem, alias))
+      .filter((alias) => isAliasAcceptableForCanonical(canonicalItem, alias))
       .map((alias) => ({
         alias,
         params: {
