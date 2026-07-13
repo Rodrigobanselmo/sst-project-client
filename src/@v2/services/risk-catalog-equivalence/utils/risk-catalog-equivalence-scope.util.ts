@@ -1,10 +1,19 @@
 import type { RiskCatalogSearchItem } from '../service/risk-catalog-equivalence.types';
 
 export const RISK_CATALOG_SYSTEM_AS_ALIAS_MESSAGE =
-  'Item de sistema deve ser usado como canônico. Inverta a seleção.';
+  'Item de sistema deve ser usado como canônico';
 
 export const RISK_CATALOG_DIFFERENT_COMPANY_MESSAGE =
-  'Não é possível mesclar itens de empresas diferentes nesta fase.';
+  'Empresa diferente do canônico';
+
+export const RISK_CATALOG_DIFFERENT_KIND_MESSAGE =
+  'Tipo de catálogo diferente do canônico';
+
+export const RISK_CATALOG_DIFFERENT_RISK_MESSAGE =
+  'Risco diferente do canônico';
+
+export const RISK_CATALOG_SCOPE_INCOMPATIBLE_FALLBACK_MESSAGE =
+  'Escopo incompatível com o canônico';
 
 export const RISK_CATALOG_SYSTEM_CANONICAL_INFO =
   'Canônico de sistema será usado como padrão global para novas seleções e dedupe.';
@@ -21,6 +30,10 @@ export function isCatalogScopeCompatible(
   return canonical.companyId === alias.companyId;
 }
 
+/**
+ * Motivo legível de por que o item não pode ser alias do canônico.
+ * Retorna null quando compatível. Não altera a regra de compatibilidade.
+ */
 export function getCatalogScopeBlockReason(
   canonical: RiskCatalogSearchItem,
   alias: RiskCatalogSearchItem,
@@ -35,16 +48,19 @@ export function getCatalogScopeBlockReason(
     return 'Alias não pode ser igual ao canônico.';
   }
   if (canonical.kind !== alias.kind) {
-    return 'Canônico e alias devem ser do mesmo tipo de catálogo.';
+    return RISK_CATALOG_DIFFERENT_KIND_MESSAGE;
   }
   if (canonical.riskId !== alias.riskId) {
-    return `Canônico e alias devem pertencer ao mesmo risco (${canonical.riskName} ≠ ${alias.riskName}).`;
+    return RISK_CATALOG_DIFFERENT_RISK_MESSAGE;
   }
   if (isCatalogScopeCompatible(canonical, alias)) return null;
   if (!canonical.system && alias.system) {
     return RISK_CATALOG_SYSTEM_AS_ALIAS_MESSAGE;
   }
-  return RISK_CATALOG_DIFFERENT_COMPANY_MESSAGE;
+  if (!canonical.system && !alias.system && canonical.companyId !== alias.companyId) {
+    return RISK_CATALOG_DIFFERENT_COMPANY_MESSAGE;
+  }
+  return RISK_CATALOG_SCOPE_INCOMPATIBLE_FALLBACK_MESSAGE;
 }
 
 export function canAddAsAlias(

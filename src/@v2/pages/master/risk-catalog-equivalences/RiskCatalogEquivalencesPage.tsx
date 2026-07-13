@@ -825,8 +825,17 @@ export const RiskCatalogEquivalencesPage: FC = () => {
                           size="small"
                           color="warning"
                           variant="outlined"
-                          label="Escopo incompatível com o canônico"
-                          sx={{ mt: 1 }}
+                          label={scopeBlockReason}
+                          title={scopeBlockReason}
+                          sx={{
+                            mt: 1,
+                            maxWidth: '100%',
+                            height: 'auto',
+                            '& .MuiChip-label': {
+                              whiteSpace: 'normal',
+                              py: 0.5,
+                            },
+                          }}
                         />
                       )}
                       <Tooltip title={item.id}>
