@@ -160,7 +160,7 @@ export const ModalAddHierarchyRisk = (
               { label: 'Fatores de Riscos', disabled: isDisable || !isEdit },
               { label: 'Audios e Videos', disabled: isDisable },
               { label: 'Análise IA', disabled: isDisable },
-              { label: 'Rastreabilidade IA', disabled: isDisable || !isEdit },
+              { label: 'Rastreabilidade Técnica', disabled: isDisable || !isEdit },
             ]}
           />
         }

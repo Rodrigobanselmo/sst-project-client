@@ -15,6 +15,12 @@ export const CharacterizationRoutes = {
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-characterization-assist/traces/:traceId/mark-saved',
     AI_TEMPORARY_SOURCE_PARSE_PDF:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-temporary-source/parse-pdf',
+    TECHNICAL_RECORDS:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/technical-records',
+    TECHNICAL_RECORD:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/technical-records/:recordId',
+    TECHNICAL_RECORD_CAPTURE_SNAPSHOT:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/technical-records/capture-snapshot',
   },
   PHOTO_RECOMMENDATION: {
     EDIT_MANY: 'v2/companies/:companyId/photo-recommendations/many',

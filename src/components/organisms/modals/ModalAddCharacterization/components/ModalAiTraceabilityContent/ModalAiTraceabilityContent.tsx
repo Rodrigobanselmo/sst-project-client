@@ -12,16 +12,29 @@ import {
   CircularProgress,
 } from '@mui/material';
 
+import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { useFetchCharacterizationAiAssistTraces } from '@v2/services/security/characterization/characterization/ai-characterization-assist-traceability/hooks/useFetchCharacterizationAiAssistTraces';
 import type {
   CharacterizationAiAssistAppliedField,
   CharacterizationAiAssistTraceItem,
 } from '@v2/services/security/characterization/characterization/ai-characterization-assist-traceability/service/ai-characterization-assist-traceability.types';
 import type { AiCharacterizationAssistTextItem } from '@v2/services/security/characterization/characterization/ai-characterization-assist/service/ai-characterization-assist.types';
+import { useFetchCharacterizationTechnicalRecords } from '@v2/services/security/characterization/characterization/technical-traceability/hooks/useFetchCharacterizationTechnicalRecords';
+import { useMutateDeleteCharacterizationTechnicalRecord } from '@v2/services/security/characterization/characterization/technical-traceability/hooks/useMutateCharacterizationTechnicalRecord';
+import type { CharacterizationTechnicalRecordItem } from '@v2/services/security/characterization/characterization/technical-traceability/service/technical-traceability.types';
 
 import type { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
+import { TechnicalRecordFormDialog } from './TechnicalRecordFormDialog';
+import {
+  ANALYSIS_ORIGIN_LABELS,
+  RECORD_STATUS_LABELS,
+  RECORD_TYPE_LABELS,
+  RELATED_FIELD_LABELS,
+  SOURCE_TYPE_LABELS,
+} from './technical-traceability.labels';
 
 const OUTPUT_INTENT_LABELS: Record<string, string> = {
   GENERATE_FINAL: 'Gerar texto final',
@@ -71,6 +84,10 @@ const asTextItems = (value: unknown): AiCharacterizationAssistTextItem[] => {
 const formatDateTime = (value?: string | null) => {
   if (!value) return '—';
   try {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-');
+      return `${day}/${month}/${year}`;
+    }
     return new Date(value).toLocaleString('pt-BR');
   } catch {
     return value;
@@ -335,31 +352,239 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
   );
 };
 
-export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (props) => {
+const TechnicalRecordCard: React.FC<{
+  record: CharacterizationTechnicalRecordItem;
+  onEdit: () => void;
+  onDeleteOrArchive: () => void;
+}> = ({ record, onEdit, onDeleteOrArchive }) => {
+  const isExternalAi = record.analysisOrigin === 'EXTERNAL_AI_USER_DECLARED';
+  const isDraft = record.status === 'DRAFT';
+
+  return (
+    <Accordion
+      sx={{
+        mb: 1.5,
+        border: '1px solid',
+        borderColor: isExternalAi ? 'warning.light' : 'divider',
+        borderLeft: isExternalAi ? '4px solid' : undefined,
+        borderLeftColor: isExternalAi ? 'warning.main' : undefined,
+      }}
+    >
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Box sx={{ width: '100%', pr: 1 }}>
+          <SText variant="body1" sx={{ fontWeight: 600 }}>
+            {record.title}
+          </SText>
+          <SText variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {formatDateTime(record.analysisDate)} · {record.responsibleName}
+            {record.createdBy?.name ? ` · criado por ${record.createdBy.name}` : ''}
+          </SText>
+          <SFlex gap={0.75} flexWrap="wrap" sx={{ mt: 1 }}>
+            <Chip size="small" label={RECORD_TYPE_LABELS[record.recordType]} />
+            <Chip
+              size="small"
+              label={ANALYSIS_ORIGIN_LABELS[record.analysisOrigin]}
+              color={isExternalAi ? 'warning' : 'default'}
+            />
+            <Chip size="small" label={RECORD_STATUS_LABELS[record.status]} />
+            <Chip
+              size="small"
+              variant="outlined"
+              label={`${record.sources.length} fonte(s)`}
+            />
+            {record.finalCharacterizationSnapshot && (
+              <Chip size="small" variant="outlined" label="Snapshot capturado" />
+            )}
+          </SFlex>
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails>
+        {isExternalAi && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Análise com IA externa declarada pelo usuário
+            {record.externalAiTool ? ` (${record.externalAiTool}` : ''}
+            {record.externalAiModel ? ` · ${record.externalAiModel}` : ''}
+            {record.externalAiTool ? ')' : ''}. Não é execução automática do
+            Assistente IA do SimpleSST.
+          </Alert>
+        )}
+
+        {record.technicalReport && (
+          <Box sx={{ mb: 2 }}>
+            <SText variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Relatório técnico
+            </SText>
+            <SText variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+              {record.technicalReport}
+            </SText>
+          </Box>
+        )}
+
+        {!!record.relatedFields?.length && (
+          <Box sx={{ mb: 2 }}>
+            <SText variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+              Campos relacionados
+            </SText>
+            <SFlex gap={0.75} flexWrap="wrap">
+              {record.relatedFields.map((field) => (
+                <Chip key={field} size="small" label={RELATED_FIELD_LABELS[field]} />
+              ))}
+            </SFlex>
+          </Box>
+        )}
+
+        {!!record.sources.length && (
+          <Box sx={{ mb: 2 }}>
+            <SText variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+              Fontes vinculadas
+            </SText>
+            {record.sources.map((source, index) => (
+              <Box
+                key={source.id}
+                sx={{
+                  mb: 1.5,
+                  p: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                }}
+              >
+                <SText variant="body2" sx={{ fontWeight: 600 }}>
+                  {index + 1}. {SOURCE_TYPE_LABELS[source.sourceType]}
+                  {source.title ? ` — ${source.title}` : ''}
+                </SText>
+                {source.authorInstitution && (
+                  <SText variant="caption" sx={{ display: 'block' }}>
+                    Instituição: {source.authorInstitution}
+                  </SText>
+                )}
+                {source.informationUsed && (
+                  <SText variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                    Informações usadas: {source.informationUsed}
+                  </SText>
+                )}
+                {source.limitations && (
+                  <SText variant="caption" sx={{ display: 'block' }}>
+                    Limitações: {source.limitations}
+                  </SText>
+                )}
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        {record.finalCharacterizationSnapshot && (
+          <Box sx={{ mb: 2 }}>
+            <Alert severity="info" sx={{ mb: 1 }}>
+              Snapshot histórico (cópia independente da caracterização atual).
+            </Alert>
+            <SText
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', mb: 1 }}
+            >
+              Capturado em{' '}
+              {formatDateTime(record.finalCharacterizationSnapshot.capturedAt)}
+              {record.finalCharacterizationSnapshot.capturedByName
+                ? ` · por ${record.finalCharacterizationSnapshot.capturedByName}`
+                : ''}
+            </SText>
+            <SText variant="body2" sx={{ fontWeight: 600 }}>
+              Nome: {record.finalCharacterizationSnapshot.name || '—'}
+            </SText>
+          </Box>
+        )}
+
+        <SText
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: 'block', mb: 2 }}
+        >
+          Criado em {formatDateTime(record.createdAt)}
+          {record.createdBy?.name ? ` · ${record.createdBy.name}` : ''}
+          {' · '}
+          Atualizado em {formatDateTime(record.updatedAt)}
+          {record.updatedBy?.name ? ` · ${record.updatedBy.name}` : ''}
+        </SText>
+
+        <SFlex gap={1}>
+          <SButton variant="outlined" text="Editar" onClick={onEdit} />
+          <SButton
+            variant="outlined"
+            color="danger"
+            text={isDraft ? 'Excluir' : 'Arquivar'}
+            onClick={onDeleteOrArchive}
+          />
+        </SFlex>
+      </AccordionDetails>
+    </Accordion>
+  );
+};
+
+export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
+  props,
+) => {
   const { data, isEdit } = props;
+  const { showConfirmation } = useConfirmationModal();
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingRecord, setEditingRecord] =
+    useState<CharacterizationTechnicalRecordItem | null>(null);
+
   const enabled = Boolean(
     isEdit && data?.id && data?.companyId && data?.workspaceId,
   );
 
+  const scope = {
+    companyId: data.companyId || '',
+    workspaceId: data.workspaceId || '',
+    characterizationId: data.id || '',
+  };
+
   const { traces, isLoading, isError } = useFetchCharacterizationAiAssistTraces(
-    {
-      companyId: data.companyId || '',
-      workspaceId: data.workspaceId || '',
-      characterizationId: data.id || '',
-    },
+    scope,
     { enabled },
   );
+
+  const {
+    records,
+    isLoading: isLoadingRecords,
+    isError: isErrorRecords,
+  } = useFetchCharacterizationTechnicalRecords(scope, { enabled });
+
+  const deleteMutation = useMutateDeleteCharacterizationTechnicalRecord();
 
   const hasAnyAlert = useMemo(
     () => traces.some((trace) => trace.hasInconsistencies || trace.hasFailedUrls),
     [traces],
   );
 
+  const handleDeleteOrArchive = async (
+    record: CharacterizationTechnicalRecordItem,
+  ) => {
+    const isDraft = record.status === 'DRAFT';
+    const confirmed = await showConfirmation({
+      title: isDraft ? 'Excluir registro técnico' : 'Arquivar registro técnico',
+      message: isDraft
+        ? 'Confirma a exclusão definitiva deste registro em rascunho?'
+        : 'Registros revisados ou usados como suporte são arquivados (não excluídos). Confirma o arquivamento?',
+      confirmText: isDraft ? 'Excluir' : 'Arquivar',
+      cancelText: 'Cancelar',
+      variant: isDraft ? 'danger' : 'warning',
+    });
+
+    if (!confirmed) return;
+
+    await deleteMutation.mutateAsync({
+      ...scope,
+      recordId: record.id,
+    });
+  };
+
   if (!isEdit) {
     return (
       <Box sx={{ px: 5, pb: 10 }}>
         <SText variant="body1">
-          Salve a caracterização antes de consultar a rastreabilidade das execuções da IA.
+          Salve a caracterização antes de consultar a rastreabilidade técnica.
         </SText>
       </Box>
     );
@@ -367,40 +592,114 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (p
 
   return (
     <Box sx={{ px: 5, pb: 10 }}>
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Esta área registra as sugestões geradas pela IA, fontes processadas, limitações,
-        inconsistências e campos aplicados pelo usuário. O conteúdo é mantido para
+      <Alert severity="info" sx={{ mb: 3 }}>
+        Esta área registra as fontes, pesquisas, análises, decisões e execuções de IA
+        utilizadas na elaboração da caracterização. O conteúdo é mantido para
         rastreabilidade técnica e não é inserido automaticamente nos documentos oficiais.
       </Alert>
 
-      {hasAnyAlert && (
-        <Alert severity="warning" sx={{ mb: 2 }} icon={<WarningAmberRoundedIcon />}>
-          Há execuções com inconsistências ou fontes com falha. Expanda os registros para
-          revisar os detalhes antes de usar o conteúdo em documentos oficiais.
-        </Alert>
-      )}
-
-      {isLoading && (
-        <SFlex justify="center" sx={{ py: 6 }}>
-          <CircularProgress size={28} />
+      <Box sx={{ mb: 4 }}>
+        <SFlex align="center" justify="space-between" sx={{ mb: 1.5 }}>
+          <SText variant="h6" sx={{ fontWeight: 700, fontSize: '1.05rem' }}>
+            Registros técnicos e pesquisas
+          </SText>
+          <SButton
+            variant="contained"
+            text="+ Adicionar registro técnico"
+            onClick={() => {
+              setEditingRecord(null);
+              setFormOpen(true);
+            }}
+          />
         </SFlex>
-      )}
 
-      {isError && !isLoading && (
-        <Alert severity="error">
-          Não foi possível carregar os registros de rastreabilidade da IA.
-        </Alert>
-      )}
+        {isLoadingRecords && (
+          <SFlex justify="center" sx={{ py: 4 }}>
+            <CircularProgress size={24} />
+          </SFlex>
+        )}
 
-      {!isLoading && !isError && !traces.length && (
-        <SText variant="body2" color="text.secondary">
-          Nenhuma execução do Assistente IA registrada para esta caracterização.
+        {isErrorRecords && !isLoadingRecords && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Não foi possível carregar os registros técnicos manuais.
+          </Alert>
+        )}
+
+        {!isLoadingRecords && !isErrorRecords && !records.length && (
+          <SText variant="body2" color="text.secondary">
+            Nenhum registro técnico manual cadastrado para esta caracterização.
+          </SText>
+        )}
+
+        {!isLoadingRecords &&
+          !isErrorRecords &&
+          records.map((record) => (
+            <TechnicalRecordCard
+              key={record.id}
+              record={record}
+              onEdit={() => {
+                setEditingRecord(record);
+                setFormOpen(true);
+              }}
+              onDeleteOrArchive={() => handleDeleteOrArchive(record)}
+            />
+          ))}
+      </Box>
+
+      <Box>
+        <SText
+          variant="h6"
+          sx={{ fontWeight: 700, fontSize: '1.05rem', mb: 1.5 }}
+        >
+          Execuções do Assistente IA
         </SText>
-      )}
 
-      {!isLoading &&
-        !isError &&
-        traces.map((trace) => <TraceCard key={trace.id} trace={trace} />)}
+        {hasAnyAlert && (
+          <Alert
+            severity="warning"
+            sx={{ mb: 2 }}
+            icon={<WarningAmberRoundedIcon />}
+          >
+            Há execuções com inconsistências ou fontes com falha. Expanda os
+            registros para revisar os detalhes antes de usar o conteúdo em
+            documentos oficiais.
+          </Alert>
+        )}
+
+        {isLoading && (
+          <SFlex justify="center" sx={{ py: 6 }}>
+            <CircularProgress size={28} />
+          </SFlex>
+        )}
+
+        {isError && !isLoading && (
+          <Alert severity="error">
+            Não foi possível carregar os registros de rastreabilidade da IA.
+          </Alert>
+        )}
+
+        {!isLoading && !isError && !traces.length && (
+          <SText variant="body2" color="text.secondary">
+            Nenhuma execução do Assistente IA registrada para esta caracterização.
+          </SText>
+        )}
+
+        {!isLoading &&
+          !isError &&
+          traces.map((trace) => <TraceCard key={trace.id} trace={trace} />)}
+      </Box>
+
+      <TechnicalRecordFormDialog
+        open={formOpen}
+        onClose={() => {
+          setFormOpen(false);
+          setEditingRecord(null);
+        }}
+        companyId={scope.companyId}
+        workspaceId={scope.workspaceId}
+        characterizationId={scope.characterizationId}
+        record={editingRecord}
+      />
     </Box>
   );
 };
