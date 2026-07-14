@@ -81,6 +81,7 @@ export const SOURCE_STRENGTH_LABELS: Record<
   CharacterizationTechnicalSourceStrength,
   string
 > = {
+  VERY_HIGH: 'Muito alta',
   HIGH: 'Alta',
   MEDIUM: 'Média',
   LOW: 'Baixa',

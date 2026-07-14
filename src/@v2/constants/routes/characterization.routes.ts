@@ -21,6 +21,10 @@ export const CharacterizationRoutes = {
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/technical-records/:recordId',
     TECHNICAL_RECORD_CAPTURE_SNAPSHOT:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/technical-records/capture-snapshot',
+    TECHNICAL_RECORD_IMPORT_URL_SUGGESTIONS:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/technical-records/import-url-suggestions',
+    TECHNICAL_RECORD_AI_EVIDENCE_SUGGESTIONS:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/technical-records/ai-evidence-suggestions',
   },
   PHOTO_RECOMMENDATION: {
     EDIT_MANY: 'v2/companies/:companyId/photo-recommendations/many',

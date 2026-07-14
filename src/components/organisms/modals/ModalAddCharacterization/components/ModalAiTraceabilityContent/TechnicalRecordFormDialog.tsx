@@ -32,12 +32,14 @@ import type {
   CharacterizationTechnicalRecordPayload,
   CharacterizationTechnicalRecordSourceInput,
 } from '@v2/services/security/characterization/characterization/technical-traceability/service/technical-traceability.types';
+import { TECHNICAL_SOURCE_APPLICATION_MAX_CHARS } from '@v2/services/security/characterization/characterization/technical-traceability/service/technical-traceability.types';
 import {
   useMutateCaptureCharacterizationTechnicalSnapshot,
   useMutateCreateCharacterizationTechnicalRecord,
   useMutateUpdateCharacterizationTechnicalRecord,
 } from '@v2/services/security/characterization/characterization/technical-traceability/hooks/useMutateCharacterizationTechnicalRecord';
 
+import { ImportUrlsDialog } from './ImportUrlsDialog';
 import {
   ANALYSIS_ORIGIN_LABELS,
   ANALYSIS_ORIGIN_OPTIONS,
@@ -166,6 +168,7 @@ type TechnicalRecordFormDialogProps = {
   workspaceId: string;
   characterizationId: string;
   record: CharacterizationTechnicalRecordItem | null;
+  initialSources?: CharacterizationTechnicalRecordSourceInput[];
 };
 
 export const TechnicalRecordFormDialog: React.FC<
@@ -177,6 +180,7 @@ export const TechnicalRecordFormDialog: React.FC<
   workspaceId,
   characterizationId,
   record,
+  initialSources,
 }) => {
   const { user } = useAuth();
   const defaultResponsibleName = user?.name || '';
@@ -187,6 +191,7 @@ export const TechnicalRecordFormDialog: React.FC<
   const [expandedSourceKey, setExpandedSourceKey] = useState<string | false>(
     false,
   );
+  const [importUrlsOpen, setImportUrlsOpen] = useState(false);
 
   const createMutation = useMutateCreateCharacterizationTechnicalRecord();
   const updateMutation = useMutateUpdateCharacterizationTechnicalRecord();
@@ -197,10 +202,35 @@ export const TechnicalRecordFormDialog: React.FC<
   useEffect(() => {
     if (!open) return;
     const next = buildInitialState(record, defaultResponsibleName);
+    if (initialSources?.length) {
+      next.sources = [
+        ...next.sources,
+        ...initialSources.map((source, index) => ({
+          localKey: `imported-${Date.now()}-${index}`,
+          sourceType: source.sourceType,
+          authorInstitution: source.authorInstitution || '',
+          title: source.title || '',
+          publicationOrRevisionDate: source.publicationOrRevisionDate || '',
+          referenceOrRevision: source.referenceOrRevision || '',
+          fileName: source.fileName || '',
+          url: source.url || '',
+          accessedAt: source.accessedAt
+            ? source.accessedAt.slice(0, 10)
+            : todayIsoDate(),
+          sourceStrength: source.sourceStrength || 'UNDEFINED',
+          sourceClassification: '',
+          informationUsed: '',
+          limitations: '',
+          applicationInCharacterization:
+            source.applicationInCharacterization || '',
+          sortOrder: next.sources.length + index,
+        })),
+      ];
+    }
     setForm(next);
     setFormError(null);
     setExpandedSourceKey(next.sources[0]?.localKey || false);
-  }, [open, record, defaultResponsibleName]);
+  }, [open, record, defaultResponsibleName, initialSources]);
 
   const isExternalAi =
     form.analysisOrigin === 'EXTERNAL_AI_USER_DECLARED';
@@ -499,26 +529,51 @@ export const TechnicalRecordFormDialog: React.FC<
             </Box>
           )}
 
-          <TextField
-            label="Relatório técnico da análise"
-            fullWidth
-            multiline
-            minRows={8}
-            value={form.technicalReport}
-            onChange={(e) => updateField('technicalReport', e.target.value)}
-            helperText="Pode incluir objeto, resumo técnico, divergências, limitações, critérios, decisões e conclusões."
-          />
+          <Box
+            sx={{
+              p: 2,
+              border: '1px solid',
+              borderColor: 'primary.light',
+              borderRadius: 1,
+              bgcolor: 'primary.50',
+            }}
+          >
+            <SText variant="body1" sx={{ fontWeight: 700, mb: 1 }}>
+              Relatório técnico da análise
+            </SText>
+            <Alert severity="info" sx={{ mb: 1.5 }}>
+              Registre aqui o objeto da análise, metodologia, síntese técnica,
+              divergências, critérios, limitações, decisões e conclusão. Evite
+              repetir essas informações individualmente em cada fonte.
+            </Alert>
+            <TextField
+              label="Relatório técnico da análise"
+              fullWidth
+              multiline
+              minRows={10}
+              value={form.technicalReport}
+              onChange={(e) => updateField('technicalReport', e.target.value)}
+              helperText="Campo central da rastreabilidade. Fontes servem como evidências e metadados."
+            />
+          </Box>
 
           <Box>
-            <SFlex align="center" justify="space-between" sx={{ mb: 1 }}>
+            <SFlex align="center" justify="space-between" sx={{ mb: 1 }} flexWrap="wrap" gap={1}>
               <SText variant="body1" sx={{ fontWeight: 600 }}>
-                Fontes vinculadas
+                Fontes vinculadas (evidências)
               </SText>
-              <SButton
-                variant="outlined"
-                text="+ Adicionar fonte"
-                onClick={addSource}
-              />
+              <SFlex gap={1}>
+                <SButton
+                  variant="outlined"
+                  text="Importar fontes por URL"
+                  onClick={() => setImportUrlsOpen(true)}
+                />
+                <SButton
+                  variant="outlined"
+                  text="+ Adicionar fonte"
+                  onClick={addSource}
+                />
+              </SFlex>
             </SFlex>
 
             {!form.sources.length && (
@@ -601,7 +656,7 @@ export const TechnicalRecordFormDialog: React.FC<
                       </TextField>
                       <TextField
                         select
-                        label="Força da fonte"
+                        label="Força da evidência"
                         sx={{ minWidth: 180 }}
                         value={source.sourceStrength}
                         onChange={(e) =>
@@ -671,7 +726,7 @@ export const TechnicalRecordFormDialog: React.FC<
                             fileName: e.target.value,
                           })
                         }
-                        helperText="Anexos reais ficarão para uma fatia posterior."
+                        helperText="Anexos reais ficam para uma fatia posterior."
                       />
                       <TextField
                         label="URL"
@@ -695,51 +750,60 @@ export const TechnicalRecordFormDialog: React.FC<
                       />
                     </SFlex>
                     <TextField
-                      label="Classificação da fonte"
-                      fullWidth
-                      value={source.sourceClassification || ''}
-                      onChange={(e) =>
-                        updateSource(source.localKey, {
-                          sourceClassification: e.target.value,
-                        })
-                      }
-                    />
-                    <TextField
-                      label="Informações utilizadas"
-                      fullWidth
-                      multiline
-                      minRows={3}
-                      value={source.informationUsed || ''}
-                      onChange={(e) =>
-                        updateSource(source.localKey, {
-                          informationUsed: e.target.value,
-                        })
-                      }
-                    />
-                    <TextField
-                      label="Limitações"
+                      label="Aplicação na caracterização (opcional, curto)"
                       fullWidth
                       multiline
                       minRows={2}
-                      value={source.limitations || ''}
-                      onChange={(e) =>
-                        updateSource(source.localKey, {
-                          limitations: e.target.value,
-                        })
-                      }
-                    />
-                    <TextField
-                      label="Aplicação na caracterização"
-                      fullWidth
-                      multiline
-                      minRows={2}
+                      inputProps={{
+                        maxLength: TECHNICAL_SOURCE_APPLICATION_MAX_CHARS,
+                      }}
                       value={source.applicationInCharacterization || ''}
                       onChange={(e) =>
                         updateSource(source.localKey, {
-                          applicationInCharacterization: e.target.value,
+                          applicationInCharacterization: e.target.value.slice(
+                            0,
+                            TECHNICAL_SOURCE_APPLICATION_MAX_CHARS,
+                          ),
                         })
                       }
+                      helperText={`Indicação resumida (ex.: Fundamentou a descrição do ambiente). ${
+                        (source.applicationInCharacterization || '').length
+                      }/${TECHNICAL_SOURCE_APPLICATION_MAX_CHARS}`}
                     />
+                    {(source.sourceClassification ||
+                      source.informationUsed ||
+                      source.limitations) && (
+                      <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                          <SText variant="caption" sx={{ fontWeight: 600 }}>
+                            Informações do formato anterior
+                          </SText>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          {source.sourceClassification && (
+                            <SText variant="caption" sx={{ display: 'block' }}>
+                              Classificação: {source.sourceClassification}
+                            </SText>
+                          )}
+                          {source.informationUsed && (
+                            <SText
+                              variant="caption"
+                              sx={{ display: 'block', whiteSpace: 'pre-wrap' }}
+                            >
+                              Informações utilizadas: {source.informationUsed}
+                            </SText>
+                          )}
+                          {source.limitations && (
+                            <SText
+                              variant="caption"
+                              sx={{ display: 'block', whiteSpace: 'pre-wrap' }}
+                            >
+                              Limitações: {source.limitations}
+                            </SText>
+                          )}
+                        </AccordionDetails>
+                      </Accordion>
+                    )}
                   </SFlex>
                 </AccordionDetails>
               </Accordion>
@@ -851,6 +915,46 @@ export const TechnicalRecordFormDialog: React.FC<
           disabled={!canSubmit || saving}
         />
       </DialogActions>
+
+      <ImportUrlsDialog
+        open={importUrlsOpen}
+        onClose={() => setImportUrlsOpen(false)}
+        companyId={companyId}
+        workspaceId={workspaceId}
+        characterizationId={characterizationId}
+        existingUrls={form.sources
+          .map((source) => source.url || '')
+          .filter(Boolean)}
+        onConfirm={(sources) => {
+          setForm((prev) => {
+            const nextSources = [
+              ...prev.sources,
+              ...sources.map((source, index) => ({
+                localKey: `url-import-${Date.now()}-${index}`,
+                sourceType: source.sourceType,
+                authorInstitution: source.authorInstitution || '',
+                title: source.title || '',
+                publicationOrRevisionDate:
+                  source.publicationOrRevisionDate || '',
+                referenceOrRevision: source.referenceOrRevision || '',
+                fileName: source.fileName || '',
+                url: source.url || '',
+                accessedAt: source.accessedAt
+                  ? String(source.accessedAt).slice(0, 10)
+                  : todayIsoDate(),
+                sourceStrength: source.sourceStrength || 'UNDEFINED',
+                sourceClassification: '',
+                informationUsed: '',
+                limitations: '',
+                applicationInCharacterization:
+                  source.applicationInCharacterization || '',
+                sortOrder: prev.sources.length + index,
+              })),
+            ];
+            return { ...prev, sources: nextSources };
+          });
+        }}
+      />
     </Dialog>
   );
 };

@@ -7,6 +7,8 @@ import type {
   CharacterizationTechnicalRecordItem,
   CharacterizationTechnicalRecordMutationParams,
   DeleteCharacterizationTechnicalRecordParams,
+  TechnicalAiEvidenceSuggestion,
+  TechnicalUrlImportSuggestion,
 } from './technical-traceability.types';
 
 export async function browseCharacterizationTechnicalRecords(
@@ -94,6 +96,52 @@ export async function captureCharacterizationTechnicalSnapshot(
         characterizationId: params.characterizationId,
       },
     }),
+  );
+
+  return response.data;
+}
+
+export async function importTechnicalRecordUrlSuggestions(
+  params: BrowseCharacterizationTechnicalRecordsParams & {
+    urls: string[];
+    excludeUrls?: string[];
+  },
+): Promise<TechnicalUrlImportSuggestion[]> {
+  const response = await api.post(
+    bindUrlParams({
+      path: CharacterizationRoutes.CHARACTERIZATION
+        .TECHNICAL_RECORD_IMPORT_URL_SUGGESTIONS,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+        characterizationId: params.characterizationId,
+      },
+    }),
+    { urls: params.urls, excludeUrls: params.excludeUrls },
+  );
+
+  return response.data;
+}
+
+export async function browseTechnicalAiEvidenceSuggestions(
+  params: BrowseCharacterizationTechnicalRecordsParams & {
+    excludeUrls?: string[];
+  },
+): Promise<{
+  count: number;
+  suggestions: TechnicalAiEvidenceSuggestion[];
+}> {
+  const response = await api.post(
+    bindUrlParams({
+      path: CharacterizationRoutes.CHARACTERIZATION
+        .TECHNICAL_RECORD_AI_EVIDENCE_SUGGESTIONS,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+        characterizationId: params.characterizationId,
+      },
+    }),
+    { excludeUrls: params.excludeUrls },
   );
 
   return response.data;

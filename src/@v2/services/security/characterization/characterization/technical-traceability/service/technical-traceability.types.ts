@@ -49,6 +49,7 @@ export type CharacterizationTechnicalSourceType =
   | 'OTHER';
 
 export type CharacterizationTechnicalSourceStrength =
+  | 'VERY_HIGH'
   | 'HIGH'
   | 'MEDIUM'
   | 'LOW'
@@ -163,3 +164,62 @@ export type DeleteCharacterizationTechnicalRecordParams =
   BrowseCharacterizationTechnicalRecordsParams & {
     recordId: string;
   };
+
+export type TechnicalUrlImportSuggestionStatus =
+  | 'READ_SUCCESS'
+  | 'PARTIAL'
+  | 'METADATA_ONLY'
+  | 'READ_FAILED'
+  | 'BLOCKED'
+  | 'ALREADY_REGISTERED'
+  | 'INVALID_URL';
+
+export type TechnicalUrlImportSuggestion = {
+  originalUrl: string;
+  normalizedUrl: string | null;
+  status: TechnicalUrlImportSuggestionStatus;
+  errorCode?: string | null;
+  title: string | null;
+  authorInstitution: string | null;
+  publicationDate: string | null;
+  accessedAt: string;
+  fileName: string | null;
+  suggestedSourceType: CharacterizationTechnicalSourceType;
+  suggestedStrength: CharacterizationTechnicalSourceStrength;
+  strengthRationale: string;
+  contentType: string | null;
+  readCompleteness: 'FULL' | 'PARTIAL' | 'NONE';
+  alreadyRegistered: boolean;
+  warning?: string | null;
+};
+
+export type TechnicalAiEvidenceSuggestionKind =
+  | 'URL_SUCCESS'
+  | 'URL_FAILED'
+  | 'TEMPORARY_PDF'
+  | 'PHOTO'
+  | 'MENTIONED_ONLY';
+
+export type TechnicalAiEvidenceSuggestion = {
+  id: string;
+  kind: TechnicalAiEvidenceSuggestionKind;
+  verified: boolean;
+  originLabel: string;
+  traceId: string;
+  traceCreatedAt: string | null;
+  url: string | null;
+  title: string | null;
+  fileName: string | null;
+  warning: string | null;
+  suggestedSourceType: CharacterizationTechnicalSourceType;
+  suggestedStrength: CharacterizationTechnicalSourceStrength;
+  strengthRationale: string;
+  alreadyRegistered: boolean;
+};
+
+export const TECHNICAL_SOURCE_APPLICATION_MAX_CHARS = 280;
+
+/**
+ * Future: POST .../technical-records/assist-report-draft
+ * Preview-only report draft (replace | append | cancel). Not wired in this front.
+ */

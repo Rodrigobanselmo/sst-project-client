@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
@@ -28,6 +28,7 @@ import type { CharacterizationTechnicalRecordItem } from '@v2/services/security/
 
 import type { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
 import { TechnicalRecordFormDialog } from './TechnicalRecordFormDialog';
+import { AiEvidenceImportDialog } from './AiEvidenceImportDialog';
 import {
   ANALYSIS_ORIGIN_LABELS,
   RECORD_STATUS_LABELS,
@@ -35,6 +36,8 @@ import {
   RELATED_FIELD_LABELS,
   SOURCE_TYPE_LABELS,
 } from './technical-traceability.labels';
+import { browseTechnicalAiEvidenceSuggestions } from '@v2/services/security/characterization/characterization/technical-traceability/service/technical-traceability.service';
+import type { CharacterizationTechnicalRecordSourceInput } from '@v2/services/security/characterization/characterization/technical-traceability/service/technical-traceability.types';
 
 const OUTPUT_INTENT_LABELS: Record<string, string> = {
   GENERATE_FINAL: 'Gerar texto final',
@@ -468,6 +471,16 @@ const TechnicalRecordCard: React.FC<{
                     Limitações: {source.limitations}
                   </SText>
                 )}
+                {source.applicationInCharacterization && (
+                  <SText variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                    Aplicação: {source.applicationInCharacterization}
+                  </SText>
+                )}
+                {source.url && (
+                  <SText variant="caption" sx={{ display: 'block' }}>
+                    URL: {source.url}
+                  </SText>
+                )}
               </Box>
             ))}
           </Box>
@@ -529,6 +542,11 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
   const [formOpen, setFormOpen] = useState(false);
   const [editingRecord, setEditingRecord] =
     useState<CharacterizationTechnicalRecordItem | null>(null);
+  const [aiImportOpen, setAiImportOpen] = useState(false);
+  const [aiEvidenceCount, setAiEvidenceCount] = useState(0);
+  const [pendingImportSources, setPendingImportSources] = useState<
+    CharacterizationTechnicalRecordSourceInput[] | null
+  >(null);
 
   const enabled = Boolean(
     isEdit && data?.id && data?.companyId && data?.workspaceId,
@@ -552,6 +570,30 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
   } = useFetchCharacterizationTechnicalRecords(scope, { enabled });
 
   const deleteMutation = useMutateDeleteCharacterizationTechnicalRecord();
+
+  useEffect(() => {
+    if (!enabled) {
+      setAiEvidenceCount(0);
+      return;
+    }
+    let cancelled = false;
+    browseTechnicalAiEvidenceSuggestions(scope)
+      .then((result) => {
+        if (!cancelled) {
+          setAiEvidenceCount(
+            result.suggestions.filter(
+              (item) => item.verified || item.kind === 'URL_FAILED',
+            ).length,
+          );
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAiEvidenceCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, scope.companyId, scope.workspaceId, scope.characterizationId, records.length]);
 
   const hasAnyAlert = useMemo(
     () => traces.some((trace) => trace.hasInconsistencies || trace.hasFailedUrls),
@@ -598,6 +640,23 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
         rastreabilidade técnica e não é inserido automaticamente nos documentos oficiais.
       </Alert>
 
+      {aiEvidenceCount > 0 && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 3 }}
+          action={
+            <SButton
+              variant="outlined"
+              text="Revisar e importar"
+              onClick={() => setAiImportOpen(true)}
+            />
+          }
+        >
+          Foram identificadas {aiEvidenceCount} evidências utilizadas pelo Assistente
+          IA nesta caracterização. Deseja revisá-las e importá-las?
+        </Alert>
+      )}
+
       <Box sx={{ mb: 4 }}>
         <SFlex align="center" justify="space-between" sx={{ mb: 1.5 }}>
           <SText variant="h6" sx={{ fontWeight: 700, fontSize: '1.05rem' }}>
@@ -608,6 +667,7 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
             text="+ Adicionar registro técnico"
             onClick={() => {
               setEditingRecord(null);
+              setPendingImportSources(null);
               setFormOpen(true);
             }}
           />
@@ -694,11 +754,29 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
         onClose={() => {
           setFormOpen(false);
           setEditingRecord(null);
+          setPendingImportSources(null);
         }}
         companyId={scope.companyId}
         workspaceId={scope.workspaceId}
         characterizationId={scope.characterizationId}
         record={editingRecord}
+        initialSources={pendingImportSources || undefined}
+      />
+
+      <AiEvidenceImportDialog
+        open={aiImportOpen}
+        onClose={() => setAiImportOpen(false)}
+        companyId={scope.companyId}
+        workspaceId={scope.workspaceId}
+        characterizationId={scope.characterizationId}
+        existingUrls={records.flatMap((record) =>
+          record.sources.map((source) => source.url || '').filter(Boolean),
+        )}
+        onConfirm={(sources) => {
+          setPendingImportSources(sources);
+          setEditingRecord(null);
+          setFormOpen(true);
+        }}
       />
     </Box>
   );
