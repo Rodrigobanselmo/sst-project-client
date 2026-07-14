@@ -17,6 +17,8 @@ export interface IAddCharacterizationPhoto {
   name: string;
   companyCharacterizationId: string;
   workspaceId?: string;
+  /** When true, skips per-photo success/error snackbars (bulk upload). */
+  silent?: boolean;
 }
 
 export async function addCharacterizationPhoto(
@@ -53,10 +55,14 @@ export function useMutAddCharacterizationPhoto() {
   const { getCompanyId, workspaceId } = useGetCompanyId();
 
   return useMutation(
-    async ({ workspaceId: workId, ...data }: IAddCharacterizationPhoto) =>
+    async ({
+      workspaceId: workId,
+      silent: _silent,
+      ...data
+    }: IAddCharacterizationPhoto) =>
       addCharacterizationPhoto(data, getCompanyId(data), workId || workspaceId),
     {
-      onSuccess: async (resp) => {
+      onSuccess: async (resp, variables) => {
         if (resp) {
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
@@ -85,13 +91,17 @@ export function useMutAddCharacterizationPhoto() {
             );
         }
 
-        enqueueSnackbar('Ação realizado com sucesso', {
-          variant: 'success',
-        });
+        if (!variables.silent) {
+          enqueueSnackbar('Ação realizado com sucesso', {
+            variant: 'success',
+          });
+        }
         return resp;
       },
-      onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      onError: (error: IErrorResp, variables) => {
+        if (!variables.silent) {
+          enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        }
       },
     },
   );

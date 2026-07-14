@@ -710,6 +710,7 @@ export const useEditCharacterization = (
     const values = getValues();
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: values?.name || '',
+      enableBulkUpload: true,
       onConfirm: async (photo) => {
         const addLocalPhoto = (src?: string, data?: { id?: string }) => {
           setCharacterizationData((oldData) => ({
@@ -747,6 +748,91 @@ export const useEditCharacterization = (
         } else {
           addLocalPhoto();
         }
+      },
+      onConfirmBulk: async (photos) => {
+        if (!photos.length) {
+          return { successCount: 0, failedFiles: [] };
+        }
+
+        if (!isEdit) {
+          setCharacterizationData((oldData) => ({
+            ...oldData,
+            photos: [
+              ...(oldData.photos ?? []),
+              ...photos.map((photo) => ({
+                photoUrl: photo.src || '',
+                file: photo.file,
+                name: photo.name,
+              })),
+            ],
+          }));
+
+          enqueueSnackbar(
+            photos.length === 1
+              ? 'Foto incluída com sucesso'
+              : `${photos.length} fotos incluídas com sucesso`,
+            { variant: 'success' },
+          );
+
+          return { successCount: photos.length, failedFiles: [] };
+        }
+
+        setIsLoading(true);
+
+        let successCount = 0;
+        const failedFiles: File[] = [];
+        let latestPhotos = characterizationData.photos ?? [];
+
+        // Sequential uploads — endpoint accepts one file per request
+        for (const photo of photos) {
+          if (!photo.file) {
+            continue;
+          }
+
+          try {
+            const characterization = await addPhotoMutation.mutateAsync({
+              file: photo.file,
+              name: photo.name || '',
+              companyCharacterizationId: characterizationData.id,
+              silent: true,
+            });
+
+            successCount += 1;
+            if (characterization?.photos) {
+              latestPhotos = characterization.photos;
+            }
+          } catch {
+            failedFiles.push(photo.file);
+          }
+        }
+
+        setCharacterizationData((oldData) => ({
+          ...oldData,
+          photos: latestPhotos ?? oldData.photos ?? [],
+        }));
+
+        setIsLoading(false);
+
+        if (failedFiles.length && successCount) {
+          enqueueSnackbar(
+            `${successCount} foto(s) incluída(s) e ${failedFiles.length} falha(ram). As que falharam permanecem no modal para nova tentativa.`,
+            { variant: 'warning', autoHideDuration: 6000 },
+          );
+        } else if (failedFiles.length) {
+          enqueueSnackbar(
+            `Falha ao incluir ${failedFiles.length} foto(s). Tente novamente.`,
+            { variant: 'error', autoHideDuration: 5000 },
+          );
+        } else {
+          enqueueSnackbar(
+            successCount === 1
+              ? 'Foto incluída com sucesso'
+              : `${successCount} fotos incluídas com sucesso`,
+            { variant: 'success' },
+          );
+        }
+
+        return { successCount, failedFiles };
       },
     } as Partial<typeof initialPhotoState>);
   };

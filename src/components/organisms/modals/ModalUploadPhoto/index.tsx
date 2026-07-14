@@ -6,8 +6,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { PixelCrop } from 'react-image-crop';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
-import { Box, styled } from '@mui/material';
-import { SButton } from 'components/atoms/SButton';
+import { Box, IconButton, styled } from '@mui/material';
 import { InputForm } from 'components/molecules/form/input';
 import SCropImage from 'components/molecules/SCropImage';
 import SModal, {
@@ -18,23 +17,51 @@ import SModal, {
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { useSnackbar } from 'notistack';
 
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
+
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { buildSequentialPhotoCaptions } from 'core/utils/helpers/buildSequentialPhotoCaptions';
 import { photoSchema } from 'core/utils/schemas/photo.schema';
 
 import { SFileDndUpload } from '../../../molecules/SFileDndUpload';
 import { SModalUploadPhoto } from './types';
-import { calculateDimensionsWithMaxSize } from 'core/utils/helpers/calculateDimensionsWithMaxSize';
-import { ImageResizer } from './ImageResizer/ImageResizer';
 import dynamic from 'next/dynamic';
-import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
 import {
   imageBlobCompress,
   ImageBlobCompressProps,
 } from 'core/utils/helpers/imageBlobCompress';
 import { IImageComponentProps } from 'components/molecules/SCanvasEditor/types/ICanvasMain.types';
+
+const BulkPhotoPreviewThumb: FC<{ file: File; alt: string }> = ({
+  file,
+  alt,
+}) => {
+  const [src, setSrc] = useState('');
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setSrc(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  if (!src) return null;
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      style={{
+        maxWidth: '100%',
+        maxHeight: 100,
+        objectFit: 'contain',
+      }}
+    />
+  );
+};
 
 const StyledCanvas = styled('canvas')`
   border: 2px solid ${({ theme }) => theme.palette.grey[300]};
@@ -60,6 +87,11 @@ export interface IUploadPhotoConfirm {
   id?: string;
 }
 
+export interface IUploadPhotoBulkResult {
+  successCount: number;
+  failedFiles: File[];
+}
+
 export const initialPhotoState = {
   id: '' as string | number,
   title: '',
@@ -72,9 +104,15 @@ export const initialPhotoState = {
   freeAspect: false,
   showInputName: false,
   saveAsIs: false, // Skip cropping/resizing and save the original file (preserves transparency)
+  /** When true and multiple files are selected, skip cropper and save the batch at once. */
+  enableBulkUpload: false,
   compressProps: undefined as Partial<ImageBlobCompressProps> | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onConfirm: async (arg: IUploadPhotoConfirm) => {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onConfirmBulk: async (
+    _photos: IUploadPhotoConfirm[],
+  ): Promise<IUploadPhotoBulkResult | void> => undefined,
 };
 
 const modalName = ModalEnum.UPLOAD_PHOTO;
@@ -89,9 +127,10 @@ export const ModalUploadPhoto: FC<
   const { onCloseModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
 
-  const { handleSubmit, control, reset, setValue } = useForm<any>({
-    resolver: yupResolver(photoSchema),
-  });
+  const { handleSubmit, control, reset, setValue, getValues, watch } =
+    useForm<any>({
+      resolver: yupResolver(photoSchema),
+    });
 
   const konvaRef = useRef<{
     handleGetCanvas: (data?: {
@@ -106,7 +145,16 @@ export const ModalUploadPhoto: FC<
     ...initialPhotoState,
   });
 
+  const watchedName = watch('name');
   const isPhotoSelected = !!photoData.files.length || !!photoData.url;
+  const isBulkMode =
+    !!photoData.enableBulkUpload && photoData.files.length > 1;
+  const bulkCaptions = isBulkMode
+    ? buildSequentialPhotoCaptions(
+        String(watchedName ?? photoData.name ?? ''),
+        photoData.files.length,
+      )
+    : [];
 
   useEffect(() => {
     const initialData =
@@ -169,9 +217,23 @@ export const ModalUploadPhoto: FC<
     }
   }, [getModalData]);
 
+  const onCloseFull = () => {
+    setIsLoading(false);
+    setCompletedCrop(undefined);
+    onCloseModal(ModalEnum.UPLOAD_PHOTO);
+    setPhotoData(initialPhotoState);
+    reset();
+  };
+
   const onClose = () => {
     setIsLoading(false);
     setCompletedCrop(undefined);
+
+    // Bulk mode: close entirely (no sequential peel)
+    if (photoData.enableBulkUpload && photoData.files.length > 1) {
+      onCloseFull();
+      return;
+    }
 
     if (photoData.files.length > 1) {
       setPhotoData((data) => ({
@@ -182,16 +244,91 @@ export const ModalUploadPhoto: FC<
       return;
     }
 
-    onCloseModal(ModalEnum.UPLOAD_PHOTO);
-    setPhotoData(initialPhotoState);
-    reset();
+    onCloseFull();
   };
 
   const CropImage = () => {
     document.getElementById(IdsEnum.CROP_IMAGE_BUTTON)?.click();
   };
 
+  const handleRemoveBulkFile = (index: number) => {
+    setPhotoData((data) => {
+      const nextFiles = data.files.filter((_, fileIndex) => fileIndex !== index);
+      return { ...data, files: nextFiles };
+    });
+  };
+
+  const handleBulkSave = async () => {
+    if (!photoData.files.length) {
+      return enqueueSnackbar('Selecione uma imagem', { variant: 'error' });
+    }
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+
+    try {
+      const baseCaption = String(
+        getValues('name') ?? photoData.name ?? '',
+      ).trim();
+      const captions = buildSequentialPhotoCaptions(
+        baseCaption,
+        photoData.files.length,
+      );
+
+      const prepared: IUploadPhotoConfirm[] = [];
+      const compressFailed: File[] = [];
+
+      for (let index = 0; index < photoData.files.length; index += 1) {
+        const original = photoData.files[index];
+        try {
+          const { file, dataUrl } = await imageBlobCompress({
+            blob: original,
+            name: captions[index],
+            imageExtension: photoData.imageExtension,
+            ...photoData.compressProps,
+          });
+          prepared.push({
+            file,
+            name: captions[index],
+            src: dataUrl,
+          });
+        } catch {
+          compressFailed.push(original);
+        }
+      }
+
+      if (!prepared.length) {
+        enqueueSnackbar('Não foi possível processar as imagens selecionadas', {
+          variant: 'error',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await photoData.onConfirmBulk(prepared);
+      const failedFromUpload = result?.failedFiles ?? [];
+      const failedFiles = [...compressFailed, ...failedFromUpload];
+
+      if (failedFiles.length) {
+        setPhotoData((data) => ({ ...data, files: failedFiles }));
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(false);
+      onCloseFull();
+    } catch {
+      setIsLoading(false);
+    }
+  };
+
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
+    if (isBulkMode) {
+      await handleBulkSave();
+      return;
+    }
+
     if (!isPhotoSelected)
       return enqueueSnackbar('Selecione uma imagem', { variant: 'error' });
 
@@ -331,10 +468,10 @@ export const ModalUploadPhoto: FC<
       text: 'Substituir Foto',
       variant: 'contained',
       type: 'submit',
-      disabled: !isPhotoSelected,
+      disabled: !isPhotoSelected || isBulkMode,
       color: 'error',
       onClick: handleRemove,
-      sx: { mr: 'auto' },
+      sx: { mr: 'auto', ...(isBulkMode && { display: 'none' }) },
     },
     {
       text: 'Cancelar',
@@ -342,24 +479,38 @@ export const ModalUploadPhoto: FC<
       type: 'button',
     },
     {
-      text: photoData.saveAsIs || completedCrop ? 'Salvar' : 'Cortar e Salvar',
+      text: isBulkMode
+        ? `Salvar ${photoData.files.length} fotos`
+        : photoData.saveAsIs || completedCrop
+          ? 'Salvar'
+          : 'Cortar e Salvar',
       variant: 'contained',
-      type: 'submit',
-      disabled: !isPhotoSelected,
+      type: isBulkMode ? 'button' : 'submit',
+      disabled: !isPhotoSelected || isLoading,
       color: 'primary',
-      onClick: () => {},
+      onClick: isBulkMode ? () => handleBulkSave() : () => {},
     },
   ] as IModalButton[];
 
   const showFileUploader = !isPhotoSelected && !completedCrop;
-  const showCrop = isPhotoSelected && !completedCrop && !photoData.saveAsIs;
-  const showEditor = !!completedCrop && !photoData.saveAsIs;
-  const showPreview = isPhotoSelected && photoData.saveAsIs;
+  const showCrop =
+    isPhotoSelected && !completedCrop && !photoData.saveAsIs && !isBulkMode;
+  const showEditor = !!completedCrop && !photoData.saveAsIs && !isBulkMode;
+  const showPreview =
+    isPhotoSelected && photoData.saveAsIs && !isBulkMode;
+  const showBulkPreview = isBulkMode;
 
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
       <SModalPaper
-        onSubmit={(handleSubmit as any)(onSubmit)}
+        onSubmit={(event) => {
+          if (isBulkMode) {
+            event.preventDefault();
+            void handleBulkSave();
+            return;
+          }
+          (handleSubmit as any)(onSubmit)(event);
+        }}
         component="form"
         center
         p={8}
@@ -381,19 +532,122 @@ export const ModalUploadPhoto: FC<
           labelPosition="center"
           control={control}
           sx={{ minWidth: ['100%', 600], mb: 5 }}
-          placeholder={'descrição breve da imagem...'}
+          placeholder={
+            isBulkMode || photoData.enableBulkUpload
+              ? 'legenda-base para todas as fotos (opcional)...'
+              : 'descrição breve da imagem...'
+          }
           name="name"
           size="small"
         />
+        {isBulkMode && (
+          <SText fontSize={13} color="text.secondary" mb={4}>
+            A legenda será aplicada como base em todas as fotos (ex.:{' '}
+            {bulkCaptions[0] || 'Foto 1'}).
+          </SText>
+        )}
         {showFileUploader && (
           <DndProvider backend={HTML5Backend}>
             <SFileDndUpload
               maxFiles={15}
               accept={photoData.accept}
               onChange={onSetFiles}
-              text={'Arraste ou click aqui \n para adicionar uma foto'}
+              text={
+                photoData.enableBulkUpload
+                  ? 'Arraste ou click aqui \n para adicionar uma ou mais fotos'
+                  : 'Arraste ou click aqui \n para adicionar uma foto'
+              }
             />
           </DndProvider>
+        )}
+
+        {showBulkPreview && (
+          <Box
+            flex={1}
+            sx={{
+              maxHeight: 480,
+              overflowY: 'auto',
+              mb: 2,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              gap: 2,
+            }}
+          >
+            {photoData.files.map((file, index) => (
+              <Box
+                key={`${file.name}-${file.lastModified}-${index}`}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'grey.300',
+                  borderRadius: 2,
+                  p: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  position: 'relative',
+                  backgroundColor: 'grey.100',
+                }}
+              >
+                <IconButton
+                  type="button"
+                  size="small"
+                  onClick={() => handleRemoveBulkFile(index)}
+                  disabled={isLoading}
+                  sx={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    backgroundColor: 'common.white',
+                    '&:hover': { backgroundColor: 'grey.200' },
+                  }}
+                  aria-label={`Remover ${file.name}`}
+                >
+                  <SDeleteIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                </IconButton>
+                <Box
+                  sx={{
+                    height: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    borderRadius: 1,
+                    backgroundColor: 'grey.200',
+                  }}
+                >
+                  <BulkPhotoPreviewThumb file={file} alt={file.name} />
+                </Box>
+                <SText fontSize={12} fontWeight={600} color="primary.main">
+                  Foto {index + 1}
+                </SText>
+                <SText
+                  fontSize={11}
+                  color="text.secondary"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                  title={file.name}
+                >
+                  {file.name}
+                </SText>
+                <SText
+                  fontSize={11}
+                  color="text.secondary"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                  }}
+                >
+                  {bulkCaptions[index]}
+                </SText>
+              </Box>
+            ))}
+          </Box>
         )}
 
         {showCrop && (
@@ -407,23 +661,17 @@ export const ModalUploadPhoto: FC<
               file={photoData.files?.[0]}
               imageUrl={!photoData.files?.[0] ? photoData.url : undefined}
             />
-            {/* <SButton onClick={handleRemove} xsmall color="error">
-              Substituir
-            </SButton> */}
           </Box>
         )}
 
         {showEditor && (
-          // <Box height={520} width={'100%'} sx={{ backgroundColor: 'red' }}>
           <SCanvasEditorMain
             minHeight={520}
             ref={konvaRef}
             onCrop={handleStartCrop}
             imageUrl={photoData.url}
             canvasRef={canvasRef}
-            // minWidth={1000}
           />
-          // </Box>
         )}
 
         {showPreview && photoData.files?.[0] && (
