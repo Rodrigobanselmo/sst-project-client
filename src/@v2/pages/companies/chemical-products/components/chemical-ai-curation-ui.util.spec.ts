@@ -21,6 +21,8 @@ import {
   resolveCurationQueueFilter,
   formatCurationElapsedMs,
   formatCurationProcessingLabel,
+  slimDecisionForExport,
+  slimEvidencesForExport,
 } from './chemical-ai-curation-ui.util';
 
 function assert(condition: boolean, message: string) {
@@ -409,6 +411,46 @@ function run() {
       !labelSingle.includes('lote') &&
       labelSingle.includes('0:05'),
     `label single chunk, got: ${labelSingle}`,
+  );
+
+  // 14. erro Blob / payload enxuto para export
+  const slimEv = slimEvidencesForExport([
+    {
+      sourceType: 'EXTERNAL_SOURCE',
+      sourceName: 'PubChem',
+      field: 'cas',
+      value: '67-56-1',
+      excerpt: 'ok',
+    },
+    {
+      sourceType: 'EXTERNAL_SOURCE',
+      sourceName: 'PubChem',
+      field: 'registryNumber',
+      value: '1-2-3',
+      excerpt: 'rn',
+    },
+  ]);
+  assert(slimEv.length === 1 && slimEv[0]?.field === 'cas', 'slim remove registryNumber');
+
+  const heavyDecisions = Array.from({ length: 139 }, (_, i) =>
+    slimDecisionForExport({
+      sourceRowId: `id-${i}`,
+      action: 'CONFIRM_EXISTING',
+      officialName: `N${i}`,
+      cas: '67-64-1',
+      evidences: Array.from({ length: 300 }, (_, j) => ({
+        sourceType: 'EXTERNAL_SOURCE' as const,
+        sourceName: 'PubChem',
+        field: 'registryNumber',
+        value: `${j}-00-0`,
+        excerpt: 'x'.repeat(100),
+      })),
+    }),
+  );
+  const payloadBytes = Buffer.byteLength(JSON.stringify(heavyDecisions));
+  assert(
+    payloadBytes < 1_048_576,
+    `payload slim de 139 decisões deve caber em 1MB, got ${payloadBytes}`,
   );
 
   console.log('chemical-ai-curation-ui.util.spec: loading checks OK');

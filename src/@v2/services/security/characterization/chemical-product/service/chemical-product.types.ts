@@ -447,11 +447,28 @@ export type ChemicalAiCurationSuggestResult = {
   phase2ContractsReady: true;
 };
 
+export type ChemicalValidateSafeCasConsolidation = {
+  productKey: string;
+  tradeName: string;
+  cas: string;
+  survivorRow: number;
+  absorbedRows: number[];
+  keptComponentOriginal: string;
+  keptOfficialName: string | null;
+  aliases: string[];
+  sourceRows: number[];
+  sourceSheets: string[];
+  absorbedDecisionLabels: string[];
+  reason: 'SAFE_SAME_CAS';
+};
+
 export type ChemicalValidatePreviewResult = {
   persisted: false;
   fileName: string;
   sourceSheet: string;
   canProceedHint: boolean;
+  correctedWorkbookAvailable?: boolean;
+  consolidations?: ChemicalValidateSafeCasConsolidation[];
   summary: {
     components: number;
     products: number;
@@ -471,6 +488,7 @@ export type ChemicalValidatePreviewResult = {
     warnings: number;
     infos: number;
     readyToImport: number;
+    safeCasConsolidations?: number;
   };
   components: Array<{
     row: number;

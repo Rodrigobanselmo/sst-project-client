@@ -1,5 +1,8 @@
 import { SText } from '@v2/components/atoms/SText/SText';
-import { previewChemicalExcelValidate } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
+import {
+  downloadChemicalExcelValidateCorrected,
+  previewChemicalExcelValidate,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type { ChemicalValidatePreviewResult } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import {
   Alert,
@@ -22,6 +25,7 @@ import {
 import { useState } from 'react';
 
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
+import { shouldShowCorrectedWorkbookDownload } from './chemical-validate-ui.util';
 
 type Props = {
   open: boolean;
@@ -116,6 +120,28 @@ export const ChemicalExcelValidateDialog = ({
     return true;
   });
 
+  const showCorrectedDownload = shouldShowCorrectedWorkbookDownload(preview);
+
+  const handleDownloadCorrected = async () => {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await downloadChemicalExcelValidateCorrected({
+        companyId,
+        workspaceId,
+        file,
+      });
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message ||
+          'Não foi possível baixar a planilha corrigida.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -200,7 +226,33 @@ export const ChemicalExcelValidateDialog = ({
                   label={`Avisos: ${preview.summary.warnings}`}
                 />
                 <Chip label={`Infos: ${preview.summary.infos}`} />
+                {(preview.summary.safeCasConsolidations || 0) > 0 ? (
+                  <Chip
+                    color="info"
+                    label={`Consolidações seguras: ${preview.summary.safeCasConsolidations}`}
+                  />
+                ) : null}
               </Stack>
+
+              {showCorrectedDownload && preview.consolidations?.length ? (
+                <Alert severity="info">
+                  Foram detectadas {preview.consolidations.length} consolidação(ões)
+                  segura(s) de CAS duplicado no mesmo produto. Baixe a planilha
+                  corrigida para remover as duplicidades importáveis sem refazer a
+                  curadoria.
+                  <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                    {preview.consolidations.map((item) => (
+                      <li key={`${item.productKey}-${item.cas}-${item.survivorRow}`}>
+                        {item.tradeName}: CAS {item.cas} — mantém linha{' '}
+                        {item.survivorRow}, absorve {item.absorbedRows.join(', ')}
+                        {item.aliases.length
+                          ? ` (aliases: ${item.aliases.join('; ')})`
+                          : ''}
+                      </li>
+                    ))}
+                  </Box>
+                </Alert>
+              ) : null}
 
               <ToggleButtonGroup
                 exclusive
@@ -317,6 +369,15 @@ export const ChemicalExcelValidateDialog = ({
         </Stack>
       </DialogContent>
       <DialogActions>
+        {showCorrectedDownload ? (
+          <Button
+            variant="contained"
+            onClick={handleDownloadCorrected}
+            disabled={busy || !file}
+          >
+            Baixar planilha corrigida
+          </Button>
+        ) : null}
         <Button onClick={() => requestClose('closeButton')}>Fechar</Button>
       </DialogActions>
     </Dialog>

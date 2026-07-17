@@ -47,4 +47,6 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/ai-curation/export',
   EXCEL_VALIDATE_PREVIEW:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/validate/preview',
+  EXCEL_VALIDATE_EXPORT_CORRECTED:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/validate/export-corrected',
 } as const;

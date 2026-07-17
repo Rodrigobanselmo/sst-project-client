@@ -50,6 +50,7 @@ import {
   partitionPubChemEvidences,
   pruneSelectionToActiveQueue,
   resolveCurationQueueFilter,
+  slimEvidencesForExport,
   type ChemicalAiCurationProgress,
   type CurationFilter,
 } from './chemical-ai-curation-ui.util';
@@ -1528,7 +1529,7 @@ export const ChemicalExcelAiCurationPanel = ({
                                 confidence: suggestion.confidence,
                                 suggestionType: suggestion.type,
                                 rationale: suggestion.rationale,
-                                evidences: top.evidences,
+                                evidences: slimEvidencesForExport(top.evidences),
                               })
                             }
                           >
@@ -1552,7 +1553,7 @@ export const ChemicalExcelAiCurationPanel = ({
                                 confidence: suggestion.confidence,
                                 suggestionType: suggestion.type,
                                 rationale: suggestion.rationale,
-                                evidences: top?.evidences,
+                                evidences: slimEvidencesForExport(top?.evidences),
                               })
                             }
                           >
@@ -1606,8 +1607,13 @@ export const ChemicalExcelAiCurationPanel = ({
                             handleDecisionAndDeselect({
                               sourceRowId: item.sourceRowId,
                               action: 'KEEP_UNLINKED',
+                              officialName:
+                                displayOfficialName(top?.officialName) ||
+                                item.componentOriginal,
+                              cas: top?.cas || null,
                               suggestionType: suggestion.type,
                               confidence: suggestion.confidence,
+                              evidences: slimEvidencesForExport(top?.evidences),
                             })
                           }
                         >

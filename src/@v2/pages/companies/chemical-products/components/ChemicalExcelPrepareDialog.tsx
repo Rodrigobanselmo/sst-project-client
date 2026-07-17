@@ -84,7 +84,7 @@ const SUMMARY_PENDING_PAGE_SIZE = 15;
 
 function mapApiError(err: any, fallback: string): string {
   const status = err?.response?.status;
-  const raw = err?.response?.data?.message;
+  const raw = err?.response?.data?.message ?? err?.message;
   const message = Array.isArray(raw) ? raw.join(' ') : raw;
   if (status === 401 || status === 403) {
     return 'Sessão expirada ou sem permissão. Faça login novamente.';
@@ -95,7 +95,10 @@ function mapApiError(err: any, fallback: string): string {
   if (/PubChem|rate limit|429/i.test(String(message || ''))) {
     return 'PubChem indisponível ou com limite de requisições. Tente novamente em instantes.';
   }
-  if (/arquivo|xlsx|mapping|aba/i.test(String(message || ''))) {
+  if (/Field value too long|LIMIT_FIELD/i.test(String(message || ''))) {
+    return 'Os dados da curadoria são grandes demais para o download. Tente novamente; se persistir, baixe em lotes menores.';
+  }
+  if (/arquivo|xlsx|mapping|aba|decisions|suggestions/i.test(String(message || ''))) {
     return String(message);
   }
   return message || fallback;
@@ -569,7 +572,6 @@ export const ChemicalExcelPrepareDialog = ({
           sheetName,
           mapping,
           decisions: decisionList,
-          suggestions,
         });
       } else {
         await downloadChemicalExcelPrepare({

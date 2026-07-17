@@ -351,3 +351,53 @@ export function formatCurationProcessingLabel(params: {
   }
   return `Processando ${progress.total} itens · ${elapsed} — não feche esta janela`;
 }
+
+const EXPORT_EVIDENCE_FIELDS = new Set([
+  'cas',
+  'cid',
+  'officialName',
+  'name',
+  'chemicalQueryText',
+  'synonyms',
+  'molecularFormula',
+]);
+
+/** Evidências enxutas para decisão/export (evita estourar multipart 1MB). */
+export function slimEvidencesForExport(
+  evidences?: AiCurationEvidence[] | null,
+): AiCurationEvidence[] {
+  if (!evidences?.length) return [];
+  return evidences
+    .filter(
+      (evidence) =>
+        evidence.field !== 'registryNumber' &&
+        EXPORT_EVIDENCE_FIELDS.has(evidence.field),
+    )
+    .slice(0, 16)
+    .map((evidence) => ({
+      ...evidence,
+      excerpt: evidence.excerpt?.slice(0, 400) ?? null,
+    }));
+}
+
+/** Payload de decisão seguro para POST multipart de export. */
+export function slimDecisionForExport(
+  decision: ChemicalAiCurationDecision,
+): ChemicalAiCurationDecision {
+  return {
+    sourceRowId: decision.sourceRowId,
+    action: decision.action,
+    riskFactorId: decision.riskFactorId ?? null,
+    officialName: decision.officialName ?? null,
+    cas: decision.cas ?? null,
+    split: decision.split?.map((part) => ({
+      officialName: part.officialName,
+      cas: part.cas ?? null,
+      riskFactorId: part.riskFactorId ?? null,
+    })),
+    suggestionType: decision.suggestionType ?? null,
+    confidence: decision.confidence ?? null,
+    rationale: decision.rationale?.slice(0, 800) ?? null,
+    evidences: slimEvidencesForExport(decision.evidences),
+  };
+}

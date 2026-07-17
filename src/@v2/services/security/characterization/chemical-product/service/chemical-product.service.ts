@@ -521,29 +521,94 @@ export async function downloadChemicalExcelAiCuration(
   formData.append('file', params.file);
   formData.append('sheetName', params.sheetName);
   formData.append('mapping', JSON.stringify(params.mapping));
-  formData.append('decisions', JSON.stringify(params.decisions));
-  if (params.suggestions?.length) {
-    formData.append('suggestions', JSON.stringify(params.suggestions));
-  }
+  // Decisões enxutas: evidências PubChem completas estouram o fieldSize padrão (1MB).
+  const slimDecisions = params.decisions.map((decision) => ({
+    sourceRowId: decision.sourceRowId,
+    action: decision.action,
+    riskFactorId: decision.riskFactorId ?? null,
+    officialName: decision.officialName ?? null,
+    cas: decision.cas ?? null,
+    split: decision.split?.map((part) => ({
+      officialName: part.officialName,
+      cas: part.cas ?? null,
+      riskFactorId: part.riskFactorId ?? null,
+    })),
+    suggestionType: decision.suggestionType ?? null,
+    confidence: decision.confidence ?? null,
+    rationale: decision.rationale?.slice(0, 800) ?? null,
+    evidences: (decision.evidences || [])
+      .filter(
+        (evidence) =>
+          evidence.field !== 'registryNumber' &&
+          [
+            'cas',
+            'cid',
+            'officialName',
+            'name',
+            'chemicalQueryText',
+            'synonyms',
+            'molecularFormula',
+          ].includes(evidence.field),
+      )
+      .slice(0, 16)
+      .map((evidence) => ({
+        ...evidence,
+        excerpt: evidence.excerpt?.slice(0, 400) ?? null,
+      })),
+  }));
+  formData.append('decisions', JSON.stringify(slimDecisions));
+  // Sugestões completas não são necessárias para aplicar decisões; omitir evita LIMIT_FIELD_VALUE.
   const { token } = await refreshToken();
-  const response = await api.post(
-    bindUrlParams({
-      path: ChemicalProductRoutes.EXCEL_AI_CURATION_EXPORT,
-      pathParams: {
-        companyId: params.companyId,
-        workspaceId: params.workspaceId,
+  try {
+    const response = await api.post(
+      bindUrlParams({
+        path: ChemicalProductRoutes.EXCEL_AI_CURATION_EXPORT,
+        pathParams: {
+          companyId: params.companyId,
+          workspaceId: params.workspaceId,
+        },
+      }),
+      formData,
+      {
+        responseType: 'blob',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
       },
-    }),
-    formData,
-    {
-      responseType: 'blob',
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-  await downloadFile(response);
+    );
+    const contentType = String(response.headers?.['content-type'] || '');
+    if (contentType.includes('application/json')) {
+      const text = await (response.data as Blob).text();
+      let message = 'Não foi possível baixar a planilha preparada.';
+      try {
+        const parsed = JSON.parse(text);
+        const raw = parsed?.message;
+        message = Array.isArray(raw) ? raw.join(' ') : raw || message;
+      } catch {
+        /* ignore */
+      }
+      const err: any = new Error(message);
+      err.response = { status: response.status, data: { message } };
+      throw err;
+    }
+    await downloadFile(response);
+  } catch (err: any) {
+    if (err?.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text();
+        const parsed = JSON.parse(text);
+        const raw = parsed?.message;
+        const message = Array.isArray(raw) ? raw.join(' ') : raw;
+        if (message) {
+          err.response.data = { message };
+        }
+      } catch {
+        /* keep original */
+      }
+    }
+    throw err;
+  }
 }
 
 export async function previewChemicalExcelValidate(
@@ -563,4 +628,62 @@ export async function previewChemicalExcelValidate(
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
   return response.data;
+}
+
+export async function downloadChemicalExcelValidateCorrected(
+  params: WorkspaceParams & { file: File },
+) {
+  const formData = new FormData();
+  formData.append('file', params.file);
+  const { token } = await refreshToken();
+  try {
+    const response = await api.post(
+      bindUrlParams({
+        path: ChemicalProductRoutes.EXCEL_VALIDATE_EXPORT_CORRECTED,
+        pathParams: {
+          companyId: params.companyId,
+          workspaceId: params.workspaceId,
+        },
+      }),
+      formData,
+      {
+        responseType: 'blob',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    const contentType = String(response.headers?.['content-type'] || '');
+    if (contentType.includes('application/json')) {
+      const text = await (response.data as Blob).text();
+      let message = 'Não foi possível baixar a planilha corrigida.';
+      try {
+        const parsed = JSON.parse(text);
+        const raw = parsed?.message;
+        message = Array.isArray(raw) ? raw.join(' ') : raw || message;
+      } catch {
+        /* ignore */
+      }
+      const err: any = new Error(message);
+      err.response = { status: response.status, data: { message } };
+      throw err;
+    }
+    await downloadFile(response);
+  } catch (err: any) {
+    if (err?.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text();
+        const parsed = JSON.parse(text);
+        const raw = parsed?.message;
+        const message = Array.isArray(raw) ? raw.join(' ') : raw;
+        if (message) {
+          err.response.data = { message };
+        }
+      } catch {
+        /* keep original */
+      }
+    }
+    throw err;
+  }
 }
