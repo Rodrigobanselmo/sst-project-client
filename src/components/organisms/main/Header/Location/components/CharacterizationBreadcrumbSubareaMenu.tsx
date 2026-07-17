@@ -5,10 +5,11 @@ import { IconButton, Menu, MenuItem } from '@mui/material';
 import { useRouter } from 'next/router';
 
 import {
-  CharacterizationSubTabEnum,
+  CharacterizationSubareaNavItem,
   COMPANY_SST_PATHNAME,
   COMPANY_SST_STAGE,
   getCharacterizationSubareaNavItems,
+  getChemicalProductsHref,
 } from 'core/constants/characterization-navigation.constants';
 
 type Props = {
@@ -35,9 +36,22 @@ export function CharacterizationBreadcrumbSubareaMenu({
   }, []);
 
   const handleNavigate = useCallback(
-    (tab: CharacterizationSubTabEnum) => {
+    (item: CharacterizationSubareaNavItem) => {
       handleClose();
-      const tabWorkspaceId = router.query.tabWorkspaceId;
+      const tabWorkspaceId = router.query.tabWorkspaceId as string | undefined;
+
+      if (item.kind === 'external') {
+        if (item.id === 'chemical-products') {
+          void router.push(
+            getChemicalProductsHref({
+              companyId,
+              tabWorkspaceId,
+            }),
+          );
+        }
+        return;
+      }
+
       const isOnSstPage =
         router.pathname === COMPANY_SST_PATHNAME &&
         router.query.stage === COMPANY_SST_STAGE;
@@ -48,7 +62,7 @@ export function CharacterizationBreadcrumbSubareaMenu({
           query: {
             companyId,
             stage: COMPANY_SST_STAGE,
-            active: String(tab),
+            active: String(item.tab),
             ...(tabWorkspaceId ? { tabWorkspaceId } : {}),
           },
         },
@@ -89,7 +103,10 @@ export function CharacterizationBreadcrumbSubareaMenu({
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       >
         {items.map((item) => (
-          <MenuItem key={item.tab} onClick={() => handleNavigate(item.tab)}>
+          <MenuItem
+            key={item.kind === 'tab' ? `tab-${item.tab}` : item.id}
+            onClick={() => handleNavigate(item)}
+          >
             {item.label}
           </MenuItem>
         ))}

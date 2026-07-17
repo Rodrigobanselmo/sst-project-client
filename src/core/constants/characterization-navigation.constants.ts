@@ -32,10 +32,22 @@ export const COMPANY_SST_PATHNAME = '/dashboard/empresas/[companyId]/novo/[stage
 
 export const COMPANY_SST_STAGE = 'sst';
 
-export type CharacterizationSubareaNavItem = {
-  label: string;
-  tab: CharacterizationSubTabEnum;
-};
+export const CHEMICAL_PRODUCTS_PATHNAME =
+  '/dashboard/empresas/[companyId]/produtos-quimicos';
+
+export const CHEMICAL_PRODUCTS_NAV_LABEL = 'Produtos Químicos';
+
+export type CharacterizationSubareaNavItem =
+  | {
+      kind: 'tab';
+      tab: CharacterizationSubTabEnum;
+      label: string;
+    }
+  | {
+      kind: 'external';
+      id: 'chemical-products';
+      label: string;
+    };
 
 const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.RISKS,
@@ -47,10 +59,39 @@ const CHARACTERIZATION_SUBAREA_TABS = [
 ] as const;
 
 export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNavItem[] {
-  return CHARACTERIZATION_SUBAREA_TABS.map((tab) => ({
-    tab,
-    label: CHARACTERIZATION_SUB_TAB_LABELS[tab],
-  }));
+  return [
+    ...CHARACTERIZATION_SUBAREA_TABS.map((tab) => ({
+      kind: 'tab' as const,
+      tab,
+      label: CHARACTERIZATION_SUB_TAB_LABELS[tab],
+    })),
+    {
+      kind: 'external' as const,
+      id: 'chemical-products' as const,
+      label: CHEMICAL_PRODUCTS_NAV_LABEL,
+    },
+  ];
+}
+
+export function getChemicalProductsNavStep(): number {
+  return getCharacterizationSubareaNavItems().findIndex(
+    (item) => item.kind === 'external' && item.id === 'chemical-products',
+  );
+}
+
+export function getChemicalProductsHref(params: {
+  companyId: string;
+  tabWorkspaceId?: string;
+}): string {
+  const base = RoutesEnum.CHEMICAL_PRODUCTS.replace(
+    ':companyId',
+    params.companyId,
+  );
+  if (!params.tabWorkspaceId) return base;
+  const query = new URLSearchParams({
+    tabWorkspaceId: params.tabWorkspaceId,
+  });
+  return `${base}?${query.toString()}`;
 }
 
 /** Wizard step index for display order (may differ from stable enum values). */
@@ -63,13 +104,13 @@ export function getCharacterizationWizardStep(
   return step >= 0 ? step : 0;
 }
 
-/** Resolve stable tab enum from current Wizard display step. */
+/** Resolve stable tab enum from current Wizard display step (ignore external nav). */
 export function getCharacterizationTabFromWizardStep(
   step: number,
-): CharacterizationSubTabEnum {
-  return (
-    CHARACTERIZATION_SUBAREA_TABS[step] ?? CharacterizationSubTabEnum.RISKS
-  );
+): CharacterizationSubTabEnum | null {
+  const item = getCharacterizationSubareaNavItems()[step];
+  if (!item || item.kind !== 'tab') return null;
+  return item.tab;
 }
 
 export const CHARACTERIZATION_AMBIENTES_PATHNAME =

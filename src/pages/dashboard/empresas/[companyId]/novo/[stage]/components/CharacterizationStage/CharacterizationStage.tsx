@@ -14,6 +14,7 @@ import {
   getCharacterizationSubareaNavItems,
   getCharacterizationTabFromWizardStep,
   getCharacterizationWizardStep,
+  getChemicalProductsHref,
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
@@ -44,8 +45,8 @@ export const CharacterizationStage = ({
   const inlineEditor = useCharacterizationInlineEditorOptional();
   const isInlineCharacterizationEdit = inlineEditor?.isInlineEditOpen ?? false;
 
-  // Display order (enum values stay stable for deep-links / breadcrumb).
-  const tabOptions = getCharacterizationSubareaNavItems().map((item) => ({
+  const navItems = getCharacterizationSubareaNavItems();
+  const tabOptions = navItems.map((item) => ({
     label: item.label,
   }));
 
@@ -71,8 +72,26 @@ export const CharacterizationStage = ({
               active={wizardStep}
               options={tabOptions}
               onChangeTab={(step, goToStep) => {
-                goToStep(step);
+                const item = navItems[step];
+                if (item?.kind === 'external' && item.id === 'chemical-products') {
+                  if (!companyId) return;
+                  const tabWorkspaceId =
+                    (router.query.tabWorkspaceId as string | undefined) ||
+                    workspaceId ||
+                    undefined;
+                  void router.push(
+                    getChemicalProductsHref({
+                      companyId,
+                      tabWorkspaceId,
+                    }),
+                  );
+                  return;
+                }
+
                 const tab = getCharacterizationTabFromWizardStep(step);
+                if (tab == null) return;
+
+                goToStep(step);
                 void router.replace(
                   {
                     pathname: router.pathname,

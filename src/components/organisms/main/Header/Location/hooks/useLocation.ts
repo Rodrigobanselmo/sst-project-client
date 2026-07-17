@@ -11,9 +11,12 @@ import {
   CHARACTERIZATION_GSE_PATHNAME,
   CHARACTERIZATION_MODULE_LABEL,
   CHARACTERIZATION_MODULE_ROUTE_VALUE,
+  CHEMICAL_PRODUCTS_NAV_LABEL,
+  CHEMICAL_PRODUCTS_PATHNAME,
   COMPANY_SST_PATHNAME,
   getCharacterizationSstPath,
   getCharacterizationSubTabLabel,
+  getChemicalProductsHref,
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
 import {
@@ -338,6 +341,25 @@ export const useLocation = () => {
         value: 'caracterizacao-gse',
         action: () =>
           `${getCharacterizationSstPath(companyId)}?active=2`,
+      });
+      return filtered;
+    }
+
+    if (pathname === CHEMICAL_PRODUCTS_PATHNAME) {
+      const filtered = routesPath.filter(
+        (r) => r.value !== 'produtos-quimicos',
+      );
+      const companyIdx = filtered.findIndex((r) => r.value === companyId);
+      const insertAt = companyIdx >= 0 ? companyIdx + 1 : filtered.length;
+      const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
+      filtered.splice(insertAt, 0, characterizationModule, {
+        name: CHEMICAL_PRODUCTS_NAV_LABEL,
+        value: 'caracterizacao-produtos-quimicos',
+        action: () =>
+          getChemicalProductsHref({
+            companyId,
+            tabWorkspaceId,
+          }),
       });
       return filtered;
     }

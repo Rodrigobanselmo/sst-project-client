@@ -1,0 +1,50 @@
+export const ChemicalProductRoutes = {
+  LIST: 'v2/companies/:companyId/workspaces/:workspaceId/chemical-products',
+  BY_ID: 'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId',
+  PURE_FROM_RISK:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/pure-from-risk',
+  FROM_FISPQ:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/from-fispq',
+  ARCHIVE:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/archive',
+  RESTORE:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/restore',
+  DELETION_ELIGIBILITY:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/deletion-eligibility',
+  COMPOSITION:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/composition-versions',
+  RISK_SEARCH:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/risk-factors/search',
+  MANUFACTURERS:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/manufacturers',
+  UPLOAD_FILE:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/files',
+  PARSE_FISPQ:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/fispq/parse',
+  CREATE_FISPQ:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/fispq-documents',
+  ACTIVATE_FISPQ:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/fispq-documents/:documentId/activate',
+  PUBLISH_FISPQ:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/fispq-documents/:documentId/employee-visibility',
+  ARCHIVE_FISPQ:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/fispq-documents/:documentId/archive',
+  EXCEL_TEMPLATE:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/template',
+  EXCEL_EXPORT:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/export',
+  EXCEL_IMPORT_PREVIEW:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/import/preview',
+  EXCEL_IMPORT_COMMIT:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/import/commit',
+  EXCEL_PREPARE_ANALYZE:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/analyze',
+  EXCEL_PREPARE_EXPORT:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/export',
+  EXCEL_AI_CURATION_SUGGEST:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/ai-curation/suggest',
+  EXCEL_AI_CURATION_EXPORT:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/ai-curation/export',
+  EXCEL_VALIDATE_PREVIEW:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/validate/preview',
+} as const;
