@@ -65,6 +65,9 @@ function formatConcentration(item: {
   ) {
     return `${item.minPercent}-${item.maxPercent}%`;
   }
+  if (item.concentrationKind === 'CONFIDENTIAL') return 'Confidencial';
+  if (item.concentrationKind === 'NOT_INFORMED') return 'Não informada';
+  if (item.concentrationKind === 'UNDETERMINED') return 'Indeterminada';
   return item.concentrationKind;
 }
 
@@ -75,12 +78,117 @@ function ingredientsTooltip(product: ChemicalProductListItem) {
     .map((ingredient) => {
       const risk = ingredient.riskFactor?.name
         ? ` · RF: ${ingredient.riskFactor.name}`
-        : ' · sem fator';
-      return `${ingredient.chemicalName}${
+        : ' · Sem RF';
+      return `${ingredient.chemicalName || '—'}${
         ingredient.cas ? ` · CAS ${ingredient.cas}` : ''
       } · ${formatConcentration(ingredient)}${risk}`;
     })
     .join('\n');
+}
+
+function productMatchesLocalSearch(
+  product: ChemicalProductListItem,
+  rawSearch: string,
+): boolean {
+  const query = rawSearch.trim().toLowerCase();
+  if (!query) return true;
+  if (product.tradeName.toLowerCase().includes(query)) return true;
+  if ((product.manufacturer || '').toLowerCase().includes(query)) return true;
+  return (product.ingredients || []).some((ingredient) => {
+    if ((ingredient.chemicalName || '').toLowerCase().includes(query)) {
+      return true;
+    }
+    if ((ingredient.cas || '').toLowerCase().includes(query)) return true;
+    return false;
+  });
+}
+
+function IngredientsSummaryCell({
+  product,
+}: {
+  product: ChemicalProductListItem;
+}) {
+  const ingredients = product.ingredients || [];
+  const first = ingredients[0];
+  const extraCount = Math.max(0, ingredients.length - 1);
+  const chemicalName = first?.chemicalName?.trim() || null;
+  const cas = first?.cas?.trim() || null;
+  const firstHasNoRiskFactor = Boolean(first && !first.riskFactorId);
+  const extraLabel =
+    extraCount === 1
+      ? '+1 componente'
+      : extraCount > 1
+        ? `+${extraCount} componentes`
+        : null;
+
+  if (!first) {
+    return (
+      <Tooltip title="Sem componentes na composição vigente.">
+        <SText fontSize={13} color="text.secondary" sx={{ cursor: 'help' }}>
+          Sem componentes
+        </SText>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Tooltip
+      title={
+        <Box component="span" sx={{ whiteSpace: 'pre-line' }}>
+          {ingredientsTooltip(product)}
+        </Box>
+      }
+    >
+      <Stack spacing={0.35} sx={{ cursor: 'help', maxWidth: 380, py: 0.25 }}>
+        <SText
+          fontSize={13}
+          fontWeight={600}
+          lineNumber={1}
+          noBreak
+          title={chemicalName || '—'}
+          sx={{ maxWidth: 360 }}
+        >
+          {chemicalName || '—'}
+        </SText>
+        <Stack
+          direction="row"
+          spacing={0.75}
+          alignItems="center"
+          flexWrap="wrap"
+          useFlexGap
+        >
+          {cas ? (
+            <SText
+              fontSize={12}
+              color="text.secondary"
+              lineNumber={1}
+              noBreak
+              title={`CAS ${cas}`}
+              sx={{ maxWidth: 140 }}
+            >
+              CAS {cas}
+            </SText>
+          ) : (
+            <SText fontSize={12} color="text.disabled">
+              Sem CAS
+            </SText>
+          )}
+          {extraLabel ? (
+            <Chip size="small" color="primary" variant="outlined" label={extraLabel} />
+          ) : null}
+          {firstHasNoRiskFactor || product.hasUnlinkedIngredient ? (
+            <Chip size="small" color="info" label="Sem RF" />
+          ) : null}
+          {product.hasConfidentialIngredient ? (
+            <Chip size="small" label="Confidencial" />
+          ) : null}
+          {product.compositionIncomplete ? (
+            <Chip size="small" color="warning" label="<100%" />
+          ) : null}
+        </Stack>
+      </Stack>
+    </Tooltip>
+  );
 }
 
 export const ChemicalProductsPageContent = ({
@@ -138,7 +246,7 @@ export const ChemicalProductsPageContent = ({
 
   const workspaceId = queryParams.tabWorkspaceId || '';
   const { data, isLoading, isError, error } = useFetchBrowseChemicalProducts(
-    { companyId, workspaceId, includeArchived, search },
+    { companyId, workspaceId, includeArchived },
     Boolean(workspaceId),
   );
   const {
@@ -169,7 +277,9 @@ export const ChemicalProductsPageContent = ({
     );
   }
 
-  const products = (data || []) as ChemicalProductListItem[];
+  const products = ((data || []) as ChemicalProductListItem[]).filter(
+    (product) => productMatchesLocalSearch(product, search),
+  );
 
   const confirmArchive = (product: ChemicalProductListItem) => {
     const ok = window.confirm(
@@ -357,10 +467,10 @@ export const ChemicalProductsPageContent = ({
       <SFlex mb={2} gap={2} alignItems="center" flexWrap="wrap">
         <TextField
           size="small"
-          label="Buscar"
+          label="Buscar nome, fabricante, substância ou CAS"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 240 }}
+          sx={{ minWidth: 320 }}
         />
         <FormControlLabel
           control={
@@ -405,28 +515,7 @@ export const ChemicalProductsPageContent = ({
                   {product.isPureSubstance ? 'Puro' : 'Mistura'}
                 </TableCell>
                 <TableCell>
-                  <Tooltip
-                    title={
-                      <Box component="span" sx={{ whiteSpace: 'pre-line' }}>
-                        {ingredientsTooltip(product)}
-                      </Box>
-                    }
-                  >
-                    <Stack spacing={0.5} sx={{ cursor: 'help' }}>
-                      <SText fontSize={13}>{product.ingredientCount}</SText>
-                      <Stack direction="row" spacing={0.5} flexWrap="wrap">
-                        {product.compositionIncomplete ? (
-                          <Chip size="small" color="warning" label="<100%" />
-                        ) : null}
-                        {product.hasConfidentialIngredient ? (
-                          <Chip size="small" label="Confidencial" />
-                        ) : null}
-                        {product.hasUnlinkedIngredient ? (
-                          <Chip size="small" color="info" label="Sem RF" />
-                        ) : null}
-                      </Stack>
-                    </Stack>
-                  </Tooltip>
+                  <IngredientsSummaryCell product={product} />
                 </TableCell>
                 <TableCell>
                   {product.activeFispq
