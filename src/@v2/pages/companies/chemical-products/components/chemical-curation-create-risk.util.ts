@@ -6,6 +6,7 @@ import type {
   AiCurationConfidence,
   AiCurationSuggestion,
   AiCurationSuggestionType,
+  ChemicalAiCurationIdentity,
   ChemicalAiCurationPendingItem,
   ChemicalRiskOption,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
@@ -165,9 +166,16 @@ export function buildChemicalCurationCreateRiskPrefill(params: {
   companyId: string;
   pending: ChemicalAiCurationPendingItem;
   suggestion?: AiCurationSuggestion | null;
+  /** Prefere rascunho de identidade quando o curador já editou. */
+  identityDraft?: {
+    officialName?: string;
+    cas?: string | null;
+    synonyms?: string[];
+  } | null;
 }): ChemicalCurationCreateRiskPrefill {
   const top = params.suggestion?.candidates?.[0];
   const officialName =
+    params.identityDraft?.officialName?.trim() ||
     top?.officialName?.trim() ||
     params.suggestion?.splitCandidates?.[0]?.officialName?.trim() ||
     '';
@@ -185,16 +193,19 @@ export function buildChemicalCurationCreateRiskPrefill(params: {
 
   const { name, synonyms } = resolveChemicalCurationPrefillName({
     officialName,
-    synonyms: top?.synonyms || [],
+    synonyms:
+      params.identityDraft?.synonyms || top?.synonyms || [],
     originalName,
     evidenceNames,
   });
 
   const rawCas =
-    top?.cas ||
-    params.suggestion?.splitCandidates?.[0]?.cas ||
-    params.pending.casReceived ||
-    null;
+    params.identityDraft?.cas !== undefined
+      ? params.identityDraft.cas
+      : top?.cas ||
+        params.suggestion?.splitCandidates?.[0]?.cas ||
+        params.pending.casReceived ||
+        null;
   const normalizedCas = softNormalizeCas(rawCas).value;
   const cas =
     normalizedCas && isValidCasRn(normalizedCas) ? normalizedCas : undefined;
@@ -232,13 +243,21 @@ export function buildManualFactorDecision(params: {
   confirmedCas?: string | null;
   suggestionType?: AiCurationSuggestionType | null;
   confidence?: AiCurationConfidence | null;
+  identity?: ChemicalAiCurationIdentity;
 }) {
+  const officialName =
+    params.identity?.officialName?.trim() || params.createdRisk.name;
+  const cas =
+    params.identity && Object.prototype.hasOwnProperty.call(params.identity, 'cas')
+      ? params.identity.cas ?? null
+      : params.createdRisk.cas ?? params.confirmedCas ?? null;
   return {
     sourceRowId: params.sourceRowId,
     action: 'MANUAL_FACTOR' as const,
     riskFactorId: params.createdRisk.id,
-    officialName: params.createdRisk.name,
-    cas: params.createdRisk.cas ?? params.confirmedCas ?? null,
+    officialName,
+    cas,
+    identity: params.identity,
     suggestionType: params.suggestionType ?? null,
     confidence: params.confidence ?? null,
   };

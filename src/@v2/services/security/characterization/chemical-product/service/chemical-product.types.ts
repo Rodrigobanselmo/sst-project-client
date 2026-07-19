@@ -414,17 +414,51 @@ export type ChemicalAiCurationDecisionAction =
   | 'KEEP_UNLINKED'
   | 'MANUAL_FACTOR';
 
+/** Identidade química confirmada/corrigida (opcional; payloads legados omitem). */
+export type ChemicalAiCurationIdentity = {
+  officialName: string;
+  cas?: string | null;
+  synonyms?: string[];
+  origin: 'AI' | 'HUMAN';
+  manualSource?: string;
+  manualJustification?: string;
+  originalSuggestion?: {
+    officialName?: string;
+    cas?: string | null;
+  };
+};
+
+export type ChemicalAiCurationSplitPartResolution = {
+  action: 'MANUAL_FACTOR' | 'KEEP_UNLINKED' | 'REJECT_PART';
+  riskFactorId?: string;
+};
+
+/**
+ * Parte de CONFIRM_SPLIT.
+ * Legado: apenas officialName + cas? + riskFactorId?.
+ * Novo: identity / resolution / partId / include / originalText.
+ */
+export type ChemicalAiCurationSplitPart = {
+  partId?: string;
+  /** Ausente no legado = incluída. */
+  include?: boolean;
+  originalText?: string;
+  officialName?: string;
+  cas?: string | null;
+  riskFactorId?: string | null;
+  identity?: ChemicalAiCurationIdentity;
+  resolution?: ChemicalAiCurationSplitPartResolution;
+};
+
 export type ChemicalAiCurationDecision = {
   sourceRowId: string;
   action: ChemicalAiCurationDecisionAction;
   riskFactorId?: string | null;
   officialName?: string | null;
   cas?: string | null;
-  split?: Array<{
-    officialName: string;
-    cas?: string | null;
-    riskFactorId?: string | null;
-  }>;
+  /** Identidade manual/confirmada no item (opcional; legado omitido). */
+  identity?: ChemicalAiCurationIdentity;
+  split?: ChemicalAiCurationSplitPart[];
   suggestionType?: AiCurationSuggestionType | null;
   confidence?: AiCurationConfidence | null;
   rationale?: string | null;

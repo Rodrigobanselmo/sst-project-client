@@ -528,10 +528,49 @@ export async function downloadChemicalExcelAiCuration(
     riskFactorId: decision.riskFactorId ?? null,
     officialName: decision.officialName ?? null,
     cas: decision.cas ?? null,
+    identity: decision.identity
+      ? {
+          officialName: decision.identity.officialName,
+          cas: decision.identity.cas ?? null,
+          synonyms: (decision.identity.synonyms || []).slice(0, 16),
+          origin: decision.identity.origin,
+          manualSource: decision.identity.manualSource?.slice(0, 200),
+          manualJustification:
+            decision.identity.manualJustification?.slice(0, 800),
+          originalSuggestion: decision.identity.originalSuggestion
+            ? {
+                officialName:
+                  decision.identity.originalSuggestion.officialName,
+                cas: decision.identity.originalSuggestion.cas ?? null,
+              }
+            : undefined,
+        }
+      : undefined,
     split: decision.split?.map((part) => ({
+      partId: part.partId,
+      include: part.include,
+      originalText: part.originalText,
       officialName: part.officialName,
       cas: part.cas ?? null,
       riskFactorId: part.riskFactorId ?? null,
+      identity: part.identity
+        ? {
+            officialName: part.identity.officialName,
+            cas: part.identity.cas ?? null,
+            synonyms: (part.identity.synonyms || []).slice(0, 16),
+            origin: part.identity.origin,
+            manualSource: part.identity.manualSource?.slice(0, 200),
+            manualJustification:
+              part.identity.manualJustification?.slice(0, 800),
+            originalSuggestion: part.identity.originalSuggestion,
+          }
+        : undefined,
+      resolution: part.resolution
+        ? {
+            action: part.resolution.action,
+            riskFactorId: part.resolution.riskFactorId,
+          }
+        : undefined,
     })),
     suggestionType: decision.suggestionType ?? null,
     confidence: decision.confidence ?? null,

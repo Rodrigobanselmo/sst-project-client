@@ -45,6 +45,13 @@ import {
   hasAiCurationPendencies,
   isBatchConfirmEligible,
 } from './chemical-ai-curation-ui.util';
+import {
+  curationDraftScopeKey,
+  isBlockedFromLegacyBatchConfirm,
+  type ChemicalCurationIdentityDraft,
+  type ChemicalCurationSplitPartDraft,
+} from './chemical-ai-curation-draft.util';
+import type { ChemicalCurationPendingManualFactor } from './chemical-curation-create-risk.util';
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
 
 type Props = {
@@ -128,6 +135,18 @@ export const ChemicalExcelPrepareDialog = ({
   const [decisions, setDecisions] = useState<
     Record<string, ChemicalAiCurationDecision>
   >({});
+  /** Rascunhos de identidade indexados por escopo (sourceRowId ou sourceRowId::partId). */
+  const [identityDraftsByScope, setIdentityDraftsByScope] = useState<
+    Record<string, ChemicalCurationIdentityDraft>
+  >({});
+  /** Partes do split por item (sourceRowId). */
+  const [splitPartsByItem, setSplitPartsByItem] = useState<
+    Record<string, ChemicalCurationSplitPartDraft[]>
+  >({});
+  /** Pré-vínculo de fator por escopo (item ou parte). */
+  const [pendingManualFactorByScope, setPendingManualFactorByScope] = useState<
+    Record<string, ChemicalCurationPendingManualFactor>
+  >({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [aiProgress, setAiProgress] = useState<{
@@ -194,6 +213,9 @@ export const ChemicalExcelPrepareDialog = ({
     setSuggestions([]);
     setFailures([]);
     setDecisions({});
+    setIdentityDraftsByScope({});
+    setSplitPartsByItem({});
+    setPendingManualFactorByScope({});
     setError(null);
     setBusy(false);
     setAiProgress(null);
@@ -247,6 +269,9 @@ export const ChemicalExcelPrepareDialog = ({
       setPreview(null);
       setSuggestions([]);
       setDecisions({});
+      setIdentityDraftsByScope({});
+      setSplitPartsByItem({});
+      setPendingManualFactorByScope({});
       setFailures([]);
       setAiProgress(null);
       setStep(1);
@@ -263,6 +288,9 @@ export const ChemicalExcelPrepareDialog = ({
     setPreview(null);
     setSuggestions([]);
     setDecisions({});
+    setIdentityDraftsByScope({});
+    setSplitPartsByItem({});
+    setPendingManualFactorByScope({});
     setFailures([]);
     setError(null);
     if (!next) return;
@@ -299,6 +327,9 @@ export const ChemicalExcelPrepareDialog = ({
       // Novo processamento invalida curadoria anterior.
       setSuggestions([]);
       setDecisions({});
+      setIdentityDraftsByScope({});
+      setSplitPartsByItem({});
+      setPendingManualFactorByScope({});
       setFailures([]);
       setAiProgress(null);
       setStep(2);
@@ -522,6 +553,21 @@ export const ChemicalExcelPrepareDialog = ({
     for (const id of sourceRowIds) {
       const suggestion = suggestions.find((s) => s.sourceRowId === id);
       if (!suggestion || !isBatchConfirmEligible(suggestion)) continue;
+
+      const scope = curationDraftScopeKey(id);
+      if (
+        isBlockedFromLegacyBatchConfirm({
+          suggestionType: suggestion.type,
+          splitCandidatesCount: (suggestion.splitCandidates || []).length,
+          identityDraft: identityDraftsByScope[scope],
+          aiSynonyms: suggestion.candidates?.[0]?.synonyms || [],
+          hasPendingManualFactor: Boolean(pendingManualFactorByScope[scope]),
+          splitPartsCount: (splitPartsByItem[id] || []).length,
+        })
+      ) {
+        continue;
+      }
+
       const top = suggestion.candidates[0];
       if (!top?.cas) continue;
 
@@ -873,6 +919,12 @@ export const ChemicalExcelPrepareDialog = ({
                 pendingItems={pendingItems}
                 suggestions={suggestions}
                 decisions={decisions}
+                identityDraftsByScope={identityDraftsByScope}
+                onIdentityDraftsByScopeChange={setIdentityDraftsByScope}
+                splitPartsByItem={splitPartsByItem}
+                onSplitPartsByItemChange={setSplitPartsByItem}
+                pendingManualFactorByScope={pendingManualFactorByScope}
+                onPendingManualFactorByScopeChange={setPendingManualFactorByScope}
                 failures={failures}
                 busy={busy}
                 aiProgress={aiProgress}

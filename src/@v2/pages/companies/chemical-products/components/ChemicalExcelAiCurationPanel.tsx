@@ -31,10 +31,25 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useSnackbar } from 'notistack';
 
 import { ChemicalCurationCreateRiskDialog } from './ChemicalCurationCreateRiskDialog';
+import { ChemicalCurationIdentityEditor } from './ChemicalCurationIdentityEditor';
+import { ChemicalCurationSplitPartCard } from './ChemicalCurationSplitPartCard';
+import {
+  buildConfirmSplitParts,
+  buildIdentityDraftFromSuggestion,
+  buildSplitPartDraftsFromSuggestion,
+  curationDraftScopeKey,
+  draftToApiIdentity,
+  isBlockedFromLegacyBatchConfirm,
+  isSplitReadyToConfirm,
+  requiresIdentityConfirmationBeforeTerminal,
+  type ChemicalCurationIdentityDraft,
+  type ChemicalCurationSplitPartDraft,
+} from './chemical-ai-curation-draft.util';
 import {
   buildChemicalCurationCreateRiskPrefill,
   buildManualFactorDecision,
@@ -150,6 +165,18 @@ type Props = {
   pendingItems: ChemicalAiCurationPendingItem[];
   suggestions: AiCurationSuggestion[];
   decisions: Record<string, ChemicalAiCurationDecision>;
+  identityDraftsByScope: Record<string, ChemicalCurationIdentityDraft>;
+  onIdentityDraftsByScopeChange: Dispatch<
+    SetStateAction<Record<string, ChemicalCurationIdentityDraft>>
+  >;
+  splitPartsByItem: Record<string, ChemicalCurationSplitPartDraft[]>;
+  onSplitPartsByItemChange: Dispatch<
+    SetStateAction<Record<string, ChemicalCurationSplitPartDraft[]>>
+  >;
+  pendingManualFactorByScope: Record<string, ChemicalCurationPendingManualFactor>;
+  onPendingManualFactorByScopeChange: Dispatch<
+    SetStateAction<Record<string, ChemicalCurationPendingManualFactor>>
+  >;
   failures: Array<{ sourceRowId: string; message: string }>;
   busy: boolean;
   aiProgress?: ChemicalAiCurationProgress | null;
@@ -168,6 +195,12 @@ export const ChemicalExcelAiCurationPanel = ({
   pendingItems,
   suggestions,
   decisions,
+  identityDraftsByScope,
+  onIdentityDraftsByScopeChange,
+  splitPartsByItem,
+  onSplitPartsByItemChange,
+  pendingManualFactorByScope,
+  onPendingManualFactorByScopeChange,
   failures,
   busy,
   aiProgress = null,
@@ -195,26 +228,21 @@ export const ChemicalExcelAiCurationPanel = ({
   const [expandedDetails, setExpandedDetails] = useState<
     Record<string, boolean>
   >({});
-  const [splitEdits, setSplitEdits] = useState<
-    Record<
-      string,
-      Array<{ officialName: string; cas: string; include: boolean }>
-    >
-  >({});
-  const [searchByItem, setSearchByItem] = useState<Record<string, string>>({});
+  const [searchByScope, setSearchByScope] = useState<Record<string, string>>(
+    {},
+  );
   const [searchResults, setSearchResults] = useState<
     Record<string, ChemicalRiskOption[]>
   >({});
   const [searchBusy, setSearchBusy] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [createRiskSession, setCreateRiskSession] = useState<{
+    scopeKey: string;
     sourceRowId: string;
+    partId?: string | null;
     initialData: ReturnType<typeof buildChemicalCurationCreateRiskPrefill>;
   } | null>(null);
-  const createRiskSourceRowIdRef = useRef<string | null>(null);
-  const [pendingManualFactorByItem, setPendingManualFactorByItem] = useState<
-    Record<string, ChemicalCurationPendingManualFactor>
-  >({});
+  const createRiskScopeKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!busy || !aiProgress?.startedAt) {
@@ -250,20 +278,72 @@ export const ChemicalExcelAiCurationPanel = ({
   }, [suggestions]);
 
   useEffect(() => {
-    createRiskSourceRowIdRef.current = createRiskSession?.sourceRowId ?? null;
+    createRiskScopeKeyRef.current = createRiskSession?.scopeKey ?? null;
     onNestedDialogOpenChange?.(Boolean(createRiskSession));
   }, [createRiskSession, onNestedDialogOpenChange]);
 
-  const openCreateRiskDialog = (sourceRowId: string) => {
+  const ensureItemDrafts = (
+    sourceRowId: string,
+    suggestion: AiCurationSuggestion,
+    pending: ChemicalAiCurationPendingItem,
+  ) => {
+    if (suggestion.type === 'SPLIT_COMPONENT') {
+      if (!splitPartsByItem[sourceRowId]) {
+        const parts = buildSplitPartDraftsFromSuggestion(suggestion);
+        onSplitPartsByItemChange((prev) => ({
+          ...prev,
+          [sourceRowId]: parts,
+        }));
+        onIdentityDraftsByScopeChange((prev) => {
+          const next = { ...prev };
+          parts.forEach((part, index) => {
+            const key = curationDraftScopeKey(sourceRowId, part.partId);
+            if (!next[key]) {
+              next[key] = buildIdentityDraftFromSuggestion({
+                suggestion,
+                pending,
+                candidateIndex: index,
+              });
+            }
+          });
+          return next;
+        });
+      }
+      return;
+    }
+    const key = curationDraftScopeKey(sourceRowId);
+    if (!identityDraftsByScope[key]) {
+      onIdentityDraftsByScopeChange((prev) => ({
+        ...prev,
+        [key]: buildIdentityDraftFromSuggestion({ suggestion, pending }),
+      }));
+    }
+  };
+
+  const openCreateRiskDialog = (
+    sourceRowId: string,
+    partId?: string | null,
+  ) => {
     if (!companyId) return;
     const pending = pendingItems.find((item) => item.sourceRowId === sourceRowId);
     if (!pending) return;
+    const scopeKey = curationDraftScopeKey(sourceRowId, partId);
+    const draft = identityDraftsByScope[scopeKey];
     setCreateRiskSession({
+      scopeKey,
       sourceRowId,
+      partId: partId || null,
       initialData: buildChemicalCurationCreateRiskPrefill({
         companyId,
         pending,
         suggestion: suggestionById.get(sourceRowId) || null,
+        identityDraft: draft
+          ? {
+              officialName: draft.officialName,
+              cas: draft.cas,
+              synonyms: draft.synonyms,
+            }
+          : null,
       }),
     });
   };
@@ -271,6 +351,60 @@ export const ChemicalExcelAiCurationPanel = ({
   const closeCreateRiskDialog = () => {
     setCreateRiskSession(null);
   };
+
+  // Inicializa rascunhos no estado do dialog sem sobrescrever edições existentes.
+  useEffect(() => {
+    suggestions.forEach((suggestion) => {
+      const pending = pendingItems.find(
+        (item) => item.sourceRowId === suggestion.sourceRowId,
+      );
+      if (!pending) return;
+      if (suggestion.type === 'SPLIT_COMPONENT') {
+        if (splitPartsByItem[suggestion.sourceRowId]) return;
+        const parts = buildSplitPartDraftsFromSuggestion(suggestion);
+        onSplitPartsByItemChange((prev) => {
+          if (prev[suggestion.sourceRowId]) return prev;
+          return { ...prev, [suggestion.sourceRowId]: parts };
+        });
+        onIdentityDraftsByScopeChange((prev) => {
+          const next = { ...prev };
+          let changed = false;
+          parts.forEach((part, index) => {
+            const key = curationDraftScopeKey(
+              suggestion.sourceRowId,
+              part.partId,
+            );
+            if (!next[key]) {
+              next[key] = buildIdentityDraftFromSuggestion({
+                suggestion,
+                pending,
+                candidateIndex: index,
+              });
+              changed = true;
+            }
+          });
+          return changed ? next : prev;
+        });
+        return;
+      }
+      const key = curationDraftScopeKey(suggestion.sourceRowId);
+      if (identityDraftsByScope[key]) return;
+      onIdentityDraftsByScopeChange((prev) => {
+        if (prev[key]) return prev;
+        return {
+          ...prev,
+          [key]: buildIdentityDraftFromSuggestion({ suggestion, pending }),
+        };
+      });
+    });
+  }, [
+    suggestions,
+    pendingItems,
+    splitPartsByItem,
+    identityDraftsByScope,
+    onSplitPartsByItemChange,
+    onIdentityDraftsByScopeChange,
+  ]);
 
   const activePendingItems = useMemo(
     () =>
@@ -379,8 +513,32 @@ export const ChemicalExcelAiCurationPanel = ({
       suggestions
         .filter(isBatchConfirmEligible)
         .filter((s) => !isAppliedCurationDecision(decisions[s.sourceRowId]))
+        .filter((s) => {
+          const scope = curationDraftScopeKey(s.sourceRowId);
+          return !isBlockedFromLegacyBatchConfirm({
+            suggestionType: s.type,
+            splitCandidatesCount: (s.splitCandidates || []).length,
+            identityDraft: identityDraftsByScope[scope],
+            aiSynonyms: s.candidates?.[0]?.synonyms || [],
+            hasPendingManualFactor: Boolean(
+              pendingManualFactorByScope[scope],
+            ),
+            splitPartsCount: (splitPartsByItem[s.sourceRowId] || []).length,
+          });
+        })
         .map((s) => s.sourceRowId),
-    [suggestions, decisions],
+    [
+      suggestions,
+      decisions,
+      identityDraftsByScope,
+      pendingManualFactorByScope,
+      splitPartsByItem,
+    ],
+  );
+
+  const batchEligibleIdSet = useMemo(
+    () => new Set(batchEligibleIds),
+    [batchEligibleIds],
   );
 
   const filteredItems = useMemo(
@@ -454,12 +612,7 @@ export const ChemicalExcelAiCurationPanel = ({
     setSelectedBatch((prev) => {
       const next = { ...prev };
       pageItems.forEach((item) => {
-        const suggestion = suggestionById.get(item.sourceRowId);
-        if (
-          suggestion &&
-          isBatchConfirmEligible(suggestion) &&
-          !isAppliedCurationDecision(decisions[item.sourceRowId])
-        ) {
+        if (batchEligibleIdSet.has(item.sourceRowId)) {
           next[item.sourceRowId] = checked;
         }
       });
@@ -478,12 +631,7 @@ export const ChemicalExcelAiCurationPanel = ({
     }
     const next: Record<string, boolean> = {};
     filteredItems.forEach((item) => {
-      const suggestion = suggestionById.get(item.sourceRowId);
-      if (
-        suggestion &&
-        isBatchConfirmEligible(suggestion) &&
-        !isAppliedCurationDecision(decisions[item.sourceRowId])
-      ) {
+      if (batchEligibleIdSet.has(item.sourceRowId)) {
         next[item.sourceRowId] = true;
       }
     });
@@ -495,11 +643,11 @@ export const ChemicalExcelAiCurationPanel = ({
     setSelectedBatch({});
   };
 
-  const handleSearchFactor = async (sourceRowId: string) => {
+  const handleSearchFactor = async (scopeKey: string) => {
     if (!companyId || !workspaceId) return;
-    const query = (searchByItem[sourceRowId] || '').trim();
+    const query = (searchByScope[scopeKey] || '').trim();
     if (query.length < 2) return;
-    setSearchBusy(sourceRowId);
+    setSearchBusy(scopeKey);
     try {
       const rows = await searchChemicalRiskFactors({
         companyId,
@@ -508,10 +656,10 @@ export const ChemicalExcelAiCurationPanel = ({
       });
       setSearchResults((prev) => ({
         ...prev,
-        [sourceRowId]: rows.slice(0, 8),
+        [scopeKey]: rows.slice(0, 8),
       }));
     } catch {
-      setSearchResults((prev) => ({ ...prev, [sourceRowId]: [] }));
+      setSearchResults((prev) => ({ ...prev, [scopeKey]: [] }));
     } finally {
       setSearchBusy(null);
     }
@@ -534,26 +682,31 @@ export const ChemicalExcelAiCurationPanel = ({
       delete next[decision.sourceRowId];
       return next;
     });
-    setPendingManualFactorByItem((prev) => {
-      if (!prev[decision.sourceRowId]) return prev;
+    onPendingManualFactorByScopeChange((prev) => {
+      const keys = Object.keys(prev).filter(
+        (key) =>
+          key === decision.sourceRowId ||
+          key.startsWith(`${decision.sourceRowId}::`),
+      );
+      if (!keys.length) return prev;
       const next = { ...prev };
-      delete next[decision.sourceRowId];
+      keys.forEach((key) => delete next[key]);
       return next;
     });
     onDecision(decision);
   };
 
   const setPendingManualFactor = (
-    sourceRowId: string,
+    scopeKey: string,
     factor: ChemicalCurationPendingManualFactor,
     options?: { fromCurationCreate?: boolean },
   ) => {
-    setPendingManualFactorByItem((prev) => ({
+    onPendingManualFactorByScopeChange((prev) => ({
       ...prev,
-      [sourceRowId]: factor,
+      [scopeKey]: factor,
     }));
-    setSearchResults((prev) => ({ ...prev, [sourceRowId]: [] }));
-    setSearchByItem((prev) => ({ ...prev, [sourceRowId]: '' }));
+    setSearchResults((prev) => ({ ...prev, [scopeKey]: [] }));
+    setSearchByScope((prev) => ({ ...prev, [scopeKey]: '' }));
     if (options?.fromCurationCreate) {
       enqueueSnackbar(
         'Fator químico criado com sucesso. O vínculo foi preparado e aguarda sua confirmação.',
@@ -562,19 +715,75 @@ export const ChemicalExcelAiCurationPanel = ({
     }
   };
 
-  const clearPendingManualFactor = (sourceRowId: string) => {
-    setPendingManualFactorByItem((prev) => {
-      if (!prev[sourceRowId]) return prev;
+  const clearPendingManualFactor = (scopeKey: string) => {
+    onPendingManualFactorByScopeChange((prev) => {
+      if (!prev[scopeKey]) return prev;
       const next = { ...prev };
-      delete next[sourceRowId];
+      delete next[scopeKey];
       return next;
     });
   };
 
-  const confirmPendingManualFactor = (sourceRowId: string) => {
-    const pendingFactor = pendingManualFactorByItem[sourceRowId];
+  const confirmPendingManualFactor = (
+    sourceRowId: string,
+    partId?: string | null,
+  ) => {
+    const scopeKey = curationDraftScopeKey(sourceRowId, partId);
+    const pendingFactor = pendingManualFactorByScope[scopeKey];
     if (!pendingFactor) return;
     const suggestion = suggestionById.get(sourceRowId);
+    const draft = identityDraftsByScope[scopeKey];
+    const aiSynonyms =
+      suggestion?.candidates?.[0]?.synonyms ||
+      suggestion?.splitCandidates?.[0]?.synonyms ||
+      [];
+
+    if (partId) {
+      if (!draft?.identityConfirmed) {
+        enqueueSnackbar(
+          'Confirme a identidade da parte antes de confirmar o vínculo.',
+          { variant: 'warning' },
+        );
+        return;
+      }
+      onSplitPartsByItemChange((prev) => {
+        const parts = prev[sourceRowId] || [];
+        return {
+          ...prev,
+          [sourceRowId]: parts.map((p) =>
+            p.partId === partId
+              ? {
+                  ...p,
+                  include: true,
+                  resolution: {
+                    action: 'MANUAL_FACTOR',
+                    riskFactorId: pendingFactor.riskFactorId,
+                  },
+                }
+              : p,
+          ),
+        };
+      });
+      clearPendingManualFactor(scopeKey);
+      enqueueSnackbar('Parte resolvida com vínculo de fator.', {
+        variant: 'success',
+      });
+      return;
+    }
+
+    if (
+      requiresIdentityConfirmationBeforeTerminal({
+        draft,
+        aiSynonyms,
+      })
+    ) {
+      enqueueSnackbar(
+        'Há edição manual de identidade não confirmada. Confirme a identidade antes do vínculo.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
     handleDecisionAndDeselect(
       buildManualFactorDecision({
         sourceRowId,
@@ -586,18 +795,23 @@ export const ChemicalExcelAiCurationPanel = ({
         confirmedCas: pendingFactor.cas,
         suggestionType: suggestion?.type || null,
         confidence: suggestion?.confidence || null,
+        identity: draft?.identityConfirmed
+          ? draftToApiIdentity(draft)
+          : undefined,
       }),
     );
   };
 
   const applyCreatedRiskToCuration = (
-    sourceRowId: string,
     created: IRiskFactors | ChemicalRiskOption,
     confirmedCas?: string | null,
     options?: { fromCurationCreate?: boolean },
   ) => {
+    const scopeKey =
+      createRiskScopeKeyRef.current || createRiskSession?.scopeKey;
+    if (!scopeKey) return;
     setPendingManualFactor(
-      sourceRowId,
+      scopeKey,
       {
         riskFactorId: created.id,
         officialName: created.name,
@@ -809,9 +1023,28 @@ export const ChemicalExcelAiCurationPanel = ({
                       <SText fontSize={13} fontWeight={600}>
                         L{item.sourceRow}: {item.tradeName}
                       </SText>
-                      <SText fontSize={12}>
-                        {item.componentOriginal} · {item.matchStatus}
-                      </SText>
+                      <Stack
+                        direction="row"
+                        spacing={0.75}
+                        alignItems="center"
+                        flexWrap="wrap"
+                        useFlexGap
+                      >
+                        <SText fontSize={12}>{item.componentOriginal}</SText>
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          label={
+                            item.matchStatus === 'NO_MATCH'
+                              ? 'Sem correspondência'
+                              : item.matchStatus === 'REVIEW_REQUIRED'
+                                ? 'Revisão necessária'
+                                : item.matchStatus === 'INVALID_CAS'
+                                  ? 'CAS inválido'
+                                  : item.matchStatus
+                          }
+                        />
+                      </Stack>
                     </Stack>
                   }
                 />
@@ -923,7 +1156,26 @@ export const ChemicalExcelAiCurationPanel = ({
               size="small"
               variant="contained"
               disabled={busy || !selectedBatchIds.length}
-              onClick={() => onBatchConfirm(selectedBatchIds)}
+              onClick={() => {
+                const eligible = selectedBatchIds.filter((id) =>
+                  batchEligibleIdSet.has(id),
+                );
+                const skipped = selectedBatchIds.length - eligible.length;
+                if (skipped > 0) {
+                  enqueueSnackbar(
+                    `${skipped} item(ns) exigem revisão individual (rascunho, pré-vínculo ou split) e foram excluídos do lote.`,
+                    { variant: 'warning' },
+                  );
+                }
+                if (!eligible.length) {
+                  enqueueSnackbar(
+                    'Nenhum item elegível ao lote na seleção. Revise individualmente os rascunhos ou splits.',
+                    { variant: 'info' },
+                  );
+                  return;
+                }
+                onBatchConfirm(eligible);
+              }}
             >
               Confirmar selecionados ({selectedBatchIds.length})
             </Button>
@@ -953,7 +1205,7 @@ export const ChemicalExcelAiCurationPanel = ({
             {pageItems.map((item) => {
               const suggestion = suggestionById.get(item.sourceRowId);
               const decision = decisions[item.sourceRowId];
-              const batchOk = suggestion && isBatchConfirmEligible(suggestion);
+              const batchOk = batchEligibleIdSet.has(item.sourceRowId);
               const top = suggestion?.candidates?.[0];
               const pubchemParts = partitionPubChemEvidences(
                 top?.evidences || [],
@@ -966,13 +1218,9 @@ export const ChemicalExcelAiCurationPanel = ({
               );
               const diagnostics = suggestion?.diagnostics;
               const detailsOpen = Boolean(expandedDetails[item.sourceRowId]);
-              const splits =
-                splitEdits[item.sourceRowId] ||
-                (suggestion?.splitCandidates || []).map((c) => ({
-                  officialName: c.officialName || '',
-                  cas: c.cas || '',
-                  include: true,
-                }));
+              const itemScopeKey = curationDraftScopeKey(item.sourceRowId);
+              const identityDraft = identityDraftsByScope[itemScopeKey];
+              const splitParts = splitPartsByItem[item.sourceRowId] || [];
               const failure = failures.find(
                 (f) => f.sourceRowId === item.sourceRowId,
               );
@@ -988,7 +1236,20 @@ export const ChemicalExcelAiCurationPanel = ({
                   /fator interno mais amplo|classe|agrupamento/i.test(w),
                 );
               const pendingManualFactor =
-                pendingManualFactorByItem[item.sourceRowId] || null;
+                pendingManualFactorByScope[itemScopeKey] || null;
+              const aiSynonyms = top?.synonyms || [];
+              const identityBlocksTerminal =
+                requiresIdentityConfirmationBeforeTerminal({
+                  draft: identityDraft,
+                  aiSynonyms,
+                });
+              const splitReady =
+                suggestion?.type === 'SPLIT_COMPONENT' &&
+                isSplitReadyToConfirm({
+                  parts: splitParts,
+                  identityByScope: identityDraftsByScope,
+                  sourceRowId: item.sourceRowId,
+                });
 
               return (
                 <Box
@@ -1516,72 +1777,188 @@ export const ChemicalExcelAiCurationPanel = ({
                     ) : null}
 
                     {suggestion?.type === 'SPLIT_COMPONENT' && !decision ? (
-                      <Stack spacing={0.75}>
+                      <Stack spacing={1}>
                         <Alert severity="info" sx={{ py: 0 }}>
-                          Cada parte tem identidade/CAS isolados. Concentração
-                          da mistura não será repartida.
+                          Revise cada parte de forma independente. A divisão só
+                          pode ser confirmada quando todas as partes tiverem
+                          resolução (vínculo, sem vínculo ou rejeitada).
                         </Alert>
-                        {splits.map((part, idx) => (
-                          <Stack
-                            key={idx}
-                            direction={{ xs: 'column', sm: 'row' }}
-                            spacing={1}
-                            alignItems={{ sm: 'center' }}
-                          >
-                            <Checkbox
-                              size="small"
-                              checked={part.include}
-                              onChange={(e) => {
-                                const next = [...splits];
-                                next[idx] = {
-                                  ...part,
-                                  include: e.target.checked,
-                                };
-                                setSplitEdits((prev) => ({
+                        {splitParts.map((part, idx) => {
+                          const partScope = curationDraftScopeKey(
+                            item.sourceRowId,
+                            part.partId,
+                          );
+                          const partIdentity =
+                            identityDraftsByScope[partScope] ||
+                            buildIdentityDraftFromSuggestion({
+                              suggestion,
+                              pending: item,
+                              candidateIndex: idx,
+                            });
+                          const partPending =
+                            pendingManualFactorByScope[partScope] || null;
+                          const aiPart =
+                            suggestion.splitCandidates?.[idx] || undefined;
+                          return (
+                            <ChemicalCurationSplitPartCard
+                              key={part.partId}
+                              partIndex={idx}
+                              part={part}
+                              identity={partIdentity}
+                              aiCandidate={aiPart}
+                              pendingFactor={partPending}
+                              searchQuery={searchByScope[partScope] || ''}
+                              searchResults={searchResults[partScope] || []}
+                              searchBusy={searchBusy === partScope}
+                              canCreateRisk={canCreateRisk}
+                              showCreateRisk={shouldShowCreateChemicalRiskButton(
+                                {
+                                  canCreateRisk,
+                                  pending: item,
+                                  suggestion,
+                                  hasAppliedDecision: Boolean(decision),
+                                  hasPendingManualFactor: Boolean(partPending),
+                                },
+                              )}
+                              disabled={busy}
+                              onIdentityChange={(next) =>
+                                onIdentityDraftsByScopeChange((prev) => ({
                                   ...prev,
-                                  [item.sourceRowId]: next,
-                                }));
-                              }}
-                            />
-                            <TextField
-                              size="small"
-                              fullWidth
-                              label={`Substância ${idx + 1}`}
-                              value={part.officialName}
-                              onChange={(e) => {
-                                const next = [...splits];
-                                next[idx] = {
-                                  ...part,
-                                  officialName: e.target.value,
-                                };
-                                setSplitEdits((prev) => ({
+                                  [partScope]: next,
+                                }))
+                              }
+                              onConfirmIdentity={(next) =>
+                                onIdentityDraftsByScopeChange((prev) => ({
                                   ...prev,
-                                  [item.sourceRowId]: next,
-                                }));
-                              }}
-                            />
-                            <TextField
-                              size="small"
-                              label="CAS"
-                              value={part.cas}
-                              onChange={(e) => {
-                                const next = [...splits];
-                                next[idx] = {
-                                  ...part,
-                                  cas: e.target.value,
-                                };
-                                setSplitEdits((prev) => ({
+                                  [partScope]: next,
+                                }))
+                              }
+                              onSearchQueryChange={(value) =>
+                                setSearchByScope((prev) => ({
                                   ...prev,
-                                  [item.sourceRowId]: next,
+                                  [partScope]: value,
+                                }))
+                              }
+                              onSearch={() => handleSearchFactor(partScope)}
+                              onSelectFactor={(factor) =>
+                                setPendingManualFactor(partScope, factor)
+                              }
+                              onClearFactor={() =>
+                                clearPendingManualFactor(partScope)
+                              }
+                              onConfirmManualFactor={() =>
+                                confirmPendingManualFactor(
+                                  item.sourceRowId,
+                                  part.partId,
+                                )
+                              }
+                              onKeepUnlinked={() => {
+                                if (!partIdentity.identityConfirmed) {
+                                  enqueueSnackbar(
+                                    'Confirme a identidade da parte antes de manter sem vínculo.',
+                                    { variant: 'warning' },
+                                  );
+                                  return;
+                                }
+                                onSplitPartsByItemChange((prev) => ({
+                                  ...prev,
+                                  [item.sourceRowId]: (
+                                    prev[item.sourceRowId] || []
+                                  ).map((p) =>
+                                    p.partId === part.partId
+                                      ? {
+                                          ...p,
+                                          include: true,
+                                          resolution: {
+                                            action: 'KEEP_UNLINKED',
+                                          },
+                                        }
+                                      : p,
+                                  ),
                                 }));
+                                clearPendingManualFactor(partScope);
                               }}
+                              onRejectPart={() => {
+                                const ok = window.confirm(
+                                  `Rejeitar a Parte ${idx + 1}? Ela não gerará linha na planilha.`,
+                                );
+                                if (!ok) return;
+                                onSplitPartsByItemChange((prev) => ({
+                                  ...prev,
+                                  [item.sourceRowId]: (
+                                    prev[item.sourceRowId] || []
+                                  ).map((p) =>
+                                    p.partId === part.partId
+                                      ? {
+                                          ...p,
+                                          include: false,
+                                          resolution: {
+                                            action: 'REJECT_PART',
+                                          },
+                                        }
+                                      : p,
+                                  ),
+                                }));
+                                clearPendingManualFactor(partScope);
+                              }}
+                              onUndoResolution={() => {
+                                onSplitPartsByItemChange((prev) => ({
+                                  ...prev,
+                                  [item.sourceRowId]: (
+                                    prev[item.sourceRowId] || []
+                                  ).map((p) =>
+                                    p.partId === part.partId
+                                      ? {
+                                          ...p,
+                                          include: true,
+                                          resolution: undefined,
+                                        }
+                                      : p,
+                                  ),
+                                }));
+                                clearPendingManualFactor(partScope);
+                              }}
+                              onOpenCreateRisk={() =>
+                                openCreateRiskDialog(
+                                  item.sourceRowId,
+                                  part.partId,
+                                )
+                              }
                             />
-                          </Stack>
-                        ))}
+                          );
+                        })}
                       </Stack>
                     ) : null}
 
-                    {!decision && suggestion && companyId && workspaceId ? (
+                    {suggestion &&
+                    suggestion.type !== 'SPLIT_COMPONENT' &&
+                    !decision &&
+                    identityDraft ? (
+                      <ChemicalCurationIdentityEditor
+                        draft={identityDraft}
+                        aiSynonyms={aiSynonyms}
+                        originalPlanilhaText={item.componentOriginal}
+                        disabled={busy}
+                        onChange={(next) =>
+                          onIdentityDraftsByScopeChange((prev) => ({
+                            ...prev,
+                            [itemScopeKey]: next,
+                          }))
+                        }
+                        onConfirmIdentity={(next) =>
+                          onIdentityDraftsByScopeChange((prev) => ({
+                            ...prev,
+                            [itemScopeKey]: next,
+                          }))
+                        }
+                      />
+                    ) : null}
+
+                    {!decision &&
+                    suggestion &&
+                    suggestion.type !== 'SPLIT_COMPONENT' &&
+                    companyId &&
+                    workspaceId ? (
                       <Stack spacing={0.75}>
                         {pendingManualFactor ? (
                           <Alert
@@ -1591,14 +1968,15 @@ export const ChemicalExcelAiCurationPanel = ({
                                 color="inherit"
                                 size="small"
                                 onClick={() =>
-                                  clearPendingManualFactor(item.sourceRowId)
+                                  clearPendingManualFactor(itemScopeKey)
                                 }
                               >
                                 Trocar fator
                               </Button>
                             }
                           >
-                            Fator selecionado: <strong>{pendingManualFactor.officialName}</strong>
+                            Fator selecionado:{' '}
+                            <strong>{pendingManualFactor.officialName}</strong>
                             {pendingManualFactor.cas
                               ? ` · CAS ${pendingManualFactor.cas}`
                               : ''}
@@ -1610,34 +1988,34 @@ export const ChemicalExcelAiCurationPanel = ({
                               <TextField
                                 size="small"
                                 label="Buscar fator"
-                                value={searchByItem[item.sourceRowId] || ''}
+                                value={searchByScope[itemScopeKey] || ''}
                                 onChange={(e) =>
-                                  setSearchByItem((prev) => ({
+                                  setSearchByScope((prev) => ({
                                     ...prev,
-                                    [item.sourceRowId]: e.target.value,
+                                    [itemScopeKey]: e.target.value,
                                   }))
                                 }
                               />
                               <Button
                                 size="small"
                                 disabled={
-                                  busy || searchBusy === item.sourceRowId
+                                  busy || searchBusy === itemScopeKey
                                 }
                                 onClick={() =>
-                                  handleSearchFactor(item.sourceRowId)
+                                  handleSearchFactor(itemScopeKey)
                                 }
                               >
                                 Buscar
                               </Button>
                             </Stack>
-                            {(searchResults[item.sourceRowId] || []).map(
+                            {(searchResults[itemScopeKey] || []).map(
                               (risk) => (
                                 <Button
                                   key={risk.id}
                                   size="small"
                                   variant="outlined"
                                   onClick={() =>
-                                    setPendingManualFactor(item.sourceRowId, {
+                                    setPendingManualFactor(itemScopeKey, {
                                       riskFactorId: risk.id,
                                       officialName: risk.name,
                                       cas: risk.cas ?? null,
@@ -1680,11 +2058,12 @@ export const ChemicalExcelAiCurationPanel = ({
                         flexWrap="wrap"
                         useFlexGap
                       >
-                        {pendingManualFactor ? (
+                        {suggestion.type !== 'SPLIT_COMPONENT' &&
+                        pendingManualFactor ? (
                           <Button
                             size="small"
                             variant="contained"
-                            disabled={busy}
+                            disabled={busy || identityBlocksTerminal}
                             onClick={() =>
                               confirmPendingManualFactor(item.sourceRowId)
                             }
@@ -1692,72 +2071,55 @@ export const ChemicalExcelAiCurationPanel = ({
                             Confirmar vínculo
                           </Button>
                         ) : null}
-                        {!pendingManualFactor &&
+                        {suggestion.type !== 'SPLIT_COMPONENT' &&
+                        !pendingManualFactor &&
                         suggestion.type === 'EXISTING_RISK_MATCH' &&
                         top?.riskFactorId ? (
                           <Button
                             size="small"
                             variant="contained"
-                            disabled={busy}
+                            disabled={busy || identityBlocksTerminal}
                             onClick={() =>
                               handleDecisionAndDeselect({
                                 sourceRowId: item.sourceRowId,
                                 action: 'CONFIRM_EXISTING',
                                 riskFactorId: top.riskFactorId,
-                                officialName: top.officialName,
-                                cas: top.cas,
+                                officialName:
+                                  identityDraft?.identityConfirmed
+                                    ? identityDraft.officialName
+                                    : top.officialName,
+                                cas: identityDraft?.identityConfirmed
+                                  ? identityDraft.cas
+                                  : top.cas,
+                                identity: identityDraft?.identityConfirmed
+                                  ? draftToApiIdentity(identityDraft)
+                                  : undefined,
                                 confidence: suggestion.confidence,
                                 suggestionType: suggestion.type,
                                 rationale: suggestion.rationale,
-                                evidences: slimEvidencesForExport(top.evidences),
+                                evidences: slimEvidencesForExport(
+                                  top.evidences,
+                                ),
                               })
                             }
                           >
                             Confirmar vínculo
                           </Button>
                         ) : null}
-                        {!pendingManualFactor &&
-                        suggestion.type === 'CHEMICAL_IDENTITY' ? (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            disabled={busy}
-                            onClick={() =>
-                              handleDecisionAndDeselect({
-                                sourceRowId: item.sourceRowId,
-                                action: 'CONFIRM_EXISTING',
-                                riskFactorId: null,
-                                officialName:
-                                  displayOfficialName(top?.officialName) ||
-                                  item.componentOriginal,
-                                cas: top?.cas || null,
-                                confidence: suggestion.confidence,
-                                suggestionType: suggestion.type,
-                                rationale: suggestion.rationale,
-                                evidences: slimEvidencesForExport(top?.evidences),
-                              })
-                            }
-                          >
-                            Confirmar identidade para a planilha
-                          </Button>
-                        ) : null}
                         {suggestion.type === 'SPLIT_COMPONENT' ? (
                           <Button
                             size="small"
                             variant="contained"
-                            disabled={busy}
+                            disabled={busy || !splitReady}
                             onClick={() =>
                               handleDecisionAndDeselect({
                                 sourceRowId: item.sourceRowId,
                                 action: 'CONFIRM_SPLIT',
-                                split: splits
-                                  .filter(
-                                    (p) => p.include && p.officialName.trim(),
-                                  )
-                                  .map((p) => ({
-                                    officialName: p.officialName.trim(),
-                                    cas: p.cas.trim() || null,
-                                  })),
+                                split: buildConfirmSplitParts({
+                                  parts: splitParts,
+                                  identityByScope: identityDraftsByScope,
+                                  sourceRowId: item.sourceRowId,
+                                }),
                                 confidence: suggestion.confidence,
                                 suggestionType: suggestion.type,
                                 rationale: suggestion.rationale,
@@ -1781,25 +2143,49 @@ export const ChemicalExcelAiCurationPanel = ({
                         >
                           Rejeitar sugestão
                         </Button>
-                        <Button
-                          size="small"
-                          disabled={busy}
-                          onClick={() =>
-                            handleDecisionAndDeselect({
-                              sourceRowId: item.sourceRowId,
-                              action: 'KEEP_UNLINKED',
-                              officialName:
-                                displayOfficialName(top?.officialName) ||
-                                item.componentOriginal,
-                              cas: top?.cas || null,
-                              suggestionType: suggestion.type,
-                              confidence: suggestion.confidence,
-                              evidences: slimEvidencesForExport(top?.evidences),
-                            })
-                          }
-                        >
-                          Manter sem vínculo
-                        </Button>
+                        {suggestion.type !== 'SPLIT_COMPONENT' ? (
+                          <Button
+                            size="small"
+                            disabled={busy || identityBlocksTerminal}
+                            onClick={() =>
+                              handleDecisionAndDeselect({
+                                sourceRowId: item.sourceRowId,
+                                action: 'KEEP_UNLINKED',
+                                officialName: identityDraft?.identityConfirmed
+                                  ? identityDraft.officialName
+                                  : displayOfficialName(top?.officialName) ||
+                                    item.componentOriginal,
+                                cas: identityDraft?.identityConfirmed
+                                  ? identityDraft.cas
+                                  : top?.cas || null,
+                                identity: identityDraft?.identityConfirmed
+                                  ? draftToApiIdentity(identityDraft)
+                                  : undefined,
+                                suggestionType: suggestion.type,
+                                confidence: suggestion.confidence,
+                                evidences: slimEvidencesForExport(
+                                  top?.evidences,
+                                ),
+                              })
+                            }
+                          >
+                            Manter sem vínculo
+                          </Button>
+                        ) : null}
+                        {identityBlocksTerminal ? (
+                          <Alert severity="warning" sx={{ py: 0, width: '100%' }}>
+                            Há edição manual de identidade não confirmada.
+                            Confirme a identidade antes da decisão final.
+                          </Alert>
+                        ) : null}
+                        {suggestion.type === 'SPLIT_COMPONENT' &&
+                        !splitReady ? (
+                          <Alert severity="info" sx={{ py: 0, width: '100%' }}>
+                            Resolva todas as partes (identidade + vínculo/sem
+                            vínculo/rejeição) para habilitar &quot;Aceitar
+                            divisão&quot;.
+                          </Alert>
+                        ) : null}
                       </Stack>
                     ) : null}
                   </Stack>
@@ -1827,22 +2213,14 @@ export const ChemicalExcelAiCurationPanel = ({
           initialData={createRiskSession.initialData}
           onClose={closeCreateRiskDialog}
           onCreated={(risk) => {
-            const sourceRowId =
-              createRiskSourceRowIdRef.current || createRiskSession.sourceRowId;
-            if (!sourceRowId) return;
             applyCreatedRiskToCuration(
-              sourceRowId,
               risk,
               createRiskSession.initialData.cas || null,
               { fromCurationCreate: true },
             );
           }}
           onSelectExisting={(risk) => {
-            const sourceRowId =
-              createRiskSourceRowIdRef.current || createRiskSession.sourceRowId;
-            if (!sourceRowId) return;
             applyCreatedRiskToCuration(
-              sourceRowId,
               risk,
               createRiskSession.initialData.cas || null,
             );
