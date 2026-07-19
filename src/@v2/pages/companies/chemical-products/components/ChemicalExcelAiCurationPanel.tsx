@@ -1,4 +1,5 @@
 import { SText } from '@v2/components/atoms/SText/SText';
+import { useAuthShow } from 'components/molecules/SAuthShow';
 import { searchChemicalRiskFactors } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type {
   AiCurationEvidence,
@@ -30,7 +31,17 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { useSnackbar } from 'notistack';
 
+import { ChemicalCurationCreateRiskDialog } from './ChemicalCurationCreateRiskDialog';
+import {
+  buildChemicalCurationCreateRiskPrefill,
+  buildManualFactorDecision,
+  canCreateChemicalRiskPermission,
+  shouldShowCreateChemicalRiskButton,
+  type ChemicalCurationPendingManualFactor,
+} from './chemical-curation-create-risk.util';
 import {
   CURATION_QUEUE_PAGE_SIZE,
   catalogLinkStatusLabel,
@@ -149,6 +160,8 @@ type Props = {
   onCancelAi?: () => void;
   onDecision: (decision: ChemicalAiCurationDecision) => void;
   onBatchConfirm: (sourceRowIds: string[]) => void;
+  /** Bloqueia fechamento do modal pai enquanto o cadastro QUI está aberto. */
+  onNestedDialogOpenChange?: (open: boolean) => void;
 };
 
 export const ChemicalExcelAiCurationPanel = ({
@@ -165,7 +178,11 @@ export const ChemicalExcelAiCurationPanel = ({
   onCancelAi,
   onDecision,
   onBatchConfirm,
+  onNestedDialogOpenChange,
 }: Props) => {
+  const { isAuthSuccess } = useAuthShow();
+  const { enqueueSnackbar } = useSnackbar();
+  const canCreateRisk = canCreateChemicalRiskPermission({ isAuthSuccess });
   const [selectedPending, setSelectedPending] = useState<
     Record<string, boolean>
   >({});
@@ -190,6 +207,14 @@ export const ChemicalExcelAiCurationPanel = ({
   >({});
   const [searchBusy, setSearchBusy] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [createRiskSession, setCreateRiskSession] = useState<{
+    sourceRowId: string;
+    initialData: ReturnType<typeof buildChemicalCurationCreateRiskPrefill>;
+  } | null>(null);
+  const createRiskSourceRowIdRef = useRef<string | null>(null);
+  const [pendingManualFactorByItem, setPendingManualFactorByItem] = useState<
+    Record<string, ChemicalCurationPendingManualFactor>
+  >({});
 
   useEffect(() => {
     if (!busy || !aiProgress?.startedAt) {
@@ -223,6 +248,29 @@ export const ChemicalExcelAiCurationPanel = ({
     suggestions.forEach((s) => map.set(s.sourceRowId, s));
     return map;
   }, [suggestions]);
+
+  useEffect(() => {
+    createRiskSourceRowIdRef.current = createRiskSession?.sourceRowId ?? null;
+    onNestedDialogOpenChange?.(Boolean(createRiskSession));
+  }, [createRiskSession, onNestedDialogOpenChange]);
+
+  const openCreateRiskDialog = (sourceRowId: string) => {
+    if (!companyId) return;
+    const pending = pendingItems.find((item) => item.sourceRowId === sourceRowId);
+    if (!pending) return;
+    setCreateRiskSession({
+      sourceRowId,
+      initialData: buildChemicalCurationCreateRiskPrefill({
+        companyId,
+        pending,
+        suggestion: suggestionById.get(sourceRowId) || null,
+      }),
+    });
+  };
+
+  const closeCreateRiskDialog = () => {
+    setCreateRiskSession(null);
+  };
 
   const activePendingItems = useMemo(
     () =>
@@ -486,7 +534,78 @@ export const ChemicalExcelAiCurationPanel = ({
       delete next[decision.sourceRowId];
       return next;
     });
+    setPendingManualFactorByItem((prev) => {
+      if (!prev[decision.sourceRowId]) return prev;
+      const next = { ...prev };
+      delete next[decision.sourceRowId];
+      return next;
+    });
     onDecision(decision);
+  };
+
+  const setPendingManualFactor = (
+    sourceRowId: string,
+    factor: ChemicalCurationPendingManualFactor,
+    options?: { fromCurationCreate?: boolean },
+  ) => {
+    setPendingManualFactorByItem((prev) => ({
+      ...prev,
+      [sourceRowId]: factor,
+    }));
+    setSearchResults((prev) => ({ ...prev, [sourceRowId]: [] }));
+    setSearchByItem((prev) => ({ ...prev, [sourceRowId]: '' }));
+    if (options?.fromCurationCreate) {
+      enqueueSnackbar(
+        'Fator químico criado com sucesso. O vínculo foi preparado e aguarda sua confirmação.',
+        { variant: 'success' },
+      );
+    }
+  };
+
+  const clearPendingManualFactor = (sourceRowId: string) => {
+    setPendingManualFactorByItem((prev) => {
+      if (!prev[sourceRowId]) return prev;
+      const next = { ...prev };
+      delete next[sourceRowId];
+      return next;
+    });
+  };
+
+  const confirmPendingManualFactor = (sourceRowId: string) => {
+    const pendingFactor = pendingManualFactorByItem[sourceRowId];
+    if (!pendingFactor) return;
+    const suggestion = suggestionById.get(sourceRowId);
+    handleDecisionAndDeselect(
+      buildManualFactorDecision({
+        sourceRowId,
+        createdRisk: {
+          id: pendingFactor.riskFactorId,
+          name: pendingFactor.officialName,
+          cas: pendingFactor.cas,
+        },
+        confirmedCas: pendingFactor.cas,
+        suggestionType: suggestion?.type || null,
+        confidence: suggestion?.confidence || null,
+      }),
+    );
+  };
+
+  const applyCreatedRiskToCuration = (
+    sourceRowId: string,
+    created: IRiskFactors | ChemicalRiskOption,
+    confirmedCas?: string | null,
+    options?: { fromCurationCreate?: boolean },
+  ) => {
+    setPendingManualFactor(
+      sourceRowId,
+      {
+        riskFactorId: created.id,
+        officialName: created.name,
+        cas: created.cas ?? confirmedCas ?? null,
+      },
+      options,
+    );
+    closeCreateRiskDialog();
   };
 
   return (
@@ -830,7 +949,7 @@ export const ChemicalExcelAiCurationPanel = ({
             ) : null}
           </Stack>
 
-          <Stack spacing={1.5}>
+          <Stack spacing={2}>
             {pageItems.map((item) => {
               const suggestion = suggestionById.get(item.sourceRowId);
               const decision = decisions[item.sourceRowId];
@@ -868,6 +987,8 @@ export const ChemicalExcelAiCurationPanel = ({
                 (top?.warnings || []).some((w) =>
                   /fator interno mais amplo|classe|agrupamento/i.test(w),
                 );
+              const pendingManualFactor =
+                pendingManualFactorByItem[item.sourceRowId] || null;
 
               return (
                 <Box
@@ -877,8 +998,8 @@ export const ChemicalExcelAiCurationPanel = ({
                     p: 2,
                     borderRadius: 1,
                     bgcolor: decision ? 'action.hover' : 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
+                    border: '2px solid',
+                    borderColor: 'grey.400',
                   }}
                 >
                   <Stack spacing={1.25}>
@@ -1462,47 +1583,93 @@ export const ChemicalExcelAiCurationPanel = ({
 
                     {!decision && suggestion && companyId && workspaceId ? (
                       <Stack spacing={0.75}>
-                        <Stack direction="row" spacing={1}>
-                          <TextField
-                            size="small"
-                            label="Buscar fator"
-                            value={searchByItem[item.sourceRowId] || ''}
-                            onChange={(e) =>
-                              setSearchByItem((prev) => ({
-                                ...prev,
-                                [item.sourceRowId]: e.target.value,
-                              }))
-                            }
-                          />
-                          <Button
-                            size="small"
-                            disabled={busy || searchBusy === item.sourceRowId}
-                            onClick={() => handleSearchFactor(item.sourceRowId)}
-                          >
-                            Buscar
-                          </Button>
-                        </Stack>
-                        {(searchResults[item.sourceRowId] || []).map((risk) => (
-                          <Button
-                            key={risk.id}
-                            size="small"
-                            variant="outlined"
-                            onClick={() =>
-                              handleDecisionAndDeselect({
-                                sourceRowId: item.sourceRowId,
-                                action: 'MANUAL_FACTOR',
-                                riskFactorId: risk.id,
-                                officialName: risk.name,
-                                cas: risk.cas,
-                                suggestionType: suggestion.type,
-                                confidence: suggestion.confidence,
-                              })
+                        {pendingManualFactor ? (
+                          <Alert
+                            severity="success"
+                            action={
+                              <Button
+                                color="inherit"
+                                size="small"
+                                onClick={() =>
+                                  clearPendingManualFactor(item.sourceRowId)
+                                }
+                              >
+                                Trocar fator
+                              </Button>
                             }
                           >
-                            Escolher: {risk.name}
-                            {risk.cas ? ` [${risk.cas}]` : ''}
-                          </Button>
-                        ))}
+                            Fator selecionado: <strong>{pendingManualFactor.officialName}</strong>
+                            {pendingManualFactor.cas
+                              ? ` · CAS ${pendingManualFactor.cas}`
+                              : ''}
+                            . Confirme o vínculo para aplicar à planilha.
+                          </Alert>
+                        ) : (
+                          <>
+                            <Stack direction="row" spacing={1}>
+                              <TextField
+                                size="small"
+                                label="Buscar fator"
+                                value={searchByItem[item.sourceRowId] || ''}
+                                onChange={(e) =>
+                                  setSearchByItem((prev) => ({
+                                    ...prev,
+                                    [item.sourceRowId]: e.target.value,
+                                  }))
+                                }
+                              />
+                              <Button
+                                size="small"
+                                disabled={
+                                  busy || searchBusy === item.sourceRowId
+                                }
+                                onClick={() =>
+                                  handleSearchFactor(item.sourceRowId)
+                                }
+                              >
+                                Buscar
+                              </Button>
+                            </Stack>
+                            {(searchResults[item.sourceRowId] || []).map(
+                              (risk) => (
+                                <Button
+                                  key={risk.id}
+                                  size="small"
+                                  variant="outlined"
+                                  onClick={() =>
+                                    setPendingManualFactor(item.sourceRowId, {
+                                      riskFactorId: risk.id,
+                                      officialName: risk.name,
+                                      cas: risk.cas ?? null,
+                                    })
+                                  }
+                                >
+                                  Escolher: {risk.name}
+                                  {risk.cas ? ` [${risk.cas}]` : ''}
+                                </Button>
+                              ),
+                            )}
+                            {shouldShowCreateChemicalRiskButton({
+                              canCreateRisk,
+                              pending: item,
+                              suggestion,
+                              hasAppliedDecision: Boolean(decision),
+                              hasPendingManualFactor: false,
+                            }) ? (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="secondary"
+                                disabled={busy}
+                                onClick={() =>
+                                  openCreateRiskDialog(item.sourceRowId)
+                                }
+                              >
+                                Cadastrar fator químico
+                              </Button>
+                            ) : null}
+                          </>
+                        )}
                       </Stack>
                     ) : null}
 
@@ -1513,7 +1680,20 @@ export const ChemicalExcelAiCurationPanel = ({
                         flexWrap="wrap"
                         useFlexGap
                       >
-                        {suggestion.type === 'EXISTING_RISK_MATCH' &&
+                        {pendingManualFactor ? (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            disabled={busy}
+                            onClick={() =>
+                              confirmPendingManualFactor(item.sourceRowId)
+                            }
+                          >
+                            Confirmar vínculo
+                          </Button>
+                        ) : null}
+                        {!pendingManualFactor &&
+                        suggestion.type === 'EXISTING_RISK_MATCH' &&
                         top?.riskFactorId ? (
                           <Button
                             size="small"
@@ -1536,7 +1716,8 @@ export const ChemicalExcelAiCurationPanel = ({
                             Confirmar vínculo
                           </Button>
                         ) : null}
-                        {suggestion.type === 'CHEMICAL_IDENTITY' ? (
+                        {!pendingManualFactor &&
+                        suggestion.type === 'CHEMICAL_IDENTITY' ? (
                           <Button
                             size="small"
                             variant="contained"
@@ -1637,6 +1818,37 @@ export const ChemicalExcelAiCurationPanel = ({
           ) : null}
         </>
       )}
+
+      {createRiskSession && companyId && workspaceId ? (
+        <ChemicalCurationCreateRiskDialog
+          open={Boolean(createRiskSession)}
+          companyId={companyId}
+          workspaceId={workspaceId}
+          initialData={createRiskSession.initialData}
+          onClose={closeCreateRiskDialog}
+          onCreated={(risk) => {
+            const sourceRowId =
+              createRiskSourceRowIdRef.current || createRiskSession.sourceRowId;
+            if (!sourceRowId) return;
+            applyCreatedRiskToCuration(
+              sourceRowId,
+              risk,
+              createRiskSession.initialData.cas || null,
+              { fromCurationCreate: true },
+            );
+          }}
+          onSelectExisting={(risk) => {
+            const sourceRowId =
+              createRiskSourceRowIdRef.current || createRiskSession.sourceRowId;
+            if (!sourceRowId) return;
+            applyCreatedRiskToCuration(
+              sourceRowId,
+              risk,
+              createRiskSession.initialData.cas || null,
+            );
+          }}
+        />
+      ) : null}
     </Stack>
   );
 };

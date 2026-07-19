@@ -90,6 +90,20 @@ type IUseAddRiskOptions = {
   aiSuggestionSourceContext?: RiskFactorAiSuggestionSourceContextPayload;
   /** Dados extras para enriquecer payload da IA (ex.: parse do PDF no fluxo HO). */
   aiSuggestionKnownDataExtras?: Partial<RiskFactorAiSuggestionKnownDataPayload>;
+  /**
+   * Se true, falha no create (ex.: 403) não fecha o formulário nem dispara sucesso.
+   * Usado pela curadoria de produtos químicos.
+   */
+  keepOpenOnCreateFailure?: boolean;
+  /**
+   * Se true, suprime o snackbar genérico de create (ex.: curadoria exibe mensagem própria).
+   * Cadastro legado / demais telas não passam esta opção.
+   */
+  suppressCreateSuccessSnackbar?: boolean;
+  /** Transforma/valida o payload imediatamente antes do POST create (somente criação). */
+  beforeCreate?: (
+    payload: Record<string, unknown>,
+  ) => Promise<Record<string, unknown> | null> | Record<string, unknown> | null;
 };
 
 export const useAddRisk = (options?: IUseAddRiskOptions) => {
@@ -104,7 +118,9 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
 
   const type = watch('type');
 
-  const createRiskMut = useMutCreateRisk();
+  const createRiskMut = useMutCreateRisk({
+    suppressSuccessSnackbar: options?.suppressCreateSuccessSnackbar,
+  });
   const updateRiskMut = useMutUpdateRisk();
   const deleteRiskMut = useMutDeleteRisk();
   const updateGenerateSourceMut = useMutUpdateGenerateSource();
@@ -501,9 +517,23 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     if (risk.id == '') {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...riskData } = risk;
+      let createPayload: Record<string, unknown> = riskData as Record<
+        string,
+        unknown
+      >;
+      if (options?.beforeCreate) {
+        const prepared = await options.beforeCreate(createPayload);
+        if (prepared == null) return;
+        createPayload = prepared;
+      }
       createdRisk =
-        (await createRiskMut.mutateAsync(riskData).catch(() => undefined)) ??
-        undefined;
+        (await createRiskMut
+          .mutateAsync(createPayload as any)
+          .catch(() => undefined)) ?? undefined;
+      // Falha (ex.: 403): mantém formulário aberto e não aplica callback de sucesso.
+      if (!createdRisk && options?.keepOpenOnCreateFailure) {
+        return;
+      }
       recMed.map(async (rm) => {
         if (rm.generateSourceLocalId != undefined) {
           const gsLocal = generateSource.find(
@@ -538,6 +568,13 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     }
 
     options?.onSubmitSuccess?.(createdRisk);
+    // Diálogos embutidos (disableModalClose): o onSubmitSuccess já fecha a UI.
+    // Não chamar onCancel no sucesso — evita race/unmount e efeitos colaterais no pai.
+    if (options?.disableModalClose) {
+      setRiskData(initialAddRiskState);
+      reset();
+      return;
+    }
     onClose();
   };
 

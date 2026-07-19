@@ -34,7 +34,10 @@ export async function createRisk(data: ICreateRisk, companyId?: string) {
   return response.data;
 }
 
-export function useMutCreateRisk() {
+export function useMutCreateRisk(options?: {
+  /** Quando true, não exibe o snackbar genérico de sucesso (fluxo customizado). */
+  suppressSuccessSnackbar?: boolean;
+}) {
   const { companyId, user } = useGetCompanyId(true);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -71,13 +74,31 @@ export function useMutCreateRisk() {
           }
         }
 
-        enqueueSnackbar('Fator de risco criado com sucesso', {
-          variant: 'success',
-        });
+        if (!options?.suppressSuccessSnackbar) {
+          enqueueSnackbar('Fator de risco criado com sucesso', {
+            variant: 'success',
+          });
+        }
         return resp;
       },
       onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        const status = error.response?.status;
+        const apiMessage = error.response?.data?.message;
+        if (status === 403) {
+          enqueueSnackbar(
+            typeof apiMessage === 'string' && apiMessage.trim()
+              ? apiMessage
+              : 'Sem permissão para cadastrar fator de risco. O item da curadoria não foi alterado.',
+            { variant: 'error' },
+          );
+          return;
+        }
+        enqueueSnackbar(
+          typeof apiMessage === 'string' && apiMessage.trim()
+            ? apiMessage
+            : 'Erro ao cadastrar fator de risco',
+          { variant: 'error' },
+        );
       },
     },
   );

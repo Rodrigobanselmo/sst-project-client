@@ -141,6 +141,7 @@ export const ChemicalExcelPrepareDialog = ({
   const [summaryPendingPage, setSummaryPendingPage] = useState(1);
   const cancelAiRef = useRef(false);
   const aiRunningRef = useRef(false);
+  const nestedDialogOpenRef = useRef(false);
 
   const hasDraft =
     Boolean(file) ||
@@ -199,6 +200,8 @@ export const ChemicalExcelPrepareDialog = ({
   };
 
   const requestClose = (reason: string) => {
+    // Nested QUI create dialog: never discard the curation parent underneath.
+    if (nestedDialogOpenRef.current) return;
     const decision = resolveChemicalDialogClose({
       reason,
       hasDraft,
@@ -880,6 +883,9 @@ export const ChemicalExcelPrepareDialog = ({
                 onCancelAi={handleCancelAi}
                 onDecision={handleDecision}
                 onBatchConfirm={handleBatchConfirm}
+                onNestedDialogOpenChange={(open) => {
+                  nestedDialogOpenRef.current = open;
+                }}
               />
             </Stack>
           ) : null}
