@@ -16,15 +16,31 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   FormControlLabel,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  Select,
   Stack,
-  Switch,
   TextField,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
 import { mapChemicalFispqImportError } from './chemical-fispq-import-error.util';
+import {
+  buildCompositionCompareRows,
+  buildDefaultCompositionDecisions,
+  buildLinkedFispqCompositionPayload,
+  CompositionCompareKind,
+  CompositionCompareRow,
+  CompositionRowDecision,
+  FispqLinkApplyMode,
+  getActiveCompositionIngredients,
+  hasUsableExtractedIngredients,
+  metadataDiffers,
+} from './chemical-fispq-link-composition.util';
 
 type Props = {
   open: boolean;
@@ -33,6 +49,41 @@ type Props = {
   workspaceId: string;
   productId: string;
   onEdit?: (product: ChemicalProductDetail) => void;
+};
+
+const kindLabel = (kind: CompositionCompareKind): string => {
+  if (kind === 'matched') return 'Correspondente';
+  if (kind === 'divergent') return 'Divergente';
+  if (kind === 'extracted-only') return 'Novo na FISPQ';
+  return 'Somente no produto';
+};
+
+const kindColor = (
+  kind: CompositionCompareKind,
+): 'success' | 'warning' | 'info' | 'default' => {
+  if (kind === 'matched') return 'success';
+  if (kind === 'divergent') return 'warning';
+  if (kind === 'extracted-only') return 'info';
+  return 'default';
+};
+
+const formatConcentration = (side: {
+  concentrationKind: string;
+  exactPercent: number | null;
+  minPercent: number | null;
+  maxPercent: number | null;
+}): string => {
+  if (side.concentrationKind === 'EXACT' && side.exactPercent != null) {
+    return `${side.exactPercent}%`;
+  }
+  if (
+    side.concentrationKind === 'RANGE' &&
+    side.minPercent != null &&
+    side.maxPercent != null
+  ) {
+    return `${side.minPercent}-${side.maxPercent}%`;
+  }
+  return side.concentrationKind;
 };
 
 export const ChemicalProductDetailDialog = ({
@@ -60,30 +111,37 @@ export const ChemicalProductDetailDialog = ({
     enabled: open && Boolean(productId),
   });
 
-  const [showNewFispq, setShowNewFispq] = useState(false);
+  const [showLinkFispq, setShowLinkFispq] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParseFispqResult | null>(null);
   const [versionLabel, setVersionLabel] = useState('');
   const [issuedAt, setIssuedAt] = useState('');
   const [language, setLanguage] = useState('pt');
-  const [alsoNewComposition, setAlsoNewComposition] = useState(true);
+  const [applyMode, setApplyMode] =
+    useState<FispqLinkApplyMode>('document-only');
+  const [decisions, setDecisions] = useState<
+    Record<string, CompositionRowDecision>
+  >({});
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
 
   const clearDraft = () => {
-    setShowNewFispq(false);
+    setShowLinkFispq(false);
     setFile(null);
     setParsed(null);
     setVersionLabel('');
     setIssuedAt('');
     setLanguage('pt');
-    setAlsoNewComposition(true);
+    setApplyMode('document-only');
+    setDecisions({});
     setError(null);
     setInfo(null);
+    setWarning(null);
   };
 
   const hasDraft =
-    showNewFispq ||
+    showLinkFispq ||
     Boolean(file) ||
     Boolean(parsed) ||
     Boolean(versionLabel.trim()) ||
@@ -107,11 +165,53 @@ export const ChemicalProductDetailDialog = ({
     onClose();
   };
 
+  const currentIngredients = useMemo(
+    () =>
+      getActiveCompositionIngredients({
+        compositionVersions: data?.compositionVersions,
+      }),
+    [data?.compositionVersions],
+  );
+
+  const compareRows: CompositionCompareRow[] = useMemo(() => {
+    if (!parsed?.preview?.ingredients?.length) return [];
+    return buildCompositionCompareRows({
+      currentIngredients,
+      extractedIngredients: parsed.preview.ingredients,
+    });
+  }, [currentIngredients, parsed]);
+
+  const canUpdateComposition = hasUsableExtractedIngredients(
+    parsed?.preview?.ingredients,
+  );
+
+  useEffect(() => {
+    if (!canUpdateComposition && applyMode === 'document-and-composition') {
+      setApplyMode('document-only');
+    }
+  }, [canUpdateComposition, applyMode]);
+
+  useEffect(() => {
+    setDecisions(buildDefaultCompositionDecisions(compareRows));
+  }, [compareRows]);
+
+  const tradeNameDiffers = metadataDiffers({
+    current: data?.tradeName,
+    extracted: parsed?.preview?.tradeName,
+  });
+  const manufacturerDiffers = metadataDiffers({
+    current: data?.manufacturer,
+    extracted: parsed?.preview?.manufacturer,
+  });
+
   const handleSelectFile = async (next: File | null) => {
     setFile(next);
     setParsed(null);
     setError(null);
     setInfo(null);
+    setWarning(null);
+    setApplyMode('document-only');
+    setDecisions({});
     if (!next) return;
     try {
       const result = await parseFispq.mutateAsync({
@@ -132,11 +232,17 @@ export const ChemicalProductDetailDialog = ({
       if (!result.extractable) {
         setInfo(
           result.message ||
-            'Não foi possível extrair texto deste PDF. Você ainda pode anexar como nova versão documental.',
+            'Não foi possível extrair texto deste PDF. Você ainda pode vincular somente o documento.',
+        );
+      } else if (
+        !hasUsableExtractedIngredients(result.preview?.ingredients)
+      ) {
+        setInfo(
+          'Nenhum componente utilizável foi encontrado. O documento poderá ser vinculado sem alterar a composição.',
         );
       } else {
         setInfo(
-          'Preview da nova FISPQ pronto. Confirme para tornar vigente (a anterior vira SUPERSEDED).',
+          'Preview pronto. Revise as opções e confirme. Nada foi gravado ainda.',
         );
       }
     } catch (err) {
@@ -144,10 +250,21 @@ export const ChemicalProductDetailDialog = ({
     }
   };
 
-  const handlePublishNewVersion = async () => {
+  const setRowDecision = (
+    rowId: string,
+    decision: CompositionRowDecision,
+  ) => {
+    setDecisions((current) => ({ ...current, [rowId]: decision }));
+  };
+
+  const handleConfirmLink = async () => {
     const fileId = parsed?.fileId;
     if (!fileId && !file) return;
     setError(null);
+    setWarning(null);
+    setInfo(null);
+
+    let documentId: string | null = null;
     try {
       let resolvedFileId = fileId;
       if (!resolvedFileId && file) {
@@ -159,7 +276,7 @@ export const ChemicalProductDetailDialog = ({
         resolvedFileId = uploaded.fileId;
       }
       if (!resolvedFileId) {
-        setError('Selecione um PDF para criar a nova versão.');
+        setError('Selecione um PDF para vincular a FISPQ.');
         return;
       }
 
@@ -173,39 +290,60 @@ export const ChemicalProductDetailDialog = ({
         language: language || null,
         activate: true,
       });
+      documentId = document?.id || null;
 
-      if (
-        alsoNewComposition &&
-        parsed?.extractable &&
-        parsed.preview?.ingredients?.length
-      ) {
-        await createComposition.mutateAsync({
-          companyId,
-          workspaceId,
-          productId,
-          sourceType: 'FISPQ',
-          sourceDocumentId: document?.id || null,
-          ingredients: parsed.preview.ingredients.map((ingredient, index) => ({
-            chemicalName:
-              ingredient.chemicalName?.trim() ||
-              (ingredient.cas
-                ? `Componente pendente (CAS ${ingredient.cas})`
-                : `Componente ${index + 1}`),
-            cas: ingredient.cas,
-            concentrationKind: ingredient.concentrationKind,
-            exactPercent: ingredient.exactPercent,
-            minPercent: ingredient.minPercent,
-            maxPercent: ingredient.maxPercent,
-            riskFactorId: ingredient.riskFactorId || null,
-            sortOrder: index,
-          })),
+      if (applyMode === 'document-and-composition') {
+        if (!canUpdateComposition) {
+          clearDraft();
+          setWarning(
+            'A FISPQ foi vinculada, mas a composição não foi atualizada: não há componentes utilizáveis no preview.',
+          );
+          await refetch();
+          return;
+        }
+
+        const ingredients = buildLinkedFispqCompositionPayload({
+          mode: applyMode,
+          rows: compareRows,
+          decisions,
         });
+
+        if (!ingredients.length) {
+          clearDraft();
+          setWarning(
+            'A FISPQ foi vinculada, mas a composição não foi atualizada: as decisões resultaram em lista vazia.',
+          );
+          await refetch();
+          return;
+        }
+
+        try {
+          await createComposition.mutateAsync({
+            companyId,
+            workspaceId,
+            productId,
+            sourceType: 'FISPQ',
+            sourceDocumentId: documentId,
+            ingredients,
+          });
+        } catch (compositionErr) {
+          clearDraft();
+          setWarning(
+            `A FISPQ foi vinculada ao produto (documento ACTIVE), mas a composição não foi atualizada: ${mapChemicalFispqImportError(
+              compositionErr,
+            )}`,
+          );
+          await refetch();
+          return;
+        }
       }
 
+      const successMessage =
+        applyMode === 'document-and-composition'
+          ? 'FISPQ vinculada e nova composição criada. A anterior ficou SUPERSEDED.'
+          : 'FISPQ vinculada. A anterior ficou SUPERSEDED. A composição do produto não foi alterada.';
       clearDraft();
-      setInfo(
-        'Nova versão documental publicada. A anterior ficou SUPERSEDED; apenas uma permanece ACTIVE.',
-      );
+      setInfo(successMessage);
       await refetch();
     } catch (err) {
       setError(mapChemicalFispqImportError(err));
@@ -216,6 +354,58 @@ export const ChemicalProductDetailDialog = ({
   const activeFispq =
     documents.find((doc) => doc.status === 'ACTIVE') || null;
   const history = documents.filter((doc) => doc.status !== 'ACTIVE');
+  const busy =
+    uploadFispqFile.isPending ||
+    createFispq.isPending ||
+    createComposition.isPending ||
+    parseFispq.isPending;
+
+  const renderDecisionControls = (row: CompositionCompareRow) => {
+    const value = decisions[row.id] ?? row.defaultDecision;
+    if (row.kind === 'matched' || row.kind === 'divergent') {
+      return (
+        <FormControl size="small" sx={{ minWidth: 220 }}>
+          <Select
+            value={value}
+            onChange={(e) =>
+              setRowDecision(row.id, e.target.value as CompositionRowDecision)
+            }
+          >
+            <MenuItem value="keep-current">Manter atual</MenuItem>
+            <MenuItem value="apply-extracted">Aplicar dados da FISPQ</MenuItem>
+          </Select>
+        </FormControl>
+      );
+    }
+    if (row.kind === 'extracted-only') {
+      return (
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <Select
+            value={value}
+            onChange={(e) =>
+              setRowDecision(row.id, e.target.value as CompositionRowDecision)
+            }
+          >
+            <MenuItem value="add">Adicionar</MenuItem>
+            <MenuItem value="ignore">Ignorar</MenuItem>
+          </Select>
+        </FormControl>
+      );
+    }
+    return (
+      <FormControl size="small" sx={{ minWidth: 220 }}>
+        <Select
+          value={value}
+          onChange={(e) =>
+            setRowDecision(row.id, e.target.value as CompositionRowDecision)
+          }
+        >
+          <MenuItem value="keep">Manter</MenuItem>
+          <MenuItem value="remove">Remover da nova composição</MenuItem>
+        </Select>
+      </FormControl>
+    );
+  };
 
   return (
     <Dialog
@@ -298,9 +488,9 @@ export const ChemicalProductDetailDialog = ({
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => setShowNewFispq(true)}
+                  onClick={() => setShowLinkFispq(true)}
                 >
-                  NOVA VERSÃO DA FISPQ
+                  Vincular / Nova versão da FISPQ
                 </Button>
               </Stack>
 
@@ -364,7 +554,8 @@ export const ChemicalProductDetailDialog = ({
                 </Stack>
               ) : (
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  Nenhuma FISPQ vigente. Use “NOVA VERSÃO DA FISPQ” para anexar.
+                  Nenhuma FISPQ vigente. Use “Vincular / Nova versão da FISPQ”
+                  para anexar.
                 </Alert>
               )}
 
@@ -422,7 +613,7 @@ export const ChemicalProductDetailDialog = ({
                 </SText>
               )}
 
-              {showNewFispq ? (
+              {showLinkFispq ? (
                 <Box
                   mt={2}
                   p={1.5}
@@ -431,15 +622,21 @@ export const ChemicalProductDetailDialog = ({
                   borderRadius={1}
                 >
                   <SText fontWeight={700} mb={1}>
-                    Anexar nova versão da FISPQ
+                    Vincular / Nova versão da FISPQ
                   </SText>
-                  <SText fontSize={13} color="text.secondary" mb={1.5}>
-                    A nova versão fica ACTIVE e a anterior SUPERSEDED. A
-                    composição vigente só muda se você marcar a opção abaixo.
-                  </SText>
+                  <Alert severity="warning" sx={{ mb: 1.5 }}>
+                    Ao confirmar, a nova FISPQ ficará ACTIVE e a anterior
+                    SUPERSEDED. Se a anterior estiver publicada para empregados,
+                    essa publicação será desativada; será necessário republicar a
+                    nova versão pelo fluxo existente. Nome comercial e fabricante
+                    do produto não serão alterados.
+                  </Alert>
+
                   <Stack spacing={1.5}>
-                    <Button variant="outlined" component="label">
-                      Selecionar PDF
+                    <Button variant="outlined" component="label" disabled={busy}>
+                      {parseFispq.isPending
+                        ? 'Extraindo…'
+                        : 'Selecionar PDF'}
                       <input
                         hidden
                         type="file"
@@ -449,6 +646,7 @@ export const ChemicalProductDetailDialog = ({
                         }
                       />
                     </Button>
+
                     {parsed || file ? (
                       <SText fontSize={13}>
                         Arquivo: {parsed?.fileName || file?.name}
@@ -457,6 +655,48 @@ export const ChemicalProductDetailDialog = ({
                           : ''}
                       </SText>
                     ) : null}
+
+                    {parsed ? (
+                      <Box
+                        p={1.25}
+                        border="1px solid"
+                        borderColor="divider"
+                        borderRadius={1}
+                        bgcolor="background.paper"
+                      >
+                        <SText fontWeight={600} mb={1}>
+                          Comparação geral
+                        </SText>
+                        <SText fontSize={13}>
+                          Nome comercial atual:{' '}
+                          <strong>{data.tradeName || '—'}</strong>
+                        </SText>
+                        <SText fontSize={13}>
+                          Nome comercial extraído:{' '}
+                          <strong>
+                            {parsed.preview?.tradeName || '—'}
+                          </strong>
+                        </SText>
+                        <SText fontSize={13} mt={1}>
+                          Fabricante atual:{' '}
+                          <strong>{data.manufacturer || '—'}</strong>
+                        </SText>
+                        <SText fontSize={13}>
+                          Fabricante extraído:{' '}
+                          <strong>
+                            {parsed.preview?.manufacturer || '—'}
+                          </strong>
+                        </SText>
+                        {tradeNameDiffers || manufacturerDiffers ? (
+                          <Alert severity="warning" sx={{ mt: 1 }}>
+                            Há divergência de nome comercial e/ou fabricante. O
+                            vínculo da FISPQ não altera esses metadados do
+                            produto.
+                          </Alert>
+                        ) : null}
+                      </Box>
+                    ) : null}
+
                     <TextField
                       size="small"
                       label="Versão"
@@ -477,34 +717,154 @@ export const ChemicalProductDetailDialog = ({
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
                     />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={alsoNewComposition}
-                          onChange={(_, checked) =>
-                            setAlsoNewComposition(checked)
-                          }
-                          disabled={!parsed?.extractable}
+
+                    <FormControl>
+                      <SText fontWeight={600} mb={0.5}>
+                        Modo de aplicação
+                      </SText>
+                      <RadioGroup
+                        value={applyMode}
+                        onChange={(_, value) =>
+                          setApplyMode(value as FispqLinkApplyMode)
+                        }
+                      >
+                        <FormControlLabel
+                          value="document-only"
+                          control={<Radio />}
+                          label="Vincular somente a FISPQ"
                         />
-                      }
-                      label="Também criar nova versão de composição a partir do preview"
-                    />
-                    <Stack direction="row" spacing={1}>
+                        <FormControlLabel
+                          value="document-and-composition"
+                          control={<Radio />}
+                          disabled={!canUpdateComposition}
+                          label="Vincular FISPQ e atualizar composição"
+                        />
+                      </RadioGroup>
+                      {!canUpdateComposition && parsed ? (
+                        <Alert severity="info" sx={{ mt: 0.5 }}>
+                          Atualização de composição desabilitada: não há
+                          componentes utilizáveis no preview.
+                        </Alert>
+                      ) : null}
+                    </FormControl>
+
+                    {applyMode === 'document-and-composition' &&
+                    compareRows.length ? (
+                      <Stack spacing={1.25}>
+                        <SText fontWeight={600}>
+                          Comparação dos componentes
+                        </SText>
+                        <Alert severity="info">
+                          Defaults seguros: correspondentes mantêm o atual;
+                          novos da FISPQ são ignorados; exclusivos do produto
+                          são mantidos. Remoção só ocorre por decisão explícita.
+                        </Alert>
+                        {compareRows.map((row) => (
+                          <Box
+                            key={row.id}
+                            p={1.25}
+                            border="1px solid"
+                            borderColor="divider"
+                            borderRadius={1}
+                            bgcolor="background.paper"
+                          >
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                              mb={1}
+                              flexWrap="wrap"
+                              useFlexGap
+                            >
+                              <Chip
+                                size="small"
+                                color={kindColor(row.kind)}
+                                label={kindLabel(row.kind)}
+                              />
+                              {row.canPreserveRiskFactor ? (
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  label="Preserva fator ao aplicar FISPQ"
+                                />
+                              ) : null}
+                            </Stack>
+                            <Stack
+                              direction={{ xs: 'column', sm: 'row' }}
+                              spacing={1.5}
+                              mb={1}
+                            >
+                              <Box flex={1}>
+                                <SText fontSize={12} color="text.secondary">
+                                  Atual
+                                </SText>
+                                {row.current ? (
+                                  <SText fontSize={13}>
+                                    {row.current.chemicalName || '—'}
+                                    {row.current.cas
+                                      ? ` · CAS ${row.current.cas}`
+                                      : ' · Sem CAS'}
+                                    {' · '}
+                                    {formatConcentration(row.current)}
+                                    {' · '}
+                                    {row.current.riskFactorName
+                                      ? `RF: ${row.current.riskFactorName}`
+                                      : 'Sem RF'}
+                                  </SText>
+                                ) : (
+                                  <SText fontSize={13} color="text.secondary">
+                                    —
+                                  </SText>
+                                )}
+                              </Box>
+                              <Box flex={1}>
+                                <SText fontSize={12} color="text.secondary">
+                                  Extraído
+                                </SText>
+                                {row.extracted ? (
+                                  <SText fontSize={13}>
+                                    {row.extracted.chemicalName || '—'}
+                                    {row.extracted.cas
+                                      ? ` · CAS ${row.extracted.cas}`
+                                      : ' · Sem CAS'}
+                                    {' · '}
+                                    {formatConcentration(row.extracted)}
+                                  </SText>
+                                ) : (
+                                  <SText fontSize={13} color="text.secondary">
+                                    —
+                                  </SText>
+                                )}
+                              </Box>
+                            </Stack>
+                            {renderDecisionControls(row)}
+                          </Box>
+                        ))}
+                      </Stack>
+                    ) : null}
+
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
                       <Button
                         variant="contained"
-                        disabled={
-                          (!parsed && !file) ||
-                          uploadFispqFile.isPending ||
-                          createFispq.isPending ||
-                          createComposition.isPending ||
-                          parseFispq.isPending
-                        }
-                        onClick={handlePublishNewVersion}
+                        disabled={(!parsed && !file) || busy}
+                        onClick={handleConfirmLink}
                       >
-                        Confirmar nova versão vigente
+                        {busy ? 'Salvando…' : 'Confirmar vínculo'}
                       </Button>
-                      <Button onClick={() => setShowNewFispq(false)}>
-                        Recolher
+                      <Button
+                        onClick={() => {
+                          setShowLinkFispq(false);
+                          setFile(null);
+                          setParsed(null);
+                          setDecisions({});
+                          setApplyMode('document-only');
+                          setError(null);
+                          setWarning(null);
+                          setInfo(null);
+                        }}
+                        disabled={busy}
+                      >
+                        Cancelar
                       </Button>
                     </Stack>
                   </Stack>
@@ -513,6 +873,7 @@ export const ChemicalProductDetailDialog = ({
             </Box>
 
             {info ? <Alert severity="info">{info}</Alert> : null}
+            {warning ? <Alert severity="warning">{warning}</Alert> : null}
             {error ? <Alert severity="error">{error}</Alert> : null}
           </Stack>
         )}
