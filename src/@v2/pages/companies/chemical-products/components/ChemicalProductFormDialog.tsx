@@ -29,6 +29,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from '@mui/material';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import type { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useEffect, useMemo, useState } from 'react';
 
 import {
@@ -38,9 +40,23 @@ import {
   emptyIngredient,
   IngredientDraft,
 } from './chemical-composition-draft.util';
+import { canCreateChemicalRiskPermission } from './chemical-curation-create-risk.util';
+import { ChemicalCurationCreateRiskDialog } from './ChemicalCurationCreateRiskDialog';
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
 import { mapChemicalFispqImportError } from './chemical-fispq-import-error.util';
 import { planRiskFactorIngredientFill } from './chemical-ingredient-risk-fill.util';
+import {
+  buildEditIngredientCreateRiskPrefill,
+  canKeepWithoutRiskLink,
+  clearIngredientRiskLink,
+  confirmPendingRiskLink,
+  countPendingRiskFactors,
+  PendingRiskFactorByIngredientKey,
+  pendingToRiskOption,
+  removePendingRiskFactorByKey,
+  setPendingRiskFactorByKey,
+  toPendingRiskFactor,
+} from './chemical-product-edit-risk-link.util';
 
 type Mode = 'mixture' | 'pure' | 'fispq' | 'excel';
 
@@ -76,6 +92,8 @@ export const ChemicalProductFormDialog = ({
   } = useMutateChemicalProduct();
 
   const isEdit = Boolean(editProduct);
+  const { isAuthSuccess } = useAuthShow();
+  const canCreateRisk = canCreateChemicalRiskPermission({ isAuthSuccess });
   const [mode, setMode] = useState<Mode>('mixture');
   const [tradeName, setTradeName] = useState('');
   const [manufacturer, setManufacturer] = useState('');
@@ -88,6 +106,11 @@ export const ChemicalProductFormDialog = ({
   const [riskSearchByKey, setRiskSearchByKey] = useState<Record<string, string>>(
     {},
   );
+  const [pendingRiskFactorByIngredientKey, setPendingRiskFactorByIngredientKey] =
+    useState<PendingRiskFactorByIngredientKey>({});
+  const [createRiskIngredientKey, setCreateRiskIngredientKey] = useState<
+    string | null
+  >(null);
   const [selectedRisk, setSelectedRisk] = useState<ChemicalRiskOption | null>(
     null,
   );
@@ -130,10 +153,15 @@ export const ChemicalProductFormDialog = ({
             }))
           : [emptyIngredient()],
       );
+      setPendingRiskFactorByIngredientKey({});
+      setCreateRiskIngredientKey(null);
+      setRiskSearchByKey({});
       setIsDirty(false);
       setTradeNameTouched(false);
       setIsSubmitting(false);
     } else {
+      setPendingRiskFactorByIngredientKey({});
+      setCreateRiskIngredientKey(null);
       setIsDirty(false);
       setTradeNameTouched(false);
       setIsSubmitting(false);
@@ -204,6 +232,8 @@ export const ChemicalProductFormDialog = ({
     setFispqLanguage('pt');
     setFispqPreviewReady(false);
     setRiskSearchByKey({});
+    setPendingRiskFactorByIngredientKey({});
+    setCreateRiskIngredientKey(null);
     setPureRiskSearch('');
     setIsDirty(false);
     setIsSubmitting(false);
@@ -242,6 +272,75 @@ export const ChemicalProductFormDialog = ({
     setIngredients((current) =>
       current.map((item) => (item.key === key ? { ...item, ...patch } : item)),
     );
+  };
+
+  const setPendingForIngredient = (
+    ingredientKey: string,
+    risk: ChemicalRiskOption | null,
+  ) => {
+    markDirty();
+    setPendingRiskFactorByIngredientKey((current) =>
+      setPendingRiskFactorByKey(
+        current,
+        ingredientKey,
+        risk ? toPendingRiskFactor(risk) : null,
+      ),
+    );
+  };
+
+  const confirmPendingForIngredient = (ingredient: IngredientDraft) => {
+    const pending = pendingRiskFactorByIngredientKey[ingredient.key];
+    if (!pending) return;
+    markDirty();
+    setIngredients((current) =>
+      current.map((item) =>
+        item.key === ingredient.key
+          ? confirmPendingRiskLink({ ingredient: item, pending })
+          : item,
+      ),
+    );
+    setPendingRiskFactorByIngredientKey((current) =>
+      removePendingRiskFactorByKey(current, ingredient.key),
+    );
+  };
+
+  const keepIngredientWithoutRisk = (ingredient: IngredientDraft) => {
+    if (
+      !canKeepWithoutRiskLink({
+        ingredient,
+        pending: pendingRiskFactorByIngredientKey[ingredient.key] || null,
+      })
+    ) {
+      return;
+    }
+    markDirty();
+    setIngredients((current) =>
+      current.map((item) =>
+        item.key === ingredient.key ? clearIngredientRiskLink(item) : item,
+      ),
+    );
+    setPendingRiskFactorByIngredientKey((current) =>
+      removePendingRiskFactorByKey(current, ingredient.key),
+    );
+  };
+
+  const removeIngredient = (ingredientKey: string) => {
+    markDirty();
+    setIngredients((current) =>
+      current.filter((item) => item.key !== ingredientKey),
+    );
+    setPendingRiskFactorByIngredientKey((current) =>
+      removePendingRiskFactorByKey(current, ingredientKey),
+    );
+    setRiskSearchByKey((current) => {
+      if (!(ingredientKey in current)) return current;
+      const next = { ...current };
+      delete next[ingredientKey];
+      return next;
+    });
+    if (createRiskIngredientKey === ingredientKey) {
+      setCreateRiskIngredientKey(null);
+    }
   };
 
   const applyRiskToIngredient = (
@@ -291,6 +390,34 @@ export const ChemicalProductFormDialog = ({
       cas: planned.cas,
     });
   };
+
+  const createdRiskToOption = (created: IRiskFactors): ChemicalRiskOption => ({
+    id: created.id,
+    name: created.name,
+    cas: created.cas || null,
+    system: Boolean(created.system),
+    companyId: created.companyId || companyId,
+    type: String(created.type || 'QUI'),
+  });
+
+  const createRiskIngredient = createRiskIngredientKey
+    ? ingredients.find((item) => item.key === createRiskIngredientKey) || null
+    : null;
+
+  const createRiskPrefill = useMemo(
+    () =>
+      buildEditIngredientCreateRiskPrefill({
+        companyId,
+        chemicalName: createRiskIngredient?.chemicalName || '',
+        cas: createRiskIngredient?.cas || '',
+      }),
+    [
+      companyId,
+      createRiskIngredient?.chemicalName,
+      createRiskIngredient?.cas,
+      createRiskIngredientKey,
+    ],
+  );
 
   const handleParseFispq = async (file: File | null) => {
     if (!file) return;
@@ -370,6 +497,13 @@ export const ChemicalProductFormDialog = ({
         setError(compositionState.globalErrors.join('\n'));
         return;
       }
+    }
+
+    if (isEdit && countPendingRiskFactors(pendingRiskFactorByIngredientKey) > 0) {
+      setError(
+        'Há fator(es) selecionado(s) aguardando confirmação. Confirme o vínculo ou cancele a seleção antes de salvar.',
+      );
+      return;
     }
 
     setIsSubmitting(true);
@@ -513,12 +647,22 @@ export const ChemicalProductFormDialog = ({
 
   const renderIngredientEditor = (ingredient: IngredientDraft, index: number) => {
     const rowErrors = compositionState.rowErrors[ingredient.key] || [];
-    const options = ingredient.riskOption
-      ? [
-          ingredient.riskOption,
-          ...riskOptions.filter((option) => option.id !== ingredient.riskOption?.id),
-        ]
-      : riskOptions;
+    const pendingRisk = pendingRiskFactorByIngredientKey[ingredient.key] || null;
+    const pendingOption = pendingRisk ? pendingToRiskOption(pendingRisk) : null;
+    const options = (() => {
+      const selected = isEdit
+        ? pendingOption || null
+        : ingredient.riskOption || null;
+      if (!selected) return riskOptions;
+      return [
+        selected,
+        ...riskOptions.filter((option) => option.id !== selected.id),
+      ];
+    })();
+    const canKeepWithout = canKeepWithoutRiskLink({
+      ingredient,
+      pending: pendingRisk,
+    });
 
     return (
       <Stack
@@ -546,42 +690,142 @@ export const ChemicalProductFormDialog = ({
           ) : null}
         </Stack>
 
-        <Box
-          sx={{
-            p: 1.25,
-            borderRadius: 1,
-            bgcolor: 'action.hover',
-            border: '1px solid',
-            borderColor: 'primary.main',
-          }}
-        >
-          <Autocomplete
-            options={options}
-            value={ingredient.riskOption || null}
-            onChange={(_, value) => applyRiskToIngredient(ingredient, value)}
-            onInputChange={(_, value, reason) => {
-              if (reason === 'input') {
-                setRiskSearchByKey((current) => ({
-                  ...current,
-                  [ingredient.key]: value,
-                }));
-              }
+        {isEdit ? (
+          <Box
+            sx={{
+              p: 1.25,
+              borderRadius: 1,
+              bgcolor: 'action.hover',
+              border: '1px solid',
+              borderColor: pendingRisk ? 'warning.main' : 'primary.main',
             }}
-            getOptionLabel={riskLabel}
-            isOptionEqualToValue={(a, b) => a.id === b.id}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Fator de risco (global ou da empresa)"
-                helperText={
-                  ingredient.riskOption
-                    ? `Selecionado: ${riskLabel(ingredient.riskOption)}`
-                    : 'Sem vínculo — preencha nome/CAS manualmente se necessário'
+          >
+            <Stack spacing={1}>
+              {ingredient.riskOption ? (
+                <Alert severity="success" sx={{ py: 0.5 }}>
+                  Fator atual:{' '}
+                  <strong>{riskLabel(ingredient.riskOption)}</strong>
+                </Alert>
+              ) : (
+                <Alert severity="info" sx={{ py: 0.5 }}>
+                  Componente sem vínculo de fator de risco.
+                </Alert>
+              )}
+
+              {pendingRisk ? (
+                <Alert severity="warning" sx={{ py: 0.5 }}>
+                  Fator selecionado (aguardando confirmação):{' '}
+                  <strong>{riskLabel(pendingToRiskOption(pendingRisk))}</strong>
+                </Alert>
+              ) : null}
+
+              <Autocomplete
+                options={options}
+                value={pendingOption}
+                onChange={(_, value) =>
+                  setPendingForIngredient(ingredient.key, value)
                 }
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') {
+                    setRiskSearchByKey((current) => ({
+                      ...current,
+                      [ingredient.key]: value,
+                    }));
+                  }
+                }}
+                getOptionLabel={riskLabel}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Buscar fator (nome ou CAS)"
+                    helperText="A seleção prepara o vínculo. Confirme antes de salvar."
+                  />
+                )}
               />
-            )}
-          />
-        </Box>
+
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {pendingRisk ? (
+                  <>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => confirmPendingForIngredient(ingredient)}
+                    >
+                      Confirmar vínculo
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() =>
+                        setPendingForIngredient(ingredient.key, null)
+                      }
+                    >
+                      Trocar fator
+                    </Button>
+                  </>
+                ) : null}
+                {canCreateRisk ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() =>
+                      setCreateRiskIngredientKey(ingredient.key)
+                    }
+                  >
+                    Cadastrar fator químico
+                  </Button>
+                ) : null}
+                <Button
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  disabled={!canKeepWithout}
+                  onClick={() => keepIngredientWithoutRisk(ingredient)}
+                >
+                  Manter sem vínculo
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              p: 1.25,
+              borderRadius: 1,
+              bgcolor: 'action.hover',
+              border: '1px solid',
+              borderColor: 'primary.main',
+            }}
+          >
+            <Autocomplete
+              options={options}
+              value={ingredient.riskOption || null}
+              onChange={(_, value) => applyRiskToIngredient(ingredient, value)}
+              onInputChange={(_, value, reason) => {
+                if (reason === 'input') {
+                  setRiskSearchByKey((current) => ({
+                    ...current,
+                    [ingredient.key]: value,
+                  }));
+                }
+              }}
+              getOptionLabel={riskLabel}
+              isOptionEqualToValue={(a, b) => a.id === b.id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Fator de risco (global ou da empresa)"
+                  helperText={
+                    ingredient.riskOption
+                      ? `Selecionado: ${riskLabel(ingredient.riskOption)}`
+                      : 'Sem vínculo — preencha nome/CAS manualmente se necessário'
+                  }
+                />
+              )}
+            />
+          </Box>
+        )}
 
         <TextField
           label="Nome químico"
@@ -669,11 +913,7 @@ export const ChemicalProductFormDialog = ({
         {ingredients.length > 1 ? (
           <Button
             color="warning"
-            onClick={() =>
-              setIngredients((current) =>
-                current.filter((item) => item.key !== ingredient.key),
-              )
-            }
+            onClick={() => removeIngredient(ingredient.key)}
           >
             Remover componente
           </Button>
@@ -683,6 +923,7 @@ export const ChemicalProductFormDialog = ({
   };
 
   return (
+    <>
     <Dialog
       open={open}
       disableEscapeKeyDown={hasDraft}
@@ -982,5 +1223,25 @@ export const ChemicalProductFormDialog = ({
         </Stack>
       </DialogActions>
     </Dialog>
+
+      {createRiskIngredientKey && createRiskIngredient ? (
+        <ChemicalCurationCreateRiskDialog
+          open
+          companyId={companyId}
+          workspaceId={workspaceId}
+          initialData={createRiskPrefill}
+          onClose={() => setCreateRiskIngredientKey(null)}
+          onCreated={(created) => {
+            const option = createdRiskToOption(created);
+            setPendingForIngredient(createRiskIngredientKey, option);
+            setCreateRiskIngredientKey(null);
+          }}
+          onSelectExisting={(risk) => {
+            setPendingForIngredient(createRiskIngredientKey, risk);
+            setCreateRiskIngredientKey(null);
+          }}
+        />
+      ) : null}
+    </>
   );
 };
