@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Icon, Skeleton, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
@@ -36,6 +36,8 @@ import {
 import { CharacterizationAiAssistModal } from '../CharacterizationAiAssistModal/CharacterizationAiAssistModal';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
 
+const RISK_INVENTORY_SUMMARY_MAX_LENGTH = 1000;
+
 const StyledImage = styled('img')`
   width: 100px;
   border: 2px solid ${({ theme }) => theme.palette.grey[300]};
@@ -63,6 +65,7 @@ export const ModalCharacterizationContent = (
 
   const {
     control,
+    watch,
     data: characterizationData,
     handleAddPhoto,
     setData: setCharacterizationData,
@@ -89,6 +92,9 @@ export const ModalCharacterizationContent = (
   } = props;
 
   const isEnvironment = getIsEnvironment(characterizationData.type);
+  const riskInventorySummaryValue = watch?.('riskInventorySummary') ?? '';
+  const riskInventorySummaryLength = String(riskInventorySummaryValue || '')
+    .length;
 
   const typeOptions = [
     {
@@ -345,6 +351,37 @@ export const ModalCharacterizationContent = (
                 />
               )}
             />
+            <SFlex direction="column" gap={2} mt={2}>
+              <InputForm
+                multiline
+                minRows={3}
+                maxRows={6}
+                defaultValue={characterizationData.riskInventorySummary || ''}
+                label="Resumo para o inventário de riscos"
+                control={control}
+                setValue={setValue}
+                sx={{ width: '100%' }}
+                placeholder="Texto objetivo sobre o elemento, finalidade e contexto operacional..."
+                name="riskInventorySummary"
+                size="small"
+                inputProps={{ maxLength: RISK_INVENTORY_SUMMARY_MAX_LENGTH }}
+                onChange={(e) => {
+                  setCharacterizationData((old) => ({
+                    ...old,
+                    riskInventorySummary: e.target.value,
+                  }));
+                }}
+              />
+              <SText fontSize={12} color="text.secondary">
+                Texto objetivo utilizado para contextualizar este elemento no
+                Inventário de Riscos. A descrição técnica completa continuará
+                sendo utilizada no corpo da caracterização. Orientação: 400 a
+                600 caracteres.
+              </SText>
+              <SText fontSize={12} color="text.light" textAlign="right">
+                {riskInventorySummaryLength}/{RISK_INVENTORY_SUMMARY_MAX_LENGTH}
+              </SText>
+            </SFlex>
             <SDisplaySimpleArray
               values={(characterizationData.activities ?? []).map((activity) => ({
                 type: activity.split('{type}=')[1],

@@ -78,6 +78,7 @@ export const initialCharacterizationState = {
   id: '',
   name: '',
   description: '',
+  riskInventorySummary: '',
   order: 0,
   noiseValue: '',
   temperature: '',
@@ -106,6 +107,7 @@ interface ISubmit {
   name: string;
   profileName: string;
   description: string;
+  riskInventorySummary: string;
   noiseValue: string;
   temperature: string;
   luminosity: string;
@@ -400,15 +402,17 @@ export const useEditCharacterization = (
       merged.id = oldData.id || detailSource.id;
 
       // Preserva alterações locais feitas antes do detail chegar (comparando com baseline da lista/props).
-      (['name', 'description', 'type'] as const).forEach((field) => {
-        if (
-          oldData[field] &&
-          oldData[field] !== baselineBeforeDetail[field] &&
-          oldData[field] !== detailValues[field]
-        ) {
-          merged[field] = oldData[field];
-        }
-      });
+      (['name', 'description', 'riskInventorySummary', 'type'] as const).forEach(
+        (field) => {
+          if (
+            oldData[field] &&
+            oldData[field] !== baselineBeforeDetail[field] &&
+            oldData[field] !== detailValues[field]
+          ) {
+            merged[field] = oldData[field];
+          }
+        },
+      );
 
       initialDataRef.current = merged;
       return merged;
@@ -416,6 +420,7 @@ export const useEditCharacterization = (
 
     const currentName = getValues('name');
     const currentDescription = getValues('description');
+    const currentRiskInventorySummary = getValues('riskInventorySummary');
 
     if (!currentName || currentName === baselineBeforeDetail.name) {
       if (detailSource.name) setValue('name', detailSource.name);
@@ -428,6 +433,16 @@ export const useEditCharacterization = (
       if (detailSource.description != null) {
         setValue('description', detailSource.description || '');
       }
+    }
+    if (
+      currentRiskInventorySummary == null ||
+      currentRiskInventorySummary === '' ||
+      currentRiskInventorySummary === baselineBeforeDetail.riskInventorySummary
+    ) {
+      setValue(
+        'riskInventorySummary',
+        detailSource.riskInventorySummary || '',
+      );
     }
     if (!getValues('type') || getValues('type') === baselineBeforeDetail.type) {
       setValue('type', detailSource.type);
@@ -525,6 +540,10 @@ export const useEditCharacterization = (
     setValue('type', characterizationData.type);
     setValue('name', characterizationData.name);
     setValue('description', profileSource.description || '');
+    setValue(
+      'riskInventorySummary',
+      profileSource.riskInventorySummary || '',
+    );
     setValue('luminosity', profileSource.luminosity || '');
     setValue('temperature', profileSource.temperature || '');
     setValue('noiseValue', profileSource.noiseValue || '');
@@ -546,6 +565,7 @@ export const useEditCharacterization = (
       noiseValue: profileSource.noiseValue,
       moisturePercentage: profileSource.moisturePercentage,
       description: profileSource.description,
+      riskInventorySummary: profileSource.riskInventorySummary || '',
       type: principalProfile?.type ?? oldData.type,
       name: principalProfile?.name ?? oldData.name,
       companyId: oldData.companyId || contextCompanyId || '',
@@ -577,6 +597,7 @@ export const useEditCharacterization = (
         ? `${data.name} (${data.profileName})`
         : data.name,
       description: data.description,
+      riskInventorySummary: data.riskInventorySummary ?? '',
       noiseValue: data.noiseValue,
       moisturePercentage: data.moisturePercentage,
       temperature: data.temperature,
@@ -939,6 +960,7 @@ export const useEditCharacterization = (
           activities: characterizationData.activities,
           considerations: characterizationData.considerations,
           paragraphs: characterizationData.paragraphs,
+          riskInventorySummary: values.riskInventorySummary ?? '',
           startDate,
           endDate,
           hierarchyIds: hierarchies.map(
@@ -1204,6 +1226,7 @@ export const useEditCharacterization = (
 
   return {
     control,
+    watch,
     data: characterizationData,
     dataLoading: characterizationLoading || ghoLoading || isDetailLoading,
     isDetailLoaded,

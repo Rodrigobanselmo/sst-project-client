@@ -7,6 +7,7 @@ export type ICharacterization = {
   id: string;
   name: string;
   description?: string;
+  riskInventorySummary?: string | null;
   created_at: Date;
   deleted_at?: Date;
   done_at?: Date;

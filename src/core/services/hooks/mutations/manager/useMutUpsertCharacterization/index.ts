@@ -32,6 +32,7 @@ export interface IUpsertCharacterization {
   paragraphs?: string[];
   name?: string;
   description?: string;
+  riskInventorySummary?: string | null;
   stageId?: number | null;
   order?: number | null;
   done_at?: Date | '';

@@ -5,4 +5,8 @@ export const characterizationSchema = yup.object().shape({
   // type: yup.string().trim().required('tipo obrigatório'),
   // characterizationType: yup.string().trim().required('tipo obrigatório'),
   description: yup.string().trim(),
+  riskInventorySummary: yup
+    .string()
+    .trim()
+    .max(1000, 'máximo de 1000 caracteres'),
 });
