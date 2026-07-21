@@ -9,6 +9,7 @@ import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  dedupeDisplayList,
   normalizeDisplayList,
   normalizeDisplayText,
 } from './frps-explainability-safe-content.util';
@@ -106,6 +107,45 @@ describe('FRPS display safety (no raw HTML / no dangerouslySetInnerHTML)', () =>
     for (const item of items) {
       assert.equal(/<\/?[a-z][\s\S]*?>/i.test(item), false);
     }
+  });
+});
+
+describe('FRPS measurable questions display dedupe', () => {
+  it('1 repeated payload list renders without duplicates', () => {
+    assert.deepEqual(
+      normalizeDisplayList([
+        '<p>Pergunta A</p>',
+        'Pergunta A',
+        '<p>Pergunta B</p>',
+        'Pergunta A',
+        'Pergunta B',
+      ]),
+      ['Pergunta A', 'Pergunta B'],
+    );
+  });
+
+  it('2 HTML is removed before comparison', () => {
+    assert.deepEqual(
+      normalizeDisplayList([
+        '<p>Atenção constante?</p>',
+        'Atenção&nbsp;constante?',
+      ]),
+      ['Atenção constante?'],
+    );
+  });
+
+  it('3 order of first occurrence is preserved', () => {
+    assert.deepEqual(
+      dedupeDisplayList(['C', 'A', 'B', 'a', 'C']),
+      ['C', 'A', 'B'],
+    );
+  });
+
+  it('4 normal content is unchanged', () => {
+    assert.deepEqual(
+      normalizeDisplayList(['Única 1', 'Única 2', 'Única 3']),
+      ['Única 1', 'Única 2', 'Única 3'],
+    );
   });
 });
 

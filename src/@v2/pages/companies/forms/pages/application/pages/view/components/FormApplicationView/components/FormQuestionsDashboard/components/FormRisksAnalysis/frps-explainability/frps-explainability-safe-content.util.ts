@@ -78,8 +78,29 @@ export function normalizeDisplayText(
   return null;
 }
 
+function comparisonKeyForDisplayList(text: string): string {
+  return text.replace(/\s+/g, ' ').trim().toLocaleLowerCase('pt-BR');
+}
+
+/**
+ * Deduplica lista de apresentação (primeira ocorrência).
+ * Compara sem HTML (já removido), trim, espaços colapsados e case-insensitive.
+ */
+export function dedupeDisplayList(items: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const item of items) {
+    const key = comparisonKeyForDisplayList(item);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+  return result;
+}
+
 /**
  * Converte valor arbitrário em lista de textos seguros.
+ * Remove HTML, ignora vazios e deduplica por texto normalizado.
  */
 export function normalizeDisplayList(value: unknown): string[] {
   if (value == null) return [];
@@ -127,7 +148,7 @@ export function normalizeDisplayList(value: unknown): string[] {
     }
     // objeto desconhecido / função / etc. → ignorar
   }
-  return items;
+  return dedupeDisplayList(items);
 }
 
 export function normalizeIsoDateLabel(value: unknown): string | null {
