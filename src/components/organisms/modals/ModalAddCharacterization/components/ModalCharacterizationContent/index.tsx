@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { Icon, Skeleton, styled } from '@mui/material';
+import { CircularProgress, Icon, Skeleton, styled } from '@mui/material';
+import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
+import { useMutateAiRiskInventorySummary } from '@v2/services/security/characterization/characterization/ai-risk-inventory-summary/hooks/useMutateAiRiskInventorySummary';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -87,6 +89,7 @@ export const ModalCharacterizationContent = (
     onEditArray,
     onEditArrayContent,
     isEdit,
+    hasUnsavedChanges,
     hideCharacterizationDelete = false,
     registerAiAssistAppliedTrace,
   } = props;
@@ -95,6 +98,72 @@ export const ModalCharacterizationContent = (
   const riskInventorySummaryValue = watch?.('riskInventorySummary') ?? '';
   const riskInventorySummaryLength = String(riskInventorySummaryValue || '')
     .length;
+  const { showConfirmation } = useConfirmationModal();
+  const generateSummaryMutation = useMutateAiRiskInventorySummary();
+  const generateRequestIdRef = useRef(0);
+  const mountedCharacterizationIdRef = useRef(characterizationData.id);
+
+  useEffect(() => {
+    mountedCharacterizationIdRef.current = characterizationData.id;
+  }, [characterizationData.id]);
+
+  const canGenerateSummary =
+    Boolean(characterizationData.id) &&
+    Boolean(characterizationData.companyId) &&
+    Boolean(characterizationData.workspaceId) &&
+    !hasUnsavedChanges &&
+    !generateSummaryMutation.isPending;
+
+  const handleGenerateRiskInventorySummary = async () => {
+    if (!canGenerateSummary) return;
+
+    const currentSummary = String(
+      watch?.('riskInventorySummary') ||
+        characterizationData.riskInventorySummary ||
+        '',
+    ).trim();
+
+    if (currentSummary) {
+      const confirmed = await showConfirmation({
+        title: 'Substituir resumo',
+        message:
+          'Já existe um resumo preenchido. Deseja substituí-lo por uma nova sugestão gerada com IA?',
+        confirmText: 'Substituir',
+        cancelText: 'Cancelar',
+        variant: 'warning',
+      });
+      if (!confirmed) return;
+    }
+
+    const requestId = ++generateRequestIdRef.current;
+    const characterizationId = characterizationData.id;
+
+    try {
+      const result = await generateSummaryMutation.mutateAsync({
+        companyId: characterizationData.companyId,
+        workspaceId: characterizationData.workspaceId,
+        characterizationId,
+      });
+
+      if (
+        requestId !== generateRequestIdRef.current ||
+        mountedCharacterizationIdRef.current !== characterizationId
+      ) {
+        return;
+      }
+
+      const nextSummary = String(result.riskInventorySummary || '').trim();
+      if (!nextSummary) return;
+
+      setValue('riskInventorySummary', nextSummary, { shouldDirty: true });
+      setCharacterizationData((old) => ({
+        ...old,
+        riskInventorySummary: nextSummary,
+      }));
+    } catch {
+      // feedback de erro já tratado pelo hook da mutation
+    }
+  };
 
   const typeOptions = [
     {
@@ -352,12 +421,37 @@ export const ModalCharacterizationContent = (
               )}
             />
             <SFlex direction="column" gap={2} mt={2}>
+              <SFlex
+                align="center"
+                justify="space-between"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <SText fontSize={14} fontWeight={600}>
+                  Resumo para o inventário de riscos
+                </SText>
+                <SButton
+                  color="primary"
+                  variant="outlined"
+                  disabled={!canGenerateSummary}
+                  onClick={handleGenerateRiskInventorySummary}
+                  startIcon={
+                    generateSummaryMutation.isPending ? (
+                      <CircularProgress size={14} color="inherit" />
+                    ) : undefined
+                  }
+                >
+                  {generateSummaryMutation.isPending
+                    ? 'Gerando resumo...'
+                    : 'Gerar resumo com IA'}
+                </SButton>
+              </SFlex>
               <InputForm
                 multiline
                 minRows={3}
                 maxRows={6}
                 defaultValue={characterizationData.riskInventorySummary || ''}
-                label="Resumo para o inventário de riscos"
+                label=""
                 control={control}
                 setValue={setValue}
                 sx={{ width: '100%' }}
@@ -378,6 +472,17 @@ export const ModalCharacterizationContent = (
                 sendo utilizada no corpo da caracterização. Orientação: 400 a
                 600 caracteres.
               </SText>
+              {hasUnsavedChanges && (
+                <SText fontSize={12} color="warning.main">
+                  Salve as alterações da caracterização antes de gerar o resumo
+                  com IA.
+                </SText>
+              )}
+              {!characterizationData.id && (
+                <SText fontSize={12} color="warning.main">
+                  Salve a caracterização antes de gerar o resumo com IA.
+                </SText>
+              )}
               <SText fontSize={12} color="text.light" textAlign="right">
                 {riskInventorySummaryLength}/{RISK_INVENTORY_SUMMARY_MAX_LENGTH}
               </SText>

@@ -7,6 +7,8 @@ export const CharacterizationRoutes = {
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-analyze',
     AI_CHARACTERIZATION_ASSIST:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-characterization-assist',
+    AI_RISK_INVENTORY_SUMMARY:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-risk-inventory-summary',
     AI_CHARACTERIZATION_ASSIST_TRACES:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-characterization-assist/traces',
     AI_CHARACTERIZATION_ASSIST_TRACE_APPLY:
