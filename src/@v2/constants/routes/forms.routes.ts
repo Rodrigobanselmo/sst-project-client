@@ -31,10 +31,26 @@ export const FormRoutes = {
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/recover-stuck',
     EDIT_ANALYSIS:
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId',
+    EXPLAIN_ITEM:
+      'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId/explain-item',
+    EXPLAIN_ITEM_GENERATE:
+      'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId/explain-item/generate',
+    EXPLAIN_ITEM_CONTEXTUAL_GENERATE:
+      'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId/explain-item/contextual/generate',
+    EXPLAIN_ITEM_CONTEXTUAL:
+      'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId/explain-item/contextual',
     RISK_NARRATIVE_DIAGNOSTIC:
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers/risk-narrative-diagnostic',
     INDICATORS_NARRATIVE_DIAGNOSTIC:
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers/indicators-narrative-diagnostic',
+  },
+  AI_EXPLANATIONS: {
+    CONCEPTUAL: 'v2/system/ai-explanations/conceptual/:id',
+    CONCEPTUAL_VALIDATE: 'v2/system/ai-explanations/conceptual/:id/validate',
+    CONCEPTUAL_REJECT: 'v2/system/ai-explanations/conceptual/:id/reject',
+    CONTEXTUAL: 'v2/system/ai-explanations/contextual/:id',
+    CONTEXTUAL_VALIDATE: 'v2/system/ai-explanations/contextual/:id/validate',
+    CONTEXTUAL_REJECT: 'v2/system/ai-explanations/contextual/:id/reject',
   },
   RISK: {
     PATH: 'v2/companies/:companyId/forms/risks/',

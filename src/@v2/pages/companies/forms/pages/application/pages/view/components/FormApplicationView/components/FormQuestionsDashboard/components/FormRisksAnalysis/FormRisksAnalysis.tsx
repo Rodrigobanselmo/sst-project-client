@@ -79,6 +79,12 @@ import {
   getRecentFormAiAnalysisBatchSummary,
   isOccupationalRiskEligibleForAiAnalysis,
 } from './form-ai-analysis.utils';
+import {
+  FrpsExplainabilityProvider,
+  ExplainFrpsItemButton,
+  FrpsExplainabilityBridge,
+  type FrpsExplainabilityApi,
+} from './frps-explainability';
 import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
 import { RecoverFormAiAnalysisModal } from './RecoverFormAiAnalysisModal';
 import { HierarchyGroupRiskAnalysisCard } from './HierarchyGroupRiskAnalysisCard';
@@ -387,6 +393,7 @@ export const FormRisksAnalysis = ({
   );
   const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
+  const frpsExplainabilityApiRef = useRef<FrpsExplainabilityApi | null>(null);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
   const [showClearAiDialog, setShowClearAiDialog] = useState(false);
   const [showRecoverAiDialog, setShowRecoverAiDialog] = useState(false);
@@ -634,6 +641,7 @@ export const FormRisksAnalysis = ({
         analysisId,
         analysis: updatedAnalysis,
       });
+      frpsExplainabilityApiRef.current?.invalidateByAnalysisId(analysisId);
     } catch (error) {
       console.error('Error updating analysis item:', error);
     }
@@ -650,6 +658,9 @@ export const FormRisksAnalysis = ({
     analysis: any,
   ) => {
     try {
+      const removedName = analysis.analysis?.[itemType]?.[itemIndex]?.nome as
+        | string
+        | undefined;
       const updatedAnalysis = { ...analysis.analysis };
       updatedAnalysis[itemType].splice(itemIndex, 1);
 
@@ -659,6 +670,14 @@ export const FormRisksAnalysis = ({
         analysisId,
         analysis: updatedAnalysis,
       });
+      if (removedName) {
+        frpsExplainabilityApiRef.current?.notifyItemRemoved({
+          analysisId,
+          listItemType: itemType,
+          itemName: removedName,
+        });
+      }
+      frpsExplainabilityApiRef.current?.invalidateByAnalysisId(analysisId);
     } catch (error) {
       console.error('Error removing analysis item:', error);
     }
@@ -1157,6 +1176,12 @@ export const FormRisksAnalysis = ({
                   </SText>
                 </Box>
               )}
+              <ExplainFrpsItemButton
+                analysisId={analysisId}
+                listItemType={itemType}
+                itemName={item.nome}
+                riskFactorName={analysis?.analysis?.frps}
+              />
             </SFlex>
           )}
         </SFlex>
@@ -2156,6 +2181,11 @@ export const FormRisksAnalysis = ({
         : 'Analisar com IA';
 
   return (
+    <FrpsExplainabilityProvider
+      companyId={accessCompanyId}
+      applicationId={formApplication.id}
+      isMaster={isMaster}
+    >
     <SPaper sx={{ p: 4 }}>
       <SFlex justifyContent="space-between" my={4} mx={8} mb={16}>
         <SText fontSize={18} fontWeight="bold">
@@ -3176,6 +3206,8 @@ export const FormRisksAnalysis = ({
         hierarchyOptions={clearAiHierarchyOptions}
         hierarchyGroupOptions={clearAiHierarchyGroupOptions}
       />
+      <FrpsExplainabilityBridge apiRef={frpsExplainabilityApiRef} />
     </SPaper>
+    </FrpsExplainabilityProvider>
   );
 };

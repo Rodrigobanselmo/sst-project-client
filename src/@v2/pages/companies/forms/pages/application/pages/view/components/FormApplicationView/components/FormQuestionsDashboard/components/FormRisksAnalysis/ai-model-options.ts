@@ -25,3 +25,10 @@ export const AI_MODEL_OPTIONS: AiModelOption[] = [
   },
 ];
 
+/** Default para primeira geração conceitual (master). */
+export const FRPS_DEFAULT_CONCEPTUAL_MODEL_FOR_MASTER = 'gpt-5-mini';
+
+/** Modelos compatíveis com resposta estruturada do fluxo de explicabilidade. */
+export const FRPS_EXPLAINABILITY_MODEL_OPTIONS: AiModelOption[] =
+  AI_MODEL_OPTIONS.filter((option) => !/deep-research/i.test(option.value));
+
