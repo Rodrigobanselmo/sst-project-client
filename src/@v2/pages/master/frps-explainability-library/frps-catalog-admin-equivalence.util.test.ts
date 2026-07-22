@@ -14,13 +14,17 @@ import {
   FRPS_ADM_ENG_INCOMPATIBLE_MESSAGE,
   FRPS_ALIAS_MUST_BE_LOCAL_MESSAGE,
   FRPS_CANONICAL_MUST_BE_SYSTEM_MESSAGE,
+  FRPS_EQUIVALENCE_BOTH_VALIDATED_MESSAGE,
+  FRPS_EQUIVALENCE_SOURCE_VALIDATED_TARGET_MISSING_MESSAGE,
   assertNoTechnicalIdInUserCopy,
   describeConceptualComparison,
   getFrpsAliasSelectionBlockReason,
   getFrpsCanonicalSelectionBlockReason,
+  getFrpsEquivalenceConceptualConflictReason,
   normalizeFrpsCatalogSearchTerm,
   resolveFrpsExactAutoSuggestedCanonical,
   resolveFrpsGlobalCandidateHint,
+  resolveFrpsLibraryCanonicalLinkAction,
   shouldWarnConceptualExplanationConflict,
 } from './frps-catalog-admin-equivalence.util';
 
@@ -101,7 +105,7 @@ describe('FRPS catalog admin equivalence selection', () => {
     assert.equal(getFrpsAliasSelectionBlockReason([a], b), null);
   });
 
-  it('blocks system alias and ADM/ENG mismatch', () => {
+  it('allows GLOBAL source and still blocks ADM/ENG mismatch', () => {
     const global = item({
       id: 'global-1',
       label: 'Global',
@@ -109,10 +113,7 @@ describe('FRPS catalog admin equivalence selection', () => {
       kind: 'GENERATE_SOURCE',
       itemType: 'SOURCE',
     });
-    assert.equal(
-      getFrpsAliasSelectionBlockReason([], global),
-      FRPS_ALIAS_MUST_BE_LOCAL_MESSAGE,
-    );
+    assert.equal(getFrpsAliasSelectionBlockReason([], global), null);
 
     const adm = item({
       id: 'adm-1',
@@ -162,10 +163,99 @@ describe('FRPS catalog admin equivalence selection', () => {
       FRPS_CANONICAL_MUST_BE_SYSTEM_MESSAGE,
     );
     assert.equal(getFrpsCanonicalSelectionBlockReason([local], global), null);
+
+    const globalA = item({
+      id: 'global-a',
+      label: 'Global A',
+      origin: 'GLOBAL',
+      kind: 'GENERATE_SOURCE',
+      itemType: 'SOURCE',
+    });
+    const globalB = item({
+      id: 'global-b',
+      label: 'Global B',
+      origin: 'GLOBAL',
+      kind: 'GENERATE_SOURCE',
+      itemType: 'SOURCE',
+    });
+    assert.equal(getFrpsCanonicalSelectionBlockReason([globalA], globalB), null);
+    assert.equal(
+      getFrpsCanonicalSelectionBlockReason([globalA], localCanonical),
+      FRPS_CANONICAL_MUST_BE_SYSTEM_MESSAGE,
+    );
+    assert.match(
+      getFrpsCanonicalSelectionBlockReason([globalA], globalA) || '',
+      /mesmo item/i,
+    );
+    assert.equal(
+      resolveFrpsLibraryCanonicalLinkAction({
+        origin: 'GLOBAL',
+        hasActiveEquivalence: false,
+        hintStatus: 'NONE',
+      }),
+      'SEARCH',
+    );
   });
 });
 
 describe('conceptual conflict independent of catalog-admin page', () => {
+  it('hard-blocks VALIDATED + VALIDATED', () => {
+    const alias = item({
+      id: 'global-a',
+      label: 'A',
+      origin: 'GLOBAL',
+      kind: 'GENERATE_SOURCE',
+      itemType: 'SOURCE',
+      conceptualExplanation: {
+        status: 'VALIDATED',
+        explanationId: 'exp-a',
+        itemKey: 'catalog:SOURCE:global-a',
+      },
+    });
+    const canonical = {
+      status: 'VALIDATED' as const,
+      explanationId: 'exp-b',
+      itemKey: 'catalog:SOURCE:global-b',
+    };
+    assert.equal(
+      getFrpsEquivalenceConceptualConflictReason({
+        aliases: [alias],
+        canonical,
+      }),
+      FRPS_EQUIVALENCE_BOTH_VALIDATED_MESSAGE,
+    );
+    assert.equal(
+      shouldWarnConceptualExplanationConflict([alias], canonical),
+      false,
+    );
+  });
+
+  it('hard-blocks VALIDATED source + NEVER target', () => {
+    const alias = item({
+      id: 'global-a',
+      label: 'A',
+      origin: 'GLOBAL',
+      kind: 'GENERATE_SOURCE',
+      itemType: 'SOURCE',
+      conceptualExplanation: {
+        status: 'VALIDATED',
+        explanationId: 'exp-a',
+        itemKey: 'catalog:SOURCE:global-a',
+      },
+    });
+    assert.equal(
+      getFrpsEquivalenceConceptualConflictReason({
+        aliases: [alias],
+        canonical: {
+          status: 'NEVER_GENERATED',
+          explanationId: null,
+          itemKey: 'catalog:SOURCE:global-b',
+        },
+      }),
+      FRPS_EQUIVALENCE_SOURCE_VALIDATED_TARGET_MISSING_MESSAGE,
+    );
+  });
+
   it('warns when alias and searched canonical both have explanations', () => {
     const alias = item({
       id: 'local-a',

@@ -632,8 +632,8 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
               </Box>
             }
           >
-            {selectedLocals.length} item(ns) local(is) selecionado(s) para
-            vinculação.
+            {selectedLocals.length} item(ns) selecionado(s) para vinculação ao
+            canônico global (LOCAL ou GLOBAL).
           </Alert>
         ) : null}
       </Box>

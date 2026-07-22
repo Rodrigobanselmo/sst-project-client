@@ -37,6 +37,7 @@ import {
   FRPS_GLOBAL_ORIGIN_DISPLAY_NAME,
   describeConceptualComparison,
   filterStructurallyCompatibleGlobalCanonicals,
+  getFrpsEquivalenceConceptualConflictReason,
   mapFrpsCatalogAdminItemToSearchItem,
   normalizeFrpsCatalogSearchTerm,
   resolveFrpsExactAutoSuggestedCanonical,
@@ -233,10 +234,18 @@ export function FrpsCatalogEquivalenceDialog({
       ? FRPS_ADM_ENG_INCOMPATIBLE_MESSAGE
       : null;
 
+  const hardConceptualConflict = getFrpsEquivalenceConceptualConflictReason({
+    aliases,
+    canonical: canonicalSnapshot,
+  });
+
   const canConfirm =
     Boolean(canonicalSearch) &&
     aliases.length > 0 &&
     !admEngConflict &&
+    !isLoadingCanonicalConceptual &&
+    Boolean(canonicalSnapshot) &&
+    !hardConceptualConflict &&
     aliasSearchItems.every((alias) => canAddAsAlias(canonicalSearch!, alias));
 
   const { allLoaded: allPreviewsLoaded, isLoading: previewsLoading } =
@@ -577,9 +586,16 @@ export function FrpsCatalogEquivalenceDialog({
               </Alert>
             ) : null}
 
+            {hardConceptualConflict ? (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {hardConceptualConflict}
+              </Alert>
+            ) : null}
+
             {canonicalSearch &&
             canonicalSnapshot &&
             !isLoadingCanonicalConceptual &&
+            !hardConceptualConflict &&
             comparison.conflict ? (
               <Alert severity="info" sx={{ mb: 2 }}>
                 Alias e canônico possuem explicações conceituais distintas

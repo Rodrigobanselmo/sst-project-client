@@ -17,6 +17,16 @@ export const FRPS_CANONICAL_MUST_BE_SYSTEM_MESSAGE =
 export const FRPS_ALIAS_MUST_BE_LOCAL_MESSAGE =
   'Apenas itens locais podem ser selecionados como alias.';
 
+/** Source pode ser LOCAL ou GLOBAL; já vinculado ou inválido é bloqueado. */
+export const FRPS_ALIAS_SOURCE_ALREADY_LINKED_MESSAGE =
+  'Este item já é alias ativo de outro canônico.';
+
+export const FRPS_EQUIVALENCE_BOTH_VALIDATED_MESSAGE =
+  'Os dois itens possuem explicações conceituais validadas. Reabra para revisão a explicação que não será mantida antes de criar a equivalência.';
+
+export const FRPS_EQUIVALENCE_SOURCE_VALIDATED_TARGET_MISSING_MESSAGE =
+  'O item de origem possui explicação conceitual validada e o canônico não possui. Reabra para revisão a explicação que não será mantida antes de criar a equivalência.';
+
 /** Label de empresa exibido para itens do catálogo global (system). */
 export const FRPS_GLOBAL_COMPANY_DISPLAY_NAME = 'SimpleSST';
 
@@ -100,10 +110,13 @@ export function filterStructurallyCompatibleGlobalCanonicals(params: {
 
   const aliasSearchItems = params.aliases.map(mapFrpsCatalogAdminItemToSearchItem);
 
+  const sourceIds = new Set(params.aliases.map((alias) => alias.id));
+
   return params.searchItems.filter((item) => {
     if (!item.system) return false;
     if (item.deleted_at) return false;
     if (item.isAliasActive) return false;
+    if (sourceIds.has(item.id)) return false;
     if (item.kind !== (firstAlias.kind === 'GENERATE_SOURCE'
       ? RiskCatalogKind.GENERATE_SOURCE
       : RiskCatalogKind.REC_MED)) {
@@ -129,7 +142,11 @@ export function resolveFrpsLibraryCanonicalLinkAction(params: {
   hasActiveEquivalence: boolean;
   hintStatus: FrpsGlobalCandidateHintStatus;
 }): FrpsLibraryCanonicalLinkAction | null {
-  if (params.origin !== 'LOCAL' || params.hasActiveEquivalence) {
+  // LOCAL ou GLOBAL podem ser source; já vinculados não oferecem ação.
+  if (
+    (params.origin !== 'LOCAL' && params.origin !== 'GLOBAL') ||
+    params.hasActiveEquivalence
+  ) {
     return null;
   }
   if (params.hintStatus === 'NONE') return 'SEARCH';
@@ -177,7 +194,10 @@ export function resolveFrpsGlobalCandidateHint(
   local: FrpsCatalogAdminItem,
   pageItems: FrpsCatalogAdminItem[],
 ): FrpsGlobalCandidateHint {
-  if (local.origin !== 'LOCAL' || local.activeEquivalence) {
+  if (
+    (local.origin !== 'LOCAL' && local.origin !== 'GLOBAL') ||
+    local.activeEquivalence
+  ) {
     return { status: 'NONE', count: 0, sampleLabel: null };
   }
 
@@ -252,11 +272,15 @@ export function getFrpsAliasSelectionBlockReason(
   selectedAliases: FrpsCatalogAdminItem[],
   candidate: FrpsCatalogAdminItem,
 ): string | null {
-  if (candidate.origin !== 'LOCAL' || candidate.system) {
+  // Source: LOCAL ou GLOBAL (system). Nunca item já vinculado.
+  if (candidate.origin !== 'LOCAL' && candidate.origin !== 'GLOBAL') {
+    return FRPS_ALIAS_MUST_BE_LOCAL_MESSAGE;
+  }
+  if (candidate.origin === 'GLOBAL' && !candidate.system) {
     return FRPS_ALIAS_MUST_BE_LOCAL_MESSAGE;
   }
   if (candidate.activeEquivalence) {
-    return `Este item já é alias ativo → ${candidate.activeEquivalence.canonicalLabel}.`;
+    return `${FRPS_ALIAS_SOURCE_ALREADY_LINKED_MESSAGE} → ${candidate.activeEquivalence.canonicalLabel}.`;
   }
 
   if (!selectedAliases.length) return null;
@@ -279,12 +303,15 @@ export function getFrpsCanonicalSelectionBlockReason(
   aliases: FrpsCatalogAdminItem[],
   canonical: FrpsCatalogAdminItem,
 ): string | null {
-  if (!aliases.length) return 'Selecione ao menos um item local.';
+  if (!aliases.length) return 'Selecione ao menos um item.';
   if (canonical.origin !== 'GLOBAL' || !canonical.system) {
     return FRPS_CANONICAL_MUST_BE_SYSTEM_MESSAGE;
   }
   if (canonical.activeEquivalence) {
     return 'O canônico selecionado já é alias de outro item.';
+  }
+  if (aliases.some((alias) => alias.id === canonical.id)) {
+    return 'O canônico não pode ser o mesmo item selecionado como alias.';
   }
 
   const first = aliases[0];
@@ -310,12 +337,43 @@ export function getFrpsCanonicalSelectionBlockReason(
   return null;
 }
 
+/**
+ * Bloqueio duro de conflito conceitual (API espelhada).
+ * Info/aviso leve continua em shouldWarnConceptualExplanationConflict.
+ */
+export function getFrpsEquivalenceConceptualConflictReason(params: {
+  aliases: Array<{ conceptualExplanation: FrpsConceptualStatusSnapshot }>;
+  canonical: FrpsConceptualStatusSnapshot | null;
+}): string | null {
+  if (!params.canonical) return null;
+
+  for (const alias of params.aliases) {
+    const source = alias.conceptualExplanation.status;
+    const target = params.canonical.status;
+
+    if (source === 'VALIDATED' && target === 'VALIDATED') {
+      return FRPS_EQUIVALENCE_BOTH_VALIDATED_MESSAGE;
+    }
+    if (
+      source === 'VALIDATED' &&
+      (target === 'NEVER_GENERATED' || target === 'REJECTED')
+    ) {
+      return FRPS_EQUIVALENCE_SOURCE_VALIDATED_TARGET_MISSING_MESSAGE;
+    }
+  }
+
+  return null;
+}
+
 /** True when alias and canonical both have conceptual content (any status ≠ NEVER). */
 export function shouldWarnConceptualExplanationConflict(
   aliases: Array<{ conceptualExplanation: FrpsConceptualStatusSnapshot }>,
   canonical: FrpsConceptualStatusSnapshot | null,
 ): boolean {
   if (!canonical) return false;
+  if (getFrpsEquivalenceConceptualConflictReason({ aliases, canonical })) {
+    return false;
+  }
   if (canonical.status === 'NEVER_GENERATED') return false;
   return aliases.some(
     (alias) => alias.conceptualExplanation.status !== 'NEVER_GENERATED',

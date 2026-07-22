@@ -16,8 +16,32 @@ import {
   getRenderedFrpsLibraryRows,
   getVisibleSelectableAliasRows,
   isFrpsLibraryAliasSelectable,
+  orderFrpsLibraryRowsByEquivalenceGroups,
   selectVisibleSelectableAliases,
 } from './frps-library-table-visibility.util';
+
+function assertContiguousGroup(
+  rendered: FrpsLibraryTableRow[],
+  canonicalId: string,
+  aliasIds: string[],
+) {
+  const canonIndex = rendered.findIndex((r) => r.catalogId === canonicalId);
+  assert.ok(canonIndex >= 0, `canonical ${canonicalId} missing`);
+  for (let i = 0; i < aliasIds.length; i += 1) {
+    assert.equal(
+      rendered[canonIndex + 1 + i]?.catalogId,
+      aliasIds[i],
+      `alias ${aliasIds[i]} must sit contiguous under ${canonicalId}`,
+    );
+  }
+  for (let i = 0; i < canonIndex; i += 1) {
+    assert.notEqual(
+      rendered[i]?.parentCanonicalId,
+      canonicalId,
+      'no alias of this canonical may appear above it',
+    );
+  }
+}
 
 function item(
   overrides: Partial<FrpsCatalogAdminItem> &
@@ -153,38 +177,43 @@ describe('frps-library-table-visibility', () => {
     assert.equal(expanded[1]?.catalogId, 'alias-1');
   });
 
-  it('4) select visible picks 28 eligible aliases; not canonical', () => {
+  it('4) select visible picks 28 local aliases + GLOBAL source', () => {
     const rendered = getRenderedFrpsLibraryRows(
       [canonical, ...selectableAliases, linkedAlias],
       new Set(['canon-1']),
     );
     const visible = getVisibleSelectableAliasRows(rendered);
-    assert.equal(visible.length, 28);
-    assert.ok(visible.every((item) => item.catalogId.startsWith('alias-')));
-    assert.ok(!visible.some((item) => item.isCanonical));
+    assert.equal(visible.length, 29);
+    assert.ok(visible.some((item) => item.catalogId === 'canon-1'));
+    assert.equal(
+      visible.filter((item) => item.catalogId.startsWith('alias-')).length,
+      28,
+    );
 
     const { nextSelected, addedCount } = selectVisibleSelectableAliases({
       visibleSelectable: visible,
       selectedLocals: [],
     });
-    assert.equal(addedCount, 28);
-    assert.equal(nextSelected.length, 28);
+    assert.equal(addedCount, 29);
+    assert.equal(nextSelected.length, 29);
   });
 
-  it('5) canonical is never selectable', () => {
-    assert.equal(isFrpsLibraryAliasSelectable(canonical), false);
+  it('5) GLOBAL without active equivalence is selectable as source', () => {
+    assert.equal(isFrpsLibraryAliasSelectable(canonical), true);
   });
 
   it('6) already-linked alias is not selectable', () => {
     assert.equal(isFrpsLibraryAliasSelectable(linkedAlias), false);
   });
 
-  it('7) collapsed groups are excluded from select-visible', () => {
+  it('7) collapsed groups hide aliases; GLOBAL head remains selectable', () => {
     const rendered = getRenderedFrpsLibraryRows(
       [canonical, ...selectableAliases],
       new Set(),
     );
-    assert.equal(getVisibleSelectableAliasRows(rendered).length, 0);
+    const visible = getVisibleSelectableAliasRows(rendered);
+    assert.equal(visible.length, 1);
+    assert.equal(visible[0]?.catalogId, 'canon-1');
   });
 
   it('8) filters reduce selectable set to rendered page rows only', () => {
@@ -193,7 +222,8 @@ describe('frps-library-table-visibility', () => {
       [canonical, ...pageSlice],
       new Set(['canon-1']),
     );
-    assert.equal(getVisibleSelectableAliasRows(rendered).length, 5);
+    // 5 LOCAL aliases + 1 GLOBAL source
+    assert.equal(getVisibleSelectableAliasRows(rendered).length, 6);
   });
 
   it('9) deselect visible keeps selections from other pages', () => {
@@ -264,5 +294,220 @@ describe('frps-library-table-visibility', () => {
       buildFrpsAliasGroupToggleLabel({ aliasCount: 1, expanded: true }),
       '▼ 1 alias',
     );
+  });
+});
+
+describe('frps-library row order (GLOBAL filter / reparent regression)', () => {
+  const aliasRow = (
+    catalogId: string,
+    parentCanonicalId: string,
+    name: string,
+  ) =>
+    row({
+      catalogId,
+      name,
+      origin: 'GLOBAL',
+      isAliasRow: true,
+      parentCanonicalId,
+      hasActiveEquivalence: true,
+    });
+
+  it('1) canonical first on page + expanded: aliases below, never above', () => {
+    // Payload as API name-sort with origin=GLOBAL: shorter "Ajustar…" aliases
+    // before the longer canonical label.
+    const disordered = [
+      aliasRow('alias-short', 'canon-b', 'Ajustar metas e prazos'),
+      row({
+        catalogId: 'canon-b',
+        name: 'Ajustar metas e prazos conforme a complexidade',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 2,
+      }),
+      aliasRow('alias-estima', 'canon-b', 'Estimula a revisão'),
+      row({
+        catalogId: 'solo-z',
+        name: 'Zona solo',
+        origin: 'GLOBAL',
+      }),
+    ];
+
+    const rendered = getRenderedFrpsLibraryRows(
+      disordered,
+      new Set(['canon-b']),
+    );
+
+    assert.equal(rendered[0]?.catalogId, 'canon-b');
+    assertContiguousGroup(rendered, 'canon-b', ['alias-short', 'alias-estima']);
+    assert.equal(rendered[3]?.catalogId, 'solo-z');
+  });
+
+  it('2) canonical mid-list: aliases contiguous immediately below', () => {
+    const disordered = [
+      row({ catalogId: 'solo-a', name: 'Alpha solo', origin: 'GLOBAL' }),
+      aliasRow('a1', 'canon-m', 'Alias mid 1'),
+      row({ catalogId: 'solo-c', name: 'Charlie solo', origin: 'GLOBAL' }),
+      row({
+        catalogId: 'canon-m',
+        name: 'Mid canonical',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 2,
+      }),
+      aliasRow('a2', 'canon-m', 'Alias mid 2'),
+    ];
+
+    const rendered = getRenderedFrpsLibraryRows(
+      disordered,
+      new Set(['canon-m']),
+    );
+    assertContiguousGroup(rendered, 'canon-m', ['a1', 'a2']);
+    assert.deepEqual(
+      rendered.map((r) => r.catalogId),
+      ['solo-a', 'solo-c', 'canon-m', 'a1', 'a2'],
+    );
+  });
+
+  it('3) collapsed: aliases not rendered', () => {
+    const disordered = [
+      aliasRow('a1', 'canon-1', 'Alias 1'),
+      row({
+        catalogId: 'canon-1',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 1,
+      }),
+    ];
+    const collapsed = getRenderedFrpsLibraryRows(disordered, new Set());
+    assert.deepEqual(
+      collapsed.map((r) => r.catalogId),
+      ['canon-1'],
+    );
+  });
+
+  it('4) two expanded canonicals: each alias set stays with own parent', () => {
+    const disordered = [
+      aliasRow('b1', 'canon-b', 'B alias'),
+      aliasRow('a1', 'canon-a', 'A alias'),
+      row({
+        catalogId: 'canon-b',
+        name: 'Canon B',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 1,
+      }),
+      row({
+        catalogId: 'canon-a',
+        name: 'Canon A',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 1,
+      }),
+    ];
+
+    const rendered = getRenderedFrpsLibraryRows(
+      disordered,
+      new Set(['canon-a', 'canon-b']),
+    );
+    assertContiguousGroup(rendered, 'canon-b', ['b1']);
+    assertContiguousGroup(rendered, 'canon-a', ['a1']);
+    assert.deepEqual(
+      rendered.map((r) => r.catalogId),
+      ['canon-b', 'b1', 'canon-a', 'a1'],
+    );
+  });
+
+  it('5) reparent: new canonical followed by all reparented aliases incl. source GLOBAL', () => {
+    // After A→B with prior X,Y→A: page may still arrive name-sorted / stale positions.
+    const disordered = [
+      aliasRow('source-a', 'canon-b', 'Estimula A (ex-canônico)'),
+      aliasRow('x', 'canon-b', 'Alias X reparentado'),
+      row({
+        catalogId: 'other',
+        name: 'Outro item',
+        origin: 'GLOBAL',
+      }),
+      row({
+        catalogId: 'canon-b',
+        name: 'Canônico B final',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 3,
+      }),
+      aliasRow('y', 'canon-b', 'Alias Y reparentado'),
+    ];
+
+    const ordered = orderFrpsLibraryRowsByEquivalenceGroups(disordered);
+    assert.deepEqual(
+      ordered.map((r) => r.catalogId),
+      ['other', 'canon-b', 'source-a', 'x', 'y'],
+    );
+
+    const rendered = getRenderedFrpsLibraryRows(
+      disordered,
+      new Set(['canon-b']),
+    );
+    assertContiguousGroup(rendered, 'canon-b', ['source-a', 'x', 'y']);
+    assert.ok(
+      !rendered.some(
+        (r, index) =>
+          r.parentCanonicalId === 'canon-b' &&
+          index < rendered.findIndex((x) => x.catalogId === 'canon-b'),
+      ),
+      'no reparented alias remains above / in old position before B',
+    );
+  });
+
+  it('6) pagination first row: expanded aliases stay after canonical (not under sticky slot)', () => {
+    const page = [
+      aliasRow('hidden-above', 'canon-first', 'AAA alias sorts first by name'),
+      row({
+        catalogId: 'canon-first',
+        name: 'BBB canonical first visual row',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 1,
+      }),
+      row({
+        catalogId: 'next',
+        name: 'CCC next',
+        origin: 'GLOBAL',
+      }),
+    ];
+    const rendered = getRenderedFrpsLibraryRows(
+      page,
+      new Set(['canon-first']),
+    );
+    assert.equal(rendered[0]?.catalogId, 'canon-first');
+    assert.equal(rendered[1]?.catalogId, 'hidden-above');
+    assert.equal(rendered[2]?.catalogId, 'next');
+  });
+
+  it('7) row keys unique after reorder', () => {
+    const disordered = [
+      aliasRow('a1', 'c1', 'A1'),
+      row({
+        catalogId: 'c1',
+        origin: 'GLOBAL',
+        isCanonical: true,
+        aliasCount: 1,
+        itemType: 'ADMINISTRATIVE_RECOMMENDATION',
+      }),
+      aliasRow('a1-dup-check', 'c1', 'A2'),
+    ];
+    // Force same id shape as table (`itemType:catalogId`)
+    disordered[2] = {
+      ...disordered[2]!,
+      id: 'ADMINISTRATIVE_RECOMMENDATION:a1-dup-check',
+    };
+
+    const rendered = getRenderedFrpsLibraryRows(disordered, new Set(['c1']));
+    const keys = rendered.map((r) => r.id);
+    assert.equal(keys.length, new Set(keys).size);
+    assert.deepEqual(keys, [
+      'ADMINISTRATIVE_RECOMMENDATION:c1',
+      'ADMINISTRATIVE_RECOMMENDATION:a1',
+      'ADMINISTRATIVE_RECOMMENDATION:a1-dup-check',
+    ]);
   });
 });

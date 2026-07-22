@@ -3,20 +3,89 @@ import type { FrpsCatalogAdminItem } from '@v2/services/forms/frps-explainabilit
 import { getFrpsAliasSelectionBlockReason } from './frps-catalog-admin-equivalence.util';
 import type { FrpsLibraryTableRow } from './frps-explainability-library-filters.util';
 
-/** Alias local elegível para checkbox / vinculação MASTER. */
+/**
+ * Source elegível para checkbox / vinculação MASTER.
+ * LOCAL ou GLOBAL (não já vinculados). GLOBAL com aliases próprios
+ * permanece selecionável — a API reparenta na mesma transação.
+ */
 export function isFrpsLibraryAliasSelectable(row: FrpsLibraryTableRow): boolean {
-  return row.origin === 'LOCAL' && !row.hasActiveEquivalence && !row.isCanonical;
+  if (row.hasActiveEquivalence) return false;
+  if (row.origin === 'LOCAL') return true;
+  if (row.origin === 'GLOBAL') return true;
+  return false;
+}
+
+/**
+ * Garante composição visual: Canônico → aliases contíguos → próximo item.
+ *
+ * Necessário no client porque, com filtro origin GLOBAL/LOCAL, a API ordena
+ * por nome (não por grupo). Aliases podem vir antes do canônico no payload.
+ * Não altera a API nesta correção.
+ */
+export function orderFrpsLibraryRowsByEquivalenceGroups(
+  rows: FrpsLibraryTableRow[],
+): FrpsLibraryTableRow[] {
+  if (rows.length <= 1) return rows;
+
+  const onPageIds = new Set(rows.map((row) => row.catalogId));
+  const aliasesByParent = new Map<string, FrpsLibraryTableRow[]>();
+  const heads: FrpsLibraryTableRow[] = [];
+
+  for (const row of rows) {
+    const parentId = row.parentCanonicalId;
+    const belongsToParentOnPage = Boolean(
+      row.isAliasRow &&
+        parentId &&
+        onPageIds.has(parentId) &&
+        !row.isOrphanAliasOnPage,
+    );
+
+    if (belongsToParentOnPage && parentId) {
+      const list = aliasesByParent.get(parentId) ?? [];
+      list.push(row);
+      aliasesByParent.set(parentId, list);
+      continue;
+    }
+
+    heads.push(row);
+  }
+
+  const ordered: FrpsLibraryTableRow[] = [];
+  const emittedAliasIds = new Set<string>();
+
+  for (const head of heads) {
+    ordered.push(head);
+    const children = aliasesByParent.get(head.catalogId);
+    if (!children?.length) continue;
+    for (const child of children) {
+      ordered.push(child);
+      emittedAliasIds.add(child.catalogId);
+    }
+  }
+
+  // Segurança: aliases cujo pai não entrou como head (não deve ocorrer).
+  for (const children of aliasesByParent.values()) {
+    for (const child of children) {
+      if (!emittedAliasIds.has(child.catalogId)) {
+        ordered.push(child);
+      }
+    }
+  }
+
+  return ordered;
 }
 
 /**
  * Linhas efetivamente renderizadas: canônicos sempre; aliases só se o grupo
  * estiver expandido (órfãos de página sempre visíveis).
+ * Ordem: canônico seguido imediatamente dos seus aliases (nunca acima).
  */
 export function getRenderedFrpsLibraryRows(
   rows: FrpsLibraryTableRow[],
   expandedCanonicalIds: ReadonlySet<string>,
 ): FrpsLibraryTableRow[] {
-  return rows.filter((row) => {
+  const ordered = orderFrpsLibraryRowsByEquivalenceGroups(rows);
+  return ordered.filter((row) => {
     if (!row.isAliasRow) return true;
     if (row.isOrphanAliasOnPage) return true;
     if (!row.parentCanonicalId) return true;
@@ -51,7 +120,8 @@ export function areAllVisibleSelectableSelected(params: {
 /**
  * Seleciona aliases elegíveis renderizados (página + filtros + grupos abertos),
  * respeitando incompatibilidade com a seleção já existente.
- * Não inclui canônico, global, já vinculado ou de grupos recolhidos.
+ * Não inclui já vinculados ou de grupos recolhidos.
+ * Inclui GLOBAL elegível (source) além de LOCAL.
  */
 export function selectVisibleSelectableAliases(params: {
   visibleSelectable: FrpsLibraryTableRow[];

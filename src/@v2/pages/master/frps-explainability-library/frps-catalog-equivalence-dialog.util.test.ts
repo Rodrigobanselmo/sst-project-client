@@ -94,7 +94,7 @@ describe('manual canonical selection UX', () => {
     );
   });
 
-  it('8-9) linked or global items do not offer link action', () => {
+  it('8-9) linked items hide link action; GLOBAL source can search canonical', () => {
     assert.equal(
       resolveFrpsLibraryCanonicalLinkAction({
         origin: 'LOCAL',
@@ -106,10 +106,18 @@ describe('manual canonical selection UX', () => {
     assert.equal(
       resolveFrpsLibraryCanonicalLinkAction({
         origin: 'GLOBAL',
-        hasActiveEquivalence: false,
+        hasActiveEquivalence: true,
         hintStatus: 'NONE',
       }),
       null,
+    );
+    assert.equal(
+      resolveFrpsLibraryCanonicalLinkAction({
+        origin: 'GLOBAL',
+        hasActiveEquivalence: false,
+        hintStatus: 'NONE',
+      }),
+      'SEARCH',
     );
   });
 
