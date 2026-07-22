@@ -20,6 +20,7 @@ export enum RoutesEnum {
   DASHBOARD = '/dashboard',
   DATABASE = '/dashboard/dados',
   DATABASE_CATALOG_EQUIVALENCES = '/dashboard/dados/equivalencias-catalogo',
+  DATABASE_FRPS_EXPLAINABILITY_LIBRARY = '/dashboard/dados/biblioteca-explicabilidade-frps',
   DATABASE_BIOLOGICAL_INDICATORS = '/dashboard/dados/indicadores-biologicos',
   DATABASE_ESOCIAL_TABLE_27 = '/dashboard/dados/tabela-27-esocial',
   DATABASE_EXAM_RISK_RULES = '/dashboard/dados/regras-exame-risco',

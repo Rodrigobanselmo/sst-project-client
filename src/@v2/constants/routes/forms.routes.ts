@@ -52,6 +52,9 @@ export const FormRoutes = {
     CONTEXTUAL_VALIDATE: 'v2/system/ai-explanations/contextual/:id/validate',
     CONTEXTUAL_REJECT: 'v2/system/ai-explanations/contextual/:id/reject',
   },
+  FRPS_EXPLAINABILITY_LIBRARY: {
+    CONCEPTUAL: 'v2/system/frps-explainability-library/conceptual',
+  },
   RISK: {
     PATH: 'v2/companies/:companyId/forms/risks/',
   },

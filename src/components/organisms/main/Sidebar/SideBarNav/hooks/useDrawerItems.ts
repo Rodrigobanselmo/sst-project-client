@@ -178,6 +178,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_CATALOG_EQUIVALENCES,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.frpsExplainabilityLibrary]: {
+      text: 'Explicabilidade FRPS',
+      description:
+        'Biblioteca de conhecimento conceitual das fontes e recomendações do catálogo system',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_FRPS_EXPLAINABILITY_LIBRARY,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.biologicalIndicatorsGroup]: {
       text: 'Indicadores Biológicos',
       description: 'Tabelas de indicadores biológicos por fonte normativa',
@@ -551,6 +559,7 @@ export const useDrawerItems = () => {
         ...items[DrawerItemsEnum.importExportData],
         items: [
           items[DrawerItemsEnum.catalogEquivalences],
+          items[DrawerItemsEnum.frpsExplainabilityLibrary],
           // Padrões do sistema → bases efetivamente usadas como padrão SimpleSST.
           ...(featureFlags.examRiskRuleLibrary
             ? [

@@ -8,6 +8,7 @@ export enum DrawerItemsEnum {
   checklist = 'checklist',
   importExportData = 'importExportData',
   catalogEquivalences = 'catalogEquivalences',
+  frpsExplainabilityLibrary = 'frpsExplainabilityLibrary',
   biologicalIndicatorsGroup = 'biologicalIndicatorsGroup',
   systemStandardsGroup = 'systemStandardsGroup',
   curationBasesGroup = 'curationBasesGroup',
