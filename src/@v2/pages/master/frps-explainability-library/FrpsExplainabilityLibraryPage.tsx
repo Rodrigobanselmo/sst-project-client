@@ -52,8 +52,10 @@ import {
 import { mergeFrpsEquivalenceSelectionAfterBatch } from './frps-catalog-equivalence-dialog.util';
 import {
   FRPS_LIBRARY_STICKY_TOOLBAR_SX,
+  FRPS_VALIDATE_CONCEPTUAL_SUCCESS_MESSAGE,
   buildFrpsLinkToCanonicalButtonLabel,
 } from './frps-explainability-library-ux.constants';
+import { canShowFrpsLibraryConceptualValidateAction } from './frps-library-conceptual-validate.util';
 import {
   areAllVisibleSelectableSelected,
   buildFrpsSelectVisibleButtonLabel,
@@ -416,6 +418,13 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
       explanationId: row.conceptualExplanationId,
       itemName: row.name,
       itemType: row.itemType,
+      canValidateConceptual: canShowFrpsLibraryConceptualValidateAction({
+        isMaster: canAccess,
+        origin: row.origin,
+        isAliasRow: row.isAliasRow,
+        conceptualExplanationId: row.conceptualExplanationId,
+        validationStatus: row.status,
+      }),
     });
   };
 
@@ -437,6 +446,13 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
         explanationId: result.id,
         itemName: row.name,
         itemType: row.itemType,
+        canValidateConceptual: canShowFrpsLibraryConceptualValidateAction({
+          isMaster: canAccess,
+          origin: row.origin,
+          isAliasRow: row.isAliasRow,
+          conceptualExplanationId: result.id,
+          validationStatus: 'DRAFT_AI',
+        }),
       });
     } catch (err) {
       const message = getErrorMessage(err);
@@ -475,6 +491,16 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
       aliases: [],
       preferManualPicker: false,
     });
+  };
+
+  const handleConceptualValidated = async () => {
+    enqueueSnackbar(FRPS_VALIDATE_CONCEPTUAL_SUCCESS_MESSAGE, {
+      variant: 'success',
+    });
+    await queryClient.invalidateQueries({
+      queryKey: frpsExplainabilityLibraryQueryKeys.all,
+    });
+    await refetch();
   };
 
   const handleEquivalenceCompleted = async (
@@ -695,6 +721,9 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
         open={Boolean(viewTarget)}
         target={viewTarget}
         onClose={() => setViewTarget(null)}
+        onValidated={() => {
+          void handleConceptualValidated();
+        }}
       />
 
       <FrpsCatalogEquivalenceDialog

@@ -234,9 +234,6 @@ export function FrpsExplainabilityDrawer() {
     startEditing,
     cancelEditing,
     saveDraft,
-    saveAndValidate,
-    validateContent,
-    rejectContent,
     closeExplainItem,
     retryExplainItem,
   } = useFrpsExplainability();
@@ -621,34 +618,7 @@ export function FrpsExplainabilityDrawer() {
                       onClick={startEditing}
                       buttonProps={{ type: 'button', disabled: isProtected }}
                     />
-                    <SButton
-                      variant="contained"
-                      color="primary"
-                      size="s"
-                      text="Validar conteúdo"
-                      onClick={() => void validateContent()}
-                      buttonProps={{
-                        type: 'button',
-                        disabled: bothValidated || isProtected,
-                      }}
-                    />
-                    {/* SButton aceita apenas danger (não error) — colorMap.error é undefined */}
-                    <SButton
-                      variant="outlined"
-                      color="danger"
-                      size="s"
-                      text="Rejeitar conteúdo"
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            'Rejeitar este conteúdo? Ele deixará de ficar disponível para usuários comuns.',
-                          )
-                        ) {
-                          void rejectContent();
-                        }
-                      }}
-                      buttonProps={{ type: 'button' }}
-                    />
+                    {/* Validação conceitual: somente na Biblioteca FRPS (v1). */}
                   </SFlex>
                 </FrpsExplainabilityDrawerErrorBoundary>
               )}
@@ -687,14 +657,7 @@ export function FrpsExplainabilityDrawer() {
                       onClick={() => void saveDraft()}
                       buttonProps={{ type: 'button', disabled: isLoading }}
                     />
-                    <SButton
-                      variant="contained"
-                      color="primary"
-                      size="s"
-                      text="Salvar e validar"
-                      onClick={() => void saveAndValidate()}
-                      buttonProps={{ type: 'button', disabled: isLoading }}
-                    />
+                    {/* Validação conceitual: somente na Biblioteca FRPS (v1). */}
                   </SFlex>
                 </SFlex>
               )}

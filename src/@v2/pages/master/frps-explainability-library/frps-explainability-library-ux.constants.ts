@@ -70,3 +70,14 @@ export const FRPS_LIBRARY_STICKY_TABLE_HEAD_SX: SxProps<Theme> = {
 export const FRPS_LIBRARY_TABLE_CONTAINER_SX: SxProps<Theme> = {
   overflow: 'visible',
 };
+
+export const FRPS_VALIDATE_CONCEPTUAL_BUTTON_LABEL = 'Validar explicação';
+
+export const FRPS_VALIDATE_CONCEPTUAL_CONFIRM_TITLE =
+  'Validar esta explicação conceitual?';
+
+export const FRPS_VALIDATE_CONCEPTUAL_CONFIRM_BODY =
+  'Após a validação, este conhecimento poderá ser reutilizado operacionalmente pelos aliases vinculados ao canônico. O conteúdo não será copiado para as empresas.';
+
+export const FRPS_VALIDATE_CONCEPTUAL_SUCCESS_MESSAGE =
+  'Explicação validada com sucesso.';

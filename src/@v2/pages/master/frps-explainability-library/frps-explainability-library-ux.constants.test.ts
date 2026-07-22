@@ -16,6 +16,8 @@ import {
   FRPS_LIBRARY_TABLE_CONTAINER_SX,
   FRPS_LINK_TO_CANONICAL_BUTTON_LABEL,
   FRPS_SEARCH_CANONICAL_ACTION_LABEL,
+  FRPS_VALIDATE_CONCEPTUAL_BUTTON_LABEL,
+  FRPS_VALIDATE_CONCEPTUAL_SUCCESS_MESSAGE,
   buildFrpsEquivalenceDialogConfirmLabel,
   buildFrpsLinkToCanonicalButtonLabel,
 } from './frps-explainability-library-ux.constants';
@@ -99,6 +101,14 @@ describe('FRPS library UX refinements', () => {
     assert.equal(
       FRPS_CHOOSE_OTHER_CANONICAL_ACTION_LABEL,
       'Escolher outro canônico',
+    );
+  });
+
+  it('13) conceptual validate copy', () => {
+    assert.equal(FRPS_VALIDATE_CONCEPTUAL_BUTTON_LABEL, 'Validar explicação');
+    assert.equal(
+      FRPS_VALIDATE_CONCEPTUAL_SUCCESS_MESSAGE,
+      'Explicação validada com sucesso.',
     );
   });
 });
