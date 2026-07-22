@@ -3,6 +3,8 @@ import { FormQuestionsAnswersAnalysisBrowseResultModel } from './form-questions-
 export type AnalysisItemInventoryEntry = {
   existsInInventory: boolean;
   existsInCatalog: boolean;
+  /** Catálogo local resolvido; client monta itemKey = catalog:{itemType}:{catalogId}. */
+  catalogId?: string | null;
 };
 
 export type AnalysisItemInventoryStatus = {

@@ -180,9 +180,13 @@ describe('FRPS common user awaiting contextual copy', () => {
     const awaitingIdx = drawer.indexOf("phase === 'awaiting_contextual_generate'");
     const masterIdx = drawer.indexOf("phase === 'awaiting_master_generate'");
     assert.ok(awaitingIdx > 0 && masterIdx > awaitingIdx);
+    // Bloco contextual termina antes do generate MASTER (sem painel Vincular/Criar).
     const awaitingBlock = drawer.slice(awaitingIdx, masterIdx);
     assert.equal(awaitingBlock.includes('FRPS_EXPLAINABILITY_MODEL_OPTIONS'), false);
     assert.equal(awaitingBlock.includes('selectedConceptualModel'), false);
+    assert.equal(drawer.includes('awaiting_global_catalog_decision'), false);
+    assert.equal(drawer.includes('FrpsGlobalCatalogDecisionPanel'), false);
+    assert.equal(drawer.includes('confirmCreateGlobalCatalog'), false);
   });
 
   it('13 common user labels: no model selector copy; conceptual unavailable title', () => {

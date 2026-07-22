@@ -395,7 +395,9 @@ export function FrpsExplainabilityDrawer() {
               <SText variant="body1" fontWeight="bold" fontSize={16} mb={1}>
                 {unavailableReason === 'CONCEPTUAL_NOT_VALIDATED'
                   ? FRPS_EXPLAINABILITY_UI_COPY.commonConceptualUnavailableTitle
-                  : 'Explicação técnica ainda não disponível'}
+                  : unavailableReason === 'GLOBAL_CATALOG_LINK_REQUIRED'
+                    ? FRPS_EXPLAINABILITY_UI_COPY.globalCatalogLinkRequiredTitle
+                    : 'Explicação técnica ainda não disponível'}
               </SText>
               <SText
                 variant="body2"
@@ -405,7 +407,9 @@ export function FrpsExplainabilityDrawer() {
               >
                 {unavailableReason === 'CONCEPTUAL_NOT_VALIDATED'
                   ? 'Este item precisa ser preparado e validado por um usuário master antes da geração da justificativa desta análise.'
-                  : 'Este conteúdo precisa ser gerado e validado por um usuário master antes de ficar disponível.'}
+                  : unavailableReason === 'GLOBAL_CATALOG_LINK_REQUIRED'
+                    ? FRPS_EXPLAINABILITY_UI_COPY.globalCatalogLinkRequiredBody
+                    : 'Este conteúdo precisa ser gerado e validado por um usuário master antes de ficar disponível.'}
               </SText>
               <SButton
                 variant="outlined"

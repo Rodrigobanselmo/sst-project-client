@@ -54,6 +54,8 @@ export const FormRoutes = {
   },
   FRPS_EXPLAINABILITY_LIBRARY: {
     CONCEPTUAL: 'v2/system/frps-explainability-library/conceptual',
+    CONCEPTUAL_GENERATE:
+      'v2/system/frps-explainability-library/conceptual/generate',
   },
   RISK: {
     PATH: 'v2/companies/:companyId/forms/risks/',

@@ -9,13 +9,21 @@ import {
   Typography,
 } from '@mui/material';
 import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { RoleEnum } from 'project/enum/roles.enums';
-import { useFetchBrowseFrpsExplainabilityLibrary } from '@v2/services/forms/frps-explainability-library';
+import {
+  useFetchBrowseFrpsExplainabilityLibrary,
+  useMutateGenerateFrpsLibraryConceptual,
+} from '@v2/services/forms/frps-explainability-library';
 
 import { FrpsExplainabilityLibraryFiltersBar } from './components/FrpsExplainabilityLibraryFiltersBar';
 import { FrpsExplainabilityLibrarySummaryCards } from './components/FrpsExplainabilityLibrarySummaryCards';
 import { FrpsExplainabilityLibraryTable } from './components/FrpsExplainabilityLibraryTable';
+import {
+  FrpsLibraryConceptualViewDrawer,
+  type FrpsLibraryViewTarget,
+} from './components/FrpsLibraryConceptualViewDrawer';
 import {
   FRPS_LIBRARY_DEFAULT_RISK_SUB_TYPE_ENUM,
   FRPS_LIBRARY_DEFAULT_RISK_TYPE,
@@ -26,17 +34,40 @@ import {
   parseFrpsLibraryFiltersFromQuery,
   serializeFrpsLibraryFiltersToQuery,
   shouldApplyFrpsLibraryDefaultScope,
+  type FrpsLibraryTableRow,
   type FrpsLibraryUrlFilters,
 } from './frps-explainability-library-filters.util';
 import { frpsLibraryPaginationSx } from './frps-explainability-library-pagination.styles';
 
+function getErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null) {
+    const maybeAxios = error as {
+      response?: { data?: { message?: string | string[] } };
+      message?: string;
+    };
+    const apiMessage = maybeAxios.response?.data?.message;
+    if (Array.isArray(apiMessage) && apiMessage[0]) return String(apiMessage[0]);
+    if (typeof apiMessage === 'string' && apiMessage) return apiMessage;
+    if (typeof maybeAxios.message === 'string' && maybeAxios.message) {
+      return maybeAxios.message;
+    }
+  }
+  return 'Erro inesperado.';
+}
+
 export const FrpsExplainabilityLibraryPage: FC = () => {
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
   const { isAuthSuccess } = useAuthShow();
   const canAccess = isAuthSuccess({ roles: [RoleEnum.MASTER] });
 
   const [searchDraft, setSearchDraft] = useState('');
   const [urlReady, setUrlReady] = useState(false);
+  const [generatingRowId, setGeneratingRowId] = useState<string | null>(null);
+  const [viewTarget, setViewTarget] = useState<FrpsLibraryViewTarget | null>(
+    null,
+  );
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   const filters = useMemo(
     () => parseFrpsLibraryFiltersFromQuery(router.query),
@@ -76,6 +107,8 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
   const { data, isLoading, isFetching, isError, error, refetch } =
     useFetchBrowseFrpsExplainabilityLibrary(browseParams, canAccess && urlReady);
 
+  const generateMutation = useMutateGenerateFrpsLibraryConceptual();
+
   const rows = useMemo(
     () => (data?.items ?? []).map(mapFrpsLibraryItemToTableRow),
     [data?.items],
@@ -102,6 +135,44 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     });
   };
 
+  const handleView = (row: FrpsLibraryTableRow) => {
+    if (!row.conceptualExplanationId) return;
+    setGenerateError(null);
+    setViewTarget({
+      explanationId: row.conceptualExplanationId,
+      itemName: row.name,
+      itemType: row.itemType,
+    });
+  };
+
+  const handleGenerate = async (row: FrpsLibraryTableRow) => {
+    setGenerateError(null);
+    setGeneratingRowId(row.id);
+
+    try {
+      const result = await generateMutation.mutateAsync({
+        systemCatalogId: row.systemCatalogId,
+        itemType: row.itemType,
+      });
+
+      enqueueSnackbar('Conhecimento conceitual gerado.', {
+        variant: 'success',
+      });
+
+      setViewTarget({
+        explanationId: result.id,
+        itemName: row.name,
+        itemType: row.itemType,
+      });
+    } catch (err) {
+      const message = getErrorMessage(err);
+      setGenerateError(message);
+      enqueueSnackbar(`Falha ao gerar: ${message}`, { variant: 'error' });
+    } finally {
+      setGeneratingRowId(null);
+    }
+  };
+
   if (!canAccess) {
     return (
       <Alert severity="warning">
@@ -116,9 +187,9 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
         Biblioteca de Explicabilidade FRPS
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={2.5} maxWidth={820}>
-        Consulte o conhecimento conceitual reutilizável das fontes geradoras e
-        recomendações do catálogo system. Esta tela lista apenas metadados; a
-        curadoria do conteúdo será adicionada nas próximas etapas.
+        Consulte e gere o conhecimento conceitual reutilizável das fontes
+        geradoras e recomendações do catálogo system. A edição e a validação
+        serão adicionadas nas próximas etapas.
       </Typography>
 
       <FrpsExplainabilityLibrarySummaryCards
@@ -166,6 +237,16 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
         </Alert>
       ) : null}
 
+      {generateError ? (
+        <Alert
+          severity="error"
+          onClose={() => setGenerateError(null)}
+          sx={{ mb: 2 }}
+        >
+          Não foi possível gerar o conhecimento conceitual. {generateError}
+        </Alert>
+      ) : null}
+
       {!urlReady || isLoading ? (
         <Box display="flex" justifyContent="center" py={6}>
           <CircularProgress size={32} />
@@ -184,7 +265,12 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
             </Typography>
           </Box>
 
-          <FrpsExplainabilityLibraryTable rows={rows} />
+          <FrpsExplainabilityLibraryTable
+            rows={rows}
+            generatingRowId={generatingRowId}
+            onGenerate={handleGenerate}
+            onView={handleView}
+          />
 
           {(data?.pagination.totalPages ?? 0) > 1 ? (
             <Box display="flex" justifyContent="center" mt={2.5}>
@@ -199,6 +285,12 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
           ) : null}
         </>
       )}
+
+      <FrpsLibraryConceptualViewDrawer
+        open={Boolean(viewTarget)}
+        target={viewTarget}
+        onClose={() => setViewTarget(null)}
+      />
     </Box>
   );
 };

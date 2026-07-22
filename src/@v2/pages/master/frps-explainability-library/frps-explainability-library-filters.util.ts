@@ -221,6 +221,9 @@ export function getFrpsLibraryStatusLabel(
 
 export type FrpsLibraryTableRow = {
   id: string;
+  systemCatalogId: string;
+  itemType: FrpsLibraryBrowseItem['itemType'];
+  conceptualExplanationId: string | null;
   name: string;
   typeLabel: string;
   riskName: string;
@@ -234,7 +237,10 @@ export function mapFrpsLibraryItemToTableRow(
   item: FrpsLibraryBrowseItem,
 ): FrpsLibraryTableRow {
   return {
-    id: item.systemCatalogId,
+    id: `${item.itemType}:${item.systemCatalogId}`,
+    systemCatalogId: item.systemCatalogId,
+    itemType: item.itemType,
+    conceptualExplanationId: item.conceptualExplanationId,
     name: item.name,
     typeLabel: getFrpsLibraryItemTypeLabel(item.itemType),
     riskName: item.riskName,

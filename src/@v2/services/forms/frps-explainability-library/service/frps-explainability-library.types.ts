@@ -107,3 +107,73 @@ export type BrowseFrpsExplainabilityLibraryParams = {
   sortOrder?: 'asc' | 'desc';
   generalCatalog?: boolean;
 };
+
+export type FrpsLibraryValidationStatus =
+  | 'DRAFT_AI'
+  | 'VALIDATED'
+  | 'REJECTED'
+  | 'SUPERSEDED';
+
+export type FrpsLibraryConceptualContent = {
+  definition?: string | null;
+  relationToRiskFactor?: string | null;
+  measurableQuestions?: string[] | string | null;
+  organizationalManifestations?: string | string[] | null;
+  favorableSignals?: string | string[] | null;
+  intermediateSignals?: string | string[] | null;
+  unfavorableSignals?: string | string[] | null;
+  interpretationLimits?: string | null;
+  professionalValidationGuidance?: string | null;
+  objective?: string | null;
+  whyItMayReduceRisk?: string | null;
+  implementationGuidance?: string | null;
+  practicalExamples?: string | string[] | null;
+  expectedResults?: string | null;
+  monitoringIndicators?: string | string[] | null;
+  limitationsAndCautions?: string | null;
+};
+
+export type GenerateFrpsLibraryConceptualParams = {
+  systemCatalogId: string;
+  itemType: FrpsLibraryItemType;
+  conceptualModel?: string;
+};
+
+export type GenerateFrpsLibraryConceptualResult = {
+  id: string;
+  itemType: FrpsLibraryItemType;
+  itemKey: string;
+  catalogId: string | null;
+  riskId: string | null;
+  content: FrpsLibraryConceptualContent;
+  validationStatus: FrpsLibraryValidationStatus;
+  methodologyVersion: string;
+  contentVersion: number;
+  promptRevision: number | null;
+  model: string | null;
+  cached: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ReadFrpsConceptualExplanationByIdResult = {
+  id: string;
+  itemType: FrpsLibraryItemType;
+  itemKey: string;
+  catalogId: string | null;
+  contentKey: string | null;
+  riskId: string | null;
+  riskFactor: { id: string; name: string } | null;
+  content: FrpsLibraryConceptualContent;
+  validationStatus: FrpsLibraryValidationStatus;
+  methodologyVersion: string;
+  locale: string;
+  contentVersion: number;
+  promptRevision: number | null;
+  model: string | null;
+  generatedByUser: { id: number; name: string } | null;
+  validatedByUser: { id: number; name: string } | null;
+  validatedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};

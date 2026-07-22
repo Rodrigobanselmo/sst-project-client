@@ -13,7 +13,11 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { AnalysisItemStatusBadges } from './AnalysisItemStatusBadges';
 import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
-import { ExplainFrpsItemButton } from './frps-explainability';
+import {
+  ExplainFrpsItemButton,
+  buildCatalogFrpsItemKey,
+  mapAnalysisListItemTypeToExplanationItemType,
+} from './frps-explainability';
 import {
   buildAnalysisItemCodeRegistry,
   type AnalysisItemCodeType,
@@ -305,6 +309,14 @@ function EditableAnalysisItem({
             analysisId={analysisId}
             listItemType={itemType}
             itemName={item.nome}
+            itemKey={
+              itemStatus?.catalogId
+                ? buildCatalogFrpsItemKey(
+                    mapAnalysisListItemTypeToExplanationItemType(itemType),
+                    itemStatus.catalogId,
+                  )
+                : undefined
+            }
             riskFactorName={analysis.analysis?.frps}
           />
         </SFlex>

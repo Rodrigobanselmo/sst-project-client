@@ -7,7 +7,10 @@ export {
 } from './FrpsExplainabilityBridge';
 export {
   mapAnalysisListItemTypeToExplanationItemType,
+  buildCatalogFrpsItemKey,
   buildFrpsExplainabilityCacheKey,
+  mapFrpsItemTypeToRiskCatalogKind,
+  resolveFrpsUnavailableUiPhase,
   getFrpsExplanationItemTypeLabel,
   getConceptualValidationStatusLabel,
   getContextualValidationStatusLabel,

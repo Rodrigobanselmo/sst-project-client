@@ -33,6 +33,7 @@ import {
   buildFrpsExplainabilityCacheKey,
   buildFrpsExplainabilityCacheKeyPrefix,
   mapAnalysisListItemTypeToExplanationItemType,
+  resolveFrpsUnavailableUiPhase,
 } from './frps-explainability.utils';
 import { isCompatibleFrpsAvailablePayload } from './frps-explainability-safe-content.util';
 
@@ -194,6 +195,109 @@ export function FrpsExplainabilityProvider({
     inFlightKeyRef.current = null;
   }, [companyId, applicationId]);
 
+  const applyUnavailableResponse = useCallback(
+    (
+      response: Extract<ReadFrpsItemExplanationResponse, { available: false }>,
+      nextTarget: FrpsExplainabilityTarget,
+    ) => {
+      if (response.reason === 'ITEM_NOT_FOUND') {
+        setUnavailableReason(response.reason);
+        setData(null);
+        setErrorMessage(
+          'O item não foi encontrado nesta análise. Atualize a tela e tente novamente.',
+        );
+        setPhase('error');
+        return;
+      }
+
+      setUnavailableReason(response.reason);
+
+      // Mantém itemKey estável da API quando disponível (sem fluxo de vínculo).
+      if (response.localItem?.itemKey) {
+        setTarget((current) =>
+          current
+            ? {
+                ...current,
+                itemKey: current.itemKey || response.localItem?.itemKey,
+                itemName: response.localItem?.itemName || current.itemName,
+              }
+            : {
+                ...nextTarget,
+                itemKey: response.localItem?.itemKey,
+                itemName: response.localItem?.itemName || nextTarget.itemName,
+              },
+        );
+      }
+
+      if (response.conceptual) {
+        setData({
+          available: true,
+          conceptual: response.conceptual,
+          contextual: {
+            protectedData: true,
+            itemType: response.conceptual.itemType,
+            itemKey: response.conceptual.itemKey,
+            label: 'pending-contextual',
+          },
+        });
+      } else {
+        setData(null);
+      }
+
+      const nextPhase = resolveFrpsUnavailableUiPhase({
+        reason: response.reason,
+        canGenerateConceptual: response.canGenerateConceptual,
+        canGenerateContextual: response.canGenerateContextual,
+        isMaster,
+      });
+      setPhase(nextPhase);
+    },
+    [isMaster],
+  );
+
+  const applyAvailableResponse = useCallback(
+    (
+      response: AvailablePayload,
+      nextTarget: FrpsExplainabilityTarget,
+      cacheKey: string,
+    ) => {
+      if (!isCompatibleFrpsAvailablePayload(response)) {
+        setErrorMessage(
+          'A resposta da explicação técnica veio em formato inesperado. Atualize a tela e tente novamente.',
+        );
+        setData(null);
+        setPhase('error');
+        return;
+      }
+
+      const stableKey = resolveCacheKey({
+        analysisId: nextTarget.analysisId,
+        itemType: nextTarget.itemType,
+        itemName: nextTarget.itemName,
+        itemKey: nextTarget.itemKey,
+        response,
+      });
+      cacheRef.current.set(stableKey, response);
+      if (stableKey !== cacheKey) cacheRef.current.set(cacheKey, response);
+
+      setTarget((current) =>
+        current
+          ? {
+              ...current,
+              itemKey:
+                response.contextual.itemKey ||
+                response.conceptual.itemKey ||
+                current.itemKey,
+            }
+          : current,
+      );
+      setUnavailableReason(null);
+      setData(response);
+      setPhase('ready');
+    },
+    [resolveCacheKey],
+  );
+
   const fetchRead = useCallback(
     async (nextTarget: FrpsExplainabilityTarget, cacheKey: string) => {
       if (inFlightKeyRef.current === cacheKey) return;
@@ -241,85 +345,11 @@ export function FrpsExplainabilityProvider({
         });
 
         if (!response.available) {
-          if (response.reason === 'ITEM_NOT_FOUND') {
-            setUnavailableReason(response.reason);
-            setData(null);
-            setErrorMessage(
-              'O item não foi encontrado nesta análise. Atualize a tela e tente novamente.',
-            );
-            setPhase('error');
-            return;
-          }
-
-          setUnavailableReason(response.reason);
-          if (response.conceptual) {
-            setData({
-              available: true,
-              conceptual: response.conceptual,
-              contextual: {
-                protectedData: true,
-                itemType: response.conceptual.itemType,
-                itemKey: response.conceptual.itemKey,
-                label: 'pending-contextual',
-              },
-            });
-          } else {
-            setData(null);
-          }
-
-          if (
-            response.reason === 'CONTEXTUAL_NOT_GENERATED' &&
-            response.canGenerateContextual
-          ) {
-            setPhase('awaiting_contextual_generate');
-            return;
-          }
-
-          if (
-            isMaster &&
-            (response.reason === 'CONCEPTUAL_NOT_GENERATED' ||
-              response.canGenerateConceptual)
-          ) {
-            setPhase('awaiting_master_generate');
-            return;
-          }
-
-          setPhase('unavailable');
+          applyUnavailableResponse(response, nextTarget);
           return;
         }
 
-        if (!isCompatibleFrpsAvailablePayload(response)) {
-          setErrorMessage(
-            'A resposta da explicação técnica veio em formato inesperado. Atualize a tela e tente novamente.',
-          );
-          setData(null);
-          setPhase('error');
-          return;
-        }
-
-        const stableKey = resolveCacheKey({
-          analysisId: nextTarget.analysisId,
-          itemType: nextTarget.itemType,
-          itemName: nextTarget.itemName,
-          itemKey: nextTarget.itemKey,
-          response,
-        });
-        cacheRef.current.set(stableKey, response);
-        if (stableKey !== cacheKey) cacheRef.current.set(cacheKey, response);
-
-        setTarget((current) =>
-          current
-            ? {
-                ...current,
-                itemKey:
-                  response.contextual.itemKey ||
-                  response.conceptual.itemKey ||
-                  current.itemKey,
-              }
-            : current,
-        );
-        setData(response);
-        setPhase('ready');
+        applyAvailableResponse(response, nextTarget, cacheKey);
       } catch (error) {
         const classified = classifyFrpsExplainabilityError(error);
         setErrorMessage(classified.message);
@@ -330,7 +360,14 @@ export function FrpsExplainabilityProvider({
         setIsLoading(false);
       }
     },
-    [applicationId, companyId, isMaster, readMutation, resolveCacheKey],
+    [
+      applicationId,
+      applyAvailableResponse,
+      applyUnavailableResponse,
+      companyId,
+      isMaster,
+      readMutation,
+    ],
   );
 
   const openExplainItem = useCallback(

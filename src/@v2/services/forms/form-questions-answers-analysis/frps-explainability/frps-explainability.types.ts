@@ -119,11 +119,20 @@ export type ReadFrpsItemExplanationResponse =
         | 'CONCEPTUAL_NOT_VALIDATED'
         | 'CONCEPTUAL_NOT_GENERATED'
         | 'CONTEXTUAL_NOT_GENERATED'
+        | 'GLOBAL_CATALOG_LINK_REQUIRED'
         | 'NOT_AVAILABLE_FOR_USER'
         | 'NOT_GENERATED';
       canGenerateContextual?: boolean;
       canGenerateConceptual?: boolean;
       conceptual?: FrpsExplainItemConceptualBlock;
+      /** Pode trazer itemKey estável quando o backend o resolver. */
+      localItem?: {
+        itemKey: string;
+        catalogId?: string | null;
+        itemName?: string;
+        itemType?: FrpsExplanationItemType;
+        riskId?: string;
+      };
     }
   | {
       available: true;

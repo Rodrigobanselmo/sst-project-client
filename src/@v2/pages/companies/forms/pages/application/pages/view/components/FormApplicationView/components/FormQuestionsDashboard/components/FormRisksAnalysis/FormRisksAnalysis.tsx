@@ -83,6 +83,8 @@ import {
   FrpsExplainabilityProvider,
   ExplainFrpsItemButton,
   FrpsExplainabilityBridge,
+  buildCatalogFrpsItemKey,
+  mapAnalysisListItemTypeToExplanationItemType,
   type FrpsExplainabilityApi,
 } from './frps-explainability';
 import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
@@ -1180,6 +1182,14 @@ export const FormRisksAnalysis = ({
                 analysisId={analysisId}
                 listItemType={itemType}
                 itemName={item.nome}
+                itemKey={
+                  itemStatus?.catalogId
+                    ? buildCatalogFrpsItemKey(
+                        mapAnalysisListItemTypeToExplanationItemType(itemType),
+                        itemStatus.catalogId,
+                      )
+                    : undefined
+                }
                 riskFactorName={analysis?.analysis?.frps}
               />
             </SFlex>

@@ -53,6 +53,11 @@ const CODE_MESSAGES: Record<string, { kind: FrpsExplainabilityErrorKind; message
     message:
       'A explicação conceitual precisa estar validada por um usuário master antes da justificativa desta análise.',
   },
+  GLOBAL_CATALOG_LINK_REQUIRED: {
+    kind: 'conflict',
+    message:
+      'Este item ainda não possui identidade global na Biblioteca. A explicação técnica ficará disponível quando o item for criado no catálogo do sistema.',
+  },
   FORBIDDEN_MODEL: {
     kind: 'forbidden',
     message: 'Você não tem permissão para selecionar este modelo de IA.',

@@ -175,7 +175,7 @@ describe('FRPS library browse params and table mapping', () => {
     });
   });
 
-  it('maps API item to table row without content fields', () => {
+  it('maps API item to table row with system identity fields', () => {
     const row = mapFrpsLibraryItemToTableRow({
       systemCatalogId: 'gs-1',
       itemKey: 'catalog:SOURCE:gs-1',
@@ -199,6 +199,10 @@ describe('FRPS library browse params and table mapping', () => {
       updatedAt: null,
     });
 
+    assert.equal(row.id, 'SOURCE:gs-1');
+    assert.equal(row.systemCatalogId, 'gs-1');
+    assert.equal(row.itemType, 'SOURCE');
+    assert.equal(row.conceptualExplanationId, null);
     assert.equal(row.name, 'Pressão por prazos');
     assert.equal(row.typeLabel, 'Fonte');
     assert.equal(row.riskName, 'Demandas quantitativas');

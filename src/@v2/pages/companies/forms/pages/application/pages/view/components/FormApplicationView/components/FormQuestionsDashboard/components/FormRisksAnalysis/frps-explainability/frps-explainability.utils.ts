@@ -1,8 +1,12 @@
 import type {
   FrpsAnalysisListItemType,
   FrpsExplanationItemType,
+  ReadFrpsItemExplanationResponse,
 } from '@v2/services/forms/form-questions-answers-analysis/frps-explainability';
 import { FRPS_EXPLAINABILITY_UI_COPY } from './frps-explainability-ui-copy';
+
+/** Espelha RiskCatalogKind sem acoplar o util a path aliases em testes tsx. */
+export type FrpsRiskCatalogKind = 'GENERATE_SOURCE' | 'REC_MED';
 
 const LIST_TO_EXPLANATION: Record<
   FrpsAnalysisListItemType,
@@ -23,6 +27,61 @@ export function mapAnalysisListItemTypeToExplanationItemType(
   listItemType: FrpsAnalysisListItemType,
 ): FrpsExplanationItemType {
   return LIST_TO_EXPLANATION[listItemType];
+}
+
+/** itemKey estável a partir do catálogo local da análise. */
+export function buildCatalogFrpsItemKey(
+  itemType: FrpsExplanationItemType,
+  catalogId: string,
+): string {
+  return `catalog:${itemType}:${catalogId}`;
+}
+
+export function mapFrpsItemTypeToRiskCatalogKind(
+  itemType: FrpsExplanationItemType,
+): FrpsRiskCatalogKind {
+  return itemType === 'SOURCE' ? 'GENERATE_SOURCE' : 'REC_MED';
+}
+
+export type FrpsUnavailableUiPhase =
+  | 'awaiting_master_generate'
+  | 'awaiting_contextual_generate'
+  | 'unavailable'
+  | 'error';
+
+/**
+ * Resolve a fase de UI a partir de um read unavailable.
+ * GLOBAL_CATALOG_LINK_REQUIRED → unavailable (sem picker / link-global).
+ */
+export function resolveFrpsUnavailableUiPhase(params: {
+  reason: Extract<ReadFrpsItemExplanationResponse, { available: false }>['reason'];
+  canGenerateConceptual?: boolean;
+  canGenerateContextual?: boolean;
+  isMaster: boolean;
+}): FrpsUnavailableUiPhase {
+  if (params.reason === 'ITEM_NOT_FOUND') return 'error';
+
+  if (
+    params.reason === 'CONTEXTUAL_NOT_GENERATED' &&
+    params.canGenerateContextual
+  ) {
+    return 'awaiting_contextual_generate';
+  }
+
+  if (params.reason === 'GLOBAL_CATALOG_LINK_REQUIRED') {
+    return 'unavailable';
+  }
+
+  if (
+    params.isMaster &&
+    params.canGenerateConceptual &&
+    (params.reason === 'CONCEPTUAL_NOT_GENERATED' ||
+      params.reason === 'NOT_GENERATED')
+  ) {
+    return 'awaiting_master_generate';
+  }
+
+  return 'unavailable';
 }
 
 export function getFrpsExplanationItemTypeLabel(

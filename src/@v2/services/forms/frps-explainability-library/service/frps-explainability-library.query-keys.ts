@@ -7,4 +7,9 @@ export const frpsExplainabilityLibraryQueryKeys = {
     'browse',
     params,
   ],
+  conceptualById: (id: string) => [
+    'frps-explainability-library',
+    'conceptual',
+    id,
+  ],
 };
