@@ -1,5 +1,5 @@
 import { Box, Paper, Typography } from '@mui/material';
-import type { FrpsLibrarySummary } from '@v2/services/forms/frps-explainability-library';
+import type { FrpsCatalogAdminSummary } from '@v2/services/forms/frps-explainability-library';
 
 type CardDef = {
   label: string;
@@ -10,13 +10,21 @@ export function FrpsExplainabilityLibrarySummaryCards({
   summary,
   scopeLabel,
 }: {
-  summary?: FrpsLibrarySummary;
+  summary?: FrpsCatalogAdminSummary;
   scopeLabel?: string;
 }) {
   const cards: CardDef[] = [
     {
-      label: 'Cobertura',
-      value: `${summary?.coveragePercent ?? 0}%`,
+      label: 'Itens',
+      value: summary?.totalItems ?? 0,
+    },
+    {
+      label: 'Globais',
+      value: summary?.totalGlobal ?? 0,
+    },
+    {
+      label: 'Locais',
+      value: summary?.totalLocal ?? 0,
     },
     {
       label: 'Validados',
@@ -31,16 +39,8 @@ export function FrpsExplainabilityLibrarySummaryCards({
       value: summary?.totalNeverGenerated ?? 0,
     },
     {
-      label: 'Rejeitados',
-      value: summary?.totalRejected ?? 0,
-    },
-    {
-      label: 'Fontes',
-      value: `${summary?.validatedSources ?? 0}/${summary?.totalSources ?? 0}`,
-    },
-    {
-      label: 'Recomendações',
-      value: `${summary?.validatedRecommendations ?? 0}/${summary?.totalRecommendations ?? 0}`,
+      label: 'Com equivalência',
+      value: summary?.totalWithEquivalence ?? 0,
     },
   ];
 

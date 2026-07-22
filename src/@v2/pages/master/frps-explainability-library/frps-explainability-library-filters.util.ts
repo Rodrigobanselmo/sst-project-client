@@ -1,21 +1,31 @@
 import type {
-  BrowseFrpsExplainabilityLibraryParams,
-  FrpsLibraryBrowseItem,
+  BrowseFrpsCatalogAdminParams,
+  FrpsCatalogAdminCatalogType,
+  FrpsCatalogAdminItem,
+  FrpsCatalogAdminOriginFilter,
   FrpsLibraryConceptualStatus,
-  FrpsLibraryKind,
 } from '@v2/services/forms/frps-explainability-library';
 
+import {
+  FRPS_GLOBAL_COMPANY_DISPLAY_NAME,
+  FRPS_GLOBAL_ORIGIN_DISPLAY_NAME,
+  type FrpsGlobalCandidateHint,
+} from './frps-catalog-admin-equivalence.util';
 export const FRPS_LIBRARY_DEFAULT_RISK_TYPE = 'ERG';
 export const FRPS_LIBRARY_DEFAULT_RISK_SUB_TYPE_ENUM = 'PSICOSOCIAL';
-export const FRPS_LIBRARY_DEFAULT_LIMIT = 20;
+export const FRPS_LIBRARY_DEFAULT_LIMIT = 15;
 
 export type FrpsLibraryUrlFilters = {
   riskType: string | null;
   riskSubTypeEnum: string | null;
   riskSubTypeId: number | null;
   riskId: string | null;
-  kind: FrpsLibraryKind | null;
+  catalogType: FrpsCatalogAdminCatalogType | null;
+  origin: FrpsCatalogAdminOriginFilter;
+  companyId: string | null;
   status: FrpsLibraryConceptualStatus | null;
+  hasExplanation: boolean | null;
+  hasEquivalence: boolean | null;
   search: string;
   page: number;
   limit: number;
@@ -32,6 +42,15 @@ function first(value: string | string[] | undefined): string | undefined {
 function toBoolean(value: string | string[] | undefined): boolean {
   const raw = first(value);
   return raw === 'true' || raw === '1';
+}
+
+function toOptionalBoolean(
+  value: string | string[] | undefined,
+): boolean | null {
+  const raw = first(value);
+  if (raw === 'true' || raw === '1') return true;
+  if (raw === 'false' || raw === '0') return false;
+  return null;
 }
 
 function toPositiveInt(
@@ -64,23 +83,36 @@ export function getFrpsLibraryDefaultUrlQuery(): Record<string, string> {
 export function parseFrpsLibraryFiltersFromQuery(
   query: QueryLike,
 ): FrpsLibraryUrlFilters {
-  const kind = first(query.kind);
+  const catalogType = first(query.catalogType);
   const status = first(query.status);
+  const origin = first(query.origin);
   const riskSubTypeIdRaw = first(query.riskSubTypeId);
   const riskSubTypeId =
     riskSubTypeIdRaw && Number.isFinite(Number(riskSubTypeIdRaw))
       ? Number(riskSubTypeIdRaw)
       : null;
 
+  // Compat: kind legado SOURCE|RECOMMENDATION → catalogType SOURCE ou null
+  const legacyKind = first(query.kind);
+
   return {
     riskType: first(query.riskType) || null,
     riskSubTypeEnum: first(query.riskSubTypeEnum) || null,
     riskSubTypeId,
     riskId: first(query.riskId) || null,
-    kind:
-      kind === 'SOURCE' || kind === 'RECOMMENDATION'
-        ? kind
-        : null,
+    catalogType:
+      catalogType === 'SOURCE' ||
+      catalogType === 'ADM' ||
+      catalogType === 'ENG'
+        ? catalogType
+        : legacyKind === 'SOURCE'
+          ? 'SOURCE'
+          : null,
+    origin:
+      origin === 'GLOBAL' || origin === 'LOCAL' || origin === 'ALL'
+        ? origin
+        : 'ALL',
+    companyId: first(query.companyId) || null,
     status:
       status === 'NEVER_GENERATED' ||
       status === 'DRAFT_AI' ||
@@ -88,6 +120,8 @@ export function parseFrpsLibraryFiltersFromQuery(
       status === 'REJECTED'
         ? status
         : null,
+    hasExplanation: toOptionalBoolean(query.hasExplanation),
+    hasEquivalence: toOptionalBoolean(query.hasEquivalence),
     search: first(query.search)?.trim() || '',
     page: toPositiveInt(query.page, 1),
     limit: toPositiveInt(query.limit, FRPS_LIBRARY_DEFAULT_LIMIT),
@@ -116,8 +150,16 @@ export function serializeFrpsLibraryFiltersToQuery(
     query.riskSubTypeId = String(filters.riskSubTypeId);
   }
   if (filters.riskId) query.riskId = filters.riskId;
-  if (filters.kind) query.kind = filters.kind;
+  if (filters.catalogType) query.catalogType = filters.catalogType;
+  if (filters.origin && filters.origin !== 'ALL') query.origin = filters.origin;
+  if (filters.companyId) query.companyId = filters.companyId;
   if (filters.status) query.status = filters.status;
+  if (filters.hasExplanation !== null) {
+    query.hasExplanation = String(filters.hasExplanation);
+  }
+  if (filters.hasEquivalence !== null) {
+    query.hasEquivalence = String(filters.hasEquivalence);
+  }
   if (filters.search.trim()) query.search = filters.search.trim();
 
   return query;
@@ -125,7 +167,7 @@ export function serializeFrpsLibraryFiltersToQuery(
 
 export function buildFrpsLibraryBrowseParams(
   filters: FrpsLibraryUrlFilters,
-): BrowseFrpsExplainabilityLibraryParams {
+): BrowseFrpsCatalogAdminParams {
   return {
     riskType: filters.generalCatalog ? undefined : filters.riskType || undefined,
     riskSubTypeEnum: filters.generalCatalog
@@ -133,8 +175,14 @@ export function buildFrpsLibraryBrowseParams(
       : filters.riskSubTypeEnum || undefined,
     riskSubTypeId: filters.riskSubTypeId ?? undefined,
     riskId: filters.riskId || undefined,
-    kind: filters.kind || undefined,
+    catalogType: filters.catalogType || undefined,
+    origin: filters.origin === 'ALL' ? undefined : filters.origin,
+    companyId: filters.companyId || undefined,
     status: filters.status || undefined,
+    hasExplanation:
+      filters.hasExplanation === null ? undefined : filters.hasExplanation,
+    hasEquivalence:
+      filters.hasEquivalence === null ? undefined : filters.hasEquivalence,
     search: filters.search.trim() || undefined,
     page: filters.page,
     limit: filters.limit,
@@ -142,7 +190,6 @@ export function buildFrpsLibraryBrowseParams(
   };
 }
 
-/** Limpa seleções incompatíveis ao mudar categoria. */
 export function applyFrpsLibraryCategoryChange(
   filters: FrpsLibraryUrlFilters,
   riskType: string | null,
@@ -188,7 +235,7 @@ export function applyFrpsLibraryGeneralCatalog(
 }
 
 export function getFrpsLibraryItemTypeLabel(
-  itemType: FrpsLibraryBrowseItem['itemType'],
+  itemType: FrpsCatalogAdminItem['itemType'],
 ): string {
   switch (itemType) {
     case 'SOURCE':
@@ -219,35 +266,102 @@ export function getFrpsLibraryStatusLabel(
   }
 }
 
+export function getFrpsOriginLabel(origin: FrpsCatalogAdminItem['origin']): string {
+  return origin === 'GLOBAL' ? 'Global' : 'Local';
+}
+
 export type FrpsLibraryTableRow = {
   id: string;
-  systemCatalogId: string;
-  itemType: FrpsLibraryBrowseItem['itemType'];
+  catalogId: string;
+  itemType: FrpsCatalogAdminItem['itemType'];
+  kind: FrpsCatalogAdminItem['kind'];
   conceptualExplanationId: string | null;
   name: string;
   typeLabel: string;
   riskName: string;
   subtypeLabel: string;
+  origin: FrpsCatalogAdminItem['origin'];
+  originLabel: string;
+  companyName: string | null;
   status: FrpsLibraryConceptualStatus;
   statusLabel: string;
+  equivalenceLabel: string;
+  hasActiveEquivalence: boolean;
+  isCanonical: boolean;
+  isAliasRow: boolean;
+  /** Alias sem o canônico na página atual (grupo partido). */
+  isOrphanAliasOnPage: boolean;
+  aliasCount: number;
+  parentCanonicalId: string | null;
+  canonicalLabel: string | null;
+  /** Indicativo informativo; não cria equivalência. */
+  globalCandidateHint: FrpsGlobalCandidateHint;
   updatedAtLabel: string;
+  raw: FrpsCatalogAdminItem;
 };
 
+export function buildFrpsEquivalenceLabel(item: FrpsCatalogAdminItem): string {
+  if (item.activeEquivalence) {
+    return `Alias → ${item.activeEquivalence.canonicalLabel}`;
+  }
+  if (item.isCanonical && item.aliasCount > 0) {
+    const n = item.aliasCount;
+    return `Canônico · ${n} ${n === 1 ? 'alias' : 'aliases'}`;
+  }
+  return 'Sem equivalência';
+}
+
 export function mapFrpsLibraryItemToTableRow(
-  item: FrpsLibraryBrowseItem,
+  item: FrpsCatalogAdminItem,
+  options?: {
+    globalCandidateHint?: FrpsGlobalCandidateHint;
+    /** Ids de canônicos presentes na página atual (para detectar alias órfão). */
+    canonicalIdsOnPage?: Set<string>;
+  },
 ): FrpsLibraryTableRow {
+  const isAliasRow = Boolean(item.activeEquivalence || item.parentCanonicalId);
+  const parentCanonicalId =
+    item.parentCanonicalId ?? item.activeEquivalence?.canonicalId ?? null;
+  const isOrphanAliasOnPage = Boolean(
+    isAliasRow &&
+      parentCanonicalId &&
+      options?.canonicalIdsOnPage &&
+      !options.canonicalIdsOnPage.has(parentCanonicalId),
+  );
+
   return {
-    id: `${item.itemType}:${item.systemCatalogId}`,
-    systemCatalogId: item.systemCatalogId,
+    id: `${item.itemType}:${item.id}`,
+    catalogId: item.id,
     itemType: item.itemType,
-    conceptualExplanationId: item.conceptualExplanationId,
-    name: item.name,
+    kind: item.kind,
+    conceptualExplanationId: item.conceptualExplanation.explanationId,
+    name: item.label,
     typeLabel: getFrpsLibraryItemTypeLabel(item.itemType),
     riskName: item.riskName,
     subtypeLabel: item.riskSubType?.name || '—',
-    status: item.conceptualStatus,
-    statusLabel: getFrpsLibraryStatusLabel(item.conceptualStatus),
+    origin: item.origin,
+    originLabel: getFrpsOriginLabel(item.origin),
+    companyName:
+      item.origin === 'LOCAL'
+        ? item.companyName
+        : FRPS_GLOBAL_COMPANY_DISPLAY_NAME,
+    status: item.conceptualExplanation.status,
+    statusLabel: getFrpsLibraryStatusLabel(item.conceptualExplanation.status),
+    equivalenceLabel: buildFrpsEquivalenceLabel(item),
+    hasActiveEquivalence: Boolean(item.activeEquivalence),
+    isCanonical: Boolean(item.isCanonical),
+    isAliasRow,
+    isOrphanAliasOnPage,
+    aliasCount: item.aliasCount ?? 0,
+    parentCanonicalId,
+    canonicalLabel: item.activeEquivalence?.canonicalLabel ?? null,
+    globalCandidateHint: options?.globalCandidateHint ?? {
+      status: 'NONE',
+      count: 0,
+      sampleLabel: null,
+    },
     updatedAtLabel: formatFrpsLibraryDate(item.updatedAt),
+    raw: item,
   };
 }
 
@@ -257,3 +371,5 @@ export function formatFrpsLibraryDate(value?: string | null): string {
   if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleDateString('pt-BR');
 }
+
+export { FRPS_GLOBAL_ORIGIN_DISPLAY_NAME };

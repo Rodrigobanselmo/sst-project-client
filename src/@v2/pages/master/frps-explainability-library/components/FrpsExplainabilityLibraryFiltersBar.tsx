@@ -7,7 +7,7 @@ import {
   Select,
   TextField,
 } from '@mui/material';
-import type { FrpsLibraryFilterOptions } from '@v2/services/forms/frps-explainability-library';
+import type { FrpsCatalogAdminFilterOptions } from '@v2/services/forms/frps-explainability-library';
 
 import type { FrpsLibraryUrlFilters } from '../frps-explainability-library-filters.util';
 
@@ -19,15 +19,28 @@ const STATUS_OPTIONS = [
   { value: 'REJECTED', label: 'Rejeitado' },
 ] as const;
 
-const KIND_OPTIONS = [
+const CATALOG_TYPE_OPTIONS = [
+  { value: '', label: 'Todos os tipos' },
+  { value: 'SOURCE', label: 'Fonte' },
+  { value: 'ADM', label: 'Administrativa' },
+  { value: 'ENG', label: 'Engenharia' },
+] as const;
+
+const ORIGIN_OPTIONS = [
+  { value: 'ALL', label: 'Todas as origens' },
+  { value: 'GLOBAL', label: 'Global' },
+  { value: 'LOCAL', label: 'Local' },
+] as const;
+
+const TRI_STATE_OPTIONS = [
   { value: '', label: 'Todos' },
-  { value: 'SOURCE', label: 'Fontes' },
-  { value: 'RECOMMENDATION', label: 'Recomendações' },
+  { value: 'true', label: 'Com' },
+  { value: 'false', label: 'Sem' },
 ] as const;
 
 type Props = {
   filters: FrpsLibraryUrlFilters;
-  filterOptions?: FrpsLibraryFilterOptions;
+  filterOptions?: FrpsCatalogAdminFilterOptions;
   searchDraft: string;
   onSearchDraftChange: (value: string) => void;
   onSearchCommit: () => void;
@@ -35,6 +48,18 @@ type Props = {
   onGeneralCatalog: () => void;
   onRestoreDefaultScope: () => void;
 };
+
+function triStateToFilter(value: string): boolean | null {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return null;
+}
+
+function filterToTriState(value: boolean | null): string {
+  if (value === true) return 'true';
+  if (value === false) return 'false';
+  return '';
+}
 
 export function FrpsExplainabilityLibraryFiltersBar({
   filters,
@@ -65,6 +90,7 @@ export function FrpsExplainabilityLibraryFiltersBar({
     }
     return true;
   });
+  const companies = filterOptions?.companies ?? [];
 
   return (
     <Box
@@ -153,20 +179,67 @@ export function FrpsExplainabilityLibraryFiltersBar({
         </Select>
       </FormControl>
 
-      <FormControl size="small" sx={{ minWidth: 160 }}>
-        <InputLabel>Tipo</InputLabel>
+      <FormControl size="small" sx={{ minWidth: 150 }}>
+        <InputLabel>Origem</InputLabel>
         <Select
-          label="Tipo"
-          value={filters.kind || ''}
+          label="Origem"
+          value={filters.origin}
           onChange={(event) =>
             onFiltersChange({
               ...filters,
-              kind: (event.target.value || null) as FrpsLibraryUrlFilters['kind'],
+              origin: event.target.value as FrpsLibraryUrlFilters['origin'],
+              companyId:
+                event.target.value === 'GLOBAL' ? null : filters.companyId,
               page: 1,
             })
           }
         >
-          {KIND_OPTIONS.map((option) => (
+          {ORIGIN_OPTIONS.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <FormControl size="small" sx={{ minWidth: 200 }}>
+        <InputLabel>Empresa</InputLabel>
+        <Select
+          label="Empresa"
+          value={filters.companyId || ''}
+          disabled={filters.origin === 'GLOBAL'}
+          onChange={(event) =>
+            onFiltersChange({
+              ...filters,
+              companyId: event.target.value || null,
+              page: 1,
+            })
+          }
+        >
+          <MenuItem value="">Todas</MenuItem>
+          {companies.map((company) => (
+            <MenuItem key={company.id} value={company.id}>
+              {company.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <FormControl size="small" sx={{ minWidth: 160 }}>
+        <InputLabel>Tipo</InputLabel>
+        <Select
+          label="Tipo"
+          value={filters.catalogType || ''}
+          onChange={(event) =>
+            onFiltersChange({
+              ...filters,
+              catalogType: (event.target.value ||
+                null) as FrpsLibraryUrlFilters['catalogType'],
+              page: 1,
+            })
+          }
+        >
+          {CATALOG_TYPE_OPTIONS.map((option) => (
             <MenuItem key={option.label} value={option.value}>
               {option.label}
             </MenuItem>
@@ -191,6 +264,52 @@ export function FrpsExplainabilityLibraryFiltersBar({
           {STATUS_OPTIONS.map((option) => (
             <MenuItem key={option.label} value={option.value}>
               {option.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <FormControl size="small" sx={{ minWidth: 150 }}>
+        <InputLabel>Explicação</InputLabel>
+        <Select
+          label="Explicação"
+          value={filterToTriState(filters.hasExplanation)}
+          onChange={(event) =>
+            onFiltersChange({
+              ...filters,
+              hasExplanation: triStateToFilter(event.target.value),
+              page: 1,
+            })
+          }
+        >
+          {TRI_STATE_OPTIONS.map((option) => (
+            <MenuItem key={`exp-${option.value || 'all'}`} value={option.value}>
+              {option.label === 'Todos'
+                ? 'Com/sem explicação'
+                : `${option.label} explicação`}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <FormControl size="small" sx={{ minWidth: 160 }}>
+        <InputLabel>Equivalência</InputLabel>
+        <Select
+          label="Equivalência"
+          value={filterToTriState(filters.hasEquivalence)}
+          onChange={(event) =>
+            onFiltersChange({
+              ...filters,
+              hasEquivalence: triStateToFilter(event.target.value),
+              page: 1,
+            })
+          }
+        >
+          {TRI_STATE_OPTIONS.map((option) => (
+            <MenuItem key={`eq-${option.value || 'all'}`} value={option.value}>
+              {option.label === 'Todos'
+                ? 'Com/sem equivalência'
+                : `${option.label} equivalência`}
             </MenuItem>
           ))}
         </Select>

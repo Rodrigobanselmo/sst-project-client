@@ -108,6 +108,137 @@ export type BrowseFrpsExplainabilityLibraryParams = {
   generalCatalog?: boolean;
 };
 
+/** Administração local+global na Biblioteca FRPS. */
+export type FrpsCatalogAdminOrigin = 'GLOBAL' | 'LOCAL';
+export type FrpsCatalogAdminCatalogType = 'SOURCE' | 'ADM' | 'ENG';
+export type FrpsCatalogAdminOriginFilter = 'ALL' | 'GLOBAL' | 'LOCAL';
+export type FrpsCatalogAdminKind = 'GENERATE_SOURCE' | 'REC_MED';
+export type FrpsCatalogAdminEquivalenceType =
+  | 'SEMANTIC_ALIAS'
+  | 'TECHNICAL_DUPLICATE';
+
+export type FrpsCatalogAdminActiveEquivalence = {
+  equivalenceId: string;
+  canonicalId: string;
+  canonicalLabel: string;
+  equivalenceType: FrpsCatalogAdminEquivalenceType;
+};
+
+export type FrpsCatalogAdminConceptualExplanation = {
+  status: FrpsLibraryConceptualStatus;
+  explanationId: string | null;
+  itemKey: string;
+};
+
+export type FrpsCatalogAdminItem = {
+  id: string;
+  label: string;
+  kind: FrpsCatalogAdminKind;
+  itemType: FrpsLibraryItemType;
+  recType: 'ENG' | 'ADM' | 'EPI' | null;
+  medType: 'ENG' | 'ADM' | null;
+  riskId: string;
+  riskName: string;
+  riskType: string;
+  riskSubType: FrpsLibraryRiskSubType | null;
+  system: boolean;
+  companyId: string;
+  companyName: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  origin: FrpsCatalogAdminOrigin;
+  activeEquivalence: FrpsCatalogAdminActiveEquivalence | null;
+  parentCanonicalId: string | null;
+  isCanonical: boolean;
+  aliasCount: number;
+  conceptualExplanation: FrpsCatalogAdminConceptualExplanation;
+};
+
+export type FrpsCatalogAdminSummary = {
+  totalItems: number;
+  totalGlobal: number;
+  totalLocal: number;
+  totalWithExplanation: number;
+  totalWithEquivalence: number;
+  totalValidated: number;
+  totalDraft: number;
+  totalNeverGenerated: number;
+};
+
+export type FrpsCatalogAdminFilterOptions = FrpsLibraryFilterOptions & {
+  companies: Array<{ id: string; name: string }>;
+};
+
+export type FrpsCatalogAdminBrowseResult = {
+  summary: FrpsCatalogAdminSummary;
+  defaults: {
+    riskType: string;
+    riskSubTypeEnum: string;
+  };
+  activeScope: {
+    riskType: string | null;
+    riskSubTypeEnum: string | null;
+    riskSubTypeId: number | null;
+    riskId: string | null;
+    catalogType: FrpsCatalogAdminCatalogType | null;
+    origin: FrpsCatalogAdminOriginFilter;
+    companyId: string | null;
+    status: FrpsLibraryConceptualStatus | null;
+    hasExplanation: boolean | null;
+    hasEquivalence: boolean | null;
+    search: string | null;
+    generalCatalog: boolean;
+  };
+  scopeLabel: string;
+  filterOptions: FrpsCatalogAdminFilterOptions;
+  items: FrpsCatalogAdminItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type BrowseFrpsCatalogAdminParams = {
+  riskType?: string;
+  riskSubTypeEnum?: string;
+  riskSubTypeId?: number;
+  riskId?: string;
+  catalogType?: FrpsCatalogAdminCatalogType;
+  origin?: FrpsCatalogAdminOriginFilter;
+  companyId?: string;
+  status?: FrpsLibraryConceptualStatus;
+  hasExplanation?: boolean;
+  hasEquivalence?: boolean;
+  search?: string;
+  page?: number;
+  limit?: number;
+  sortBy?:
+    | 'name'
+    | 'riskName'
+    | 'status'
+    | 'updatedAt'
+    | 'origin'
+    | 'companyName';
+  sortOrder?: 'asc' | 'desc';
+  generalCatalog?: boolean;
+};
+
+export type ReadFrpsCatalogConceptualStatusParams = {
+  itemType: FrpsLibraryItemType;
+  catalogId: string;
+};
+
+export type FrpsCatalogConceptualStatusResult = {
+  catalogId: string;
+  itemType: FrpsLibraryItemType;
+  itemKey: string;
+  status: FrpsLibraryConceptualStatus;
+  explanationId: string | null;
+};
+
 export type FrpsLibraryValidationStatus =
   | 'DRAFT_AI'
   | 'VALIDATED'

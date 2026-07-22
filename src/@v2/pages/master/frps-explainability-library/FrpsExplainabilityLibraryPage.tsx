@@ -1,22 +1,30 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Alert,
   Box,
   Button,
   CircularProgress,
-  Pagination,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { RoleEnum } from 'project/enum/roles.enums';
+import { STablePagination } from '@v2/components/organisms/STable/addons/addons-table/STablePagination/STablePagination';
+import { persistKeys } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import {
-  useFetchBrowseFrpsExplainabilityLibrary,
+  frpsExplainabilityLibraryQueryKeys,
+  useFetchBrowseFrpsCatalogAdmin,
   useMutateGenerateFrpsLibraryConceptual,
+  type FrpsCatalogAdminItem,
 } from '@v2/services/forms/frps-explainability-library';
 
+import { FrpsCatalogEquivalenceDialog } from './components/FrpsCatalogEquivalenceDialog';
 import { FrpsExplainabilityLibraryFiltersBar } from './components/FrpsExplainabilityLibraryFiltersBar';
 import { FrpsExplainabilityLibrarySummaryCards } from './components/FrpsExplainabilityLibrarySummaryCards';
 import { FrpsExplainabilityLibraryTable } from './components/FrpsExplainabilityLibraryTable';
@@ -24,6 +32,10 @@ import {
   FrpsLibraryConceptualViewDrawer,
   type FrpsLibraryViewTarget,
 } from './components/FrpsLibraryConceptualViewDrawer';
+import {
+  resolveFrpsGlobalCandidateHint,
+  getFrpsAliasSelectionBlockReason,
+} from './frps-catalog-admin-equivalence.util';
 import {
   FRPS_LIBRARY_DEFAULT_RISK_SUB_TYPE_ENUM,
   FRPS_LIBRARY_DEFAULT_RISK_TYPE,
@@ -37,7 +49,10 @@ import {
   type FrpsLibraryTableRow,
   type FrpsLibraryUrlFilters,
 } from './frps-explainability-library-filters.util';
-import { frpsLibraryPaginationSx } from './frps-explainability-library-pagination.styles';
+import {
+  FRPS_LIBRARY_STICKY_TOOLBAR_SX,
+  buildFrpsLinkToCanonicalButtonLabel,
+} from './frps-explainability-library-ux.constants';
 
 function getErrorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null) {
@@ -57,9 +72,15 @@ function getErrorMessage(error: unknown): string {
 
 export const FrpsExplainabilityLibraryPage: FC = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
   const { isAuthSuccess } = useAuthShow();
   const canAccess = isAuthSuccess({ roles: [RoleEnum.MASTER] });
+  const theme = useTheme();
+  const isCompactViewport = useMediaQuery(theme.breakpoints.down('md'));
+
+  const stickyToolbarRef = useRef<HTMLDivElement | null>(null);
+  const [stickyOffsetPx, setStickyOffsetPx] = useState(0);
 
   const [searchDraft, setSearchDraft] = useState('');
   const [urlReady, setUrlReady] = useState(false);
@@ -68,10 +89,29 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     null,
   );
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [selectedLocals, setSelectedLocals] = useState<FrpsCatalogAdminItem[]>(
+    [],
+  );
+  const [selectionError, setSelectionError] = useState<string | null>(null);
+  const [equivalenceOpen, setEquivalenceOpen] = useState(false);
 
-  const filters = useMemo(
+  const filtersFromQuery = useMemo(
     () => parseFrpsLibraryFiltersFromQuery(router.query),
     [router.query],
+  );
+
+  const { pageLimit, pageSizeOptions, createPageSizeChangeHandler } =
+    useTablePageLimit(
+      filtersFromQuery.limit,
+      persistKeys.LIMIT_FRPS_EXPLAINABILITY_LIBRARY,
+    );
+
+  const filters = useMemo(
+    () => ({
+      ...filtersFromQuery,
+      limit: pageLimit,
+    }),
+    [filtersFromQuery, pageLimit],
   );
 
   useEffect(() => {
@@ -99,20 +139,85 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     router.replace,
   ]);
 
+  useEffect(() => {
+    if (!router.isReady || !urlReady) return;
+    if (filtersFromQuery.limit === pageLimit) return;
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: serializeFrpsLibraryFiltersToQuery({
+          ...filtersFromQuery,
+          limit: pageLimit,
+        }),
+      },
+      undefined,
+      { shallow: true },
+    );
+  }, [
+    router.isReady,
+    urlReady,
+    filtersFromQuery,
+    pageLimit,
+    router.pathname,
+    router.replace,
+  ]);
+
   const browseParams = useMemo(
     () => buildFrpsLibraryBrowseParams(filters),
     [filters],
   );
 
   const { data, isLoading, isFetching, isError, error, refetch } =
-    useFetchBrowseFrpsExplainabilityLibrary(browseParams, canAccess && urlReady);
+    useFetchBrowseFrpsCatalogAdmin(browseParams, canAccess && urlReady);
 
   const generateMutation = useMutateGenerateFrpsLibraryConceptual();
 
-  const rows = useMemo(
-    () => (data?.items ?? []).map(mapFrpsLibraryItemToTableRow),
-    [data?.items],
+  const rows = useMemo(() => {
+    const pageItems = data?.items ?? [];
+    const canonicalIdsOnPage = new Set(
+      pageItems.filter((item) => item.isCanonical).map((item) => item.id),
+    );
+    return pageItems.map((item) =>
+      mapFrpsLibraryItemToTableRow(item, {
+        globalCandidateHint: resolveFrpsGlobalCandidateHint(item, pageItems),
+        canonicalIdsOnPage,
+      }),
+    );
+  }, [data?.items]);
+
+  const selectedLocalIds = useMemo(
+    () => new Set(selectedLocals.map((item) => item.id)),
+    [selectedLocals],
   );
+
+  useLayoutEffect(() => {
+    const node = stickyToolbarRef.current;
+    if (!node || typeof ResizeObserver === 'undefined') return;
+
+    const applyOffset = () => {
+      const next = Math.ceil(node.getBoundingClientRect().height);
+      setStickyOffsetPx(next);
+      document.documentElement.style.setProperty(
+        '--frps-library-sticky-offset',
+        `${next}px`,
+      );
+    };
+
+    applyOffset();
+    const observer = new ResizeObserver(applyOffset);
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty(
+        '--frps-library-sticky-offset',
+      );
+    };
+  }, [
+    isCompactViewport,
+    selectedLocals.length,
+    selectionError,
+    data?.scopeLabel,
+  ]);
 
   const pushFilters = (next: FrpsLibraryUrlFilters) => {
     void router.push(
@@ -125,6 +230,14 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     );
   };
 
+  const onPageSizeChange = createPageSizeChangeHandler((patch) => {
+    pushFilters({
+      ...filters,
+      limit: patch.limit ?? filters.limit,
+      page: patch.page ?? 1,
+    });
+  });
+
   const commitSearch = () => {
     const nextSearch = searchDraft.trim();
     if (nextSearch === filters.search) return;
@@ -133,6 +246,25 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
       search: nextSearch,
       page: 1,
     });
+  };
+
+  const handleToggleLocal = (row: FrpsLibraryTableRow) => {
+    const item = row.raw;
+    setSelectionError(null);
+
+    if (selectedLocalIds.has(item.id)) {
+      setSelectedLocals((prev) => prev.filter((alias) => alias.id !== item.id));
+      return;
+    }
+
+    const blockReason = getFrpsAliasSelectionBlockReason(selectedLocals, item);
+    if (blockReason) {
+      setSelectionError(blockReason);
+      enqueueSnackbar(blockReason, { variant: 'warning' });
+      return;
+    }
+
+    setSelectedLocals((prev) => [...prev, item]);
   };
 
   const handleView = (row: FrpsLibraryTableRow) => {
@@ -151,7 +283,7 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
 
     try {
       const result = await generateMutation.mutateAsync({
-        systemCatalogId: row.systemCatalogId,
+        systemCatalogId: row.catalogId,
         itemType: row.itemType,
       });
 
@@ -173,6 +305,28 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     }
   };
 
+  const handleEquivalenceCompleted = async (
+    failedAliases: FrpsCatalogAdminItem[],
+  ) => {
+    setSelectedLocals(failedAliases);
+    await queryClient.invalidateQueries({
+      queryKey: frpsExplainabilityLibraryQueryKeys.all,
+    });
+    await refetch();
+
+    if (failedAliases.length === 0) {
+      enqueueSnackbar('Equivalências criadas com sucesso.', {
+        variant: 'success',
+      });
+      setEquivalenceOpen(false);
+    } else {
+      enqueueSnackbar(
+        `${failedAliases.length} alias(es) falharam e permaneceram selecionados para retry.`,
+        { variant: 'warning' },
+      );
+    }
+  };
+
   if (!canAccess) {
     return (
       <Alert severity="warning">
@@ -182,43 +336,94 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h5" fontWeight={700} mb={0.75}>
-        Biblioteca de Explicabilidade FRPS
-      </Typography>
-      <Typography variant="body2" color="text.secondary" mb={2.5} maxWidth={820}>
-        Consulte e gere o conhecimento conceitual reutilizável das fontes
-        geradoras e recomendações do catálogo system. A edição e a validação
-        serão adicionadas nas próximas etapas.
-      </Typography>
+    <Box style={{ ['--frps-library-sticky-offset' as string]: `${stickyOffsetPx}px` }}>
+      <Box mb={isCompactViewport ? 1.5 : 2}>
+        <Typography variant="h5" fontWeight={700} mb={0.75}>
+          Biblioteca de Explicabilidade FRPS
+        </Typography>
+        {!isCompactViewport ? (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            maxWidth={860}
+          >
+            Consulte itens globais e locais, acompanhe o status conceitual e
+            registre equivalências alias → canônico sem sair desta tela,
+            reutilizando o módulo de Equivalências de Catálogo.
+          </Typography>
+        ) : null}
+      </Box>
 
-      <FrpsExplainabilityLibrarySummaryCards
-        summary={data?.summary}
-        scopeLabel={data?.scopeLabel}
-      />
+      {!isCompactViewport ? (
+        <FrpsExplainabilityLibrarySummaryCards
+          summary={data?.summary}
+          scopeLabel={data?.scopeLabel}
+        />
+      ) : null}
 
-      <FrpsExplainabilityLibraryFiltersBar
-        filters={filters}
-        filterOptions={data?.filterOptions}
-        searchDraft={searchDraft}
-        onSearchDraftChange={setSearchDraft}
-        onSearchCommit={commitSearch}
-        onFiltersChange={pushFilters}
-        onGeneralCatalog={() =>
-          pushFilters(applyFrpsLibraryGeneralCatalog(filters))
-        }
-        onRestoreDefaultScope={() =>
-          pushFilters({
-            ...filters,
-            riskType: FRPS_LIBRARY_DEFAULT_RISK_TYPE,
-            riskSubTypeEnum: FRPS_LIBRARY_DEFAULT_RISK_SUB_TYPE_ENUM,
-            riskSubTypeId: null,
-            riskId: null,
-            generalCatalog: false,
-            page: 1,
-          })
-        }
-      />
+      <Box ref={stickyToolbarRef} sx={FRPS_LIBRARY_STICKY_TOOLBAR_SX}>
+        <FrpsExplainabilityLibraryFiltersBar
+          filters={filters}
+          filterOptions={data?.filterOptions}
+          searchDraft={searchDraft}
+          onSearchDraftChange={setSearchDraft}
+          onSearchCommit={commitSearch}
+          onFiltersChange={pushFilters}
+          onGeneralCatalog={() =>
+            pushFilters(applyFrpsLibraryGeneralCatalog(filters))
+          }
+          onRestoreDefaultScope={() =>
+            pushFilters({
+              ...filters,
+              riskType: FRPS_LIBRARY_DEFAULT_RISK_TYPE,
+              riskSubTypeEnum: FRPS_LIBRARY_DEFAULT_RISK_SUB_TYPE_ENUM,
+              riskSubTypeId: null,
+              riskId: null,
+              generalCatalog: false,
+              page: 1,
+            })
+          }
+        />
+
+        {selectionError ? (
+          <Alert
+            severity="warning"
+            onClose={() => setSelectionError(null)}
+            sx={{ mb: 1.5 }}
+          >
+            {selectionError}
+          </Alert>
+        ) : null}
+
+        {selectedLocals.length > 0 ? (
+          <Alert
+            severity="info"
+            sx={{ mb: 0 }}
+            action={
+              <Box display="flex" gap={1}>
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => setSelectedLocals([])}
+                >
+                  Limpar
+                </Button>
+                <Button
+                  color="inherit"
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setEquivalenceOpen(true)}
+                >
+                  {buildFrpsLinkToCanonicalButtonLabel(selectedLocals.length)}
+                </Button>
+              </Box>
+            }
+          >
+            {selectedLocals.length} item(ns) local(is) selecionado(s) para
+            vinculação.
+          </Alert>
+        ) : null}
+      </Box>
 
       {isError ? (
         <Alert
@@ -268,21 +473,21 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
           <FrpsExplainabilityLibraryTable
             rows={rows}
             generatingRowId={generatingRowId}
+            selectedLocalIds={selectedLocalIds}
+            onToggleLocal={handleToggleLocal}
             onGenerate={handleGenerate}
             onView={handleView}
           />
 
-          {(data?.pagination.totalPages ?? 0) > 1 ? (
-            <Box display="flex" justifyContent="center" mt={2.5}>
-              <Pagination
-                page={data?.pagination.page ?? filters.page}
-                count={data?.pagination.totalPages ?? 1}
-                onChange={(_, page) => pushFilters({ ...filters, page })}
-                color="primary"
-                sx={frpsLibraryPaginationSx}
-              />
-            </Box>
-          ) : null}
+          <STablePagination
+            total={data?.pagination.total ?? 0}
+            limit={pageLimit}
+            page={data?.pagination.page ?? filters.page}
+            setPage={(page) => pushFilters({ ...filters, page })}
+            pageSizeOptions={pageSizeOptions}
+            onPageSizeChange={onPageSizeChange}
+            mt={2.5}
+          />
         </>
       )}
 
@@ -290,6 +495,13 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
         open={Boolean(viewTarget)}
         target={viewTarget}
         onClose={() => setViewTarget(null)}
+      />
+
+      <FrpsCatalogEquivalenceDialog
+        open={equivalenceOpen}
+        aliases={selectedLocals}
+        onClose={() => setEquivalenceOpen(false)}
+        onCompleted={handleEquivalenceCompleted}
       />
     </Box>
   );

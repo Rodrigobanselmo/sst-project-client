@@ -85,7 +85,16 @@ export const STablePagination = ({
                   maxWidth: '18px',
                   minWidth: '18px',
                   '&&.MuiPaginationItem-root.Mui-selected': {
-                    backgroundColor: 'grey.400',
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 600,
+                  },
+                  '&&.MuiPaginationItem-root.Mui-selected:hover': {
+                    backgroundColor: 'primary.dark',
+                    color: 'primary.contrastText',
+                  },
+                  '&&.MuiPaginationItem-root:not(.Mui-selected):hover': {
+                    backgroundColor: 'action.hover',
                     color: 'text.primary',
                   },
                 }}

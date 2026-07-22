@@ -4,7 +4,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { buildFrpsExplainabilityLibraryQueryParams } from './frps-explainability-library-query.util';
+import {
+  buildFrpsCatalogAdminQueryParams,
+  buildFrpsExplainabilityLibraryQueryParams,
+} from './frps-explainability-library-query.util';
 
 describe('buildFrpsExplainabilityLibraryQueryParams', () => {
   it('serializes only defined browse filters for the API endpoint', () => {
@@ -28,6 +31,32 @@ describe('buildFrpsExplainabilityLibraryQueryParams', () => {
       page: 1,
       limit: 20,
       generalCatalog: true,
+    });
+  });
+});
+
+describe('buildFrpsCatalogAdminQueryParams', () => {
+  it('serializes admin filters including origin and equivalence flags', () => {
+    const query = buildFrpsCatalogAdminQueryParams({
+      riskType: 'ERG',
+      catalogType: 'SOURCE',
+      origin: 'LOCAL',
+      companyId: 'company-a',
+      hasExplanation: true,
+      hasEquivalence: false,
+      page: 1,
+      limit: 20,
+    });
+
+    assert.deepEqual(query, {
+      riskType: 'ERG',
+      catalogType: 'SOURCE',
+      origin: 'LOCAL',
+      companyId: 'company-a',
+      hasExplanation: true,
+      hasEquivalence: false,
+      page: 1,
+      limit: 20,
     });
   });
 });

@@ -12,22 +12,9 @@ import type {
   RiskCatalogSearchItem,
   SearchRiskCatalogItemsParams,
 } from './risk-catalog-equivalence.types';
+import { buildSearchQueryParams } from './risk-catalog-equivalence-search-query.util';
 
-function buildSearchQueryParams(params: SearchRiskCatalogItemsParams) {
-  const query: Record<string, string | boolean> = { kind: params.kind };
-
-  if (params.companyId) query.companyId = params.companyId;
-  if (params.riskId) query.riskId = params.riskId;
-  if (params.search?.trim()) query.search = params.search.trim();
-  if (params.includeSystem !== undefined) {
-    query.includeSystem = params.includeSystem;
-  }
-  if (params.includeDeleted !== undefined) {
-    query.includeDeleted = params.includeDeleted;
-  }
-
-  return query;
-}
+export { buildSearchQueryParams };
 
 export async function searchRiskCatalogItems(
   params: SearchRiskCatalogItemsParams,
