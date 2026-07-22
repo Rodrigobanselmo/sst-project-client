@@ -24,6 +24,13 @@ export function buildFrpsLinkToCanonicalButtonLabel(count: number): string {
 
 export const FRPS_EQUIVALENCE_DIALOG_TITLE = 'Vincular ao canônico global';
 
+/** Ação na coluna de candidato quando não há sugestão automática. */
+export const FRPS_SEARCH_CANONICAL_ACTION_LABEL = 'Pesquisar canônico';
+
+/** Ação na coluna quando há sugestão, para trocar o canônico manualmente. */
+export const FRPS_CHOOSE_OTHER_CANONICAL_ACTION_LABEL =
+  'Escolher outro canônico';
+
 export function buildFrpsEquivalenceDialogConfirmLabel(count: number): string {
   return `Vincular ${count} ${count === 1 ? 'item' : 'itens'}`;
 }

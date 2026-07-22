@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
@@ -48,6 +49,7 @@ import {
   FRPS_EQUIVALENCE_DIALOG_TITLE,
   buildFrpsEquivalenceDialogConfirmLabel,
 } from '../frps-explainability-library-ux.constants';
+import { buildFrpsEquivalenceDialogInit } from '../frps-catalog-equivalence-dialog.util';
 
 type BatchCreateResult = {
   alias: FrpsCatalogAdminItem;
@@ -62,6 +64,11 @@ type Props = {
   aliases: FrpsCatalogAdminItem[];
   onClose: () => void;
   onCompleted: (failedAliases: FrpsCatalogAdminItem[]) => void;
+  /**
+   * Abre direto no seletor manual (ex.: "Pesquisar canônico" /
+   * "Escolher outro canônico" na linha). Não cria vínculo automático.
+   */
+  preferManualPicker?: boolean;
 };
 
 export function FrpsCatalogEquivalenceDialog({
@@ -69,6 +76,7 @@ export function FrpsCatalogEquivalenceDialog({
   aliases,
   onClose,
   onCompleted,
+  preferManualPicker = false,
 }: Props) {
   const [canonicalId, setCanonicalId] = useState<string>('');
   const [searchDraft, setSearchDraft] = useState('');
@@ -97,15 +105,20 @@ export function FrpsCatalogEquivalenceDialog({
       return;
     }
 
-    setCanonicalId('');
+    const init = buildFrpsEquivalenceDialogInit({
+      aliasLabel: firstAlias.label,
+      preferManualPicker,
+      normalizeSearch: normalizeFrpsCatalogSearchTerm,
+    });
+    setCanonicalId(init.canonicalId);
     setBatchResults(null);
-    setPickerMode('auto');
-    setAutoResolved(false);
-    setSuggestionAccepted(false);
+    setPickerMode(init.pickerMode);
+    setAutoResolved(init.autoResolved);
+    setSuggestionAccepted(init.suggestionAccepted);
     setEquivalenceType(RiskCatalogEquivalenceType.SEMANTIC_ALIAS);
-    setSearchDraft(normalizeFrpsCatalogSearchTerm(firstAlias.label));
+    setSearchDraft(init.searchDraft);
     setSearchSessionReady(true);
-  }, [open, firstAlias?.id, firstAlias?.label]);
+  }, [open, firstAlias?.id, firstAlias?.label, preferManualPicker]);
 
   const searchParams =
     open && firstAlias && searchSessionReady
@@ -422,6 +435,13 @@ export function FrpsCatalogEquivalenceDialog({
 
         {showManualPicker ? (
           <>
+            <Typography variant="body2" color="text.secondary" mb={1}>
+              Pesquise e escolha explicitamente o canônico global. Nenhum vínculo
+              é criado até a confirmação
+              {aliases.length > 1
+                ? ` — ${aliases.length} aliases serão vinculados ao mesmo canônico.`
+                : '.'}
+            </Typography>
             <TextField
               size="small"
               fullWidth
@@ -436,8 +456,25 @@ export function FrpsCatalogEquivalenceDialog({
               helperText={
                 isSearching
                   ? 'Buscando no catálogo…'
-                  : 'Busca server-side no módulo de Equivalências (filtro no banco antes do limite 100).'
+                  : 'Busca server-side no módulo de Equivalências. Edite ou limpe o texto para ampliar os resultados.'
               }
+              InputProps={{
+                endAdornment: searchDraft ? (
+                  <InputAdornment position="end">
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setSearchDraft('');
+                        setCanonicalId('');
+                        setBatchResults(null);
+                      }}
+                      sx={{ minWidth: 0, px: 1 }}
+                    >
+                      Limpar
+                    </Button>
+                  </InputAdornment>
+                ) : undefined,
+              }}
             />
 
             <FormControl fullWidth size="small" sx={{ mb: 2 }}>

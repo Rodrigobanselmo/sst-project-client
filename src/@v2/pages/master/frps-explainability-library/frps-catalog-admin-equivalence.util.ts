@@ -102,6 +102,7 @@ export function filterStructurallyCompatibleGlobalCanonicals(params: {
 
   return params.searchItems.filter((item) => {
     if (!item.system) return false;
+    if (item.deleted_at) return false;
     if (item.isAliasActive) return false;
     if (item.kind !== (firstAlias.kind === 'GENERATE_SOURCE'
       ? RiskCatalogKind.GENERATE_SOURCE
@@ -115,6 +116,24 @@ export function filterStructurallyCompatibleGlobalCanonicals(params: {
       return reason == null;
     });
   });
+}
+
+export type FrpsLibraryCanonicalLinkAction = 'SEARCH' | 'CHOOSE_OTHER';
+
+/**
+ * Ação da coluna "Candidato global" para abrir o diálogo de vinculação.
+ * Não cria equivalência; apenas decide o rótulo da ação manual.
+ */
+export function resolveFrpsLibraryCanonicalLinkAction(params: {
+  origin: FrpsCatalogAdminItem['origin'];
+  hasActiveEquivalence: boolean;
+  hintStatus: FrpsGlobalCandidateHintStatus;
+}): FrpsLibraryCanonicalLinkAction | null {
+  if (params.origin !== 'LOCAL' || params.hasActiveEquivalence) {
+    return null;
+  }
+  if (params.hintStatus === 'NONE') return 'SEARCH';
+  return 'CHOOSE_OTHER';
 }
 
 /**

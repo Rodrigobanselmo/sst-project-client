@@ -9,11 +9,13 @@ import { TABLE_PAGE_SIZE_OPTIONS } from '@v2/constants/table-pagination.constant
 import {
   FRPS_ALIAS_NAME_INDENT_PX,
   FRPS_CANONICAL_CHIP_SX,
+  FRPS_CHOOSE_OTHER_CANONICAL_ACTION_LABEL,
   FRPS_EQUIVALENCE_DIALOG_TITLE,
   FRPS_LIBRARY_STICKY_TABLE_HEAD_SX,
   FRPS_LIBRARY_STICKY_TOOLBAR_SX,
   FRPS_LIBRARY_TABLE_CONTAINER_SX,
   FRPS_LINK_TO_CANONICAL_BUTTON_LABEL,
+  FRPS_SEARCH_CANONICAL_ACTION_LABEL,
   buildFrpsEquivalenceDialogConfirmLabel,
   buildFrpsLinkToCanonicalButtonLabel,
 } from './frps-explainability-library-ux.constants';
@@ -90,5 +92,13 @@ describe('FRPS library UX refinements', () => {
   it('11) grouping labels remain canonical/alias semantics', () => {
     assert.match('Canônico · 2 aliases', /^Canônico · \d+ aliases?$/);
     assert.match('Alias → Canônico longo', /^Alias → /);
+  });
+
+  it('12) manual canonical picker action labels', () => {
+    assert.equal(FRPS_SEARCH_CANONICAL_ACTION_LABEL, 'Pesquisar canônico');
+    assert.equal(
+      FRPS_CHOOSE_OTHER_CANONICAL_ACTION_LABEL,
+      'Escolher outro canônico',
+    );
   });
 });

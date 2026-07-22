@@ -20,11 +20,14 @@ import {
   FRPS_GLOBAL_ORIGIN_DISPLAY_NAME,
 } from '../frps-catalog-admin-equivalence.util';
 import type { FrpsLibraryTableRow } from '../frps-explainability-library-filters.util';
+import { resolveFrpsLibraryCanonicalLinkAction } from '../frps-catalog-admin-equivalence.util';
 import {
   FRPS_ALIAS_NAME_INDENT_PX,
   FRPS_CANONICAL_CHIP_SX,
+  FRPS_CHOOSE_OTHER_CANONICAL_ACTION_LABEL,
   FRPS_LIBRARY_STICKY_TABLE_HEAD_SX,
   FRPS_LIBRARY_TABLE_CONTAINER_SX,
+  FRPS_SEARCH_CANONICAL_ACTION_LABEL,
 } from '../frps-explainability-library-ux.constants';
 import {
   buildFrpsAliasGroupToggleLabel,
@@ -55,6 +58,7 @@ export function FrpsExplainabilityLibraryTable({
   onToggleLocal,
   onGenerate,
   onView,
+  onOpenCanonicalPicker,
 }: {
   rows: FrpsLibraryTableRow[];
   expandedCanonicalIds: ReadonlySet<string>;
@@ -64,6 +68,10 @@ export function FrpsExplainabilityLibraryTable({
   onToggleLocal: (row: FrpsLibraryTableRow) => void;
   onGenerate: (row: FrpsLibraryTableRow) => void;
   onView: (row: FrpsLibraryTableRow) => void;
+  onOpenCanonicalPicker: (
+    row: FrpsLibraryTableRow,
+    options: { preferManualPicker: boolean },
+  ) => void;
 }) {
   if (!rows.length) {
     return (
@@ -132,6 +140,11 @@ export function FrpsExplainabilityLibraryTable({
             const isGroupExpanded = expandedCanonicalIds.has(row.catalogId);
             const showGroupToggle =
               row.isCanonical && row.aliasCount > 0;
+            const canonicalLinkAction = resolveFrpsLibraryCanonicalLinkAction({
+              origin: row.origin,
+              hasActiveEquivalence: row.hasActiveEquivalence,
+              hintStatus: row.globalCandidateHint.status,
+            });
 
             return (
               <TableRow
@@ -277,33 +290,56 @@ export function FrpsExplainabilityLibraryTable({
                   ) : null}
                 </TableCell>
                 <TableCell>
-                  {row.origin === 'LOCAL' && !row.hasActiveEquivalence ? (
-                    row.globalCandidateHint.status === 'EXACT_MATCH' ? (
-                      <Chip
-                        size="small"
-                        color="success"
-                        variant="outlined"
-                        label="Correspondência exata"
-                        title={
-                          row.globalCandidateHint.sampleLabel || undefined
-                        }
-                      />
-                    ) : row.globalCandidateHint.status ===
+                  {canonicalLinkAction ? (
+                    <Box
+                      display="flex"
+                      flexDirection="column"
+                      alignItems="flex-start"
+                      gap={0.5}
+                    >
+                      {row.globalCandidateHint.status === 'EXACT_MATCH' ? (
+                        <Chip
+                          size="small"
+                          color="success"
+                          variant="outlined"
+                          label="Correspondência exata"
+                          title={
+                            row.globalCandidateHint.sampleLabel || undefined
+                          }
+                        />
+                      ) : null}
+                      {row.globalCandidateHint.status ===
                       'POSSIBLE_CANDIDATES' ? (
-                      <Chip
+                        <Chip
+                          size="small"
+                          color="info"
+                          variant="outlined"
+                          label="Possíveis candidatos"
+                          title={
+                            row.globalCandidateHint.sampleLabel || undefined
+                          }
+                        />
+                      ) : null}
+                      <Button
                         size="small"
-                        color="info"
-                        variant="outlined"
-                        label="Possíveis candidatos"
-                        title={
-                          row.globalCandidateHint.sampleLabel || undefined
+                        variant="text"
+                        onClick={() =>
+                          onOpenCanonicalPicker(row, {
+                            preferManualPicker: true,
+                          })
                         }
-                      />
-                    ) : (
-                      <Typography variant="caption" color="text.secondary">
-                        Nenhum encontrado
-                      </Typography>
-                    )
+                        sx={{
+                          minWidth: 0,
+                          px: 0.5,
+                          py: 0,
+                          textTransform: 'none',
+                        }}
+                      >
+                        {canonicalLinkAction === 'SEARCH'
+                          ? FRPS_SEARCH_CANONICAL_ACTION_LABEL
+                          : FRPS_CHOOSE_OTHER_CANONICAL_ACTION_LABEL}
+                      </Button>
+                    </Box>
                   ) : (
                     <Typography variant="caption" color="text.secondary">
                       —

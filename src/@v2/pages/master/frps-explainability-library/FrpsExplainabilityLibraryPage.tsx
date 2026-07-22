@@ -49,6 +49,7 @@ import {
   type FrpsLibraryTableRow,
   type FrpsLibraryUrlFilters,
 } from './frps-explainability-library-filters.util';
+import { mergeFrpsEquivalenceSelectionAfterBatch } from './frps-catalog-equivalence-dialog.util';
 import {
   FRPS_LIBRARY_STICKY_TOOLBAR_SX,
   buildFrpsLinkToCanonicalButtonLabel,
@@ -102,7 +103,15 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     [],
   );
   const [selectionError, setSelectionError] = useState<string | null>(null);
-  const [equivalenceOpen, setEquivalenceOpen] = useState(false);
+  const [equivalenceDialog, setEquivalenceDialog] = useState<{
+    open: boolean;
+    aliases: FrpsCatalogAdminItem[];
+    preferManualPicker: boolean;
+  }>({
+    open: false,
+    aliases: [],
+    preferManualPicker: false,
+  });
   /** Expansão manual — persiste enquanto a tela estiver montada. */
   const [userExpandedCanonicalIds, setUserExpandedCanonicalIds] = useState<
     Set<string>
@@ -438,10 +447,50 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     }
   };
 
+  const openEquivalenceDialogFromSelection = () => {
+    if (!selectedLocals.length) return;
+    setSelectionError(null);
+    setEquivalenceDialog({
+      open: true,
+      aliases: selectedLocals,
+      preferManualPicker: false,
+    });
+  };
+
+  const openEquivalenceDialogFromRow = (
+    row: FrpsLibraryTableRow,
+    options: { preferManualPicker: boolean },
+  ) => {
+    setSelectionError(null);
+    setEquivalenceDialog({
+      open: true,
+      aliases: [row.raw],
+      preferManualPicker: options.preferManualPicker,
+    });
+  };
+
+  const closeEquivalenceDialog = () => {
+    setEquivalenceDialog({
+      open: false,
+      aliases: [],
+      preferManualPicker: false,
+    });
+  };
+
   const handleEquivalenceCompleted = async (
     failedAliases: FrpsCatalogAdminItem[],
   ) => {
-    setSelectedLocals(failedAliases);
+    const attemptedAliasIds = new Set(
+      equivalenceDialog.aliases.map((alias) => alias.id),
+    );
+    setSelectedLocals((prev) =>
+      mergeFrpsEquivalenceSelectionAfterBatch({
+        previousSelected: prev,
+        attemptedAliasIds,
+        failedAliases,
+      }),
+    );
+
     await queryClient.invalidateQueries({
       queryKey: frpsExplainabilityLibraryQueryKeys.all,
     });
@@ -451,8 +500,13 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
       enqueueSnackbar('Equivalências criadas com sucesso.', {
         variant: 'success',
       });
-      setEquivalenceOpen(false);
+      closeEquivalenceDialog();
     } else {
+      setEquivalenceDialog((prev) => ({
+        ...prev,
+        open: true,
+        aliases: failedAliases,
+      }));
       enqueueSnackbar(
         `${failedAliases.length} alias(es) falharam e permaneceram selecionados para retry.`,
         { variant: 'warning' },
@@ -545,7 +599,7 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
                   color="inherit"
                   size="small"
                   variant="outlined"
-                  onClick={() => setEquivalenceOpen(true)}
+                  onClick={openEquivalenceDialogFromSelection}
                 >
                   {buildFrpsLinkToCanonicalButtonLabel(selectedLocals.length)}
                 </Button>
@@ -622,6 +676,7 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
             onToggleLocal={handleToggleLocal}
             onGenerate={handleGenerate}
             onView={handleView}
+            onOpenCanonicalPicker={openEquivalenceDialogFromRow}
           />
 
           <STablePagination
@@ -643,9 +698,10 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
       />
 
       <FrpsCatalogEquivalenceDialog
-        open={equivalenceOpen}
-        aliases={selectedLocals}
-        onClose={() => setEquivalenceOpen(false)}
+        open={equivalenceDialog.open}
+        aliases={equivalenceDialog.aliases}
+        preferManualPicker={equivalenceDialog.preferManualPicker}
+        onClose={closeEquivalenceDialog}
         onCompleted={handleEquivalenceCompleted}
       />
     </Box>
