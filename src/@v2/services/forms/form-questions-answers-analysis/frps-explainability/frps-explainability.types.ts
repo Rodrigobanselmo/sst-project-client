@@ -133,6 +133,16 @@ export type ReadFrpsItemExplanationResponse =
         itemType?: FrpsExplanationItemType;
         riskId?: string;
       };
+      /**
+       * Identidade efetivamente resolvida no read (CONCEPTUAL_NOT_GENERATED /
+       * ITEM_NOT_FOUND). Usada para diagnóstico e para estabilizar itemKey.
+       */
+      resolvedItem?: {
+        itemKey: string | null;
+        catalogId: string | null;
+        itemName: string | null;
+        itemType: FrpsExplanationItemType;
+      };
     }
   | {
       available: true;

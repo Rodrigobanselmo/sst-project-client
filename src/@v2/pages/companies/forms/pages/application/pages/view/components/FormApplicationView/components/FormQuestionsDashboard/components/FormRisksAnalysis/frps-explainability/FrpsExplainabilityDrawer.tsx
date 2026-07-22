@@ -220,6 +220,7 @@ export function FrpsExplainabilityDrawer() {
     phase,
     errorMessage,
     unavailableReason,
+    resolvedItem,
     isMaster,
     selectedConceptualModel,
     setSelectedConceptualModel,
@@ -239,6 +240,16 @@ export function FrpsExplainabilityDrawer() {
     closeExplainItem,
     retryExplainItem,
   } = useFrpsExplainability();
+
+  const showResolvedItemDiagnostics =
+    Boolean(resolvedItem) &&
+    isMaster &&
+    (phase === 'awaiting_master_generate' ||
+      phase === 'unavailable' ||
+      phase === 'error' ||
+      (typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('frpsExplainDebug') ===
+          '1'));
 
   const contextual = data?.contextual;
   const isProtected = contextual?.protectedData === true;
@@ -379,6 +390,20 @@ export function FrpsExplainabilityDrawer() {
                 onClick={retryExplainItem}
                 buttonProps={{ type: 'button' }}
               />
+              {showResolvedItemDiagnostics && resolvedItem && (
+                <SText
+                  variant="caption"
+                  color="text.disabled"
+                  fontSize={11}
+                  sx={{ mt: 1.5, display: 'block', wordBreak: 'break-all' }}
+                >
+                  Identidade resolvida: {resolvedItem.itemType}
+                  {resolvedItem.catalogId
+                    ? ` · catalogId ${resolvedItem.catalogId}`
+                    : ' · sem catalogId'}
+                  {resolvedItem.itemKey ? ` · ${resolvedItem.itemKey}` : ''}
+                </SText>
+              )}
             </Box>
           )}
 
@@ -418,6 +443,20 @@ export function FrpsExplainabilityDrawer() {
                 onClick={closeExplainItem}
                 buttonProps={{ type: 'button' }}
               />
+              {showResolvedItemDiagnostics && resolvedItem && (
+                <SText
+                  variant="caption"
+                  color="text.disabled"
+                  fontSize={11}
+                  sx={{ mt: 1.5, display: 'block', wordBreak: 'break-all' }}
+                >
+                  Identidade resolvida: {resolvedItem.itemType}
+                  {resolvedItem.catalogId
+                    ? ` · catalogId ${resolvedItem.catalogId}`
+                    : ' · sem catalogId'}
+                  {resolvedItem.itemKey ? ` · ${resolvedItem.itemKey}` : ''}
+                </SText>
+              )}
             </Box>
           )}
 
@@ -525,6 +564,22 @@ export function FrpsExplainabilityDrawer() {
                   onClick={() => void confirmGenerate()}
                   buttonProps={{ type: 'button', disabled: isLoading }}
                 />
+                {showResolvedItemDiagnostics && resolvedItem && (
+                  <SText
+                    variant="caption"
+                    color="text.disabled"
+                    fontSize={11}
+                    sx={{ mt: 1.5, display: 'block', wordBreak: 'break-all' }}
+                  >
+                    Identidade resolvida: {resolvedItem.itemType}
+                    {resolvedItem.catalogId
+                      ? ` · catalogId ${resolvedItem.catalogId}`
+                      : ' · sem catalogId'}
+                    {resolvedItem.itemKey
+                      ? ` · ${resolvedItem.itemKey}`
+                      : ''}
+                  </SText>
+                )}
               </Box>
             )}
 

@@ -71,6 +71,10 @@ type FrpsExplainabilityContextValue = {
   phase: FrpsExplainabilityPhase;
   errorMessage: string | null;
   unavailableReason: string | null;
+  /** Identidade resolvida pelo read (diagnóstico Banco → Formulário). */
+  resolvedItem: NonNullable<
+    Extract<ReadFrpsItemExplanationResponse, { available: false }>['resolvedItem']
+  > | null;
   isMaster: boolean;
   selectedConceptualModel: string;
   setSelectedConceptualModel: (model: string) => void;
@@ -155,6 +159,14 @@ export function FrpsExplainabilityProvider({
   const [unavailableReason, setUnavailableReason] = useState<string | null>(
     null,
   );
+  const [resolvedItem, setResolvedItem] = useState<
+    NonNullable<
+      Extract<
+        ReadFrpsItemExplanationResponse,
+        { available: false }
+      >['resolvedItem']
+    > | null
+  >(null);
   const [selectedConceptualModel, setSelectedConceptualModel] = useState(
     FRPS_DEFAULT_CONCEPTUAL_MODEL_FOR_MASTER,
   );
@@ -200,6 +212,26 @@ export function FrpsExplainabilityProvider({
       response: Extract<ReadFrpsItemExplanationResponse, { available: false }>,
       nextTarget: FrpsExplainabilityTarget,
     ) => {
+      const stableIdentity =
+        response.localItem?.itemKey || response.resolvedItem?.itemKey || null;
+      const stableName =
+        response.localItem?.itemName ||
+        response.resolvedItem?.itemName ||
+        null;
+
+      setResolvedItem(response.resolvedItem ?? null);
+
+      if (stableIdentity || stableName) {
+        setTarget((current) => {
+          const base = current ?? nextTarget;
+          return {
+            ...base,
+            itemKey: base.itemKey || stableIdentity || undefined,
+            itemName: stableName || base.itemName,
+          };
+        });
+      }
+
       if (response.reason === 'ITEM_NOT_FOUND') {
         setUnavailableReason(response.reason);
         setData(null);
@@ -211,23 +243,6 @@ export function FrpsExplainabilityProvider({
       }
 
       setUnavailableReason(response.reason);
-
-      // Mantém itemKey estável da API quando disponível (sem fluxo de vínculo).
-      if (response.localItem?.itemKey) {
-        setTarget((current) =>
-          current
-            ? {
-                ...current,
-                itemKey: current.itemKey || response.localItem?.itemKey,
-                itemName: response.localItem?.itemName || current.itemName,
-              }
-            : {
-                ...nextTarget,
-                itemKey: response.localItem?.itemKey,
-                itemName: response.localItem?.itemName || nextTarget.itemName,
-              },
-        );
-      }
 
       if (response.conceptual) {
         setData({
@@ -292,6 +307,7 @@ export function FrpsExplainabilityProvider({
           : current,
       );
       setUnavailableReason(null);
+      setResolvedItem(null);
       setData(response);
       setPhase('ready');
     },
@@ -329,6 +345,7 @@ export function FrpsExplainabilityProvider({
       setIsLoading(true);
       setErrorMessage(null);
       setUnavailableReason(null);
+      setResolvedItem(null);
       setData(null);
       setIsEditing(false);
       setPhase('loading_read');
@@ -796,6 +813,7 @@ export function FrpsExplainabilityProvider({
       phase,
       errorMessage,
       unavailableReason,
+      resolvedItem,
       isMaster,
       selectedConceptualModel,
       setSelectedConceptualModel,
@@ -827,6 +845,7 @@ export function FrpsExplainabilityProvider({
       phase,
       errorMessage,
       unavailableReason,
+      resolvedItem,
       isMaster,
       selectedConceptualModel,
       isEditing,
