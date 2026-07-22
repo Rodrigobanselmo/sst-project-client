@@ -26,7 +26,7 @@ import {
 type AnalysisItemType = AnalysisItemCodeType;
 
 type EditableAnalysisItemProps = {
-  item: { nome: string; justificativa?: string };
+  item: { nome: string; justificativa?: string; catalogId?: string | null };
   itemIndex: number;
   analysisId: string;
   itemType: AnalysisItemType;
@@ -310,10 +310,10 @@ function EditableAnalysisItem({
             listItemType={itemType}
             itemName={item.nome}
             itemKey={
-              itemStatus?.catalogId
+              item.catalogId || itemStatus?.catalogId
                 ? buildCatalogFrpsItemKey(
                     mapAnalysisListItemTypeToExplanationItemType(itemType),
-                    itemStatus.catalogId,
+                    (item.catalogId || itemStatus?.catalogId) as string,
                   )
                 : undefined
             }

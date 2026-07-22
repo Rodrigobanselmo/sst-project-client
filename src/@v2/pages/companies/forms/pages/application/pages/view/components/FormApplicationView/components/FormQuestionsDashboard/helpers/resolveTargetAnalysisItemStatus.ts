@@ -136,6 +136,8 @@ export function resolveTargetAnalysisItemStatus(params: {
     return {
       existsInInventory: true,
       existsInCatalog: sourceCatalogStatus?.existsInCatalog ?? false,
+      // Preserva identidade FRPS (catalogId system) ao marcar inventário local.
+      catalogId: sourceCatalogStatus?.catalogId ?? null,
     };
   }
 
@@ -154,6 +156,7 @@ export function resolveTargetAnalysisItemStatus(params: {
     return {
       existsInInventory,
       existsInCatalog: sourceCatalogStatus?.existsInCatalog ?? false,
+      catalogId: sourceCatalogStatus?.catalogId ?? null,
     };
   }
 
@@ -171,6 +174,7 @@ export function resolveTargetAnalysisItemStatus(params: {
     return {
       existsInInventory: false,
       existsInCatalog: sourceCatalogStatus.existsInCatalog,
+      catalogId: sourceCatalogStatus.catalogId ?? null,
     };
   }
 

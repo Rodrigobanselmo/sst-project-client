@@ -1183,10 +1183,10 @@ export const FormRisksAnalysis = ({
                 listItemType={itemType}
                 itemName={item.nome}
                 itemKey={
-                  itemStatus?.catalogId
+                  item.catalogId || itemStatus?.catalogId
                     ? buildCatalogFrpsItemKey(
                         mapAnalysisListItemTypeToExplanationItemType(itemType),
-                        itemStatus.catalogId,
+                        (item.catalogId || itemStatus?.catalogId) as string,
                       )
                     : undefined
                 }

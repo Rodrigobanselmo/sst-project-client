@@ -16,23 +16,19 @@ export interface AiAnalyzeFormQuestionsRisksParams {
   model?: string;
 }
 
+export type AiRiskAnalysisItem = {
+  nome: string;
+  justificativa: string;
+  origem: 'sistema' | 'ia';
+  /** Identidade system do catálogo (enriquecida no browse). */
+  catalogId?: string | null;
+};
+
 export type AiRiskAnalysisResponse = {
   frps: string;
-  fontesGeradoras: Array<{
-    nome: string;
-    justificativa: string;
-    origem: 'sistema' | 'ia';
-  }>;
-  medidasEngenhariaRecomendadas: Array<{
-    nome: string;
-    justificativa: string;
-    origem: 'sistema' | 'ia';
-  }>;
-  medidasAdministrativasRecomendadas: Array<{
-    nome: string;
-    justificativa: string;
-    origem: 'sistema' | 'ia';
-  }>;
+  fontesGeradoras: AiRiskAnalysisItem[];
+  medidasEngenhariaRecomendadas: AiRiskAnalysisItem[];
+  medidasAdministrativasRecomendadas: AiRiskAnalysisItem[];
 };
 
 export type HierarchyRiskAnalysis = {
