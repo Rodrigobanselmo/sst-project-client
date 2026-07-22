@@ -1,6 +1,9 @@
 import type { SxProps, Theme } from '@mui/material';
 
-/** Chip “Canônico”: contraste acessível na identidade SimpleSST (laranja). */
+/**
+ * Chip de alto contraste na identidade SimpleSST (laranja + texto branco).
+ * Usado em “Canônico” e no selo de origem GLOBAL.
+ */
 export const FRPS_CANONICAL_CHIP_SX: SxProps<Theme> = {
   bgcolor: 'primary.main',
   color: 'primary.contrastText',
@@ -12,6 +15,9 @@ export const FRPS_CANONICAL_CHIP_SX: SxProps<Theme> = {
     px: 0.75,
   },
 };
+
+/** Alias semântico: mesmo contraste do chip Canônico. */
+export const FRPS_GLOBAL_ORIGIN_CHIP_SX = FRPS_CANONICAL_CHIP_SX;
 
 /** Recuo só na 1ª coluna (Nome), sem deslocar as demais. */
 export const FRPS_ALIAS_NAME_INDENT_PX = 28;

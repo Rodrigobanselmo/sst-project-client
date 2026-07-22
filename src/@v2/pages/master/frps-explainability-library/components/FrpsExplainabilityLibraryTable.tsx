@@ -30,6 +30,10 @@ import {
   FRPS_SEARCH_CANONICAL_ACTION_LABEL,
 } from '../frps-explainability-library-ux.constants';
 import {
+  resolveFrpsLibraryOriginChipProps,
+  resolveFrpsLibraryViewButtonVariant,
+} from '../frps-library-row-visual.util';
+import {
   buildFrpsAliasGroupToggleLabel,
   isFrpsLibraryAliasSelectable,
 } from '../frps-library-table-visibility.util';
@@ -251,8 +255,7 @@ export function FrpsExplainabilityLibraryTable({
                   <Chip
                     size="small"
                     label={row.originLabel}
-                    color={row.origin === 'GLOBAL' ? 'primary' : 'default'}
-                    variant={row.origin === 'GLOBAL' ? 'filled' : 'outlined'}
+                    {...resolveFrpsLibraryOriginChipProps(row.origin)}
                   />
                 </TableCell>
                 <TableCell>{row.companyName || '—'}</TableCell>
@@ -356,7 +359,8 @@ export function FrpsExplainabilityLibraryTable({
                     {actions.canView ? (
                       <Button
                         size="small"
-                        variant="outlined"
+                        color="primary"
+                        variant={resolveFrpsLibraryViewButtonVariant(row.status)}
                         onClick={() => onView(row)}
                         disabled={isGenerating}
                       >
@@ -366,6 +370,7 @@ export function FrpsExplainabilityLibraryTable({
                     {actions.canGenerate && row.origin === 'GLOBAL' ? (
                       <Button
                         size="small"
+                        color="primary"
                         variant="contained"
                         onClick={() => onGenerate(row)}
                         disabled={isGenerating || Boolean(generatingRowId)}
