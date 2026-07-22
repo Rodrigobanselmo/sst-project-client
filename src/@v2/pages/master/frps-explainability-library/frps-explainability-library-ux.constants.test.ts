@@ -12,6 +12,7 @@ import {
   FRPS_EQUIVALENCE_DIALOG_TITLE,
   FRPS_LIBRARY_STICKY_TABLE_HEAD_SX,
   FRPS_LIBRARY_STICKY_TOOLBAR_SX,
+  FRPS_LIBRARY_TABLE_CONTAINER_SX,
   FRPS_LINK_TO_CANONICAL_BUTTON_LABEL,
   buildFrpsEquivalenceDialogConfirmLabel,
   buildFrpsLinkToCanonicalButtonLabel,
@@ -55,9 +56,15 @@ describe('FRPS library UX refinements', () => {
 
   it('6) sticky table head sits below toolbar via CSS var', () => {
     const sx = FRPS_LIBRARY_STICKY_TABLE_HEAD_SX as Record<string, unknown>;
+    assert.equal(sx.position, 'sticky');
     assert.equal(sx.top, 'var(--frps-library-sticky-offset, 0px)');
     assert.equal(sx.zIndex, 11);
     assert.equal(sx.bgcolor, 'background.paper');
+  });
+
+  it('6b) table container keeps overflow visible so thead offset does not cover rows', () => {
+    const sx = FRPS_LIBRARY_TABLE_CONTAINER_SX as Record<string, unknown>;
+    assert.equal(sx.overflow, 'visible');
   });
 
   it('7) page size options match shared SimpleSST table pagination', () => {

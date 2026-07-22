@@ -42,10 +42,24 @@ export const FRPS_LIBRARY_STICKY_TOOLBAR_SX: SxProps<Theme> = {
   mb: 1.5,
 };
 
-/** Cabeçalho da tabela sticky, abaixo da toolbar (top dinâmico via CSS var). */
+/**
+ * Cabeçalho sticky abaixo da toolbar (top = altura medida da toolbar).
+ * Exige TableContainer com overflow visível — overflow:auto cria containing
+ * block e o offset da toolbar cobre as primeiras linhas do body.
+ */
 export const FRPS_LIBRARY_STICKY_TABLE_HEAD_SX: SxProps<Theme> = {
+  position: 'sticky',
   top: 'var(--frps-library-sticky-offset, 0px)',
   zIndex: 11,
   bgcolor: 'background.paper',
+  backgroundImage: 'none',
   boxShadow: '0 1px 0 0 rgba(0,0,0,0.08)',
+};
+
+/**
+ * Evita containing block de sticky no TableContainer (MUI default overflowX:auto).
+ * O scroll vertical fica no layout do dashboard; thead usa o offset da toolbar.
+ */
+export const FRPS_LIBRARY_TABLE_CONTAINER_SX: SxProps<Theme> = {
+  overflow: 'visible',
 };

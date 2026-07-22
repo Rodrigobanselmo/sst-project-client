@@ -53,6 +53,15 @@ import {
   FRPS_LIBRARY_STICKY_TOOLBAR_SX,
   buildFrpsLinkToCanonicalButtonLabel,
 } from './frps-explainability-library-ux.constants';
+import {
+  areAllVisibleSelectableSelected,
+  buildFrpsSelectVisibleButtonLabel,
+  deselectVisibleSelectableAliases,
+  getAutoExpandCanonicalIdsForSearch,
+  getRenderedFrpsLibraryRows,
+  getVisibleSelectableAliasRows,
+  selectVisibleSelectableAliases,
+} from './frps-library-table-visibility.util';
 
 function getErrorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null) {
@@ -94,6 +103,18 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
   );
   const [selectionError, setSelectionError] = useState<string | null>(null);
   const [equivalenceOpen, setEquivalenceOpen] = useState(false);
+  /** Expansão manual — persiste enquanto a tela estiver montada. */
+  const [userExpandedCanonicalIds, setUserExpandedCanonicalIds] = useState<
+    Set<string>
+  >(() => new Set());
+  /** Recolhimento manual bloqueia auto-expand da mesma busca. */
+  const [userCollapsedCanonicalIds, setUserCollapsedCanonicalIds] = useState<
+    Set<string>
+  >(() => new Set());
+  /** Expansão automática por busca (aliases em grupos recolhidos). */
+  const [autoExpandedCanonicalIds, setAutoExpandedCanonicalIds] = useState<
+    Set<string>
+  >(() => new Set());
 
   const filtersFromQuery = useMemo(
     () => parseFrpsLibraryFiltersFromQuery(router.query),
@@ -185,10 +206,50 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     );
   }, [data?.items]);
 
+  const expandedCanonicalIds = useMemo(() => {
+    const next = new Set(userExpandedCanonicalIds);
+    for (const id of autoExpandedCanonicalIds) next.add(id);
+    return next;
+  }, [userExpandedCanonicalIds, autoExpandedCanonicalIds]);
+
+  const renderedRows = useMemo(
+    () => getRenderedFrpsLibraryRows(rows, expandedCanonicalIds),
+    [rows, expandedCanonicalIds],
+  );
+
+  const visibleSelectableRows = useMemo(
+    () => getVisibleSelectableAliasRows(renderedRows),
+    [renderedRows],
+  );
+
   const selectedLocalIds = useMemo(
     () => new Set(selectedLocals.map((item) => item.id)),
     [selectedLocals],
   );
+
+  const allVisibleSelected = useMemo(
+    () =>
+      areAllVisibleSelectableSelected({
+        visibleSelectable: visibleSelectableRows,
+        selectedIds: selectedLocalIds,
+      }),
+    [visibleSelectableRows, selectedLocalIds],
+  );
+
+  useEffect(() => {
+    setUserCollapsedCanonicalIds(new Set());
+  }, [filters.search]);
+
+  useEffect(() => {
+    const autoIds = getAutoExpandCanonicalIdsForSearch({
+      rows,
+      search: filters.search,
+    });
+    for (const id of userCollapsedCanonicalIds) {
+      autoIds.delete(id);
+    }
+    setAutoExpandedCanonicalIds(autoIds);
+  }, [rows, filters.search, userCollapsedCanonicalIds]);
 
   useLayoutEffect(() => {
     const node = stickyToolbarRef.current;
@@ -265,6 +326,78 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     }
 
     setSelectedLocals((prev) => [...prev, item]);
+  };
+
+  const handleToggleCanonicalGroup = (canonicalId: string) => {
+    const currentlyExpanded = expandedCanonicalIds.has(canonicalId);
+
+    if (currentlyExpanded) {
+      setUserExpandedCanonicalIds((prev) => {
+        if (!prev.has(canonicalId)) return prev;
+        const next = new Set(prev);
+        next.delete(canonicalId);
+        return next;
+      });
+      setAutoExpandedCanonicalIds((prev) => {
+        if (!prev.has(canonicalId)) return prev;
+        const next = new Set(prev);
+        next.delete(canonicalId);
+        return next;
+      });
+      setUserCollapsedCanonicalIds((prev) => {
+        const next = new Set(prev);
+        next.add(canonicalId);
+        return next;
+      });
+      return;
+    }
+
+    setUserCollapsedCanonicalIds((prev) => {
+      if (!prev.has(canonicalId)) return prev;
+      const next = new Set(prev);
+      next.delete(canonicalId);
+      return next;
+    });
+    setUserExpandedCanonicalIds((prev) => {
+      const next = new Set(prev);
+      next.add(canonicalId);
+      return next;
+    });
+  };
+
+  const handleToggleSelectVisible = () => {
+    setSelectionError(null);
+
+    if (!visibleSelectableRows.length) {
+      enqueueSnackbar('Nenhum alias elegível visível nesta página.', {
+        variant: 'info',
+      });
+      return;
+    }
+
+    if (allVisibleSelected) {
+      setSelectedLocals((prev) =>
+        deselectVisibleSelectableAliases({
+          visibleSelectable: visibleSelectableRows,
+          selectedLocals: prev,
+        }),
+      );
+      return;
+    }
+
+    const { nextSelected, addedCount, skippedCount } =
+      selectVisibleSelectableAliases({
+        visibleSelectable: visibleSelectableRows,
+        selectedLocals,
+      });
+    setSelectedLocals(nextSelected);
+
+    if (addedCount === 0 && skippedCount > 0) {
+      const message =
+        'Nenhum alias visível pôde ser selecionado com a seleção atual.';
+      setSelectionError(message);
+      enqueueSnackbar(message, { variant: 'warning' });
+    }
   };
 
   const handleView = (row: FrpsLibraryTableRow) => {
@@ -462,16 +595,28 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
             display="flex"
             justifyContent="space-between"
             alignItems="center"
+            gap={1}
+            flexWrap="wrap"
             mb={1}
           >
             <Typography variant="body2" color="text.secondary">
               {data?.pagination.total ?? 0} item(ns)
               {isFetching ? ' · atualizando…' : ''}
             </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={handleToggleSelectVisible}
+              disabled={!visibleSelectableRows.length && !allVisibleSelected}
+            >
+              {buildFrpsSelectVisibleButtonLabel(allVisibleSelected)}
+            </Button>
           </Box>
 
           <FrpsExplainabilityLibraryTable
-            rows={rows}
+            rows={renderedRows}
+            expandedCanonicalIds={expandedCanonicalIds}
+            onToggleCanonicalGroup={handleToggleCanonicalGroup}
             generatingRowId={generatingRowId}
             selectedLocalIds={selectedLocalIds}
             onToggleLocal={handleToggleLocal}

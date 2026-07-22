@@ -24,7 +24,12 @@ import {
   FRPS_ALIAS_NAME_INDENT_PX,
   FRPS_CANONICAL_CHIP_SX,
   FRPS_LIBRARY_STICKY_TABLE_HEAD_SX,
+  FRPS_LIBRARY_TABLE_CONTAINER_SX,
 } from '../frps-explainability-library-ux.constants';
+import {
+  buildFrpsAliasGroupToggleLabel,
+  isFrpsLibraryAliasSelectable,
+} from '../frps-library-table-visibility.util';
 
 function statusColor(
   status: FrpsLibraryTableRow['status'],
@@ -43,6 +48,8 @@ function statusColor(
 
 export function FrpsExplainabilityLibraryTable({
   rows,
+  expandedCanonicalIds,
+  onToggleCanonicalGroup,
   generatingRowId,
   selectedLocalIds,
   onToggleLocal,
@@ -50,6 +57,8 @@ export function FrpsExplainabilityLibraryTable({
   onView,
 }: {
   rows: FrpsLibraryTableRow[];
+  expandedCanonicalIds: ReadonlySet<string>;
+  onToggleCanonicalGroup: (canonicalId: string) => void;
   generatingRowId: string | null;
   selectedLocalIds: Set<string>;
   onToggleLocal: (row: FrpsLibraryTableRow) => void;
@@ -67,7 +76,11 @@ export function FrpsExplainabilityLibraryTable({
   }
 
   return (
-    <TableContainer component={Paper} variant="outlined">
+    <TableContainer
+      component={Paper}
+      variant="outlined"
+      sx={FRPS_LIBRARY_TABLE_CONTAINER_SX}
+    >
       <Table size="small" stickyHeader>
         <TableHead>
           <TableRow>
@@ -114,9 +127,11 @@ export function FrpsExplainabilityLibraryTable({
               row.conceptualExplanationId,
             );
             const isGenerating = generatingRowId === row.id;
-            const selectable =
-              row.origin === 'LOCAL' && !row.hasActiveEquivalence;
+            const selectable = isFrpsLibraryAliasSelectable(row);
             const indentAlias = row.isAliasRow;
+            const isGroupExpanded = expandedCanonicalIds.has(row.catalogId);
+            const showGroupToggle =
+              row.isCanonical && row.aliasCount > 0;
 
             return (
               <TableRow
@@ -154,7 +169,7 @@ export function FrpsExplainabilityLibraryTable({
                       gap: 0.5,
                     }}
                   >
-                    <Box display="flex" alignItems="center" gap={0.75}>
+                    <Box display="flex" alignItems="center" gap={0.75} flexWrap="wrap">
                       {row.isCanonical ? (
                         <Chip
                           size="small"
@@ -176,6 +191,33 @@ export function FrpsExplainabilityLibraryTable({
                       >
                         {row.name}
                       </Typography>
+                      {showGroupToggle ? (
+                        <Button
+                          size="small"
+                          variant="text"
+                          color="inherit"
+                          onClick={() => onToggleCanonicalGroup(row.catalogId)}
+                          aria-expanded={isGroupExpanded}
+                          aria-label={
+                            isGroupExpanded
+                              ? `Recolher aliases de ${row.name}`
+                              : `Expandir aliases de ${row.name}`
+                          }
+                          sx={{
+                            minWidth: 0,
+                            px: 0.75,
+                            py: 0,
+                            fontWeight: 600,
+                            color: 'text.secondary',
+                            textTransform: 'none',
+                          }}
+                        >
+                          {buildFrpsAliasGroupToggleLabel({
+                            aliasCount: row.aliasCount,
+                            expanded: isGroupExpanded,
+                          })}
+                        </Button>
+                      ) : null}
                     </Box>
                     {row.isOrphanAliasOnPage && row.canonicalLabel ? (
                       <Typography
