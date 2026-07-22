@@ -23,6 +23,7 @@ import {
 } from '@v2/services/forms/frps-explainability-library';
 import { useFetchSearchRiskCatalogItems } from '@v2/services/risk-catalog-equivalence/hooks/useFetchSearchRiskCatalogItems';
 import { useFetchBulkPreviewRiskCatalogEquivalenceImpact } from '@v2/services/risk-catalog-equivalence/hooks/useFetchBulkPreviewRiskCatalogEquivalenceImpact';
+import { useMutateCreateGlobalCanonicalFromLocal } from '@v2/services/risk-catalog-equivalence/hooks/useMutateCreateGlobalCanonicalFromLocal';
 import { createRiskCatalogEquivalence } from '@v2/services/risk-catalog-equivalence/service/risk-catalog-equivalence.service';
 import {
   RiskCatalogEquivalenceType,
@@ -43,6 +44,19 @@ import {
   resolveFrpsExactAutoSuggestedCanonical,
 } from '../frps-catalog-admin-equivalence.util';
 import {
+  buildCreateGlobalCanonicalPayload,
+  buildCreateGlobalPreview,
+  canShowCreateGlobalCanonicalAction,
+  FRPS_CREATE_GLOBAL_ACTION_LABEL,
+  FRPS_CREATE_GLOBAL_BODY,
+  FRPS_CREATE_GLOBAL_CONFIRM_LABEL,
+  FRPS_CREATE_GLOBAL_NO_EXPLANATION_WARNING,
+  FRPS_CREATE_GLOBAL_TITLE,
+  getCreateGlobalValidatedBlockReason,
+  getEligibleLocalItemsForCreateGlobal,
+  resolveCreateGlobalBaseAlias,
+} from '../frps-create-global-canonical.util';
+import {
   getFrpsLibraryItemTypeLabel,
   getFrpsLibraryStatusLabel,
 } from '../frps-explainability-library-filters.util';
@@ -51,6 +65,8 @@ import {
   buildFrpsEquivalenceDialogConfirmLabel,
 } from '../frps-explainability-library-ux.constants';
 import { buildFrpsEquivalenceDialogInit } from '../frps-catalog-equivalence-dialog.util';
+
+type CreateGlobalStep = 'base' | 'preview';
 
 type BatchCreateResult = {
   alias: FrpsCatalogAdminItem;
@@ -65,6 +81,7 @@ type Props = {
   aliases: FrpsCatalogAdminItem[];
   onClose: () => void;
   onCompleted: (failedAliases: FrpsCatalogAdminItem[]) => void;
+  onCreateGlobalCompleted?: (linkedAliasIds: string[]) => void;
   /**
    * Abre direto no seletor manual (ex.: "Pesquisar canônico" /
    * "Escolher outro canônico" na linha). Não cria vínculo automático.
@@ -77,6 +94,7 @@ export function FrpsCatalogEquivalenceDialog({
   aliases,
   onClose,
   onCompleted,
+  onCreateGlobalCompleted,
   preferManualPicker = false,
 }: Props) {
   const [canonicalId, setCanonicalId] = useState<string>('');
@@ -93,6 +111,14 @@ export function FrpsCatalogEquivalenceDialog({
   const [batchResults, setBatchResults] = useState<BatchCreateResult[] | null>(
     null,
   );
+  const [createGlobalStep, setCreateGlobalStep] =
+    useState<CreateGlobalStep | null>(null);
+  const [selectedBaseId, setSelectedBaseId] = useState<string | null>(null);
+  const [createGlobalError, setCreateGlobalError] = useState<string | null>(
+    null,
+  );
+
+  const createGlobalMutation = useMutateCreateGlobalCanonicalFromLocal();
 
   const firstAlias = aliases[0] ?? null;
   const kind =
@@ -118,6 +144,9 @@ export function FrpsCatalogEquivalenceDialog({
     setSuggestionAccepted(init.suggestionAccepted);
     setEquivalenceType(RiskCatalogEquivalenceType.SEMANTIC_ALIAS);
     setSearchDraft(init.searchDraft);
+    setCreateGlobalStep(null);
+    setSelectedBaseId(null);
+    setCreateGlobalError(null);
     setSearchSessionReady(true);
   }, [open, firstAlias?.id, firstAlias?.label, preferManualPicker]);
 
@@ -296,8 +325,32 @@ export function FrpsCatalogEquivalenceDialog({
     }
   };
 
+  const eligibleLocals = useMemo(
+    () => getEligibleLocalItemsForCreateGlobal(aliases),
+    [aliases],
+  );
+
+  const createGlobalBase = resolveCreateGlobalBaseAlias({
+    aliases,
+    selectedBaseId,
+  });
+
+  const createGlobalPreview = createGlobalBase
+    ? buildCreateGlobalPreview({ base: createGlobalBase, aliases })
+    : null;
+
+  const showCreateGlobalAction = canShowCreateGlobalCanonicalAction({
+    aliases,
+    hasSelectedCanonical: Boolean(canonicalSearch),
+    manualPickerVisible: showManualPicker,
+    createFlowOpen: Boolean(createGlobalStep),
+  });
+
+  const busy =
+    isCreating || createGlobalMutation.isPending;
+
   const handleClose = () => {
-    if (isCreating) return;
+    if (busy) return;
     setCanonicalId('');
     setSearchDraft('');
     setPickerMode('auto');
@@ -305,6 +358,9 @@ export function FrpsCatalogEquivalenceDialog({
     setSuggestionAccepted(false);
     setSearchSessionReady(false);
     setBatchResults(null);
+    setCreateGlobalStep(null);
+    setSelectedBaseId(null);
+    setCreateGlobalError(null);
     onClose();
   };
 
@@ -320,9 +376,61 @@ export function FrpsCatalogEquivalenceDialog({
     setBatchResults(null);
   };
 
+  const handleStartCreateGlobal = () => {
+    const validatedBlock = getCreateGlobalValidatedBlockReason(aliases);
+    if (validatedBlock) {
+      setCreateGlobalError(validatedBlock);
+      return;
+    }
+    setCreateGlobalError(null);
+    setCanonicalId('');
+    if (eligibleLocals.length === 1) {
+      setSelectedBaseId(eligibleLocals[0]!.id);
+      setCreateGlobalStep('preview');
+      return;
+    }
+    setSelectedBaseId(null);
+    setCreateGlobalStep('base');
+  };
+
+  const handleConfirmCreateGlobal = async () => {
+    if (!createGlobalBase || busy) return;
+    const validatedBlock = getCreateGlobalValidatedBlockReason(aliases);
+    if (validatedBlock) {
+      setCreateGlobalError(validatedBlock);
+      return;
+    }
+
+    setCreateGlobalError(null);
+    try {
+      const payload = buildCreateGlobalCanonicalPayload({
+        base: createGlobalBase,
+        aliases,
+        equivalenceType,
+      });
+      await createGlobalMutation.mutateAsync({
+        kind:
+          payload.kind === 'GENERATE_SOURCE'
+            ? RiskCatalogKind.GENERATE_SOURCE
+            : RiskCatalogKind.REC_MED,
+        riskId: payload.riskId,
+        baseAliasId: payload.baseAliasId,
+        aliasIds: payload.aliasIds,
+        equivalenceType,
+      });
+      onCreateGlobalCompleted?.(payload.aliasIds);
+      setCreateGlobalStep(null);
+      setSelectedBaseId(null);
+    } catch (error) {
+      setCreateGlobalError(formatRiskCatalogEquivalenceError(error));
+    }
+  };
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-      <DialogTitle>{FRPS_EQUIVALENCE_DIALOG_TITLE}</DialogTitle>
+      <DialogTitle>
+        {createGlobalStep ? FRPS_CREATE_GLOBAL_TITLE : FRPS_EQUIVALENCE_DIALOG_TITLE}
+      </DialogTitle>
       <DialogContent dividers>
         <Typography variant="body2" color="text.secondary" mb={2}>
           Os itens locais selecionados permanecerão no catálogo da empresa. A
@@ -510,10 +618,116 @@ export function FrpsCatalogEquivalenceDialog({
                 )}
               </Select>
             </FormControl>
+
+            {showCreateGlobalAction ? (
+              <Box mb={2}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleStartCreateGlobal}
+                  disabled={busy}
+                >
+                  {FRPS_CREATE_GLOBAL_ACTION_LABEL}
+                </Button>
+                {compatibleCanonicals.length === 0 ? (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                    mt={0.75}
+                  >
+                    Nenhum canônico adequado encontrado. Você pode criar um novo
+                    item no catálogo oficial SimpleSST a partir de um LOCAL.
+                  </Typography>
+                ) : (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                    mt={0.75}
+                  >
+                    Nenhum destes candidatos serve? Crie um novo canônico global
+                    a partir de um item LOCAL selecionado.
+                  </Typography>
+                )}
+              </Box>
+            ) : null}
           </>
         ) : null}
 
-        {showConfirmSection ? (
+        {createGlobalStep === 'base' ? (
+          <Box mb={2}>
+            <Typography variant="body2" color="text.secondary" mb={1.5}>
+              Selecione qual item LOCAL será o modelo do novo canônico global.
+            </Typography>
+            <FormControl fullWidth size="small">
+              <InputLabel>Item-base (LOCAL)</InputLabel>
+              <Select
+                label="Item-base (LOCAL)"
+                value={selectedBaseId ?? ''}
+                onChange={(event) => {
+                  setSelectedBaseId(event.target.value || null);
+                  setCreateGlobalError(null);
+                }}
+              >
+                {eligibleLocals.map((item) => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.label} · {item.companyName || 'Empresa'} ·{' '}
+                    {getFrpsLibraryItemTypeLabel(item.itemType)} ·{' '}
+                    {getFrpsLibraryStatusLabel(
+                      item.conceptualExplanation.status,
+                    )}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        ) : null}
+
+        {createGlobalStep === 'preview' && createGlobalPreview ? (
+          <Box mb={2}>
+            <Typography variant="body2" mb={1.5}>
+              {FRPS_CREATE_GLOBAL_BODY}
+            </Typography>
+            <Box
+              border={1}
+              borderColor="divider"
+              borderRadius={1}
+              p={1.5}
+              mb={1.5}
+            >
+              <Typography variant="subtitle2" gutterBottom>
+                Prévia
+              </Typography>
+              <Typography variant="body2">
+                Texto: {createGlobalPreview.baseLabel}
+              </Typography>
+              <Typography variant="body2">
+                Tipo: {getFrpsLibraryItemTypeLabel(createGlobalBase!.itemType)}
+              </Typography>
+              <Typography variant="body2">
+                Fator de risco: {createGlobalPreview.riskName}
+              </Typography>
+              <Typography variant="body2">
+                Origem atual: {createGlobalPreview.originLabel}
+              </Typography>
+              <Typography variant="body2">
+                Itens que serão vinculados: {createGlobalPreview.linkCount}
+              </Typography>
+            </Box>
+            <Alert severity="info" sx={{ mb: 1.5 }}>
+              {FRPS_CREATE_GLOBAL_NO_EXPLANATION_WARNING}
+            </Alert>
+          </Box>
+        ) : null}
+
+        {createGlobalError ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {createGlobalError}
+          </Alert>
+        ) : null}
+
+        {showConfirmSection && !createGlobalStep ? (
           <>
             <FormControl fullWidth size="small" sx={{ mb: 2 }}>
               <InputLabel>Tipo de equivalência</InputLabel>
@@ -647,7 +861,8 @@ export function FrpsCatalogEquivalenceDialog({
           </>
         ) : null}
 
-        {!canConfirm &&
+        {!createGlobalStep &&
+        !canConfirm &&
         aliases.length > 0 &&
         showManualPicker &&
         !canonicalSearch ? (
@@ -674,18 +889,41 @@ export function FrpsCatalogEquivalenceDialog({
         ) : null}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={isCreating}>
+        <Button onClick={handleClose} disabled={busy}>
           Fechar
         </Button>
-        <Button
-          variant="contained"
-          onClick={handleCreate}
-          disabled={isCreating || !canConfirm || !showConfirmSection}
-        >
-          {isCreating
-            ? 'Vinculando…'
-            : buildFrpsEquivalenceDialogConfirmLabel(aliases.length)}
-        </Button>
+        {createGlobalStep === 'base' ? (
+          <Button
+            variant="contained"
+            disabled={busy || !selectedBaseId}
+            onClick={() => {
+              if (!selectedBaseId) return;
+              setCreateGlobalStep('preview');
+            }}
+          >
+            Continuar
+          </Button>
+        ) : null}
+        {createGlobalStep === 'preview' ? (
+          <Button
+            variant="contained"
+            disabled={busy || !createGlobalBase}
+            onClick={handleConfirmCreateGlobal}
+          >
+            {busy ? 'Criando…' : FRPS_CREATE_GLOBAL_CONFIRM_LABEL}
+          </Button>
+        ) : null}
+        {!createGlobalStep ? (
+          <Button
+            variant="contained"
+            onClick={handleCreate}
+            disabled={busy || !canConfirm || !showConfirmSection}
+          >
+            {isCreating
+              ? 'Vinculando…'
+              : buildFrpsEquivalenceDialogConfirmLabel(aliases.length)}
+          </Button>
+        ) : null}
       </DialogActions>
     </Dialog>
   );

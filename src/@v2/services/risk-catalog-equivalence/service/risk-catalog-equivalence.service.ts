@@ -3,6 +3,10 @@ import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { api } from 'core/services/apiClient';
 
 import type {
+  CreateGlobalCanonicalFromLocalParams,
+  CreateGlobalCanonicalFromLocalResult,
+} from './create-global-canonical.types';
+import type {
   BrowseRiskCatalogEquivalencesParams,
   CreateRiskCatalogEquivalenceParams,
   PreviewRiskCatalogEquivalenceImpactParams,
@@ -51,6 +55,16 @@ export async function createRiskCatalogEquivalence(
 ): Promise<RiskCatalogEquivalence> {
   const response = await api.post<RiskCatalogEquivalence>(
     RiskCatalogEquivalenceRoutes.BASE,
+    params,
+  );
+  return response.data;
+}
+
+export async function createGlobalCanonicalFromLocal(
+  params: CreateGlobalCanonicalFromLocalParams,
+): Promise<CreateGlobalCanonicalFromLocalResult> {
+  const response = await api.post<CreateGlobalCanonicalFromLocalResult>(
+    RiskCatalogEquivalenceRoutes.CREATE_GLOBAL_CANONICAL,
     params,
   );
   return response.data;

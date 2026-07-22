@@ -50,6 +50,7 @@ import {
   type FrpsLibraryUrlFilters,
 } from './frps-explainability-library-filters.util';
 import { mergeFrpsEquivalenceSelectionAfterBatch } from './frps-catalog-equivalence-dialog.util';
+import { FRPS_CREATE_GLOBAL_SUCCESS_MESSAGE } from './frps-create-global-canonical.util';
 import {
   FRPS_LIBRARY_STICKY_TOOLBAR_SX,
   FRPS_VALIDATE_CONCEPTUAL_SUCCESS_MESSAGE,
@@ -540,6 +541,17 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     }
   };
 
+  const handleCreateGlobalCompleted = async (linkedAliasIds: string[]) => {
+    const linked = new Set(linkedAliasIds);
+    setSelectedLocals((prev) => prev.filter((item) => !linked.has(item.id)));
+    await queryClient.invalidateQueries({
+      queryKey: frpsExplainabilityLibraryQueryKeys.all,
+    });
+    await refetch();
+    enqueueSnackbar(FRPS_CREATE_GLOBAL_SUCCESS_MESSAGE, { variant: 'success' });
+    closeEquivalenceDialog();
+  };
+
   if (!canAccess) {
     return (
       <Alert severity="warning">
@@ -732,6 +744,7 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
         preferManualPicker={equivalenceDialog.preferManualPicker}
         onClose={closeEquivalenceDialog}
         onCompleted={handleEquivalenceCompleted}
+        onCreateGlobalCompleted={handleCreateGlobalCompleted}
       />
     </Box>
   );
