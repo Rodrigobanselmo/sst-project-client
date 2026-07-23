@@ -101,6 +101,17 @@ describe('FRPS technical report client wiring', () => {
     assert.match(pdf, /Adicionado ao inventário em parte do recorte/);
     assert.match(pdf, /inventoryInclusion/);
     assert.match(pdf, /frps/);
+    assert.match(pdf, /FrpsChapterPage/);
+    assert.match(pdf, /groups\.map\(\(group\) =>/);
+  });
+
+  it('5b each FRPS chapter starts on its own Page', () => {
+    assert.match(pdf, /function FrpsChapterPage/);
+    assert.match(pdf, /<FrpsChapterPage key=\{group\.riskId\} group=\{group\} \/>/);
+    // Sumário fica na primeira Page; capítulos FRPS em Pages seguintes.
+    const summaryPageIdx = pdf.indexOf('Sumário por FRPS');
+    const chaptersIdx = pdf.indexOf('groups.map((group) =>');
+    assert.ok(summaryPageIdx > 0 && chaptersIdx > summaryPageIdx);
   });
 
   it('6 DRAFT/NEVER only in pending section', () => {
@@ -144,10 +155,58 @@ describe('FRPS technical report client wiring', () => {
     assert.match(pdf, /Validado em/);
   });
 
-  it('10 no contextual content fields', () => {
-    assert.equal(pdf.includes('resumoContextual'), false);
-    assert.equal(pdf.includes('evidenciasAgregadas'), false);
-    assert.equal(exportHelper.includes('contextual'), false);
+  it('10 contextualAnalyses with status seals; no empty card; no explain-item fetch', () => {
+    assert.match(pdf, /ContextualAnalysisSection/);
+    assert.match(pdf, /contextualAnalyses/);
+    assert.match(pdf, /TECHNICAL_REPORT_CONTEXTUAL_COPY/);
+    assert.match(pdf, /validatedSeal/);
+    assert.match(pdf, /draftWarning/);
+    assert.match(pdf, /Gerado por IA — pendente de validação profissional/);
+    assert.match(pdf, /Validada/);
+    assert.match(pdf, /validationStatus === 'VALIDATED'/);
+    assert.match(pdf, /validationStatus === 'DRAFT_AI'/);
+    assert.match(pdf, /hasContextualContent/);
+    assert.match(pdf, /contextualCard/);
+    assert.match(pdf, /contextualDraftBanner/);
+    assert.match(pdf, /showHierarchyLabel/);
+    assert.match(pdf, /Hierarquia \/ uso:/);
+    assert.equal(/\bitem\.contextual\b/.test(pdf), false);
+    assert.equal(pdf.includes('contextual?:'), false);
+    assert.equal(exportHelper.includes('explain-item'), false);
+    assert.equal(exportHelper.includes('EXPLAIN_ITEM_GENERATE'), false);
+    assert.equal(exportHelper.includes('contextual/generate'), false);
+  });
+
+  it('10b multiple contexts render as separate blocks with own status', () => {
+    assert.match(
+      pdf,
+      /contextualAnalyses\.map\(\(analysis\) =>/,
+    );
+    assert.match(pdf, /showHierarchyLabel = contextualAnalyses\.length > 1/);
+    assert.match(pdf, /isValidated/);
+    assert.match(pdf, /isDraft/);
+  });
+
+  it('10c no empty contextual section; REJECTED filtered out', () => {
+    assert.match(
+      pdf,
+      /contextualAnalyses = \(item\.contextualAnalyses \?\? \[\]\)\.filter/,
+    );
+    assert.match(pdf, /validationStatus !== 'VALIDATED'/);
+    assert.match(pdf, /validationStatus !== 'DRAFT_AI'/);
+    assert.match(pdf, /if \(!hasContextualContent\(analysis\.content\)\) return null/);
+  });
+
+  it('10d VALIDATED shows audit only when present', () => {
+    assert.match(pdf, /validatedAudit/);
+    assert.match(pdf, /validatedByName && validatedAtLabel/);
+    assert.match(pdf, /Validado por/);
+  });
+
+  it('10e DRAFT warning is discrete and not error-styled', () => {
+    assert.match(pdf, /contextualDraftBanner/);
+    assert.match(pdf, /rgba\(255, 193, 7/);
+    assert.equal(pdf.includes('#c62828'), false);
   });
 
   it('11 error snackbar preserves screen', () => {

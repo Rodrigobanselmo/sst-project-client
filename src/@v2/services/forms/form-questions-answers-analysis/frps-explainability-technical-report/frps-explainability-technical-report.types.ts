@@ -47,6 +47,37 @@ export type FrpsTechnicalReportConceptualContent = {
   limitationsAndCautions?: string;
 };
 
+/** Conteúdo contextual permitido (mesmos campos do drawer). */
+export type FrpsTechnicalReportContextualContent = {
+  resumoContextual?: string | null;
+  evidenciasAgregadas?: string | null;
+  relacaoComFator?: string | null;
+  motivoDaSelecao?: string | null;
+  adequacaoDaRecomendacao?: string | null;
+  leituraDoCenario?: string | null;
+  limitesDeInterpretacao?: string | null;
+  orientacaoDeValidacaoProfissional?: string | null;
+};
+
+/**
+ * Justificativa contextual por análise/uso.
+ * Não é atributo global do canônico — cada uso traz o próprio contexto.
+ */
+export type FrpsTechnicalReportContextualAnalysis = {
+  analysisId: string;
+  riskId: string;
+  riskName: string;
+  hierarchyId: string;
+  hierarchyLabel: string;
+  /** VALIDATED ou DRAFT_AI — nunca REJECTED no relatório. */
+  validationStatus: 'VALIDATED' | 'DRAFT_AI';
+  content: FrpsTechnicalReportContextualContent;
+  generatedAt?: string | null;
+  validatedAt?: string | null;
+  /** Somente nome seguro do validador (sem e-mail/documento). */
+  validatedBy?: FrpsTechnicalReportValidatedBy | null;
+};
+
 export type FrpsTechnicalReportValidatedItem = {
   itemKey: string;
   canonicalCatalogId: string;
@@ -59,6 +90,11 @@ export type FrpsTechnicalReportValidatedItem = {
   risks: FrpsTechnicalReportRiskRef[];
   usages: FrpsTechnicalReportUsage[];
   content: FrpsTechnicalReportConceptualContent;
+  /**
+   * Zero ou mais justificativas contextuais por análise/hierarquia.
+   * Ausente ou [] → PDF mantém só o conhecimento técnico.
+   */
+  contextualAnalyses?: FrpsTechnicalReportContextualAnalysis[];
 };
 
 export type FrpsTechnicalReportPendingItem = {

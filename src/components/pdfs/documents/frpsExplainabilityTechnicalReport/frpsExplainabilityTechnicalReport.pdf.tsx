@@ -5,9 +5,12 @@ import {
   buildFrpsExplainabilityReportGroups,
   type FrpsReportValidatedEntry,
 } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildFrpsExplainabilityReportGroups';
+import { FRPS_EXPLAINABILITY_UI_COPY } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/frps-explainability/frps-explainability-ui-copy';
 import type {
   FrpsExplainabilityTechnicalReportResult,
   FrpsTechnicalReportConceptualContent,
+  FrpsTechnicalReportContextualAnalysis,
+  FrpsTechnicalReportContextualContent,
   FrpsTechnicalReportItemType,
   FrpsTechnicalReportPendingItem,
   FrpsTechnicalReportValidatedItem,
@@ -71,7 +74,6 @@ const s = StyleSheet.create({
     marginBottom: 3,
   },
   frpsHeader: {
-    marginTop: 14,
     marginBottom: 8,
     paddingVertical: 8,
     paddingHorizontal: 10,
@@ -153,7 +155,92 @@ const s = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#f5f7fa',
   },
+  contextualSection: {
+    marginTop: 14,
+  },
+  contextualBadge: {
+    alignSelf: 'flex-start',
+    fontSize: 7.5,
+    fontWeight: 700,
+    letterSpacing: 0.6,
+    color: '#0d47a1',
+    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+    border: '1 solid rgba(25, 118, 210, 0.22)',
+    borderRadius: 3,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    marginBottom: 6,
+  },
+  contextualTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: '#1f3b5b',
+    marginBottom: 4,
+    lineHeight: 1.35,
+  },
+  contextualIntro: {
+    fontSize: 8,
+    color: '#555',
+    lineHeight: 1.45,
+    marginBottom: 8,
+  },
+  contextualCard: {
+    padding: 10,
+    borderRadius: 4,
+    border: '1 solid rgba(25, 118, 210, 0.22)',
+    backgroundColor: 'rgba(25, 118, 210, 0.035)',
+  },
+  contextualUsageLabel: {
+    fontSize: 8,
+    color: '#1e3a5f',
+    marginBottom: 6,
+    fontWeight: 700,
+  },
+  contextualStatusValidated: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: '#1b5e20',
+    marginBottom: 4,
+  },
+  contextualStatusDraft: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: '#8a6d1d',
+    marginBottom: 4,
+  },
+  contextualAudit: {
+    fontSize: 7.5,
+    color: '#555',
+    marginBottom: 6,
+  },
+  contextualDraftBanner: {
+    alignSelf: 'flex-start',
+    fontSize: 7.5,
+    fontWeight: 700,
+    color: '#8a6d1d',
+    backgroundColor: 'rgba(255, 193, 7, 0.12)',
+    border: '1 solid rgba(183, 149, 11, 0.35)',
+    borderRadius: 3,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    marginBottom: 6,
+  },
 });
+
+/** Copy específica do PDF do relatório (não altera o drawer). */
+const TECHNICAL_REPORT_CONTEXTUAL_COPY = {
+  badge: 'ANÁLISE CONTEXTUAL',
+  validatedSeal: 'Validada',
+  validatedAudit: (name: string, dateLabel: string) =>
+    `Validado por ${name} em ${dateLabel}`,
+  draftWarning: 'Gerado por IA — pendente de validação profissional',
+} as const;
+
+const SCENARIO_LABELS: Record<string, string> = {
+  FAVORAVEL: 'Favorável',
+  INTERMEDIARIO: 'Intermediário',
+  DESFAVORAVEL: 'Desfavorável',
+};
 
 function itemTypeLabel(type: FrpsTechnicalReportItemType): string {
   if (type === 'GENERATE_SOURCE') return 'Fonte Geradora';
@@ -173,6 +260,24 @@ function pendingReasonLabel(reason: string): string {
     NO_EXPLANATION: 'Sem explicação utilizável',
   };
   return map[reason] ?? reason;
+}
+
+function contextualJustificationTitle(
+  itemType: FrpsTechnicalReportItemType,
+): string {
+  return itemType === 'GENERATE_SOURCE'
+    ? FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationTitleSource
+    : FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationTitleRecommendation;
+}
+
+function hasContextualContent(
+  content: FrpsTechnicalReportContextualContent | null | undefined,
+): boolean {
+  if (!content) return false;
+  return Object.values(content).some((value) => {
+    if (value == null) return false;
+    return String(value).trim().length > 0;
+  });
 }
 
 function Field({
@@ -278,6 +383,108 @@ function RecommendationFields({
   );
 }
 
+function ContextualFields({
+  itemType,
+  content,
+}: {
+  itemType: FrpsTechnicalReportItemType;
+  content: FrpsTechnicalReportContextualContent;
+}) {
+  const scenarioRaw = content.leituraDoCenario?.trim() || '';
+  const scenarioLabel = scenarioRaw
+    ? SCENARIO_LABELS[scenarioRaw] || scenarioRaw
+    : null;
+  const showAdequacao = itemType !== 'GENERATE_SOURCE';
+
+  return (
+    <View>
+      <Field label="Resumo contextual" value={content.resumoContextual} />
+      <Field label="Leitura do cenário" value={scenarioLabel} />
+      <Field label="Evidências agregadas" value={content.evidenciasAgregadas} />
+      <Field label="Relação com o fator" value={content.relacaoComFator} />
+      <Field label="Motivo da seleção" value={content.motivoDaSelecao} />
+      {showAdequacao ? (
+        <Field
+          label="Adequação da recomendação"
+          value={content.adequacaoDaRecomendacao}
+        />
+      ) : null}
+      <Field
+        label="Limites de interpretação"
+        value={content.limitesDeInterpretacao}
+      />
+      <Field
+        label="Orientação de validação profissional"
+        value={content.orientacaoDeValidacaoProfissional}
+      />
+    </View>
+  );
+}
+
+function ContextualAnalysisSection({
+  itemType,
+  analysis,
+  showHierarchyLabel,
+}: {
+  itemType: FrpsTechnicalReportItemType;
+  analysis: FrpsTechnicalReportContextualAnalysis;
+  showHierarchyLabel: boolean;
+}) {
+  if (!hasContextualContent(analysis.content)) return null;
+
+  const isValidated = analysis.validationStatus === 'VALIDATED';
+  const isDraft = analysis.validationStatus === 'DRAFT_AI';
+  const validatedAtLabel =
+    isValidated && analysis.validatedAt
+      ? new Date(analysis.validatedAt).toLocaleString('pt-BR')
+      : null;
+  const validatedByName =
+    isValidated && analysis.validatedBy?.name?.trim()
+      ? analysis.validatedBy.name.trim()
+      : null;
+
+  return (
+    <View style={s.contextualSection} wrap={false}>
+      <Text style={s.contextualBadge}>
+        {TECHNICAL_REPORT_CONTEXTUAL_COPY.badge}
+      </Text>
+      {isValidated ? (
+        <Text style={s.contextualStatusValidated}>
+          {TECHNICAL_REPORT_CONTEXTUAL_COPY.validatedSeal}
+        </Text>
+      ) : null}
+      {isDraft ? (
+        <Text style={s.contextualDraftBanner}>
+          {TECHNICAL_REPORT_CONTEXTUAL_COPY.draftWarning}
+        </Text>
+      ) : null}
+      <Text style={s.contextualTitle}>
+        {contextualJustificationTitle(itemType)}
+      </Text>
+      {showHierarchyLabel && analysis.hierarchyLabel ? (
+        <Text style={s.contextualUsageLabel}>
+          Hierarquia / uso: {analysis.hierarchyLabel}
+          {analysis.riskName ? ` · ${analysis.riskName}` : ''}
+        </Text>
+      ) : null}
+      {validatedByName && validatedAtLabel ? (
+        <Text style={s.contextualAudit}>
+          {TECHNICAL_REPORT_CONTEXTUAL_COPY.validatedAudit(
+            validatedByName,
+            validatedAtLabel,
+          )}
+        </Text>
+      ) : null}
+      <Text style={s.contextualIntro}>
+        {FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationIntro}
+      </Text>
+      <View style={s.contextualCard}>
+        <ContextualFields itemType={itemType} content={analysis.content} />
+      </View>
+    </View>
+  );
+}
+
 function ValidatedCard({ item }: { item: FrpsTechnicalReportValidatedItem }) {
   const risks = item.risks.map((r) => r.riskName).join('; ');
   const usages = item.usages
@@ -286,6 +493,16 @@ function ValidatedCard({ item }: { item: FrpsTechnicalReportValidatedItem }) {
   const validatedAt = item.validatedAt
     ? new Date(item.validatedAt).toLocaleString('pt-BR')
     : '—';
+  const contextualAnalyses = (item.contextualAnalyses ?? []).filter((ctx) => {
+    if (
+      ctx.validationStatus !== 'VALIDATED' &&
+      ctx.validationStatus !== 'DRAFT_AI'
+    ) {
+      return false;
+    }
+    return hasContextualContent(ctx.content);
+  });
+  const showHierarchyLabel = contextualAnalyses.length > 1;
 
   return (
     <View style={s.card}>
@@ -304,6 +521,14 @@ function ValidatedCard({ item }: { item: FrpsTechnicalReportValidatedItem }) {
       ) : (
         <RecommendationFields content={item.content} />
       )}
+      {contextualAnalyses.map((analysis) => (
+        <ContextualAnalysisSection
+          key={`${analysis.analysisId}:${analysis.hierarchyId}`}
+          itemType={item.itemType}
+          analysis={analysis}
+          showHierarchyLabel={showHierarchyLabel}
+        />
+      ))}
     </View>
   );
 }
@@ -392,6 +617,54 @@ function PendingList({
   );
 }
 
+function FrpsChapterPage({
+  group,
+}: {
+  group: ReturnType<typeof buildFrpsExplainabilityReportGroups>['groups'][number];
+}) {
+  return (
+    <Page size="A4" style={s.page} wrap>
+      <View style={s.frpsHeader} wrap={false}>
+        <Text style={s.frpsHeaderText}>{group.riskName}</Text>
+      </View>
+
+      {group.inventoryInclusion === 'NOT_INCLUDED' ? (
+        <View style={s.notApplicableBox} wrap={false}>
+          <Text style={s.noteText}>Risco não adicionado ao inventário.</Text>
+          <Text style={s.noteText}>
+            Não se aplica análise de explicabilidade de fontes geradoras ou
+            recomendações.
+          </Text>
+        </View>
+      ) : (
+        <View>
+          {group.inventoryInclusion === 'PARTIAL' ? (
+            <Text style={s.noteText} wrap={false}>
+              Risco adicionado ao inventário em parte do recorte.
+              {'\n'}
+              O conteúdo abaixo considera somente as hierarquias inventariadas.
+            </Text>
+          ) : null}
+
+          <ValidatedEntries
+            title="Fontes Geradoras validadas"
+            entries={group.sources}
+          />
+          <ValidatedEntries
+            title="Medidas Administrativas validadas"
+            entries={group.administrative}
+          />
+          <ValidatedEntries
+            title="Medidas de Engenharia validadas"
+            entries={group.engineering}
+          />
+          <PendingList title="Pendências deste FRPS" items={group.pending} />
+        </View>
+      )}
+    </Page>
+  );
+}
+
 export default function FrpsExplainabilityTechnicalReportPdf({
   data,
 }: FrpsExplainabilityTechnicalReportPdfProps) {
@@ -474,62 +747,22 @@ export default function FrpsExplainabilityTechnicalReportPdf({
           <Text style={s.fieldText}>
             Nenhuma ficha conceitual validada disponível neste recorte.
           </Text>
-        ) : (
-          groups.map((group) => (
-            <View key={group.riskId}>
-              <View style={s.frpsHeader} wrap={false}>
-                <Text style={s.frpsHeaderText}>{group.riskName}</Text>
-              </View>
-
-              {group.inventoryInclusion === 'NOT_INCLUDED' ? (
-                <View style={s.notApplicableBox} wrap={false}>
-                  <Text style={s.noteText}>
-                    Risco não adicionado ao inventário.
-                  </Text>
-                  <Text style={s.noteText}>
-                    Não se aplica análise de explicabilidade de fontes
-                    geradoras ou recomendações.
-                  </Text>
-                </View>
-              ) : (
-                <View>
-                  {group.inventoryInclusion === 'PARTIAL' ? (
-                    <Text style={s.noteText} wrap={false}>
-                      Risco adicionado ao inventário em parte do recorte.
-                      {'\n'}
-                      O conteúdo abaixo considera somente as hierarquias
-                      inventariadas.
-                    </Text>
-                  ) : null}
-
-                  <ValidatedEntries
-                    title="Fontes Geradoras validadas"
-                    entries={group.sources}
-                  />
-                  <ValidatedEntries
-                    title="Medidas Administrativas validadas"
-                    entries={group.administrative}
-                  />
-                  <ValidatedEntries
-                    title="Medidas de Engenharia validadas"
-                    entries={group.engineering}
-                  />
-                  <PendingList
-                    title="Pendências deste FRPS"
-                    items={group.pending}
-                  />
-                </View>
-              )}
-            </View>
-          ))
-        )}
-
-        <PendingList
-          title="Pendências sem FRPS identificado"
-          items={pendingWithoutFrps}
-          showFrps
-        />
+        ) : null}
       </Page>
+
+      {groups.map((group) => (
+        <FrpsChapterPage key={group.riskId} group={group} />
+      ))}
+
+      {pendingWithoutFrps.length > 0 ? (
+        <Page size="A4" style={s.page} wrap>
+          <PendingList
+            title="Pendências sem FRPS identificado"
+            items={pendingWithoutFrps}
+            showFrps
+          />
+        </Page>
+      ) : null}
     </Document>
   );
 }
