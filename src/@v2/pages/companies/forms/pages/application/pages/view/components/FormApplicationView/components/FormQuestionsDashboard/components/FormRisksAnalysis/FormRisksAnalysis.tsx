@@ -37,6 +37,12 @@ import { fetchFullRiskDataForHierarchy } from '../../helpers/fetchFullRiskDataFo
 import { QueryEnum } from 'core/enums/query.enums';
 import { buildHierarchyIdToWorkspaceNameFromParticipants } from '../../helpers/buildHierarchyIdToWorkspaceNameFromParticipants';
 import { buildRiskNarrativeDiagnosticScope } from '../../helpers/buildRiskNarrativeDiagnosticScope';
+import {
+  isEntityInEstablishmentCompanyScope,
+  resolveOperationalCompanyIdFromSelectedEstablishmentGroup,
+  shouldRestrictRiskAnalysisToEstablishmentCompany,
+} from '../../helpers/riskAnalysisEstablishmentCompanyScope';
+import { resolveParticipantStructuresForGrouping } from '../../helpers/resolveParticipantStructuresForGrouping';
 import { RiskNarrativeDiagnosticSection } from './RiskNarrativeDiagnosticSection';
 import {
   riskFactorAccordionSummarySx,
@@ -1354,10 +1360,45 @@ export const FormRisksAnalysis = ({
     ],
   );
 
+  const establishmentCompanyScope = useMemo(() => {
+    const restrict = shouldRestrictRiskAnalysisToEstablishmentCompany({
+      selectedGroupingQuestionId,
+      selectedGroupingLabel,
+      allowedEntityIds,
+      visibleEstablishmentGroupCount: visibleParticipantGroups.length,
+    });
+    if (!restrict || allowedEntityIds == null) {
+      return { restrict: false, scopeCompanyId: null as string | null };
+    }
+    return {
+      restrict: true,
+      scopeCompanyId: resolveOperationalCompanyIdFromSelectedEstablishmentGroup({
+        visibleParticipantGroups,
+        participantStructures:
+          resolveParticipantStructuresForGrouping(formQuestionsAnswers),
+      }),
+    };
+  }, [
+    selectedGroupingQuestionId,
+    selectedGroupingLabel,
+    allowedEntityIds,
+    visibleParticipantGroups,
+    formQuestionsAnswers,
+  ]);
+
   const isEntityVisible = useCallback(
-    (entityId: string) =>
-      allowedEntityIds === null || allowedEntityIds.has(entityId),
-    [allowedEntityIds],
+    (entityId: string) => {
+      if (allowedEntityIds !== null && !allowedEntityIds.has(entityId)) {
+        return false;
+      }
+      return isEntityInEstablishmentCompanyScope({
+        entityId,
+        entityMap,
+        scopeCompanyId: establishmentCompanyScope.scopeCompanyId,
+        restrict: establishmentCompanyScope.restrict,
+      });
+    },
+    [allowedEntityIds, entityMap, establishmentCompanyScope],
   );
 
   const riskNarrativeDiagnosticScope = useMemo(
