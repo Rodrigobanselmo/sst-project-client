@@ -38,6 +38,11 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { buildHierarchyIdToWorkspaceNameFromParticipants } from '../../helpers/buildHierarchyIdToWorkspaceNameFromParticipants';
 import { buildRiskNarrativeDiagnosticScope } from '../../helpers/buildRiskNarrativeDiagnosticScope';
 import { RiskNarrativeDiagnosticSection } from './RiskNarrativeDiagnosticSection';
+import {
+  riskFactorAccordionSummarySx,
+  riskFactorNameRowSx,
+  riskFactorNameTypographySx,
+} from './form-risks-analysis-risk-name.styles';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
 import { useMutateAiAnalyzeFormQuestionsRisks } from '@v2/services/forms/ai-analyze-risks/hooks/useMutateAiAnalyzeFormQuestionsRisks';
 import { AiAnalyzeFormQuestionsRisksModeEnum } from '@v2/services/forms/ai-analyze-risks/service/ai-analyze-risks.types';
@@ -2278,6 +2283,7 @@ export const FormRisksAnalysis = ({
               key={riskId}
               expanded={isExpanded}
               onChange={() => handleAccordionChange(riskId)}
+              accordionProps={{ sx: riskFactorAccordionSummarySx }}
               endComponent={
                 <>
                   {entitiesWithRisk.every((entityId) =>
@@ -2290,7 +2296,7 @@ export const FormRisksAnalysis = ({
                 </>
               }
               title={
-                <SFlex alignItems="center" gap={2} flex={1}>
+                <SFlex alignItems="center" gap={2} sx={riskFactorNameRowSx}>
                   <SRiskChip
                     size="lg"
                     type={risk.type}
@@ -2299,7 +2305,13 @@ export const FormRisksAnalysis = ({
                       name: subType.sub_type.name,
                     }))}
                   />
-                  <Typography fontWeight="500" fontSize={18} color="text.main">
+                  <Typography
+                    fontWeight="500"
+                    fontSize={18}
+                    color="text.main"
+                    title={risk.name}
+                    sx={riskFactorNameTypographySx}
+                  >
                     {risk.name}
                   </Typography>
                 </SFlex>
