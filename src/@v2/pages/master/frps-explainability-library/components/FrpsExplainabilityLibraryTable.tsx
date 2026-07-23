@@ -11,8 +11,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { getFrpsLibraryRowActions } from '@v2/services/forms/frps-explainability-library';
 
 import {
@@ -51,6 +53,61 @@ function statusColor(
     default:
       return 'default';
   }
+}
+
+/** Nome com no máx. 3 linhas; tooltip só quando truncado. */
+function FrpsLibraryClampedName({
+  name,
+  fontWeight,
+}: {
+  name: string;
+  fontWeight: number;
+}) {
+  const textRef = useRef<HTMLElement | null>(null);
+  const [truncated, setTruncated] = useState(false);
+
+  const measure = useCallback(() => {
+    const el = textRef.current;
+    if (!el) return;
+    setTruncated(el.scrollHeight > el.clientHeight + 1);
+  }, []);
+
+  useLayoutEffect(() => {
+    measure();
+  }, [name, measure]);
+
+  const text = (
+    <Typography
+      ref={textRef}
+      variant="body2"
+      fontWeight={fontWeight}
+      onMouseEnter={measure}
+      sx={{
+        flex: 1,
+        minWidth: 0,
+        display: '-webkit-box',
+        WebkitLineClamp: 3,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        wordBreak: 'break-word',
+      }}
+    >
+      {name}
+    </Typography>
+  );
+
+  if (!truncated) {
+    return text;
+  }
+
+  return (
+    <Tooltip title={name} placement="top-start" enterDelay={400}>
+      <Box component="span" sx={{ flex: 1, minWidth: 0, display: 'block' }}>
+        {text}
+      </Box>
+    </Tooltip>
+  );
 }
 
 export function FrpsExplainabilityLibraryTable({
@@ -186,7 +243,12 @@ export function FrpsExplainabilityLibraryTable({
                       gap: 0.5,
                     }}
                   >
-                    <Box display="flex" alignItems="center" gap={0.75} flexWrap="wrap">
+                    <Box
+                      display="flex"
+                      alignItems="flex-start"
+                      gap={0.75}
+                      minWidth={0}
+                    >
                       {row.isCanonical ? (
                         <Chip
                           size="small"
@@ -202,12 +264,10 @@ export function FrpsExplainabilityLibraryTable({
                           color={row.isOrphanAliasOnPage ? 'warning' : 'default'}
                         />
                       ) : null}
-                      <Typography
-                        variant="body2"
+                      <FrpsLibraryClampedName
+                        name={row.name}
                         fontWeight={row.isCanonical ? 700 : 500}
-                      >
-                        {row.name}
-                      </Typography>
+                      />
                       {showGroupToggle ? (
                         <Button
                           size="small"
@@ -222,6 +282,7 @@ export function FrpsExplainabilityLibraryTable({
                           }
                           sx={{
                             minWidth: 0,
+                            flexShrink: 0,
                             px: 0.75,
                             py: 0,
                             fontWeight: 600,
