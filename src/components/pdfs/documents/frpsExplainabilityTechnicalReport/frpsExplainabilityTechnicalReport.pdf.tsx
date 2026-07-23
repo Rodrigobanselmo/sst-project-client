@@ -1,6 +1,10 @@
 import React from 'react';
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
+import {
+  buildFrpsExplainabilityReportGroups,
+  type FrpsReportValidatedEntry,
+} from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildFrpsExplainabilityReportGroups';
 import type {
   FrpsExplainabilityTechnicalReportResult,
   FrpsTechnicalReportConceptualContent,
@@ -54,10 +58,30 @@ const s = StyleSheet.create({
     marginBottom: 8,
     marginTop: 6,
   },
+  subsectionTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: '#274d77',
+    marginBottom: 6,
+    marginTop: 8,
+  },
   summaryRow: {
     fontSize: 9,
     color: '#333',
     marginBottom: 3,
+  },
+  frpsHeader: {
+    marginTop: 14,
+    marginBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#1f3b5b',
+    borderRadius: 4,
+  },
+  frpsHeaderText: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: '#ffffff',
   },
   card: {
     marginBottom: 12,
@@ -65,6 +89,13 @@ const s = StyleSheet.create({
     border: '1 solid #e0e0e0',
     borderRadius: 4,
     backgroundColor: '#fafafa',
+  },
+  referenceCard: {
+    marginBottom: 8,
+    padding: 8,
+    border: '1 solid #d0d7de',
+    borderRadius: 4,
+    backgroundColor: '#f5f7fa',
   },
   cardHeader: {
     fontSize: 11,
@@ -102,6 +133,12 @@ const s = StyleSheet.create({
     marginBottom: 4,
     paddingBottom: 4,
     borderBottom: '1 solid #eee',
+  },
+  emptyText: {
+    fontSize: 8.5,
+    color: '#666',
+    marginBottom: 4,
+    fontStyle: 'italic',
   },
 });
 
@@ -238,7 +275,7 @@ function ValidatedCard({ item }: { item: FrpsTechnicalReportValidatedItem }) {
     : '—';
 
   return (
-    <View style={s.card} wrap={false}>
+    <View style={s.card}>
       <Text style={s.cardHeader}>
         {itemTypeLabel(item.itemType)} — {item.name}
       </Text>
@@ -258,11 +295,68 @@ function ValidatedCard({ item }: { item: FrpsTechnicalReportValidatedItem }) {
   );
 }
 
-function PendingList({ items }: { items: FrpsTechnicalReportPendingItem[] }) {
+function ReferenceCard({
+  name,
+  itemType,
+  primaryFrpsName,
+}: {
+  name: string;
+  itemType: FrpsTechnicalReportItemType;
+  primaryFrpsName: string;
+}) {
+  return (
+    <View style={s.referenceCard} wrap={false}>
+      <Text style={s.cardHeader}>
+        {itemTypeLabel(itemType)} — {name}
+      </Text>
+      <Text style={s.cardMeta}>Status: Validado</Text>
+      <Text style={s.cardMeta}>
+        Ficha técnica apresentada na seção: {primaryFrpsName}
+      </Text>
+    </View>
+  );
+}
+
+function ValidatedEntries({
+  title,
+  entries,
+}: {
+  title: string;
+  entries: FrpsReportValidatedEntry[];
+}) {
+  if (!entries.length) return null;
+  return (
+    <View>
+      <Text style={s.subsectionTitle}>{title}</Text>
+      {entries.map((entry) =>
+        entry.kind === 'full' ? (
+          <ValidatedCard key={`full-${entry.item.itemKey}`} item={entry.item} />
+        ) : (
+          <ReferenceCard
+            key={`ref-${entry.itemKey}-${entry.primaryFrpsName}`}
+            name={entry.name}
+            itemType={entry.itemType}
+            primaryFrpsName={entry.primaryFrpsName}
+          />
+        ),
+      )}
+    </View>
+  );
+}
+
+function PendingList({
+  title,
+  items,
+  showFrps = false,
+}: {
+  title: string;
+  items: FrpsTechnicalReportPendingItem[];
+  showFrps?: boolean;
+}) {
   if (!items.length) return null;
   return (
     <View>
-      <Text style={s.sectionTitle}>Pendências</Text>
+      <Text style={s.subsectionTitle}>{title}</Text>
       {items.map((item, index) => {
         const risks = item.risks.map((r) => r.riskName).join('; ');
         const usages = item.usages
@@ -272,11 +366,12 @@ function PendingList({ items }: { items: FrpsTechnicalReportPendingItem[] }) {
           <Text
             key={`${item.name}-${item.reason}-${index}`}
             style={s.pendingRow}
+            wrap={false}
           >
             {itemTypeLabel(item.itemType)} — {item.name}
             {'\n'}
-            FRPS: {risks || '—'} | Uso: {usages || '—'} | Motivo:{' '}
-            {pendingReasonLabel(item.reason)}
+            {showFrps ? `FRPS: ${risks || '—'} | ` : ''}
+            Uso: {usages || '—'} | Motivo: {pendingReasonLabel(item.reason)}
           </Text>
         );
       })}
@@ -289,6 +384,8 @@ export default function FrpsExplainabilityTechnicalReportPdf({
 }: FrpsExplainabilityTechnicalReportPdfProps) {
   const { metadata, summary, items, pendingItems } = data;
   const issuedAt = new Date(metadata.emittedAt).toLocaleString('pt-BR');
+  const { groups, pendingWithoutFrps, frpsSummary } =
+    buildFrpsExplainabilityReportGroups({ items, pendingItems });
 
   return (
     <Document>
@@ -326,16 +423,55 @@ export default function FrpsExplainabilityTechnicalReportPdf({
         </Text>
         <Text style={s.summaryRow}>Pendências: {summary.pending}</Text>
 
-        <Text style={s.sectionTitle}>Fichas técnicas validadas</Text>
-        {items.length === 0 ? (
+        <Text style={s.sectionTitle}>Sumário por FRPS</Text>
+        {frpsSummary.length === 0 ? (
+          <Text style={s.emptyText}>Nenhum FRPS identificado neste recorte.</Text>
+        ) : (
+          frpsSummary.map((row) => (
+            <Text key={row.riskId} style={s.summaryRow} wrap={false}>
+              {row.riskName}: {row.validatedSources} fonte(s),{' '}
+              {row.validatedAdministrative} administrativa(s),{' '}
+              {row.validatedEngineering} engenharia, {row.pending} pendência(s)
+            </Text>
+          ))
+        )}
+
+        {groups.length === 0 ? (
           <Text style={s.fieldText}>
             Nenhuma ficha conceitual validada disponível neste recorte.
           </Text>
         ) : (
-          items.map((item) => <ValidatedCard key={item.itemKey} item={item} />)
+          groups.map((group) => (
+            <View key={group.riskId}>
+              <View style={s.frpsHeader} wrap={false}>
+                <Text style={s.frpsHeaderText}>{group.riskName}</Text>
+              </View>
+
+              <ValidatedEntries
+                title="Fontes Geradoras validadas"
+                entries={group.sources}
+              />
+              <ValidatedEntries
+                title="Medidas Administrativas validadas"
+                entries={group.administrative}
+              />
+              <ValidatedEntries
+                title="Medidas de Engenharia validadas"
+                entries={group.engineering}
+              />
+              <PendingList
+                title="Pendências deste FRPS"
+                items={group.pending}
+              />
+            </View>
+          ))
         )}
 
-        <PendingList items={pendingItems} />
+        <PendingList
+          title="Pendências sem FRPS identificado"
+          items={pendingWithoutFrps}
+          showFrps
+        />
       </Page>
     </Document>
   );

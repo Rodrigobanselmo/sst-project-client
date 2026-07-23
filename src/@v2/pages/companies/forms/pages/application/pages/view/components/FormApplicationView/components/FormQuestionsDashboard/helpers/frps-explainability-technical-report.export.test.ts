@@ -82,17 +82,28 @@ describe('FRPS technical report client wiring', () => {
     assert.match(dashboard, /setIsExportingFrpsTechnicalReportPdf\(true\)/);
   });
 
-  it('5 PDF title and one-ficha structure', () => {
+  it('5 PDF title and FRPS-grouped structure', () => {
     assert.match(
       pdf,
       /Relatório Técnico de Fontes Geradoras e Medidas de Prevenção/,
     );
     assert.match(pdf, /ValidatedCard/);
-    assert.match(pdf, /items\.map/);
+    assert.match(pdf, /buildFrpsExplainabilityReportGroups/);
+    assert.match(pdf, /Sumário por FRPS/);
+    assert.match(pdf, /Fontes Geradoras validadas/);
+    assert.match(pdf, /Medidas Administrativas validadas/);
+    assert.match(pdf, /Medidas de Engenharia validadas/);
+    assert.match(pdf, /Pendências deste FRPS/);
+    assert.match(pdf, /Pendências sem FRPS identificado/);
+    assert.match(pdf, /Ficha técnica apresentada na seção:/);
+    assert.match(pdf, /frpsHeader/);
+    assert.match(pdf, /wrap=\{false\}/);
+    assert.equal(pdf.includes('Fichas técnicas validadas'), false);
+    assert.match(pdf, /groups\.map/);
   });
 
   it('6 DRAFT/NEVER only in pending section', () => {
-    assert.match(pdf, /Pendências/);
+    assert.match(pdf, /Pendências deste FRPS/);
     assert.match(pdf, /pendingReasonLabel/);
     assert.equal(pdf.includes('rascunho secreto'), false);
   });
@@ -103,6 +114,14 @@ describe('FRPS technical report client wiring', () => {
     assert.match(pdf, /Medida Administrativa/);
     assert.match(pdf, /SourceFields/);
     assert.match(pdf, /RecommendationFields/);
+  });
+
+  it('14 grouping helper exists and is used by PDF', () => {
+    const helperPath = join(here, 'buildFrpsExplainabilityReportGroups.ts');
+    const helper = readFileSync(helperPath, 'utf8');
+    assert.match(helper, /export function buildFrpsExplainabilityReportGroups/);
+    assert.match(helper, /resolvePrimaryFrpsRisk/);
+    assert.match(pdf, /ReferenceCard/);
   });
 
   it('8 empty sections omitted via Field helper', () => {
