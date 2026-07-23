@@ -178,7 +178,8 @@ describe('FRPS common user awaiting contextual copy', () => {
     assert.match(drawer, /confirmGenerateContextual\(\)/);
     // No model selector in awaiting_contextual block: Select appears only with master generate.
     const awaitingIdx = drawer.indexOf("phase === 'awaiting_contextual_generate'");
-    const masterIdx = drawer.indexOf("phase === 'awaiting_master_generate'");
+    // Prefer the render block (&&), not earlier phase predicates in helpers/conditions.
+    const masterIdx = drawer.indexOf("phase === 'awaiting_master_generate' &&");
     assert.ok(awaitingIdx > 0 && masterIdx > awaitingIdx);
     // Bloco contextual termina antes do generate MASTER (sem painel Vincular/Criar).
     const awaitingBlock = drawer.slice(awaitingIdx, masterIdx);

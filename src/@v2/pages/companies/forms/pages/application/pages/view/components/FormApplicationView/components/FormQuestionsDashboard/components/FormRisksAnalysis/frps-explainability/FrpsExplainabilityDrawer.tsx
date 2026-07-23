@@ -1,6 +1,9 @@
 import CloseIcon from '@mui/icons-material/Close';
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import {
   Box,
+  Card,
+  Chip,
   Divider,
   Drawer,
   FormControl,
@@ -29,6 +32,7 @@ import { useFrpsExplainability } from './FrpsExplainabilityContext';
 import {
   getConceptualValidationStatusLabel,
   getContextualValidationStatusLabel,
+  getFrpsContextualJustificationTitle,
   getFrpsExplanationItemTypeLabel,
 } from './frps-explainability.utils';
 import { toSafeIsoDateLabel, normalizePersonLabel } from './frps-explainability-safe-content.util';
@@ -635,7 +639,10 @@ export function FrpsExplainabilityDrawer() {
                   />
                   <Divider />
                   <SText variant="body1" fontWeight="bold" fontSize={16}>
-                    Editar — Por que apareceu nesta análise
+                    Editar —{' '}
+                    {getFrpsContextualJustificationTitle(
+                      target?.itemType || contextual.itemType,
+                    )}
                   </SText>
                   <ContextualEditForm
                     itemType={target?.itemType || contextual.itemType}
@@ -687,7 +694,7 @@ export function FrpsExplainabilityDrawer() {
               )}
 
               {!isEditing && isReleased && contextual && (
-                <>
+                <SFlex direction="column" gap={{ xs: 5, md: 6 }}>
                   <FrpsExplainabilityDrawerErrorBoundary section="conceptual">
                     <Box>
                       <SText
@@ -704,26 +711,81 @@ export function FrpsExplainabilityDrawer() {
                       />
                     </Box>
                   </FrpsExplainabilityDrawerErrorBoundary>
-                  <Divider />
                   <FrpsExplainabilityDrawerErrorBoundary section="contextual">
-                    <Box>
-                      <SText
-                        variant="body1"
-                        fontWeight="bold"
-                        fontSize={16}
-                        sx={{ mb: 1.5 }}
-                      >
-                        Por que apareceu nesta análise
-                      </SText>
-                      <FrpsContextualContent
-                        itemType={target?.itemType || contextual.itemType}
-                        content={
-                          'content' in contextual ? contextual.content : null
+                    <Box
+                      component="section"
+                      aria-label={
+                        FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationBadge
+                      }
+                    >
+                      <Chip
+                        size="small"
+                        label={
+                          FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationBadge
                         }
+                        sx={{
+                          mb: 1.25,
+                          height: 22,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: 0.6,
+                          color: 'primary.dark',
+                          bgcolor: 'rgba(25, 118, 210, 0.08)',
+                          border: '1px solid',
+                          borderColor: 'rgba(25, 118, 210, 0.2)',
+                          '& .MuiChip-label': { px: 1 },
+                        }}
                       />
+                      <Box
+                        display="flex"
+                        alignItems="flex-start"
+                        gap={1}
+                        sx={{ mb: 1 }}
+                      >
+                        <AnalyticsOutlinedIcon
+                          fontSize="small"
+                          color="primary"
+                          sx={{ mt: 0.35, opacity: 0.85, flexShrink: 0 }}
+                        />
+                        <SText
+                          variant="h6"
+                          fontWeight="bold"
+                          fontSize={18}
+                          sx={{ lineHeight: 1.35 }}
+                        >
+                          {getFrpsContextualJustificationTitle(
+                            target?.itemType || contextual.itemType,
+                          )}
+                        </SText>
+                      </Box>
+                      <SText
+                        variant="body2"
+                        color="text.secondary"
+                        fontSize={13}
+                        sx={{ mb: 2.5, lineHeight: 1.55, maxWidth: 720 }}
+                      >
+                        {FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationIntro}
+                      </SText>
+                      <Card
+                        variant="outlined"
+                        elevation={0}
+                        sx={{
+                          p: { xs: 2, md: 2.5 },
+                          borderRadius: 1,
+                          borderColor: 'rgba(25, 118, 210, 0.22)',
+                          backgroundColor: 'rgba(25, 118, 210, 0.035)',
+                        }}
+                      >
+                        <FrpsContextualContent
+                          itemType={target?.itemType || contextual.itemType}
+                          content={
+                            'content' in contextual ? contextual.content : null
+                          }
+                        />
+                      </Card>
                     </Box>
                   </FrpsExplainabilityDrawerErrorBoundary>
-                </>
+                </SFlex>
               )}
             </SFlex>
           )}

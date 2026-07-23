@@ -90,6 +90,15 @@ export function getFrpsExplanationItemTypeLabel(
   return EXPLANATION_LABELS[itemType];
 }
 
+/** Título da seção de justificativa contextual no drawer (fonte vs recomendação). */
+export function getFrpsContextualJustificationTitle(
+  itemType: FrpsExplanationItemType,
+): string {
+  return itemType === 'SOURCE'
+    ? FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationTitleSource
+    : FRPS_EXPLAINABILITY_UI_COPY.contextualJustificationTitleRecommendation;
+}
+
 export function getConceptualValidationStatusLabel(
   status: 'DRAFT_AI' | 'VALIDATED' | 'REJECTED' | 'SUPERSEDED',
 ): string | null {
