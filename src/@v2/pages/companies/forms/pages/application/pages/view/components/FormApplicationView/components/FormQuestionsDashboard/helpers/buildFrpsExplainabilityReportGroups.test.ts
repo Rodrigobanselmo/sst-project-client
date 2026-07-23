@@ -277,6 +277,7 @@ describe('buildFrpsExplainabilityReportGroups', () => {
       {
         riskId: 'r1',
         riskName: 'Demanda',
+        inventoryInclusion: 'INCLUDED',
         validatedSources: 1,
         validatedAdministrative: 1,
         validatedEngineering: 1,
@@ -285,6 +286,7 @@ describe('buildFrpsExplainabilityReportGroups', () => {
       {
         riskId: 'r2',
         riskName: 'Isolamento',
+        inventoryInclusion: 'INCLUDED',
         validatedSources: 0,
         validatedAdministrative: 0,
         validatedEngineering: 1,
@@ -360,5 +362,132 @@ describe('buildFrpsExplainabilityReportGroups', () => {
     ]);
     assert.equal(primary?.riskName, 'Apoio Social');
     assert.equal(primary?.riskId, 'a');
+  });
+
+  it('I1 NOT_INCLUDED: grupo sem fichas/pendências', () => {
+    const result = buildFrpsExplainabilityReportGroups({
+      frps: [
+        {
+          riskId: 'r1',
+          riskName: 'Assédio',
+          inventoryInclusion: 'NOT_INCLUDED',
+          inventoriedHierarchyIds: [],
+          recorteHierarchyIds: ['h1', 'h2'],
+        },
+      ],
+      items: [
+        validated({
+          itemKey: 'leak',
+          name: 'Não deveria aparecer',
+          itemType: 'GENERATE_SOURCE',
+          risks: [{ riskId: 'r1', riskName: 'Assédio' }],
+        }),
+      ],
+      pendingItems: [
+        pending({
+          name: 'Pendência vazada',
+          itemType: 'REC_MED_ADMIN',
+          reason: 'NEVER_GENERATED',
+          risks: [{ riskId: 'r1', riskName: 'Assédio' }],
+        }),
+      ],
+    });
+
+    assert.equal(result.groups.length, 1);
+    assert.equal(result.groups[0].inventoryInclusion, 'NOT_INCLUDED');
+    assert.equal(result.groups[0].sources.length, 0);
+    assert.equal(result.groups[0].pending.length, 0);
+    assert.equal(result.frpsSummary[0].inventoryInclusion, 'NOT_INCLUDED');
+  });
+
+  it('I2 PARTIAL: status no sumário e itens aplicáveis', () => {
+    const result = buildFrpsExplainabilityReportGroups({
+      frps: [
+        {
+          riskId: 'r1',
+          riskName: 'Carga',
+          inventoryInclusion: 'PARTIAL',
+          inventoriedHierarchyIds: ['h1'],
+          recorteHierarchyIds: ['h1', 'h2'],
+        },
+      ],
+      items: [
+        validated({
+          itemKey: 's1',
+          name: 'Fonte',
+          itemType: 'GENERATE_SOURCE',
+          risks: [{ riskId: 'r1', riskName: 'Carga' }],
+        }),
+      ],
+      pendingItems: [],
+    });
+
+    assert.equal(result.groups[0].inventoryInclusion, 'PARTIAL');
+    assert.equal(result.groups[0].sources.length, 1);
+    assert.equal(result.frpsSummary[0].inventoryInclusion, 'PARTIAL');
+  });
+
+  it('I5 multi-FRPS: principal só entre aplicáveis (NOT_INCLUDED excluído)', () => {
+    const result = buildFrpsExplainabilityReportGroups({
+      frps: [
+        {
+          riskId: 'a',
+          riskName: 'Assédio',
+          inventoryInclusion: 'NOT_INCLUDED',
+          inventoriedHierarchyIds: [],
+          recorteHierarchyIds: ['h1'],
+        },
+        {
+          riskId: 'c',
+          riskName: 'Carga',
+          inventoryInclusion: 'INCLUDED',
+          inventoriedHierarchyIds: ['h1'],
+          recorteHierarchyIds: ['h1'],
+        },
+      ],
+      items: [
+        validated({
+          itemKey: 'canon',
+          name: 'Fonte compartilhada',
+          itemType: 'GENERATE_SOURCE',
+          risks: [
+            { riskId: 'a', riskName: 'Assédio' },
+            { riskId: 'c', riskName: 'Carga' },
+          ],
+        }),
+      ],
+      pendingItems: [],
+    });
+
+    const assedio = result.groups.find((g) => g.riskId === 'a');
+    const carga = result.groups.find((g) => g.riskId === 'c');
+    assert.equal(assedio?.sources.length, 0);
+    assert.equal(carga?.sources[0]?.kind, 'full');
+  });
+
+  it('I7 pendência de FRPS não inventariado não renderiza', () => {
+    const result = buildFrpsExplainabilityReportGroups({
+      frps: [
+        {
+          riskId: 'r1',
+          riskName: 'X',
+          inventoryInclusion: 'NOT_INCLUDED',
+          inventoriedHierarchyIds: [],
+          recorteHierarchyIds: ['h1'],
+        },
+      ],
+      items: [],
+      pendingItems: [
+        pending({
+          name: 'Só no não inventariado',
+          itemType: 'GENERATE_SOURCE',
+          reason: 'DRAFT_AI',
+          risks: [{ riskId: 'r1', riskName: 'X' }],
+        }),
+      ],
+    });
+
+    assert.equal(result.groups[0].pending.length, 0);
+    assert.equal(result.pendingWithoutFrps.length, 0);
   });
 });

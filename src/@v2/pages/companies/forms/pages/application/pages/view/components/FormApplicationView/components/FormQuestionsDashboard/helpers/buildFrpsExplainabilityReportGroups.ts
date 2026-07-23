@@ -1,6 +1,8 @@
 import type {
+  FrpsInventoryInclusion,
   FrpsTechnicalReportItemType,
   FrpsTechnicalReportPendingItem,
+  FrpsTechnicalReportRisk,
   FrpsTechnicalReportRiskRef,
   FrpsTechnicalReportValidatedItem,
 } from '@v2/services/forms/form-questions-answers-analysis/frps-explainability-technical-report/frps-explainability-technical-report.types';
@@ -38,6 +40,7 @@ export type FrpsReportGroupCounts = {
 export type FrpsExplainabilityReportGroup = {
   riskId: string;
   riskName: string;
+  inventoryInclusion: FrpsInventoryInclusion;
   counts: FrpsReportGroupCounts;
   sources: FrpsReportValidatedEntry[];
   administrative: FrpsReportValidatedEntry[];
@@ -45,17 +48,20 @@ export type FrpsExplainabilityReportGroup = {
   pending: FrpsTechnicalReportPendingItem[];
 };
 
+export type FrpsExplainabilityReportSummaryRow = {
+  riskId: string;
+  riskName: string;
+  inventoryInclusion: FrpsInventoryInclusion;
+  validatedSources: number;
+  validatedAdministrative: number;
+  validatedEngineering: number;
+  pending: number;
+};
+
 export type FrpsExplainabilityReportGroupsResult = {
   groups: FrpsExplainabilityReportGroup[];
   pendingWithoutFrps: FrpsTechnicalReportPendingItem[];
-  frpsSummary: Array<{
-    riskId: string;
-    riskName: string;
-    validatedSources: number;
-    validatedAdministrative: number;
-    validatedEngineering: number;
-    pending: number;
-  }>;
+  frpsSummary: FrpsExplainabilityReportSummaryRow[];
 };
 
 function comparePt(a: string, b: string): number {
@@ -72,11 +78,22 @@ function sortRisks(
   });
 }
 
-/** FRPS principal determinístico: primeiro riskName após ordenação alfabética. */
+function isApplicableInclusion(inclusion: FrpsInventoryInclusion): boolean {
+  return inclusion !== 'NOT_INCLUDED';
+}
+
+/** FRPS principal só entre riscos aplicáveis (INCLUDED/PARTIAL). */
 export function resolvePrimaryFrpsRisk(
   risks: FrpsTechnicalReportRiskRef[],
+  frpsById?: Map<string, FrpsTechnicalReportRisk>,
 ): FrpsTechnicalReportRiskRef | null {
-  const sorted = sortRisks(risks);
+  const applicable = frpsById?.size
+    ? risks.filter((risk) => {
+        const meta = frpsById.get(risk.riskId);
+        return meta ? isApplicableInclusion(meta.inventoryInclusion) : false;
+      })
+    : risks;
+  const sorted = sortRisks(applicable);
   return sorted[0] ?? null;
 }
 
@@ -110,24 +127,19 @@ function emptyCounts(): FrpsReportGroupCounts {
   };
 }
 
-function ensureGroup(
-  map: Map<string, FrpsExplainabilityReportGroup>,
-  risk: FrpsTechnicalReportRiskRef,
+function createGroup(
+  risk: Pick<FrpsTechnicalReportRisk, 'riskId' | 'riskName' | 'inventoryInclusion'>,
 ): FrpsExplainabilityReportGroup {
-  let group = map.get(risk.riskId);
-  if (!group) {
-    group = {
-      riskId: risk.riskId,
-      riskName: risk.riskName,
-      counts: emptyCounts(),
-      sources: [],
-      administrative: [],
-      engineering: [],
-      pending: [],
-    };
-    map.set(risk.riskId, group);
-  }
-  return group;
+  return {
+    riskId: risk.riskId,
+    riskName: risk.riskName,
+    inventoryInclusion: risk.inventoryInclusion,
+    counts: emptyCounts(),
+    sources: [],
+    administrative: [],
+    engineering: [],
+    pending: [],
+  };
 }
 
 function pushValidatedEntry(
@@ -151,24 +163,68 @@ function pushValidatedEntry(
 
 /**
  * Agrupa o relatório técnico por FRPS (eixo principal).
- * - FRPS ordenados por riskName
- * - Tipos: Fonte → Administrativa → Engenharia
- * - Canônicos multi-FRPS: ficha completa só no FRPS principal; referência nos demais
- * - Pendências: repetem em cada FRPS relacionado; sem FRPS vão para seção final
+ * Inventário: usa `frps[]` da API; não reconstrói inclusão por ausência de items.
  */
 export function buildFrpsExplainabilityReportGroups(params: {
   items: FrpsTechnicalReportValidatedItem[];
   pendingItems: FrpsTechnicalReportPendingItem[];
+  frps?: FrpsTechnicalReportRisk[];
 }): FrpsExplainabilityReportGroupsResult {
+  const frpsMeta = params.frps ?? [];
+  const hasFrpsMeta = frpsMeta.length > 0;
+  const frpsById = new Map(frpsMeta.map((row) => [row.riskId, row]));
   const groupsByRiskId = new Map<string, FrpsExplainabilityReportGroup>();
 
-  for (const item of params.items) {
-    const sortedRisks = sortRisks(item.risks);
-    if (!sortedRisks.length) continue;
+  for (const meta of frpsMeta) {
+    groupsByRiskId.set(meta.riskId, createGroup(meta));
+  }
 
-    const primary = sortedRisks[0];
-    for (const risk of sortedRisks) {
-      const group = ensureGroup(groupsByRiskId, risk);
+  const ensureApplicableGroup = (
+    risk: FrpsTechnicalReportRiskRef,
+  ): FrpsExplainabilityReportGroup | null => {
+    if (hasFrpsMeta) {
+      const group = groupsByRiskId.get(risk.riskId);
+      if (!group || !isApplicableInclusion(group.inventoryInclusion)) {
+        return null;
+      }
+      return group;
+    }
+    let group = groupsByRiskId.get(risk.riskId);
+    if (!group) {
+      group = createGroup({
+        riskId: risk.riskId,
+        riskName: risk.riskName,
+        inventoryInclusion: 'INCLUDED',
+      });
+      groupsByRiskId.set(risk.riskId, group);
+    }
+    return group;
+  };
+
+  const filterApplicableRisks = (
+    risks: FrpsTechnicalReportRiskRef[],
+  ): FrpsTechnicalReportRiskRef[] => {
+    if (!hasFrpsMeta) return sortRisks(risks);
+    return sortRisks(
+      risks.filter((risk) => {
+        const meta = frpsById.get(risk.riskId);
+        return meta ? isApplicableInclusion(meta.inventoryInclusion) : false;
+      }),
+    );
+  };
+
+  for (const item of params.items) {
+    const primary = resolvePrimaryFrpsRisk(
+      item.risks,
+      hasFrpsMeta ? frpsById : undefined,
+    );
+    if (!primary) continue;
+
+    const applicableRisks = filterApplicableRisks(item.risks);
+    for (const risk of applicableRisks) {
+      const group = ensureApplicableGroup(risk);
+      if (!group) continue;
+
       if (risk.riskId === primary.riskId) {
         pushValidatedEntry(group, { kind: 'full', item }, item.itemType);
       } else {
@@ -190,13 +246,18 @@ export function buildFrpsExplainabilityReportGroups(params: {
   const pendingWithoutFrps: FrpsTechnicalReportPendingItem[] = [];
 
   for (const pending of params.pendingItems) {
-    const sortedRisks = sortRisks(pending.risks ?? []);
-    if (!sortedRisks.length) {
+    const risks = pending.risks ?? [];
+    if (!risks.length) {
       pendingWithoutFrps.push(pending);
       continue;
     }
-    for (const risk of sortedRisks) {
-      const group = ensureGroup(groupsByRiskId, risk);
+
+    const applicableRisks = filterApplicableRisks(risks);
+    if (!applicableRisks.length) continue;
+
+    for (const risk of applicableRisks) {
+      const group = ensureApplicableGroup(risk);
+      if (!group) continue;
       group.pending.push(pending);
       group.counts.pending += 1;
     }
@@ -208,13 +269,25 @@ export function buildFrpsExplainabilityReportGroups(params: {
       if (byName !== 0) return byName;
       return a.riskId.localeCompare(b.riskId);
     })
-    .map((group) => ({
-      ...group,
-      sources: sortValidatedEntries(group.sources),
-      administrative: sortValidatedEntries(group.administrative),
-      engineering: sortValidatedEntries(group.engineering),
-      pending: sortPendingItems(group.pending),
-    }));
+    .map((group) => {
+      if (group.inventoryInclusion === 'NOT_INCLUDED') {
+        return {
+          ...group,
+          counts: emptyCounts(),
+          sources: [],
+          administrative: [],
+          engineering: [],
+          pending: [],
+        };
+      }
+      return {
+        ...group,
+        sources: sortValidatedEntries(group.sources),
+        administrative: sortValidatedEntries(group.administrative),
+        engineering: sortValidatedEntries(group.engineering),
+        pending: sortPendingItems(group.pending),
+      };
+    });
 
   return {
     groups,
@@ -222,6 +295,7 @@ export function buildFrpsExplainabilityReportGroups(params: {
     frpsSummary: groups.map((group) => ({
       riskId: group.riskId,
       riskName: group.riskName,
+      inventoryInclusion: group.inventoryInclusion,
       validatedSources: group.counts.validatedSources,
       validatedAdministrative: group.counts.validatedAdministrative,
       validatedEngineering: group.counts.validatedEngineering,

@@ -140,6 +140,19 @@ const s = StyleSheet.create({
     marginBottom: 4,
     fontStyle: 'italic',
   },
+  noteText: {
+    fontSize: 8.5,
+    color: '#444',
+    marginBottom: 6,
+    lineHeight: 1.4,
+  },
+  notApplicableBox: {
+    marginBottom: 10,
+    padding: 10,
+    border: '1 solid #d0d7de',
+    borderRadius: 4,
+    backgroundColor: '#f5f7fa',
+  },
 });
 
 function itemTypeLabel(type: FrpsTechnicalReportItemType): string {
@@ -382,10 +395,10 @@ function PendingList({
 export default function FrpsExplainabilityTechnicalReportPdf({
   data,
 }: FrpsExplainabilityTechnicalReportPdfProps) {
-  const { metadata, summary, items, pendingItems } = data;
+  const { metadata, summary, items, pendingItems, frps = [] } = data;
   const issuedAt = new Date(metadata.emittedAt).toLocaleString('pt-BR');
   const { groups, pendingWithoutFrps, frpsSummary } =
-    buildFrpsExplainabilityReportGroups({ items, pendingItems });
+    buildFrpsExplainabilityReportGroups({ items, pendingItems, frps });
 
   return (
     <Document>
@@ -427,13 +440,34 @@ export default function FrpsExplainabilityTechnicalReportPdf({
         {frpsSummary.length === 0 ? (
           <Text style={s.emptyText}>Nenhum FRPS identificado neste recorte.</Text>
         ) : (
-          frpsSummary.map((row) => (
-            <Text key={row.riskId} style={s.summaryRow} wrap={false}>
-              {row.riskName}: {row.validatedSources} fonte(s),{' '}
-              {row.validatedAdministrative} administrativa(s),{' '}
-              {row.validatedEngineering} engenharia, {row.pending} pendência(s)
-            </Text>
-          ))
+          frpsSummary.map((row) => {
+            if (row.inventoryInclusion === 'NOT_INCLUDED') {
+              return (
+                <Text key={row.riskId} style={s.summaryRow} wrap={false}>
+                  {row.riskName}: Não adicionado ao inventário
+                </Text>
+              );
+            }
+            if (row.inventoryInclusion === 'PARTIAL') {
+              return (
+                <Text key={row.riskId} style={s.summaryRow} wrap={false}>
+                  {row.riskName}: Adicionado ao inventário em parte do recorte
+                  {'\n'}
+                  {row.validatedSources} fonte(s), {row.validatedAdministrative}{' '}
+                  administrativa(s), {row.validatedEngineering} engenharia,{' '}
+                  {row.pending} pendência(s)
+                </Text>
+              );
+            }
+            return (
+              <Text key={row.riskId} style={s.summaryRow} wrap={false}>
+                {row.riskName}: {row.validatedSources} fonte(s),{' '}
+                {row.validatedAdministrative} administrativa(s),{' '}
+                {row.validatedEngineering} engenharia, {row.pending}{' '}
+                pendência(s)
+              </Text>
+            );
+          })
         )}
 
         {groups.length === 0 ? (
@@ -447,22 +481,45 @@ export default function FrpsExplainabilityTechnicalReportPdf({
                 <Text style={s.frpsHeaderText}>{group.riskName}</Text>
               </View>
 
-              <ValidatedEntries
-                title="Fontes Geradoras validadas"
-                entries={group.sources}
-              />
-              <ValidatedEntries
-                title="Medidas Administrativas validadas"
-                entries={group.administrative}
-              />
-              <ValidatedEntries
-                title="Medidas de Engenharia validadas"
-                entries={group.engineering}
-              />
-              <PendingList
-                title="Pendências deste FRPS"
-                items={group.pending}
-              />
+              {group.inventoryInclusion === 'NOT_INCLUDED' ? (
+                <View style={s.notApplicableBox} wrap={false}>
+                  <Text style={s.noteText}>
+                    Risco não adicionado ao inventário.
+                  </Text>
+                  <Text style={s.noteText}>
+                    Não se aplica análise de explicabilidade de fontes
+                    geradoras ou recomendações.
+                  </Text>
+                </View>
+              ) : (
+                <View>
+                  {group.inventoryInclusion === 'PARTIAL' ? (
+                    <Text style={s.noteText} wrap={false}>
+                      Risco adicionado ao inventário em parte do recorte.
+                      {'\n'}
+                      O conteúdo abaixo considera somente as hierarquias
+                      inventariadas.
+                    </Text>
+                  ) : null}
+
+                  <ValidatedEntries
+                    title="Fontes Geradoras validadas"
+                    entries={group.sources}
+                  />
+                  <ValidatedEntries
+                    title="Medidas Administrativas validadas"
+                    entries={group.administrative}
+                  />
+                  <ValidatedEntries
+                    title="Medidas de Engenharia validadas"
+                    entries={group.engineering}
+                  />
+                  <PendingList
+                    title="Pendências deste FRPS"
+                    items={group.pending}
+                  />
+                </View>
+              )}
             </View>
           ))
         )}

@@ -72,6 +72,19 @@ export type FrpsTechnicalReportPendingItem = {
   usages: FrpsTechnicalReportUsage[];
 };
 
+export type FrpsInventoryInclusion =
+  | 'INCLUDED'
+  | 'NOT_INCLUDED'
+  | 'PARTIAL';
+
+export type FrpsTechnicalReportRisk = {
+  riskId: string;
+  riskName: string;
+  inventoryInclusion: FrpsInventoryInclusion;
+  inventoriedHierarchyIds: string[];
+  recorteHierarchyIds: string[];
+};
+
 export type FrpsExplainabilityTechnicalReportResult = {
   metadata: {
     companyName: string;
@@ -90,6 +103,7 @@ export type FrpsExplainabilityTechnicalReportResult = {
     validated: number;
     pending: number;
   };
+  frps: FrpsTechnicalReportRisk[];
   items: FrpsTechnicalReportValidatedItem[];
   pendingItems: FrpsTechnicalReportPendingItem[];
 };

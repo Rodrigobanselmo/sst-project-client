@@ -96,10 +96,11 @@ describe('FRPS technical report client wiring', () => {
     assert.match(pdf, /Pendências deste FRPS/);
     assert.match(pdf, /Pendências sem FRPS identificado/);
     assert.match(pdf, /Ficha técnica apresentada na seção:/);
-    assert.match(pdf, /frpsHeader/);
-    assert.match(pdf, /wrap=\{false\}/);
-    assert.equal(pdf.includes('Fichas técnicas validadas'), false);
-    assert.match(pdf, /groups\.map/);
+    assert.match(pdf, /Não adicionado ao inventário/);
+    assert.match(pdf, /Risco não adicionado ao inventário/);
+    assert.match(pdf, /Adicionado ao inventário em parte do recorte/);
+    assert.match(pdf, /inventoryInclusion/);
+    assert.match(pdf, /frps/);
   });
 
   it('6 DRAFT/NEVER only in pending section', () => {
@@ -121,7 +122,16 @@ describe('FRPS technical report client wiring', () => {
     const helper = readFileSync(helperPath, 'utf8');
     assert.match(helper, /export function buildFrpsExplainabilityReportGroups/);
     assert.match(helper, /resolvePrimaryFrpsRisk/);
+    assert.match(helper, /inventoryInclusion/);
+    assert.match(helper, /NOT_INCLUDED/);
     assert.match(pdf, /ReferenceCard/);
+  });
+
+  it('15 client does not call inventory endpoints for technical report', () => {
+    assert.equal(exportHelper.includes('inventoryStatusByKey'), false);
+    assert.equal(exportHelper.includes('assign-risks'), false);
+    assert.equal(exportHelper.includes('resolveInventoryStatus'), false);
+    assert.match(exportHelper, /readFrpsExplainabilityTechnicalReport/);
   });
 
   it('8 empty sections omitted via Field helper', () => {
