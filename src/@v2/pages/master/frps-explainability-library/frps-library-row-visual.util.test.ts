@@ -9,9 +9,11 @@ import {
   FRPS_GLOBAL_ORIGIN_CHIP_SX,
 } from './frps-explainability-library-ux.constants';
 import {
+  resolveFrpsLibraryExplanationChipProps,
   resolveFrpsLibraryOriginChipProps,
   resolveFrpsLibraryViewButtonVariant,
 } from './frps-library-row-visual.util';
+import { FRPS_INVALID_SYSTEM_REFERENCE_TOOLTIP } from './frps-library-unlink-canonical.util';
 
 describe('FRPS library row visual (validated / origin chips)', () => {
   it('VALIDATED → Visualizar filled (same pattern as Gerar)', () => {
@@ -46,5 +48,19 @@ describe('FRPS library row visual (validated / origin chips)', () => {
       color: 'default',
       variant: 'outlined',
     });
+  });
+
+  it('invalid system reference → warning chip + tooltip', () => {
+    assert.deepEqual(
+      resolveFrpsLibraryExplanationChipProps({
+        isInvalidSystemReference: true,
+        status: 'NEVER_GENERATED',
+      }),
+      {
+        color: 'warning',
+        variant: 'outlined',
+        title: FRPS_INVALID_SYSTEM_REFERENCE_TOOLTIP,
+      },
+    );
   });
 });

@@ -7,24 +7,75 @@ import { describe, it } from 'node:test';
 import {
   buildFrpsLibraryRowKey,
   getFrpsLibraryRowActions,
+  isFrpsInvalidSystemReference,
 } from './frps-library-row-actions.util';
 
 describe('getFrpsLibraryRowActions', () => {
-  it('NEVER_GENERATED allows generate and blocks view', () => {
-    assert.deepEqual(getFrpsLibraryRowActions('NEVER_GENERATED', null), {
-      canGenerate: true,
-      canView: false,
-    });
+  it('1 GLOBAL usable + NEVER_GENERATED → Gerar permitido', () => {
+    assert.deepEqual(
+      getFrpsLibraryRowActions({
+        status: 'NEVER_GENERATED',
+        conceptualExplanationId: null,
+        generateable: true,
+      }),
+      {
+        canGenerate: true,
+        canView: false,
+        canUnlinkFromCanonical: false,
+      },
+    );
+  });
+
+  it('2 GLOBAL inválido → Gerar oculto', () => {
+    assert.deepEqual(
+      getFrpsLibraryRowActions({
+        status: 'NEVER_GENERATED',
+        conceptualExplanationId: null,
+        generateable: false,
+      }),
+      {
+        canGenerate: false,
+        canView: false,
+        canUnlinkFromCanonical: false,
+      },
+    );
+  });
+
+  it('3 alias com equivalência ativa → Desvincular para MASTER', () => {
+    assert.equal(
+      getFrpsLibraryRowActions({
+        status: 'NEVER_GENERATED',
+        conceptualExplanationId: null,
+        generateable: true,
+        hasActiveEquivalence: true,
+        isMaster: true,
+      }).canUnlinkFromCanonical,
+      true,
+    );
+  });
+
+  it('4 não-MASTER → Desvincular oculto', () => {
+    assert.equal(
+      getFrpsLibraryRowActions({
+        status: 'VALIDATED',
+        conceptualExplanationId: 'exp-1',
+        hasActiveEquivalence: true,
+        isMaster: false,
+      }).canUnlinkFromCanonical,
+      false,
+    );
   });
 
   it('DRAFT_AI and VALIDATED allow view without generate', () => {
     assert.deepEqual(getFrpsLibraryRowActions('DRAFT_AI', 'exp-1'), {
       canGenerate: false,
       canView: true,
+      canUnlinkFromCanonical: false,
     });
     assert.deepEqual(getFrpsLibraryRowActions('VALIDATED', 'exp-2'), {
       canGenerate: false,
       canView: true,
+      canUnlinkFromCanonical: false,
     });
   });
 
@@ -32,6 +83,7 @@ describe('getFrpsLibraryRowActions', () => {
     assert.deepEqual(getFrpsLibraryRowActions('REJECTED', 'exp-3'), {
       canGenerate: true,
       canView: true,
+      canUnlinkFromCanonical: false,
     });
   });
 
@@ -39,11 +91,21 @@ describe('getFrpsLibraryRowActions', () => {
     assert.deepEqual(getFrpsLibraryRowActions('DRAFT_AI', null), {
       canGenerate: false,
       canView: false,
+      canUnlinkFromCanonical: false,
     });
     assert.deepEqual(getFrpsLibraryRowActions('REJECTED', null), {
       canGenerate: true,
       canView: false,
+      canUnlinkFromCanonical: false,
     });
+  });
+});
+
+describe('isFrpsInvalidSystemReference', () => {
+  it('detects INVALID_SYSTEM_REFERENCE', () => {
+    assert.equal(isFrpsInvalidSystemReference('INVALID_SYSTEM_REFERENCE'), true);
+    assert.equal(isFrpsInvalidSystemReference('USABLE'), false);
+    assert.equal(isFrpsInvalidSystemReference(undefined), false);
   });
 });
 

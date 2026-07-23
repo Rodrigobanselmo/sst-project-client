@@ -54,6 +54,8 @@ function item(
     parentCanonicalId: null,
     isCanonical: false,
     aliasCount: 0,
+    catalogUsability: 'USABLE',
+    generateable: overrides.origin === 'GLOBAL',
     conceptualExplanation: {
       status: 'NEVER_GENERATED',
       explanationId: null,

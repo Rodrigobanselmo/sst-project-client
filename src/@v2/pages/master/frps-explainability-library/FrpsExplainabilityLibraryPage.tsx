@@ -23,6 +23,7 @@ import {
   useMutateGenerateFrpsLibraryConceptual,
   type FrpsCatalogAdminItem,
 } from '@v2/services/forms/frps-explainability-library';
+import { useMutateRevokeRiskCatalogEquivalence } from '@v2/services/risk-catalog-equivalence/hooks/useMutateRevokeRiskCatalogEquivalence';
 
 import { FrpsCatalogEquivalenceDialog } from './components/FrpsCatalogEquivalenceDialog';
 import { FrpsExplainabilityLibraryFiltersBar } from './components/FrpsExplainabilityLibraryFiltersBar';
@@ -32,6 +33,10 @@ import {
   FrpsLibraryConceptualViewDrawer,
   type FrpsLibraryViewTarget,
 } from './components/FrpsLibraryConceptualViewDrawer';
+import {
+  FrpsLibraryUnlinkCanonicalDialog,
+  type FrpsLibraryUnlinkCanonicalTarget,
+} from './components/FrpsLibraryUnlinkCanonicalDialog';
 import {
   resolveFrpsGlobalCandidateHint,
   getFrpsAliasSelectionBlockReason,
@@ -57,6 +62,10 @@ import {
   buildFrpsLinkToCanonicalButtonLabel,
 } from './frps-explainability-library-ux.constants';
 import { canShowFrpsLibraryConceptualValidateAction } from './frps-library-conceptual-validate.util';
+import {
+  FRPS_UNLINK_SUCCESS_MESSAGE,
+  canShowFrpsUnlinkFromCanonical,
+} from './frps-library-unlink-canonical.util';
 import {
   areAllVisibleSelectableSelected,
   buildFrpsSelectVisibleButtonLabel,
@@ -115,6 +124,8 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     aliases: [],
     preferManualPicker: false,
   });
+  const [unlinkTarget, setUnlinkTarget] =
+    useState<FrpsLibraryUnlinkCanonicalTarget | null>(null);
   /** Expansão manual — persiste enquanto a tela estiver montada. */
   const [userExpandedCanonicalIds, setUserExpandedCanonicalIds] = useState<
     Set<string>
@@ -204,6 +215,10 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     useFetchBrowseFrpsCatalogAdmin(browseParams, canAccess && urlReady);
 
   const generateMutation = useMutateGenerateFrpsLibraryConceptual();
+  const revokeMutation = useMutateRevokeRiskCatalogEquivalence(
+    {},
+    { successMessage: FRPS_UNLINK_SUCCESS_MESSAGE },
+  );
 
   const rows = useMemo(() => {
     const pageItems = data?.items ?? [];
@@ -494,6 +509,54 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
     });
   };
 
+  const openUnlinkDialog = (row: FrpsLibraryTableRow) => {
+    if (
+      !canShowFrpsUnlinkFromCanonical({
+        isMaster: canAccess,
+        hasActiveEquivalence: row.hasActiveEquivalence,
+      })
+    ) {
+      return;
+    }
+    const equivalenceId = row.equivalenceId;
+    const canonicalId =
+      row.parentCanonicalId ?? row.raw.activeEquivalence?.canonicalId ?? null;
+    const canonicalLabel =
+      row.canonicalLabel ?? row.raw.activeEquivalence?.canonicalLabel ?? null;
+    if (!equivalenceId || !canonicalId || !canonicalLabel) return;
+
+    setUnlinkTarget({
+      alias: row.raw,
+      equivalenceId,
+      canonicalId,
+      canonicalLabel,
+    });
+  };
+
+  const closeUnlinkDialog = () => {
+    setUnlinkTarget(null);
+  };
+
+  const handleConfirmUnlink = async (revokeReason: string) => {
+    if (!unlinkTarget) return;
+    try {
+      await revokeMutation.mutateAsync({
+        id: unlinkTarget.equivalenceId,
+        revokeReason,
+      });
+      setUnlinkTarget(null);
+      await queryClient.invalidateQueries({
+        queryKey: frpsExplainabilityLibraryQueryKeys.all,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['risk-catalog-equivalence'],
+      });
+      await refetch();
+    } catch {
+      // snackbar de erro via useMutateRevokeRiskCatalogEquivalence
+    }
+  };
+
   const handleConceptualValidated = async () => {
     enqueueSnackbar(FRPS_VALIDATE_CONCEPTUAL_SUCCESS_MESSAGE, {
       variant: 'success',
@@ -711,10 +774,12 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
             onToggleCanonicalGroup={handleToggleCanonicalGroup}
             generatingRowId={generatingRowId}
             selectedLocalIds={selectedLocalIds}
+            isMaster={canAccess}
             onToggleLocal={handleToggleLocal}
             onGenerate={handleGenerate}
             onView={handleView}
             onOpenCanonicalPicker={openEquivalenceDialogFromRow}
+            onUnlinkFromCanonical={openUnlinkDialog}
           />
 
           <STablePagination
@@ -745,6 +810,16 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
         onClose={closeEquivalenceDialog}
         onCompleted={handleEquivalenceCompleted}
         onCreateGlobalCompleted={handleCreateGlobalCompleted}
+      />
+
+      <FrpsLibraryUnlinkCanonicalDialog
+        open={Boolean(unlinkTarget)}
+        target={unlinkTarget}
+        isSubmitting={revokeMutation.isPending}
+        onClose={closeUnlinkDialog}
+        onConfirm={(reason) => {
+          void handleConfirmUnlink(reason);
+        }}
       />
     </Box>
   );

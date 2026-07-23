@@ -208,6 +208,8 @@ describe('FRPS library browse params and table mapping', () => {
       parentCanonicalId: null,
       isCanonical: false,
       aliasCount: 0,
+      catalogUsability: 'USABLE',
+      generateable: true,
       conceptualExplanation: {
         status: 'NEVER_GENERATED',
         explanationId: null,
@@ -224,8 +226,48 @@ describe('FRPS library browse params and table mapping', () => {
     assert.equal(row.equivalenceLabel, 'Sem equivalência');
     assert.equal(row.typeLabel, 'Fonte');
     assert.equal(row.statusLabel, 'Nunca gerado');
+    assert.equal(row.generateable, true);
+    assert.equal(row.isInvalidSystemReference, false);
     assert.match(row.name, /Pressão/);
     assert.doesNotMatch(row.name, /[0-9a-f-]{36}/i);
+  });
+
+  it('maps INVALID_SYSTEM_REFERENCE to chip label and not generateable', () => {
+    const row = mapFrpsLibraryItemToTableRow({
+      id: 'rec-med-only',
+      label: 'Medida só medType',
+      kind: 'REC_MED',
+      itemType: 'ADMINISTRATIVE_RECOMMENDATION',
+      recType: null,
+      medType: 'ADM',
+      riskId: 'risk-1',
+      riskName: 'Demandas',
+      riskType: 'ERG',
+      riskSubType: null,
+      system: true,
+      companyId: 'sys',
+      companyName: 'System',
+      status: 'ACTIVE',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+      origin: 'GLOBAL',
+      activeEquivalence: null,
+      parentCanonicalId: null,
+      isCanonical: false,
+      aliasCount: 0,
+      catalogUsability: 'INVALID_SYSTEM_REFERENCE',
+      generateable: false,
+      conceptualExplanation: {
+        status: 'NEVER_GENERATED',
+        explanationId: null,
+        itemKey: 'catalog:ADMINISTRATIVE_RECOMMENDATION:rec-med-only',
+      },
+    });
+
+    assert.equal(row.statusLabel, 'Referência global inválida');
+    assert.equal(row.generateable, false);
+    assert.equal(row.isInvalidSystemReference, true);
+    assert.equal(row.catalogUsability, 'INVALID_SYSTEM_REFERENCE');
   });
 
   it('labels canonical with alias count and orphan alias context', () => {
@@ -251,6 +293,8 @@ describe('FRPS library browse params and table mapping', () => {
       parentCanonicalId: null,
       isCanonical: true,
       aliasCount: 2,
+      catalogUsability: 'USABLE',
+      generateable: true,
       conceptualExplanation: {
         status: 'NEVER_GENERATED',
         explanationId: null,
@@ -288,6 +332,8 @@ describe('FRPS library browse params and table mapping', () => {
         parentCanonicalId: 'gs-canonical',
         isCanonical: false,
         aliasCount: 0,
+        catalogUsability: 'USABLE',
+        generateable: false,
         conceptualExplanation: {
           status: 'NEVER_GENERATED',
           explanationId: null,

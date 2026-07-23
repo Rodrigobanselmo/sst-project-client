@@ -116,6 +116,10 @@ export type FrpsCatalogAdminKind = 'GENERATE_SOURCE' | 'REC_MED';
 export type FrpsCatalogAdminEquivalenceType =
   | 'SEMANTIC_ALIAS'
   | 'TECHNICAL_DUPLICATE';
+/** Alinhado ao browse admin: aptidão para generate-from-catalog. */
+export type FrpsCatalogAdminUsability =
+  | 'USABLE'
+  | 'INVALID_SYSTEM_REFERENCE';
 
 export type FrpsCatalogAdminActiveEquivalence = {
   equivalenceId: string;
@@ -152,6 +156,13 @@ export type FrpsCatalogAdminItem = {
   parentCanonicalId: string | null;
   isCanonical: boolean;
   aliasCount: number;
+  /**
+   * USABLE: identidade ok para o browse.
+   * INVALID_SYSTEM_REFERENCE: listado (ex. só medType) mas generate exige recType.
+   */
+  catalogUsability: FrpsCatalogAdminUsability;
+  /** Apto para POST generate-from-catalog (mesmo critério da API). */
+  generateable: boolean;
   conceptualExplanation: FrpsCatalogAdminConceptualExplanation;
 };
 

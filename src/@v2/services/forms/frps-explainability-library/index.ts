@@ -12,8 +12,12 @@ export { frpsExplainabilityLibraryQueryKeys } from './service/frps-explainabilit
 export {
   buildFrpsLibraryRowKey,
   getFrpsLibraryRowActions,
+  isFrpsInvalidSystemReference,
 } from './service/frps-library-row-actions.util';
-export type { FrpsLibraryRowActions } from './service/frps-library-row-actions.util';
+export type {
+  FrpsLibraryRowActions,
+  GetFrpsLibraryRowActionsParams,
+} from './service/frps-library-row-actions.util';
 export { useFetchBrowseFrpsExplainabilityLibrary } from './hooks/useFetchBrowseFrpsExplainabilityLibrary';
 export { useFetchBrowseFrpsCatalogAdmin } from './hooks/useFetchBrowseFrpsCatalogAdmin';
 export { useFetchFrpsCatalogConceptualStatus } from './hooks/useFetchFrpsCatalogConceptualStatus';

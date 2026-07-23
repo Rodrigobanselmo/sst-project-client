@@ -45,6 +45,8 @@ function buildGlobalSimpleSstDraftItem(
     // API: isCanonical === aliasCount > 0 — canônico sem aliases fica false.
     isCanonical: false,
     aliasCount: 0,
+    catalogUsability: 'USABLE',
+    generateable: true,
     conceptualExplanation: {
       status: 'DRAFT_AI',
       explanationId: 'exp-simplesst-draft',

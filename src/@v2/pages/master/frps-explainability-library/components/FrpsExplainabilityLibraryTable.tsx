@@ -32,28 +32,15 @@ import {
   FRPS_SEARCH_CANONICAL_ACTION_LABEL,
 } from '../frps-explainability-library-ux.constants';
 import {
+  resolveFrpsLibraryExplanationChipProps,
   resolveFrpsLibraryOriginChipProps,
   resolveFrpsLibraryViewButtonVariant,
 } from '../frps-library-row-visual.util';
+import { FRPS_UNLINK_CANONICAL_ACTION_LABEL } from '../frps-library-unlink-canonical.util';
 import {
   buildFrpsAliasGroupToggleLabel,
   isFrpsLibraryAliasSelectable,
 } from '../frps-library-table-visibility.util';
-
-function statusColor(
-  status: FrpsLibraryTableRow['status'],
-): 'default' | 'warning' | 'success' | 'error' {
-  switch (status) {
-    case 'VALIDATED':
-      return 'success';
-    case 'DRAFT_AI':
-      return 'warning';
-    case 'REJECTED':
-      return 'error';
-    default:
-      return 'default';
-  }
-}
 
 /** Nome com no máx. 3 linhas; tooltip só quando truncado. */
 function FrpsLibraryClampedName({
@@ -116,16 +103,19 @@ export function FrpsExplainabilityLibraryTable({
   onToggleCanonicalGroup,
   generatingRowId,
   selectedLocalIds,
+  isMaster,
   onToggleLocal,
   onGenerate,
   onView,
   onOpenCanonicalPicker,
+  onUnlinkFromCanonical,
 }: {
   rows: FrpsLibraryTableRow[];
   expandedCanonicalIds: ReadonlySet<string>;
   onToggleCanonicalGroup: (canonicalId: string) => void;
   generatingRowId: string | null;
   selectedLocalIds: Set<string>;
+  isMaster: boolean;
   onToggleLocal: (row: FrpsLibraryTableRow) => void;
   onGenerate: (row: FrpsLibraryTableRow) => void;
   onView: (row: FrpsLibraryTableRow) => void;
@@ -133,6 +123,7 @@ export function FrpsExplainabilityLibraryTable({
     row: FrpsLibraryTableRow,
     options: { preferManualPicker: boolean },
   ) => void;
+  onUnlinkFromCanonical: (row: FrpsLibraryTableRow) => void;
 }) {
   if (!rows.length) {
     return (
@@ -171,7 +162,7 @@ export function FrpsExplainabilityLibraryTable({
             <TableCell width={160} sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}>
               Empresa
             </TableCell>
-            <TableCell width={120} sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}>
+            <TableCell width={140} sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}>
               Explicação
             </TableCell>
             <TableCell width={220} sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}>
@@ -181,7 +172,7 @@ export function FrpsExplainabilityLibraryTable({
               Candidato global
             </TableCell>
             <TableCell
-              width={160}
+              width={200}
               align="right"
               sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}
             >
@@ -191,21 +182,24 @@ export function FrpsExplainabilityLibraryTable({
         </TableHead>
         <TableBody>
           {rows.map((row) => {
-            const actions = getFrpsLibraryRowActions(
-              row.status,
-              row.conceptualExplanationId,
-            );
+            const actions = getFrpsLibraryRowActions({
+              status: row.status,
+              conceptualExplanationId: row.conceptualExplanationId,
+              generateable: row.generateable,
+              hasActiveEquivalence: row.hasActiveEquivalence,
+              isMaster,
+            });
             const isGenerating = generatingRowId === row.id;
             const selectable = isFrpsLibraryAliasSelectable(row);
             const indentAlias = row.isAliasRow;
             const isGroupExpanded = expandedCanonicalIds.has(row.catalogId);
-            const showGroupToggle =
-              row.isCanonical && row.aliasCount > 0;
+            const showGroupToggle = row.isCanonical && row.aliasCount > 0;
             const canonicalLinkAction = resolveFrpsLibraryCanonicalLinkAction({
               origin: row.origin,
               hasActiveEquivalence: row.hasActiveEquivalence,
               hintStatus: row.globalCandidateHint.status,
             });
+            const explanationChip = resolveFrpsLibraryExplanationChipProps(row);
 
             return (
               <TableRow
@@ -235,9 +229,7 @@ export function FrpsExplainabilityLibraryTable({
                 <TableCell>
                   <Box
                     sx={{
-                      pl: indentAlias
-                        ? `${FRPS_ALIAS_NAME_INDENT_PX}px`
-                        : 0,
+                      pl: indentAlias ? `${FRPS_ALIAS_NAME_INDENT_PX}px` : 0,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 0.5,
@@ -321,14 +313,17 @@ export function FrpsExplainabilityLibraryTable({
                 </TableCell>
                 <TableCell>{row.companyName || '—'}</TableCell>
                 <TableCell>
-                  <Chip
-                    size="small"
-                    label={row.statusLabel}
-                    color={statusColor(row.status)}
-                    variant={
-                      row.status === 'NEVER_GENERATED' ? 'outlined' : 'filled'
-                    }
-                  />
+                  <Tooltip
+                    title={explanationChip.title ?? ''}
+                    disableHoverListener={!explanationChip.title}
+                  >
+                    <Chip
+                      size="small"
+                      label={row.statusLabel}
+                      color={explanationChip.color}
+                      variant={explanationChip.variant}
+                    />
+                  </Tooltip>
                 </TableCell>
                 <TableCell>
                   <Typography
@@ -442,6 +437,18 @@ export function FrpsExplainabilityLibraryTable({
                         }
                       >
                         {isGenerating ? 'Gerando…' : 'Gerar'}
+                      </Button>
+                    ) : null}
+                    {actions.canUnlinkFromCanonical ? (
+                      <Button
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                        onClick={() => onUnlinkFromCanonical(row)}
+                        disabled={isGenerating}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        {FRPS_UNLINK_CANONICAL_ACTION_LABEL}
                       </Button>
                     ) : null}
                   </Box>

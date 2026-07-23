@@ -1,31 +1,78 @@
-import type { FrpsLibraryConceptualStatus } from './frps-explainability-library.types';
+import type {
+  FrpsCatalogAdminUsability,
+  FrpsLibraryConceptualStatus,
+} from './frps-explainability-library.types';
 
 export type FrpsLibraryRowActions = {
   canGenerate: boolean;
   canView: boolean;
+  canUnlinkFromCanonical: boolean;
+};
+
+export type GetFrpsLibraryRowActionsParams = {
+  status: FrpsLibraryConceptualStatus;
+  conceptualExplanationId: string | null;
+  /** Default true quando omitido (compat com payloads antigos). */
+  generateable?: boolean;
+  hasActiveEquivalence?: boolean;
+  isMaster?: boolean;
 };
 
 /**
- * Ações da tabela por status do browse.
+ * Ações da tabela por status do browse + gerabilidade do catálogo.
  * Identidade de conteúdo existente vem de conceptualExplanationId.
+ * Gerar GLOBAL continua filtrado na UI (`origin === 'GLOBAL'`).
  */
 export function getFrpsLibraryRowActions(
-  status: FrpsLibraryConceptualStatus,
-  conceptualExplanationId: string | null,
+  statusOrParams: FrpsLibraryConceptualStatus | GetFrpsLibraryRowActionsParams,
+  conceptualExplanationId?: string | null,
 ): FrpsLibraryRowActions {
-  const hasContent = Boolean(conceptualExplanationId);
+  const params: GetFrpsLibraryRowActionsParams =
+    typeof statusOrParams === 'string'
+      ? {
+          status: statusOrParams,
+          conceptualExplanationId: conceptualExplanationId ?? null,
+        }
+      : statusOrParams;
 
-  switch (status) {
+  const hasContent = Boolean(params.conceptualExplanationId);
+  const generateable = params.generateable !== false;
+
+  let canGenerateByStatus = false;
+  let canView = false;
+
+  switch (params.status) {
     case 'NEVER_GENERATED':
-      return { canGenerate: true, canView: false };
+      canGenerateByStatus = true;
+      canView = false;
+      break;
     case 'DRAFT_AI':
     case 'VALIDATED':
-      return { canGenerate: false, canView: hasContent };
+      canGenerateByStatus = false;
+      canView = hasContent;
+      break;
     case 'REJECTED':
-      return { canGenerate: true, canView: hasContent };
+      canGenerateByStatus = true;
+      canView = hasContent;
+      break;
     default:
-      return { canGenerate: false, canView: false };
+      canGenerateByStatus = false;
+      canView = false;
   }
+
+  return {
+    canGenerate: canGenerateByStatus && generateable,
+    canView,
+    canUnlinkFromCanonical: Boolean(
+      params.isMaster && params.hasActiveEquivalence,
+    ),
+  };
+}
+
+export function isFrpsInvalidSystemReference(
+  catalogUsability: FrpsCatalogAdminUsability | undefined,
+): boolean {
+  return catalogUsability === 'INVALID_SYSTEM_REFERENCE';
 }
 
 export function buildFrpsLibraryRowKey(

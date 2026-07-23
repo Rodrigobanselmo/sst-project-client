@@ -3,14 +3,17 @@ import type {
   FrpsCatalogAdminCatalogType,
   FrpsCatalogAdminItem,
   FrpsCatalogAdminOriginFilter,
+  FrpsCatalogAdminUsability,
   FrpsLibraryConceptualStatus,
-} from '@v2/services/forms/frps-explainability-library';
+} from '@v2/services/forms/frps-explainability-library/service/frps-explainability-library.types';
+import { isFrpsInvalidSystemReference } from '@v2/services/forms/frps-explainability-library/service/frps-library-row-actions.util';
 
 import {
   FRPS_GLOBAL_COMPANY_DISPLAY_NAME,
   FRPS_GLOBAL_ORIGIN_DISPLAY_NAME,
   type FrpsGlobalCandidateHint,
 } from './frps-catalog-admin-equivalence.util';
+import { FRPS_INVALID_SYSTEM_REFERENCE_CHIP_LABEL } from './frps-library-unlink-canonical.util';
 export const FRPS_LIBRARY_DEFAULT_RISK_TYPE = 'ERG';
 export const FRPS_LIBRARY_DEFAULT_RISK_SUB_TYPE_ENUM = 'PSICOSOCIAL';
 export const FRPS_LIBRARY_DEFAULT_LIMIT = 15;
@@ -287,6 +290,7 @@ export type FrpsLibraryTableRow = {
   statusLabel: string;
   equivalenceLabel: string;
   hasActiveEquivalence: boolean;
+  equivalenceId: string | null;
   isCanonical: boolean;
   isAliasRow: boolean;
   /** Alias sem o canônico na página atual (grupo partido). */
@@ -294,6 +298,9 @@ export type FrpsLibraryTableRow = {
   aliasCount: number;
   parentCanonicalId: string | null;
   canonicalLabel: string | null;
+  catalogUsability: FrpsCatalogAdminUsability;
+  generateable: boolean;
+  isInvalidSystemReference: boolean;
   /** Indicativo informativo; não cria equivalência. */
   globalCandidateHint: FrpsGlobalCandidateHint;
   updatedAtLabel: string;
@@ -328,6 +335,9 @@ export function mapFrpsLibraryItemToTableRow(
       options?.canonicalIdsOnPage &&
       !options.canonicalIdsOnPage.has(parentCanonicalId),
   );
+  const catalogUsability = item.catalogUsability ?? 'USABLE';
+  const generateable = item.generateable !== false;
+  const invalidSystemReference = isFrpsInvalidSystemReference(catalogUsability);
 
   return {
     id: `${item.itemType}:${item.id}`,
@@ -346,15 +356,21 @@ export function mapFrpsLibraryItemToTableRow(
         ? item.companyName
         : FRPS_GLOBAL_COMPANY_DISPLAY_NAME,
     status: item.conceptualExplanation.status,
-    statusLabel: getFrpsLibraryStatusLabel(item.conceptualExplanation.status),
+    statusLabel: invalidSystemReference
+      ? FRPS_INVALID_SYSTEM_REFERENCE_CHIP_LABEL
+      : getFrpsLibraryStatusLabel(item.conceptualExplanation.status),
     equivalenceLabel: buildFrpsEquivalenceLabel(item),
     hasActiveEquivalence: Boolean(item.activeEquivalence),
+    equivalenceId: item.activeEquivalence?.equivalenceId ?? null,
     isCanonical: Boolean(item.isCanonical),
     isAliasRow,
     isOrphanAliasOnPage,
     aliasCount: item.aliasCount ?? 0,
     parentCanonicalId,
     canonicalLabel: item.activeEquivalence?.canonicalLabel ?? null,
+    catalogUsability,
+    generateable,
+    isInvalidSystemReference: invalidSystemReference,
     globalCandidateHint: options?.globalCandidateHint ?? {
       status: 'NONE',
       count: 0,
