@@ -64,6 +64,7 @@ import { buildParticipantGroupingEnrichmentContext } from './helpers/buildPartic
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 import { exportFormRiskAnalysisPdfInBrowser } from './helpers/exportFormRiskAnalysisPdfInBrowser';
+import { exportFrpsExplainabilityTechnicalReportPdfInBrowser } from './helpers/exportFrpsExplainabilityTechnicalReportPdfInBrowser';
 import { buildIndicatorsPdfDataset } from './helpers/buildIndicatorsPdfDataset';
 import {
   DEFAULT_FORM_CHART_TYPE,
@@ -429,6 +430,10 @@ export const FormQuestionsDashboard = ({
     useState(false);
   const [isExportingRisksAnalysisPdf, setIsExportingRisksAnalysisPdf] =
     useState(false);
+  const [
+    isExportingFrpsTechnicalReportPdf,
+    setIsExportingFrpsTechnicalReportPdf,
+  ] = useState(false);
   const [pdfLoadingMessage, setPdfLoadingMessage] = useState<string>('');
 
   // Set initial tab based on shareableLink status
@@ -1221,10 +1226,21 @@ export const FormQuestionsDashboard = ({
                 py: 5,
               }}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: 1,
+                  flexWrap: 'wrap',
+                }}
+              >
                 <Button
                   variant="outlined"
-                  disabled={!formQuestionsAnswers || isExportingRisksAnalysisPdf}
+                  disabled={
+                    !formQuestionsAnswers ||
+                    isExportingRisksAnalysisPdf ||
+                    isExportingFrpsTechnicalReportPdf
+                  }
                   startIcon={
                     isExportingRisksAnalysisPdf ? (
                       <CircularProgress color="inherit" size={16} />
@@ -1276,6 +1292,66 @@ export const FormQuestionsDashboard = ({
                   }}
                 >
                   Exportar PDF (Análise de Riscos)
+                </Button>
+                <Button
+                  variant="outlined"
+                  title="Gera a fundamentação conceitual validada das fontes geradoras e medidas de prevenção utilizadas neste recorte."
+                  disabled={
+                    !formQuestionsAnswers ||
+                    isExportingRisksAnalysisPdf ||
+                    isExportingFrpsTechnicalReportPdf
+                  }
+                  startIcon={
+                    isExportingFrpsTechnicalReportPdf ? (
+                      <CircularProgress color="inherit" size={16} />
+                    ) : undefined
+                  }
+                  onClick={async () => {
+                    if (!formQuestionsAnswers) {
+                      enqueueSnackbar(
+                        'Dados do formulário ainda não carregados.',
+                        { variant: 'warning' },
+                      );
+                      return;
+                    }
+                    setIsExportingFrpsTechnicalReportPdf(true);
+                    setPdfLoadingMessage('Gerando relatório técnico...');
+                    try {
+                      await exportFrpsExplainabilityTechnicalReportPdfInBrowser(
+                        {
+                          formApplication,
+                          accessCompanyId,
+                          formQuestionsAnswers,
+                          selectedGroupingQuestionId: selectedGroupingQuestion,
+                          selectedGroupingLabel,
+                          hierarchyGroups,
+                          ...(selectedGroupingQuestion &&
+                          selectedParticipantGroupIdsForView
+                            ? {
+                                visibleParticipantGroupIds:
+                                  selectedParticipantGroupIdsForView,
+                              }
+                            : {}),
+                        },
+                        (message) => setPdfLoadingMessage(message),
+                      );
+                      enqueueSnackbar('Relatório técnico gerado com sucesso.', {
+                        variant: 'success',
+                      });
+                    } catch (e) {
+                      enqueueSnackbar(
+                        e instanceof Error
+                          ? e.message
+                          : 'Não foi possível gerar o relatório técnico.',
+                        { variant: 'error' },
+                      );
+                    } finally {
+                      setIsExportingFrpsTechnicalReportPdf(false);
+                      setPdfLoadingMessage('');
+                    }
+                  }}
+                >
+                  Exportar Relatório Técnico
                 </Button>
               </Box>
             </SPaper>
@@ -1548,7 +1624,11 @@ export const FormQuestionsDashboard = ({
       )}
 
       <SPdfLoadingModal
-        open={isExportingIndicatorsPdf || isExportingRisksAnalysisPdf}
+        open={
+          isExportingIndicatorsPdf ||
+          isExportingRisksAnalysisPdf ||
+          isExportingFrpsTechnicalReportPdf
+        }
         message={pdfLoadingMessage}
       />
     </SFlex>

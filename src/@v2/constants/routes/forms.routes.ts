@@ -25,6 +25,8 @@ export const FormRoutes = {
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers/ai-analyze-risks',
     BROWSE_ANALYSIS:
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis',
+    EXPLAINABILITY_TECHNICAL_REPORT:
+      'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/explainability-technical-report',
     CLEAR_ANALYSIS:
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/clear',
     RECOVER_STUCK_ANALYSIS:
