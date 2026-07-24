@@ -2733,6 +2733,13 @@ export const FormRisksAnalysis = ({
                                   }
                                 : undefined;
                               const displayAnalysisContent = sourceAnalysis.analysis;
+                              const isAnalysisProtected =
+                                sourceAnalysis.metadata?.protectedData === true;
+                              const protectedAnalysisLabel =
+                                (typeof sourceAnalysis.metadata
+                                  ?.protectedDataLabel === 'string' &&
+                                  sourceAnalysis.metadata.protectedDataLabel) ||
+                                'Dados Protegidos';
                               const itemCodeRegistry =
                                 buildAnalysisItemCodeRegistry(displayAnalysisContent);
                               const resolveDisplayedItemStatus = (
@@ -2867,8 +2874,44 @@ export const FormRisksAnalysis = ({
                                           />
                                         </SFlex>
 
+                                        {isAnalysisProtected && (
+                                          <Box
+                                            mb={2}
+                                            mt={3}
+                                            p={2}
+                                            sx={{
+                                              borderRadius: 1,
+                                              backgroundColor: 'warning.50',
+                                              border: '1px solid',
+                                              borderColor: 'warning.light',
+                                            }}
+                                          >
+                                            <SText
+                                              variant="body1"
+                                              fontWeight="bold"
+                                              fontSize={14}
+                                              mb={1}
+                                            >
+                                              {protectedAnalysisLabel}
+                                            </SText>
+                                            <SText
+                                              variant="body2"
+                                              color="text.secondary"
+                                              fontSize={13}
+                                            >
+                                              O grupo não atinge o mínimo atual
+                                              de participantes da Análise de
+                                              Riscos. Fontes, recomendações e
+                                              narrativa da IA ficam ocultas até
+                                              o recorte voltar a atender o
+                                              limiar.
+                                            </SText>
+                                          </Box>
+                                        )}
+
                                         {/* Fontes Geradoras */}
-                                        {displayAnalysisContent?.fontesGeradoras &&
+                                        {!isAnalysisProtected &&
+                                          displayAnalysisContent?.fontesGeradoras &&
                                           displayAnalysisContent.fontesGeradoras
                                             .length > 0 && (
                                             <Box mb={2} mt={4}>

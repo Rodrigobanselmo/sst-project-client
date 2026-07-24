@@ -91,4 +91,7 @@ export const FormRoutes = {
   SYSTEM_AI_PROMPT: {
     PATH: 'v2/system/ai-prompts',
   },
+  FRPS_PRIVACY: {
+    PATH: 'v2/companies/:companyId/frps-privacy',
+  },
 } as const;

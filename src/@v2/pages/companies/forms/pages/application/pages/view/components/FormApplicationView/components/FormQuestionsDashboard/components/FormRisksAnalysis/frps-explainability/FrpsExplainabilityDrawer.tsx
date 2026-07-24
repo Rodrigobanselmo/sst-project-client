@@ -38,12 +38,15 @@ import {
 import { toSafeIsoDateLabel, normalizePersonLabel } from './frps-explainability-safe-content.util';
 import { FRPS_EXPLAINABILITY_UI_COPY } from './frps-explainability-ui-copy';
 import { FrpsExplainabilityDrawerErrorBoundary } from './FrpsExplainabilityDrawerErrorBoundary';
+import { useQueryFrpsPrivacySettings } from 'core/services/hooks/queries/useQueryFrpsPrivacySettings/useQueryFrpsPrivacySettings';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 const METHODOLOGY_NOTICE =
   'Este conteúdo apoia a interpretação técnica dos resultados e não substitui a avaliação profissional, a investigação das condições reais de trabalho ou a validação das medidas pela organização.';
 
-const PROTECTED_MESSAGE =
-  'Este conteúdo não pode ser detalhado porque o recorte não atende ao número mínimo de participantes exigido para proteção do sigilo.';
+function buildProtectedMessage(minParticipants: number) {
+  return `Este conteúdo não pode ser detalhado porque o recorte não atende ao mínimo de ${minParticipants} participante${minParticipants > 1 ? 's' : ''} exigido para proteção do sigilo na Análise de Riscos.`;
+}
 
 function formatUpdatedAt(value?: string | Date | null) {
   return toSafeIsoDateLabel(value);
@@ -216,6 +219,12 @@ function ContextualEditForm({
 }
 
 export function FrpsExplainabilityDrawer() {
+  const { companyId } = useGetCompanyId();
+  const { data: privacySettings } = useQueryFrpsPrivacySettings(companyId);
+  const protectedMessage = buildProtectedMessage(
+    privacySettings.riskAnalysisAiMinParticipants ?? 3,
+  );
+
   const {
     open,
     target,
@@ -688,7 +697,7 @@ export function FrpsExplainabilityDrawer() {
                     fontSize={13}
                     sx={{ lineHeight: 1.55 }}
                   >
-                    {PROTECTED_MESSAGE}
+                    {protectedMessage}
                   </SText>
                 </Box>
               )}

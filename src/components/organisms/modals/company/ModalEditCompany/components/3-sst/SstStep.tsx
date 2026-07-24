@@ -20,6 +20,7 @@ import { dateToDate } from 'core/utils/date/date-format';
 
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanySecondEdit';
+import { FrpsPrivacySettingsBlock } from './FrpsPrivacySettingsBlock';
 
 export const SSTModalCompanyStep = (props: IUseAddCompany) => {
   const {
@@ -194,6 +195,9 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             />
           </SFlex>
         </SFlex>
+        {companyData.id && (
+          <FrpsPrivacySettingsBlock companyId={companyData.id} />
+        )}
         {companyData.id && (
           <Box mt={20}>
             <ProfessionalResponsibleTable
