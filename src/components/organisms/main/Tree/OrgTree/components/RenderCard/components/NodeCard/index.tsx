@@ -3,7 +3,7 @@ import React, { FC, MouseEvent, useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import AddIcon from '@mui/icons-material/Add';
-import { Box } from '@mui/material';
+import { Box, Checkbox } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import STooltip from 'components/atoms/STooltip';
 import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
@@ -13,6 +13,10 @@ import {
   selectGhoId,
   setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
+import {
+  selectHierarchyNodeIsSelected,
+  selectHierarchySelectionMode,
+} from 'store/reducers/hierarchy/hierarchySlice';
 
 import SCopyIcon from 'assets/icons/SCopyIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
@@ -30,6 +34,7 @@ import { useHierarchyTreeActions } from '../../../../../../../../../core/hooks/u
 import { STagButton } from '../../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../../atoms/SText';
 import { hierarchyNodeVisualIdentity } from '../../../../constants/hierarchy-node-visual.constant';
+import { isHierarchyNodeSelectable } from '../../../../constants/hierarchy-selection.constant';
 import { nodeTypesConstant } from '../../../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { usePreventNode } from '../../../../hooks/usePreventNode';
@@ -134,13 +139,16 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     selectGhoHierarchy(getPathById(node.id) as string[]),
   );
   const GhoId = useAppSelector(selectGhoId);
+  const selectionMode = useAppSelector(selectHierarchySelectionMode);
+  const isSelected = useAppSelector(selectHierarchyNodeIsSelected(node.id));
+  const canSelect = isHierarchyNodeSelectable(node);
   const store = useStore<any>();
   const dispatch = useAppDispatch();
   const { hide, ref } = useObserverHide();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    if (node.showRef) return;
+    if (selectionMode || node.showRef) return;
 
     createEmptyCard(node.id);
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
@@ -148,7 +156,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
 
   const handleDeleteCard = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    if (node.showRef || !node.parentId) return;
+    if (selectionMode || node.showRef || !node.parentId) return;
 
     preventDelete(() => removeNodes(node.id), '', {
       inputConfirm: true,
@@ -173,7 +181,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
 
   const handleAddGhoHierarchy = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    if (updateMutation.isLoading) return;
+    if (selectionMode || updateMutation.isLoading) return;
     if (node.showRef) return;
 
     const ghoState = store.getState().gho as IGhoState;
@@ -242,17 +250,20 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   const showGhoSelectButton = !hide && GhoId && isHierarchy;
 
   const showAddButton =
+    !selectionMode &&
     !node.showRef &&
     !GhoId &&
     ![TreeTypeEnum.COMPANY, TreeTypeEnum.SUB_OFFICE].includes(node.type);
 
   const showDeleteButton =
+    !selectionMode &&
     !node.showRef &&
     !GhoId &&
     !!node.parentId &&
     node.type !== TreeTypeEnum.COMPANY;
 
   const showFooter =
+    !selectionMode &&
     !hide &&
     (showGhoSelectButton ||
       showGhoSelect ||
@@ -273,13 +284,35 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
         minHeight: '100%',
         gap: 2.5,
       }}
-      onClick={GhoId ? handleAddGhoHierarchy : undefined}
+      onClick={!selectionMode && GhoId ? handleAddGhoHierarchy : undefined}
     >
       {/* 1. Cabeçalho — tipo do nó */}
       {!showRefSelect && (
-        <Box sx={{ width: '100%', textAlign: 'left' }}>
-          <NodeTypeHeader type={node.type} />
-        </Box>
+        <SFlex
+          alignItems="center"
+          justifyContent="space-between"
+          width="100%"
+          gap={1}
+        >
+          <Box sx={{ minWidth: 0, textAlign: 'left' }}>
+            <NodeTypeHeader type={node.type} />
+          </Box>
+          {selectionMode && canSelect && (
+            <Checkbox
+              size="small"
+              checked={isSelected}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleClickCard();
+              }}
+              inputProps={{
+                'aria-label': `Selecionar ${node.label}`,
+              }}
+              sx={{ p: 0.25, flexShrink: 0 }}
+            />
+          )}
+        </SFlex>
       )}
 
       {/* 2. Conteúdo — nome com largura total */}

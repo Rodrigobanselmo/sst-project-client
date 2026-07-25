@@ -7,6 +7,8 @@ import { TreeTypeEnum } from '../../enums/tree-type.enums';
 interface ICardCard {
   isDragging: boolean;
   type?: TreeTypeEnum;
+  isSelected?: boolean;
+  selectionMode?: boolean;
 }
 
 /** Largura única para todos os níveis — evita falsa hierarquia por tamanho. */
@@ -75,7 +77,7 @@ export const STCardArea = styled(Box)<{
 export const STRenderLabel = styled(Box)<ICardCard>`
   box-sizing: border-box;
   background-color: white;
-  cursor: grab;
+  cursor: ${(props) => (props.selectionMode ? 'pointer' : 'grab')};
   padding: ${(props) => props.theme.spacing(3.5, 5)};
   width: ${HIERARCHY_CARD_WIDTH};
   min-width: ${HIERARCHY_CARD_WIDTH};
@@ -96,6 +98,14 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   overflow-wrap: anywhere;
 
   ${(props) => getTypeVisualCss(props.type)}
+
+  ${(props) =>
+    props.isSelected &&
+    css`
+      box-shadow:
+        0 0 0 2px ${props.theme.palette.primary.main},
+        0 1px 5px rgba(0, 0, 0, 0.15);
+    `}
 
   .hierarchy-card-delete {
     opacity: 0;

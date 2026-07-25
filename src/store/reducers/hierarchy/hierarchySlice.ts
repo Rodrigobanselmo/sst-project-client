@@ -23,6 +23,8 @@ interface IHierarchySlice {
   workspaceId: string | null;
   modalSelectIds: string[];
   search: string;
+  selectionMode: boolean;
+  selectedNodeIds: string[];
 }
 
 const initialState: IHierarchySlice = {
@@ -43,6 +45,8 @@ const initialState: IHierarchySlice = {
   copyItem: null,
   selectItem: null,
   workspaceId: null,
+  selectionMode: false,
+  selectedNodeIds: [],
 };
 
 const name = 'hierarchy';
@@ -139,6 +143,28 @@ export const hierarchySlice = createSlice({
     setHierarchySearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
     },
+    setSelectionMode: (state, action: PayloadAction<boolean>) => {
+      state.selectionMode = action.payload;
+      if (!action.payload) {
+        state.selectedNodeIds = [];
+      }
+    },
+    setSelectedNodeIds: (state, action: PayloadAction<string[]>) => {
+      state.selectedNodeIds = action.payload;
+    },
+    toggleSelectedNodeId: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      if (state.selectedNodeIds.includes(id)) {
+        state.selectedNodeIds = state.selectedNodeIds.filter(
+          (item) => item !== id,
+        );
+      } else {
+        state.selectedNodeIds.push(id);
+      }
+    },
+    clearSelectedNodeIds: (state) => {
+      state.selectedNodeIds = [];
+    },
     setEditSelectItem: (
       state,
       action: PayloadAction<Partial<ITreeSelectedItem> | null>,
@@ -204,6 +230,10 @@ export const {
   setAddModalId,
   setHierarchySearch,
   setModalIds,
+  setSelectionMode,
+  setSelectedNodeIds,
+  toggleSelectedNodeId,
+  clearSelectedNodeIds,
 } = hierarchySlice.actions;
 
 export const selectAllHierarchyTreeNodes = (state: AppState) =>
@@ -246,5 +276,15 @@ export const selectModalIdIsSelected = (id: string) => (state: AppState) =>
   state[name].modalSelectIds.includes(id);
 
 export const selectHierarchySearch = (state: AppState) => state[name].search;
+
+export const selectHierarchySelectionMode = (state: AppState) =>
+  state[name].selectionMode;
+
+export const selectHierarchySelectedNodeIds = (state: AppState) =>
+  state[name].selectedNodeIds;
+
+export const selectHierarchyNodeIsSelected =
+  (id: string | number) => (state: AppState) =>
+    state[name].selectedNodeIds.includes(String(id));
 
 export default hierarchySlice.reducer;

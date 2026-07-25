@@ -79,6 +79,10 @@ export const useDnd = (node: ITreeMapObject) => {
     () => ({
       type: 'box',
       item: node,
+      canDrag: () => {
+        const selectionMode = !!store.getState().hierarchy?.selectionMode;
+        return !selectionMode && !node.stopDrag;
+      },
       options: {
         dropEffect: 'copy',
       },
@@ -86,7 +90,7 @@ export const useDnd = (node: ITreeMapObject) => {
         isDragging: !!monitor.isDragging(),
       }),
     }),
-    [],
+    [node.stopDrag],
   );
 
   useEffect(() => {
@@ -157,6 +161,7 @@ export const useDnd = (node: ITreeMapObject) => {
 
   const onCanDrop = (dragItem: ITreeMapObject) => {
     if (node.stopDrag) return false;
+    if (store.getState().hierarchy?.selectionMode) return false;
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const actualDragItem = nodesMap[dragItem.id];
 

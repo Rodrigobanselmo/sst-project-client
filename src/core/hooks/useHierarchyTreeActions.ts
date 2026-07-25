@@ -496,6 +496,20 @@ export const useHierarchyTreeActions = () => {
     [deleteMutation, dispatch, saveApi, store],
   );
 
+  /** Remove nós da árvore local após exclusão em massa na API (sem nova request). */
+  const removeNodesFromTree = useCallback(
+    (apiIds: string[]) => {
+      const nodes = store.getState().hierarchy.nodes as ITreeMap;
+      const idsToRemove = Object.keys(nodes).filter((key) =>
+        apiIds.some((apiId) => key === apiId || key.startsWith(`${apiId}//`)),
+      );
+      if (idsToRemove.length) {
+        dispatch(setRemoveNode(idsToRemove));
+      }
+    },
+    [dispatch, store],
+  );
+
   const getHigherLevelNodes = useCallback(
     (id: number | string) => {
       const nodes = store.getState().hierarchy.nodes as ITreeMap;
@@ -698,6 +712,7 @@ export const useHierarchyTreeActions = () => {
     isChild,
     searchFilterNodes,
     removeNodes,
+    removeNodesFromTree,
     editNodes,
     setDraggingItem,
     onExpandAll,
