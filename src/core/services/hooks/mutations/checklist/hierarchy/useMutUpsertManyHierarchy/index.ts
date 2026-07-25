@@ -95,7 +95,14 @@ export function useMutUpsertManyHierarchy() {
           >([QueryEnum.HIERARCHY, companyId]);
           if (actualData) {
             resp.forEach((item) => {
-              actualData[item.id] = item;
+              const previous = actualData[item.id];
+              actualData[item.id] = {
+                ...previous,
+                ...item,
+                // upsert-many não devolve employeesCount; preserva o valor local
+                employeesCount:
+                  item.employeesCount ?? previous?.employeesCount,
+              };
             });
 
             queryClient.setQueryData(

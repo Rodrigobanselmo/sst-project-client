@@ -273,6 +273,7 @@ export const useHierarchyTreeActions = () => {
               realDescription: values?.realDescription ?? undefined,
               description: values.description,
               type: TreeTypeEnum[values.type] as unknown as TreeTypeEnum,
+              employeesCount: values.employeesCount ?? 0,
               ghos: ghos.filter((gho) => {
                 const linkedToHierarchy =
                   gho.hierarchies &&

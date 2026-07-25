@@ -22,7 +22,8 @@ export interface IHierarchy {
   parents?: IHierarchy[];
   hierarchyOnHomogeneous?: IHierarchyOnHomogeneous[];
   company?: ICompany;
-  employeesCount?: number; //only on find by id
+  /** Contagem de vínculos diretos: OFFICE → employees; SUB_OFFICE → subOfficeEmployees. */
+  employeesCount?: number;
 }
 
 export type IHierarchyChildren = IHierarchy & {

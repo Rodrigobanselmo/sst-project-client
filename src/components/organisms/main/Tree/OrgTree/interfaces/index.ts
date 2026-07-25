@@ -30,6 +30,8 @@ export interface ITreeMapObject {
   copyCompanyId?: string;
   idRef?: string;
   ghos: IGho[];
+  /** Vínculos diretos de funcionários (OFFICE / SUB_OFFICE). */
+  employeesCount?: number;
   style?: CSSProperties;
   className?: string;
 }

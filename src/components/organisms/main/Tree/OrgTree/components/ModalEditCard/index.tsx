@@ -19,6 +19,7 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { IHierarchyMap } from 'core/interfaces/api/IHierarchy';
 import {
   IQueryEmployee,
   useQueryEmployees,
@@ -98,7 +99,7 @@ export const ModalEditCard = () => {
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
   const { editNodes, removeNodes, createEmptyCard } = useHierarchyTreeActions();
   const editHierarchyMutation = useMutateEditHierarchy();
-  const { getCompanyId } = useGetCompanyId();
+  const { getCompanyId, companyId } = useGetCompanyId();
 
   const { preventDelete } = usePreventNode();
   const { enqueueSnackbar } = useSnackbar();
@@ -146,12 +147,46 @@ export const ModalEditCard = () => {
       setEmployees([]);
       setWorkspaces([]);
       queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
-      editNodes([newNode], false, {
-        isAdd: selectedNode.action === 'add',
-        employeesIds: employees.map((e) => e.id),
-        callBack: refetch,
-        workspacesIds: finalWorkspaces.length > 0 ? finalWorkspaces : undefined,
-      });
+
+      const nextEmployeesCount = isOffice ? employees.length : undefined;
+      const nodeHierarchyId = String(selectedNode.id).split('//')[0];
+      if (isOffice && nodeHierarchyId && companyId) {
+        const hierarchyCache = queryClient.getQueryData<IHierarchyMap>([
+          QueryEnum.HIERARCHY,
+          companyId,
+        ]);
+        if (hierarchyCache?.[nodeHierarchyId]) {
+          queryClient.setQueryData<IHierarchyMap>(
+            [QueryEnum.HIERARCHY, companyId],
+            {
+              ...hierarchyCache,
+              [nodeHierarchyId]: {
+                ...hierarchyCache[nodeHierarchyId],
+                employeesCount: nextEmployeesCount,
+              },
+            },
+          );
+        }
+      }
+
+      editNodes(
+        [
+          {
+            ...newNode,
+            ...(typeof nextEmployeesCount === 'number'
+              ? { employeesCount: nextEmployeesCount }
+              : {}),
+          },
+        ],
+        false,
+        {
+          isAdd: selectedNode.action === 'add',
+          employeesIds: employees.map((e) => e.id),
+          callBack: refetch,
+          workspacesIds:
+            finalWorkspaces.length > 0 ? finalWorkspaces : undefined,
+        },
+      );
       if (!switchRef.current?.checked)
         onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
       if (switchRef.current?.checked && newNode.parentId) {

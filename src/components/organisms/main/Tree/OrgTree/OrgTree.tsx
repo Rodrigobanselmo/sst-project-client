@@ -18,6 +18,7 @@ import { TreeNode } from './components';
 import { BottomButton } from './components/BottomButton';
 import { GhoTool } from './components/GhoTool';
 import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
+import { HierarchyLegend } from './components/HierarchyLegend';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { MouseControl } from './components/MouseControl';
 import { RiskTool } from './components/RiskTool/RiskTool';
@@ -82,6 +83,7 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
         {(!selectExpanded || !isRiskOpen) && (
           <>
             <LoadingFeedback />
+            <HierarchyLegend />
             {showGHO && <BottomButton />}
             <MouseControl orgContainerRef={orgContainerRef} />
             <OrgTreeContainer

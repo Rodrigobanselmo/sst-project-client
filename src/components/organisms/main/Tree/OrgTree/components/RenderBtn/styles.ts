@@ -13,7 +13,7 @@ export const RenderButton = styled.span<{
   left: 50%;
   width: 20px;
   height: 20px;
-  z-index: ${({ theme }) => theme.mixins.nodeCard};
+  z-index: ${({ theme }) => theme.mixins.nodeCard + 1};
   margin-left: -11px;
   margin-top: 11px;
   background-color: #fff;
@@ -23,6 +23,8 @@ export const RenderButton = styled.span<{
   cursor: pointer;
   transition: all 0.35s ease;
   transform: translateY(2px);
+  /* Garante que o indicador não seja cortado pelo card */
+  overflow: visible;
 
   :hover {
     filter: brightness(0.9);
