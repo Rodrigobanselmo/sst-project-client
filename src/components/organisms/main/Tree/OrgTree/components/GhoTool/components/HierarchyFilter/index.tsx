@@ -238,7 +238,7 @@ export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
           <STagButton
             large
             text="Selecionar"
-            tooltipTitle="Ativar seleção múltipla para exclusão em massa"
+            tooltipTitle="Selecionar (Shift + clique)"
             icon={SCheckIcon}
             onClick={handleEnterSelectionMode}
           />

@@ -3,6 +3,7 @@ import React, { MouseEvent, useRef } from 'react';
 import {
   selectHierarchyNodeIsSelected,
   selectHierarchySelectionMode,
+  setSelectionMode,
   toggleSelectedNodeId,
 } from 'store/reducers/hierarchy/hierarchySlice';
 
@@ -33,8 +34,18 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
 
   if (node.className) clx.push(node.className);
 
-  const handleClickCard = () => {
+  const handleClickCard = (e?: MouseEvent) => {
     if (node.showRef) return;
+
+    // Shift + clique: inicia o modo de seleção e marca o card (sem abrir modal).
+    if (!selectionMode && e?.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!canSelect) return;
+      dispatch(setSelectionMode(true));
+      dispatch(toggleSelectedNodeId(String(node.id)));
+      return;
+    }
 
     if (selectionMode) {
       if (!canSelect) return;

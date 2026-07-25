@@ -241,7 +241,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     node.type === TreeTypeEnum.OFFICE || node.type === TreeTypeEnum.SUB_OFFICE;
   const showCornerGhoBadge = isCargoCard && !node.showRef;
   const showEmployeeIndicator =
-    isCargoCard && !node.showRef && (node.employeesCount ?? 0) > 0;
+    !node.showRef && (node.employeesCount ?? 0) > 0;
   const showOptionsSelect = !node.showRef && !GhoId;
   const showPopperHelp =
     !node.showRef &&

@@ -19,7 +19,6 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
-import { IHierarchyMap } from 'core/interfaces/api/IHierarchy';
 import {
   IQueryEmployee,
   useQueryEmployees,
@@ -147,35 +146,15 @@ export const ModalEditCard = () => {
       setEmployees([]);
       setWorkspaces([]);
       queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
-
-      const nextEmployeesCount = isOffice ? employees.length : undefined;
-      const nodeHierarchyId = String(selectedNode.id).split('//')[0];
-      if (isOffice && nodeHierarchyId && companyId) {
-        const hierarchyCache = queryClient.getQueryData<IHierarchyMap>([
-          QueryEnum.HIERARCHY,
-          companyId,
-        ]);
-        if (hierarchyCache?.[nodeHierarchyId]) {
-          queryClient.setQueryData<IHierarchyMap>(
-            [QueryEnum.HIERARCHY, companyId],
-            {
-              ...hierarchyCache,
-              [nodeHierarchyId]: {
-                ...hierarchyCache[nodeHierarchyId],
-                employeesCount: nextEmployeesCount,
-              },
-            },
-          );
-        }
+      // Refetch da hierarquia para recalcular contagens agregadas nos ancestrais.
+      if (companyId) {
+        queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
       }
 
       editNodes(
         [
           {
             ...newNode,
-            ...(typeof nextEmployeesCount === 'number'
-              ? { employeesCount: nextEmployeesCount }
-              : {}),
           },
         ],
         false,

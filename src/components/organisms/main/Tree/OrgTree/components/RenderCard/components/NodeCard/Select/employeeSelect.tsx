@@ -5,9 +5,12 @@ import { Box, BoxProps } from '@mui/material';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import { selectAllHierarchyTreeNodes } from 'store/reducers/hierarchy/hierarchySlice';
 
 import SEmployeeIcon from 'assets/icons/SEmployeeIcon';
 
+import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import {
   IQueryEmployee,
   useQueryEmployees,
@@ -15,6 +18,7 @@ import {
 
 import { TreeTypeEnum } from '../../../../../enums/tree-type.enums';
 import { ITreeMapObject } from '../../../../../interfaces';
+import { groupEmployeesByHierarchy } from '../../../../../utils/group-employees-by-hierarchy';
 
 export interface EmployeeSelectCardProps extends BoxProps {
   node: ITreeMapObject;
@@ -26,27 +30,54 @@ export const EmployeeSelectCard: FC<
   { children?: any } & EmployeeSelectCardProps
 > = ({ node, ...boxProps }) => {
   const [tooltipOpen, setTooltipOpen] = useState(false);
+  const treeMap = useAppSelector(selectAllHierarchyTreeNodes);
+  const { getPathById } = useHierarchyTreeActions();
 
-  const isOfficeCard =
-    node.type === TreeTypeEnum.OFFICE || node.type === TreeTypeEnum.SUB_OFFICE;
-  const isSubOffice = node.type === TreeTypeEnum.SUB_OFFICE;
   const count = node.employeesCount ?? 0;
-
   const hierarchyId = String(node.id).split('//')[0] || '';
+  const isSubOffice = node.type === TreeTypeEnum.SUB_OFFICE;
+  const isOffice = node.type === TreeTypeEnum.OFFICE;
+  const isWorkspace = node.type === TreeTypeEnum.WORKSPACE;
+  const isCompany = node.type === TreeTypeEnum.COMPANY;
+  const isLeafOffice = isOffice || isSubOffice;
 
   const query = useMemo(() => {
     const base: IQueryEmployee = {
-      disabled: !tooltipOpen || !hierarchyId,
+      disabled: !tooltipOpen || count <= 0,
     };
 
     if (isSubOffice) {
       base.hierarchySubOfficeId = hierarchyId;
-    } else {
-      base.hierarchyId = hierarchyId;
+      return base;
     }
 
+    if (isOffice) {
+      base.hierarchyId = hierarchyId;
+      return base;
+    }
+
+    if (isWorkspace) {
+      base.hierarchyWorkspaceId = String(node.id);
+      return base;
+    }
+
+    if (isCompany) {
+      return base;
+    }
+
+    base.hierarchyId = hierarchyId;
+    base.hierarchyDescendants = true;
     return base;
-  }, [hierarchyId, isSubOffice, tooltipOpen]);
+  }, [
+    count,
+    hierarchyId,
+    isCompany,
+    isOffice,
+    isSubOffice,
+    isWorkspace,
+    node.id,
+    tooltipOpen,
+  ]);
 
   const {
     data: employees,
@@ -58,24 +89,35 @@ export const EmployeeSelectCard: FC<
     Math.min(Math.max(count, 20), MAX_TOOLTIP_ITEMS),
   );
 
-  if (!isOfficeCard || count <= 0) return null;
+  const groups = useMemo(
+    () =>
+      groupEmployeesByHierarchy({
+        employees,
+        viewerNode: node,
+        treeMap,
+        getPathById,
+      }),
+    [employees, getPathById, node, treeMap],
+  );
+
+  if (count <= 0) return null;
 
   const remaining = Math.max(fetchedCount - employees.length, 0);
 
   const tooltipTitle = (
     <Box
       sx={{
-        maxHeight: 220,
+        maxHeight: 260,
         overflowY: 'auto',
-        minWidth: 160,
-        maxWidth: 280,
+        minWidth: 200,
+        maxWidth: 320,
         py: 0.5,
         pr: 0.5,
       }}
     >
       <SText
         fontSize={12}
-        sx={{ fontWeight: 700, mb: 1, lineHeight: 1.2, color: '#fff' }}
+        sx={{ fontWeight: 700, mb: 1.25, lineHeight: 1.2, color: '#fff' }}
       >
         Funcionários vinculados
       </SText>
@@ -84,7 +126,7 @@ export const EmployeeSelectCard: FC<
           Carregando...
         </SText>
       )}
-      {!isLoading &&
+      {!isLoading && isLeafOffice &&
         employees.map((employee) => (
           <SText
             key={employee.id}
@@ -94,8 +136,53 @@ export const EmployeeSelectCard: FC<
             {employee.name}
           </SText>
         ))}
+      {!isLoading &&
+        !isLeafOffice &&
+        groups.map((group, groupIndex) => (
+          <Box
+            key={group.key}
+            sx={{
+              mb: groupIndex < groups.length - 1 ? 1.5 : 0,
+              pt: groupIndex > 0 ? 0.5 : 0,
+              borderTop:
+                groupIndex > 0 ? '1px solid rgba(255,255,255,0.18)' : 'none',
+            }}
+          >
+            {!!group.title && (
+              <SText
+                fontSize={11}
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: '0.02em',
+                  lineHeight: 1.3,
+                  mb: 0.5,
+                  mt: groupIndex > 0 ? 1 : 0,
+                  color: '#fff',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {group.title} ({group.count})
+              </SText>
+            )}
+            {group.employees.map((employee) => (
+              <SText
+                key={employee.id}
+                fontSize={12}
+                sx={{
+                  display: 'block',
+                  lineHeight: 1.35,
+                  py: 0.25,
+                  color: '#fff',
+                  pl: 0.5,
+                }}
+              >
+                {employee.name}
+              </SText>
+            ))}
+          </Box>
+        ))}
       {!isLoading && remaining > 0 && (
-        <SText fontSize={11} sx={{ mt: 0.5, opacity: 0.85, color: '#fff' }}>
+        <SText fontSize={11} sx={{ mt: 1, opacity: 0.85, color: '#fff' }}>
           + {remaining} funcionários
         </SText>
       )}
@@ -125,7 +212,7 @@ export const EmployeeSelectCard: FC<
           tooltip: {
             sx: {
               bgcolor: 'grey.800',
-              maxWidth: 300,
+              maxWidth: 340,
             },
           },
         }}

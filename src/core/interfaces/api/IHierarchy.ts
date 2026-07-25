@@ -22,7 +22,11 @@ export interface IHierarchy {
   parents?: IHierarchy[];
   hierarchyOnHomogeneous?: IHierarchyOnHomogeneous[];
   company?: ICompany;
-  /** Contagem de vínculos diretos: OFFICE → employees; SUB_OFFICE → subOfficeEmployees. */
+  /**
+   * Contagem de funcionários:
+   * - OFFICE / SUB_OFFICE: vínculo direto;
+   * - demais níveis: agregação bottom-up dos cargos descendentes.
+   */
   employeesCount?: number;
 }
 

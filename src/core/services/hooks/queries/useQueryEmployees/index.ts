@@ -19,6 +19,8 @@ export interface IQueryEmployee {
   companyId?: string;
   hierarchyId?: string;
   hierarchySubOfficeId?: string;
+  hierarchyDescendants?: boolean;
+  hierarchyWorkspaceId?: string;
   all?: boolean;
   isSchedule?: boolean;
   expiredExam?: boolean;
@@ -36,10 +38,15 @@ export const queryEmployees = async (
   { skip, take }: IPagination,
   query: IQueryEmployee,
 ) => {
-  if (('hierarchyId' in query && !query.hierarchyId) || !query.companyId)
+  if (!query.companyId) return { data: [], count: 0, exams: [] };
+
+  if ('hierarchyId' in query && !query.hierarchyId)
     return { data: [], count: 0, exams: [] };
 
   if ('hierarchySubOfficeId' in query && !query.hierarchySubOfficeId)
+    return { data: [], count: 0 };
+
+  if ('hierarchyWorkspaceId' in query && !query.hierarchyWorkspaceId)
     return { data: [], count: 0 };
 
   if ('search' in query && query.search === null) return { data: [], count: 0 };

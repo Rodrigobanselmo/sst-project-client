@@ -312,6 +312,29 @@ export const useHierarchyTreeActions = () => {
             );
           });
         });
+
+        // Contagem agregada nos nós sintéticos (Estabelecimento / Empresa).
+        // Workspace: soma dos filhos diretos já agregados pela API.
+        // Empresa: soma única dos OFFICEs (evita duplicar hierarquias multi-workspace).
+        Object.values(treeMap).forEach((node) => {
+          if (node.type === TreeTypeEnum.WORKSPACE) {
+            let workspaceCount = 0;
+            (node.childrenIds || []).forEach((childId) => {
+              const child = treeMap[childId];
+              if (!child || child.type === TreeTypeEnum.SUB_OFFICE) return;
+              workspaceCount += Number(child.employeesCount ?? 0);
+            });
+            node.employeesCount = workspaceCount;
+          }
+        });
+
+        let companyCount = 0;
+        Object.values(hierarchyMap).forEach((item) => {
+          if (item.type === HierarchyEnum.OFFICE) {
+            companyCount += Number(item.employeesCount ?? 0);
+          }
+        });
+        treeMap[firstNodeId].employeesCount = companyCount;
       }
 
       if (nodesTree)
