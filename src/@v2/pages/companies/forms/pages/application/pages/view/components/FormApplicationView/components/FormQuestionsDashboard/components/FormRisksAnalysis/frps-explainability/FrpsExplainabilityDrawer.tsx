@@ -221,9 +221,6 @@ function ContextualEditForm({
 export function FrpsExplainabilityDrawer() {
   const { companyId } = useGetCompanyId();
   const { data: privacySettings } = useQueryFrpsPrivacySettings(companyId);
-  const protectedMessage = buildProtectedMessage(
-    privacySettings.riskAnalysisAiMinParticipants ?? 3,
-  );
 
   const {
     open,
@@ -250,6 +247,18 @@ export function FrpsExplainabilityDrawer() {
     closeExplainItem,
     retryExplainItem,
   } = useFrpsExplainability();
+
+  const contextualMin =
+    data?.contextual &&
+    'riskAnalysisAiMinParticipants' in data.contextual &&
+    typeof (data.contextual as { riskAnalysisAiMinParticipants?: unknown })
+      .riskAnalysisAiMinParticipants === 'number'
+      ? (data.contextual as { riskAnalysisAiMinParticipants: number })
+          .riskAnalysisAiMinParticipants
+      : null;
+  const protectedMessage = buildProtectedMessage(
+    contextualMin ?? privacySettings.riskAnalysisAiMinParticipants ?? 3,
+  );
 
   const showResolvedItemDiagnostics =
     Boolean(resolvedItem) &&

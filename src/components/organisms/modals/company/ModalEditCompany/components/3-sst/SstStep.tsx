@@ -18,6 +18,8 @@ import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
 import { dateToDate } from 'core/utils/date/date-format';
 
+import { FRPS_PRIVACY_METADATA_KEY } from 'core/utils/company/strip-frps-privacy-from-metadata';
+
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanySecondEdit';
 import { FrpsPrivacySettingsBlock } from './FrpsPrivacySettingsBlock';
@@ -196,7 +198,23 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
           </SFlex>
         </SFlex>
         {companyData.id && (
-          <FrpsPrivacySettingsBlock companyId={companyData.id} />
+          <FrpsPrivacySettingsBlock
+            companyId={companyData.id}
+            onPrivacySaved={(riskAnalysisAiMinParticipants) => {
+              setCompanyData((oldData) => ({
+                ...oldData,
+                metadata: {
+                  ...(oldData.metadata || {}),
+                  [FRPS_PRIVACY_METADATA_KEY]: {
+                    ...((oldData.metadata as Record<string, any>)?.[
+                      FRPS_PRIVACY_METADATA_KEY
+                    ] || {}),
+                    riskAnalysisAiMinParticipants,
+                  },
+                },
+              }));
+            }}
+          />
         )}
         {companyData.id && (
           <Box mt={20}>

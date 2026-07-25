@@ -19,6 +19,7 @@ import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/compa
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
+import { stripFrpsPrivacyFromCompanyPayload } from 'core/utils/company/strip-frps-privacy-from-metadata';
 import { useMutDeleteCompany } from 'core/services/hooks/mutations/manager/company/useMutDeleteCompany/useMutDeleteCompany';
 import { useRouter } from 'next/router';
 import { RoutesEnum } from 'core/enums/routes.enums';
@@ -149,9 +150,12 @@ export const useEditCompany = () => {
     nextStep: () => void,
     { save }: { save?: boolean } = {},
   ) => {
+    // `frpsPrivacy` só muda via PATCH /frps-privacy; nunca no update genérico.
+    const safeSubmitData = stripFrpsPrivacyFromCompanyPayload(submitData);
+
     if (!isEdit && save && !companyData.id) {
       await createCompany
-        .mutateAsync(submitData)
+        .mutateAsync(safeSubmitData)
         .then((company) => {
           nextStep();
           if (company)
@@ -164,7 +168,7 @@ export const useEditCompany = () => {
 
           setCompanyData((companyData) => ({
             ...companyData,
-            ...submitData,
+            ...safeSubmitData,
             ...company,
           }));
         })
@@ -173,11 +177,11 @@ export const useEditCompany = () => {
       nextStep();
       setCompanyData((companyData) => ({
         ...companyData,
-        ...submitData,
+        ...safeSubmitData,
       }));
     } else {
       await updateCompany
-        .mutateAsync(submitData)
+        .mutateAsync(safeSubmitData)
         .then(() => {
           onClose();
         })

@@ -7,6 +7,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useMutAddCompanyPhoto } from 'core/services/hooks/mutations/manager/company/useMutAddCompanyPhoto';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
+import { stripFrpsPrivacyFromCompanyMetadata } from 'core/utils/company/strip-frps-privacy-from-metadata';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
 
@@ -44,11 +45,12 @@ export const useCompanyEdit = ({
     if (isValid) {
       const { description, operationTime, metadata } = getValues();
 
-      // Merge metadata do formulário com metadata do companyData (que contém visualIdentityEnabled)
-      const mergedMetadata = {
+      // Merge metadata do formulário com metadata do companyData (visualIdentity etc.).
+      // Nunca reenviar frpsPrivacy — só o endpoint dedicado altera essa chave.
+      const mergedMetadata = stripFrpsPrivacyFromCompanyMetadata({
         ...companyData.metadata,
         ...metadata,
-      };
+      });
 
       const submitData = {
         ...companyData,

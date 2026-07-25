@@ -30,6 +30,11 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 
 type Props = {
   companyId?: string;
+  /**
+   * Mantém o estado do modal alinhado após "Salvar privacidade",
+   * evitando que o "Salvar" geral reenvie frpsPrivacy stale.
+   */
+  onPrivacySaved?: (riskAnalysisAiMinParticipants: FrpsRiskAnalysisAiMinParticipants) => void;
 };
 
 const AI_OPTIONS: FrpsRiskAnalysisAiMinParticipants[] = [1, 2, 3];
@@ -43,7 +48,7 @@ function buildReduceConfirmMessage(next: FrpsRiskAnalysisAiMinParticipants) {
   ].join('\n\n');
 }
 
-export function FrpsPrivacySettingsBlock({ companyId }: Props) {
+export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved }: Props) {
   const roles = useAppSelector(selectUserRoles);
   const { isMaster } = useAccess();
   // Apresentação antecipada (antes/sem resposta da API). Fonte de verdade = data.canEdit.
@@ -95,6 +100,7 @@ export function FrpsPrivacySettingsBlock({ companyId }: Props) {
       companyId,
       riskAnalysisAiMinParticipants: next,
     });
+    onPrivacySaved?.(next);
     setDraft(null);
     setConfirmOpen(false);
     setPendingValue(null);
