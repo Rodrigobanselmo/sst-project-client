@@ -12,12 +12,13 @@ import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiAction
 import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
 import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
+import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
 import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import { useFetchRiskNarrativeDiagnostic } from '@v2/services/forms/risk-narrative-diagnostic/hooks/useFetchRiskNarrativeDiagnostic';
 import { useMutateGenerateRiskNarrativeDiagnostic } from '@v2/services/forms/risk-narrative-diagnostic/hooks/useMutateGenerateRiskNarrativeDiagnostic';
 import type { RiskNarrativeDiagnosticScope } from '@v2/services/forms/risk-narrative-diagnostic/service/risk-narrative-diagnostic.types';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { getRiskNarrativeDiagnosticErrorMessage } from './risk-narrative-diagnostic.utils';
 import { RiskNarrativeMarkdown } from './RiskNarrativeMarkdown';
@@ -29,6 +30,46 @@ type RiskNarrativeDiagnosticSectionProps = {
   isMaster?: boolean;
 };
 
+function buildNarrativeExpandedStorageKey(
+  companyId: string,
+  formApplicationId: string,
+  scope: RiskNarrativeDiagnosticScope,
+) {
+  return [
+    'frps-risk-narrative-expanded',
+    companyId,
+    formApplicationId,
+    scope.groupingQuestionId ?? '',
+    (scope.participantGroupIds || []).join(','),
+    (scope.allowedHierarchyIds || []).join(','),
+    scope.groupingLabel ?? '',
+  ].join(':');
+}
+
+function useSessionExpandedState(storageKey: string, defaultExpanded = false) {
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window === 'undefined') return defaultExpanded;
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      if (stored === null) return defaultExpanded;
+      return stored === 'true';
+    } catch {
+      return defaultExpanded;
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      sessionStorage.setItem(storageKey, String(expanded));
+    } catch {
+      // ignore quota / private mode
+    }
+  }, [expanded, storageKey]);
+
+  return [expanded, setExpanded] as const;
+}
+
 export const RiskNarrativeDiagnosticSection = ({
   companyId,
   formApplicationId,
@@ -38,6 +79,12 @@ export const RiskNarrativeDiagnosticSection = ({
   const { showConfirmation } = useConfirmationModal();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+
+  const storageKey = useMemo(
+    () => buildNarrativeExpandedStorageKey(companyId, formApplicationId, scope),
+    [companyId, formApplicationId, scope],
+  );
+  const [expanded, setExpanded] = useSessionExpandedState(storageKey, false);
 
   const {
     riskNarrativeDiagnostic,
@@ -116,78 +163,112 @@ export const RiskNarrativeDiagnosticSection = ({
     isProcessing || status === FormAiAnalysisStatusEnum.PROCESSING;
 
   return (
-    <Box
-      sx={{
-        mx: 8,
-        mb: 4,
-        p: 3,
-        borderRadius: 1,
-        border: '1px solid',
-        borderColor: 'grey.200',
-        bgcolor: 'grey.50',
-      }}
-    >
-      <SFlex justifyContent="space-between" alignItems="flex-start" gap={2} mb={2}>
-        <Box>
-          <SText fontSize={16} fontWeight="bold">
+    <Box sx={{ mx: 8, mb: 4 }}>
+      <SAccordion
+        expanded={expanded}
+        onChange={(_, nextExpanded) => setExpanded(nextExpanded)}
+        title={
+          <SText fontSize={16} fontWeight="bold" component="span">
             Diagnóstico narrativo com IA
           </SText>
-          <SText fontSize={13} color="text.secondary" mt={4}>
+        }
+        subtitle={
+          <SText fontSize={13} color="text.secondary" component="span">
             Síntese em texto do recorte atual da análise de riscos (matriz, níveis e
             análises já concluídas). A geração só ocorre quando você solicitar.
           </SText>
-        </Box>
-        <AiActionButtonGroup
-          variant="s-button-shade"
-          label={generateButtonLabel}
-          loading={isGenerating}
-          disabled={showProcessing || isGenerating}
-          onExecute={() => void handleGenerate(isDone)}
-          onConfigure={() => setAiConfigDialogOpen(true)}
-          isMaster={isMaster}
-          sButtonProps={{ color: 'primary' }}
-        />
-      </SFlex>
-
-      {isLoading ? (
-        <Skeleton variant="rectangular" height={120} />
-      ) : showProcessing ? (
-        <SFlex alignItems="center" gap={2} py={2}>
-          <CircularProgress size={22} />
-          <SText fontSize={14} color="text.secondary">
-            Gerando diagnóstico narrativo… Isso pode levar alguns minutos.
-          </SText>
-          {isFetching && !isLoading ? (
-            <SText fontSize={12} color="text.disabled">
-              (atualizando)
-            </SText>
-          ) : null}
-        </SFlex>
-      ) : isFailed ? (
-        <Alert
-          severity="error"
-          action={
-            <SButton
-              variant="text"
-              color="primary"
-              text="Tentar novamente"
-              disabled={isGenerating}
-              onClick={() => void handleGenerate(false)}
+        }
+        endComponent={
+          <Box
+            onClick={(event) => event.stopPropagation()}
+            onFocus={(event) => event.stopPropagation()}
+            sx={{ ml: 'auto', mr: 1, flexShrink: 0 }}
+          >
+            <AiActionButtonGroup
+              variant="s-button-shade"
+              label={generateButtonLabel}
+              loading={isGenerating}
+              disabled={showProcessing || isGenerating}
+              onExecute={() => void handleGenerate(isDone)}
+              onConfigure={() => setAiConfigDialogOpen(true)}
+              isMaster={isMaster}
+              sButtonProps={{ color: 'primary' }}
             />
-          }
-        >
-          {getRiskNarrativeDiagnosticErrorMessage(
-            riskNarrativeDiagnostic?.metadata,
-            isMaster,
-          )}
-        </Alert>
-      ) : isDone && riskNarrativeDiagnostic?.contentMarkdown ? (
-        <RiskNarrativeMarkdown content={riskNarrativeDiagnostic.contentMarkdown} />
-      ) : (
-        <SText fontSize={14} color="text.secondary">
-          Nenhum diagnóstico gerado para este recorte. Use o botão acima para criar um.
-        </SText>
-      )}
+          </Box>
+        }
+        accordionProps={{
+          disableGutters: true,
+          TransitionProps: { unmountOnExit: true },
+          sx: {
+            border: '1px solid',
+            borderColor: 'grey.200',
+            bgcolor: 'grey.50',
+            borderRadius: 1,
+            boxShadow: 'none',
+            '&:before': { display: 'none' },
+            overflow: 'hidden',
+            '& .MuiAccordionSummary-root': {
+              px: 3,
+              py: 1.5,
+              minHeight: 0,
+              alignItems: 'center',
+              gap: 1,
+            },
+            '& .MuiAccordionSummary-content': {
+              my: 1,
+              mr: 1,
+              flexGrow: 1,
+              minWidth: 0,
+            },
+            '& .MuiAccordionDetails-root': {
+              px: 3,
+              pb: 3,
+              pt: 0,
+            },
+          },
+        }}
+      >
+        {isLoading ? (
+          <Skeleton variant="rectangular" height={120} />
+        ) : showProcessing ? (
+          <SFlex alignItems="center" gap={2} py={2}>
+            <CircularProgress size={22} />
+            <SText fontSize={14} color="text.secondary">
+              Gerando diagnóstico narrativo… Isso pode levar alguns minutos.
+            </SText>
+            {isFetching && !isLoading ? (
+              <SText fontSize={12} color="text.disabled">
+                (atualizando)
+              </SText>
+            ) : null}
+          </SFlex>
+        ) : isFailed ? (
+          <Alert
+            severity="error"
+            action={
+              <SButton
+                variant="text"
+                color="primary"
+                text="Tentar novamente"
+                disabled={isGenerating}
+                onClick={() => void handleGenerate(false)}
+              />
+            }
+          >
+            {getRiskNarrativeDiagnosticErrorMessage(
+              riskNarrativeDiagnostic?.metadata,
+              isMaster,
+            )}
+          </Alert>
+        ) : isDone && riskNarrativeDiagnostic?.contentMarkdown ? (
+          <RiskNarrativeMarkdown content={riskNarrativeDiagnostic.contentMarkdown} />
+        ) : (
+          <SText fontSize={14} color="text.secondary">
+            Nenhum diagnóstico gerado para este recorte. Use o botão no cabeçalho
+            para criar um.
+          </SText>
+        )}
+      </SAccordion>
 
       {isMaster && (
         <SystemAiPromptConfigDialog
