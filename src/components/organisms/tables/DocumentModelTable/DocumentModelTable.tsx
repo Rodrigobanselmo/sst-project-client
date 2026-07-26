@@ -82,9 +82,11 @@ export const DocumentModelTable: FC<
   };
 
   const onEditModel = (documentModel: IDocumentModel) => {
+    const typeLabel =
+      documentTypeMap[documentModel.type]?.content || 'Documento';
     onStackOpenModal(ModalEnum.DOCUMENT_MODEL_EDIT_DATA, {
       id: documentModel.id,
-      title: 'Modelo Documento PGR',
+      title: `Modelo Documento ${typeLabel}`,
       companyId: documentModel.companyId,
     } as typeof initialEditDocumentModelState);
   };

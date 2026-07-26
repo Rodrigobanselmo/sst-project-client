@@ -11,6 +11,8 @@ export enum DocumentModelClassificationEnum {
   TERCEIROS = 'TERCEIROS',
   SIMPLIFICADO = 'SIMPLIFICADO',
   BACKUP = 'BACKUP',
+  COMPLETO = 'COMPLETO',
+  ESTABELECIMENTO_PROPRIO = 'ESTABELECIMENTO_PROPRIO',
 }
 
 const ALL_DOCUMENT_TYPES = Object.values(DocumentTypeEnum);
@@ -87,6 +89,18 @@ export const documentModelClassificationMap: Record<
     shortLabel: 'Backup',
     documentTypes: ALL_DOCUMENT_TYPES,
   },
+  [DocumentModelClassificationEnum.COMPLETO]: {
+    value: DocumentModelClassificationEnum.COMPLETO,
+    label: 'Completo',
+    shortLabel: 'Completo',
+    documentTypes: ALL_DOCUMENT_TYPES,
+  },
+  [DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO]: {
+    value: DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO,
+    label: 'Estabelecimento Próprio',
+    shortLabel: 'Estab. Próprio',
+    documentTypes: ALL_DOCUMENT_TYPES,
+  },
 };
 
 export const documentModelClassificationList = Object.values(
@@ -131,6 +145,12 @@ const MUTUALLY_EXCLUSIVE: Partial<
   [DocumentModelClassificationEnum.SEM_FRPS]: DocumentModelClassificationEnum.COM_FRPS,
   [DocumentModelClassificationEnum.COPSOQ_III]: DocumentModelClassificationEnum.NAO_COPSOQ_III,
   [DocumentModelClassificationEnum.NAO_COPSOQ_III]: DocumentModelClassificationEnum.COPSOQ_III,
+  [DocumentModelClassificationEnum.COMPLETO]: DocumentModelClassificationEnum.SIMPLIFICADO,
+  [DocumentModelClassificationEnum.SIMPLIFICADO]: DocumentModelClassificationEnum.COMPLETO,
+  [DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO]:
+    DocumentModelClassificationEnum.TERCEIROS,
+  [DocumentModelClassificationEnum.TERCEIROS]:
+    DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO,
 };
 
 /** Modelo contém todas as classificações ativas (interseção / AND). */
@@ -169,6 +189,14 @@ const MUTUALLY_EXCLUSIVE_PAIRS: [
   [
     DocumentModelClassificationEnum.COPSOQ_III,
     DocumentModelClassificationEnum.NAO_COPSOQ_III,
+  ],
+  [
+    DocumentModelClassificationEnum.COMPLETO,
+    DocumentModelClassificationEnum.SIMPLIFICADO,
+  ],
+  [
+    DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO,
+    DocumentModelClassificationEnum.TERCEIROS,
   ],
 ];
 
