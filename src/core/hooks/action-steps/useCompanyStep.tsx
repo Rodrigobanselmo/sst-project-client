@@ -70,6 +70,7 @@ import { selectHomeFormApplicationsToShow } from 'core/hooks/action-steps/home-f
 import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
 import { usePushRoute } from '../actions-push/usePushRoute';
+import { getProgramsLaudosDocumentType } from 'components/organisms/modals/ModalViewDocumentModels/document-model-modal-type.util';
 import { initialProtocolRiskState } from 'components/organisms/modals/ModalEditProtocolRisk/hooks/useEditProtocols';
 import SProtocolIcon from 'assets/icons/SProtocolIcon';
 import { queryClient } from 'core/services/queryClient';
@@ -876,7 +877,12 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.DOCUMENT_MODEL]: {
         type: CompanyActionEnum.DOCUMENT_MODEL,
         icon: SDocumentIcon,
-        onClick: () => handleEditDocumentModel(company.id),
+        onClick: () =>
+          handleEditDocumentModel(company.id, undefined, {
+            initialDocumentType: getProgramsLaudosDocumentType(
+              Array.isArray(query.active) ? query.active[0] : query.active,
+            ),
+          }),
         text: 'Editar Modelos (PGR, PCMSO, etc...)',
         tooltipText: 'Criação e edição de modelos de documentos',
       },
@@ -1021,6 +1027,7 @@ export const useCompanyStep = () => {
     handleAddCharacterization,
     handleChangeStage,
     absenteeismTotalCount,
+    query.active,
   ]);
 
   const showFormsLaunchGroup = useMemo(

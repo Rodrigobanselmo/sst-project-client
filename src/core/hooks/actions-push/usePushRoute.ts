@@ -7,6 +7,7 @@ import { initialClinicSelectState } from 'components/organisms/modals/ModalSelec
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
 import { initialDocumentModelsViewState } from 'components/organisms/modals/ModalViewDocumentModels/ModalViewDocumentModels';
 import { useRouter } from 'next/router';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -77,10 +78,12 @@ export const usePushRoute = () => {
   const handleEditDocumentModel = (
     companyId: string,
     query?: IQueryDocumentModels,
+    options?: { initialDocumentType?: DocumentTypeEnum },
   ) => {
     onStackOpenModal(ModalEnum.DOCUMENTS_MODEL_VIEW, {
       companyId: companyId,
       title: 'Modelo Documento',
+      initialDocumentType: options?.initialDocumentType,
       query: {
         companyId: companyId,
         ...query,

@@ -21,6 +21,7 @@ import {
 } from 'core/interfaces/api/IDocumentModel';
 
 import { DropOptions, getDescendants } from '../../../../dnd-tree/Main';
+import { buildDocumentHeadingNumbering } from '../../utils/buildDocumentHeadingNumbering';
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { itemLevelMap } from '../constants/item-types.map';
 import {
@@ -37,6 +38,9 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
 
   const getNewTreeData = useCallback((model: IDocumentModelFull) => {
     const treeArray: NodeDocumentModel[] = [];
+    const headingNumbering = buildDocumentHeadingNumbering(
+      model.document.sections,
+    );
 
     let docVariables = document?.variables as any;
 
@@ -118,6 +122,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
                 parent: parentId,
                 droppable: !!deep && deep < 8,
                 previewText: elementData.label,
+                headingNumber: headingNumbering[element.id]?.number,
                 text: replaceAllVariables(element.text, variables)
                   .text as string,
                 data: {

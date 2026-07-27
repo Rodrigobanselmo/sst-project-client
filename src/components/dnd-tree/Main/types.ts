@@ -12,6 +12,8 @@ export type NodeModel<T = unknown> = {
   text: string;
   droppable?: boolean;
   previewText?: string;
+  /** Visual-only heading number (e.g. `17.3.`); never persisted into text. */
+  headingNumber?: string;
   data: T;
 };
 

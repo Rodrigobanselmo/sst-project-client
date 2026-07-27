@@ -25,10 +25,14 @@ import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
 
+import { getDocumentModelModalStep } from './document-model-modal-type.util';
+
 export const initialDocumentModelsViewState = {
   title: '',
   companyId: undefined as string | undefined,
   query: undefined as IQueryDocumentModels | undefined,
+  /** Opens the matching type tab without locking `query.type` (tabs stay switchable). */
+  initialDocumentType: undefined as DocumentTypeEnum | undefined,
   onCloseWithoutSelect: () => {},
 };
 
@@ -97,7 +101,7 @@ export const ModalViewDocumentModels: FC = () => {
       });
       // Reset status filter whenever the modal opens with fresh data.
       setStatusFilter('ACTIVE');
-      setActiveStep(0);
+      setActiveStep(getDocumentModelModalStep(initialData.initialDocumentType));
       setClassificationFilters([]);
     }
   }, [getModalData]);
