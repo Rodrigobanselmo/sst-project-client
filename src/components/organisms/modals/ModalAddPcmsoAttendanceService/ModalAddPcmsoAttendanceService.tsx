@@ -100,6 +100,20 @@ export const ModalAddPcmsoAttendanceService = () => {
         </Box>
 
         <InputForm
+          defaultValue={serviceData.specialty || ''}
+          setValue={setValue}
+          label={'Especialidade / Perfil da Unidade'}
+          labelPosition="center"
+          control={control}
+          sx={{ minWidth: ['100%', 600], mb: 5 }}
+          placeholder={
+            'Ex.: Hospital Geral, Pronto Atendimento, Trauma, Cardiologia...'
+          }
+          name="specialty"
+          size="small"
+        />
+
+        <InputForm
           defaultValue={serviceData.address || ''}
           setValue={setValue}
           label={'Endereço'}

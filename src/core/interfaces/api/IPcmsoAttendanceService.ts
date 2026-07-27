@@ -14,6 +14,7 @@ export interface IPcmsoAttendanceService {
   workspaceId: string;
   name: string;
   serviceType: PcmsoAttendanceServiceTypeEnum;
+  specialty?: string | null;
   address?: string | null;
   phone?: string | null;
   distanceLabel?: string | null;

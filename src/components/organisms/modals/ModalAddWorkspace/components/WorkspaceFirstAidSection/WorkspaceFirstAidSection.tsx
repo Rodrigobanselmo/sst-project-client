@@ -36,11 +36,11 @@ export const WorkspaceFirstAidSection: FC<IUseEditWorkspace> = ({
   return (
     <SFlex direction="column" gap={6} mt={8}>
       <SText color="text.label" fontSize={14}>
-        Primeiros socorros no estabelecimento
+        Atendimento a Emergências Médicas
       </SText>
 
       <SSelect
-        label="Existe posto de atendimento / primeiros socorros no estabelecimento?"
+        label="Existe posto/estrutura de atendimento ou primeiros socorros?"
         labelPosition="top"
         width={600}
         value={mapFirstAidValue(companyData.hasFirstAidService)}
@@ -59,7 +59,7 @@ export const WorkspaceFirstAidSection: FC<IUseEditWorkspace> = ({
         multiline
         minRows={3}
         maxRows={8}
-        label="Observação sobre primeiros socorros"
+        label="Observações sobre a estrutura de atendimento"
         labelPosition="top"
         placeholder="Ex.: O estabelecimento está localizado em shopping/condomínio/unidade que dispõe de estrutura de apoio para atendimento inicial de ocorrências."
         defaultValue={companyData.firstAidServiceDescription || ''}
