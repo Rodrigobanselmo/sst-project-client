@@ -19,6 +19,7 @@ export interface ICreatePcmsoAttendanceService {
   workspaceId: string;
   companyId?: string;
   serviceType: PcmsoAttendanceServiceTypeEnum;
+  specialty?: string | null;
   address?: string;
   phone?: string;
   distanceLabel?: string;

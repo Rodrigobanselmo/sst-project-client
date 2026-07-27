@@ -77,10 +77,14 @@ export const PcmsoAttendanceServicesTable: FC<
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
-    { text: 'Nome', column: 'minmax(150px, 2fr)' },
-    { text: 'Tipo', column: 'minmax(120px, 1fr)' },
+    { text: 'Nome', column: 'minmax(140px, 1.6fr)' },
+    { text: 'Tipo', column: 'minmax(100px, 0.9fr)' },
+    { text: 'Especialidade / Perfil', column: 'minmax(130px, 1.2fr)' },
+    { text: 'Endereço', column: 'minmax(140px, 1.4fr)' },
     { text: 'Telefone', column: '120px' },
-    { text: 'Distância', column: '110px' },
+    { text: 'Distância aproximada', column: '110px' },
+    { text: 'Tempo estimado', column: '110px' },
+    { text: 'Observações', column: 'minmax(120px, 1.2fr)' },
     { text: 'Ordem', column: '70px' },
     { text: 'Status', column: '90px' },
     { text: 'Editar', column: '50px' },
@@ -131,8 +135,12 @@ export const PcmsoAttendanceServicesTable: FC<
                 clickable
                 text={PCMsoAttendanceServiceTypeLabels[row.serviceType] || '-'}
               />
+              <TextIconRow clickable text={row.specialty || '-'} />
+              <TextIconRow clickable text={row.address || '-'} />
               <TextIconRow clickable text={row.phone || '-'} />
               <TextIconRow clickable text={row.distanceLabel || '-'} />
+              <TextIconRow clickable text={row.travelTimeLabel || '-'} />
+              <TextIconRow clickable text={row.notes || '-'} />
               <TextIconRow clickable justifyContent="center" text={String(row.sortOrder ?? 0)} />
               <TextIconRow
                 clickable

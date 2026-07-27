@@ -22,6 +22,7 @@ export const initialPcmsoAttendanceServiceState = {
   companyId: '',
   workspaceId: '',
   serviceType: 'HOSPITAL' as PcmsoAttendanceServiceTypeEnum,
+  specialty: '',
   address: '',
   phone: '',
   distanceLabel: '',
@@ -88,9 +89,13 @@ export const useAddPcmsoAttendanceService = () => {
   const onSubmit: SubmitHandler<any> = async (data) => {
     if (loading) return;
 
+    const specialty =
+      typeof data.specialty === 'string' ? data.specialty.trim() || null : null;
+
     if (serviceData.id) {
       await updateMutation.mutateAsync({
         ...data,
+        specialty,
         id: serviceData.id,
         workspaceId: serviceData.workspaceId,
         sortOrder: Number(data.sortOrder ?? serviceData.sortOrder ?? 0),
@@ -99,6 +104,7 @@ export const useAddPcmsoAttendanceService = () => {
     } else {
       await createMutation.mutateAsync({
         ...data,
+        specialty,
         workspaceId: serviceData.workspaceId,
         companyId: serviceData.companyId,
         sortOrder: Number(data.sortOrder ?? 0),
