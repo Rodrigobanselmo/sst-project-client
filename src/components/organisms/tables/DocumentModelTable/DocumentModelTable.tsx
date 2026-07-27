@@ -41,6 +41,7 @@ export const DocumentModelTable: FC<
       companyId?: string;
       title?: string;
       query?: IQueryDocumentModels;
+      emptyMessage?: string;
     }
 > = ({
   rowsPerPage = 12,
@@ -49,6 +50,7 @@ export const DocumentModelTable: FC<
   hideTitle,
   companyId,
   query,
+  emptyMessage,
   children,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
@@ -59,7 +61,9 @@ export const DocumentModelTable: FC<
     count,
   } = useQueryDocumentModels(
     page,
-    { search, showInactive: true, ...query },
+    // Admin status filter drives showInactive/status via `query`.
+    // Do not force showInactive here — operational callers must stay ACTIVE-only.
+    { search, ...query },
     rowsPerPage,
     companyId,
   );
@@ -129,6 +133,7 @@ export const DocumentModelTable: FC<
           rowsData={documentModel}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
+          contentEmpty={emptyMessage}
           renderRow={(row) => {
             return (
               <STableRow
