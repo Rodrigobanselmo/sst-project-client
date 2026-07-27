@@ -1,6 +1,5 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { filterClassificationsForDocumentType } from 'project/enum/document-model-classification.enum';
-import { Wizard } from 'react-use-wizard';
 
 import { Box } from '@mui/material';
 import SModal, {
@@ -10,11 +9,16 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { STabs } from 'components/molecules/STabs';
-import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { DocumentModelTable } from 'components/organisms/tables/DocumentModelTable/DocumentModelTable';
 import { DocumentModelClassificationEnum } from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { DocumentModelPgrClassificationFilters } from 'components/organisms/tables/DocumentModelTable/DocumentModelPgrClassificationFilters';
+import { DocumentModelStatusFilters } from 'components/organisms/tables/DocumentModelTable/DocumentModelStatusFilters';
+import {
+  buildDocumentModelStatusQuery,
+  DocumentModelStatusFilter,
+  documentModelStatusEmptyMessage,
+} from 'components/organisms/tables/DocumentModelTable/document-model-status-filter.util';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -38,6 +42,8 @@ export const ModalViewDocumentModels: FC = () => {
   const [classificationFilters, setClassificationFilters] = useState<
     DocumentModelClassificationEnum[]
   >([]);
+  const [statusFilter, setStatusFilter] =
+    useState<DocumentModelStatusFilter>('ACTIVE');
 
   const typeMap: Record<number, DocumentTypeEnum> = {
     0: DocumentTypeEnum.PGR,
@@ -59,14 +65,15 @@ export const ModalViewDocumentModels: FC = () => {
 
   const tableQuery = useMemo(
     () => ({
-      showInactive: true as const,
-      ...(activeDocumentType && { type: activeDocumentType }),
-      ...(classificationFilters.length > 0 && {
-        classifications: classificationFilters,
-      }),
       ...data.query,
+      ...(activeDocumentType && { type: activeDocumentType }),
+      ...(classificationFilters.length > 0
+        ? { classifications: classificationFilters }
+        : { classifications: undefined }),
+      // Status filter must win over any opener query defaults.
+      ...buildDocumentModelStatusQuery(statusFilter),
     }),
-    [activeDocumentType, classificationFilters, data.query],
+    [activeDocumentType, classificationFilters, data.query, statusFilter],
   );
 
   useEffect(() => {
@@ -88,6 +95,10 @@ export const ModalViewDocumentModels: FC = () => {
 
         return newData;
       });
+      // Reset status filter whenever the modal opens with fresh data.
+      setStatusFilter('ACTIVE');
+      setActiveStep(0);
+      setClassificationFilters([]);
     }
   }, [getModalData]);
 
@@ -117,6 +128,7 @@ export const ModalViewDocumentModels: FC = () => {
             query={tableQuery}
             title={data.title}
             companyId={data.companyId}
+            emptyMessage={documentModelStatusEmptyMessage(statusFilter)}
           >
             {!data.query?.type && (
               <STabs
@@ -148,6 +160,10 @@ export const ModalViewDocumentModels: FC = () => {
                 ]}
               />
             )}
+            <DocumentModelStatusFilters
+              active={statusFilter}
+              onChange={setStatusFilter}
+            />
             {activeDocumentType && (
               <DocumentModelPgrClassificationFilters
                 documentType={activeDocumentType}
