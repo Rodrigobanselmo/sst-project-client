@@ -1,9 +1,12 @@
-import React, { cloneElement } from 'react';
+import React, { cloneElement, useMemo } from 'react';
 
 import { LinearProgress } from '@mui/material';
+import { selectAllDocumentModel } from 'store/reducers/document/documentSlice';
 
 import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 
+import { buildDocumentHeadingNumbering } from '../utils/buildDocumentHeadingNumbering';
 import { useContentDocumentModel } from './hooks/useContentDocumentModel';
 import { STStructContainer } from './styles';
 import { TypeSectionItem } from './TypeSectionItem/TypeSectionItem';
@@ -18,6 +21,16 @@ export const DocumentModelContent: React.FC<
   const { data, variables, elements, sections, handleDeleteActualItems } =
     useContentDocumentModel(props);
 
+  const documentModel = useAppSelector(selectAllDocumentModel);
+
+  const headingNumbering = useMemo(
+    () =>
+      buildDocumentHeadingNumbering(
+        documentModel?.sections ?? props.model?.document?.sections,
+      ),
+    [documentModel?.sections, props.model?.document?.sections],
+  );
+
   return (
     <>
       {children && cloneElement(children as any, { handleDeleteActualItems })}
@@ -31,6 +44,7 @@ export const DocumentModelContent: React.FC<
             elements={elements}
             sections={sections}
             companyId={companyId}
+            headingNumbering={headingNumbering}
           />
         )}
       </STStructContainer>

@@ -94,7 +94,11 @@ export const StructNode: React.FC<
           }}
         />
       )} */}
-      <div className={'labelGridItem'}>{node.text}</div>
+      <div className={'labelGridItem'}>
+        {node.headingNumber
+          ? `${node.headingNumber} ${node.text}`
+          : node.text}
+      </div>
       <div className={`${'expandIconWrapper'} ${isOpen ? 'isOpen' : ''}`}>
         {node.droppable && (
           <svg

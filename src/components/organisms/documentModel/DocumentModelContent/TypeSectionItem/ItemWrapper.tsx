@@ -3,6 +3,7 @@ import { SyntheticKeyboardEvent } from 'react-draft-wysiwyg';
 
 import { Box, ClickAwayListener } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
 import { STagButton } from 'components/atoms/STagButton';
 import { ElementTypeModelSelect } from 'components/organisms/tagSelects/ElementTypeModelSelect/ElementTypeModelSelect';
 import { SectionTypeModelSelect } from 'components/organisms/tagSelects/SectionTypeModelSelect/SectionTypeModelSelect';
@@ -158,6 +159,8 @@ type Props = {
   elements: IDocumentModelFull['elements'];
   sections: IDocumentModelFull['sections'];
   companyId?: string;
+  /** Visual-only; never written into DraftEditor / element.text */
+  headingNumber?: string;
 };
 
 export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
@@ -167,6 +170,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
   sections,
   children,
   companyId,
+  headingNumber,
 }) => {
   const [open, setOpen] = useState(false);
   const dispatch = useAppDispatch();
@@ -683,45 +687,62 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                 />
               </SFlex>
               {mapProps[item.type]?.draft && (
-                <DraftEditor
-                  size="model"
-                  handlePastedText={handlePastedText}
-                  mt={5}
-                  isJson
-                  document_model
-                  textProps={{ color: 'grey.700' }}
-                  label={''}
-                  placeholder="descrição..."
-                  defaultValue={parseToEditor(item) as any}
-                  onChange={(value) =>
-                    handleEdit(
-                      parseFromEditorToElement(
-                        (value ? JSON.parse(value) : null) as any,
-                      ),
-                    )
-                  }
-                  toolbarOpen
-                  mention={{
-                    separator: ' ',
-                    trigger: '{',
-                    suggestions,
-                  }}
-                  toolbarProps={{
-                    options: [
-                      'inline',
-                      ...((mapProps as any)[item.type]?.fontSize
-                        ? ['fontSize']
-                        : []),
-                      'textAlign',
-                      'colorPicker',
-                      'link',
-                    ],
-                  }}
-                  {...(!mapProps[item.type]?.toolbar && { toolbarOpen: false })}
-                  {...(!(mapProps as any)[item.type]?.multiline && {
-                    handleReturn,
-                  })}
-                />
+                <>
+                  {headingNumber && (
+                    <SText
+                      component="span"
+                      sx={{
+                        display: 'inline-block',
+                        fontWeight: 700,
+                        mt: 2,
+                        mb: 1,
+                        color: 'grey.800',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      {headingNumber}
+                    </SText>
+                  )}
+                  <DraftEditor
+                    size="model"
+                    handlePastedText={handlePastedText}
+                    mt={5}
+                    isJson
+                    document_model
+                    textProps={{ color: 'grey.700' }}
+                    label={''}
+                    placeholder="descrição..."
+                    defaultValue={parseToEditor(item) as any}
+                    onChange={(value) =>
+                      handleEdit(
+                        parseFromEditorToElement(
+                          (value ? JSON.parse(value) : null) as any,
+                        ),
+                      )
+                    }
+                    toolbarOpen
+                    mention={{
+                      separator: ' ',
+                      trigger: '{',
+                      suggestions,
+                    }}
+                    toolbarProps={{
+                      options: [
+                        'inline',
+                        ...((mapProps as any)[item.type]?.fontSize
+                          ? ['fontSize']
+                          : []),
+                        'textAlign',
+                        'colorPicker',
+                        'link',
+                      ],
+                    }}
+                    {...(!mapProps[item.type]?.toolbar && { toolbarOpen: false })}
+                    {...(!(mapProps as any)[item.type]?.multiline && {
+                      handleReturn,
+                    })}
+                  />
+                </>
               )}
               {isImage && (
                 <Box pt={10}>

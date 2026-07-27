@@ -21,6 +21,7 @@ import { parseInlineStyleText } from '../../utils/parseInlineStyleText';
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { ITypeDocumentModel } from '../types/types';
 import { getFontSize, getSpacing } from '../utils/getFontSize';
+import { HeadingNumberingMap } from '../../utils/buildDocumentHeadingNumbering';
 import { ItemWrapper } from './ItemWrapper';
 import { StyledText } from './StyledText';
 import {
@@ -39,6 +40,24 @@ type Props = {
   elements: IDocumentModelFull['elements'];
   sections: IDocumentModelFull['sections'];
   companyId?: string;
+  headingNumbering?: HeadingNumberingMap;
+};
+
+const HeadingNumberBadge: React.FC<{ number?: string }> = ({ number }) => {
+  if (!number) return null;
+  return (
+    <SText
+      component={'span'}
+      sx={{
+        fontWeight: 700,
+        mr: 1,
+        color: 'grey.800',
+        fontVariantNumeric: 'tabular-nums',
+      }}
+    >
+      {number}
+    </SText>
+  );
 };
 
 const StyledImage = styled('img')`
@@ -65,6 +84,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
   elements,
   sections,
   companyId,
+  headingNumbering = {},
 }) => {
   const map = useMemo<Record<string, (item: any) => JSX.Element>>(
     () => ({
@@ -222,6 +242,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <SText component={'span'} className="title">
             H1
           </SText>
+          <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
               entityRange={[]}
@@ -239,6 +260,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <SText component={'span'} className="title">
             H2
           </SText>
+          <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
               entityRange={[]}
@@ -256,6 +278,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <SText component={'span'} className="title">
             H3
           </SText>
+          <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
               entityRange={[]}
@@ -273,6 +296,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <SText component={'span'} className="title">
             H4
           </SText>
+          <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
               entityRange={[]}
@@ -290,6 +314,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <SText component={'span'} className="title">
             H5
           </SText>
+          <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
               entityRange={[]}
@@ -307,6 +332,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <SText component={'span'} className="title">
             H6
           </SText>
+          <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
               entityRange={[]}
@@ -329,7 +355,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
         />
       ),
     }),
-    [variables],
+    [variables, headingNumbering],
   );
 
   return (
@@ -342,6 +368,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
             elements={elements}
             sections={sections}
             companyId={companyId}
+            headingNumber={headingNumbering[item.id]?.number}
             key={item.id}
           >
             {map[item.type]?.(item) || (
