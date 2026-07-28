@@ -17,7 +17,7 @@ describe('pcmso-download-labels.util', () => {
   it('exposes the expected PCMSO download labels', () => {
     expect(getPcmsoMainDocumentDownloadLabel()).toBe('Baixar documento (sem anexos)');
     expect(getPcmsoFullDownloadLabel()).toBe(
-      'Baixar PCMSO completo (incluindo anexos 1, 2 e 3)',
+      'Baixar PCMSO completo (incluindo todos os anexos aplicáveis)',
     );
   });
 });
