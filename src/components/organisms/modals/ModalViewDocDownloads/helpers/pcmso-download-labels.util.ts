@@ -12,5 +12,5 @@ export function getPcmsoMainDocumentDownloadLabel(): string {
 }
 
 export function getPcmsoFullDownloadLabel(): string {
-  return 'Baixar PCMSO completo (incluindo anexos 1, 2 e 3)';
+  return 'Baixar PCMSO completo (incluindo todos os anexos aplicáveis)';
 }
