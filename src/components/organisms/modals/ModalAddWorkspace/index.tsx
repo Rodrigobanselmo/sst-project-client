@@ -18,6 +18,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 import { ModalWorkspaceStep } from './components/ModalWorkspaceStep';
 import { PcmsoAttendanceServicesTable } from 'components/organisms/tables/PcmsoAttendanceServicesTable/PcmsoAttendanceServicesTable';
+import { PcmsoExaminingPhysiciansWorkspaceTable } from 'components/organisms/tables/PcmsoExaminingPhysiciansWorkspaceTable/PcmsoExaminingPhysiciansWorkspaceTable';
 import { WorkspaceFirstAidSection } from './components/WorkspaceFirstAidSection/WorkspaceFirstAidSection';
 import { ConvertWorkspaceToCompanyModal } from './components/ConvertWorkspaceToCompanyModal/ConvertWorkspaceToCompanyModal';
 import { useEditWorkspace } from './hooks/useEditWorkspace';
@@ -71,6 +72,7 @@ export const ModalAddWorkspace = () => {
           <>
             <WorkspaceFirstAidSection {...props} />
             <PcmsoAttendanceServicesTable workspaceId={companyData.id} companyId={companyId} />
+            <PcmsoExaminingPhysiciansWorkspaceTable workspaceId={companyData.id} companyId={companyId} />
           </>
         )}
 

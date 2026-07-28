@@ -4,6 +4,7 @@ import { Global } from '@emotion/react';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
 import { ModalAddContact } from 'components/organisms/modals/ModalAddContact/ModalAddContact';
 import { ModalAddPcmsoAttendanceService } from 'components/organisms/modals/ModalAddPcmsoAttendanceService/ModalAddPcmsoAttendanceService';
+import { ModalAddPcmsoExaminingPhysician } from 'components/organisms/modals/ModalAddPcmsoExaminingPhysician/ModalAddPcmsoExaminingPhysician';
 import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional/ModalAddProfessional';
 import { ModalAddProfessionalResponsible } from 'components/organisms/modals/ModalAddProfessionalResponsible/ModalAddProfessionalResponsible';
 import { ModalBlank } from 'components/organisms/modals/ModalBlank/ModalBlank';
@@ -86,6 +87,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <ModalAddProfessionalResponsible />
       <ModalAddContact />
       <ModalAddPcmsoAttendanceService />
+      <ModalAddPcmsoExaminingPhysician />
       <ModalUploadPhoto />
       <ModalUploadNewFile />
       <ModalAddProfessional />
