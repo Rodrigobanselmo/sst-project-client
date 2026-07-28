@@ -13,6 +13,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { ProfessionalResponsibleTable } from 'components/organisms/tables/ProfessionalResponsibleTable/ProfessionalResponsibleTable';
+import { PcmsoExaminingPhysiciansTable } from 'components/organisms/tables/PcmsoExaminingPhysiciansTable/PcmsoExaminingPhysiciansTable';
 import dayjs from 'dayjs';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
@@ -215,6 +216,14 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
               }));
             }}
           />
+        )}
+        {companyData.id && (
+          <Box mt={20}>
+            <PcmsoExaminingPhysiciansTable
+              companyId={companyData.id}
+              hideTitle
+            />
+          </Box>
         )}
         {companyData.id && (
           <Box mt={20}>
