@@ -1,4 +1,5 @@
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
+import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { IPaginationParams } from '@v2/types/pagination-params.type';
 
@@ -19,6 +20,7 @@ export interface BrowseFormApplicationParams {
   filters?: {
     search?: string;
     status?: FormApplicationStatusEnum[];
+    types?: FormTypeEnum[];
     companyGroupScope?: 'consolidated';
     companyGroupId?: number;
   };

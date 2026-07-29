@@ -38,6 +38,7 @@ import {
   buildDocumentRiskFilterSummary,
   buildDocumentRiskFilterTree,
 } from './helpers/document-risk-filter.helpers';
+import { FormApplicationBrowseAutocomplete } from '@v2/components/organisms/forms/FormApplicationBrowseAutocomplete/FormApplicationBrowseAutocomplete';
 
 export const MainModalStep = (props: IUseMainActionsModal) => {
   const propsStep = useMainStep(props);
@@ -58,6 +59,9 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     riskFilter,
     setRiskFilter,
     clearRiskFilter,
+    formApplicationId,
+    setFormApplicationId,
+    setFormApplicationPickerStatus,
     isRegenerateMode,
     lockedVersion,
     missingGenerationSnapshot,
@@ -67,6 +71,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [riskFiltersOpen, setRiskFiltersOpen] = useState(false);
   const isPgrDocument = type === DocumentTypeEnum.PGR;
+  const isFrpsDocument = type === DocumentTypeEnum.FRPS;
   const scopeIds = useMemo(
     () => documentFilters.selecteds.map((item) => item.id),
     [documentFilters.selecteds],
@@ -253,6 +258,24 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
               control={control}
             />
           </Box>
+
+          {isFrpsDocument && (
+            <Box mb={5} maxWidth={['520px']}>
+              <FormApplicationBrowseAutocomplete
+                companyId={data.companyId}
+                value={formApplicationId}
+                onChange={setFormApplicationId}
+                enabled={Boolean(data.companyId)}
+                onStatusChange={setFormApplicationPickerStatus}
+              />
+              <SText color="text.secondary" fontSize={12} mt={2}>
+                Opcional. Selecione a aplicação psicossocial utilizada para
+                preencher as tabelas de participação, distribuição dos
+                indicadores e escalas COPSOQ III. Sem aplicação vinculada,
+                esses elementos não geram conteúdo no DOCX.
+              </SText>
+            </Box>
+          )}
 
           <Box
             mt={5}

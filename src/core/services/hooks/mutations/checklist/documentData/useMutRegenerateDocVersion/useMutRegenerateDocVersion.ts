@@ -34,6 +34,7 @@ export interface IRegenerateDocumentVersion {
     isSigner?: boolean;
     isElaborator?: boolean;
   }>;
+  formApplicationId?: string | null;
 }
 
 export async function regenerateDocumentVersion(
