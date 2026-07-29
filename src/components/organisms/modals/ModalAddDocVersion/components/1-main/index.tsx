@@ -61,6 +61,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     clearRiskFilter,
     formApplicationId,
     setFormApplicationId,
+    setFormApplicationPickerStatus,
     isRegenerateMode,
     lockedVersion,
     missingGenerationSnapshot,
@@ -265,10 +266,13 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
                 value={formApplicationId}
                 onChange={setFormApplicationId}
                 enabled={Boolean(data.companyId)}
+                onStatusChange={setFormApplicationPickerStatus}
               />
               <SText color="text.secondary" fontSize={12} mt={2}>
-                Opcional. Sem aplicação vinculada, as tabelas de participação do
-                modelo não geram conteúdo no DOCX.
+                Opcional. Selecione a aplicação psicossocial utilizada para
+                preencher as tabelas de participação, distribuição dos
+                indicadores e escalas COPSOQ III. Sem aplicação vinculada,
+                esses elementos não geram conteúdo no DOCX.
               </SText>
             </Box>
           )}

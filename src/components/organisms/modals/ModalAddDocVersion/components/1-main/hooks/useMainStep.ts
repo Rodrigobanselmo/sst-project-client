@@ -5,6 +5,11 @@ import clone from 'clone';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
 
+import {
+  FormApplicationPickerStatus,
+  resolveFormApplicationIdForCreate,
+  resolveFormApplicationIdForRegenerate,
+} from '@v2/components/organisms/forms/FormApplicationBrowseAutocomplete/form-application-binding.util';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import {
@@ -119,9 +124,12 @@ export const useMainStep = ({
     undefined,
   );
   const [formApplicationId, setFormApplicationId] = useState<string | null>(null);
+  const [formApplicationPickerStatus, setFormApplicationPickerStatus] =
+    useState<FormApplicationPickerStatus>('idle');
   const documentFiltersRef = useRef(documentFilters);
   const riskFilterRef = useRef(riskFilter);
   const formApplicationIdRef = useRef(formApplicationId);
+  const formApplicationPickerStatusRef = useRef(formApplicationPickerStatus);
   const emissionDateManuallyEditedRef = useRef(false);
 
   useEffect(() => {
@@ -135,6 +143,10 @@ export const useMainStep = ({
   useEffect(() => {
     formApplicationIdRef.current = formApplicationId;
   }, [formApplicationId]);
+
+  useEffect(() => {
+    formApplicationPickerStatusRef.current = formApplicationPickerStatus;
+  }, [formApplicationPickerStatus]);
 
   const onFamilyDefaultsApplied = useCallback(() => {
     emissionDateManuallyEditedRef.current = false;
@@ -279,6 +291,19 @@ export const useMainStep = ({
     if (!data.modelId)
       return setError('model', { message: 'Campo obrigatório' });
 
+    if (
+      data.type === DocumentTypeEnum.FRPS &&
+      (formApplicationPickerStatusRef.current === 'loading' ||
+        formApplicationPickerStatusRef.current === 'error')
+    ) {
+      return enqueueSnackbar(
+        formApplicationPickerStatusRef.current === 'loading'
+          ? 'Aguarde o carregamento da aplicação psicossocial vinculada.'
+          : 'Não é possível continuar: falha ao carregar a aplicação psicossocial vinculada.',
+        { variant: 'error' },
+      );
+    }
+
     const emissionIso = resolveDocumentDateFromForm(documentDate);
     const activeDocumentFilters = documentFiltersRef.current;
     const activeRiskFilter = riskFilterRef.current;
@@ -335,7 +360,9 @@ export const useMainStep = ({
           filterViewType: activeDocumentFilters.viewDataType,
           selectedFilters,
           riskFilter: activeRiskFilter,
-          formApplicationId: formApplicationIdRef.current || undefined,
+          formApplicationId: resolveFormApplicationIdForRegenerate(
+            formApplicationIdRef.current,
+          ),
           json: {
             ...(data as any)?.json,
             legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
@@ -464,7 +491,9 @@ export const useMainStep = ({
           selectedFilters,
           riskFilter: activeRiskFilter,
           documentDate: emissionIso,
-          formApplicationId: formApplicationIdRef.current || undefined,
+          formApplicationId: resolveFormApplicationIdForCreate(
+            formApplicationIdRef.current,
+          ),
         });
       }
 
@@ -619,6 +648,8 @@ export const useMainStep = ({
     clearRiskFilter,
     formApplicationId,
     setFormApplicationId,
+    formApplicationPickerStatus,
+    setFormApplicationPickerStatus,
     isRegenerateMode,
     lockedVersion,
     missingGenerationSnapshot:
