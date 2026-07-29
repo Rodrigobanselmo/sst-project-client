@@ -118,8 +118,10 @@ export const useMainStep = ({
   const [riskFilter, setRiskFilter] = useState<DocumentGenerationRiskFilter | undefined>(
     undefined,
   );
+  const [formApplicationId, setFormApplicationId] = useState<string | null>(null);
   const documentFiltersRef = useRef(documentFilters);
   const riskFilterRef = useRef(riskFilter);
+  const formApplicationIdRef = useRef(formApplicationId);
   const emissionDateManuallyEditedRef = useRef(false);
 
   useEffect(() => {
@@ -129,6 +131,10 @@ export const useMainStep = ({
   useEffect(() => {
     riskFilterRef.current = riskFilter;
   }, [riskFilter]);
+
+  useEffect(() => {
+    formApplicationIdRef.current = formApplicationId;
+  }, [formApplicationId]);
 
   const onFamilyDefaultsApplied = useCallback(() => {
     emissionDateManuallyEditedRef.current = false;
@@ -167,6 +173,7 @@ export const useMainStep = ({
 
     setDocumentFilters(buildFiltersFromSnapshot(generationSnapshot));
     setRiskFilter(generationSnapshot?.riskFilter);
+    setFormApplicationId(generationSnapshot?.formApplicationId ?? null);
   }, [generationSnapshot, isRegenerateMode]);
 
   const watchedCreationDate = useWatch({ control, name: 'documentCreatedAt' });
@@ -328,6 +335,7 @@ export const useMainStep = ({
           filterViewType: activeDocumentFilters.viewDataType,
           selectedFilters,
           riskFilter: activeRiskFilter,
+          formApplicationId: formApplicationIdRef.current || undefined,
           json: {
             ...(data as any)?.json,
             legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
@@ -456,6 +464,7 @@ export const useMainStep = ({
           selectedFilters,
           riskFilter: activeRiskFilter,
           documentDate: emissionIso,
+          formApplicationId: formApplicationIdRef.current || undefined,
         });
       }
 
@@ -608,6 +617,8 @@ export const useMainStep = ({
     riskFilter,
     setRiskFilter,
     clearRiskFilter,
+    formApplicationId,
+    setFormApplicationId,
     isRegenerateMode,
     lockedVersion,
     missingGenerationSnapshot:

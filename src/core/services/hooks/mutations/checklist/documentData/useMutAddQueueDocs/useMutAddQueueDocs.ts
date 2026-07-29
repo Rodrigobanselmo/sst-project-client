@@ -29,6 +29,7 @@ export interface IUpsertAddDocumentQueue {
   type: DocumentTypeEnum;
   riskFilter?: DocumentGenerationRiskFilter;
   documentDate?: string;
+  formApplicationId?: string;
 }
 
 export async function upsertAddDocumentQueue(

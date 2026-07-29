@@ -38,6 +38,7 @@ import {
   buildDocumentRiskFilterSummary,
   buildDocumentRiskFilterTree,
 } from './helpers/document-risk-filter.helpers';
+import { FormApplicationBrowseAutocomplete } from '@v2/components/organisms/forms/FormApplicationBrowseAutocomplete/FormApplicationBrowseAutocomplete';
 
 export const MainModalStep = (props: IUseMainActionsModal) => {
   const propsStep = useMainStep(props);
@@ -58,6 +59,8 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     riskFilter,
     setRiskFilter,
     clearRiskFilter,
+    formApplicationId,
+    setFormApplicationId,
     isRegenerateMode,
     lockedVersion,
     missingGenerationSnapshot,
@@ -67,6 +70,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [riskFiltersOpen, setRiskFiltersOpen] = useState(false);
   const isPgrDocument = type === DocumentTypeEnum.PGR;
+  const isFrpsDocument = type === DocumentTypeEnum.FRPS;
   const scopeIds = useMemo(
     () => documentFilters.selecteds.map((item) => item.id),
     [documentFilters.selecteds],
@@ -253,6 +257,21 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
               control={control}
             />
           </Box>
+
+          {isFrpsDocument && (
+            <Box mb={5} maxWidth={['520px']}>
+              <FormApplicationBrowseAutocomplete
+                companyId={data.companyId}
+                value={formApplicationId}
+                onChange={setFormApplicationId}
+                enabled={Boolean(data.companyId)}
+              />
+              <SText color="text.secondary" fontSize={12} mt={2}>
+                Opcional. Sem aplicação vinculada, as tabelas de participação do
+                modelo não geram conteúdo no DOCX.
+              </SText>
+            </Box>
+          )}
 
           <Box
             mt={5}
