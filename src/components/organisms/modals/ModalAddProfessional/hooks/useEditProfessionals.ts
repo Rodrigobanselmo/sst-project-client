@@ -238,6 +238,8 @@ export const useEditProfessionals = () => {
         ...(data.userId && { userId: data.userId }),
         ...(data.councils &&
           data.councils.length && { councils: data.councils }),
+        ...(data.formation && { formation: data.formation }),
+        ...(data.certifications && { certifications: data.certifications }),
       }));
     };
 
@@ -376,6 +378,36 @@ export const useEditProfessionals = () => {
     });
   };
 
+  const onAddArray = (value: string, type: 'formation' | 'certifications') => {
+    const next = String(value || '').trim();
+    if (!next) return;
+    setProfessionalData({
+      ...professionalData,
+      [type]: [...(professionalData[type] || []), next],
+    });
+  };
+
+  const onDeleteArray = (
+    value: string,
+    type: 'formation' | 'certifications',
+  ) => {
+    setProfessionalData({
+      ...professionalData,
+      [type]: (professionalData[type] || []).filter((item) => item !== value),
+    });
+  };
+
+  const onEditArray = (
+    _value: string,
+    values: string[],
+    type: 'formation' | 'certifications',
+  ) => {
+    setProfessionalData({
+      ...professionalData,
+      [type]: values,
+    });
+  };
+
   const getUrl = window.location;
   const baseUrl = getUrl.protocol + '//' + getUrl.host;
 
@@ -419,6 +451,9 @@ export const useEditProfessionals = () => {
     onDeleteCouncil,
     getCouncilValue,
     onEditCouncil,
+    onAddArray,
+    onDeleteArray,
+    onEditArray,
     loadingCouncil:
       deleteCouncilMutation.isLoading ||
       createCouncilMutation.isLoading ||

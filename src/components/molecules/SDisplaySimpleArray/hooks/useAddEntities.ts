@@ -22,7 +22,8 @@ export const useAddEntities = ({
 
   const onSelectProfessionalUser = () =>
     onStackOpenModal(ModalEnum.PROFESSIONAL_SELECT, {
-      query: { byCouncil: true },
+      // Document responsibles: one option per Professional.id (not per council).
+      query: { byCouncil: false },
       title:
         'Selecione os profissionais responsaveis pela elaboração do documento',
       onSelect: (user: SelectUserProfessional | SelectUserProfessional[]) => {

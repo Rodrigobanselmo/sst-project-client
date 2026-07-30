@@ -52,6 +52,13 @@ import {
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { DocumentGenerationSnapshot } from 'core/interfaces/api/document-generation-snapshot.types';
 import { DocumentGenerationRiskFilter } from 'core/interfaces/api/document-generation-risk-filter.types';
+import {
+  getPersonProfessionalId,
+  groupProfessionalsForDocumentSelection,
+  isCouncilShapedProfessional,
+  toDocumentProfessionalSelection,
+  toDocumentProfessionalsPersistencePayload,
+} from '../../../helpers/document-professional-selection.util';
 
 const REGENERATE_CONFIRMATION_MESSAGE =
   'Esta ação irá atualizar os dados desta revisão e regerar os arquivos de download com base nas informações atuais do sistema. O número da revisão será preservado, mas os arquivos anteriores desta revisão serão substituídos. Deseja continuar?';
@@ -314,13 +321,11 @@ export const useMainStep = ({
       id: group.id,
       name: 'name' in group ? group.name : undefined,
     }));
-    const professionalSignatures = (data.professionals || []).map(
-      (professional) => ({
-        professionalId: professional.id,
-        isSigner: professional.professionalDocumentDataSignature?.isSigner,
-        isElaborator:
-          professional.professionalDocumentDataSignature?.isElaborator,
-      }),
+    const professionalSignatures = toDocumentProfessionalsPersistencePayload(
+      (data.professionals || []).filter(
+        (professional): professional is IProfessional =>
+          !!professional && 'name' in (professional as object),
+      ),
     );
 
     if (isRegenerateMode) {
@@ -344,6 +349,39 @@ export const useMainStep = ({
       }
 
       try {
+        // Sync DocumentData professionals (council FKs) before regenerating,
+        // otherwise reopen only shows stale DocumentData links and snapshot
+        // would keep person ids if we skip this.
+        const upsertMutation =
+          data.type == DocumentTypeEnum.PCSMO
+            ? updatePcmsoMutation
+            : data.type == DocumentTypeEnum.PERICULOSIDADE
+              ? updatePericulosidadeMutation
+              : data.type == DocumentTypeEnum.LTCAT
+                ? updateLtcatMutation
+                : data.type == DocumentTypeEnum.INSALUBRIDADE
+                  ? updateInsalubridadeMutation
+                  : data.type == DocumentTypeEnum.FRPS
+                    ? updateFrpsMutation
+                    : updateMutation;
+
+        await upsertMutation.mutateAsync({
+          id: data.id,
+          companyId: data.companyId,
+          workspaceId: data.workspaceId,
+          name,
+          modelId: data.modelId,
+          professionals: data.professionals,
+          approvedBy,
+          elaboratedBy,
+          revisionBy,
+          coordinatorBy,
+          json: {
+            ...(data as any)?.json,
+            legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
+          },
+        });
+
         await regenerateDoc.mutateAsync({
           documentVersionId: regenerateVersionId,
           companyId: data.companyId,
@@ -504,43 +542,33 @@ export const useMainStep = ({
   };
 
   const onAddArray = (professional: IProfessional, type: 'professionals') => {
-    let value: any;
-
-    if (Array.isArray(professional)) {
-      value = professional.map((p) => ({
-        ...p,
-        professionalDocumentDataSignature: {
-          professionalId: p.id,
-          isSigner: true,
-          isElaborator: true,
-        },
-      }));
-    } else {
-      value = {
-        ...professional,
-        professionalDocumentDataSignature: {
-          ...(professional?.professionalDocumentDataSignature || {}),
-          professionalId: professional.id,
-          isSigner: true,
-          isElaborator: true,
-        },
-      } as IProfessional;
-    }
+    const rows = Array.isArray(professional) ? professional : [professional];
+    const value = rows.map((p) =>
+      toDocumentProfessionalSelection(p, {
+        preferredCouncilId:
+          p.professionalDocumentDataSignature?.professionalId ??
+          (isCouncilShapedProfessional(p) ? p.id : null),
+        isSigner: true,
+        isElaborator: true,
+      }),
+    );
 
     setData({
       ...data,
-      [type]: removeDuplicate([...(data as any)[type], ...value], {
-        removeById: 'id',
-      }),
+      [type]: groupProfessionalsForDocumentSelection([
+        ...((data as any)[type] || []),
+        ...value,
+      ]),
     });
   };
 
   const onDeleteArray = (value: IProfessional, type: 'professionals') => {
+    const personId = getPersonProfessionalId(value);
     setData({
       ...data,
       [type]: [
         ...(data as any)[type].filter(
-          (item: IProfessional) => item.id !== value.id,
+          (item: IProfessional) => getPersonProfessionalId(item) !== personId,
         ),
       ],
     });
@@ -552,17 +580,19 @@ export const useMainStep = ({
     type: 'professionals',
   ) => {
     const dataCopy = clone(data);
+    const personId = getPersonProfessionalId(professional);
 
-    const value = {
-      ...professional,
-      professionalDocumentDataSignature: {
-        ...(professional?.professionalDocumentDataSignature || {}),
-        professionalId: professional.id,
-        isSigner: check,
-      },
-    } as IProfessional;
+    const value = toDocumentProfessionalSelection(professional, {
+      preferredCouncilId:
+        professional.professionalDocumentDataSignature?.professionalId,
+      isSigner: check,
+      isElaborator:
+        professional.professionalDocumentDataSignature?.isElaborator,
+    });
 
-    const index = dataCopy[type]?.findIndex((item) => item.id === value.id);
+    const index = dataCopy[type]?.findIndex(
+      (item) => getPersonProfessionalId(item) === personId,
+    );
     if (index != -1) {
       dataCopy[type][index] = value;
     }
@@ -578,17 +608,18 @@ export const useMainStep = ({
     type: 'professionals',
   ) => {
     const dataCopy = clone(data);
+    const personId = getPersonProfessionalId(professional);
 
-    const value = {
-      ...professional,
-      professionalDocumentDataSignature: {
-        ...(professional?.professionalDocumentDataSignature || {}),
-        professionalId: professional.id,
-        isElaborator: check,
-      },
-    } as IProfessional;
+    const value = toDocumentProfessionalSelection(professional, {
+      preferredCouncilId:
+        professional.professionalDocumentDataSignature?.professionalId,
+      isSigner: professional.professionalDocumentDataSignature?.isSigner,
+      isElaborator: check,
+    });
 
-    const index = dataCopy[type]?.findIndex((item) => item.id === value.id);
+    const index = dataCopy[type]?.findIndex(
+      (item) => getPersonProfessionalId(item) === personId,
+    );
     if (index != -1) {
       dataCopy[type][index] = value;
     }

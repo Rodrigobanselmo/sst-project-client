@@ -5,6 +5,8 @@ import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { useMainActions, IUseMainActionsModal } from './useMainActions';
 
+import { withGroupedDocumentProfessionals } from '../helpers/document-professional-selection.util';
+
 export const initialFRPSDocState = {
   json: {},
 };
@@ -78,9 +80,10 @@ export const useFRPSHandleModal = () => {
           type: DocumentTypeEnum.FRPS,
         };
 
-        initialDataRef.current = newData;
+        const groupedData = withGroupedDocumentProfessionals(newData);
+        initialDataRef.current = groupedData;
 
-        return newData;
+        return groupedData;
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

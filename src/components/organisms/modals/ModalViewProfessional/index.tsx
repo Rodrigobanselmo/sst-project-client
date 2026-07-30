@@ -19,6 +19,7 @@ import { ProfessionalFilterTypeEnum } from 'core/constants/maps/professionals-fi
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { getPersonProfessionalId } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-professional-selection.util';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { IQueryProfessionals } from 'core/services/hooks/queries/useQueryProfessionals';
@@ -73,15 +74,22 @@ export const ModalViewProfessional: FC = () => {
 
   const handleSelect = (professional?: IProfessional) => {
     if (selectData.multiple && professional) {
+      const personId = getPersonProfessionalId(professional);
       setSelectData((oldData) => {
         const filtered = oldData.selected.filter(
-          (w) => w.id != professional.id,
+          (w) => getPersonProfessionalId(w) != personId,
         );
 
         if (filtered.length !== oldData.selected.length)
           return { ...oldData, selected: filtered };
 
-        return { ...oldData, selected: [professional, ...oldData.selected] };
+        return {
+          ...oldData,
+          selected: [
+            { ...professional, id: personId, professionalId: personId },
+            ...oldData.selected,
+          ],
+        };
       });
       return;
     }

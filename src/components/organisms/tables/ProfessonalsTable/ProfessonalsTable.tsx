@@ -42,21 +42,29 @@ import {
 } from 'core/services/hooks/queries/useQueryProfessionals';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
+import {
+  formatCouncilCredential,
+  getPersonProfessionalId,
+  summarizeCouncils,
+} from 'components/organisms/modals/ModalAddDocVersion/helpers/document-professional-selection.util';
 
 export const getCredential = (row: IProfessional) => {
-  if (row?.councils)
-    return row?.councils
-      ?.map((c) => `${c?.councilUF ? c.councilUF + '-' : ''}${c.councilId}`)
-      .join(' / ');
+  if (row?.councils?.length) {
+    return summarizeCouncils(row.councils);
+  }
 
-  return `${row?.councilUF ? row.councilUF + '-' : ''}${row.councilId}`;
+  return (
+    formatCouncilCredential({
+      councilType: row.councilType,
+      councilUF: row.councilUF,
+      councilId: row.councilId,
+    }) || '-'
+  );
 };
 
 export const getCouncil = (row: IProfessional) => {
-  if (row?.councils)
-    return removeDuplicate(row?.councils?.map((c) => c?.councilType)).join(
-      ' / ',
-    );
+  if (row?.councils?.length)
+    return removeDuplicate(row.councils.map((c) => c?.councilType)).join(' / ');
 
   return row.councilType;
 };
@@ -191,10 +199,9 @@ export const ProfessionalsTable: FC<
     { text: 'Nome', column: 'minmax(200px, 5fr)' },
     { text: 'email', column: 'minmax(200px, 4fr)' },
     { text: 'CPF', column: 'minmax(120px, 2fr)' },
-    { text: 'Conselho', column: '80px' },
-    { text: 'Registro', column: 'minmax(110px, 150px)' },
+    { text: 'Conselhos', column: 'minmax(140px, 220px)' },
     { text: 'Telefone', column: 'minmax(110px, 150px)' },
-    { text: 'Profissional', column: 'minmax(110px, 150px)' },
+    { text: 'Profissão', column: 'minmax(110px, 150px)' },
     { text: 'Usuário', column: '100px', justifyContent: 'center' },
     { text: 'Status', column: '100px', justifyContent: 'center' },
     ...(showResponsible
@@ -251,7 +258,9 @@ export const ProfessionalsTable: FC<
                     label=""
                     checked={
                       !!selectedData.find(
-                        (professional) => professional.id === row.id,
+                        (professional) =>
+                          getPersonProfessionalId(professional) ===
+                          getPersonProfessionalId(row),
                       )
                     }
                   />
@@ -259,7 +268,6 @@ export const ProfessionalsTable: FC<
                 <TextIconRow clickable text={row.name || '-'} />
                 <TextIconRow clickable text={row.email || '-'} />
                 <TextIconRow clickable text={cpfMask.mask(row.cpf) || '-'} />
-                <TextIconRow clickable text={getCouncil(row) || '-'} />
                 <TextIconRow clickable text={getCredential(row) || '-'} />
                 <TextIconRow clickable text={row.phone || '-'} />
                 <TextIconRow clickable text={getType(row) || '-'} />

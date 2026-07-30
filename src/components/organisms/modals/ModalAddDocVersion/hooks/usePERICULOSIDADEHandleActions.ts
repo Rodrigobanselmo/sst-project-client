@@ -15,6 +15,8 @@ import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocume
 import { IPGRDocumentData } from './../../../../../core/interfaces/api/IDocumentData';
 import { IUseMainActionsModal, useMainActions } from './useMainActions';
 
+import { withGroupedDocumentProfessionals } from '../helpers/document-professional-selection.util';
+
 export const initialPERICULOSIDADEDocState = {
   json: {},
 };
@@ -90,9 +92,10 @@ export const usePERICULOSIDADEHandleModal = () => {
           type: DocumentTypeEnum.PERICULOSIDADE,
         };
 
-        initialDataRef.current = newData;
+        const groupedData = withGroupedDocumentProfessionals(newData);
+        initialDataRef.current = groupedData;
 
-        return newData;
+        return groupedData;
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

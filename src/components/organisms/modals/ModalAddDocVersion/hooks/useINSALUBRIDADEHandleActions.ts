@@ -5,6 +5,8 @@ import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { IUseMainActionsModal, useMainActions } from './useMainActions';
 
+import { withGroupedDocumentProfessionals } from '../helpers/document-professional-selection.util';
+
 export const initialINSALUBRIDADEDocState = {
   json: {},
 };
@@ -80,9 +82,10 @@ export const useINSALUBRIDADEHandleModal = () => {
           type: DocumentTypeEnum.INSALUBRIDADE,
         };
 
-        initialDataRef.current = newData;
+        const groupedData = withGroupedDocumentProfessionals(newData);
+        initialDataRef.current = groupedData;
 
-        return newData;
+        return groupedData;
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

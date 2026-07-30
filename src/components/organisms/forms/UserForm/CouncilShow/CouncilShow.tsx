@@ -220,7 +220,7 @@ export const CouncilShow = ({
           tooltipTitle=""
           disabled={disabled}
           icon={SAddIcon}
-          text="Adicionar Conselho"
+          text="+ Adicionar conselho"
           iconProps={{ sx: { fontSize: 17 } }}
           onClick={() => onOpenModal()}
         />

@@ -15,6 +15,8 @@ import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocume
 import { deriveValidityPeriod } from '../helpers/document-dates.helpers';
 import { IPGRDocumentData } from './../../../../../core/interfaces/api/IDocumentData';
 import { IUseMainActionsModal, useMainActions } from './useMainActions';
+
+import { withGroupedDocumentProfessionals } from '../helpers/document-professional-selection.util';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 
 export const initialPgrDocState = {
@@ -118,9 +120,10 @@ export const usePGRHandleModal = () => {
           ];
         }
 
-        initialDataRef.current = newData;
+        const groupedData = withGroupedDocumentProfessionals(newData);
+        initialDataRef.current = groupedData;
 
-        return newData;
+        return groupedData;
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

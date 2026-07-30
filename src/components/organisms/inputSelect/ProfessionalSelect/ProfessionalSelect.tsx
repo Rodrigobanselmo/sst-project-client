@@ -7,7 +7,6 @@ import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { initialProfessionalState } from 'components/organisms/modals/ModalAddProfessional/hooks/useEditProfessionals';
 import {
-  getCouncil,
   getCredential,
 } from 'components/organisms/tables/ProfessonalsTable/ProfessonalsTable';
 import { useSnackbar } from 'notistack';
@@ -117,7 +116,10 @@ export const ProfessionalInputSelect: FC<
             !professionals[0]) && (
             <AddButton onAddProfessional={onAddProfessional} />
           )}
-          {option.name} - {getCouncil(option)}/{getCredential(option)}
+          {option.name}
+          {(getCredential(option) && getCredential(option) !== '-')
+            ? ` — ${getCredential(option)}`
+            : ''}
         </Box>
       )}
     />

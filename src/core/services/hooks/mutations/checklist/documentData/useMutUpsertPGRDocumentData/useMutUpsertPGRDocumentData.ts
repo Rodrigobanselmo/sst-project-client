@@ -12,6 +12,9 @@ import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
+import {
+  toDocumentProfessionalsPersistencePayload,
+} from 'components/organisms/modals/ModalAddDocVersion/helpers/document-professional-selection.util';
 import { IProfessionalToDocumentData } from '../../../../../../interfaces/api/IProfessional';
 import { IErrorResp } from '../../../../../errors/types';
 
@@ -55,16 +58,30 @@ export interface IUpsertPGRDocumentData {
 export const getProfessionals = (
   professionals: (IProfessional | IProfessionalToDocumentData)[],
 ) => {
-  return professionals?.map((professional) => {
-    if ('isSigner' in professional) return professional;
+  const persistenceOnly = (professionals || []).filter(
+    (professional): professional is IProfessionalToDocumentData =>
+      !!professional &&
+      'isSigner' in professional &&
+      !('name' in (professional as object)),
+  );
 
-    return {
-      professionalId: professional.id,
-      isSigner: professional.professionalDocumentDataSignature?.isSigner,
-      isElaborator:
-        professional.professionalDocumentDataSignature?.isElaborator,
-    };
-  }) as any;
+  if (persistenceOnly.length === (professionals || []).length) {
+    return persistenceOnly.map((item) => {
+      if (item.professionalId == null) {
+        throw new Error(
+          'Payload de profissional sem ProfessionalCouncil.id (professionalId).',
+        );
+      }
+      return item;
+    }) as any;
+  }
+
+  return toDocumentProfessionalsPersistencePayload(
+    (professionals || []).filter(
+      (professional): professional is IProfessional =>
+        !!professional && 'name' in (professional as object),
+    ),
+  ) as any;
 };
 
 export async function upsertDocumentData(

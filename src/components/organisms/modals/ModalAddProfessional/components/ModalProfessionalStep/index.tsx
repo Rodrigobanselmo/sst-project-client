@@ -1,16 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useMemo } from 'react';
+import React from 'react';
 
-import { getStates } from '@brazilian-utils/brazilian-utils';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { STag } from 'components/atoms/STag';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
-import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
+import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { CouncilShow } from 'components/organisms/forms/UserForm/CouncilShow/CouncilShow';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
@@ -44,6 +43,9 @@ export const ModalProfessionalStep = ({
   getCouncilValue,
   loadingCouncil,
   onEditCouncil,
+  onAddArray,
+  onDeleteArray,
+  onEditArray,
 }: IUseEditProfessional) => {
   const handleDebounceChange = useDebouncedCallback((x: any = {}) => {
     onGetProfessional(x);
@@ -159,76 +161,45 @@ export const ModalProfessionalStep = ({
         }))}
       />
 
-      <CouncilShow
-        data={professionalData.councils || []}
-        onAdd={(v) => onAddCouncil(v as any)}
-        onEdit={(v, index) => onEditCouncil(v as any, index)}
-        onDelete={(v) => onDeleteCouncil(v as any)}
-        initialValues={{ councilType: getCouncilValue() }}
-        control={control}
-        setValue={setValue}
-        loading={loadingCouncil}
+      <SDisplaySimpleArray
+        mt={5}
+        values={professionalData.formation || []}
+        onAdd={(value) => onAddArray(value, 'formation')}
+        onDelete={(value) => onDeleteArray(value, 'formation')}
+        onEdit={(_, values) => onEditArray(_, values, 'formation')}
+        label="Formações e títulos profissionais"
+        buttonLabel="Adicionar formação"
+        placeholder="ex.: Engenheiro de Segurança do Trabalho"
+        modalLabel="Adicionar formação ou título"
       />
 
-      {/* <SText color="text.label" mt={5} fontSize={14}>
-        Conselho
-      </SText>
-      <SFlex mt={3} flexWrap="wrap" gap={5}>
-        <Box flex={5}>
-          <AutocompleteForm
-            name="councilType"
-            control={control}
-            freeSolo
-            getOptionLabel={(option) => String(option)}
-            inputProps={{
-              labelPosition: 'center',
-              placeholder: 'Exemplo: CREA, CRM',
-              name: 'councilType',
-            }}
-            onChange={() => handleDebounceChange()}
-            setValue={(v) => setValue('councilType', String(v))}
-            defaultValue={professionalData.councilType || ''}
-            sx={{ minWidth: [100] }}
-            label=""
-            options={['CRM', 'CREA', 'COREM']}
-          />
-        </Box>
-        <Box flex={1}>
-          <AutocompleteForm
-            name="councilUF"
-            control={control}
-            placeholder={'estado...'}
-            defaultValue={professionalData.councilUF}
-            label="UF"
-            inputProps={{
-              labelPosition: 'center',
-            }}
-            sx={{ minWidth: [100] }}
-            options={ufs}
-            value={professionalData.councilUF}
-            onChange={(e: typeof ufs[0]) => {
-              handleDebounceChange();
-              setProfessionalData((old) => ({
-                ...old,
-                councilUF: e,
-              }));
-            }}
-          />
-        </Box>
-        <Box flex={1}>
-          <InputForm
-            defaultValue={professionalData.councilId}
-            label="Identificação"
-            labelPosition="center"
-            sx={{ minWidth: [300, 400] }}
-            control={control}
-            onChange={() => handleDebounceChange()}
-            placeholder={'identificação...'}
-            name="councilId"
-            size="small"
-          />
-        </Box>
-      </SFlex> */}
+      <Box mt={5}>
+        <SText color="text.label" mb={2} fontSize={14}>
+          Conselhos profissionais
+        </SText>
+        <CouncilShow
+          data={professionalData.councils || []}
+          onAdd={(v) => onAddCouncil(v as any)}
+          onEdit={(v, index) => onEditCouncil(v as any, index)}
+          onDelete={(v) => onDeleteCouncil(v as any)}
+          initialValues={{ councilType: getCouncilValue() }}
+          control={control}
+          setValue={setValue}
+          loading={loadingCouncil}
+        />
+      </Box>
+
+      <SDisplaySimpleArray
+        mt={5}
+        values={professionalData.certifications || []}
+        onAdd={(value) => onAddArray(value, 'certifications')}
+        onDelete={(value) => onDeleteArray(value, 'certifications')}
+        onEdit={(_, values) => onEditArray(_, values, 'certifications')}
+        label="Credenciais complementares"
+        buttonLabel="Adicionar credencial"
+        placeholder="ex.: ABHO — Membro nº 1113"
+        modalLabel="Adicionar credencial complementar"
+      />
 
       {!professionalData.simpleAdd && (
         <>

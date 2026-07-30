@@ -14,6 +14,7 @@ import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinic
 import { ModalCopyRiskImportEntry } from 'components/organisms/modals/ModalCopyRiskImportEntry';
 import { ModalCopyRiskSelect } from 'components/organisms/modals/ModalCopyRiskSelect';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { ModalUploadNewFile } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { useRouter } from 'next/router';
@@ -91,6 +92,8 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <ModalUploadPhoto />
       <ModalUploadNewFile />
       <ModalAddProfessional />
+      {/* Required by ModalAddProfessional (formations/certifications via SDisplaySimpleArray). */}
+      <ModalSingleInput />
       <ModalReportSelect />
       <ModalReport />
       <ModalBlank />

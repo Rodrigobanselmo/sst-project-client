@@ -20,6 +20,10 @@ import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { formatValidityRangePreview } from '../../../helpers/document-dates.helpers';
+import {
+  groupProfessionalsForDocumentSelection,
+  summarizeCouncils,
+} from '../../../helpers/document-professional-selection.util';
 import { IUseMainStep } from '../hooks/useMainStep';
 
 export const SignatureAndValidation = (props: IUseMainStep) => {
@@ -32,6 +36,10 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
     onAddElaborator,
     setValue,
   } = props;
+
+  const professionals = groupProfessionalsForDocumentSelection(
+    data.professionals || [],
+  );
 
   const documentCreatedAt = useWatch({ control, name: 'documentCreatedAt' });
   const validityYears = useWatch({ control, name: 'validityYears' });
@@ -88,7 +96,7 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
         A data inicial da vigência é sempre a Data de Criação do documento.
       </SText>
       <SDisplaySimpleArray
-        values={data.professionals || []}
+        values={professionals}
         valueField="name"
         onAdd={(_, user) => user && onAddArray(user, 'professionals')}
         onDelete={(_, user) => user && onDeleteArray(user, 'professionals')}
@@ -98,7 +106,26 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
         buttonLabel={'Adicionar Profissional'}
         modalLabel={'Adicionar Profissional'}
         type={TypeInputModal.PROFESSIONAL}
-        renderText={(user) => `${user.name} - ${user.email}`}
+        renderText={(user: IProfessional) => {
+          const councils = summarizeCouncils(
+            user.councils?.length
+              ? user.councils
+              : [
+                  {
+                    councilType: user.councilType,
+                    councilUF: user.councilUF,
+                    councilId: user.councilId,
+                  },
+                ],
+          );
+          const certifications = (user.certifications || [])
+            .filter(Boolean)
+            .join(' · ');
+          const details = [councils !== '-' ? councils : '', certifications]
+            .filter(Boolean)
+            .join(' · ');
+          return details ? `${user.name} — ${details}` : user.name;
+        }}
         onRenderStartElement={(professional: IProfessional) => {
           const isSigner =
             professional?.professionalDocumentDataSignature?.isSigner;
