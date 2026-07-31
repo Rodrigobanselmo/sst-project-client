@@ -16,6 +16,7 @@ import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
 import { effectiveRiskOrderForGSEGrid } from 'core/utils/sorts/risk-gse-grid-order';
 import { sortNumber } from 'core/utils/sorts/number.sort';
+import { RISK_LINKAGE_EMPTY_MESSAGE } from 'core/utils/risk-linkage-guards.util';
 
 import { useRiskRowsExpandOptional } from './RiskRowsExpandContext';
 import { RiskToolGSEViewRow } from './Row';
@@ -161,7 +162,7 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
         <Box sx={{ py: 4, px: 2 }}>
           <SText color="text.secondary">
             {homoId
-              ? 'Nenhum fator de risco vinculado. Você pode adicionar riscos pelo botão acima.'
+              ? RISK_LINKAGE_EMPTY_MESSAGE
               : 'Selecione um GSE, elemento caracterizado, hierarquia ou funcionário para visualizar os riscos.'}
           </SText>
         </Box>

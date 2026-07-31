@@ -11,6 +11,7 @@ import { useRouter } from 'next/router';
 import { Wizard } from 'react-use-wizard';
 
 import {
+  getAssistenteGseHref,
   getCharacterizationSubareaNavItems,
   getCharacterizationTabFromWizardStep,
   getCharacterizationWizardStep,
@@ -81,6 +82,20 @@ export const CharacterizationStage = ({
                     undefined;
                   void router.push(
                     getChemicalProductsHref({
+                      companyId,
+                      tabWorkspaceId,
+                    }),
+                  );
+                  return;
+                }
+                if (item?.kind === 'external' && item.id === 'assistente-gse') {
+                  if (!companyId) return;
+                  const tabWorkspaceId =
+                    (router.query.tabWorkspaceId as string | undefined) ||
+                    workspaceId ||
+                    undefined;
+                  void router.push(
+                    getAssistenteGseHref({
                       companyId,
                       tabWorkspaceId,
                     }),

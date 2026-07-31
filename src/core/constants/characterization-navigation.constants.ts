@@ -37,6 +37,12 @@ export const CHEMICAL_PRODUCTS_PATHNAME =
 
 export const CHEMICAL_PRODUCTS_NAV_LABEL = 'Produtos Químicos';
 
+export const ASSISTENTE_GSE_PATHNAME =
+  '/dashboard/empresas/[companyId]/assistente-gse';
+
+export const ASSISTENTE_GSE_NAV_LABEL =
+  'Assistente de Grupos Similares de Exposição';
+
 export type CharacterizationSubareaNavItem =
   | {
       kind: 'tab';
@@ -45,7 +51,7 @@ export type CharacterizationSubareaNavItem =
     }
   | {
       kind: 'external';
-      id: 'chemical-products';
+      id: 'chemical-products' | 'assistente-gse';
       label: string;
     };
 
@@ -70,6 +76,11 @@ export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNav
       id: 'chemical-products' as const,
       label: CHEMICAL_PRODUCTS_NAV_LABEL,
     },
+    {
+      kind: 'external' as const,
+      id: 'assistente-gse' as const,
+      label: ASSISTENTE_GSE_NAV_LABEL,
+    },
   ];
 }
 
@@ -79,11 +90,32 @@ export function getChemicalProductsNavStep(): number {
   );
 }
 
+export function getAssistenteGseNavStep(): number {
+  return getCharacterizationSubareaNavItems().findIndex(
+    (item) => item.kind === 'external' && item.id === 'assistente-gse',
+  );
+}
+
 export function getChemicalProductsHref(params: {
   companyId: string;
   tabWorkspaceId?: string;
 }): string {
   const base = RoutesEnum.CHEMICAL_PRODUCTS.replace(
+    ':companyId',
+    params.companyId,
+  );
+  if (!params.tabWorkspaceId) return base;
+  const query = new URLSearchParams({
+    tabWorkspaceId: params.tabWorkspaceId,
+  });
+  return `${base}?${query.toString()}`;
+}
+
+export function getAssistenteGseHref(params: {
+  companyId: string;
+  tabWorkspaceId?: string;
+}): string {
+  const base = RoutesEnum.EXPOSURE_GROUP_ASSISTANT.replace(
     ':companyId',
     params.companyId,
   );

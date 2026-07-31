@@ -10,10 +10,13 @@ import {
   CHARACTERIZATION_AMBIENTES_PATHNAME,
   CHARACTERIZATION_GSE_PATHNAME,
   CHARACTERIZATION_MODULE_LABEL,
+  ASSISTENTE_GSE_NAV_LABEL,
+  ASSISTENTE_GSE_PATHNAME,
   CHARACTERIZATION_MODULE_ROUTE_VALUE,
   CHEMICAL_PRODUCTS_NAV_LABEL,
   CHEMICAL_PRODUCTS_PATHNAME,
   COMPANY_SST_PATHNAME,
+  getAssistenteGseHref,
   getCharacterizationSstPath,
   getCharacterizationSubTabLabel,
   getChemicalProductsHref,
@@ -357,6 +360,23 @@ export const useLocation = () => {
         value: 'caracterizacao-produtos-quimicos',
         action: () =>
           getChemicalProductsHref({
+            companyId,
+            tabWorkspaceId,
+          }),
+      });
+      return filtered;
+    }
+
+    if (pathname === ASSISTENTE_GSE_PATHNAME) {
+      const filtered = routesPath.filter((r) => r.value !== 'assistente-gse');
+      const companyIdx = filtered.findIndex((r) => r.value === companyId);
+      const insertAt = companyIdx >= 0 ? companyIdx + 1 : filtered.length;
+      const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
+      filtered.splice(insertAt, 0, characterizationModule, {
+        name: ASSISTENTE_GSE_NAV_LABEL,
+        value: 'caracterizacao-assistente-gse',
+        action: () =>
+          getAssistenteGseHref({
             companyId,
             tabWorkspaceId,
           }),
