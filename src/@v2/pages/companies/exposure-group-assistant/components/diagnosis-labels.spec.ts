@@ -12,7 +12,7 @@ import {
 
 assert.equal(ATTENTION_LEVEL_LABEL_PT.INFORMATIONAL, 'Informativo');
 assert.equal(ATTENTION_LEVEL_LABEL_PT.PRIORITY, 'Prioritário');
-assert.equal(FINDING_CATEGORY_LABEL_PT.COVERAGE, 'Cobertura');
+assert.equal(FINDING_CATEGORY_LABEL_PT.COVERAGE, 'Cobertura e vínculos');
 assert.equal(
   FINDING_CATEGORY_LABEL_PT.EXISTING_GSE_REVIEW,
   'Agrupamentos existentes',

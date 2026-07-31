@@ -7,7 +7,7 @@ import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/consta
 import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import sortArray from 'sort-array';
+import { sortHierarchyChildIds, sortIdsByLabel } from 'core/utils/sort-hierarchy-child-ids.util';
 import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
 import { v4 } from 'uuid';
 
@@ -228,16 +228,10 @@ export const useHierarchyTreeActions = () => {
           treeMap[firstNodeId].childrenIds.push(workspace.id);
         });
 
-        // Sort workspaces alphabetically
-        treeMap[firstNodeId].childrenIds = sortArray(
+        // Sort workspaces alphabetically (copy — never mutate frozen/shared arrays)
+        treeMap[firstNodeId].childrenIds = sortIdsByLabel(
           treeMap[firstNodeId].childrenIds,
-          {
-            by: 'name',
-            order: 'asc',
-            computed: {
-              name: (workspaceId) => treeMap[workspaceId]?.label || '',
-            },
-          },
+          (workspaceId) => treeMap[workspaceId]?.label || '',
         );
 
         Object.values(hierarchyMap).forEach((values, index) => {
@@ -252,15 +246,12 @@ export const useHierarchyTreeActions = () => {
               stopDrag: options?.stopDrag || false,
               idRef: hierarchyCopy?.id || '',
               copyCompanyId: companyIdCopy,
-              childrenIds: sortArray(values.children, {
-                by: 'name',
-                order: 'asc',
-                computed: {
-                  name: (row) => hierarchyMap[row].name,
-                },
-              })
+              childrenIds: sortHierarchyChildIds(
+                values.children,
+                (row) => hierarchyMap[row]?.name || '',
+              )
                 .map((child) =>
-                  hierarchyMap[child].workspaceIds.includes(workspaceId)
+                  hierarchyMap[child]?.workspaceIds?.includes(workspaceId)
                     ? `${child}//${workspaceId}`
                     : '',
                 )
@@ -299,16 +290,10 @@ export const useHierarchyTreeActions = () => {
           values.workspaceIds.map((workspaceId) => {
             if (!treeMap[workspaceId]) return;
 
-            treeMap[workspaceId].childrenIds = sortArray(
+            treeMap[workspaceId].childrenIds = sortIdsByLabel(
               treeMap[workspaceId].childrenIds || [],
-              {
-                by: 'name',
-                order: 'asc',
-                computed: {
-                  name: (row) =>
-                    hierarchyMap[(row as any)?.split('//')[0]]?.name,
-                },
-              },
+              (row) =>
+                hierarchyMap[(row as string)?.split('//')[0]]?.name || '',
             );
           });
         });

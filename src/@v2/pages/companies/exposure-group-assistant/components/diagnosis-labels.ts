@@ -20,7 +20,7 @@ export const STANCE_LABEL_PT: Record<NarrativeStance, string> = {
 };
 
 export const FINDING_CATEGORY_LABEL_PT: Record<StructureFindingCategory, string> = {
-  COVERAGE: 'Cobertura',
+  COVERAGE: 'Cobertura e vínculos',
   INTEGRITY: 'Integridade',
   COMPLETENESS: 'Completude',
   FRAGMENTATION: 'Fragmentação',

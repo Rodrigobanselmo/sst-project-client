@@ -9,7 +9,6 @@ import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 import { IRiskData } from '../../../../interfaces/api/IRiskData';
-import { isEmptyRiskData } from '../../mutations/checklist/riskData/useMutUpsertManyRiskData';
 
 export const queryRiskData = async (
   companyId: string,
@@ -38,14 +37,10 @@ export function useQueryRiskDataByGho(
     {
       staleTime: 1000 * 60 * 60, // 1 hour
       enabled: !!companyId && !!riskGroupId && !!homogeneousGroupId,
-      onSuccess: (data) => {
-        // const isFirst = data?.length == 1;
-        // if (isFirst && isEmptyRiskData(data[0]))
-        //   queryClient.invalidateQueries([QueryEnum.GHO]);
-        // if (isFirst && isEmptyRiskData(data[0])) alert(9);
-      },
     },
   );
 
-  return { ...query, data: data || [] };
+  const safeData = Array.isArray(data) ? data : data == null ? [] : [];
+
+  return { ...query, data: safeData };
 }

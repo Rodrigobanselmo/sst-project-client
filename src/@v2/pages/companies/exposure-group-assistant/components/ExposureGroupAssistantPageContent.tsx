@@ -256,25 +256,30 @@ export function ExposureGroupAssistantPageContent({
                 label={`Elementos: ${data.metrics.characterizableElements}`}
               />
               <Chip
-                label={`Cobertura direta: ${data.metrics.elementsWithDirectRiskCoverage ?? 0}`}
+                label={`Cobertura ocupacional direta: ${data.metrics.elementsWithDirectRiskCoverage ?? 0}`}
               />
               <Chip
-                label={`Cobertura indireta: ${data.metrics.elementsWithIndirectWorkerCoverage ?? 0}`}
+                label={`Cobertura ocupacional indireta: ${data.metrics.elementsWithIndirectWorkerCoverage ?? 0}`}
               />
               <Chip
-                label={`Cobertura parcial: ${data.metrics.elementsWithPartialWorkerCoverage ?? 0}`}
+                label={`Cobertura ocupacional parcial: ${data.metrics.elementsWithPartialWorkerCoverage ?? 0}`}
               />
               <Chip
-                label={`Lacunas de cobertura: ${data.metrics.elementsWithCoverageGap ?? 0}`}
+                label={`Lacunas de cobertura ocupacional (elementos): ${data.metrics.elementsWithCoverageGap ?? 0}`}
+              />
+              <Chip
+                label={`Vínculos estruturais a revisar: ${
+                  data.summary.findingsByKind?.ROLE_WITHOUT_CHARACTERIZATION_COVERAGE ?? 0
+                }`}
               />
               <Chip
                 label={`Agrupamentos: ${data.metrics.existingExposureGroups}`}
               />
               <Chip
-                label={`Cobertura ampla: ${formatPercent(data.metrics.coverageBroad)}`}
+                label={`Cobertura ampla (empregados): ${formatPercent(data.metrics.coverageBroad)}`}
               />
               <Chip
-                label={`Cobertura estrita: ${formatPercent(data.metrics.coverageStrict)}`}
+                label={`Cobertura estrita (empregados): ${formatPercent(data.metrics.coverageStrict)}`}
               />
               <Chip
                 label={`Processamento: ${data.processingTimeMs} ms`}
