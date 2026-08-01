@@ -1174,9 +1174,10 @@ export const useCompanyStep = () => {
   }, [onFilterBase, actionsMapStepMemo]);
 
   const pageGroupMemo = useMemo(() => {
+    // Ordem canônica: Dados da Empresa → Funcionários → Caracterização → Programas
     return [
-      actionsMapStepMemo[CompanyActionEnum.EMPLOYEES_GROUP_PAGE],
       actionsMapStepMemo[CompanyActionEnum.COMPANY_GROUP_PAGE],
+      actionsMapStepMemo[CompanyActionEnum.EMPLOYEES_GROUP_PAGE],
       actionsMapStepMemo[CompanyActionEnum.SST_GROUP_PAGE],
       actionsMapStepMemo[CompanyActionEnum.DOCUMENTS_GROUP_PAGE],
     ].filter((action) => onFilterBase(action));

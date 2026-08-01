@@ -1,11 +1,10 @@
 import { Box, BoxProps } from '@mui/material';
-import { SActionButton } from 'components/atoms/SActionButton';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
+import { CompanyWorkspaceActionButton } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceActionButton';
 import {
   companyFlowCompactPanelSx,
-  companyFlowCompactShortcutButtonSx,
   COMPANY_FLOW_COMPACT_SHORTCUTS_FLEX_GAP,
 } from 'components/organisms/main/CompanyFlow/company-flow-compact-shortcuts.styles';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
@@ -45,10 +44,9 @@ export const CompanyStage = ({ companyStepMemo, ...props }: ICompanyStage) => {
           flexWrap="wrap"
         >
           {companyStepMemo.map((actionProps) => (
-            <SActionButton
+            <CompanyWorkspaceActionButton
               key={actionProps.text}
               {...actionProps}
-              sx={companyFlowCompactShortcutButtonSx}
             />
           ))}
         </SFlex>

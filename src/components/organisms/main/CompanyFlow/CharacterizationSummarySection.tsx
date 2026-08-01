@@ -1,10 +1,12 @@
 import { Box } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import { CharacterizationSummaryToggle } from 'components/organisms/main/CompanyFlow/CharacterizationSummaryToggle';
 import { CompanyHomeSummaryCards } from 'components/organisms/main/CompanyFlow/CompanyHomeSummaryCards';
+import { CompanyWorkspaceContextualNav } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceContextualNav';
 import {
-  CharacterizationSummaryCollapsedProvider,
-  useCharacterizationSummaryCollapsed,
-} from 'core/hooks/useCharacterizationSummaryCollapsed';
+  CompanyWorkspaceCardsProvider,
+  useCompanyWorkspaceCardsCollapsed,
+} from 'core/hooks/useCompanyWorkspaceCardsCollapsed';
 import { useCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 
@@ -14,19 +16,29 @@ type Props = {
   forceCharacterizationActive?: boolean;
 };
 
-function CharacterizationSummarySectionInner({
+function CompanyWorkspaceSummarySectionInner({
   hidden = false,
   forceCharacterizationActive = true,
 }: Props) {
   const companyStep = useCompanyStep();
-  const { collapsed } = useCharacterizationSummaryCollapsed();
+  const { collapsed } = useCompanyWorkspaceCardsCollapsed();
   useFetchFeedback(companyStep.isLoading && !companyStep.company?.id);
 
   if (hidden) return null;
 
   return (
     <Box sx={{ mb: collapsed ? 0 : 1 }}>
-      <CharacterizationSummaryToggle />
+      <SFlex
+        align="center"
+        justify="space-between"
+        gap={1.5}
+        sx={{ width: '100%', mb: 1, flexWrap: { xs: 'wrap', md: 'nowrap' } }}
+      >
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <CompanyWorkspaceContextualNav companyId={companyStep.company?.id} />
+        </Box>
+        <CharacterizationSummaryToggle />
+      </SFlex>
       {!collapsed ? (
         <CompanyHomeSummaryCards
           pageGroupMemo={companyStep.pageGroupMemo}
@@ -46,14 +58,16 @@ function CharacterizationSummarySectionInner({
 }
 
 /**
- * Cards + toggle para rotas externas da Caracterização
+ * Cards + toggle + navegação contextual para rotas externas da Caracterização
  * (Produtos Químicos, Assistente de GSE) que não montam CompanyPageLayout.
- * Provider próprio = uma fonte de verdade reativa nesta página.
  */
 export function CharacterizationSummarySection(props: Props) {
   return (
-    <CharacterizationSummaryCollapsedProvider>
-      <CharacterizationSummarySectionInner {...props} />
-    </CharacterizationSummaryCollapsedProvider>
+    <CompanyWorkspaceCardsProvider>
+      <CompanyWorkspaceSummarySectionInner {...props} />
+    </CompanyWorkspaceCardsProvider>
   );
 }
+
+/** Alias semântico. */
+export const CompanyWorkspaceSummarySection = CharacterizationSummarySection;

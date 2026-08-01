@@ -1,7 +1,11 @@
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import { CompanyActionEnum } from 'core/enums/company-action.enum';
 import { RoutesEnum } from 'core/enums/routes.enums';
-import { getCharacterizationSstPath } from './characterization-navigation.constants';
+import {
+  COMPANY_PRIMARY_STAGE_LABELS,
+  companyPrimaryStagePath,
+  getCompanyWorkspaceContextualNavItems,
+} from './company-primary-navigation.constants';
 
 export const COMPANIES_LIST_PATHNAME = '/dashboard/empresas';
 
@@ -85,21 +89,25 @@ export const COMPANY_STAGE_BREADCRUMB: Record<
   string,
   { label: string; getPath: (companyId: string) => string }
 > = {
-  [CompanyActionEnum.EMPLOYEES_GROUP_PAGE]: {
-    label: 'Funcionários',
-    getPath: (id) => companyHomeStagePath(id, CompanyActionEnum.EMPLOYEES_GROUP_PAGE),
-  },
   [CompanyActionEnum.COMPANY_GROUP_PAGE]: {
-    label: 'Dados da Empresa',
-    getPath: (id) => companyHomeStagePath(id, CompanyActionEnum.COMPANY_GROUP_PAGE),
+    label: COMPANY_PRIMARY_STAGE_LABELS[CompanyActionEnum.COMPANY_GROUP_PAGE],
+    getPath: (id) =>
+      companyPrimaryStagePath(id, CompanyActionEnum.COMPANY_GROUP_PAGE),
   },
-  [CompanyActionEnum.DOCUMENTS_GROUP_PAGE]: {
-    label: 'Programas e Laudos',
-    getPath: (id) => companyHomeStagePath(id, CompanyActionEnum.DOCUMENTS_GROUP_PAGE),
+  [CompanyActionEnum.EMPLOYEES_GROUP_PAGE]: {
+    label: COMPANY_PRIMARY_STAGE_LABELS[CompanyActionEnum.EMPLOYEES_GROUP_PAGE],
+    getPath: (id) =>
+      companyPrimaryStagePath(id, CompanyActionEnum.EMPLOYEES_GROUP_PAGE),
   },
   [CompanyActionEnum.SST_GROUP_PAGE]: {
-    label: 'Caracterização',
-    getPath: (id) => getCharacterizationSstPath(id),
+    label: COMPANY_PRIMARY_STAGE_LABELS[CompanyActionEnum.SST_GROUP_PAGE],
+    getPath: (id) =>
+      companyPrimaryStagePath(id, CompanyActionEnum.SST_GROUP_PAGE),
+  },
+  [CompanyActionEnum.DOCUMENTS_GROUP_PAGE]: {
+    label: COMPANY_PRIMARY_STAGE_LABELS[CompanyActionEnum.DOCUMENTS_GROUP_PAGE],
+    getPath: (id) =>
+      companyPrimaryStagePath(id, CompanyActionEnum.DOCUMENTS_GROUP_PAGE),
   },
 };
 
@@ -195,38 +203,8 @@ export function getFormsSubareaNavItems(): FormsSubareaNavItem[] {
 
 /** Menu leve após o nome da empresa no breadcrumb (primeira versão). */
 export function getCompanyAreaNavItems(companyId: string): CompanyAreaNavItem[] {
-  return [
-    {
-      label: 'Funcionários',
-      href: companyHomeStagePath(companyId, CompanyActionEnum.EMPLOYEES_GROUP_PAGE),
-    },
-    {
-      label: 'Dados da Empresa',
-      href: companyHomeStagePath(companyId, CompanyActionEnum.COMPANY_GROUP_PAGE),
-    },
-    {
-      label: 'Caracterização',
-      href: getCharacterizationSstPath(companyId),
-    },
-    {
-      label: 'Programas e Laudos',
-      href: companyHomeStagePath(companyId, CompanyActionEnum.DOCUMENTS_GROUP_PAGE),
-    },
-    {
-      label: 'Acervo Técnico',
-      href: getDocumentsListPath(companyId),
-    },
-    {
-      label: 'Plano de Ação',
-      href: RoutesEnum.ACTION_PLAN.replace(':companyId', companyId),
-    },
-    {
-      label: 'Absenteísmo',
-      href: getAbsenteeismListPath(companyId),
-    },
-    {
-      label: 'Formulários',
-      href: getFormsAppliedListPath(companyId),
-    },
-  ];
+  return getCompanyWorkspaceContextualNavItems({ companyId }).map((item) => ({
+    label: item.label,
+    href: item.href,
+  }));
 }

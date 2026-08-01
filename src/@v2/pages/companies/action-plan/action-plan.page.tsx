@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { ActionPlanContent } from './components/ActionPlanContent/ActionPlanContent';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
 import { SHeader } from '@v2/components/atoms/SHeader/SHeader';
+import { CompanyWorkspaceContextualNavBar } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceContextualNavBar';
 
 export const ActionPlanPage = () => {
   const router = useRouter();
@@ -12,6 +13,7 @@ export const ActionPlanPage = () => {
     <>
       <SHeader title={'Plano de Ação'} />
       <SContainer>
+        <CompanyWorkspaceContextualNavBar companyId={companyId} />
         <SPageHeader mb={8} title="Plano de Ação" />
         <ActionPlanContent companyId={companyId} />
       </SContainer>

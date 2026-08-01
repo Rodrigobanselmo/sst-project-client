@@ -1,5 +1,6 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
+import { CompanyWorkspaceContextualNavBar } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceContextualNavBar';
 
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { useRouter } from 'next/router';
@@ -13,6 +14,7 @@ export const FormsPage = () => {
     <>
       <SHeaderTag title={'Formulários'} />
       <SContainer>
+        <CompanyWorkspaceContextualNavBar companyId={companyId} />
         <SPageHeader mb={8} title="Formulários" />
         <FormContent companyId={companyId} />
       </SContainer>

@@ -14,6 +14,7 @@ export enum RoutesEnum {
   COMPANY_EMPLOYEE = '/dashboard/empresas/:companyId/novo/empregados',
   COMPANY_EDIT = '/dashboard/empresas/:companyId/novo/empresa',
   COMPANY_SST = '/dashboard/empresas/:companyId/novo/sst',
+  COMPANY_DOCUMENTS = '/dashboard/empresas/:companyId/novo/documentos',
   COMPANY_PAGE = '/dashboard/empresas/:companyId',
   COMPANY_GROUP = '/dashboard/empresas/:companyId/grupos',
   COMPANY_RISKS = '/dashboard/empresas/:companyId/riscos',

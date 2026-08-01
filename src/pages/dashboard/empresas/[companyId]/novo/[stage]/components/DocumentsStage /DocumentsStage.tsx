@@ -1,14 +1,13 @@
 import { Wizard } from 'react-use-wizard';
 
 import { Box, BoxProps } from '@mui/material';
-import { SActionButton } from 'components/atoms/SActionButton';
+import { CompanyWorkspaceActionButton } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceActionButton';
 import SFlex from 'components/atoms/SFlex';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
 import SWizardBox from 'components/atoms/SWizardBox';
 import {
   companyFlowCompactPanelSx,
-  companyFlowCompactShortcutButtonSx,
   COMPANY_FLOW_COMPACT_SHORTCUTS_FLEX_GAP,
   COMPANY_HOME_CARDS_GRID_GAP,
 } from 'components/organisms/main/CompanyFlow/company-flow-compact-shortcuts.styles';
@@ -121,10 +120,9 @@ export const DocumentsStage = ({
             flexWrap="wrap"
           >
             {documentsStepMemo.map((actionProps) => (
-              <SActionButton
+              <CompanyWorkspaceActionButton
                 key={actionProps.text}
                 {...actionProps}
-                sx={companyFlowCompactShortcutButtonSx}
               />
             ))}
           </SFlex>
@@ -139,10 +137,9 @@ export const DocumentsStage = ({
             flexWrap="wrap"
           >
             {documentsModelsStepMemo.map((actionProps) => (
-              <SActionButton
+              <CompanyWorkspaceActionButton
                 key={actionProps.text}
                 {...actionProps}
-                sx={companyFlowCompactShortcutButtonSx}
               />
             ))}
           </SFlex>
