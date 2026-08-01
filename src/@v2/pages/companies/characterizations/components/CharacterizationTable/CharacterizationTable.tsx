@@ -35,6 +35,7 @@ import { useFetchBrowseCharaterizations } from '@v2/services/security/characteri
 import {
   characterizationSearchEmptyMessage,
   characterizationSearchErrorMessage,
+  resolveCharacterizationSearchUiState,
 } from '@v2/pages/companies/characterizations/utils/characterization-search.util';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
@@ -137,12 +138,19 @@ export const CharacterizationTable = ({
   const characterizationResults = hasWorkspaceSelected
     ? characterizations?.results || []
     : [];
-  const showSearchEmpty =
-    hasWorkspaceSelected &&
-    !isLoading &&
-    !isError &&
-    Boolean(searchTerm) &&
-    characterizationResults.length === 0;
+  const searchUiState = resolveCharacterizationSearchUiState({
+    hasWorkspaceSelected,
+    searchTerm,
+    resultCount: characterizationResults.length,
+    isLoading,
+    isFetching,
+    isError,
+    hasData: Boolean(characterizations),
+  });
+  const showSearchEmpty = searchUiState === 'empty';
+  const showSearchError = searchUiState === 'error';
+  const showSearchUpdating = searchUiState === 'updating';
+  const showInitialLoading = searchUiState === 'loading';
 
   const {
     handleCharacterizationAdd,
@@ -312,9 +320,17 @@ export const CharacterizationTable = ({
       handleCharacterizationEditStage({ ...row, stageId }),
     onEditPosition: (order, row) =>
       handleCharacterizationEditPosition({ ...row, order }),
-    data: characterizationResults,
-    isLoading: hasWorkspaceSelected ? isLoading && !characterizations : false,
-    pagination: hasWorkspaceSelected ? characterizations?.pagination : undefined,
+    data: showSearchError ? [] : characterizationResults,
+    isLoading: showInitialLoading,
+    hideEmpty:
+      showSearchError ||
+      showSearchUpdating ||
+      showInitialLoading ||
+      showSearchEmpty,
+    contentEmpty: undefined,
+    pagination: hasWorkspaceSelected && !showSearchError
+      ? characterizations?.pagination
+      : undefined,
     setPage: (page) => onFilterData({ page }),
     setOrderBy: onOrderBy,
     statusButtonProps: {
@@ -335,7 +351,7 @@ export const CharacterizationTable = ({
 
   const searchStatusAlerts = (
     <>
-      {hasWorkspaceSelected && isError ? (
+      {showSearchError ? (
         <Alert
           severity="error"
           sx={{ mb: 1.5 }}
@@ -365,7 +381,7 @@ export const CharacterizationTable = ({
           {characterizationSearchEmptyMessage(searchTerm)}
         </Alert>
       ) : null}
-      {hasWorkspaceSelected && isFetching && !(isLoading && !characterizations) ? (
+      {showSearchUpdating ? (
         <Alert severity="info" sx={{ mb: 1.5 }}>
           Atualizando resultados da pesquisa…
         </Alert>

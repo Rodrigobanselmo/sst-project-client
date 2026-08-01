@@ -13,7 +13,9 @@ export async function browseCharacterization({
   companyId,
   workspaceId,
   filters = {},
-}: BrowseCharacterizationParams) {
+}: BrowseCharacterizationParams,
+  options?: { signal?: AbortSignal },
+) {
   const response = await api.get<ICharacterizationBrowseModel>(
     bindUrlParams({
       path: CharacterizationRoutes.CHARACTERIZATION.BROWSE,
@@ -24,6 +26,7 @@ export async function browseCharacterization({
         ...filters,
       },
     }),
+    options?.signal ? { signal: options.signal } : undefined,
   );
 
   return new CharacterizationBrowseModel(response.data);
