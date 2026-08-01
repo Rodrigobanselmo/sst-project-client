@@ -43,18 +43,33 @@ import { CharacterizationTableFilter } from './components/CharacterizationTableF
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
 import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
 import { CompanyFlowV2StickySection } from 'components/organisms/main/CompanyFlow/CompanyFlowV2StickySection';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
 import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
+import { CharacterizationCargoManagerDialog } from './quick-actions/CharacterizationCargoManagerDialog';
+import { CharacterizationPhotoManagerDialog } from './quick-actions/CharacterizationPhotoManagerDialog';
+import {
+  CharacterizationRenameDialog,
+  CharacterizationTypeDialog,
+} from './quick-actions/CharacterizationRenameTypeDialogs';
+import { CHARACTERIZATION_WIZARD_STEP } from './quick-actions/characterization-wizard-steps';
 
 const table = TablesSelectEnum.CHARACTERIZATION;
 
 type CharacterizationTableProps = {
   companyFlowSticky?: boolean;
   companyFlowBelowTabs?: boolean;
-  onInlineEdit?: (row: CharacterizationBrowseResultModel) => void;
+  onInlineEdit?: (
+    row: CharacterizationBrowseResultModel,
+    options?: { wizardStep?: number },
+  ) => void;
   onInlineAdd?: () => void;
 };
+
+type QuickManagerState = {
+  row: CharacterizationBrowseResultModel;
+  preferAdd?: boolean;
+} | null;
 
 import { COMPANY_SST_PATHNAME } from 'core/constants/characterization-navigation.constants';
 
@@ -68,6 +83,12 @@ export const CharacterizationTable = ({
   onInlineAdd,
 }: CharacterizationTableProps = {}) => {
   const router = useRouter();
+  const [cargoManager, setCargoManager] = useState<QuickManagerState>(null);
+  const [photoManager, setPhotoManager] = useState<QuickManagerState>(null);
+  const [renameRow, setRenameRow] =
+    useState<CharacterizationBrowseResultModel | null>(null);
+  const [typeRow, setTypeRow] =
+    useState<CharacterizationBrowseResultModel | null>(null);
 
   const companyId = router.query.companyId as string;
   const isCharacterizationListRoute =
@@ -338,6 +359,31 @@ export const CharacterizationTable = ({
       handleCharacterizationEditStage({ ...row, stageId }),
     onEditPosition: (order, row) =>
       handleCharacterizationEditPosition({ ...row, order }),
+    onQuickRisks: (row, target) => {
+      if (!hasWorkspaceSelected) return;
+      if (target === 'ai' && row.isInactive) return;
+      const wizardStep =
+        target === 'ai'
+          ? CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS
+          : CHARACTERIZATION_WIZARD_STEP.RISKS;
+      handleCharacterizationEdit(row, { wizardStep });
+    },
+    onQuickCargos: (row, preferAdd) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      setCargoManager({ row, preferAdd });
+    },
+    onQuickPhotos: (row, preferAdd) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      setPhotoManager({ row, preferAdd });
+    },
+    onQuickRename: (row) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      setRenameRow(row);
+    },
+    onQuickType: (row) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      setTypeRow(row);
+    },
     data: showSearchError ? [] : characterizationResults,
     isLoading: showInitialLoading,
     hideEmpty:
@@ -366,6 +412,41 @@ export const CharacterizationTable = ({
     pageSizeOptions,
     onPageSizeChange,
   };
+
+  const quickActionDialogs = hasWorkspaceSelected ? (
+    <>
+      <CharacterizationCargoManagerDialog
+        open={!!cargoManager}
+        row={cargoManager?.row || null}
+        preferAdd={!!cargoManager?.preferAdd}
+        companyId={companyId}
+        workspaceId={workspaceId || ''}
+        onClose={() => setCargoManager(null)}
+      />
+      <CharacterizationPhotoManagerDialog
+        open={!!photoManager}
+        row={photoManager?.row || null}
+        preferAdd={!!photoManager?.preferAdd}
+        companyId={companyId}
+        workspaceId={workspaceId || ''}
+        onClose={() => setPhotoManager(null)}
+      />
+      <CharacterizationRenameDialog
+        open={!!renameRow}
+        row={renameRow}
+        companyId={companyId}
+        workspaceId={workspaceId || ''}
+        onClose={() => setRenameRow(null)}
+      />
+      <CharacterizationTypeDialog
+        open={!!typeRow}
+        row={typeRow}
+        companyId={companyId}
+        workspaceId={workspaceId || ''}
+        onClose={() => setTypeRow(null)}
+      />
+    </>
+  ) : null;
 
   const searchStatusAlerts = (
     <>
@@ -409,21 +490,24 @@ export const CharacterizationTable = ({
 
   if (companyFlowSticky) {
     return (
-      <CompanyFlowV2StickySection
-        belowModuleTabs={companyFlowBelowTabs}
-        chrome={tableChrome}
-        tableHeader={
-          hasWorkspaceSelected ? (
-            <SCharacterizationTable
-              {...characterizationTableProps}
-              part="header"
-            />
-          ) : null
-        }
-      >
-        {searchStatusAlerts}
-        <SCharacterizationTable {...characterizationTableProps} part="body" />
-      </CompanyFlowV2StickySection>
+      <>
+        <CompanyFlowV2StickySection
+          belowModuleTabs={companyFlowBelowTabs}
+          chrome={tableChrome}
+          tableHeader={
+            hasWorkspaceSelected ? (
+              <SCharacterizationTable
+                {...characterizationTableProps}
+                part="header"
+              />
+            ) : null
+          }
+        >
+          {searchStatusAlerts}
+          <SCharacterizationTable {...characterizationTableProps} part="body" />
+        </CompanyFlowV2StickySection>
+        {quickActionDialogs}
+      </>
     );
   }
 
@@ -432,6 +516,7 @@ export const CharacterizationTable = ({
       {tableChrome}
       {searchStatusAlerts}
       <SCharacterizationTable {...characterizationTableProps} />
+      {quickActionDialogs}
     </>
   );
 };

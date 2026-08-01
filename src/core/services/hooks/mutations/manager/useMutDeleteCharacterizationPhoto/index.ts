@@ -10,6 +10,8 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
+import { queryClient as v2QueryClient } from 'layouts/default/providers';
 
 export interface IDeleteCharacterizationPhoto {
   id: string;
@@ -74,6 +76,11 @@ export function useMutDeleteCharacterizationPhoto() {
         enqueueSnackbar('Ação realizado com sucesso', {
           variant: 'success',
         });
+
+        void v2QueryClient.invalidateQueries({
+          queryKey: [QueryKeyCharacterizationEnum.CHARACTERIZATIONS],
+        });
+
         return resp;
       },
       onError: (error: IErrorResp) => {

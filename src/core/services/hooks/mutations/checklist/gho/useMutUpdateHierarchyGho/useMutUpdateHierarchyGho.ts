@@ -2,12 +2,14 @@ import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
 
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IGho } from 'core/interfaces/api/IGho';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
+import { queryClient as v2QueryClient } from 'layouts/default/providers';
 
 import { IErrorResp } from '../../../../../errors/types';
 
@@ -60,6 +62,10 @@ export function useMutUpdateHierarchyGho() {
             predicate: (query) => {
               return query.queryKey[0] === QueryEnum.GHO && !!query.queryKey[2];
             },
+          });
+
+          void v2QueryClient.invalidateQueries({
+            queryKey: [QueryKeyCharacterizationEnum.CHARACTERIZATIONS],
           });
         }
 

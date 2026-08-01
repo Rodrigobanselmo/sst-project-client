@@ -1,7 +1,9 @@
 import { useRouter } from 'next/router';
+import { CircularProgress } from '@mui/material';
 
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
 import { SHeader } from '@v2/components/atoms/SHeader/SHeader';
+import SFlex from 'components/atoms/SFlex';
 
 import { CharacterizationEditView } from './CharacterizationEditView';
 
@@ -10,6 +12,11 @@ const CharacterizationEditPageContent = () => {
   const companyId = router.query.companyId as string;
   const workspaceId = router.query.workspaceId as string;
   const characterizationId = router.query.characterizationId as string;
+  const wizardStepRaw = router.query.wizardStep;
+  const initialWizardStep =
+    typeof wizardStepRaw === 'string' && wizardStepRaw !== ''
+      ? Number(wizardStepRaw)
+      : undefined;
 
   const onBack = () => {
     router.push(`/dashboard/empresas/${companyId}/${workspaceId}/todos`);
@@ -21,6 +28,9 @@ const CharacterizationEditPageContent = () => {
       workspaceId={workspaceId}
       characterizationId={characterizationId}
       onBack={onBack}
+      initialWizardStep={
+        Number.isFinite(initialWizardStep) ? initialWizardStep : undefined
+      }
     />
   );
 };
@@ -32,7 +42,11 @@ export const CharacterizationEditPage = () => {
     return (
       <>
         <SHeader title={'Caracterização'} />
-        <SContainer />
+        <SContainer>
+          <SFlex align="center" justify="center" sx={{ minHeight: 200, py: 8 }}>
+            <CircularProgress size={32} />
+          </SFlex>
+        </SContainer>
       </>
     );
   }

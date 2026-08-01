@@ -1,7 +1,11 @@
-import { FC } from 'react';
+import { FC, MouseEvent } from 'react';
 
 import EditIcon from 'assets/icons/SEditIcon';
+import { Box, IconButton, Tooltip } from '@mui/material';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
+import { CharacterizationQuickCountCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationQuickCountCell';
+import { CharacterizationRisksQuickCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationRisksQuickCell';
+import { INACTIVE_ACTION_TOOLTIP } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/invalidate-characterization-inventory';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
 import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
@@ -40,6 +44,11 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   onEditPosition,
   onSelectRow,
   onEditRow,
+  onQuickRisks,
+  onQuickCargos,
+  onQuickPhotos,
+  onQuickRename,
+  onQuickType,
   hiddenColumns,
   filterColumns,
   setHiddenColumns,
@@ -67,7 +76,42 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           text={columnMap[columnsEnum.NAME].label}
         />
       ),
-      row: (row) => <STextRow text={row.name} />,
+      row: (row) => (
+        <Box
+          display="flex"
+          alignItems="center"
+          gap={0.5}
+          onClick={(e: MouseEvent) => e.stopPropagation()}
+        >
+          <Box flex={1} minWidth={0}>
+            <STextRow text={row.name} />
+          </Box>
+          {onQuickRename ? (
+            <Tooltip
+              title={
+                row.isInactive
+                  ? INACTIVE_ACTION_TOOLTIP
+                  : 'Renomear elemento'
+              }
+            >
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={row.isInactive}
+                  aria-label="Renomear elemento"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!row.isInactive) onQuickRename(row);
+                  }}
+                  sx={{ p: 0.25 }}
+                >
+                  <EditIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </span>
+            </Tooltip>
+          ) : null}
+        </Box>
+      ),
     },
     {
       column: '150px',
@@ -83,12 +127,46 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           text={columnMap[columnsEnum.TYPE].label}
         />
       ),
-      row: (row) => (
-        <STextRow text={CharacterizationTypeMap[row.type].rowLabel} />
-      ),
+      row: (row) =>
+        onQuickType ? (
+          <Box onClick={(e: MouseEvent) => e.stopPropagation()}>
+            <Tooltip
+              title={
+                row.isInactive
+                  ? INACTIVE_ACTION_TOOLTIP
+                  : 'Alterar tipo do elemento'
+              }
+            >
+              <span>
+                <Box
+                  component="button"
+                  type="button"
+                  disabled={row.isInactive}
+                  onClick={() => {
+                    if (!row.isInactive) onQuickType(row);
+                  }}
+                  sx={{
+                    border: 0,
+                    background: 'none',
+                    cursor: row.isInactive ? 'not-allowed' : 'pointer',
+                    color: row.isInactive ? 'text.disabled' : 'primary.main',
+                    textDecoration: row.isInactive ? 'none' : 'underline',
+                    fontSize: 13,
+                    p: 0,
+                    textAlign: 'left',
+                  }}
+                >
+                  {CharacterizationTypeMap[row.type].rowLabel}
+                </Box>
+              </span>
+            </Tooltip>
+          </Box>
+        ) : (
+          <STextRow text={CharacterizationTypeMap[row.type].rowLabel} />
+        ),
     },
     {
-      column: '70px',
+      column: '90px',
       hidden: hiddenColumns[columnsEnum.PHOTOS],
       header: (
         <CharacterizationHeaderRow
@@ -102,9 +180,24 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           text={columnMap[columnsEnum.PHOTOS].label}
         />
       ),
-      row: (row) => (
-        <STextRow justify="center" text={String(row.photos?.length ?? 0)} />
-      ),
+      row: (row) =>
+        onQuickPhotos ? (
+          <CharacterizationQuickCountCell
+            count={(row.photos ?? []).length}
+            disabled={row.isInactive}
+            disabledReason={INACTIVE_ACTION_TOOLTIP}
+            emptyTooltip="Adicionar fotografia"
+            countTooltip="Gerenciar fotografias"
+            addTooltip="Adicionar fotografia"
+            onOpen={() => onQuickPhotos(row, false)}
+            onAdd={() => onQuickPhotos(row, true)}
+          />
+        ) : (
+          <STextRow
+            justify="center"
+            text={String(row.photos?.length ?? 0)}
+          />
+        ),
     },
     {
       column: '100px',
@@ -195,19 +288,33 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           text={columnMap[columnsEnum.RISKS].label}
         />
       ),
-      row: (row) => (
-        <STextRow
-          justify="center"
-          text={(row.risks ?? []).length || '-'}
-          tooltipTitle={
-            <div>
-              {(row.risks ?? []).map((risk) => (
-                <p key={risk.id}>{risk.name}</p>
-              ))}
-            </div>
-          }
-        />
-      ),
+      row: (row) =>
+        onQuickRisks ? (
+          <CharacterizationRisksQuickCell
+            count={(row.risks ?? []).length}
+            countTooltip={
+              (row.risks ?? []).map((risk) => risk.name).join('\n') ||
+              'Abrir Fatores de Risco'
+            }
+            onOpenFactors={() => onQuickRisks(row, 'factors')}
+            onOpenAiAnalysis={() => onQuickRisks(row, 'ai')}
+            aiDisabled={row.isInactive}
+            aiDisabledReason={INACTIVE_ACTION_TOOLTIP}
+            aiTooltip="Analisar riscos com IA"
+          />
+        ) : (
+          <STextRow
+            justify="center"
+            text={(row.risks ?? []).length || '-'}
+            tooltipTitle={
+              <div>
+                {(row.risks ?? []).map((risk) => (
+                  <p key={risk.id}>{risk.name}</p>
+                ))}
+              </div>
+            }
+          />
+        ),
     },
     {
       column: '70px',
@@ -239,7 +346,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
       ),
     },
     {
-      column: '70px',
+      column: '90px',
       hidden: hiddenColumns[columnsEnum.HIERARCHY],
       header: (
         <CharacterizationHeaderRow
@@ -256,22 +363,41 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           text={columnMap[columnsEnum.HIERARCHY].label}
         />
       ),
-      row: (row) => (
-        <STextRow
-          justify="center"
-          text={(row.hierarchies ?? []).length || '-'}
-          tooltipTitle={
-            <div>
-              {(row.hierarchies ?? []).map((hierarchy) => (
-                <p key={hierarchy.id}>
-                  ({HirarchyTypeMap[hierarchy.type]?.label || hierarchy.type}){' '}
-                  {hierarchy.name}
-                </p>
-              ))}
-            </div>
-          }
-        />
-      ),
+      row: (row) =>
+        onQuickCargos ? (
+          <CharacterizationQuickCountCell
+            count={(row.hierarchies ?? []).length}
+            disabled={row.isInactive}
+            disabledReason={INACTIVE_ACTION_TOOLTIP}
+            emptyTooltip="Adicionar cargo ao elemento"
+            countTooltip={
+              (row.hierarchies ?? [])
+                .map(
+                  (hierarchy) =>
+                    `(${HirarchyTypeMap[hierarchy.type]?.label || hierarchy.type}) ${hierarchy.name}`,
+                )
+                .join('\n') || 'Gerenciar cargos vinculados'
+            }
+            addTooltip="Adicionar cargo ao elemento"
+            onOpen={() => onQuickCargos(row, false)}
+            onAdd={() => onQuickCargos(row, true)}
+          />
+        ) : (
+          <STextRow
+            justify="center"
+            text={(row.hierarchies ?? []).length || '-'}
+            tooltipTitle={
+              <div>
+                {(row.hierarchies ?? []).map((hierarchy) => (
+                  <p key={hierarchy.id}>
+                    ({HirarchyTypeMap[hierarchy.type]?.label || hierarchy.type}){' '}
+                    {hierarchy.name}
+                  </p>
+                ))}
+              </div>
+            }
+          />
+        ),
     },
     {
       column: '180px',

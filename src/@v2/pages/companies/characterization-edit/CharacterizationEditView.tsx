@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Box, CircularProgress } from '@mui/material';
+import { Alert, Box, Button, CircularProgress } from '@mui/material';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
 import { SHeader } from '@v2/components/atoms/SHeader/SHeader';
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
@@ -16,6 +16,12 @@ import {
 
 import { IdsEnum } from 'core/enums/ids.enums';
 
+import { CharacterizationEditStepErrorBoundary } from './CharacterizationEditStepErrorBoundary';
+import {
+  canApplyCharacterizationWizardStep,
+  clampCharacterizationWizardStep,
+} from '../characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-step.util';
+
 export type CharacterizationEditViewProps = {
   companyId: string;
   workspaceId: string;
@@ -23,7 +29,32 @@ export type CharacterizationEditViewProps = {
   onBack: () => void;
   /** Sem `SHeader` global; integrado à aba de Caracterização. */
   embedded?: boolean;
+  /** Abre wizard em aba específica (0 Dados, 1 Cargos, 2 Riscos, 4 Análise IA…). */
+  initialWizardStep?: number;
+  /** Remonta o editor após falha controlada. */
+  onRetry?: () => void;
 };
+
+const EditLoadingFallback = ({
+  minHeight = 240,
+  message = 'Carregando caracterização…',
+}: {
+  minHeight?: number;
+  message?: string;
+}) => (
+  <SFlex
+    align="center"
+    justify="center"
+    direction="column"
+    gap={2}
+    sx={{ minHeight, width: '100%', py: 8 }}
+  >
+    <CircularProgress size={32} />
+    <SText color="text.secondary" fontSize={13}>
+      {message}
+    </SText>
+  </SFlex>
+);
 
 export const CharacterizationEditView = ({
   companyId,
@@ -31,9 +62,13 @@ export const CharacterizationEditView = ({
   characterizationId,
   onBack,
   embedded = false,
+  initialWizardStep,
+  onRetry,
 }: CharacterizationEditViewProps) => {
   const isNew = !characterizationId || characterizationId === 'new';
   const hasMinimumContext = !!companyId && !!workspaceId && !!characterizationId;
+  const requestedStep = clampCharacterizationWizardStep(initialWizardStep);
+  const [localRetryKey, setLocalRetryKey] = useState(0);
 
   const initialData = useMemo<Partial<typeof initialCharacterizationState>>(
     () => ({
@@ -41,7 +76,7 @@ export const CharacterizationEditView = ({
       companyId,
       workspaceId,
     }),
-    [characterizationId, companyId, workspaceId, isNew],
+    [characterizationId, companyId, workspaceId, isNew, localRetryKey],
   );
 
   const props = useEditCharacterization(undefined, {
@@ -64,56 +99,56 @@ export const CharacterizationEditView = ({
   } = props;
 
   const hasHydratedType = !!characterizationData?.type;
+  const isEditEntity = !isNew && !!characterizationData?.id;
+
+  const stepGate = canApplyCharacterizationWizardStep({
+    requestedStep,
+    hasType: hasHydratedType,
+    isEdit: isEditEntity,
+    isDetailLoading: !isNew && !!isDetailLoading,
+    isDetailError: !isNew && !!isDetailError,
+  });
+
   const shouldWaitDetail =
-    !isNew && isDetailLoading && !hasHydratedType;
-  const shouldFallbackToList =
+    hasMinimumContext &&
+    !isNew &&
+    !isDetailError &&
+    (!hasHydratedType || !stepGate.ok);
+
+  const shouldShowError =
     !hasMinimumContext || (!isNew && isDetailError && !hasHydratedType);
 
-  useEffect(() => {
-    if (!embedded) return;
-    if (!shouldFallbackToList) return;
-    onBack();
-  }, [embedded, shouldFallbackToList, onBack]);
+  const handleRetry = () => {
+    setLocalRetryKey((value) => value + 1);
+    onRetry?.();
+  };
 
   const title = isNew ? 'Nova Caracterização' : 'Editar Caracterização';
 
-  if (shouldFallbackToList) {
-    if (embedded) {
-      return null;
-    }
-
-    return (
-      <>
-        <SHeader title={'Caracterização'} />
-        <SContainer>
-          <SFlex
-            direction="column"
-            align="flex-start"
-            gap={3}
-            sx={{ py: 6, px: 2 }}
-          >
-            <SPageHeader mb={0} title={title} onBack={onBack} />
-            <SText color="text.secondary">
-              Não foi possível carregar os dados da caracterização. Volte para a
-              lista e tente novamente.
-            </SText>
-            <SButton variant="outlined" onClick={onBack}>
-              Voltar para a lista
-            </SButton>
-          </SFlex>
-        </SContainer>
-      </>
-    );
-  }
-
-  if (shouldWaitDetail) {
-    const loadingContent = (
+  if (shouldShowError) {
+    const errorContent = (
       <SFlex
-        align="center"
-        justify="center"
-        sx={{ minHeight: 200, width: '100%', py: 8 }}
+        direction="column"
+        align="flex-start"
+        gap={3}
+        sx={{ py: 6, px: 2, width: '100%', minHeight: 280 }}
       >
-        <CircularProgress size={32} />
+        {embedded ? (
+          <SPageHeader mb={0} title={title} onBack={onBack} />
+        ) : (
+          <SPageHeader mb={0} title={title} onBack={onBack} />
+        )}
+        <Alert severity="error" sx={{ width: '100%' }}>
+          Não foi possível carregar os dados da caracterização.
+        </Alert>
+        <SFlex gap={2} flexWrap="wrap">
+          <Button variant="contained" onClick={handleRetry}>
+            Tentar novamente
+          </Button>
+          <Button variant="outlined" onClick={onBack}>
+            Voltar para a lista
+          </Button>
+        </SFlex>
       </SFlex>
     );
 
@@ -126,6 +161,41 @@ export const CharacterizationEditView = ({
             flexDirection: 'column',
             flex: 1,
             minHeight: 0,
+            bgcolor: 'background.paper',
+          }}
+        >
+          {errorContent}
+        </Box>
+      );
+    }
+
+    return (
+      <>
+        <SHeader title={'Caracterização'} />
+        <SContainer>{errorContent}</SContainer>
+      </>
+    );
+  }
+
+  if (shouldWaitDetail) {
+    const loadingMessage =
+      typeof initialWizardStep === 'number' && initialWizardStep > 0
+        ? 'Preparando a etapa solicitada…'
+        : 'Carregando caracterização…';
+    const loadingContent = (
+      <EditLoadingFallback minHeight={280} message={loadingMessage} />
+    );
+
+    if (embedded) {
+      return (
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            bgcolor: 'background.paper',
           }}
         >
           {loadingContent}
@@ -265,11 +335,19 @@ export const CharacterizationEditView = ({
             flexDirection: 'column',
           }}
         >
-          <ModalCharacterizationContent
-            {...props}
-            hideCharacterizationDelete
-            embedded={embedded}
-          />
+          <CharacterizationEditStepErrorBoundary
+            title="Falha ao abrir o editor da caracterização."
+            onBack={onBack}
+            onRetry={handleRetry}
+          >
+            <ModalCharacterizationContent
+              key={`char-edit-content-${localRetryKey}-${requestedStep}`}
+              {...props}
+              hideCharacterizationDelete
+              embedded={embedded}
+              initialWizardStep={requestedStep}
+            />
+          </CharacterizationEditStepErrorBoundary>
         </Box>
       </SContainer>
     </Box>
@@ -284,6 +362,7 @@ export const CharacterizationEditView = ({
           flexDirection: 'column',
           flex: 1,
           minHeight: 0,
+          bgcolor: 'background.paper',
         }}
       >
         {content}
