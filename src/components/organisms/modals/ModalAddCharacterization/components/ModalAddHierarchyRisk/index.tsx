@@ -28,6 +28,13 @@ import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IGho } from 'core/interfaces/api/IGho';
+import { ApplyCharacterizationWizardStep } from '@v2/pages/companies/characterization-edit/ApplyCharacterizationWizardStep';
+import { CharacterizationEditStepErrorBoundary } from '@v2/pages/companies/characterization-edit/CharacterizationEditStepErrorBoundary';
+import {
+  canApplyCharacterizationWizardStep,
+  clampCharacterizationWizardStep,
+} from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-step.util';
+import { CHARACTERIZATION_WIZARD_STEP } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-steps';
 
 const RiskToolForCharacterization: React.FC<{
   riskGroupId: string;
@@ -113,6 +120,7 @@ export const ModalAddHierarchyRisk = (
     mt?: number | string;
     children: ReactNode;
     embedded?: boolean;
+    initialWizardStep?: number;
   },
 ) => {
   const {
@@ -127,6 +135,7 @@ export const ModalAddHierarchyRisk = (
     data,
     query,
     embedded = false,
+    initialWizardStep,
   } = props;
   const isDisable = !data?.type;
 
@@ -136,6 +145,20 @@ export const ModalAddHierarchyRisk = (
     () => getCurrentRiskGroupId(riskGroupData),
     [riskGroupData],
   );
+
+  const requestedStep = clampCharacterizationWizardStep(initialWizardStep);
+  const stepGate = canApplyCharacterizationWizardStep({
+    requestedStep,
+    hasType: !!data?.type,
+    isEdit: !!isEdit,
+    isDetailLoading: !!isDetailLoading,
+    isDetailError: !!isDetailError,
+  });
+  // Intenção preservada; só aplica quando o detalhe está pronto.
+  // Importante: NÃO passar `active={step}` ao WizardTabs — em wizard aninhado
+  // (company-flow + editor) o goToStep contínuo pode atingir o wizard externo
+  // e desmontar Elementos Caracterizados (tela branca no 1º acesso à Análise IA).
+  const canApplyStep = stepGate.ok;
 
   return (
     <Box
@@ -151,18 +174,30 @@ export const ModalAddHierarchyRisk = (
       }}
     >
       <Wizard
+        startIndex={
+          canApplyStep ? requestedStep : CHARACTERIZATION_WIZARD_STEP.DATA
+        }
         header={
-          <WizardTabs
-            onChangeTab={(v, cb) => (!isDisable ? cb(v) : undefined)}
-            options={[
-              { label: 'Dados' },
-              { label: 'Cargos', disabled: isDisable },
-              { label: 'Fatores de Riscos', disabled: isDisable || !isEdit },
-              { label: 'Audios e Videos', disabled: isDisable },
-              { label: 'Análise IA', disabled: isDisable },
-              { label: 'Rastreabilidade Técnica', disabled: isDisable || !isEdit },
-            ]}
-          />
+          <>
+            <ApplyCharacterizationWizardStep
+              requestedStep={requestedStep}
+              enabled={canApplyStep}
+            />
+            <WizardTabs
+              onChangeTab={(v, cb) => (!isDisable ? cb(v) : undefined)}
+              options={[
+                { label: 'Dados' },
+                { label: 'Cargos', disabled: isDisable },
+                { label: 'Fatores de Riscos', disabled: isDisable || !isEdit },
+                { label: 'Audios e Videos', disabled: isDisable },
+                { label: 'Análise IA', disabled: isDisable },
+                {
+                  label: 'Rastreabilidade Técnica',
+                  disabled: isDisable || !isEdit,
+                },
+              ]}
+            />
+          </>
         }
       >
         <Box
@@ -379,7 +414,11 @@ export const ModalAddHierarchyRisk = (
             })}
           </Box>
         </Box>
-        <ModalAiAnalysisContent {...props} />
+        <CharacterizationEditStepErrorBoundary
+          title="Não foi possível abrir a Análise IA."
+        >
+          <ModalAiAnalysisContent {...props} />
+        </CharacterizationEditStepErrorBoundary>
         <ModalAiTraceabilityContent {...props} />
       </Wizard>
     </Box>

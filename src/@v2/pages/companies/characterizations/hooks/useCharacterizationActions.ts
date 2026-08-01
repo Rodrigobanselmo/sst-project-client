@@ -26,7 +26,10 @@ export interface ICharacterizationTableTableProps extends BoxProps {
 type UseCharacterizationActionsParams = {
   companyId?: string;
   workspaceId?: string;
-  onInlineEdit?: (data: CharacterizationBrowseResultModel) => void;
+  onInlineEdit?: (
+    data: CharacterizationBrowseResultModel,
+    options?: { wizardStep?: number },
+  ) => void;
   onInlineAdd?: () => void;
 };
 
@@ -61,14 +64,19 @@ export const useCharacterizationActions = ({
 
   const handleCharacterizationEdit = (
     data: CharacterizationBrowseResultModel,
+    options?: { wizardStep?: number },
   ) => {
     if (onInlineEdit) {
-      onInlineEdit(data);
+      onInlineEdit(data, options);
       return;
     }
     if (!hasWorkspaceContext) return;
+    const wizardQuery =
+      typeof options?.wizardStep === 'number'
+        ? `?wizardStep=${options.wizardStep}`
+        : '';
     router.push(
-      `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/${data.id}`,
+      `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/${data.id}${wizardQuery}`,
     );
   };
 

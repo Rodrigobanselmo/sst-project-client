@@ -43,6 +43,22 @@ export interface ICharacterizationTableTableProps {
     position: number | null,
     row: CharacterizationBrowseResultModel,
   ) => void;
+  /** Ações rápidas Fase 2 — inventário operacional na tabela. */
+  /** Contagem → Fatores de Risco; ícone IA → Análise IA. */
+  onQuickRisks?: (
+    row: CharacterizationBrowseResultModel,
+    target: 'factors' | 'ai',
+  ) => void;
+  onQuickCargos?: (
+    row: CharacterizationBrowseResultModel,
+    preferAdd?: boolean,
+  ) => void;
+  onQuickPhotos?: (
+    row: CharacterizationBrowseResultModel,
+    preferAdd?: boolean,
+  ) => void;
+  onQuickRename?: (row: CharacterizationBrowseResultModel) => void;
+  onQuickType?: (row: CharacterizationBrowseResultModel) => void;
   statusButtonProps: Pick<
     SPopperStatusProps,
     'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'
