@@ -11,8 +11,8 @@ export const useFetchBrowseCharaterizations = (
   },
 ) => {
   const { data, ...response } = useQuery({
-    queryFn: async () => {
-      return browseCharacterization(params);
+    queryFn: async ({ signal }) => {
+      return browseCharacterization(params, { signal });
     },
     queryKey: [
       QueryKeyCharacterizationEnum.CHARACTERIZATIONS,

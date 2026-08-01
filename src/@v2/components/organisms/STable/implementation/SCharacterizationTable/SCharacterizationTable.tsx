@@ -30,6 +30,8 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   filters,
   setFilters,
   isLoading,
+  hideEmpty,
+  contentEmpty,
   pagination,
   setPage,
   setOrderBy,
@@ -336,6 +338,8 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           renderBody={({ data: rowsData, rows }) => (
             <STableBody
               rows={rowsData}
+              hideEmpty={hideEmpty}
+              contentEmpty={contentEmpty}
               renderRow={(row) => (
                 <STableRow
                   status={row.isInactive ? 'inactive' : 'none'}
@@ -373,6 +377,8 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         renderBody={({ data: rowsData, rows }) => (
           <STableBody
             rows={rowsData}
+            hideEmpty={hideEmpty}
+            contentEmpty={contentEmpty}
             renderRow={(row) => {
               return (
                 <STableRow
