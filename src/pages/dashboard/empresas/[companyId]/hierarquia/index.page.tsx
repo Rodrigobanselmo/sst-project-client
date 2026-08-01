@@ -1,6 +1,8 @@
+import { Alert, Box, Button, CircularProgress, Stack } from '@mui/material';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
 import { ModalEditCard } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard';
+import { useHierarchyDeepLink } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyDeepLink';
 import { useHierarchyTreeLoad } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyTreeLoad';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
@@ -32,15 +34,78 @@ import { ModalAddActivity } from 'components/organisms/modals/ModalAddActivity';
 import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
 
 const Hierarchy: NextPage = () => {
-  const { hierarchies, company } = useHierarchyTreeLoad();
+  const {
+    hierarchies,
+    company,
+    gho,
+    isLoading,
+    isError,
+    isEmpty,
+    refetchHierarchies,
+  } = useHierarchyTreeLoad();
 
-  if (!hierarchies || !company) {
-    return null;
+  const treeReady = Boolean(
+    company && gho && hierarchies && !isLoading && !isError,
+  );
+  const { missingNodeMessage } = useHierarchyDeepLink(treeReady);
+
+  if (isLoading) {
+    return (
+      <>
+        <SHeaderTag title={'Cargos'} />
+        <Stack alignItems="center" justifyContent="center" sx={{ py: 12 }}>
+          <CircularProgress size={36} />
+          <Box sx={{ mt: 2 }}>Carregando estrutura organizacional…</Box>
+        </Stack>
+      </>
+    );
+  }
+
+  if (isError) {
+    return (
+      <>
+        <SHeaderTag title={'Cargos'} />
+        <Stack spacing={2} sx={{ p: 4, maxWidth: 560 }}>
+          <Alert severity="error">
+            Não foi possível carregar a estrutura organizacional.
+          </Alert>
+          <Button
+            variant="contained"
+            onClick={() => {
+              void refetchHierarchies?.();
+            }}
+          >
+            Tentar novamente
+          </Button>
+        </Stack>
+      </>
+    );
+  }
+
+  if (!company) {
+    return (
+      <>
+        <SHeaderTag title={'Cargos'} />
+        <Alert severity="warning" sx={{ m: 4 }}>
+          Empresa não disponível para carregar a estrutura organizacional.
+        </Alert>
+      </>
+    );
   }
 
   return (
     <>
       <SHeaderTag title={'Cargos'} />
+      {isEmpty ? (
+        <Alert severity="info" sx={{ m: 2 }}>
+          Nenhuma estrutura organizacional cadastrada neste estabelecimento.
+        </Alert>
+      ) : null}
+      {missingNodeMessage ? (
+        <Alert severity="warning" sx={{ m: 2 }}>
+          {missingNodeMessage}
+        </Alert>
+      ) : null}
       <STFlexContainer>
         <OrgTreeComponent horizontal />
         <ModalAddRisk />

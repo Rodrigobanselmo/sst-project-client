@@ -53,7 +53,16 @@ export function resolveReviewHref(params: {
     return `${base}?tabWorkspaceId=${encodeURIComponent(workspaceId)}`;
   }
   if (cta === 'HIERARCHY') {
-    return RoutesEnum.HIERARCHY.replace(':companyId', companyId);
+    const base = RoutesEnum.HIERARCHY.replace(':companyId', companyId);
+    if (!workspaceId) return base;
+    const query = new URLSearchParams({
+      tabWorkspaceId: workspaceId,
+    });
+    if (entityId && recommendation?.primaryEntityType === 'HIERARCHY') {
+      query.set('hierarchyId', entityId);
+      query.set('openCard', '1');
+    }
+    return `${base}?${query.toString()}`;
   }
   if (cta === 'EMPLOYEES') {
     return RoutesEnum.EMPLOYEES.replace(':companyId', companyId);
@@ -78,7 +87,16 @@ export function resolveReviewHref(params: {
   }
 
   if (hint === 'HIERARCHY') {
-    return RoutesEnum.HIERARCHY.replace(':companyId', companyId);
+    const base = RoutesEnum.HIERARCHY.replace(':companyId', companyId);
+    if (!workspaceId) return base;
+    const query = new URLSearchParams({
+      tabWorkspaceId: workspaceId,
+    });
+    if (entityId && recommendation?.primaryEntityType === 'HIERARCHY') {
+      query.set('hierarchyId', entityId);
+      query.set('openCard', '1');
+    }
+    return `${base}?${query.toString()}`;
   }
   if (hint === 'GHO') {
     const base = RoutesEnum.GHOS.replace(':companyId', companyId);

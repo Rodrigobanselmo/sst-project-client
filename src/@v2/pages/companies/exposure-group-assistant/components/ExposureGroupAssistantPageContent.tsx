@@ -518,6 +518,16 @@ export function ExposureGroupAssistantPageContent({
                                   : ''}
                                 {rec.primaryEntityName || rec.listSummary}
                               </Typography>
+                              {rec.hierarchyPathLotacao ? (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  display="block"
+                                  title={rec.hierarchyPathDisplay}
+                                >
+                                  Lotação: {rec.hierarchyPathLotacao}
+                                </Typography>
+                              ) : null}
                               {rec.workerCoverageStats &&
                               rec.workerCoverageStats.totalWorkers > 0 ? (
                                 <Typography variant="caption" color="text.secondary">
@@ -572,6 +582,9 @@ export function ExposureGroupAssistantPageContent({
         companyId={companyId}
         workspaceId={workspaceId || undefined}
         onClose={() => setSelected(null)}
+        onDevelopedRoleDeleted={() => {
+          void refetch();
+        }}
       />
     </Box>
   );

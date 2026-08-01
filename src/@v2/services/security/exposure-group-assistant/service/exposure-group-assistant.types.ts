@@ -88,9 +88,111 @@ export type InterpretedRecommendation = {
     matchedEmployeeCount: number;
     matchedEmployeeIds: number[];
   }>;
+  hierarchyPath?: Array<{
+    hierarchyId: string;
+    hierarchyType: string;
+    typeLabel: string;
+    name: string;
+    depth: number;
+  }>;
+  hierarchyPathDisplay?: string;
+  hierarchyPathLotacao?: string;
+  hierarchyType?: string;
   affectedEntities: StructureEntityRef[];
   totalAffectedCount: number;
   affectedTruncated: boolean;
+};
+
+export type DevelopedRoleDeletionEligibility =
+  | 'ELIGIBLE_DIRECT_DELETE'
+  | 'ELIGIBLE_AFTER_EMPLOYEE_DETACH'
+  | 'BLOCKED_TECHNICAL_USE'
+  | 'BLOCKED_OTHER_REFERENCES'
+  | 'UNKNOWN';
+
+export type DevelopedRoleEmployeeDetachPlan = {
+  employeeCount: number;
+  employeeIds: string[];
+  primaryRolesPreserved: boolean;
+  employees: Array<{
+    employeeId: string;
+    employeeName: string;
+    primaryRoleId: string;
+    primaryRoleName: string;
+  }>;
+};
+
+export type DevelopedRoleDeletionAnalysis = {
+  hierarchyId: string;
+  hierarchyName: string;
+  hierarchyType: string;
+  companyId: string;
+  workspaceId: string;
+  eligibility: DevelopedRoleDeletionEligibility;
+  analysisHash: string;
+  primaryRolePreserved: boolean;
+  primaryRole: { hierarchyId: string; name: string } | null;
+  currentEmployeeCount: number;
+  employeesMissingPrimaryRoleCount: number;
+  employeeDetachPlan: DevelopedRoleEmployeeDetachPlan | null;
+  currentRiskCount: number;
+  historicalRiskEvidenceCount: number;
+  activeCharacterizationCount: number;
+  historicalCharacterizationCount: number;
+  historicalCharacterizationWithoutTechnicalUseCount: number;
+  gseCount: number;
+  documentReferenceCount: number;
+  otherBlockingReferenceCount: number;
+  auxiliaryLotacaoHistoryCount: number;
+  hierarchicalChildCount: number;
+  hierarchicalChildren: Array<{ id: string; name: string; type: string }>;
+  relatedElements: Array<{
+    id: string;
+    name: string;
+    status: string;
+    linkedVia: string;
+    hasTechnicalUse: boolean;
+    technicalUseSignals: string[];
+  }>;
+  hierarchyPath: Array<{
+    hierarchyId: string;
+    hierarchyType: string;
+    typeLabel: string;
+    name: string;
+    depth: number;
+  }>;
+  hierarchyPathDisplay: string;
+  blockingReasons: Array<{ code: string; message: string; count?: number }>;
+  warnings: string[];
+  evidenceNotes: string[];
+  analyzedAt: string;
+};
+
+export type AnalyzeDevelopedRoleDeletionParams = {
+  companyId: string;
+  workspaceId: string;
+  hierarchyId: string;
+};
+
+export const DEVELOPED_ROLE_DELETE_CONFIRMATION =
+  'DETACH_EMPLOYEES_AND_DELETE_DEVELOPED_ROLE' as const;
+
+export type DeleteDevelopedRoleParams = {
+  companyId: string;
+  workspaceId: string;
+  hierarchyId: string;
+  expectedAnalysisHash: string;
+  confirmation: typeof DEVELOPED_ROLE_DELETE_CONFIRMATION;
+};
+
+export type DeleteDevelopedRoleResult = {
+  hierarchyId: string;
+  hierarchyName: string;
+  deleted: true;
+  detachedEmployeeIds: string[];
+  primaryRolesPreserved: true;
+  relatedCharacterizationIdsPreserved: string[];
+  message: string;
 };
 
 export type CategoryConclusion = {
