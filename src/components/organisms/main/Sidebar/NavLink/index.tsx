@@ -74,7 +74,7 @@ export function NavLink({
               sx={{
                 // Recuo progressivo por nível, aplicado apenas com a sidebar
                 // aberta para não prejudicar a sidebar recolhida (rail).
-                // Nível 1 (Banco de dados): 1rem (padrão do px=8).
+                // Nível 1 (seção com submenu, ex. Bibliotecas): 1rem (px=8).
                 // Nível 2 (isMenuPeer): ~3rem, com marcador bullet (•).
                 // Nível 3 (deep): ~4.5rem, com marcador dash (–), claramente
                 // mais à direita do pai.

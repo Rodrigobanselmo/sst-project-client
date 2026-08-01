@@ -42,6 +42,7 @@ import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import ListAltIcon from 'assets/icons/SProtocolIcon';
+import type { SidebarSectionId } from 'core/hooks/useSidebarSectionExpansion.util';
 
 export interface IDrawerBase {
   text: string;
@@ -89,7 +90,18 @@ export interface IDrawerItems extends IDrawerBase {
 }
 
 export interface IDrawerSection {
-  data: IDrawerBase;
+  data: IDrawerBase & {
+    /**
+     * Quando true, a seção é renderizada sem título (ex.: Perfil isolado).
+     * Standalone não participa do mecanismo de expansão persistente.
+     */
+    standalone?: boolean;
+    /**
+     * Chave estável da seção principal (persistência de expansão).
+     * Ausente em itens isolados (ex.: Perfil).
+     */
+    id?: SidebarSectionId;
+  };
   items: IDrawerItems[];
 }
 
@@ -134,8 +146,8 @@ export const useDrawerItems = () => {
       shouldMatchExactHref: true,
     },
     [DrawerItemsEnum.team]: {
-      text: 'Gerenciar usuários',
-      description: 'Gerenciar usuários e suas permirssões de acesso',
+      text: 'Gerenciar Usuários',
+      description: 'Gerenciar usuários e suas permissões de acesso',
       Icon: STeamIcon,
       href: RoutesEnum.TEAM,
       shouldMatchExactHref: true,
@@ -166,8 +178,9 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.CHECKLIST],
     },
     [DrawerItemsEnum.importExportData]: {
-      text: 'Banco de dados',
-      description: 'Criação e edição das tabelas presentes no banco de dados',
+      text: 'Bibliotecas e Curadoria',
+      description:
+        'Bibliotecas, bases técnicas e curadoria do catálogo SimpleSST (MASTER)',
       Icon: SDatabaseIcon,
       href: RoutesEnum.DATABASE,
       roles: [RoleEnum.MASTER],
@@ -299,7 +312,7 @@ export const useDrawerItems = () => {
       },
     },
     [DrawerItemsEnum.allClinicsData]: {
-      text: 'Clinicas',
+      text: 'Clínicas',
       description: 'Visualizar clínicas cadastradas',
       Icon: SClinicIcon,
       href: RoutesEnum.CLINICS,
@@ -311,7 +324,7 @@ export const useDrawerItems = () => {
       },
     },
     [DrawerItemsEnum.oneClinicsData]: {
-      text: 'Clinica',
+      text: 'Clínica',
       description: 'Visualizar clínica',
       Icon: SClinicIcon,
       href: RoutesEnum.CLINIC,
@@ -333,12 +346,17 @@ export const useDrawerItems = () => {
       },
     },
     [DrawerItemsEnum.companyHome]: {
+      /**
+       * Home extra (MASTER/consultoria + empresa na rota).
+       * Funcionalmente aponta para a mesma rota de Dados da Empresa
+       * (`COMPANY_EDIT`). Mantido nesta fase para evitar regressão de
+       * descoberta; candidato a remoção futura quando a IA estiver estável.
+       */
       text: 'Home',
-      description: 'Tela operacional principal da empresa selecionada',
+      description:
+        'Atalho operacional da empresa selecionada (sobreposição com Dados da Empresa — remoção futura)',
       Icon: SCompanyIcon,
-      // rota real do fluxo operacional (precisa de `:stage`)
       href: RoutesEnum.COMPANY_EDIT,
-      // matcher por prefixo para ficar ativo em qualquer stage
       activePrefix: RoutesEnum.COMPANY.replace('/:stage', ''),
       roles: [RoleEnum.CONTRACTS],
       shouldMatchExactHref: false,
@@ -384,7 +402,7 @@ export const useDrawerItems = () => {
       },
     },
     [DrawerItemsEnum.actionPlan]: {
-      text: 'Plano de ação',
+      text: 'Plano de Ação',
       description: 'Gerenciamento do Plano de Ação (PGR)',
       Icon: SActionPlanIcon,
       href: RoutesEnum.ACTION_PLAN,
@@ -413,7 +431,7 @@ export const useDrawerItems = () => {
       shouldMatchExactHref: true,
     },
     [DrawerItemsEnum.episAndCa]: {
-      text: 'EPIs e CA',
+      text: 'EPI e CA',
       description:
         'Consulta da base de EPIs e Certificados de Aprovação (CAEPI/MTE)',
       Icon: SEpiIcon,
@@ -492,7 +510,7 @@ export const useDrawerItems = () => {
       },
     },
     [DrawerItemsEnum.block]: {
-      text: 'Bloqueio de agenda',
+      text: 'Bloqueio de Agenda',
       description:
         'Bloquear a agenda de clínicas em caso de feriados ou adversidades',
       Icon: SScheduleBlockIcon,
@@ -503,7 +521,7 @@ export const useDrawerItems = () => {
     },
     [DrawerItemsEnum.report]: {
       text: 'Relatórios',
-      description: 'Gerar relatórios ',
+      description: 'Gerar relatórios administrativos',
       Icon: SReportIcon,
       onClick: () =>
         onStackOpenModal(
@@ -514,8 +532,9 @@ export const useDrawerItems = () => {
       shouldMatchExactHref: false,
     },
     [DrawerItemsEnum.employee]: {
-      text: 'Funcionários',
-      description: 'Visualização de funcionários da empresa',
+      // Legado /empregados — não entra mais na sidebar (canônico: Gestão → Funcionários).
+      text: 'Funcionários (legado)',
+      description: 'Rota legada /empregados — não renderizada na sidebar',
       Icon: SEmployeeIcon,
       roles: [RoleEnum.COMPANY, RoleEnum.CONTRACTS, RoleEnum.EMPLOYEE],
       permissions: [PermissionEnum.EMPLOYEE],
@@ -526,13 +545,15 @@ export const useDrawerItems = () => {
       href: RoutesEnum.EMPLOYEES,
     },
     [DrawerItemsEnum.registers]: {
+      // Grupo antigo sob Atalhos — seção Cadastros Técnicos substitui.
       text: 'Cadastro',
-      description: 'cadastro de tabelas da empresa',
+      description: 'Grupo legado (não renderizado como seção)',
       roles: [RoleEnum.COMPANY, RoleEnum.CONTRACTS, RoleEnum.EMPLOYEE],
     },
     [DrawerItemsEnum.actions]: {
+      // Grupo antigo sob Atalhos — Administração / Perfil substituem.
       text: 'Ações Rápidas',
-      description: 'Atalhos para outras funcionalidades',
+      description: 'Grupo legado (não renderizado como seção)',
       roles: [RoleEnum.COMPANY, RoleEnum.CONTRACTS, RoleEnum.EMPLOYEE],
     },
 
@@ -562,105 +583,123 @@ export const useDrawerItems = () => {
 
   const onFilterBase = (item: IDrawerBase) => onAccessFilterBase(item, company);
 
+  /** Filtra a árvore recursivamente; remove pais sem filhos e sem ação própria. */
+  const filterItemsRecursive = (drawerItems: IDrawerItems[]): IDrawerItems[] => {
+    return drawerItems.reduce<IDrawerItems[]>((acc, item) => {
+      if (!onFilterBase(item)) return acc;
+
+      const children = item.items
+        ? filterItemsRecursive(item.items)
+        : undefined;
+
+      if (item.items) {
+        const hasOwnAction = Boolean(item.href || item.onClick);
+        if ((!children || children.length === 0) && !hasOwnAction) {
+          return acc;
+        }
+        acc.push({ ...item, items: children });
+        return acc;
+      }
+
+      acc.push(item);
+      return acc;
+    }, []);
+  };
+
   const onFilterSections = (sections: IDrawerSection[]) => {
     return sections
       .filter((section) => onFilterBase(section.data))
-      .map((section) => {
-        return {
-          ...section,
-          items: section.items.filter((item) => onFilterBase(item)),
-        };
-      });
+      .map((section) => ({
+        ...section,
+        items: filterItemsRecursive(section.items),
+      }))
+      .filter((section) => section.items.length > 0);
   };
+
+  /** Árvore MASTER de bibliotecas/curadoria (antes sob Geral → Banco de dados). */
+  const librariesTree: IDrawerItems[] = [
+    items[DrawerItemsEnum.catalogEquivalences],
+    items[DrawerItemsEnum.frpsExplainabilityLibrary],
+    ...(featureFlags.examRiskRuleLibrary
+      ? [
+          {
+            ...items[DrawerItemsEnum.systemStandardsGroup],
+            items: [
+              items[DrawerItemsEnum.examRiskRules],
+              ...(featureFlags.riskSubTypeCuration
+                ? [items[DrawerItemsEnum.riskSubTypeCuration]]
+                : []),
+            ],
+          },
+        ]
+      : featureFlags.riskSubTypeCuration
+        ? [
+            {
+              ...items[DrawerItemsEnum.systemStandardsGroup],
+              items: [items[DrawerItemsEnum.riskSubTypeCuration]],
+            },
+          ]
+        : []),
+    {
+      ...items[DrawerItemsEnum.curationBasesGroup],
+      items: [
+        items[DrawerItemsEnum.biologicalIndicators],
+        ...(featureFlags.acgihBeiIndicators
+          ? [items[DrawerItemsEnum.acgihBeiIndicators]]
+          : []),
+        ...(featureFlags.esocialProcedureCuration
+          ? [items[DrawerItemsEnum.esocialProcedures]]
+          : []),
+      ],
+    },
+    ...(featureFlags.acgihBeiComparison ||
+    featureFlags.acgihBeiPromotionPreview ||
+    featureFlags.acgihBeiRiskCorrelation
+      ? [
+          {
+            ...items[DrawerItemsEnum.eligibilityAnalysisGroup],
+            items: [
+              ...(featureFlags.acgihBeiComparison
+                ? [items[DrawerItemsEnum.acgihBeiComparison]]
+                : []),
+              ...(featureFlags.acgihBeiPromotionPreview
+                ? [items[DrawerItemsEnum.acgihBeiPromotionPreview]]
+                : []),
+              ...(featureFlags.acgihBeiRiskCorrelation
+                ? [items[DrawerItemsEnum.acgihBeiRiskCorrelation]]
+                : []),
+            ],
+          },
+        ]
+      : []),
+  ];
 
   const general: IDrawerSection = {
     data: {
-      search: 'Geral principal dashboard home',
+      id: 'general',
+      search: 'Geral principal dashboard home empresas agenda clinicas',
       text: 'Geral',
       roles: [],
     },
     items: [
       items[DrawerItemsEnum.dashboard],
+      // Home extra: só MASTER/consultoria com empresa na rota (ver comment no item).
       ...(isMasterAdmin || company.isConsulting
         ? hasActiveCompanyInRoute
           ? [items[DrawerItemsEnum.companyHome]]
           : []
         : []),
-      items[DrawerItemsEnum.documents],
-      items[DrawerItemsEnum.team],
       items[DrawerItemsEnum.schedule],
       items[DrawerItemsEnum.oneClinicsData],
       items[DrawerItemsEnum.allClinicsData],
-      // Lista legada /empregados — a entrada canônica fica em Gestão da Empresa
-      items[DrawerItemsEnum.employee],
-      {
-        ...items[DrawerItemsEnum.importExportData],
-        items: [
-          items[DrawerItemsEnum.catalogEquivalences],
-          items[DrawerItemsEnum.frpsExplainabilityLibrary],
-          // Padrões do sistema → bases efetivamente usadas como padrão SimpleSST.
-          ...(featureFlags.examRiskRuleLibrary
-            ? [
-                {
-                  ...items[DrawerItemsEnum.systemStandardsGroup],
-                  items: [
-                    items[DrawerItemsEnum.examRiskRules],
-                    ...(featureFlags.riskSubTypeCuration
-                      ? [items[DrawerItemsEnum.riskSubTypeCuration]]
-                      : []),
-                  ],
-                },
-              ]
-            : featureFlags.riskSubTypeCuration
-              ? [
-                  {
-                    ...items[DrawerItemsEnum.systemStandardsGroup],
-                    items: [items[DrawerItemsEnum.riskSubTypeCuration]],
-                  },
-                ]
-              : []),
-          // Bases de curadoria → fontes técnicas/oficiais (matéria-prima).
-          {
-            ...items[DrawerItemsEnum.curationBasesGroup],
-            items: [
-              items[DrawerItemsEnum.biologicalIndicators],
-              ...(featureFlags.acgihBeiIndicators
-                ? [items[DrawerItemsEnum.acgihBeiIndicators]]
-                : []),
-              ...(featureFlags.esocialProcedureCuration
-                ? [items[DrawerItemsEnum.esocialProcedures]]
-                : []),
-            ],
-          },
-          // Análises de elegibilidade → comparações que apoiam a decisão de padrão.
-          ...(featureFlags.acgihBeiComparison ||
-          featureFlags.acgihBeiPromotionPreview ||
-          featureFlags.acgihBeiRiskCorrelation
-            ? [
-                {
-                  ...items[DrawerItemsEnum.eligibilityAnalysisGroup],
-                  items: [
-                    ...(featureFlags.acgihBeiComparison
-                      ? [items[DrawerItemsEnum.acgihBeiComparison]]
-                      : []),
-                    ...(featureFlags.acgihBeiPromotionPreview
-                      ? [items[DrawerItemsEnum.acgihBeiPromotionPreview]]
-                      : []),
-                    ...(featureFlags.acgihBeiRiskCorrelation
-                      ? [items[DrawerItemsEnum.acgihBeiRiskCorrelation]]
-                      : []),
-                  ],
-                },
-              ]
-            : []),
-        ],
-      },
     ],
   };
 
   const companyManagement: IDrawerSection = {
     data: {
-      search: 'Gestão da Empresa dados funcionários caracterização programas',
+      id: 'companyManagement',
+      search:
+        'Gestão da Empresa dados funcionários caracterização programas acervo',
       text: COMPANY_MANAGEMENT_SIDEBAR_SECTION_LABEL,
       roles: [],
       showIf: {
@@ -677,13 +716,16 @@ export const useDrawerItems = () => {
             items[DrawerItemsEnum.companyManagementEmployees],
             items[DrawerItemsEnum.companyManagementCharacterization],
             items[DrawerItemsEnum.companyManagementDocuments],
+            // Duplicidade intencional com a navegação contextual do workspace.
+            items[DrawerItemsEnum.documents],
           ],
   };
 
-  const launches: IDrawerSection = {
+  const operations: IDrawerSection = {
     data: {
-      search: 'Lançamentos',
-      text: 'Lançamentos',
+      id: 'operations',
+      search: 'Operações formulários plano ação absenteísmo cat esocial',
+      text: 'Operações',
       roles: [],
       showIf: {
         isCompany: true,
@@ -699,44 +741,72 @@ export const useDrawerItems = () => {
     ],
   };
 
-  const snippets: IDrawerSection = {
+  const technicalRegisters: IDrawerSection = {
     data: {
-      search: 'Atalhos',
-      text: 'Atalhos',
+      id: 'technicalRegistrations',
+      search:
+        'Cadastros Técnicos fatores risco métodos higiene exames epi profissionais',
+      text: 'Cadastros Técnicos',
       roles: [],
     },
     items: [
+      items[DrawerItemsEnum.risks],
       {
-        ...items[DrawerItemsEnum.registers],
-        items: [
-          items[DrawerItemsEnum.risks],
-          {
-            ...items[DrawerItemsEnum.hoMethodsGroup],
-            items: [items[DrawerItemsEnum.hoMethods]],
-          },
-          items[DrawerItemsEnum.exams],
-          items[DrawerItemsEnum.episAndCa],
-          items[DrawerItemsEnum.professionals],
-        ],
+        ...items[DrawerItemsEnum.hoMethodsGroup],
+        items: [items[DrawerItemsEnum.hoMethods]],
       },
-      {
-        ...items[DrawerItemsEnum.actions],
-        items: [
-          items[DrawerItemsEnum.block],
-          items[DrawerItemsEnum.report],
-          items[DrawerItemsEnum.accessGroups],
-          items[DrawerItemsEnum.profile],
-        ],
-      },
+      items[DrawerItemsEnum.exams],
+      items[DrawerItemsEnum.episAndCa],
+      items[DrawerItemsEnum.professionals],
     ],
+  };
+
+  const librariesAndCuration: IDrawerSection = {
+    data: {
+      id: 'librariesAndCuration',
+      search: 'Bibliotecas Curadoria banco dados MASTER',
+      text: 'Bibliotecas e Curadoria',
+      roles: [RoleEnum.MASTER],
+    },
+    items: librariesTree,
+  };
+
+  const administration: IDrawerSection = {
+    data: {
+      id: 'administration',
+      search:
+        'Administração usuários permissões bloqueio agenda relatórios',
+      text: 'Administração',
+      roles: [],
+    },
+    items: [
+      items[DrawerItemsEnum.team],
+      items[DrawerItemsEnum.accessGroups],
+      items[DrawerItemsEnum.block],
+      items[DrawerItemsEnum.report],
+    ],
+  };
+
+  /** Perfil isolado — sem título de seção expansível. */
+  const profile: IDrawerSection = {
+    data: {
+      search: 'Perfil usuário',
+      text: 'Perfil',
+      standalone: true,
+      roles: [],
+    },
+    items: [items[DrawerItemsEnum.profile]],
   };
 
   return {
     sections: onFilterSections([
       general,
       companyManagement,
-      launches,
-      snippets,
+      operations,
+      technicalRegisters,
+      librariesAndCuration,
+      administration,
+      profile,
     ]),
   };
 };
