@@ -38,7 +38,9 @@ import {
   COMPANY_SST_STAGE,
   getAssistenteGseNavStep,
   getCharacterizationSubareaNavItems,
+  getChemicalProductsHref,
 } from 'core/constants/characterization-navigation.constants';
+import { CharacterizationSummarySection } from 'components/organisms/main/CompanyFlow/CharacterizationSummarySection';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   enrichPickableWorkspaces,
@@ -162,6 +164,7 @@ export function ExposureGroupAssistantPageContent({
 
   return (
     <Box>
+      <CharacterizationSummarySection />
       <CompanyFlowStickySubheader>
         <STabs
           shadow
@@ -173,7 +176,10 @@ export function ExposureGroupAssistantPageContent({
             if (item.kind === 'external' && item.id === 'assistente-gse') return;
             if (item.kind === 'external' && item.id === 'chemical-products') {
               void router.push(
-                `/dashboard/empresas/${companyId}/produtos-quimicos?tabWorkspaceId=${workspaceId || ''}`,
+                getChemicalProductsHref({
+                  companyId,
+                  tabWorkspaceId: workspaceId || undefined,
+                }),
               );
               return;
             }
