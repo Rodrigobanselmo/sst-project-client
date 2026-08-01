@@ -54,6 +54,7 @@ export enum RoutesEnum {
   RISKS = '/dashboard/empresas/:companyId/fatores-riscos',
   HO_METHODS = '/dashboard/empresas/:companyId/metodos-ho',
   CHEMICAL_PRODUCTS = '/dashboard/empresas/:companyId/produtos-quimicos',
+  EXPOSURE_GROUP_ASSISTANT = '/dashboard/empresas/:companyId/assistente-gse',
   RISK_EDIT = '/dashboard/empresas/:companyId/fatores-riscos/:riskId/edit',
   RISK_DATA = '/dashboard/empresas/:companyId/hierarquia?riskGroupId=:riskGroupId',
   SCHEDULE = '/dashboard/empresas/:companyId/agenda',

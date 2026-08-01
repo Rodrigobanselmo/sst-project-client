@@ -1,5 +1,6 @@
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+
 import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
-import { useFetch } from '@v2/hooks/api/useFetch';
 import { browseCharacterization } from '../service/browse-characterization.service';
 import { BrowseCharacterizationParams } from '../service/browse-characterization.types';
 
@@ -9,7 +10,7 @@ export const useFetchBrowseCharaterizations = (
     enabled?: boolean;
   },
 ) => {
-  const { data, ...response } = useFetch({
+  const { data, ...response } = useQuery({
     queryFn: async () => {
       return browseCharacterization(params);
     },
@@ -21,6 +22,7 @@ export const useFetchBrowseCharaterizations = (
     ],
     enabled: options?.enabled ?? true,
     refetchOnMount: true,
+    placeholderData: keepPreviousData,
   });
 
   return {

@@ -14,6 +14,7 @@ import { IGho } from 'core/interfaces/api/IGho';
 import { matchesWorkspaceFilter } from 'core/utils/matches-workspace-filter.util';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
+import { characterizationDisplayName } from 'core/utils/risk-linkage-guards.util';
 import { GhoFilter } from './constants/filters';
 import { IGHOTypeSelectProps } from './types';
 
@@ -75,7 +76,9 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
         if (ghoData.name)
           name =
             name +
-            (!isGho ? ghoData.description.split('(//)')[0] : ghoData.name);
+            (!isGho
+              ? characterizationDisplayName(ghoData.description, ghoData.name)
+              : ghoData.name);
 
         return name;
       }
@@ -110,7 +113,9 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
 
         return {
           ...gho,
-          name: gho.type ? gho.description.split('(//)')[0] : gho.name,
+          name: gho.type
+            ? characterizationDisplayName(gho.description, gho.name)
+            : gho.name,
         };
       })
       .filter((h) => (h.type || HomoTypeEnum.GSE) === activeFilters[0])

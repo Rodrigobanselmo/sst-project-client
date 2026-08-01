@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 
-import { Box } from '@mui/material';
+import { Alert, Box, Button } from '@mui/material';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
@@ -32,6 +32,10 @@ import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/characterization/browse-characterization/hooks/useFetchBrowseCharacterization';
+import {
+  characterizationSearchEmptyMessage,
+  characterizationSearchErrorMessage,
+} from '@v2/pages/companies/characterizations/utils/characterization-search.util';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
 import { CharacterizationTableFilter } from './components/CharacterizationTableFilter/CharacterizationTableFilter';
@@ -91,7 +95,13 @@ export const CharacterizationTable = ({
     defaultLimit,
   } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_CHARACTERIZATION);
 
-  const { characterizations, isLoading } = useFetchBrowseCharaterizations(
+  const {
+    characterizations,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useFetchBrowseCharaterizations(
     {
       companyId,
       workspaceId: workspaceId || '',
@@ -122,6 +132,17 @@ export const CharacterizationTable = ({
       enabled: hasWorkspaceSelected && isWorkspaceFilterReady,
     },
   );
+
+  const searchTerm = String(queryParams.search || '').trim();
+  const characterizationResults = hasWorkspaceSelected
+    ? characterizations?.results || []
+    : [];
+  const showSearchEmpty =
+    hasWorkspaceSelected &&
+    !isLoading &&
+    !isError &&
+    Boolean(searchTerm) &&
+    characterizationResults.length === 0;
 
   const {
     handleCharacterizationAdd,
@@ -202,7 +223,7 @@ export const CharacterizationTable = ({
     <>
       <STableSearch
         search={queryParams.search}
-        onSearch={(search) => onFilterData({ search })}
+        onSearch={(search) => onFilterData({ search, page: 1 })}
       >
         <STableSearchContent>
           {hasWorkspaceSelected && (
@@ -291,8 +312,8 @@ export const CharacterizationTable = ({
       handleCharacterizationEditStage({ ...row, stageId }),
     onEditPosition: (order, row) =>
       handleCharacterizationEditPosition({ ...row, order }),
-    data: hasWorkspaceSelected ? characterizations?.results : [],
-    isLoading: hasWorkspaceSelected ? isLoading : false,
+    data: characterizationResults,
+    isLoading: hasWorkspaceSelected ? isLoading && !characterizations : false,
     pagination: hasWorkspaceSelected ? characterizations?.pagination : undefined,
     setPage: (page) => onFilterData({ page }),
     setOrderBy: onOrderBy,
@@ -312,6 +333,46 @@ export const CharacterizationTable = ({
     onPageSizeChange,
   };
 
+  const searchStatusAlerts = (
+    <>
+      {hasWorkspaceSelected && isError ? (
+        <Alert
+          severity="error"
+          sx={{ mb: 1.5 }}
+          action={
+            <Button color="inherit" size="small" onClick={() => refetch()}>
+              Tentar novamente
+            </Button>
+          }
+        >
+          {characterizationSearchErrorMessage()}
+        </Alert>
+      ) : null}
+      {showSearchEmpty ? (
+        <Alert
+          severity="info"
+          sx={{ mb: 1.5 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => onFilterData({ search: '', page: 1 })}
+            >
+              Limpar pesquisa
+            </Button>
+          }
+        >
+          {characterizationSearchEmptyMessage(searchTerm)}
+        </Alert>
+      ) : null}
+      {hasWorkspaceSelected && isFetching && !(isLoading && !characterizations) ? (
+        <Alert severity="info" sx={{ mb: 1.5 }}>
+          Atualizando resultados da pesquisa…
+        </Alert>
+      ) : null}
+    </>
+  );
+
   if (companyFlowSticky) {
     return (
       <CompanyFlowV2StickySection
@@ -326,6 +387,7 @@ export const CharacterizationTable = ({
           ) : null
         }
       >
+        {searchStatusAlerts}
         <SCharacterizationTable {...characterizationTableProps} part="body" />
       </CompanyFlowV2StickySection>
     );
@@ -334,6 +396,7 @@ export const CharacterizationTable = ({
   return (
     <>
       {tableChrome}
+      {searchStatusAlerts}
       <SCharacterizationTable {...characterizationTableProps} />
     </>
   );

@@ -12,6 +12,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
+import { coerceRiskDataList } from 'core/utils/risk-linkage-guards.util';
 
 import { useListHierarchy } from '../../../../hooks/useListHierarchy';
 import { SideRow } from '../../../SideRow';
@@ -81,6 +82,9 @@ export const RiskToolRiskHierarchyView: FC<
         if ([TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(gho.type))
           return null;
 
+        const safeRiskData = coerceRiskDataList(riskData);
+        const ghoHomoId = String(gho.id).split('//')[0];
+
         return (
           <SideRow
             key={gho.id}
@@ -92,20 +96,17 @@ export const RiskToolRiskHierarchyView: FC<
             selectedGhoId={selectedGhoId}
             isDeleteLoading={isDeleteLoading}
             isRiskOpen={isRiskOpen}
-            // riskData={(gho as any).riskData}
             riskGroupId={riskGroupId}
-            riskDataAll={riskData
+            riskDataAll={[...safeRiskData]
               .sort((a, b) =>
                 sortDate(
                   b.endDate || new Date('3000-01-01T00:00:00.00Z'),
                   a.endDate || new Date('3000-01-01T00:00:00.00Z'),
                 ),
               )
-              .filter(
-                (data) => data.homogeneousGroupId == gho.id.split('//')[0],
-              )}
-            riskData={riskData.find(
-              (data) => data.homogeneousGroupId == gho.id.split('//')[0],
+              .filter((data) => data.homogeneousGroupId == ghoHomoId)}
+            riskData={safeRiskData.find(
+              (data) => data.homogeneousGroupId == ghoHomoId,
             )}
           />
         );

@@ -105,7 +105,10 @@ export const HierarchySelect: FC<
       .filter(
         (h) =>
           h.type === activeFilters[0] &&
-          (!parentId || (parentId && h.parents.find((p) => p.id === parentId))) &&
+          (!parentId ||
+            (parentId &&
+              Array.isArray(h.parents) &&
+              h.parents.find((p) => p.id === parentId))) &&
           matchesWorkspaceFilter(workspaceId, h.workspaceIds),
       );
 

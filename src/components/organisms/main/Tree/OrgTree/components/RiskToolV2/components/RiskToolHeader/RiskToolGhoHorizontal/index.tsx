@@ -87,7 +87,7 @@ export const getSelectedHierarchy = ({
   selected: IGho | IHierarchy | IHierarchyTreeMapObject | null;
 }) => {
   if (selected && 'description' in selected && selected.description) {
-    const splitValues = selected.description.split('(//)');
+    const splitValues = String(selected.description).split('(//)');
     if (splitValues[1]) {
       return {
         name: splitValues[0],
@@ -222,21 +222,20 @@ export const RiskToolGhoHorizontal: FC<
       );
 
       if (handleSelectGHO) {
-        const isGho = 'hierarchyOnHomogeneous' in data;
-        if (isGho) {
+        if (viewDataType === ViewsDataEnum.HIERARCHY) {
+          handleSelectGHO(data as any, [(data as IHierarchy).id]);
+        } else {
           const hierarchies =
             (data as IGho).hierarchyOnHomogeneous?.map(
               (h) => h.hierarchyId,
             ) || [];
           handleSelectGHO(data as IGho, hierarchies);
-        } else {
-          handleSelectGHO(data as any, [(data as IHierarchy).id]);
         }
       }
 
       if (inputRef && inputRef.current) inputRef.current.value = '';
     },
-    [inputRef, dispatch, handleSelectGHO],
+    [inputRef, dispatch, handleSelectGHO, viewDataType],
   );
 
   const { name, type } = getSelectedHierarchy({ selected, viewDataType });

@@ -15,6 +15,7 @@ import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IGho } from 'core/interfaces/api/IGho';
+import { characterizationDisplayName } from 'core/utils/risk-linkage-guards.util';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { ViewsDataEnum } from '../../../../utils/view-data-type.constant';
@@ -61,7 +62,7 @@ export const RiskToolGhoItem: FC<
   if (topText === undefined) return null;
 
   const searchName = Object.values(HomoTypeEnum).includes((gho as any).type)
-    ? (gho as any).description.split('(//)')[0] + topText
+    ? characterizationDisplayName((gho as any).description, gho.name) + topText
     : gho.name;
 
   if (

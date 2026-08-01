@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useMemo } from 'react';
 
-import { Box, LinearProgress } from '@mui/material';
+import { Box, Button, LinearProgress } from '@mui/material';
 import SText from 'components/atoms/SText';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { selectGhoFilter } from 'store/reducers/hierarchy/ghoSlice';
@@ -16,6 +16,10 @@ import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
 import { effectiveRiskOrderForGSEGrid } from 'core/utils/sorts/risk-gse-grid-order';
 import { sortNumber } from 'core/utils/sorts/number.sort';
+import {
+  RISK_LINKAGE_LOAD_ERROR_MESSAGE,
+  riskLinkageEmptyMessage,
+} from 'core/utils/risk-linkage-guards.util';
 
 import { useRiskRowsExpandOptional } from './RiskRowsExpandContext';
 import { RiskToolGSEViewRow } from './Row';
@@ -35,38 +39,35 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
     [selectedGho?.id],
   );
 
-  //! performance optimization here
-  const { data: riskDataQuery, isLoading: isRiskGhoLoading } =
-    useQueryRiskDataByGho(riskGroupId as string, homoId);
-
-  // const representAllRiskData: [IRiskData, IRiskFactors][] = [
-  //   [{ riskId: '78fad211-7395-4a98-bc72-2954ce487006' }],
-  // ];
+  const {
+    data: riskDataQuery,
+    isLoading: isRiskGhoLoading,
+    isError: isRiskGhoError,
+    refetch: refetchRiskGho,
+  } = useQueryRiskDataByGho(riskGroupId as string, homoId);
 
   const riskOrderedData = useMemo(() => {
-    if (!riskDataQuery) return [];
+    if (!Array.isArray(riskDataQuery)) return [];
 
-    //! if other company adds a risk it does not appear for me
     const risk = queryClient.getQueryData([
       QueryEnum.RISK,
       userCompanyId,
-    ]) as IRiskFactors[];
+    ]) as IRiskFactors[] | undefined;
 
-    if (!risk) return [];
+    if (!Array.isArray(risk)) return [];
 
     const representAllRiskData: [IRiskData, IRiskFactors][] = [];
 
-    //! here we are finding the risk and if not found does not apear, error if this risk is from company different than user will fail
-    const data = riskDataQuery
+    // Copy before sort — React Query may freeze cached arrays.
+    const data = [...riskDataQuery]
       .sort((a, b) =>
         sortDate(
           b.endDate || new Date('3000-01-01T00:00:00.00Z'),
           a.endDate || new Date('3000-01-01T00:00:00.00Z'),
         ),
       )
-      .sort(
-        (a, b) =>
-          sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key), //! performance optimization here or sort
+      .sort((a, b) =>
+        sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key),
       )
       .map((riskData) => {
         const riskFound = risk.find((r) => r.id === riskData.riskId);
@@ -74,8 +75,6 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
         if (riskFound?.representAll && riskFound.type === RiskEnum.OUTROS) {
           representAllRiskData[0] = [riskData, riskFound];
         }
-        //! attention risk not found
-        //! here we are finding the risk and if not found does not apear, error if this risk is from company different than user will fail
         return [riskData, riskFound] as [IRiskData, IRiskFactors];
       })
       .filter(([, r]) => {
@@ -113,7 +112,7 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
       (!selectedGhoFilter.value && !selectedGhoFilter.key) ||
       selectedGhoFilter?.value == 'none'
     )
-      return sortableData
+      return [...sortableData]
         .sort(([, a], [, b]) => sortNumber(a, b, 'name'))
         .sort(([, a], [, b]) =>
           sortNumber(a.representAll ? -1 : 1, b.representAll ? -1 : 1),
@@ -125,7 +124,7 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
           ),
         );
 
-    return sortableData.sort(([, a], [, b]) =>
+    return [...sortableData].sort(([, a], [, b]) =>
       sortNumber(
         effectiveRiskOrderForGSEGrid(a),
         effectiveRiskOrderForGSEGrid(b),
@@ -154,18 +153,48 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
     expandCtx?.setKnownRowIds(knownRowIds);
   }, [expandCtx?.setKnownRowIds, knownRowIds]);
 
+  if (!homoId) {
+    return (
+      <Box sx={{ py: 4, px: 2 }}>
+        <SText color="text.secondary">
+          {riskLinkageEmptyMessage({ hasSelection: false })}
+        </SText>
+      </Box>
+    );
+  }
+
+  if (isRiskGhoLoading) {
+    return <LinearProgress />;
+  }
+
+  if (isRiskGhoError) {
+    return (
+      <Box sx={{ py: 4, px: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <SText color="text.secondary">{RISK_LINKAGE_LOAD_ERROR_MESSAGE}</SText>
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{ alignSelf: 'flex-start' }}
+          onClick={() => void refetchRiskGho()}
+        >
+          Tentar novamente
+        </Button>
+      </Box>
+    );
+  }
+
+  if (riskOrderedData.length === 0) {
+    return (
+      <Box sx={{ py: 4, px: 2 }}>
+        <SText color="text.secondary">
+          {riskLinkageEmptyMessage({ hasSelection: true })}
+        </SText>
+      </Box>
+    );
+  }
+
   return (
     <>
-      {isRiskGhoLoading && <LinearProgress />}
-      {!isRiskGhoLoading && riskOrderedData.length === 0 && (
-        <Box sx={{ py: 4, px: 2 }}>
-          <SText color="text.secondary">
-            {homoId
-              ? 'Nenhum fator de risco vinculado. Você pode adicionar riscos pelo botão acima.'
-              : 'Selecione um GSE, elemento caracterizado, hierarquia ou funcionário para visualizar os riscos.'}
-          </SText>
-        </Box>
-      )}
       {riskOrderedData.map(([riskData, risk]) => (
         <RiskToolGSEViewRow
           key={riskData?.id || risk?.id || riskData?.riskId}

@@ -21,6 +21,7 @@ import { queryClient } from 'core/services/queryClient';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
+import { coerceRiskDataList } from 'core/utils/risk-linkage-guards.util';
 
 import { ViewsDataEnum } from '../../../../utils/view-data-type.constant';
 import { SideRow } from '../../../SideRow';
@@ -121,8 +122,9 @@ export const RiskToolRiskGhoView: FC<
   ]);
 
   const ghoOrderedData = useMemo(() => {
+    const safeRiskData = coerceRiskDataList(riskData);
     const ghoList = getGhoList().map((g) => {
-      const riskDataFound = riskData.find(
+      const riskDataFound = safeRiskData.find(
         (data) => data.homogeneousGroupId == g.id,
       );
 
@@ -146,6 +148,7 @@ export const RiskToolRiskGhoView: FC<
   return (
     <>
       {ghoOrderedData.map((gho) => {
+        const safeRiskData = coerceRiskDataList(riskData);
         return (
           <SideRow
             key={gho.id}
@@ -158,7 +161,7 @@ export const RiskToolRiskGhoView: FC<
             isDeleteLoading={isDeleteLoading}
             isRiskOpen={isRiskOpen}
             riskGroupId={riskGroupId}
-            riskDataAll={riskData
+            riskDataAll={[...safeRiskData]
               .sort((a, b) => sortDate(b.endDate, a.endDate))
               .filter((data) => data.homogeneousGroupId == gho.id)}
           />

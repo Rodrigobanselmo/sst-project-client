@@ -13,6 +13,7 @@ import { useRouter } from 'next/router';
 import {
   CHARACTERIZATION_AMBIENTES_PATHNAME,
   CHARACTERIZATION_GSE_PATHNAME,
+  ASSISTENTE_GSE_PATHNAME,
   CHEMICAL_PRODUCTS_PATHNAME,
   CharacterizationSubTabEnum,
   COMPANY_SST_PATHNAME,
@@ -47,6 +48,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const isGseCharacterizationPage =
     pathname === CHARACTERIZATION_GSE_PATHNAME;
   const isChemicalProductsPage = pathname === CHEMICAL_PRODUCTS_PATHNAME;
+  const isAssistenteGsePage = pathname === ASSISTENTE_GSE_PATHNAME;
   const isNewDocumentsStagePage =
     pathname === '/dashboard/empresas/[companyId]/novo/[stage]' &&
     query.stage === 'documentos';
@@ -79,6 +81,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     showSstWorkspaceSelector ||
     isGseCharacterizationPage ||
     isChemicalProductsPage ||
+    isAssistenteGsePage ||
     isNewDocumentsStagePage
   ) {
     return (
@@ -123,7 +126,8 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
               isCharacterizationRootPage ||
               showSstWorkspaceSelector ||
               isGseCharacterizationPage ||
-              isChemicalProductsPage
+              isChemicalProductsPage ||
+              isAssistenteGsePage
             }
             compact
             suppressWhenNotMultiple={false}

@@ -26,6 +26,7 @@ import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
+import { coerceGhoQueryList } from 'core/utils/risk-linkage-guards.util';
 
 import {
   TreeConvertToHierarchy,
@@ -72,7 +73,7 @@ export const SideSelectViewContent: FC<
       );
     }
 
-    const ghoQueryData = ghoQuery;
+    const ghoQueryData = coerceGhoQueryList(ghoQuery);
 
     if (viewDataType === ViewsDataEnum.CHARACTERIZATION)
       return ghoQueryData.filter(

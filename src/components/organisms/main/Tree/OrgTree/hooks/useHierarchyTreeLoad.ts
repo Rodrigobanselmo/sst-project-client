@@ -48,13 +48,17 @@ export const useHierarchyTreeLoad = (
     data,
     isLoading: isHierarchiesLoading,
     isFetching: isHierarchiesFetching,
+    isError: isHierarchiesError,
+    isSuccess: isHierarchiesSuccess,
+    refetch: refetchHierarchies,
   } = useQueryHierarchies(undefined, { enabled });
   const {
     data: gho,
     isLoading: isGhoLoading,
     isFetching: isGhoFetching,
+    isError: isGhoError,
   } = useQueryGHOAll(undefined, undefined, { enabled });
-  const { data: company } = useQueryCompany();
+  const { data: company, isLoading: isCompanyLoading } = useQueryCompany();
   const store = useStore<any>();
 
   const { setTree, transformToTreeMap, searchFilterNodes } =
@@ -88,8 +92,18 @@ export const useHierarchyTreeLoad = (
     searchFilterNodes,
   ]);
 
-  const isLoading = enabled && (isHierarchiesLoading || isGhoLoading);
+  const isLoading =
+    enabled &&
+    (isCompanyLoading || isHierarchiesLoading || isGhoLoading || !company);
   const isFetching = enabled && (isHierarchiesFetching || isGhoFetching);
+  const isError = enabled && (isHierarchiesError || isGhoError);
+  const hierarchyCount = data ? Object.keys(data).length : 0;
+  const isEmpty =
+    enabled &&
+    !isLoading &&
+    !isError &&
+    isHierarchiesSuccess &&
+    hierarchyCount === 0;
 
   return {
     hierarchies: data,
@@ -98,6 +112,10 @@ export const useHierarchyTreeLoad = (
     store,
     isLoading,
     isFetching,
+    isError,
+    isEmpty,
+    hierarchyCount,
+    refetchHierarchies,
     enabled,
   };
 };
