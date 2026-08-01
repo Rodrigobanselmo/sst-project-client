@@ -40,8 +40,7 @@ export const CHEMICAL_PRODUCTS_NAV_LABEL = 'Produtos Químicos';
 export const ASSISTENTE_GSE_PATHNAME =
   '/dashboard/empresas/[companyId]/assistente-gse';
 
-export const ASSISTENTE_GSE_NAV_LABEL =
-  'Assistente de Grupos Similares de Exposição';
+export const ASSISTENTE_GSE_NAV_LABEL = 'Assistente de GSE';
 
 export type CharacterizationSubareaNavItem =
   | {

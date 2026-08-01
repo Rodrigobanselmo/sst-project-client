@@ -1,6 +1,4 @@
 import { Box, Icon } from '@mui/material';
-import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
-import { SActionGroupButton } from 'components/atoms/SActionGroupButton';
 import { SActionNextButton } from 'components/atoms/SActionNextButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
@@ -59,16 +57,10 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { SActionButton } from '../../../../../../components/atoms/SActionButton';
+import { CharacterizationSummaryToggle } from 'components/organisms/main/CompanyFlow/CharacterizationSummaryToggle';
+import { CompanyHomeSummaryCards } from 'components/organisms/main/CompanyFlow/CompanyHomeSummaryCards';
 import { CharacterizationStage } from './components/CharacterizationStage/CharacterizationStage';
-import { CompanyHomeActionPlanGroupCard } from './components/CompanyHomeActionPlanGroupCard/CompanyHomeActionPlanGroupCard';
-import { CompanyHomeFormsGroupCard } from './components/CompanyHomeFormsGroupCard/CompanyHomeFormsGroupCard';
 import { CompanyHomeOperationalHeader } from './components/CompanyHomeOperationalHeader/CompanyHomeOperationalHeader';
-import {
-  companyHomeLaunchCardShellConsolidatedSx,
-  companyHomeLaunchCardShellSx,
-  getConsolidatedFormsCardShellSx,
-  getConsolidatedLaunchCardsGridSx,
-} from './components/company-home-launch.constants';
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
 import { DocumentsStage } from './components/DocumentsStage /DocumentsStage';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
@@ -80,6 +72,10 @@ import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SC
 import { SButton } from 'components/atoms/SButton';
 import { useModal } from 'core/hooks/useModal';
 import { ModalEnum } from 'core/enums/modal.enums';
+import {
+  CharacterizationSummaryCollapsedProvider,
+  useCharacterizationSummaryCollapsed,
+} from 'core/hooks/useCharacterizationSummaryCollapsed';
 
 const ModalSelectCharacterization = dynamic(
   () =>
@@ -117,7 +113,9 @@ const CompanyPage: NextPage = () => {
 
       <SContainer>
         <CharacterizationInlineEditorProvider>
-          <CompanyPageLayout {...props} />
+          <CharacterizationSummaryCollapsedProvider>
+            <CompanyPageLayout {...props} />
+          </CharacterizationSummaryCollapsedProvider>
         </CharacterizationInlineEditorProvider>
       </SContainer>
     </>
@@ -127,6 +125,7 @@ const CompanyPage: NextPage = () => {
 const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
   const { onStackOpenModal } = useModal();
   const { isInlineEditOpen } = useCharacterizationInlineEditor();
+  const { collapsed: summaryCollapsed } = useCharacterizationSummaryCollapsed();
 
   const {
     company,
@@ -148,40 +147,14 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
   const companyName = isGroupConsolidated
     ? businessGroupName || getCompanyName(company)
     : getCompanyName(company);
-  const topGridColumnCount = Math.max(1, pageGroupMemo.length);
-  const launchGridColumnCount = Math.max(topGridColumnCount, 4);
+
+  const isCharacterizationStage =
+    CompanyActionEnum.SST_GROUP_PAGE === stage;
   const hideHomeSummaryCards =
-    CompanyActionEnum.SST_GROUP_PAGE === stage && isInlineEditOpen;
-  const homeCardsGridSx = {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${topGridColumnCount}, minmax(0, 1fr))`,
-    gap: 10,
-    width: '100%',
-    alignItems: 'stretch',
-  };
-  const launchCardsGridSx = {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${launchGridColumnCount}, minmax(0, 1fr))`,
-    gap: 10,
-    width: '100%',
-    alignItems: 'stretch',
-  };
-  const consolidatedLaunchHeightOptions = {
-    formsCount: formsLaunchGroup.applications.length,
-    actionPlanCompaniesCount: actionPlanLaunchGroup?.companies.length ?? 0,
-  };
-  const launchCardShellSx = isGroupConsolidated
-    ? companyHomeLaunchCardShellConsolidatedSx
-    : companyHomeLaunchCardShellSx;
-  const launchCardsGridSxResolved = isGroupConsolidated
-    ? getConsolidatedLaunchCardsGridSx(
-        launchCardsGridSx,
-        consolidatedLaunchHeightOptions,
-      )
-    : launchCardsGridSx;
-  const formsCardShellSx = isGroupConsolidated
-    ? getConsolidatedFormsCardShellSx(consolidatedLaunchHeightOptions)
-    : launchCardShellSx;
+    (isCharacterizationStage && isInlineEditOpen) ||
+    (isCharacterizationStage && summaryCollapsed);
+  const showCharacterizationSummaryToggle =
+    isCharacterizationStage && !isInlineEditOpen;
 
   return (
     <>
@@ -212,95 +185,22 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           }
         />
 
-        {!hideHomeSummaryCards && (
-          <Box sx={{ ...homeCardsGridSx, mt: 2, mb: 30 }}>
-            {pageGroupMemo.map(({ color, ...props }) => (
-              <Box
-                key={props.text}
-                sx={{
-                  minWidth: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100%',
-                }}
-              >
-                <SActionGroupButton
-                  active={stage == props.type}
-                  color={color as string}
-                  {...props}
-                  fillGridCell
-                  fillGridCellCompact
-                />
-              </Box>
-            ))}
-          </Box>
+        {showCharacterizationSummaryToggle && (
+          <CharacterizationSummaryToggle />
         )}
-        {!hideHomeSummaryCards &&
-          (launchCardsMemo.length > 0 ||
-            showFormsLaunchGroup ||
-            showActionPlanLaunchGroup) && (
-          <>
-            <SText mt={-8}>Lançamentos</SText>
-            <Box sx={{ ...launchCardsGridSxResolved, mt: 3, mb: 24 }}>
-              {showActionPlanLaunchGroup && actionPlanLaunchGroup && (
-                <Box sx={launchCardShellSx}>
-                  <CompanyHomeActionPlanGroupCard
-                    total={actionPlanLaunchGroup.total}
-                    pending={actionPlanLaunchGroup.pending}
-                    started={actionPlanLaunchGroup.started}
-                    done={actionPlanLaunchGroup.done}
-                    canceled={actionPlanLaunchGroup.canceled}
-                    completionPercent={actionPlanLaunchGroup.completionPercent}
-                    companies={actionPlanLaunchGroup.companies}
-                    loading={actionPlanLaunchGroup.loading}
-                    onClick={actionPlanLaunchGroup.onClick}
-                  />
-                </Box>
-              )}
-              {launchCardsMemo.map((raw, index) => {
-                const cardProps = raw as ISActionButtonProps;
-                return (
-                  <Box key={`${cardProps.text}-${index}`} sx={launchCardShellSx}>
-                    <SActionGroupButton
-                      text={cardProps.text}
-                      icon={cardProps.icon}
-                      onClick={cardProps.onClick}
-                      tooltipText={cardProps.tooltipText}
-                      infos={cardProps.infos}
-                      disabled={cardProps.disabled}
-                      loading={cardProps.loading}
-                      statusLabel={cardProps.statusLabel}
-                      participationPercent={cardProps.participationPercent}
-                      fillGridCell
-                      fillGridCellLaunch
-                    />
-                  </Box>
-                );
-              })}
-              {showFormsLaunchGroup && (
-                <Box
-                  sx={{
-                    ...(formsCardShellSx as object),
-                    gridColumn: {
-                      xs: '1 / -1',
-                      sm: launchGridColumnCount >= 4 ? 'span 2' : 'span 1',
-                    },
-                  }}
-                >
-                  <CompanyHomeFormsGroupCard
-                    companyId={company.id}
-                    applications={formsLaunchGroup.applications}
-                    isEmpty={formsLaunchGroup.isEmpty}
-                    emptyMessage={formsLaunchGroup.emptyMessage}
-                    onViewAll={formsLaunchGroup.onViewAll}
-                    isGroupConsolidated={formsLaunchGroup.isGroupConsolidated}
-                    consolidatedViewHref={formsLaunchGroup.consolidatedViewHref}
-                    consolidatedViewLabel={formsLaunchGroup.consolidatedViewLabel}
-                  />
-                </Box>
-              )}
-            </Box>
-          </>
+
+        {!hideHomeSummaryCards && (
+          <CompanyHomeSummaryCards
+            pageGroupMemo={pageGroupMemo}
+            launchCardsMemo={launchCardsMemo}
+            formsLaunchGroup={formsLaunchGroup}
+            showFormsLaunchGroup={showFormsLaunchGroup}
+            actionPlanLaunchGroup={actionPlanLaunchGroup}
+            showActionPlanLaunchGroup={showActionPlanLaunchGroup}
+            stage={stage}
+            company={company}
+            isGroupConsolidated={isGroupConsolidated}
+          />
         )}
 
         {isGroupConsolidated &&

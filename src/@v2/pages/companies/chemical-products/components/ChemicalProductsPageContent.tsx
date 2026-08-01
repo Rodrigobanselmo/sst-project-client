@@ -34,9 +34,11 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   COMPANY_SST_PATHNAME,
   COMPANY_SST_STAGE,
+  getAssistenteGseHref,
   getCharacterizationSubareaNavItems,
   getChemicalProductsNavStep,
 } from 'core/constants/characterization-navigation.constants';
+import { CharacterizationSummarySection } from 'components/organisms/main/CompanyFlow/CharacterizationSummarySection';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   enrichPickableWorkspaces,
@@ -381,6 +383,7 @@ export const ChemicalProductsPageContent = ({
 
   return (
     <Box>
+      <CharacterizationSummarySection />
       <CompanyFlowStickySubheader>
         <STabs
           shadow
@@ -388,7 +391,20 @@ export const ChemicalProductsPageContent = ({
           options={navItems.map((item) => ({ label: item.label }))}
           onChange={(_, step) => {
             const item = navItems[step];
-            if (!item || item.kind === 'external') return;
+            if (!item) return;
+            if (item.kind === 'external' && item.id === 'chemical-products') {
+              return;
+            }
+            if (item.kind === 'external' && item.id === 'assistente-gse') {
+              void router.push(
+                getAssistenteGseHref({
+                  companyId,
+                  tabWorkspaceId: workspaceId || undefined,
+                }),
+              );
+              return;
+            }
+            if (item.kind !== 'tab') return;
             void router.push({
               pathname: COMPANY_SST_PATHNAME,
               query: {
