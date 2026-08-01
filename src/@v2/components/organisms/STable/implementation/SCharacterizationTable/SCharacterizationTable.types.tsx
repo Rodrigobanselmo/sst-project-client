@@ -24,6 +24,9 @@ export interface ICharacterizationTableTableProps {
     hiddenColumns: Record<CharacterizationColumnsEnum, boolean>,
   ) => void;
   isLoading?: boolean;
+  /** When true, suppress the default empty-state placeholder (e.g. during error). */
+  hideEmpty?: boolean;
+  contentEmpty?: ReactNode;
   filters: ICharacterizationFilterProps;
   setFilters: (values: ICharacterizationFilterProps) => void;
   setPage: (page: number) => void;
