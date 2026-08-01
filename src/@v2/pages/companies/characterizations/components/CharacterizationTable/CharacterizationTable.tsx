@@ -45,6 +45,7 @@ import { CharacterizationTableSelection } from './components/CharacterizationTab
 import { CompanyFlowV2StickySection } from 'components/organisms/main/CompanyFlow/CompanyFlowV2StickySection';
 import { useCallback } from 'react';
 import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
+import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 
 const table = TablesSelectEnum.CHARACTERIZATION;
 
@@ -109,6 +110,7 @@ export const CharacterizationTable = ({
       filters: {
         search: queryParams.search,
         stageIds: queryParams.stageIds,
+        includeInactive: queryParams.includeInactive === true,
       },
       orderBy: queryParams.orderBy || [
         {
@@ -201,6 +203,7 @@ export const CharacterizationTable = ({
     setData: setQueryParams,
     chipMap: {
       search: null,
+      includeInactive: null,
       stageIds: (value) => ({
         leftLabel: 'Status',
         label: selectedStages.find((stage) => stage.id === value)?.name || '',
@@ -215,6 +218,7 @@ export const CharacterizationTable = ({
       search: '',
       orderBy: [],
       stageIds: [],
+      includeInactive: false,
       page: 1,
       limit: defaultLimit,
     },
@@ -258,6 +262,20 @@ export const CharacterizationTable = ({
               stages={stages}
             />
           </STableFilterButton>
+          {hasWorkspaceSelected && (
+            <SSwitch
+              label="Exibir inativos"
+              value={queryParams.includeInactive === true}
+              fontSize="13px"
+              formControlProps={{ sx: { mx: 1, ml: 2, whiteSpace: 'nowrap' } }}
+              onChange={(e) =>
+                onFilterData({
+                  includeInactive: e.target.checked,
+                  page: 1,
+                })
+              }
+            />
+          )}
           {hasWorkspaceSelected && (
             <>
               <STableButtonDivider />

@@ -23,5 +23,7 @@ export interface BrowseCharacterizationParams {
   filters?: {
     search?: string;
     stageIds?: number[];
+    /** Default omit/false: apenas ativos. true: ativos + inativos. */
+    includeInactive?: boolean;
   };
 }
