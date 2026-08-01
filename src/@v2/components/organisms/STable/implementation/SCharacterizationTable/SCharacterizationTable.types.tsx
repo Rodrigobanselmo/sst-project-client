@@ -13,6 +13,8 @@ export interface ICharacterizationFilterProps {
   page?: number;
   limit?: number;
   orderBy?: IOrderByParams<CharacterizationOrderByEnum>[];
+  /** Default false: apenas ativos. true: ativos + inativos. */
+  includeInactive?: boolean;
 }
 
 export interface ICharacterizationTableTableProps {
