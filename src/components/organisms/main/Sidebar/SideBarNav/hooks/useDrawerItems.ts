@@ -32,6 +32,8 @@ import { useAccess } from 'core/hooks/useAccess';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { COMPANY_MANAGEMENT_SIDEBAR_SECTION_LABEL } from 'core/constants/company-primary-navigation.constants';
+import { SCharacterizationIcon } from 'assets/icons/SCharacterizationIcon';
 
 import { DrawerItemsEnum } from './drawer.enum';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
@@ -323,9 +325,9 @@ export const useDrawerItems = () => {
       text: 'Dados da empresa',
       description: 'Cadastro e configurações da empresa',
       Icon: SCompanyIcon,
-      href: RoutesEnum.COMPANY,
+      href: RoutesEnum.COMPANY_EDIT,
       roles: [RoleEnum.COMPANY],
-      shouldMatchExactHref: true,
+      shouldMatchExactHref: false,
       hideIf: {
         isConsulting: true,
       },
@@ -335,11 +337,51 @@ export const useDrawerItems = () => {
       description: 'Tela operacional principal da empresa selecionada',
       Icon: SCompanyIcon,
       // rota real do fluxo operacional (precisa de `:stage`)
-      href: RoutesEnum.COMPANY,
+      href: RoutesEnum.COMPANY_EDIT,
       // matcher por prefixo para ficar ativo em qualquer stage
       activePrefix: RoutesEnum.COMPANY.replace('/:stage', ''),
       roles: [RoleEnum.CONTRACTS],
       shouldMatchExactHref: false,
+    },
+    [DrawerItemsEnum.companyManagementCompanyData]: {
+      text: 'Dados da Empresa',
+      description: 'Cadastro, estabelecimentos, permissões e configurações',
+      Icon: SCompanyIcon,
+      href: RoutesEnum.COMPANY_EDIT,
+      activePrefix: RoutesEnum.COMPANY_EDIT,
+      roles: [],
+      shouldMatchExactHref: false,
+    },
+    [DrawerItemsEnum.companyManagementEmployees]: {
+      text: 'Funcionários',
+      description: 'Gestão de funcionários da empresa',
+      Icon: SEmployeeIcon,
+      href: RoutesEnum.COMPANY_EMPLOYEE,
+      activePrefix: RoutesEnum.COMPANY_EMPLOYEE,
+      roles: [],
+      shouldMatchExactHref: false,
+    },
+    [DrawerItemsEnum.companyManagementCharacterization]: {
+      text: 'Caracterização',
+      description:
+        'Riscos, elementos caracterizados, exames, protocolos e vínculos',
+      Icon: SCharacterizationIcon,
+      href: RoutesEnum.COMPANY_SST,
+      activePrefix: RoutesEnum.COMPANY_SST,
+      roles: [],
+      shouldMatchExactHref: false,
+    },
+    [DrawerItemsEnum.companyManagementDocuments]: {
+      text: 'Programas e Laudos',
+      description: 'PGR, PCMSO, Periculosidade, Insalubridade, LTCAT e FRPS',
+      Icon: SDocumentIcon,
+      href: RoutesEnum.COMPANY_DOCUMENTS,
+      activePrefix: RoutesEnum.COMPANY_DOCUMENTS,
+      roles: [RoleEnum.DOCUMENTS],
+      shouldMatchExactHref: false,
+      showIf: {
+        isDocuments: true,
+      },
     },
     [DrawerItemsEnum.actionPlan]: {
       text: 'Plano de ação',
@@ -547,13 +589,9 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.documents],
       items[DrawerItemsEnum.team],
       items[DrawerItemsEnum.schedule],
-      // V2: para usuário comum, "Home" já é a entrada operacional da empresa;
-      // "Dados da empresa" vira redundante no menu lateral (permanece acessível dentro da Home).
-      ...(isMasterAdmin || company.isConsulting
-        ? [items[DrawerItemsEnum.companiesData]]
-        : []),
       items[DrawerItemsEnum.oneClinicsData],
       items[DrawerItemsEnum.allClinicsData],
+      // Lista legada /empregados — a entrada canônica fica em Gestão da Empresa
       items[DrawerItemsEnum.employee],
       {
         ...items[DrawerItemsEnum.importExportData],
@@ -617,8 +655,29 @@ export const useDrawerItems = () => {
             : []),
         ],
       },
-      items[DrawerItemsEnum.forms],
     ],
+  };
+
+  const companyManagement: IDrawerSection = {
+    data: {
+      search: 'Gestão da Empresa dados funcionários caracterização programas',
+      text: COMPANY_MANAGEMENT_SIDEBAR_SECTION_LABEL,
+      roles: [],
+      showIf: {
+        isCompany: true,
+        isConsulting: true,
+      },
+    },
+    // MASTER/consultoria sem empresa na rota: não exibe links com companyId ambíguo.
+    items:
+      (isMasterAdmin || company.isConsulting) && !hasActiveCompanyInRoute
+        ? []
+        : [
+            items[DrawerItemsEnum.companyManagementCompanyData],
+            items[DrawerItemsEnum.companyManagementEmployees],
+            items[DrawerItemsEnum.companyManagementCharacterization],
+            items[DrawerItemsEnum.companyManagementDocuments],
+          ],
   };
 
   const launches: IDrawerSection = {
@@ -632,6 +691,7 @@ export const useDrawerItems = () => {
       },
     },
     items: [
+      items[DrawerItemsEnum.forms],
       items[DrawerItemsEnum.actionPlan],
       items[DrawerItemsEnum.absenteeism],
       items[DrawerItemsEnum.cat],
@@ -672,6 +732,11 @@ export const useDrawerItems = () => {
   };
 
   return {
-    sections: onFilterSections([general, launches, snippets]),
+    sections: onFilterSections([
+      general,
+      companyManagement,
+      launches,
+      snippets,
+    ]),
   };
 };

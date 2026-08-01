@@ -3,6 +3,7 @@ import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { useRouter } from 'next/router';
 import { AbsenteeismContent } from './components/AbsenteeismContent/AbsenteeismContent';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
+import { CompanyWorkspaceContextualNavBar } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceContextualNavBar';
 
 export const AbsenteeismsPage = () => {
   const router = useRouter();
@@ -12,6 +13,7 @@ export const AbsenteeismsPage = () => {
     <>
       <SHeader title={'Absenteísmo'} />
       <SContainer>
+        <CompanyWorkspaceContextualNavBar companyId={companyId} />
         <SPageHeader mb={8} title="Absenteísmo" />
         <AbsenteeismContent companyId={companyId} />
       </SContainer>

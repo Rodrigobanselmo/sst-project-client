@@ -23,10 +23,16 @@ export function SideBarNav(): JSX.Element {
   const resolveHref = (href?: string) => {
     if (!href) return undefined;
 
+    // Sem empresa efetiva: não materializa rotas quebradas com companyId vazio.
+    if (!effectiveCompanyId && href.includes(':companyId')) {
+      return undefined;
+    }
+
     return (
       href
         .replace(':companyId', effectiveCompanyId)
-        .replace(':stage', (query.stage as string) || '0') || undefined
+        // Default canônico (Dados da Empresa) — evita stage inválido "0".
+        .replace(':stage', (query.stage as string) || 'empresa') || undefined
     );
   };
 

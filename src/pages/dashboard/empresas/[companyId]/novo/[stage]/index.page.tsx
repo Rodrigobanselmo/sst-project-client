@@ -59,6 +59,11 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { SActionButton } from '../../../../../../components/atoms/SActionButton';
 import { CharacterizationSummaryToggle } from 'components/organisms/main/CompanyFlow/CharacterizationSummaryToggle';
 import { CompanyHomeSummaryCards } from 'components/organisms/main/CompanyFlow/CompanyHomeSummaryCards';
+import { CompanyWorkspaceContextualNav } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceContextualNav';
+import {
+  CompanyWorkspaceCardsProvider,
+  useCompanyWorkspaceCardsCollapsed,
+} from 'core/hooks/useCompanyWorkspaceCardsCollapsed';
 import { CharacterizationStage } from './components/CharacterizationStage/CharacterizationStage';
 import { CompanyHomeOperationalHeader } from './components/CompanyHomeOperationalHeader/CompanyHomeOperationalHeader';
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
@@ -72,10 +77,6 @@ import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SC
 import { SButton } from 'components/atoms/SButton';
 import { useModal } from 'core/hooks/useModal';
 import { ModalEnum } from 'core/enums/modal.enums';
-import {
-  CharacterizationSummaryCollapsedProvider,
-  useCharacterizationSummaryCollapsed,
-} from 'core/hooks/useCharacterizationSummaryCollapsed';
 
 const ModalSelectCharacterization = dynamic(
   () =>
@@ -113,9 +114,9 @@ const CompanyPage: NextPage = () => {
 
       <SContainer>
         <CharacterizationInlineEditorProvider>
-          <CharacterizationSummaryCollapsedProvider>
+          <CompanyWorkspaceCardsProvider>
             <CompanyPageLayout {...props} />
-          </CharacterizationSummaryCollapsedProvider>
+          </CompanyWorkspaceCardsProvider>
         </CharacterizationInlineEditorProvider>
       </SContainer>
     </>
@@ -125,7 +126,7 @@ const CompanyPage: NextPage = () => {
 const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
   const { onStackOpenModal } = useModal();
   const { isInlineEditOpen } = useCharacterizationInlineEditor();
-  const { collapsed: summaryCollapsed } = useCharacterizationSummaryCollapsed();
+  const { collapsed: summaryCollapsed } = useCompanyWorkspaceCardsCollapsed();
 
   const {
     company,
@@ -150,11 +151,17 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
 
   const isCharacterizationStage =
     CompanyActionEnum.SST_GROUP_PAGE === stage;
+  const isPrimaryCompanyStage =
+    stage === CompanyActionEnum.COMPANY_GROUP_PAGE ||
+    stage === CompanyActionEnum.EMPLOYEES_GROUP_PAGE ||
+    stage === CompanyActionEnum.SST_GROUP_PAGE ||
+    stage === CompanyActionEnum.DOCUMENTS_GROUP_PAGE;
   const hideHomeSummaryCards =
     (isCharacterizationStage && isInlineEditOpen) ||
-    (isCharacterizationStage && summaryCollapsed);
-  const showCharacterizationSummaryToggle =
-    isCharacterizationStage && !isInlineEditOpen;
+    (isPrimaryCompanyStage && summaryCollapsed);
+  const showCompanySummaryCardsToggle =
+    isPrimaryCompanyStage &&
+    !(isCharacterizationStage && isInlineEditOpen);
 
   return (
     <>
@@ -185,8 +192,18 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           }
         />
 
-        {showCharacterizationSummaryToggle && (
-          <CharacterizationSummaryToggle />
+        {showCompanySummaryCardsToggle && (
+          <SFlex
+            align="center"
+            justify="space-between"
+            gap={1.5}
+            sx={{ width: '100%', mb: 1, flexWrap: { xs: 'wrap', md: 'nowrap' } }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <CompanyWorkspaceContextualNav companyId={company?.id} />
+            </Box>
+            <CharacterizationSummaryToggle />
+          </SFlex>
         )}
 
         {!hideHomeSummaryCards && (

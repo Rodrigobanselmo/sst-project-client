@@ -72,3 +72,59 @@ export const companyFlowCompactShortcutButtonSx: SxProps<Theme> = {
     color: 'text.primary',
   },
 };
+
+/**
+ * Ação secundária do workspace (~36–40px de altura útil).
+ * Mais presente que o compacto original; sem retornar a cards grandes.
+ */
+export const companyWorkspaceActionButtonSx: SxProps<Theme> = {
+  ...companyFlowCompactShortcutButtonSx,
+  gap: 2,
+  py: 1.35,
+  px: 1.85,
+  minHeight: 38,
+  borderRadius: 1.25,
+  borderColor: 'grey.400',
+  '&&': {
+    backgroundColor: (theme) =>
+      theme.palette.mode === 'light'
+        ? theme.palette.common.white
+        : theme.palette.grey[800],
+    boxShadow: (theme) =>
+      theme.palette.mode === 'light'
+        ? '0 1px 3px rgba(0, 0, 0, 0.08)'
+        : '0 1px 3px rgba(0, 0, 0, 0.25)',
+  },
+  '&:hover': {
+    filter: 'none',
+    '&&': {
+      backgroundColor: (theme) =>
+        theme.palette.mode === 'light'
+          ? theme.palette.grey[50]
+          : theme.palette.grey[700],
+      boxShadow: (theme) =>
+        theme.palette.mode === 'light'
+          ? '0 2px 6px rgba(0, 0, 0, 0.12)'
+          : '0 2px 6px rgba(0, 0, 0, 0.3)',
+      borderColor: 'grey.500',
+    },
+  },
+  '&:focus-visible': {
+    outline: '2px solid',
+    outlineColor: 'primary.main',
+    outlineOffset: 2,
+  },
+  '& .MuiIcon-root': {
+    fontSize: 22,
+    flexShrink: 0,
+    color: 'text.secondary',
+  },
+  '& p': {
+    fontSize: 13.5,
+    fontWeight: 500,
+    lineHeight: 1.35,
+    textAlign: 'left',
+    whiteSpace: 'normal',
+    color: 'text.primary',
+  },
+};
