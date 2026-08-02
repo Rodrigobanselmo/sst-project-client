@@ -17,6 +17,14 @@ export type ICharacterizationBrowseResultModel = {
   risks: { id: string; name: string }[];
   photos: { id: string; url: string }[];
   stage?: { name: string; color?: string };
+  hasDescription?: boolean;
+  hasProcesses?: boolean;
+  hasConsiderations?: boolean;
+  hasInventorySummary?: boolean;
+  descriptionPreview?: string;
+  processesPreview?: string;
+  considerationsPreview?: string;
+  inventorySummaryPreview?: string;
 };
 
 export class CharacterizationBrowseResultModel {
@@ -33,6 +41,14 @@ export class CharacterizationBrowseResultModel {
   risks: { id: string; name: string }[];
   photos: { id: string; url: string }[];
   stage?: { name: string; color?: string };
+  hasDescription: boolean;
+  hasProcesses: boolean;
+  hasConsiderations: boolean;
+  hasInventorySummary: boolean;
+  descriptionPreview?: string;
+  processesPreview?: string;
+  considerationsPreview?: string;
+  inventorySummaryPreview?: string;
 
   constructor(params: ICharacterizationBrowseResultModel) {
     this.id = params.id;
@@ -49,6 +65,14 @@ export class CharacterizationBrowseResultModel {
     this.risks = params.risks ?? [];
     this.photos = params.photos ?? [];
     this.stage = params.stage;
+    this.hasDescription = !!params.hasDescription;
+    this.hasProcesses = !!params.hasProcesses;
+    this.hasConsiderations = !!params.hasConsiderations;
+    this.hasInventorySummary = !!params.hasInventorySummary;
+    this.descriptionPreview = params.descriptionPreview || undefined;
+    this.processesPreview = params.processesPreview || undefined;
+    this.considerationsPreview = params.considerationsPreview || undefined;
+    this.inventorySummaryPreview = params.inventorySummaryPreview || undefined;
   }
 
   get formatedCreatedAt() {
@@ -71,5 +95,12 @@ export class CharacterizationBrowseResultModel {
 
   get isInactive() {
     return this.status === CharacterizationStatusEnum.INACTIVE;
+  }
+
+  /** Fonte para Resumo IA: Descrição ∨ Processos ∨ Considerações. */
+  get canGenerateInventorySummary() {
+    return (
+      this.hasDescription || this.hasProcesses || this.hasConsiderations
+    );
   }
 }

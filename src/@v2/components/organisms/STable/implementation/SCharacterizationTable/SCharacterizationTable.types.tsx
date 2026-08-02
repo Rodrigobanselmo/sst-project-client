@@ -59,6 +59,12 @@ export interface ICharacterizationTableTableProps {
   ) => void;
   onQuickRename?: (row: CharacterizationBrowseResultModel) => void;
   onQuickType?: (row: CharacterizationBrowseResultModel) => void;
+  /** Fase 2C — abre modal Conteúdo Técnico (sem editor completo). */
+  onQuickTechnicalContent?: (row: CharacterizationBrowseResultModel) => void;
+  /** Atalho: modal + Assistente IA. */
+  onQuickAiAssist?: (row: CharacterizationBrowseResultModel) => void;
+  /** Atalho: modal + Resumo IA. */
+  onQuickAiSummary?: (row: CharacterizationBrowseResultModel) => void;
   statusButtonProps: Pick<
     SPopperStatusProps,
     'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'

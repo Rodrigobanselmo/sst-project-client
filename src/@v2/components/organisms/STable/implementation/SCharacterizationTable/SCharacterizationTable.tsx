@@ -5,6 +5,7 @@ import { Box, IconButton, Tooltip } from '@mui/material';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { CharacterizationQuickCountCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationQuickCountCell';
 import { CharacterizationRisksQuickCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationRisksQuickCell';
+import { CharacterizationTechnicalContentCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationTechnicalContentCell';
 import { INACTIVE_ACTION_TOOLTIP } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/invalidate-characterization-inventory';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
@@ -49,6 +50,9 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   onQuickPhotos,
   onQuickRename,
   onQuickType,
+  onQuickTechnicalContent,
+  onQuickAiAssist,
+  onQuickAiSummary,
   hiddenColumns,
   filterColumns,
   setHiddenColumns,
@@ -344,6 +348,26 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           }
         />
       ),
+    },
+    {
+      column: '128px',
+      hidden: hiddenColumns[columnsEnum.TECHNICAL_CONTENT],
+      header: (
+        <STableHRow boxProps={{ justifyContent: 'center' }}>
+          {columnMap[columnsEnum.TECHNICAL_CONTENT].label}
+        </STableHRow>
+      ),
+      row: (row) =>
+        onQuickTechnicalContent || onQuickAiAssist || onQuickAiSummary ? (
+          <CharacterizationTechnicalContentCell
+            row={row}
+            onOpen={() => onQuickTechnicalContent?.(row)}
+            onOpenAssist={() => onQuickAiAssist?.(row)}
+            onOpenSummary={() => onQuickAiSummary?.(row)}
+          />
+        ) : (
+          <STextRow justify="center" text="-" />
+        ),
     },
     {
       column: '90px',

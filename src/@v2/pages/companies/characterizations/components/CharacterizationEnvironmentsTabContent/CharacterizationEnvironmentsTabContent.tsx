@@ -10,6 +10,7 @@ import SFlex from 'components/atoms/SFlex';
 import { useCharacterizationInlineEditor } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
 
 import { invalidateCharacterizationInventory } from '../CharacterizationTable/quick-actions/invalidate-characterization-inventory';
+import type { CharacterizationInitialAiAction } from '../CharacterizationTable/quick-actions/technical-content.util';
 import { CharacterizationTable } from '../CharacterizationTable/CharacterizationTable';
 
 type CharacterizationEnvironmentsTabContentProps = {
@@ -21,6 +22,7 @@ type EditSession = {
   id: string;
   workspaceId: string;
   wizardStep?: number;
+  initialAiAction?: CharacterizationInitialAiAction;
 };
 
 export const CharacterizationEnvironmentsTabContent = ({
@@ -49,9 +51,14 @@ export const CharacterizationEnvironmentsTabContent = ({
   }, [companyId, editSession]);
 
   const openEditor = useCallback(
-    (id: string, workspaceId: string, wizardStep?: number) => {
+    (
+      id: string,
+      workspaceId: string,
+      wizardStep?: number,
+      initialAiAction?: CharacterizationInitialAiAction,
+    ) => {
       if (!companyId || !workspaceId || !id) return;
-      setEditSession({ id, workspaceId, wizardStep });
+      setEditSession({ id, workspaceId, wizardStep, initialAiAction });
     },
     [companyId],
   );
@@ -59,10 +66,18 @@ export const CharacterizationEnvironmentsTabContent = ({
   const handleInlineEdit = useCallback(
     (
       row: CharacterizationBrowseResultModel,
-      options?: { wizardStep?: number },
+      options?: {
+        wizardStep?: number;
+        initialAiAction?: CharacterizationInitialAiAction;
+      },
     ) => {
       if (!companyId || !tabWorkspaceId || !row?.id) return;
-      openEditor(row.id, tabWorkspaceId, options?.wizardStep);
+      openEditor(
+        row.id,
+        tabWorkspaceId,
+        options?.wizardStep,
+        options?.initialAiAction,
+      );
     },
     [companyId, openEditor, tabWorkspaceId],
   );
@@ -99,12 +114,13 @@ export const CharacterizationEnvironmentsTabContent = ({
         }}
       >
         <CharacterizationEditView
-          key={`${editSession.workspaceId}::${editSession.id}::${editSession.wizardStep ?? 'default'}::${editorRemountKey}`}
+          key={`${editSession.workspaceId}::${editSession.id}::${editSession.wizardStep ?? 'default'}::${editSession.initialAiAction ?? 'none'}::${editorRemountKey}`}
           companyId={companyId}
           workspaceId={editSession.workspaceId}
           characterizationId={editSession.id}
           embedded
           initialWizardStep={editSession.wizardStep}
+          initialAiAction={editSession.initialAiAction}
           onBack={closeEditor}
           onRetry={() => setEditorRemountKey((value) => value + 1)}
         />

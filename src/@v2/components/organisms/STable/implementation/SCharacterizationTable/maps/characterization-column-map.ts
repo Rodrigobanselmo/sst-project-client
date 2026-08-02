@@ -21,6 +21,7 @@ export const CharacterizationColumnMap: Record<
   [CharacterizationColumnsEnum.RISKS]: { label: 'Riscos' },
   [CharacterizationColumnsEnum.HIERARCHY]: { label: 'Cargos' },
   [CharacterizationColumnsEnum.PROFILES]: { label: 'Perfis' },
+  [CharacterizationColumnsEnum.TECHNICAL_CONTENT]: { label: 'Conteúdo Técnico' },
   [CharacterizationColumnsEnum.STAGE]: { label: 'Status' },
   [CharacterizationColumnsEnum.EDIT]: { label: 'Editar', alwaysVisible: true },
 };
