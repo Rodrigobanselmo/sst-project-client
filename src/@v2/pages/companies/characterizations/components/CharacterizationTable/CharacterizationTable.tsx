@@ -54,6 +54,7 @@ import {
 } from './quick-actions/CharacterizationRenameTypeDialogs';
 import { CHARACTERIZATION_WIZARD_STEP } from './quick-actions/characterization-wizard-steps';
 import { CharacterizationTechnicalContentManagerDialog } from './quick-actions/CharacterizationTechnicalContentManagerDialog';
+import { CharacterizationEnvironmentalParamsDialog } from './quick-actions/CharacterizationEnvironmentalParamsDialog';
 import type {
   CharacterizationInitialAiAction,
   CharacterizationTechnicalContentPrefer,
@@ -100,6 +101,8 @@ export const CharacterizationTable = ({
   const [photoManager, setPhotoManager] = useState<QuickManagerState>(null);
   const [technicalContentManager, setTechnicalContentManager] =
     useState<TechnicalContentManagerState>(null);
+  const [environmentalParamsRow, setEnvironmentalParamsRow] =
+    useState<CharacterizationBrowseResultModel | null>(null);
   const [renameRow, setRenameRow] =
     useState<CharacterizationBrowseResultModel | null>(null);
   const [typeRow, setTypeRow] =
@@ -412,6 +415,10 @@ export const CharacterizationTable = ({
       if (!row.canGenerateInventorySummary) return;
       setTechnicalContentManager({ row, prefer: 'summary' });
     },
+    onQuickEnvironmentalParams: (row) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      setEnvironmentalParamsRow(row);
+    },
     data: showSearchError ? [] : characterizationResults,
     isLoading: showInitialLoading,
     hideEmpty:
@@ -466,6 +473,13 @@ export const CharacterizationTable = ({
         companyId={companyId}
         workspaceId={workspaceId || ''}
         onClose={() => setTechnicalContentManager(null)}
+      />
+      <CharacterizationEnvironmentalParamsDialog
+        open={!!environmentalParamsRow}
+        row={environmentalParamsRow}
+        companyId={companyId}
+        workspaceId={workspaceId || ''}
+        onClose={() => setEnvironmentalParamsRow(null)}
       />
       <CharacterizationRenameDialog
         open={!!renameRow}

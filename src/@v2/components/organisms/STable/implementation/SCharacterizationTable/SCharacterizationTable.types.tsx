@@ -65,6 +65,8 @@ export interface ICharacterizationTableTableProps {
   onQuickAiAssist?: (row: CharacterizationBrowseResultModel) => void;
   /** Atalho: modal + Resumo IA. */
   onQuickAiSummary?: (row: CharacterizationBrowseResultModel) => void;
+  /** Fase 2E — modal compacto de Parâmetros Ambientais. */
+  onQuickEnvironmentalParams?: (row: CharacterizationBrowseResultModel) => void;
   statusButtonProps: Pick<
     SPopperStatusProps,
     'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'

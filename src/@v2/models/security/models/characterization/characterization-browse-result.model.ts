@@ -25,6 +25,10 @@ export type ICharacterizationBrowseResultModel = {
   processesPreview?: string;
   considerationsPreview?: string;
   inventorySummaryPreview?: string;
+  temperature?: string;
+  moisturePercentage?: string;
+  noiseValue?: string;
+  luminosity?: string;
 };
 
 export class CharacterizationBrowseResultModel {
@@ -49,6 +53,10 @@ export class CharacterizationBrowseResultModel {
   processesPreview?: string;
   considerationsPreview?: string;
   inventorySummaryPreview?: string;
+  temperature?: string;
+  moisturePercentage?: string;
+  noiseValue?: string;
+  luminosity?: string;
 
   constructor(params: ICharacterizationBrowseResultModel) {
     this.id = params.id;
@@ -73,6 +81,10 @@ export class CharacterizationBrowseResultModel {
     this.processesPreview = params.processesPreview || undefined;
     this.considerationsPreview = params.considerationsPreview || undefined;
     this.inventorySummaryPreview = params.inventorySummaryPreview || undefined;
+    this.temperature = params.temperature?.trim() || undefined;
+    this.moisturePercentage = params.moisturePercentage?.trim() || undefined;
+    this.noiseValue = params.noiseValue?.trim() || undefined;
+    this.luminosity = params.luminosity?.trim() || undefined;
   }
 
   get formatedCreatedAt() {
