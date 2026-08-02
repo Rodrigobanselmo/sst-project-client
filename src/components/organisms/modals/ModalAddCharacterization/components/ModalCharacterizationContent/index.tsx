@@ -53,6 +53,7 @@ interface IModalCharacterizationContentProps extends IUseEditCharacterization {
   hideCharacterizationDelete?: boolean;
   embedded?: boolean;
   initialWizardStep?: number;
+  initialAiAction?: 'assist' | 'inventory-summary';
 }
 
 export const ModalCharacterizationContent = (
@@ -60,6 +61,7 @@ export const ModalCharacterizationContent = (
 ) => {
   const [showNameInput, setShowNameInput] = useState(false);
   const [assistModalOpen, setAssistModalOpen] = useState(false);
+  const didAutoAiActionRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowNameInput(true), 1000);
@@ -166,6 +168,32 @@ export const ModalCharacterizationContent = (
     }
   };
 
+  // Fase 2B: atalho da tabela reutiliza os fluxos existentes (sem IA nova).
+  useEffect(() => {
+    if (didAutoAiActionRef.current) return;
+    if (!props.initialAiAction) return;
+    if (!characterizationData.type || !characterizationData.id) return;
+
+    if (props.initialAiAction === 'assist') {
+      didAutoAiActionRef.current = true;
+      setAssistModalOpen(true);
+      return;
+    }
+
+    if (props.initialAiAction === 'inventory-summary') {
+      if (!canGenerateSummary) return;
+      didAutoAiActionRef.current = true;
+      void handleGenerateRiskInventorySummary();
+    }
+    // handleGenerateRiskInventorySummary is recreated each render; gate by ids/flags.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    props.initialAiAction,
+    characterizationData.type,
+    characterizationData.id,
+    canGenerateSummary,
+  ]);
+
   const typeOptions = [
     {
       content: characterizationMap[CharacterizationTypeEnum.GENERAL].name,
@@ -220,7 +248,8 @@ export const ModalCharacterizationContent = (
     },
   ];
 
-  const { embedded, initialWizardStep, ...hierarchyRiskProps } = props;
+  const { embedded, initialWizardStep, initialAiAction: _initialAiAction, ...hierarchyRiskProps } =
+    props;
 
   return (
     <ModalAddHierarchyRisk

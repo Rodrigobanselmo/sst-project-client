@@ -28,7 +28,10 @@ type UseCharacterizationActionsParams = {
   workspaceId?: string;
   onInlineEdit?: (
     data: CharacterizationBrowseResultModel,
-    options?: { wizardStep?: number },
+    options?: {
+      wizardStep?: number;
+      initialAiAction?: 'assist' | 'inventory-summary';
+    },
   ) => void;
   onInlineAdd?: () => void;
 };
@@ -64,19 +67,28 @@ export const useCharacterizationActions = ({
 
   const handleCharacterizationEdit = (
     data: CharacterizationBrowseResultModel,
-    options?: { wizardStep?: number },
+    options?: {
+      wizardStep?: number;
+      initialAiAction?: 'assist' | 'inventory-summary';
+    },
   ) => {
     if (onInlineEdit) {
       onInlineEdit(data, options);
       return;
     }
     if (!hasWorkspaceContext) return;
-    const wizardQuery =
-      typeof options?.wizardStep === 'number'
-        ? `?wizardStep=${options.wizardStep}`
-        : '';
+    const params = new URLSearchParams();
+    if (typeof options?.wizardStep === 'number') {
+      params.set('wizardStep', String(options.wizardStep));
+    }
+    if (options?.initialAiAction) {
+      params.set('aiAction', options.initialAiAction);
+    }
+    const qs = params.toString();
     router.push(
-      `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/${data.id}${wizardQuery}`,
+      `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/${data.id}${
+        qs ? `?${qs}` : ''
+      }`,
     );
   };
 

@@ -53,6 +53,11 @@ import {
   CharacterizationTypeDialog,
 } from './quick-actions/CharacterizationRenameTypeDialogs';
 import { CHARACTERIZATION_WIZARD_STEP } from './quick-actions/characterization-wizard-steps';
+import { CharacterizationTechnicalContentManagerDialog } from './quick-actions/CharacterizationTechnicalContentManagerDialog';
+import type {
+  CharacterizationInitialAiAction,
+  CharacterizationTechnicalContentPrefer,
+} from './quick-actions/technical-content.util';
 
 const table = TablesSelectEnum.CHARACTERIZATION;
 
@@ -61,7 +66,10 @@ type CharacterizationTableProps = {
   companyFlowBelowTabs?: boolean;
   onInlineEdit?: (
     row: CharacterizationBrowseResultModel,
-    options?: { wizardStep?: number },
+    options?: {
+      wizardStep?: number;
+      initialAiAction?: CharacterizationInitialAiAction;
+    },
   ) => void;
   onInlineAdd?: () => void;
 };
@@ -69,6 +77,11 @@ type CharacterizationTableProps = {
 type QuickManagerState = {
   row: CharacterizationBrowseResultModel;
   preferAdd?: boolean;
+} | null;
+
+type TechnicalContentManagerState = {
+  row: CharacterizationBrowseResultModel;
+  prefer?: CharacterizationTechnicalContentPrefer;
 } | null;
 
 import { COMPANY_SST_PATHNAME } from 'core/constants/characterization-navigation.constants';
@@ -85,6 +98,8 @@ export const CharacterizationTable = ({
   const router = useRouter();
   const [cargoManager, setCargoManager] = useState<QuickManagerState>(null);
   const [photoManager, setPhotoManager] = useState<QuickManagerState>(null);
+  const [technicalContentManager, setTechnicalContentManager] =
+    useState<TechnicalContentManagerState>(null);
   const [renameRow, setRenameRow] =
     useState<CharacterizationBrowseResultModel | null>(null);
   const [typeRow, setTypeRow] =
@@ -384,6 +399,19 @@ export const CharacterizationTable = ({
       if (!hasWorkspaceSelected || row.isInactive) return;
       setTypeRow(row);
     },
+    onQuickTechnicalContent: (row) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      setTechnicalContentManager({ row });
+    },
+    onQuickAiAssist: (row) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      setTechnicalContentManager({ row, prefer: 'assist' });
+    },
+    onQuickAiSummary: (row) => {
+      if (!hasWorkspaceSelected || row.isInactive) return;
+      if (!row.canGenerateInventorySummary) return;
+      setTechnicalContentManager({ row, prefer: 'summary' });
+    },
     data: showSearchError ? [] : characterizationResults,
     isLoading: showInitialLoading,
     hideEmpty:
@@ -430,6 +458,14 @@ export const CharacterizationTable = ({
         companyId={companyId}
         workspaceId={workspaceId || ''}
         onClose={() => setPhotoManager(null)}
+      />
+      <CharacterizationTechnicalContentManagerDialog
+        open={!!technicalContentManager}
+        row={technicalContentManager?.row || null}
+        prefer={technicalContentManager?.prefer}
+        companyId={companyId}
+        workspaceId={workspaceId || ''}
+        onClose={() => setTechnicalContentManager(null)}
       />
       <CharacterizationRenameDialog
         open={!!renameRow}

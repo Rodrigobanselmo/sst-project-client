@@ -17,6 +17,11 @@ const CharacterizationEditPageContent = () => {
     typeof wizardStepRaw === 'string' && wizardStepRaw !== ''
       ? Number(wizardStepRaw)
       : undefined;
+  const aiActionRaw = router.query.aiAction;
+  const initialAiAction =
+    aiActionRaw === 'assist' || aiActionRaw === 'inventory-summary'
+      ? aiActionRaw
+      : undefined;
 
   const onBack = () => {
     router.push(`/dashboard/empresas/${companyId}/${workspaceId}/todos`);
@@ -31,6 +36,7 @@ const CharacterizationEditPageContent = () => {
       initialWizardStep={
         Number.isFinite(initialWizardStep) ? initialWizardStep : undefined
       }
+      initialAiAction={initialAiAction}
     />
   );
 };

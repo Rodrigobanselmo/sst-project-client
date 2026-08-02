@@ -1,41 +1,46 @@
 import { useEffect, useRef } from 'react';
 import { useWizard } from 'react-use-wizard';
 
-import { clampCharacterizationWizardStep } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-step.util';
+import { decideApplyInitialWizardStep } from './apply-initial-wizard-step.util';
 
 type ApplyCharacterizationWizardStepProps = {
-  /** Intenção de navegação (ex.: 4 = Análise IA). */
+  /** Intenção de abertura (ex.: 4 = Análise IA). Aplicada uma única vez. */
   requestedStep?: number;
   /** Só navega quando o editor estiver hidratado e o step for válido. */
   enabled: boolean;
 };
 
 /**
- * Aplica o step solicitado UMA vez, usando o contexto do Wizard interno.
- * Evita o `active={n}` contínuo do WizardTabs, que em wizard aninhado
- * (company-flow + editor) pode chamar goToStep no wizard externo e
- * desmontar o shell de Elementos Caracterizados (tela branca).
+ * Aplica o step solicitado UMA vez por montagem do wizard interno.
+ *
+ * Não reagir a mudanças de `activeStep` após a aplicação — isso prendia a aba
+ * inicial (usuário clicava em outra aba e o efeito chamava goToStep de novo).
+ *
+ * Evita também o `active={n}` contínuo do WizardTabs no editor aninhado.
  */
 export function ApplyCharacterizationWizardStep({
   requestedStep,
   enabled,
 }: ApplyCharacterizationWizardStepProps) {
   const { goToStep, stepCount, activeStep } = useWizard();
-  const appliedRef = useRef<number | null>(null);
+  const appliedRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled) return;
-    if (typeof requestedStep !== 'number') return;
+    const decision = decideApplyInitialWizardStep({
+      enabled,
+      alreadyApplied: appliedRef.current,
+      requestedStep,
+      activeStep,
+      stepCount,
+    });
 
-    const target = clampCharacterizationWizardStep(requestedStep);
-    if (target < 0 || target >= stepCount) return;
-
-    if (appliedRef.current === target && activeStep === target) return;
-
-    if (activeStep !== target) {
-      goToStep(target);
+    if (decision.shouldGoToStep && typeof decision.target === 'number') {
+      goToStep(decision.target);
     }
-    appliedRef.current = target;
+
+    if (decision.markApplied) {
+      appliedRef.current = true;
+    }
   }, [enabled, requestedStep, goToStep, stepCount, activeStep]);
 
   return null;

@@ -31,6 +31,8 @@ export type CharacterizationEditViewProps = {
   embedded?: boolean;
   /** Abre wizard em aba específica (0 Dados, 1 Cargos, 2 Riscos, 4 Análise IA…). */
   initialWizardStep?: number;
+  /** Fase 2B — abre Assistente IA ou fluxo de Resumo após hidratar. */
+  initialAiAction?: 'assist' | 'inventory-summary';
   /** Remonta o editor após falha controlada. */
   onRetry?: () => void;
 };
@@ -63,6 +65,7 @@ export const CharacterizationEditView = ({
   onBack,
   embedded = false,
   initialWizardStep,
+  initialAiAction,
   onRetry,
 }: CharacterizationEditViewProps) => {
   const isNew = !characterizationId || characterizationId === 'new';
@@ -341,11 +344,12 @@ export const CharacterizationEditView = ({
             onRetry={handleRetry}
           >
             <ModalCharacterizationContent
-              key={`char-edit-content-${localRetryKey}-${requestedStep}`}
+              key={`char-edit-content-${localRetryKey}-${requestedStep}-${initialAiAction ?? 'none'}`}
               {...props}
               hideCharacterizationDelete
               embedded={embedded}
               initialWizardStep={requestedStep}
+              initialAiAction={initialAiAction}
             />
           </CharacterizationEditStepErrorBoundary>
         </Box>

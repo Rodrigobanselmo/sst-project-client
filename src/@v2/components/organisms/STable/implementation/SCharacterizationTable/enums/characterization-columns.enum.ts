@@ -10,5 +10,6 @@ export enum CharacterizationColumnsEnum {
   RISKS = 'RISKS',
   HIERARCHY = 'HIERARCHY',
   PROFILES = 'PROFILES',
+  TECHNICAL_CONTENT = 'TECHNICAL_CONTENT',
   EDIT = 'EDIT',
 }
