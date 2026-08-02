@@ -5,6 +5,8 @@ import { STableColumnsProps } from '../../../addons/addons-table/STableSearch/co
 type CharacterizationTypeMapValue = {
   label: string;
   alwaysVisible?: boolean;
+  /** Oculta no estado inicial quando não há preferência salva para a coluna. */
+  startHidden?: boolean;
 };
 
 export const CharacterizationColumnMap: Record<
@@ -15,20 +17,30 @@ export const CharacterizationColumnMap: Record<
   [CharacterizationColumnsEnum.NAME]: { label: 'Nome', alwaysVisible: true },
   [CharacterizationColumnsEnum.TYPE]: { label: 'Tipo' },
   [CharacterizationColumnsEnum.PHOTOS]: { label: 'Fotos' },
-  [CharacterizationColumnsEnum.CREATED_AT]: { label: 'Criação' },
-  [CharacterizationColumnsEnum.UPDATED_AT]: { label: 'Ult. Edição' },
+  [CharacterizationColumnsEnum.CREATED_AT]: {
+    label: 'Criação',
+    startHidden: true,
+  },
+  [CharacterizationColumnsEnum.UPDATED_AT]: {
+    label: 'Ult. Edição',
+    startHidden: true,
+  },
   [CharacterizationColumnsEnum.ORDER]: { label: 'Posição' },
   [CharacterizationColumnsEnum.RISKS]: { label: 'Riscos' },
   [CharacterizationColumnsEnum.HIERARCHY]: { label: 'Cargos' },
   [CharacterizationColumnsEnum.PROFILES]: { label: 'Perfis' },
   [CharacterizationColumnsEnum.TECHNICAL_CONTENT]: { label: 'Conteúdo Técnico' },
+  [CharacterizationColumnsEnum.ENVIRONMENTAL_PARAMS]: {
+    label: 'Parâmetros Ambientais',
+  },
   [CharacterizationColumnsEnum.STAGE]: { label: 'Status' },
   [CharacterizationColumnsEnum.EDIT]: { label: 'Editar', alwaysVisible: true },
 };
 
 export const characterizationColumns = Object.entries(CharacterizationColumnMap)
   .filter(([, { alwaysVisible }]) => !alwaysVisible)
-  .map<STableColumnsProps>(([value, { label }]) => ({
+  .map<STableColumnsProps>(([value, { label, startHidden }]) => ({
     value,
     label,
+    startHidden,
   }));

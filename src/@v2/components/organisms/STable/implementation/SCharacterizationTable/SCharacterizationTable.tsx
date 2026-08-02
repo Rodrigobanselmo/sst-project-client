@@ -6,6 +6,7 @@ import { CharacterizationBrowseResultModel } from '@v2/models/security/models/ch
 import { CharacterizationQuickCountCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationQuickCountCell';
 import { CharacterizationRisksQuickCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationRisksQuickCell';
 import { CharacterizationTechnicalContentCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationTechnicalContentCell';
+import { CharacterizationEnvironmentalParamsCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationEnvironmentalParamsCell';
 import { INACTIVE_ACTION_TOOLTIP } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/invalidate-characterization-inventory';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
@@ -24,6 +25,7 @@ import { STableRow } from '../../common/STableRow/STableRow';
 import { mapOrderByTable } from '../../helpers/map-order-by-table.helper';
 import { CharacterizationHeaderRow } from './components/CharacterizationHeaderRow/CharacterizationHeaderRow';
 import { CharacterizationColumnsEnum as columnsEnum } from './enums/characterization-columns.enum';
+import { getHiddenColumn } from './helpers/get-hidden-column';
 import { CharacterizationColumnMap as columnMap } from './maps/characterization-column-map';
 import { CharacterizationTypeMap } from './maps/characterization-type-map';
 import { HirarchyTypeMap } from './maps/hierarchy-type-map';
@@ -53,6 +55,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   onQuickTechnicalContent,
   onQuickAiAssist,
   onQuickAiSummary,
+  onQuickEnvironmentalParams,
   hiddenColumns,
   filterColumns,
   setHiddenColumns,
@@ -65,13 +68,13 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   const tableRows: ITableData<CharacterizationBrowseResultModel>[] = [
     {
       column: '20px',
-      hidden: hiddenColumns[columnsEnum.CHECK_BOX],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.CHECK_BOX),
       header: <SSelectHRow table={table} ids={data.map((row) => row.id)} />,
       row: (row) => <SSelectRow table={table} id={row.id} />,
     },
     {
       column: 'minmax(200px, 1fr)',
-      hidden: hiddenColumns[columnsEnum.NAME],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.NAME),
       header: (
         <CharacterizationHeaderRow
           setOrderBy={setOrderBy}
@@ -119,7 +122,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '150px',
-      hidden: hiddenColumns[columnsEnum.TYPE],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.TYPE),
       header: (
         <CharacterizationHeaderRow
           setOrderBy={setOrderBy}
@@ -171,7 +174,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '90px',
-      hidden: hiddenColumns[columnsEnum.PHOTOS],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.PHOTOS),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -205,7 +208,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '100px',
-      hidden: hiddenColumns[columnsEnum.CREATED_AT],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.CREATED_AT),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -231,7 +234,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '100px',
-      hidden: hiddenColumns[columnsEnum.UPDATED_AT],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.UPDATED_AT),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -257,7 +260,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '70px',
-      hidden: hiddenColumns[columnsEnum.ORDER],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.ORDER),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -279,7 +282,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '70px',
-      hidden: hiddenColumns[columnsEnum.RISKS],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.RISKS),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -322,7 +325,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '70px',
-      hidden: hiddenColumns[columnsEnum.PROFILES],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.PROFILES),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -351,7 +354,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '128px',
-      hidden: hiddenColumns[columnsEnum.TECHNICAL_CONTENT],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.TECHNICAL_CONTENT),
       header: (
         <STableHRow boxProps={{ justifyContent: 'center' }}>
           {columnMap[columnsEnum.TECHNICAL_CONTENT].label}
@@ -370,8 +373,26 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         ),
     },
     {
+      column: '130px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.ENVIRONMENTAL_PARAMS),
+      header: (
+        <STableHRow boxProps={{ justifyContent: 'center' }}>
+          {columnMap[columnsEnum.ENVIRONMENTAL_PARAMS].label}
+        </STableHRow>
+      ),
+      row: (row) =>
+        onQuickEnvironmentalParams ? (
+          <CharacterizationEnvironmentalParamsCell
+            row={row}
+            onOpen={() => onQuickEnvironmentalParams(row)}
+          />
+        ) : (
+          <STextRow justify="center" text="-" />
+        ),
+    },
+    {
       column: '90px',
-      hidden: hiddenColumns[columnsEnum.HIERARCHY],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.HIERARCHY),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -425,7 +446,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '180px',
-      hidden: hiddenColumns[columnsEnum.STAGE],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.STAGE),
       header: (
         <CharacterizationHeaderRow
           justify="center"
@@ -454,7 +475,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
     {
       column: '80px',
-      hidden: hiddenColumns[columnsEnum.EDIT],
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.EDIT),
       header: (
         <STableHRow justify="center">{columnMap[columnsEnum.EDIT].label}</STableHRow>
       ),
