@@ -38,7 +38,7 @@ export const SPopperSelectItem = React.memo<ISPopperSelectItemProps>(
         autoFocus={autoFocus}
         sx={{
           cursor: 'pointer',
-          position: 'sticky',
+          position: 'relative',
           mb: 1,
           userSelect: 'none',
           minHeight: 35,
