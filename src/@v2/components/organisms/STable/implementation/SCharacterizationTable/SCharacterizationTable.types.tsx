@@ -53,6 +53,10 @@ export interface ICharacterizationTableTableProps {
     row: CharacterizationBrowseResultModel,
     preferAdd?: boolean,
   ) => void;
+  /** Remoção rápida do único vínculo ativo (sem abrir o modal completo). */
+  onQuickUnlinkCargo?: (row: CharacterizationBrowseResultModel) => void;
+  canQuickUnlinkCargo?: boolean;
+  quickUnlinkCargoLoadingId?: string | null;
   onQuickPhotos?: (
     row: CharacterizationBrowseResultModel,
     preferAdd?: boolean,

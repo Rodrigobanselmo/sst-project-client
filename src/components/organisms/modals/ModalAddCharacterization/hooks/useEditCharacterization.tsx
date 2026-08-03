@@ -27,6 +27,10 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import {
+  buildDeleteWithCleanupMessage,
+  CHARACTERIZATION_LINK_CLEANUP_TEXTS,
+} from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.util';
+import {
   ICharacterization,
   ICharacterizationFile,
 } from 'core/interfaces/api/ICharacterization';
@@ -1259,7 +1263,37 @@ export const useEditCharacterization = (
     onDeleteArray,
     onEditArray,
     onEditArrayContent,
-    onRemove: () => preventDelete(onRemove),
+    onRemove: () => {
+      const hierarchies = (characterizationQuery?.hierarchies ||
+        characterizationData.hierarchies ||
+        []) as Array<{
+        hierarchyOnHomogeneous?: Array<{ endDate?: Date | string | null }>;
+      }>;
+      const activeLinks = hierarchies.reduce((acc, hierarchy) => {
+        const links = hierarchy.hierarchyOnHomogeneous;
+        if (!Array.isArray(links)) return acc;
+        return acc + links.filter((link) => !link.endDate).length;
+      }, 0);
+
+      if (activeLinks > 0) {
+        const texts = CHARACTERIZATION_LINK_CLEANUP_TEXTS.deleteWithCleanup;
+        preventDelete(
+          onRemove,
+          buildDeleteWithCleanupMessage({
+            name: characterizationData.name || 'elemento',
+            activeLinks,
+          }),
+          {
+            title: texts.title,
+            confirmText: texts.confirm,
+            confirmCancel: texts.cancel,
+          },
+        );
+        return;
+      }
+
+      preventDelete(onRemove);
+    },
     onSubmit,
     photos,
     principalProfile,

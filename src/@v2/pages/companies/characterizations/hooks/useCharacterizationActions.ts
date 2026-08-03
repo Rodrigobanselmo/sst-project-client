@@ -17,6 +17,8 @@ import { initialCopyRiskImportEntryState } from 'components/organisms/modals/Mod
 import { initialCharacterizationSelectState } from 'components/organisms/modals/ModalSelectCharacterization';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { queryClient } from 'layouts/default/providers';
+import { bulkUnlinkHierarchyHomo } from '../components/CharacterizationTable/quick-actions/characterization-link-cleanup.api';
+import { invalidateCharacterizationInventory } from '../components/CharacterizationTable/quick-actions/invalidate-characterization-inventory';
 
 export interface ICharacterizationTableTableProps extends BoxProps {
   companyId?: string;
@@ -165,6 +167,54 @@ export const useCharacterizationActions = ({
     }
   };
 
+  const handleCharacterizationBulkUnlink = async (ids: string[]) => {
+    if (!ids?.length || !hasWorkspaceContext) return false;
+
+    try {
+      const preview = await bulkUnlinkHierarchyHomo({
+        companyId,
+        workspaceId,
+        ids,
+        confirm: false,
+      });
+
+      if (preview.blockedLinks.length > 0 || preview.errors.length > 0) {
+        const reason =
+          preview.reasons[0] ||
+          preview.blockedLinks[0]?.reason ||
+          preview.errors[0]?.reason ||
+          'Não foi possível remover os vínculos selecionados.';
+        onErrorMessage(reason);
+        return false;
+      }
+
+      if (preview.activeLinksFound === 0) {
+        onSuccessMessage('Nenhum vínculo ativo para remover');
+        return true;
+      }
+
+      const result = await bulkUnlinkHierarchyHomo({
+        companyId,
+        workspaceId,
+        ids,
+        confirm: true,
+      });
+
+      await invalidateCharacterizationInventory({
+        companyId,
+        workspaceId,
+      });
+
+      onSuccessMessage(
+        `${result.linksRemoved} vínculo(s) removido(s) com sucesso`,
+      );
+      return true;
+    } catch (error) {
+      onErrorMessage(error as any);
+      return false;
+    }
+  };
+
   const handleCharacterizationExport = async () => {
     if (!hasWorkspaceContext) return;
     await exportMutation
@@ -246,5 +296,6 @@ export const useCharacterizationActions = ({
     handleCharacterizationExport,
     handleCharacterizationEditMany,
     handleCharacterizationDeleteMany,
+    handleCharacterizationBulkUnlink,
   };
 };
