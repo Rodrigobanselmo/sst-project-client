@@ -171,6 +171,13 @@ export function PopperSelectComponent<T>({
         close={handleClose}
         color="paper"
         position="relative"
+        sx={{
+          height: 'auto',
+          maxHeight: 'min(420px, calc(100vh - 24px))',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         {startCompoent}
         <SFlex
@@ -179,17 +186,29 @@ export function PopperSelectComponent<T>({
           width={anchorEl.current?.offsetWidth}
           gap={0}
           pt={2}
+          sx={{
+            height: 'auto',
+            maxHeight: 'inherit',
+            minHeight: 0,
+            overflow: 'hidden',
+          }}
         >
           <SFlex
             pb={2}
             px={0}
             gap={0}
             direction="column"
-            maxHeight={400}
             minWidth={200}
-            overflow="auto"
             ref={scrollRef}
             onScroll={onScrollEnd ? handleScroll : undefined}
+            sx={{
+              height: 'auto',
+              maxHeight: '100%',
+              minHeight: 0,
+              overflowX: 'hidden',
+              overflowY: 'auto',
+              flex: '1 1 auto',
+            }}
           >
             <SPopperSelect autoFocus={false}>
               {!hideSearchInput && (
@@ -201,12 +220,13 @@ export function PopperSelectComponent<T>({
                     }
                   }}
                   sx={{
-                    bgcolor: 'white',
+                    bgcolor: 'background.paper',
                     zIndex: 1,
-                    mt: -2,
                     outline: 'none',
                     width: '100%',
-                    position: 'fixed',
+                    position: 'sticky',
+                    top: 0,
+                    flexShrink: 0,
                     ':focus': { hr: { borderColor: 'secondary.main' } },
                   }}
                 >
@@ -256,7 +276,6 @@ export function PopperSelectComponent<T>({
                   <SDivider />
                 </Box>
               )}
-              {!hideSearchInput && <Box height={44} />}
               {options.map(({ option, label }, index) => {
                 const optionValue = getOptionValue(option);
 
@@ -296,7 +315,7 @@ export function PopperSelectComponent<T>({
             </SPopperSelect>
           </SFlex>
           {(onClean || closeOnSelect) && (
-            <>
+            <Box sx={{ flexShrink: 0, bgcolor: 'background.paper' }}>
               <SDivider sx={{ mb: 3 }} />
               <SFlex px={4} pb={4}>
                 {onClean && (
@@ -342,7 +361,7 @@ export function PopperSelectComponent<T>({
                   </SText>
                 )}
               </SFlex>
-            </>
+            </Box>
           )}
         </SFlex>
       </SPopperArrow>
