@@ -23,7 +23,7 @@ export const CharacterizationTableFilterStage = ({
   return (
     <>
       <SSearchSelectMultiple
-        label="Status"
+        label="Etapa"
         value={selectedStages}
         getOptionLabel={(option) => option?.name}
         getOptionValue={(option) => option?.id}
@@ -31,7 +31,7 @@ export const CharacterizationTableFilterStage = ({
           onFilterData({ stageIds: option.map((o) => o.id) })
         }
         onInputChange={(value) => console.log(value)}
-        placeholder="selecione um ou mais status"
+        placeholder="selecione uma ou mais etapas"
         options={stages}
       />
     </>

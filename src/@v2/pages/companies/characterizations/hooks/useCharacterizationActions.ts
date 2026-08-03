@@ -18,7 +18,11 @@ import { initialCharacterizationSelectState } from 'components/organisms/modals/
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { queryClient } from 'layouts/default/providers';
 import { bulkUnlinkHierarchyHomo } from '../components/CharacterizationTable/quick-actions/characterization-link-cleanup.api';
+import { bulkUpdateCharacterizationStatus } from '../components/CharacterizationTable/quick-actions/characterization-bulk-status.api';
 import { invalidateCharacterizationInventory } from '../components/CharacterizationTable/quick-actions/invalidate-characterization-inventory';
+import type { CharacterizationOperationalStatus } from '../components/CharacterizationTable/quick-actions/characterization-bulk-status.util';
+import { buildActivateConfirmMessage } from '../components/CharacterizationTable/quick-actions/characterization-bulk-status.util';
+import type { BulkUpdateCharacterizationStatusResponse } from '../components/CharacterizationTable/quick-actions/characterization-bulk-status.api';
 
 export interface ICharacterizationTableTableProps extends BoxProps {
   companyId?: string;
@@ -215,6 +219,72 @@ export const useCharacterizationActions = ({
     }
   };
 
+  const previewCharacterizationBulkStatus = async (
+    ids: string[],
+    status: CharacterizationOperationalStatus,
+  ): Promise<BulkUpdateCharacterizationStatusResponse | null> => {
+    if (!ids?.length || !hasWorkspaceContext) return null;
+    try {
+      return await bulkUpdateCharacterizationStatus({
+        companyId,
+        workspaceId,
+        characterizationIds: ids,
+        status,
+        confirm: false,
+      });
+    } catch (error) {
+      onErrorMessage(error as any);
+      return null;
+    }
+  };
+
+  const handleCharacterizationBulkStatus = async (
+    ids: string[],
+    status: CharacterizationOperationalStatus,
+  ) => {
+    if (!ids?.length || !hasWorkspaceContext) return false;
+
+    try {
+      const result = await bulkUpdateCharacterizationStatus({
+        companyId,
+        workspaceId,
+        characterizationIds: ids,
+        status,
+        confirm: true,
+      });
+
+      await invalidateCharacterizationInventory({
+        companyId,
+        workspaceId,
+      });
+
+      if (status === 'ACTIVE') {
+        onSuccessMessage(
+          buildActivateConfirmMessage({
+            willUpdate: result.updatedElements,
+            alreadyActive: result.alreadyInTargetStatus,
+          }).replace('Serão ativados', 'Foram ativados'),
+        );
+      } else {
+        const parts = [
+          `${result.updatedElements} inativado(s)`,
+          result.alreadyInTargetStatus
+            ? `${result.alreadyInTargetStatus} já inativo(s)`
+            : null,
+          result.blockedElements
+            ? `${result.blockedElements} bloqueado(s)`
+            : null,
+        ].filter(Boolean);
+        onSuccessMessage(`Status atualizado: ${parts.join('; ')}.`);
+      }
+
+      return true;
+    } catch (error) {
+      onErrorMessage(error as any);
+      return false;
+    }
+  };
+
   const handleCharacterizationExport = async () => {
     if (!hasWorkspaceContext) return;
     await exportMutation
@@ -297,5 +367,7 @@ export const useCharacterizationActions = ({
     handleCharacterizationEditMany,
     handleCharacterizationDeleteMany,
     handleCharacterizationBulkUnlink,
+    previewCharacterizationBulkStatus,
+    handleCharacterizationBulkStatus,
   };
 };

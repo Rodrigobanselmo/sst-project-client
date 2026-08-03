@@ -214,6 +214,8 @@ export const CharacterizationTable = ({
     handleCharacterizationCopy,
     handleCharacterizationDeleteMany,
     handleCharacterizationBulkUnlink,
+    previewCharacterizationBulkStatus,
+    handleCharacterizationBulkStatus,
   } = useCharacterizationActions({
     companyId,
     workspaceId,
@@ -227,6 +229,10 @@ export const CharacterizationTable = ({
   const canUnlinkCargo = isAuthSuccess({
     permissions: [PermissionEnum.HOMO_GROUP],
     cruds: 'd',
+  });
+  const canBulkStatus = isAuthSuccess({
+    permissions: [PermissionEnum.CHARACTERIZATION],
+    cruds: 'cu',
   });
   const [quickUnlinkLoadingId, setQuickUnlinkLoadingId] = useState<
     string | null
@@ -361,7 +367,7 @@ export const CharacterizationTable = ({
       search: null,
       includeInactive: null,
       stageIds: (value) => ({
-        leftLabel: 'Status',
+        leftLabel: 'Etapa',
         label: selectedStages.find((stage) => stage.id === value)?.name || '',
         onDelete: () =>
           setQueryParams({
@@ -462,6 +468,9 @@ export const CharacterizationTable = ({
           onDeleteMany={handleCharacterizationDeleteMany}
           onBulkUnlink={handleCharacterizationBulkUnlink}
           canBulkUnlink={canUnlinkCargo}
+          onBulkStatus={handleCharacterizationBulkStatus}
+          previewBulkStatus={previewCharacterizationBulkStatus}
+          canBulkStatus={canBulkStatus}
           rows={characterizationResults}
           table={table}
           stages={hasWorkspaceSelected ? statusOptions : []}
