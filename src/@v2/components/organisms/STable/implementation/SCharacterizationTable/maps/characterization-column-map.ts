@@ -33,7 +33,7 @@ export const CharacterizationColumnMap: Record<
   [CharacterizationColumnsEnum.ENVIRONMENTAL_PARAMS]: {
     label: 'Parâmetros Ambientais',
   },
-  [CharacterizationColumnsEnum.STAGE]: { label: 'Status' },
+  [CharacterizationColumnsEnum.STAGE]: { label: 'Etapa' },
   [CharacterizationColumnsEnum.EDIT]: { label: 'Editar', alwaysVisible: true },
 };
 

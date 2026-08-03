@@ -11,6 +11,7 @@ import {
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { StatusBrowseResultModel } from '@v2/models/security/models/status/status-browse-result.model';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 import { useRef, useState } from 'react';
 
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -21,6 +22,23 @@ import {
   CHARACTERIZATION_LINK_CLEANUP_TEXTS,
   countActiveLinksFromBrowseRows,
 } from '../../quick-actions/characterization-link-cleanup.util';
+import {
+  buildActivateConfirmMessage,
+  buildInactivateConfirmMessage,
+  CHARACTERIZATION_BULK_STATUS_TEXTS,
+  CharacterizationOperationalStatus,
+} from '../../quick-actions/characterization-bulk-status.util';
+import type { BulkUpdateCharacterizationStatusResponse } from '../../quick-actions/characterization-bulk-status.api';
+
+type OperationalStatusOption = {
+  id: CharacterizationOperationalStatus;
+  name: string;
+};
+
+const OPERATIONAL_STATUS_OPTIONS: OperationalStatusOption[] = [
+  { id: 'ACTIVE', name: 'Ativar elementos' },
+  { id: 'INACTIVE', name: 'Inativar elementos' },
+];
 
 interface CharacterizationTableSelectionProps {
   table: TablesSelectEnum;
@@ -28,6 +46,15 @@ interface CharacterizationTableSelectionProps {
   onDeleteMany: (ids: string[]) => Promise<boolean>;
   onBulkUnlink?: (ids: string[]) => Promise<boolean>;
   canBulkUnlink?: boolean;
+  onBulkStatus?: (
+    ids: string[],
+    status: CharacterizationOperationalStatus,
+  ) => Promise<boolean>;
+  previewBulkStatus?: (
+    ids: string[],
+    status: CharacterizationOperationalStatus,
+  ) => Promise<BulkUpdateCharacterizationStatusResponse | null>;
+  canBulkStatus?: boolean;
   rows: CharacterizationBrowseResultModel[];
   stages: StatusBrowseResultModel[];
 }
@@ -39,6 +66,9 @@ export const CharacterizationTableSelection = ({
   onDeleteMany,
   onBulkUnlink,
   canBulkUnlink = false,
+  onBulkStatus,
+  previewBulkStatus,
+  canBulkStatus = false,
   rows,
 }: CharacterizationTableSelectionProps) => {
   useTableSelect((state) => state.versions[table]); // used to rerender page on id change
@@ -52,7 +82,7 @@ export const CharacterizationTableSelection = ({
   const linkStats = countActiveLinksFromBrowseRows(selectedRows);
 
   const runGuarded = async (fn: () => Promise<boolean>) => {
-    if (busyRef.current) return;
+    if (busyRef.current) return false;
     busyRef.current = true;
     setBusy(true);
     try {
@@ -61,6 +91,88 @@ export const CharacterizationTableSelection = ({
       busyRef.current = false;
       setBusy(false);
     }
+  };
+
+  const handleOperationalStatus = async (
+    status: CharacterizationOperationalStatus,
+  ) => {
+    if (!onBulkStatus || !previewBulkStatus || busyRef.current) return;
+
+    busyRef.current = true;
+    setBusy(true);
+    let summary: BulkUpdateCharacterizationStatusResponse | null = null;
+    try {
+      summary = await previewBulkStatus(selectedIds, status);
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+
+    if (!summary) return;
+
+    if (status === 'ACTIVE') {
+      const texts = CHARACTERIZATION_BULK_STATUS_TEXTS.activate;
+      preventDelete(
+        () => {
+          void runGuarded(async () => {
+            const ok = await onBulkStatus(selectedIds, status);
+            if (ok) clear();
+            return ok;
+          });
+        },
+        buildActivateConfirmMessage({
+          willUpdate: summary.eligibleElements,
+          alreadyActive: summary.alreadyInTargetStatus,
+        }),
+        {
+          title: texts.title,
+          confirmText: texts.confirm,
+          confirmCancel: texts.cancel,
+          tag: 'warning',
+        },
+      );
+      return;
+    }
+
+    const texts = CHARACTERIZATION_BULK_STATUS_TEXTS.inactivate;
+    if (summary.eligibleElements === 0 && summary.blockedElements > 0) {
+      preventDelete(
+        () => undefined,
+        buildInactivateConfirmMessage({
+          willUpdate: 0,
+          alreadyInactive: summary.alreadyInTargetStatus,
+          blocked: summary.blockedElements,
+        }),
+        {
+          title: 'Nenhum elemento elegível para inativação',
+          confirmText: 'Entendi',
+          confirmCancel: texts.cancel,
+          tag: 'warning',
+        },
+      );
+      return;
+    }
+
+    preventDelete(
+      () => {
+        void runGuarded(async () => {
+          const ok = await onBulkStatus(selectedIds, status);
+          if (ok) clear();
+          return ok;
+        });
+      },
+      buildInactivateConfirmMessage({
+        willUpdate: summary.eligibleElements,
+        alreadyInactive: summary.alreadyInTargetStatus,
+        blocked: summary.blockedElements,
+      }),
+      {
+        title: texts.title,
+        confirmText: texts.confirm,
+        confirmCancel: texts.cancel,
+        tag: 'warning',
+      },
+    );
   };
 
   return (
@@ -72,19 +184,42 @@ export const CharacterizationTableSelection = ({
             icon={<SIconStatus />}
             color="paper"
             variant="outlined"
-            text="Atualizar Status"
+            text="Atualizar etapa"
           />
         )}
         renderItem={SSearchSelectRenderOptionStatusRenderOptionStatus}
-        label="Status"
+        label="Etapa"
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option?.id}
         onChange={(option) => {
           onEditMany({ ids: selectedIds, stageId: option?.id || null });
         }}
         options={stages}
-        placeholder="selecione um ou mais status"
+        placeholder="selecione a etapa do fluxo"
       />
+      {canBulkStatus && onBulkStatus && previewBulkStatus ? (
+        <SSearchSelect
+          inputProps={{ sx: { width: 260 } }}
+          component={() => (
+            <SButton
+              icon={<ToggleOnIcon fontSize="small" />}
+              color="paper"
+              variant="outlined"
+              text="Atualizar Status"
+              disabled={busy || selectedIds.length === 0}
+            />
+          )}
+          label="Status operacional"
+          getOptionLabel={(option) => option.name}
+          getOptionValue={(option) => option?.id}
+          onChange={(option) => {
+            if (!option?.id || busy) return;
+            void handleOperationalStatus(option.id);
+          }}
+          options={OPERATIONAL_STATUS_OPTIONS}
+          placeholder="Ativar ou Inativar"
+        />
+      ) : null}
       {canBulkUnlink && onBulkUnlink ? (
         <SButton
           icon={<LinkOffIcon fontSize="small" />}
