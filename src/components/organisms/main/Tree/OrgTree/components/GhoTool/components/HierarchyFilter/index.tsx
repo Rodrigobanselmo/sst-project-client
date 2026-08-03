@@ -22,12 +22,14 @@ import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import { SUploadIcon } from 'assets/icons/SUploadIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useAccess } from 'core/hooks/useAccess';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGlobalModal } from 'core/hooks/useGlobalModal';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { useMutBulkDeleteHierarchy } from 'core/services/hooks/mutations/checklist/hierarchy/useMutBulkDeleteHierarchy';
+import { PermissionEnum } from 'project/enum/permission.enum';
 
 import {
   formatHierarchyTypeSummary,
@@ -41,6 +43,8 @@ import { GhoHeaderProps } from './types';
 export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
   const dispatch = useAppDispatch();
   const { onOpenModal } = useModal();
+  const { isValidPermissions } = useAccess();
+  const canSanitize = isValidPermissions([PermissionEnum.EMPLOYEE]);
   const ref = useRef<HTMLInputElement>(null);
   const search = useAppSelector((s) => s.hierarchy.search);
   const selectionMode = useAppSelector(selectHierarchySelectionMode);
@@ -86,6 +90,10 @@ export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
 
   const handleOpenHierarchyModal = () => {
     onOpenModal(ModalEnum.HIERARCHIES_EXCEL_ADD);
+  };
+
+  const handleOpenSanitizationModal = () => {
+    onOpenModal(ModalEnum.HIERARCHY_SANITIZATION);
   };
 
   const handleEnterSelectionMode = () => {
@@ -248,6 +256,15 @@ export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
             icon={SUploadIcon}
             onClick={handleOpenHierarchyModal}
           />
+          {canSanitize && (
+            <STagButton
+              large
+              text="Sanitizar organograma"
+              tooltipTitle="Localizar e excluir cargos sem utilização (comuns e desenvolvidos)"
+              icon={SDeleteIcon}
+              onClick={handleOpenSanitizationModal}
+            />
+          )}
         </>
       )}
 

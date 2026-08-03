@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { initialCharacterizationState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
+import { ModalHierarchySanitization } from 'components/organisms/modals/ModalHierarchySanitization';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { useRouter } from 'next/router';
 import {
@@ -228,6 +229,7 @@ export const GhoTool = () => {
       )}
       <ModalAddProbability />
       <ModalExcelHierarchies />
+      <ModalHierarchySanitization />
     </>
   );
 };
