@@ -17,4 +17,5 @@ export type ReadSystemAiPromptParams = {
 export type UpsertSystemAiPromptParams = {
   key: SystemAiPromptKeyEnum;
   content: string;
+  changeReason?: string;
 };

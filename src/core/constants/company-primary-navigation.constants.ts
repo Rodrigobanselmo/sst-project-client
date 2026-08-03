@@ -154,6 +154,7 @@ export const COMPANY_WORKSPACE_CONTEXTUAL_NAV_ITEMS: CompanyWorkspaceContextualN
         '/dashboard/empresas/[companyId]/novo/sst',
         '/dashboard/empresas/[companyId]/produtos-quimicos',
         '/dashboard/empresas/[companyId]/assistente-gse',
+        '/dashboard/empresas/[companyId]/modelos-ia-caracterizacao',
       ],
       getHref: ({ companyId, tabWorkspaceId }) =>
         withOptionalWorkspace(
@@ -302,8 +303,10 @@ export function resolveCompanyWorkspaceContextualActiveId(input: {
   if (
     pathname.includes('/produtos-quimicos') ||
     pathname.includes('/assistente-gse') ||
+    pathname.includes('/modelos-ia-caracterizacao') ||
     pathOnly.includes('/produtos-quimicos') ||
-    pathOnly.includes('/assistente-gse')
+    pathOnly.includes('/assistente-gse') ||
+    pathOnly.includes('/modelos-ia-caracterizacao')
   ) {
     return 'characterization';
   }

@@ -42,6 +42,11 @@ export const ASSISTENTE_GSE_PATHNAME =
 
 export const ASSISTENTE_GSE_NAV_LABEL = 'Assistente de GSE';
 
+export const CHARACTERIZATION_AI_PROFILES_PATHNAME =
+  '/dashboard/empresas/[companyId]/modelos-ia-caracterizacao';
+
+export const CHARACTERIZATION_AI_PROFILES_NAV_LABEL = 'Especialistas de IA';
+
 export type CharacterizationSubareaNavItem =
   | {
       kind: 'tab';
@@ -50,7 +55,7 @@ export type CharacterizationSubareaNavItem =
     }
   | {
       kind: 'external';
-      id: 'chemical-products' | 'assistente-gse';
+      id: 'chemical-products' | 'assistente-gse' | 'characterization-ai-profiles';
       label: string;
     };
 
@@ -80,6 +85,11 @@ export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNav
       id: 'assistente-gse' as const,
       label: ASSISTENTE_GSE_NAV_LABEL,
     },
+    {
+      kind: 'external' as const,
+      id: 'characterization-ai-profiles' as const,
+      label: CHARACTERIZATION_AI_PROFILES_NAV_LABEL,
+    },
   ];
 }
 
@@ -92,6 +102,13 @@ export function getChemicalProductsNavStep(): number {
 export function getAssistenteGseNavStep(): number {
   return getCharacterizationSubareaNavItems().findIndex(
     (item) => item.kind === 'external' && item.id === 'assistente-gse',
+  );
+}
+
+export function getCharacterizationAiProfilesNavStep(): number {
+  return getCharacterizationSubareaNavItems().findIndex(
+    (item) =>
+      item.kind === 'external' && item.id === 'characterization-ai-profiles',
   );
 }
 
@@ -115,6 +132,21 @@ export function getAssistenteGseHref(params: {
   tabWorkspaceId?: string;
 }): string {
   const base = RoutesEnum.EXPOSURE_GROUP_ASSISTANT.replace(
+    ':companyId',
+    params.companyId,
+  );
+  if (!params.tabWorkspaceId) return base;
+  const query = new URLSearchParams({
+    tabWorkspaceId: params.tabWorkspaceId,
+  });
+  return `${base}?${query.toString()}`;
+}
+
+export function getCharacterizationAiProfilesHref(params: {
+  companyId: string;
+  tabWorkspaceId?: string;
+}): string {
+  const base = RoutesEnum.CHARACTERIZATION_AI_PROFILES.replace(
     ':companyId',
     params.companyId,
   );
