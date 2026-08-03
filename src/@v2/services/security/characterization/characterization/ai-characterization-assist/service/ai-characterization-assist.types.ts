@@ -105,6 +105,8 @@ export interface AiCharacterizationAssistParams {
   webSearchConsentAccepted?: boolean;
   customPrompt?: string;
   model?: string;
+  /** Company AI specialist complementary to the Assistente motor. */
+  profileId?: string;
 }
 
 export type AiCharacterizationAssistSanitizationMeta = {

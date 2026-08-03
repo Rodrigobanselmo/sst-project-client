@@ -118,6 +118,12 @@ export const permissionsConstantMap = {
     info: 'Gerenciamento dos ambientes, posto de trabalho, atividades e etc da empresa',
     crud: ['r', 'cu', 'd'],
   },
+  [PermissionEnum.CHARACTERIZATION_AI_PROFILE]: {
+    value: PermissionEnum.CHARACTERIZATION_AI_PROFILE,
+    label: 'Gerenciar especialistas de IA da Caracterização',
+    info: 'Criar, editar, duplicar, inativar e definir padrões dos especialistas de IA da Caracterização',
+    crud: ['c', 'r', 'u', 'd'],
+  },
   [PermissionEnum.PCMSO]: {
     value: PermissionEnum.PCMSO,
     label: 'Módulo PCMSO (Visualizar e gerar novos documentos)',

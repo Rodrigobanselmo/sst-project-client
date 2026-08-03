@@ -23,13 +23,14 @@ export async function readSystemAiPrompt({
 export async function upsertSystemAiPrompt({
   key,
   content,
+  changeReason,
 }: UpsertSystemAiPromptParams): Promise<SystemAiPromptResult> {
   const response = await api.put<SystemAiPromptResult>(
     bindUrlParams({
       path: `${FormRoutes.SYSTEM_AI_PROMPT.PATH}/:key`,
       pathParams: { key },
     }),
-    { content },
+    { content, changeReason },
   );
 
   return response.data;

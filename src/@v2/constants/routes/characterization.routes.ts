@@ -37,4 +37,18 @@ export const CharacterizationRoutes = {
     EDIT: 'v2/companies/:companyId/status/:id',
     DELETE: 'v2/companies/:companyId/status/:id',
   },
+  AI_PROFILE: {
+    BROWSE: 'v2/companies/:companyId/characterization-ai-profiles',
+    READ: 'v2/companies/:companyId/characterization-ai-profiles/:profileId',
+    DUPLICATE:
+      'v2/companies/:companyId/characterization-ai-profiles/:profileId/duplicate',
+    STATUS:
+      'v2/companies/:companyId/characterization-ai-profiles/:profileId/status',
+    DEFAULT: 'v2/companies/:companyId/characterization-ai-profiles/default',
+    TYPE_DEFAULT:
+      'v2/companies/:companyId/characterization-ai-profiles/type-defaults/:type',
+    TRANSCRIBE:
+      'v2/companies/:companyId/characterization-ai-profiles/transcribe',
+    DRAFT: 'v2/companies/:companyId/characterization-ai-profiles/draft',
+  },
 } as const;

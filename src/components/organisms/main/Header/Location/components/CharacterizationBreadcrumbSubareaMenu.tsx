@@ -8,6 +8,8 @@ import {
   CharacterizationSubareaNavItem,
   COMPANY_SST_PATHNAME,
   COMPANY_SST_STAGE,
+  getAssistenteGseHref,
+  getCharacterizationAiProfilesHref,
   getCharacterizationSubareaNavItems,
   getChemicalProductsHref,
 } from 'core/constants/characterization-navigation.constants';
@@ -44,6 +46,20 @@ export function CharacterizationBreadcrumbSubareaMenu({
         if (item.id === 'chemical-products') {
           void router.push(
             getChemicalProductsHref({
+              companyId,
+              tabWorkspaceId,
+            }),
+          );
+        } else if (item.id === 'assistente-gse') {
+          void router.push(
+            getAssistenteGseHref({
+              companyId,
+              tabWorkspaceId,
+            }),
+          );
+        } else if (item.id === 'characterization-ai-profiles') {
+          void router.push(
+            getCharacterizationAiProfilesHref({
               companyId,
               tabWorkspaceId,
             }),

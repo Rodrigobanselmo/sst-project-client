@@ -37,6 +37,7 @@ import {
   COMPANY_SST_PATHNAME,
   COMPANY_SST_STAGE,
   getAssistenteGseNavStep,
+  getCharacterizationAiProfilesHref,
   getCharacterizationSubareaNavItems,
   getChemicalProductsHref,
 } from 'core/constants/characterization-navigation.constants';
@@ -177,6 +178,18 @@ export function ExposureGroupAssistantPageContent({
             if (item.kind === 'external' && item.id === 'chemical-products') {
               void router.push(
                 getChemicalProductsHref({
+                  companyId,
+                  tabWorkspaceId: workspaceId || undefined,
+                }),
+              );
+              return;
+            }
+            if (
+              item.kind === 'external' &&
+              item.id === 'characterization-ai-profiles'
+            ) {
+              void router.push(
+                getCharacterizationAiProfilesHref({
                   companyId,
                   tabWorkspaceId: workspaceId || undefined,
                 }),

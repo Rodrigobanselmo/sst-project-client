@@ -31,6 +31,8 @@ export enum PermissionEnum {
   ACTION_PLAN_PHOTOS = '4.51',
   ACTION_PLAN_ADMIN = '4.52',
   CHARACTERIZATION = '4.6',
+  /** Gerenciar modelos de IA da Caracterização (perfis contextuais da empresa). */
+  CHARACTERIZATION_AI_PROFILE = '4.61',
   PCMSO = '4.7',
   EXAM_RISK = '4.8',
   EXAM_CLINIC = '4.9',

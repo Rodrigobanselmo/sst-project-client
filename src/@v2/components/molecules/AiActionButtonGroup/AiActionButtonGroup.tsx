@@ -15,6 +15,7 @@ type AiActionButtonGroupProps = {
   disabled?: boolean;
   onExecute: () => void;
   onConfigure?: () => void;
+  configureLabel?: string;
   isMaster?: boolean;
   variant?: AiActionButtonGroupVariant;
   size?: 'small' | 'medium';
@@ -27,6 +28,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
   disabled = false,
   onExecute,
   onConfigure,
+  configureLabel = 'Configurar prompt/modelo',
   isMaster = false,
   variant = 'mui-outlined',
   size = 'small',
@@ -53,7 +55,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
           <SButton
             variant="text"
             color="primary"
-            text="Configurar prompt/modelo"
+            text={configureLabel}
             disabled={loading}
             onClick={onConfigure}
             icon={<SettingsOutlinedIcon sx={{ fontSize: 18 }} />}
@@ -86,7 +88,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
           onClick={onConfigure}
           disabled={loading}
         >
-          Configurar prompt/modelo
+          {configureLabel}
         </Button>
       )}
     </Box>

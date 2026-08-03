@@ -13,9 +13,12 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   FormControlLabel,
+  MenuItem,
   Radio,
   RadioGroup,
+  Select,
   TextField,
   Typography,
 } from '@mui/material';
@@ -26,12 +29,11 @@ import { SText } from '@v2/components/atoms/SText/SText';
 import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
 import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
 import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
-import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
-import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { useAccess } from 'core/hooks/useAccess';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
 import { useMutateAiCharacterizationAssist } from '@v2/services/security/characterization/characterization/ai-characterization-assist/hooks/useMutateAiCharacterizationAssist';
+import { useFetchBrowseCharacterizationAiProfiles } from '@v2/services/security/characterization/characterization-ai-profile/hooks/useFetchBrowseCharacterizationAiProfiles';
 import type {
   AiCharacterizationAssistCompanyRole,
   AiCharacterizationAssistOutputIntent,
@@ -43,9 +45,11 @@ import type {
 } from '@v2/services/security/characterization/characterization/ai-characterization-assist/service/ai-characterization-assist.types';
 import { useMutateApplyCharacterizationAiAssistTrace } from '@v2/services/security/characterization/characterization/ai-characterization-assist-traceability/hooks/useMutateCharacterizationAiAssistTraceability';
 import type { CharacterizationAiAssistAppliedFieldName } from '@v2/services/security/characterization/characterization/ai-characterization-assist-traceability/service/ai-characterization-assist-traceability.types';
+import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import type { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
 import { AiTemporaryPdfSourceField } from '../AiTemporaryPdfSourceField/AiTemporaryPdfSourceField';
+import { CharacterizationAiAssistArchitectureDialog } from './CharacterizationAiAssistArchitectureDialog';
 import {
   assistItemsToDisplayValues,
   assistItemsToStoredValues,
@@ -57,6 +61,7 @@ import {
   acknowledgeCharacterizationAiAssistDefaultModel,
   hasAcknowledgedCharacterizationAiAssistDefaultModel,
 } from './characterization-ai-assist-model-notice.util';
+import { suggestCharacterizationAiSpecialist } from './suggest-characterization-ai-specialist.util';
 
 type CharacterizationArrayField = 'paragraphs' | 'activities' | 'considerations';
 
@@ -262,12 +267,80 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
   );
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const [selectedProfileId, setSelectedProfileId] = useState('');
+  const [specialistSuggestionId, setSpecialistSuggestionId] = useState<
+    string | null
+  >(null);
+  const specialistManualOverrideRef = useRef(false);
   const ignoreAssistCloseRef = useRef(false);
 
   const canAssist = Boolean(
     characterizationData.id &&
       characterizationData.companyId &&
       characterizationData.workspaceId,
+  );
+
+  const {
+    data: specialistsBrowse,
+    refetch: refetchSpecialists,
+  } = useFetchBrowseCharacterizationAiProfiles(
+    {
+      companyId: characterizationData.companyId || '',
+      isActive: 'true',
+      limit: 100,
+    },
+    open && Boolean(characterizationData.companyId),
+  );
+
+  const activeSpecialists = specialistsBrowse?.data ?? [];
+
+  const selectedSpecialist = useMemo(
+    () =>
+      activeSpecialists.find((profile) => profile.id === selectedProfileId) ??
+      null,
+    [activeSpecialists, selectedProfileId],
+  );
+
+  const suggestedSpecialist = useMemo(
+    () =>
+      suggestCharacterizationAiSpecialist({
+        characterizationType:
+          (characterizationData.type as CharacterizationTypeEnum) || null,
+        profiles: activeSpecialists,
+      }),
+    [activeSpecialists, characterizationData.type],
+  );
+
+  const architectureLabels = useMemo(
+    () => ({
+      scope: {
+        OWN_ESTABLISHMENT: 'Estabelecimento próprio',
+        THIRD_PARTY: 'Estabelecimento de terceiro',
+        EXTERNAL_ITINERANT: 'Atividade externa/itinerante',
+        SPECIFIC_EQUIPMENT: 'Equipamento/unidade operacional específica',
+      } as Record<AiCharacterizationAssistScope, string>,
+      companyRole: {
+        DIRECT_OPERATOR: 'Opera diretamente o processo',
+        SERVICE_CONSULTING: 'Apenas presta serviço/consultoria/acompanhamento',
+        MAINTENANCE: 'Executa manutenção/atividade operacional',
+        ADMINISTRATIVE: 'Atua administrativamente',
+      } as Record<AiCharacterizationAssistCompanyRole, string>,
+      target: {
+        FULL_ESTABLISHMENT: 'Estabelecimento inteiro',
+        SECTOR: 'Setor',
+        WORKSTATION: 'Posto de trabalho',
+        ACTIVITY: 'Atividade',
+        VESSEL_PLATFORM_EQUIPMENT: 'Embarcação/plataforma/equipamento',
+        WORK_FRONT: 'Frente de trabalho',
+      } as Record<AiCharacterizationAssistTarget, string>,
+      outputIntent: {
+        GENERATE_FINAL: 'Gerar texto final para preencher os campos',
+        REVIEW_EXISTING: 'Revisar texto existente',
+        CRITICAL_ONLY:
+          'Fazer análise crítica sem entregar texto final pronto',
+      } as Record<AiCharacterizationAssistOutputIntent, string>,
+    }),
+    [],
   );
 
   const modelNoticeScope = useMemo(
@@ -295,6 +368,9 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
     setTemporaryDocumentSource(null);
     setResult(null);
     setAiMasterConfig({});
+    setSelectedProfileId('');
+    setSpecialistSuggestionId(null);
+    specialistManualOverrideRef.current = false;
   };
 
   useEffect(() => {
@@ -310,6 +386,20 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
     setStep(acknowledged ? 'form' : 'modelNotice');
   }, [open, modelNoticeScope]);
 
+  useEffect(() => {
+    if (!open) return;
+    if (specialistManualOverrideRef.current) return;
+
+    if (suggestedSpecialist) {
+      setSelectedProfileId(suggestedSpecialist.id);
+      setSpecialistSuggestionId(suggestedSpecialist.id);
+      return;
+    }
+
+    setSelectedProfileId('');
+    setSpecialistSuggestionId(null);
+  }, [open, suggestedSpecialist]);
+
   const continueWithDefaultModel = () => {
     if (modelNoticeScope) {
       acknowledgeCharacterizationAiAssistDefaultModel(modelNoticeScope);
@@ -323,7 +413,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
   };
 
   const handleAssistDialogClose = () => {
-    // Nested SystemAiPromptConfigDialog close can fall through to this Dialog's backdrop.
+    // Nested architecture dialog close can fall through to this Dialog's backdrop.
     if (aiConfigDialogOpen || ignoreAssistCloseRef.current) return;
     handleClose();
   };
@@ -339,6 +429,13 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
   const handleApplyPromptConfig = (config: SystemAiMasterConfig) => {
     setAiMasterConfig(config);
     closePromptConfigDialog();
+  };
+
+  const handleDiscardTemporaryMotor = () => {
+    setAiMasterConfig((current) => ({
+      model: current.model,
+      customPrompt: undefined,
+    }));
   };
 
   const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -387,6 +484,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       webSearchConsentAccepted: webSearchConsentAccepted || undefined,
       customPrompt: masterOverrides.customPrompt,
       model: masterOverrides.model,
+      profileId: selectedProfileId || undefined,
     });
 
     setResult(response);
@@ -692,6 +790,52 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                   label,
                 }))}
               />
+
+              <Box sx={{ mb: 3 }}>
+                <SText variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                  Especialista de IA
+                </SText>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={selectedProfileId}
+                    onChange={(e) => {
+                      specialistManualOverrideRef.current = true;
+                      setSelectedProfileId(String(e.target.value));
+                    }}
+                    displayEmpty
+                  >
+                    <MenuItem value="">
+                      <em>Sem especialista (somente motor)</em>
+                    </MenuItem>
+                    {activeSpecialists.map((specialist) => (
+                      <MenuItem key={specialist.id} value={specialist.id}>
+                        {specialist.name}
+                        {specialist.isCompanyDefault ? ' (padrão)' : ''}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {specialistSuggestionId &&
+                selectedProfileId === specialistSuggestionId ? (
+                  <Alert severity="info" sx={{ mt: 1.5 }}>
+                    Especialista sugerido com base no tipo do elemento
+                    {characterizationData.type
+                      ? ` (${characterizationData.type})`
+                      : ''}
+                    . Você pode selecionar outro.
+                  </Alert>
+                ) : null}
+                {!activeSpecialists.length ? (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', mt: 1 }}
+                  >
+                    Nenhum especialista ativo nesta empresa. A geração usará
+                    apenas o motor do Assistente.
+                  </Typography>
+                ) : null}
+              </Box>
 
               <Box sx={{ mb: 3 }}>
                 <SText variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
@@ -1112,6 +1256,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                 onConfigure={
                   isMaster ? () => setAiConfigDialogOpen(true) : undefined
                 }
+                configureLabel="Arquitetura do Assistente"
                 isMaster={isMaster}
                 variant="s-button-contained"
               />
@@ -1121,20 +1266,42 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       </Dialog>
 
       {isMaster && (
-        <SystemAiPromptConfigDialog
+        <CharacterizationAiAssistArchitectureDialog
           open={aiConfigDialogOpen}
           onClose={closePromptConfigDialog}
           onApply={handleApplyPromptConfig}
+          onDiscardTemporary={handleDiscardTemporaryMotor}
           initialConfig={aiMasterConfig}
-          promptKey={SystemAiPromptKeyEnum.CHARACTERIZATION_AI_ASSIST}
-          title="Configurar Assistente IA da Caracterização"
-          description="Configuração avançada disponível apenas para usuários MASTER. Aplicar vale para esta sessão. Definir como prompt padrão persiste para todo o sistema."
           factoryDefaultPrompt={CHARACTERIZATION_AI_ASSIST_FACTORY_DEFAULT_PROMPT}
-          promptLabel="Prompt completo do Assistente IA"
-          saveDefaultConfirmMessage="O conteúdo atual será salvo como prompt padrão do sistema para o Assistente IA da Caracterização. Deseja continuar?"
-          maxWidth="xl"
-          promptMinRows={8}
-          promptMaxRows={30}
+          companyId={characterizationData.companyId || ''}
+          specialist={selectedSpecialist}
+          questionnaire={{
+            characterizationScope: form.characterizationScope,
+            companyRole: form.companyRole,
+            characterizationTarget: form.characterizationTarget,
+            outputIntent: form.outputIntent,
+            useAttachedPhotos: form.useAttachedPhotos,
+          }}
+          userObservations={form.userObservations}
+          userProvidedSources={form.userProvidedSources}
+          enableWebSearch={form.enableWebSearch}
+          temporaryDocumentSource={temporaryDocumentSource}
+          characterization={{
+            name: characterizationData.name,
+            type: characterizationData.type,
+            paragraphs: characterizationData.paragraphs,
+            activities: characterizationData.activities,
+            considerations: characterizationData.considerations,
+            photos: characterizationData.photos,
+            temperature: characterizationData.temperature,
+            noiseValue: characterizationData.noiseValue,
+            luminosity: characterizationData.luminosity,
+            moisturePercentage: characterizationData.moisturePercentage,
+          }}
+          labels={architectureLabels}
+          onSpecialistSaved={() => {
+            void refetchSpecialists();
+          }}
         />
       )}
     </>

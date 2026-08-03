@@ -12,6 +12,7 @@ import { Wizard } from 'react-use-wizard';
 
 import {
   getAssistenteGseHref,
+  getCharacterizationAiProfilesHref,
   getCharacterizationSubareaNavItems,
   getCharacterizationTabFromWizardStep,
   getCharacterizationWizardStep,
@@ -96,6 +97,23 @@ export const CharacterizationStage = ({
                     undefined;
                   void router.push(
                     getAssistenteGseHref({
+                      companyId,
+                      tabWorkspaceId,
+                    }),
+                  );
+                  return;
+                }
+                if (
+                  item?.kind === 'external' &&
+                  item.id === 'characterization-ai-profiles'
+                ) {
+                  if (!companyId) return;
+                  const tabWorkspaceId =
+                    (router.query.tabWorkspaceId as string | undefined) ||
+                    workspaceId ||
+                    undefined;
+                  void router.push(
+                    getCharacterizationAiProfilesHref({
                       companyId,
                       tabWorkspaceId,
                     }),
