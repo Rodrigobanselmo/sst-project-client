@@ -43,7 +43,7 @@ import { CharacterizationTableFilter } from './components/CharacterizationTableF
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
 import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
 import { CompanyFlowV2StickySection } from 'components/organisms/main/CompanyFlow/CompanyFlowV2StickySection';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
 import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 import { CharacterizationCargoManagerDialog } from './quick-actions/CharacterizationCargoManagerDialog';
@@ -55,6 +55,17 @@ import {
 import { CHARACTERIZATION_WIZARD_STEP } from './quick-actions/characterization-wizard-steps';
 import { CharacterizationTechnicalContentManagerDialog } from './quick-actions/CharacterizationTechnicalContentManagerDialog';
 import { CharacterizationEnvironmentalParamsDialog } from './quick-actions/CharacterizationEnvironmentalParamsDialog';
+import {
+  CHARACTERIZATION_LINK_CLEANUP_TEXTS,
+  shouldShowQuickUnlink,
+} from './quick-actions/characterization-link-cleanup.util';
+import { fetchActiveHierarchyLinks } from './quick-actions/characterization-link-cleanup.api';
+import { invalidateCharacterizationInventory } from './quick-actions/invalidate-characterization-inventory';
+import { usePreventAction } from 'core/hooks/usePreventAction';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { PermissionEnum } from 'project/enum/permission.enum';
+import { deleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteHierarchyGho/useMutDeleteHierarchyGho';
+import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import type {
   CharacterizationInitialAiAction,
   CharacterizationTechnicalContentPrefer,
@@ -202,12 +213,118 @@ export const CharacterizationTable = ({
     handleCharacterizationEditMany,
     handleCharacterizationCopy,
     handleCharacterizationDeleteMany,
+    handleCharacterizationBulkUnlink,
   } = useCharacterizationActions({
     companyId,
     workspaceId,
     onInlineEdit,
     onInlineAdd,
   });
+
+  const { preventDelete } = usePreventAction();
+  const { isAuthSuccess } = useAuthShow();
+  const { onSuccessMessage, onErrorMessage } = useApiResponseHandler();
+  const canUnlinkCargo = isAuthSuccess({
+    permissions: [PermissionEnum.HOMO_GROUP],
+    cruds: 'd',
+  });
+  const [quickUnlinkLoadingId, setQuickUnlinkLoadingId] = useState<
+    string | null
+  >(null);
+  const quickUnlinkBusyRef = useRef(false);
+
+  const handleQuickUnlinkCargo = useCallback(
+    (row: CharacterizationBrowseResultModel) => {
+      if (
+        !hasWorkspaceSelected ||
+        row.isInactive ||
+        !canUnlinkCargo ||
+        !shouldShowQuickUnlink((row.hierarchies ?? []).length) ||
+        quickUnlinkBusyRef.current
+      ) {
+        return;
+      }
+
+      quickUnlinkBusyRef.current = true;
+      setQuickUnlinkLoadingId(row.id);
+
+      void (async () => {
+        try {
+          const active = await fetchActiveHierarchyLinks({
+            homogeneousGroupId: row.id,
+            companyId,
+          });
+
+          if (active.activeCount !== 1 || !active.links[0]?.id) {
+            onErrorMessage(
+              active.activeCount === 0
+                ? 'Não há vínculo ativo para remover.'
+                : 'Há mais de um vínculo ativo. Abra o modal de cargos para escolher.',
+            );
+            return;
+          }
+
+          const link = active.links[0];
+          if (!link.removable) {
+            onErrorMessage(
+              link.blockReason ||
+                CHARACTERIZATION_LINK_CLEANUP_TEXTS.esocialBlockedTooltip,
+            );
+            return;
+          }
+
+          const hierarchyName =
+            link.hierarchyName || row.hierarchies?.[0]?.name || 'cargo';
+          const texts = CHARACTERIZATION_LINK_CLEANUP_TEXTS.quickUnlink;
+
+          preventDelete(
+            () => {
+              if (quickUnlinkBusyRef.current) return;
+              quickUnlinkBusyRef.current = true;
+              setQuickUnlinkLoadingId(row.id);
+
+              void (async () => {
+                try {
+                  await deleteGho({ ids: [link.id], companyId }, companyId);
+                  await invalidateCharacterizationInventory({
+                    companyId,
+                    workspaceId: workspaceId || '',
+                    characterizationId: row.id,
+                  });
+                  onSuccessMessage('Vínculo removido com sucesso');
+                } catch (error) {
+                  onErrorMessage(error as any);
+                } finally {
+                  quickUnlinkBusyRef.current = false;
+                  setQuickUnlinkLoadingId(null);
+                }
+              })();
+            },
+            `${texts.body}\n\nElemento: ${row.name}\nCargo: ${hierarchyName}`,
+            {
+              title: texts.title,
+              confirmText: texts.confirm,
+              confirmCancel: texts.cancel,
+            },
+          );
+        } catch (error) {
+          onErrorMessage(error as any);
+        } finally {
+          quickUnlinkBusyRef.current = false;
+          setQuickUnlinkLoadingId(null);
+        }
+      })();
+    },
+    [
+      hasWorkspaceSelected,
+      canUnlinkCargo,
+      preventDelete,
+      companyId,
+      workspaceId,
+      onErrorMessage,
+      onSuccessMessage,
+    ],
+  );
 
   const {
     onAddStatus,
@@ -343,6 +460,9 @@ export const CharacterizationTable = ({
         <CharacterizationTableSelection
           onEditMany={handleCharacterizationEditMany}
           onDeleteMany={handleCharacterizationDeleteMany}
+          onBulkUnlink={handleCharacterizationBulkUnlink}
+          canBulkUnlink={canUnlinkCargo}
+          rows={characterizationResults}
           table={table}
           stages={hasWorkspaceSelected ? statusOptions : []}
         />
@@ -390,6 +510,9 @@ export const CharacterizationTable = ({
       if (!hasWorkspaceSelected || row.isInactive) return;
       setCargoManager({ row, preferAdd });
     },
+    onQuickUnlinkCargo: handleQuickUnlinkCargo,
+    canQuickUnlinkCargo: canUnlinkCargo,
+    quickUnlinkCargoLoadingId: quickUnlinkLoadingId,
     onQuickPhotos: (row, preferAdd) => {
       if (!hasWorkspaceSelected || row.isInactive) return;
       setPhotoManager({ row, preferAdd });

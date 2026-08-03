@@ -23,6 +23,7 @@ import { useMutUpdateHierarchyGho } from 'core/services/hooks/mutations/checklis
 import { dateToString } from 'core/utils/date/date-format';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
+import { CHARACTERIZATION_LINK_CLEANUP_TEXTS } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.util';
 
 const HIERARCHY_HOMO_PAGE_SIZES = [15, 25, 50, 100] as const;
 const DEFAULT_HIERARCHY_HOMO_PAGE_SIZE = 15;
@@ -39,6 +40,11 @@ export const HierarchyHomoTable: FC<
       isCreate?: boolean;
       /** Quando definido, fixa o tamanho da página e oculta o seletor. */
       fixedRowsPerPage?: number;
+      /** Chamado após remoção bem-sucedida de um vínculo (não em isCreate). */
+      onUnlinkSuccess?: (payload: {
+        removedLinkId: number;
+        remainingActiveCount: number;
+      }) => void;
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
@@ -49,6 +55,7 @@ export const HierarchyHomoTable: FC<
   loading,
   hierarchies,
   isCreate,
+  onUnlinkSuccess,
 }) => {
   const [pageSize, setPageSize] = useState(() =>
     typeof fixedRowsPerPage === 'number'
@@ -95,22 +102,6 @@ export const HierarchyHomoTable: FC<
     );
   };
 
-  const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
-    if (isCreate) {
-    } else {
-      deleteMutation.mutate({
-        ids: [h.id],
-        companyId: h.companyId,
-      });
-    }
-  };
-
-  const onSelectRow = (hier: IHierarchy & IHierarchyOnHomogeneous) => {
-    if (isSelect) {
-      onSelectData(hier);
-    } else onEdit(hier);
-  };
-
   const data = hierarchies.reduce((acc, curr) => {
     const newData = curr.hierarchyOnHomogeneous?.map((h) => ({
       ...curr,
@@ -119,6 +110,38 @@ export const HierarchyHomoTable: FC<
 
     return [...acc, ...(newData || [])];
   }, [] as any[]);
+
+  const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
+    if (isCreate) {
+      return;
+    }
+
+    const remainingActiveBefore = data.filter(
+      (row: IHierarchy & IHierarchyOnHomogeneous) =>
+        !row.endDate && row.id !== h.id,
+    ).length;
+
+    deleteMutation.mutate(
+      {
+        ids: [h.id],
+        companyId: h.companyId,
+      },
+      {
+        onSuccess: () => {
+          onUnlinkSuccess?.({
+            removedLinkId: h.id,
+            remainingActiveCount: remainingActiveBefore,
+          });
+        },
+      },
+    );
+  };
+
+  const onSelectRow = (hier: IHierarchy & IHierarchyOnHomogeneous) => {
+    if (isSelect) {
+      onSelectData(hier);
+    } else onEdit(hier);
+  };
 
   const { handleSearchChange, results, page, setPage } = useTableSearch({
     rowsPerPage: pageSize,
@@ -234,7 +257,16 @@ export const HierarchyHomoTable: FC<
                     onClick={(e) => {
                       e.stopPropagation();
                       if (isCreate) return onDelete(row);
-                      preventDelete(() => onDelete(row));
+                      const texts = CHARACTERIZATION_LINK_CLEANUP_TEXTS.quickUnlink;
+                      preventDelete(
+                        () => onDelete(row),
+                        `${texts.body}\n\nCargo: ${row.name || '-'}`,
+                        {
+                          title: texts.title,
+                          confirmText: texts.confirm,
+                          confirmCancel: texts.cancel,
+                        },
+                      );
                     }}
                   />
                 )}

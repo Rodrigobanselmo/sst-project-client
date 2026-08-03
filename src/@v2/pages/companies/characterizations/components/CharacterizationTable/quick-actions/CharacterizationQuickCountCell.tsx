@@ -1,6 +1,7 @@
 import { MouseEvent } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
+import LinkOffIcon from '@mui/icons-material/LinkOff';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 
 type CharacterizationQuickCountCellProps = {
@@ -13,6 +14,12 @@ type CharacterizationQuickCountCellProps = {
   addTooltip: string;
   onOpen: () => void;
   onAdd: () => void;
+  /** Remoção rápida quando há exatamente 1 vínculo ativo removível. */
+  showQuickUnlink?: boolean;
+  quickUnlinkTooltip?: string;
+  quickUnlinkDisabledReason?: string;
+  onQuickUnlink?: () => void;
+  quickUnlinkLoading?: boolean;
 };
 
 /**
@@ -29,6 +36,11 @@ export function CharacterizationQuickCountCell({
   addTooltip,
   onOpen,
   onAdd,
+  showQuickUnlink = false,
+  quickUnlinkTooltip = 'Remover vínculo do cargo',
+  quickUnlinkDisabledReason,
+  onQuickUnlink,
+  quickUnlinkLoading = false,
 }: CharacterizationQuickCountCellProps) {
   const blockReason = disabled
     ? disabledReason || 'Ação indisponível'
@@ -44,6 +56,12 @@ export function CharacterizationQuickCountCell({
     e.stopPropagation();
     if (disabled) return;
     onAdd();
+  };
+
+  const handleQuickUnlink = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (disabled || quickUnlinkDisabledReason || quickUnlinkLoading) return;
+    onQuickUnlink?.();
   };
 
   if (count <= 0) {
@@ -80,6 +98,12 @@ export function CharacterizationQuickCountCell({
     );
   }
 
+  const unlinkBlocked = Boolean(quickUnlinkDisabledReason);
+  const unlinkTooltip =
+    blockReason ||
+    quickUnlinkDisabledReason ||
+    quickUnlinkTooltip;
+
   return (
     <Box
       display="flex"
@@ -111,6 +135,21 @@ export function CharacterizationQuickCountCell({
           </Typography>
         </span>
       </Tooltip>
+      {showQuickUnlink && onQuickUnlink ? (
+        <Tooltip title={unlinkTooltip}>
+          <span>
+            <IconButton
+              size="small"
+              onClick={handleQuickUnlink}
+              disabled={disabled || unlinkBlocked || quickUnlinkLoading}
+              aria-label={quickUnlinkTooltip}
+              sx={{ p: 0.25 }}
+            >
+              <LinkOffIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </span>
+        </Tooltip>
+      ) : null}
       <Tooltip title={blockReason || addTooltip}>
         <span>
           <IconButton

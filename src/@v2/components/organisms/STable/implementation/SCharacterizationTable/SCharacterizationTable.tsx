@@ -8,6 +8,7 @@ import { CharacterizationRisksQuickCell } from '@v2/pages/companies/characteriza
 import { CharacterizationTechnicalContentCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationTechnicalContentCell';
 import { CharacterizationEnvironmentalParamsCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationEnvironmentalParamsCell';
 import { INACTIVE_ACTION_TOOLTIP } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/invalidate-characterization-inventory';
+import { shouldShowQuickUnlink } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.util';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
 import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
@@ -49,6 +50,9 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   onEditRow,
   onQuickRisks,
   onQuickCargos,
+  onQuickUnlinkCargo,
+  canQuickUnlinkCargo = false,
+  quickUnlinkCargoLoadingId = null,
   onQuickPhotos,
   onQuickRename,
   onQuickType,
@@ -426,6 +430,17 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
             addTooltip="Adicionar cargo ao elemento"
             onOpen={() => onQuickCargos(row, false)}
             onAdd={() => onQuickCargos(row, true)}
+            showQuickUnlink={
+              canQuickUnlinkCargo &&
+              shouldShowQuickUnlink((row.hierarchies ?? []).length)
+            }
+            onQuickUnlink={
+              onQuickUnlinkCargo
+                ? () => onQuickUnlinkCargo(row)
+                : undefined
+            }
+            quickUnlinkLoading={quickUnlinkCargoLoadingId === row.id}
+            quickUnlinkTooltip="Remover vínculo do cargo"
           />
         ) : (
           <STextRow

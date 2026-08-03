@@ -46,6 +46,7 @@ export function CharacterizationCargoManagerDialog({
   const upsertMutation = useMutUpsertCharacterization();
   const { data: ghoQuery } = useQueryGHOAll();
   const didAutoAddRef = useRef(false);
+  const closingAfterLastUnlinkRef = useRef(false);
 
   const {
     data: detail,
@@ -67,6 +68,36 @@ export function CharacterizationCargoManagerDialog({
       characterizationId,
     });
   }, [companyId, workspaceId, characterizationId, refetch]);
+
+  const handleClose = useCallback(async () => {
+    await invalidateCharacterizationInventory({
+      companyId,
+      workspaceId,
+      characterizationId,
+    });
+    onClose();
+  }, [companyId, workspaceId, characterizationId, onClose]);
+
+  const onUnlinkSuccess = useCallback(
+    async ({ remainingActiveCount }: { remainingActiveCount: number }) => {
+      if (remainingActiveCount > 0) {
+        await refresh();
+        return;
+      }
+
+      // Último vínculo ativo removido com sucesso → fecha o modal.
+      if (closingAfterLastUnlinkRef.current) return;
+      closingAfterLastUnlinkRef.current = true;
+      await invalidateCharacterizationInventory({
+        companyId,
+        workspaceId,
+        characterizationId,
+      });
+      onClose();
+      closingAfterLastUnlinkRef.current = false;
+    },
+    [refresh, companyId, workspaceId, characterizationId, onClose],
+  );
 
   const onAddHierarchy = useCallback(() => {
     if (!detail?.id) return;
@@ -129,21 +160,13 @@ export function CharacterizationCargoManagerDialog({
   useEffect(() => {
     if (!open) {
       didAutoAddRef.current = false;
+      closingAfterLastUnlinkRef.current = false;
       return;
     }
     if (!preferAdd || !detail?.id || isLoading || didAutoAddRef.current) return;
     didAutoAddRef.current = true;
     onAddHierarchy();
   }, [open, preferAdd, detail?.id, isLoading, onAddHierarchy]);
-
-  const handleClose = async () => {
-    await invalidateCharacterizationInventory({
-      companyId,
-      workspaceId,
-      characterizationId,
-    });
-    onClose();
-  };
 
   return (
     <Dialog
@@ -179,6 +202,7 @@ export function CharacterizationCargoManagerDialog({
             hierarchies={hierarchies as any}
             isCreate={false}
             fixedRowsPerPage={15}
+            onUnlinkSuccess={onUnlinkSuccess}
           />
         )}
       </DialogContent>
