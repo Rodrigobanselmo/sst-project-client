@@ -56,7 +56,6 @@ import {
   resolveAssistModeFromOutputIntent,
   sanitizeApplicableAssistText,
 } from './characterization-ai-assist.utils';
-import { CHARACTERIZATION_AI_ASSIST_FACTORY_DEFAULT_PROMPT } from './characterization-ai-assist-default-prompt.constant';
 import {
   acknowledgeCharacterizationAiAssistDefaultModel,
   hasAcknowledgedCharacterizationAiAssistDefaultModel,
@@ -1272,8 +1271,10 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
           onApply={handleApplyPromptConfig}
           onDiscardTemporary={handleDiscardTemporaryMotor}
           initialConfig={aiMasterConfig}
-          factoryDefaultPrompt={CHARACTERIZATION_AI_ASSIST_FACTORY_DEFAULT_PROMPT}
+          isMaster={isMaster}
           companyId={characterizationData.companyId || ''}
+          workspaceId={characterizationData.workspaceId || ''}
+          characterizationId={String(characterizationData.id || '')}
           specialist={selectedSpecialist}
           questionnaire={{
             characterizationScope: form.characterizationScope,

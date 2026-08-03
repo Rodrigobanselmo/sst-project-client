@@ -47,8 +47,31 @@ export type CharacterizationAiProfileDto = {
   updatedAt: string;
 };
 
+/** Public metadata for Assistente selection — no know-how fields. */
+export type CharacterizationAiProfileSummaryDto = {
+  id: string;
+  companyId: string;
+  name: string;
+  category: string | null;
+  version: number;
+  isActive: boolean;
+  isCompanyDefault: boolean;
+  recommendedCharacterizationTypes: CharacterizationTypeEnum[];
+  publicDescription: string | null;
+};
+
 export type CharacterizationAiProfileBrowseResult = {
   data: CharacterizationAiProfileDto[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type CharacterizationAiProfileSummaryBrowseResult = {
+  data: CharacterizationAiProfileSummaryDto[];
   pagination: {
     page: number;
     limit: number;

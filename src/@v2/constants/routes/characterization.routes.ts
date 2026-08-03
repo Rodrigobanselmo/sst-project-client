@@ -7,6 +7,8 @@ export const CharacterizationRoutes = {
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-analyze',
     AI_CHARACTERIZATION_ASSIST:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-characterization-assist',
+    AI_CHARACTERIZATION_ASSIST_ARCHITECTURE_PREVIEW:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-characterization-assist/architecture-preview',
     AI_RISK_INVENTORY_SUMMARY:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/:characterizationId/ai-risk-inventory-summary',
     AI_CHARACTERIZATION_ASSIST_TRACES:
@@ -39,6 +41,7 @@ export const CharacterizationRoutes = {
   },
   AI_PROFILE: {
     BROWSE: 'v2/companies/:companyId/characterization-ai-profiles',
+    ADMIN_BROWSE: 'v2/companies/:companyId/characterization-ai-profiles/admin',
     READ: 'v2/companies/:companyId/characterization-ai-profiles/:profileId',
     DUPLICATE:
       'v2/companies/:companyId/characterization-ai-profiles/:profileId/duplicate',

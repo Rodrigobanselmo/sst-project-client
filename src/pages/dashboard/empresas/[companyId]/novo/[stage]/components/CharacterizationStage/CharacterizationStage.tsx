@@ -21,6 +21,7 @@ import {
 } from 'core/constants/characterization-navigation.constants';
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
+import { useAccess } from 'core/hooks/useAccess';
 import { useCharacterizationInlineEditorOptional } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
 import { RiskToolByEntityTabContent } from './RiskToolByEntityTabContent';
 
@@ -46,8 +47,9 @@ export const CharacterizationStage = ({
   const wizardStep = getCharacterizationWizardStep(activeTab);
   const inlineEditor = useCharacterizationInlineEditorOptional();
   const isInlineCharacterizationEdit = inlineEditor?.isInlineEditOpen ?? false;
+  const { isMaster } = useAccess();
 
-  const navItems = getCharacterizationSubareaNavItems();
+  const navItems = getCharacterizationSubareaNavItems({ showAiProfiles: isMaster });
   const tabOptions = navItems.map((item) => ({
     label: item.label,
   }));

@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -40,7 +41,9 @@ import { CharacterizationAiProfileFormDialog } from '@v2/pages/companies/charact
 import { useFetchSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useFetchSystemAiPrompt';
 import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useMutateUpsertSystemAiPrompt';
 import { getSystemAiPromptErrorMessage } from '@v2/services/forms/system-ai-prompt/utils/system-ai-prompt-error.utils';
-import type { CharacterizationAiProfileDto } from '@v2/services/security/characterization/characterization-ai-profile/service/characterization-ai-profile.types';
+import { useFetchCharacterizationAiProfile } from '@v2/services/security/characterization/characterization-ai-profile/hooks/useFetchCharacterizationAiProfile';
+import type { CharacterizationAiProfileSummaryDto } from '@v2/services/security/characterization/characterization-ai-profile/service/characterization-ai-profile.types';
+import { useMutateAiCharacterizationAssistArchitecturePreview } from '@v2/services/security/characterization/characterization/ai-characterization-assist/hooks/useMutateAiCharacterizationAssistArchitecturePreview';
 import type {
   AiCharacterizationAssistCompanyRole,
   AiCharacterizationAssistOutputIntent,
@@ -50,10 +53,6 @@ import type {
   AiTemporaryDocumentSource,
 } from '@v2/services/security/characterization/characterization/ai-characterization-assist/service/ai-characterization-assist.types';
 
-import {
-  buildCharacterizationAiAssistArchitecturePreview,
-  resolveSpecialistPromptCopyPayload,
-} from './build-characterization-ai-assist-architecture-preview.util';
 import {
   CHARACTERIZATION_AI_ASSIST_NEUTRAL_MOTOR_PROPOSAL,
   CHARACTERIZATION_AI_ASSIST_NEUTRAL_MOTOR_PROPOSAL_AVAILABLE,
@@ -74,9 +73,11 @@ export type CharacterizationAiAssistArchitectureDialogProps = {
   onApply: (config: SystemAiMasterConfig) => void;
   onDiscardTemporary?: () => void;
   initialConfig?: SystemAiMasterConfig;
-  factoryDefaultPrompt: string;
+  isMaster: boolean;
   companyId: string;
-  specialist: CharacterizationAiProfileDto | null;
+  workspaceId: string;
+  characterizationId: string;
+  specialist: CharacterizationAiProfileSummaryDto | null;
   questionnaire: AiCharacterizationAssistQuestionnaire;
   userObservations: string;
   userProvidedSources: string;
@@ -168,6 +169,16 @@ function buildDiffSummary(previous: string, next: string) {
   return `Tamanho anterior: ${prevLen} caracteres → novo: ${nextLen} (${sign}${delta}).`;
 }
 
+function countItems(items?: string[] | null): number {
+  return (items || []).filter((item) => String(item || '').trim()).length;
+}
+
+function resolveSpecialistPromptCopyPayload(
+  specialistAppendix: string | null | undefined,
+): string {
+  return specialistAppendix?.trim() ? specialistAppendix : '';
+}
+
 export const CharacterizationAiAssistArchitectureDialog: FC<
   CharacterizationAiAssistArchitectureDialogProps
 > = ({
@@ -176,8 +187,10 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
   onApply,
   onDiscardTemporary,
   initialConfig,
-  factoryDefaultPrompt,
+  isMaster,
   companyId,
+  workspaceId,
+  characterizationId,
   specialist,
   questionnaire,
   userObservations,
@@ -201,12 +214,14 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
 
   const methods = useForm<ArchitectureForm>({
     defaultValues: {
-      customPrompt: factoryDefaultPrompt,
+      customPrompt: '',
       model: DEFAULT_MODEL,
     },
   });
   const { reset, getValues, setValue, control } = methods;
   const watchedPrompt = useWatch({ control, name: 'customPrompt' });
+
+  const fetchEnabled = open && isMaster;
 
   const {
     data: systemAiPrompt,
@@ -214,14 +229,21 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
     isError: isSystemAiPromptError,
     error: systemAiPromptError,
     refetch: refetchSystemAiPrompt,
-  } = useFetchSystemAiPrompt(MOTOR_KEY, open);
+  } = useFetchSystemAiPrompt(MOTOR_KEY, fetchEnabled);
+
+  const { data: fullSpecialistProfile } = useFetchCharacterizationAiProfile(
+    { companyId, profileId: specialist?.id ?? '' },
+    fetchEnabled && editSpecialistOpen && Boolean(specialist?.id),
+  );
+
+  const previewMutation = useMutateAiCharacterizationAssistArchitecturePreview();
 
   const { mutateAsync: upsertSystemAiPromptAsync, isPending: isSavingRevision } =
     useMutateUpsertSystemAiPrompt();
 
   const factoryDefaultContent = useMemo(
-    () => systemAiPrompt?.defaultContent?.trim() || factoryDefaultPrompt,
-    [factoryDefaultPrompt, systemAiPrompt?.defaultContent],
+    () => systemAiPrompt?.defaultContent?.trim() || '',
+    [systemAiPrompt?.defaultContent],
   );
 
   const globalActiveContent = useMemo(() => {
@@ -265,7 +287,7 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
   };
 
   useEffect(() => {
-    if (!open) return;
+    if (!fetchEnabled) return;
 
     const sessionModel = resolveModelOption(initialConfig?.model);
 
@@ -298,30 +320,49 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     factoryDefaultContent,
+    fetchEnabled,
     initialConfig?.customPrompt,
     initialConfig?.model,
     isLoadingSystemAiPrompt,
-    open,
     reset,
     systemAiPrompt,
   ]);
 
-  const preview = useMemo(
-    () =>
-      buildCharacterizationAiAssistArchitecturePreview({
-        motorPrompt: watchedPrompt || '',
-        specialist,
-        questionnaire,
-        userObservations,
-        userProvidedSources,
-        enableWebSearch,
-        temporaryDocumentSource,
-        characterization,
-        labels,
-      }),
+  const previewPayload = useMemo(
+    () => ({
+      companyId,
+      workspaceId,
+      characterizationId,
+      motorPrompt: watchedPrompt || '',
+      profileId: specialist?.id ?? null,
+      questionnaire,
+      userObservations,
+      userProvidedSources,
+      enableWebSearch,
+      temporaryDocumentFileName: temporaryDocumentSource?.fileName ?? null,
+      hasTemporaryDocumentText: Boolean(
+        temporaryDocumentSource?.extractedText?.trim(),
+      ),
+      characterizationCounts: {
+        paragraphsCount: countItems(characterization.paragraphs),
+        activitiesCount: countItems(characterization.activities),
+        considerationsCount: countItems(characterization.considerations),
+        photosCount: characterization.photos?.length ?? 0,
+      },
+      environmental: {
+        temperature: characterization.temperature,
+        noiseValue: characterization.noiseValue,
+        luminosity: characterization.luminosity,
+        moisturePercentage: characterization.moisturePercentage,
+      },
+      labels,
+    }),
     [
+      companyId,
+      workspaceId,
+      characterizationId,
       watchedPrompt,
-      specialist,
+      specialist?.id,
       questionnaire,
       userObservations,
       userProvidedSources,
@@ -331,6 +372,18 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
       labels,
     ],
   );
+
+  const debouncedFetchPreview = useDebouncedCallback(() => {
+    if (!fetchEnabled) return;
+    previewMutation.mutate(previewPayload);
+  }, 400);
+
+  useEffect(() => {
+    debouncedFetchPreview();
+  }, [debouncedFetchPreview, previewPayload, fetchEnabled]);
+
+  const preview = previewMutation.data;
+  const isLoadingPreview = previewMutation.isPending && !preview;
 
   const handleApplyTemporaryOnly = () => {
     const content = getValues('customPrompt')?.trim();
@@ -360,7 +413,7 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
   };
 
   const handleCopySpecialistPrompt = async () => {
-    const text = resolveSpecialistPromptCopyPayload(preview.specialistAppendix);
+    const text = resolveSpecialistPromptCopyPayload(preview?.specialistAppendix);
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
@@ -499,6 +552,10 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
     revisionMode === 'restore-fallback'
       ? factoryDefaultContent
       : editorContent;
+
+  if (!isMaster || !open) {
+    return null;
+  }
 
   return (
     <>
@@ -691,23 +748,13 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
                         label={`Versão ${specialist.version}`}
                       />
                     </SFlex>
-                    {specialist.objective ? (
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">
-                          Objetivo
-                        </Typography>
-                        <Typography variant="body2">
-                          {specialist.objective}
-                        </Typography>
-                      </Box>
-                    ) : null}
-                    {specialist.description ? (
+                    {specialist.publicDescription ? (
                       <Box>
                         <Typography variant="caption" color="text.secondary">
                           Resumo
                         </Typography>
                         <Typography variant="body2">
-                          {specialist.description}
+                          {specialist.publicDescription}
                         </Typography>
                       </Box>
                     ) : null}
@@ -717,7 +764,7 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
                         variant="outlined"
                         startIcon={<VisibilityOutlinedIcon />}
                         onClick={() => setSpecialistPromptOpen(true)}
-                        disabled={!preview.specialistAppendix}
+                        disabled={!preview?.specialistAppendix || isLoadingPreview}
                       >
                         Ver prompt completo do especialista
                       </Button>
@@ -745,13 +792,17 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
                 title="3. Questionário respondido"
                 subtitle="Somente leitura — respostas desta execução"
               >
-                <Stack spacing={0.75}>
-                  {preview.questionnaireRows.map((row) => (
-                    <Typography key={row.key} variant="body2">
-                      <strong>{row.label}:</strong> ✓ {row.value}
-                    </Typography>
-                  ))}
-                </Stack>
+                {isLoadingPreview ? (
+                  <Skeleton variant="rectangular" height={120} />
+                ) : (
+                  <Stack spacing={0.75}>
+                    {(preview?.questionnaireRows ?? []).map((row) => (
+                      <Typography key={row.key} variant="body2">
+                        <strong>{row.label}:</strong> ✓ {row.value}
+                      </Typography>
+                    ))}
+                  </Stack>
+                )}
               </LayerCard>
 
               <LayerArrow />
@@ -769,27 +820,31 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
                       : ''}
                   </Typography>
                   <Divider />
-                  {preview.sourceStatuses.map((source) => (
-                    <SFlex
-                      key={source.key}
-                      justifyContent="space-between"
-                      alignItems="center"
-                      flexWrap="wrap"
-                      gap={1}
-                    >
-                      <Typography variant="body2">{source.label}</Typography>
-                      <SFlex gap={1} alignItems="center">
-                        <Chip
-                          size="small"
-                          color={source.used ? 'success' : 'default'}
-                          label={source.used ? 'Utilizado' : 'Não utilizado'}
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {source.detail}
-                        </Typography>
+                  {isLoadingPreview ? (
+                    <Skeleton variant="rectangular" height={160} />
+                  ) : (
+                    (preview?.sourceStatuses ?? []).map((source) => (
+                      <SFlex
+                        key={source.key}
+                        justifyContent="space-between"
+                        alignItems="center"
+                        flexWrap="wrap"
+                        gap={1}
+                      >
+                        <Typography variant="body2">{source.label}</Typography>
+                        <SFlex gap={1} alignItems="center">
+                          <Chip
+                            size="small"
+                            color={source.used ? 'success' : 'default'}
+                            label={source.used ? 'Utilizado' : 'Não utilizado'}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            {source.detail}
+                          </Typography>
+                        </SFlex>
                       </SFlex>
-                    </SFlex>
-                  ))}
+                    ))
+                  )}
                 </Stack>
               </LayerCard>
 
@@ -818,27 +873,32 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Box
-                    component="pre"
-                    sx={{
-                      m: 0,
-                      p: 2,
-                      maxHeight: 420,
-                      overflow: 'auto',
-                      bgcolor: 'grey.50',
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: 'grey.200',
-                      fontSize: 12,
-                      lineHeight: 1.5,
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      fontFamily:
-                        'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                    }}
-                  >
-                    {preview.effectivePromptPreview}
-                  </Box>
+                  {isLoadingPreview ? (
+                    <Skeleton variant="rectangular" height={220} />
+                  ) : (
+                    <Box
+                      component="pre"
+                      sx={{
+                        m: 0,
+                        p: 2,
+                        maxHeight: 420,
+                        overflow: 'auto',
+                        bgcolor: 'grey.50',
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'grey.200',
+                        fontSize: 12,
+                        lineHeight: 1.5,
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        fontFamily:
+                          'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                      }}
+                    >
+                      {preview?.effectivePromptPreview ||
+                        '(prévia indisponível — verifique permissões MASTER e tente novamente)'}
+                    </Box>
+                  )}
                 </AccordionDetails>
               </Accordion>
             </DialogContent>
@@ -947,7 +1007,7 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
                 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
             }}
           >
-            {preview.specialistAppendix || '(especialista sem appendix)'}
+            {preview?.specialistAppendix || '(especialista sem appendix)'}
           </Box>
           <Typography variant="caption" color="text.secondary">
             Para alterar este conteúdo, edite os campos do especialista. Esta
@@ -958,7 +1018,7 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
           <Button
             startIcon={<ContentCopyIcon />}
             onClick={() => void handleCopySpecialistPrompt()}
-            disabled={!preview.specialistAppendix}
+            disabled={!preview?.specialistAppendix}
           >
             Copiar
           </Button>
@@ -982,7 +1042,7 @@ export const CharacterizationAiAssistArchitectureDialog: FC<
         <CharacterizationAiProfileFormDialog
           open={editSpecialistOpen}
           companyId={companyId}
-          profile={specialist}
+          profile={fullSpecialistProfile ?? null}
           onClose={() => setEditSpecialistOpen(false)}
           onSaved={() => {
             setEditSpecialistOpen(false);

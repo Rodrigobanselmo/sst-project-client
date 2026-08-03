@@ -40,6 +40,7 @@ import {
   getChemicalProductsNavStep,
 } from 'core/constants/characterization-navigation.constants';
 import { CharacterizationSummarySection } from 'components/organisms/main/CompanyFlow/CharacterizationSummarySection';
+import { useAccess } from 'core/hooks/useAccess';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   enrichPickableWorkspaces,
@@ -221,8 +222,12 @@ export const ChemicalProductsPageContent = ({
   const [excelImportOpen, setExcelImportOpen] = useState(false);
   const [excelPrepareOpen, setExcelPrepareOpen] = useState(false);
   const [excelValidateOpen, setExcelValidateOpen] = useState(false);
+  const { isMaster } = useAccess();
 
-  const navItems = useMemo(() => getCharacterizationSubareaNavItems(), []);
+  const navItems = useMemo(
+    () => getCharacterizationSubareaNavItems({ showAiProfiles: isMaster }),
+    [isMaster],
+  );
   const chemicalNavStep = getChemicalProductsNavStep();
 
   const defaultWorkspaceId = useMemo(() => {
