@@ -1,5 +1,16 @@
-import type { CharacterizationAiProfileDto } from '@v2/services/security/characterization/characterization-ai-profile/service/characterization-ai-profile.types';
+import type { CharacterizationAiProfileSummaryDto } from '@v2/services/security/characterization/characterization-ai-profile/service/characterization-ai-profile.types';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
+
+export type CharacterizationAiSpecialistSuggestionProfile = Pick<
+  CharacterizationAiProfileSummaryDto,
+  | 'id'
+  | 'name'
+  | 'category'
+  | 'version'
+  | 'isActive'
+  | 'isCompanyDefault'
+  | 'recommendedCharacterizationTypes'
+>;
 
 /**
  * Suggests an active specialist whose recommendedCharacterizationTypes include the element type.
@@ -8,8 +19,8 @@ import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enu
  */
 export function suggestCharacterizationAiSpecialist(params: {
   characterizationType?: CharacterizationTypeEnum | string | null;
-  profiles: CharacterizationAiProfileDto[];
-}): CharacterizationAiProfileDto | null {
+  profiles: CharacterizationAiSpecialistSuggestionProfile[];
+}): CharacterizationAiSpecialistSuggestionProfile | null {
   const active = (params.profiles || []).filter((profile) => profile.isActive);
   if (!active.length) return null;
 

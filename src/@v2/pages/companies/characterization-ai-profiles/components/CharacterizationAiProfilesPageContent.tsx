@@ -1,7 +1,7 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { useFetchBrowseCharacterizationAiProfiles } from '@v2/services/security/characterization/characterization-ai-profile/hooks/useFetchBrowseCharacterizationAiProfiles';
+import { useFetchBrowseCharacterizationAiProfilesAdmin } from '@v2/services/security/characterization/characterization-ai-profile/hooks/useFetchBrowseCharacterizationAiProfilesAdmin';
 import { useMutateCharacterizationAiProfile } from '@v2/services/security/characterization/characterization-ai-profile/hooks/useMutateCharacterizationAiProfile';
 import type { CharacterizationAiProfileDto } from '@v2/services/security/characterization/characterization-ai-profile/service/characterization-ai-profile.types';
 import {
@@ -22,7 +22,6 @@ import {
   TextField,
   Tooltip,
 } from '@mui/material';
-import { useAuthShow } from 'components/molecules/SAuthShow';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import { CharacterizationSummarySection } from 'components/organisms/main/CompanyFlow/CharacterizationSummarySection';
 import { STabs } from 'components/molecules/STabs';
@@ -37,7 +36,6 @@ import {
 } from 'core/constants/characterization-navigation.constants';
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 import { useAccess } from 'core/hooks/useAccess';
-import { PermissionEnum } from 'project/enum/permission.enum';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 
@@ -64,12 +62,9 @@ export function CharacterizationAiProfilesPageContent({
   companyId: string;
 }) {
   const router = useRouter();
-  const { isAuthSuccess } = useAuthShow();
   const { isMaster } = useAccess();
 
-  const canManage =
-    isMaster ||
-    isAuthSuccess({ permissions: [PermissionEnum.CHARACTERIZATION_AI_PROFILE] });
+  const canManage = isMaster;
 
   const [search, setSearch] = useState('');
   const [isActiveFilter, setIsActiveFilter] = useState<
@@ -77,7 +72,7 @@ export function CharacterizationAiProfilesPageContent({
   >('all');
 
   const { data, isLoading, isError, error, refetch, isFetching } =
-    useFetchBrowseCharacterizationAiProfiles(
+    useFetchBrowseCharacterizationAiProfilesAdmin(
       {
         companyId,
         search: search || undefined,
@@ -96,7 +91,7 @@ export function CharacterizationAiProfilesPageContent({
   const [editingProfile, setEditingProfile] =
     useState<CharacterizationAiProfileDto | null>(null);
 
-  const navItems = getCharacterizationSubareaNavItems();
+  const navItems = getCharacterizationSubareaNavItems({ showAiProfiles: isMaster });
   const aiProfilesNavStep = getCharacterizationAiProfilesNavStep();
   const profiles = data?.data ?? [];
   const activeProfiles = useMemo(
@@ -182,9 +177,8 @@ export function CharacterizationAiProfilesPageContent({
     return (
       <Box sx={{ py: 4 }}>
         <Alert severity="warning">
-          Você não tem permissão para gerenciar especialistas de IA da
-          Caracterização. Solicite a permissão &quot;Gerenciar especialistas de
-          IA da Caracterização&quot; ou acesso master.
+          Acesso restrito a usuários MASTER. Somente administradores do sistema
+          podem gerenciar especialistas de IA da Caracterização.
         </Alert>
       </Box>
     );

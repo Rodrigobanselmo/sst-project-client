@@ -42,6 +42,7 @@ import {
   getChemicalProductsHref,
 } from 'core/constants/characterization-navigation.constants';
 import { CharacterizationSummarySection } from 'components/organisms/main/CompanyFlow/CharacterizationSummarySection';
+import { useAccess } from 'core/hooks/useAccess';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   enrichPickableWorkspaces,
@@ -94,8 +95,12 @@ export function ExposureGroupAssistantPageContent({
   const [selected, setSelected] = useState<InterpretedRecommendation | null>(
     null,
   );
+  const { isMaster } = useAccess();
 
-  const navItems = useMemo(() => getCharacterizationSubareaNavItems(), []);
+  const navItems = useMemo(
+    () => getCharacterizationSubareaNavItems({ showAiProfiles: isMaster }),
+    [isMaster],
+  );
   const activeStep = getAssistenteGseNavStep();
 
   const defaultWorkspaceId = useMemo(() => {

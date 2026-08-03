@@ -68,8 +68,10 @@ const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.ENTITY_RISKS,
 ] as const;
 
-export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNavItem[] {
-  return [
+export function getCharacterizationSubareaNavItems(options?: {
+  showAiProfiles?: boolean;
+}): CharacterizationSubareaNavItem[] {
+  const items: CharacterizationSubareaNavItem[] = [
     ...CHARACTERIZATION_SUBAREA_TABS.map((tab) => ({
       kind: 'tab' as const,
       tab,
@@ -91,6 +93,15 @@ export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNav
       label: CHARACTERIZATION_AI_PROFILES_NAV_LABEL,
     },
   ];
+
+  if (options?.showAiProfiles === false) {
+    return items.filter(
+      (item) =>
+        !(item.kind === 'external' && item.id === 'characterization-ai-profiles'),
+    );
+  }
+
+  return items;
 }
 
 export function getChemicalProductsNavStep(): number {

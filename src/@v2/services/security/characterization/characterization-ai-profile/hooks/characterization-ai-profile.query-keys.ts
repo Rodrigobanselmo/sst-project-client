@@ -18,6 +18,22 @@ export const characterizationAiProfileQueryKeys = {
       params.page ?? 1,
       params.limit ?? 50,
     ] as const,
+  adminBrowse: (params: {
+    companyId: string;
+    search?: string;
+    isActive?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    [
+      ...characterizationAiProfileQueryKeys.all,
+      'admin-browse',
+      params.companyId,
+      params.search ?? '',
+      params.isActive ?? 'all',
+      params.page ?? 1,
+      params.limit ?? 50,
+    ] as const,
   read: (params: { companyId: string; profileId: string }) =>
     [
       ...characterizationAiProfileQueryKeys.all,

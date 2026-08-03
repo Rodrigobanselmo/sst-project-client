@@ -13,6 +13,7 @@ import {
   getCharacterizationSubareaNavItems,
   getChemicalProductsHref,
 } from 'core/constants/characterization-navigation.constants';
+import { useAccess } from 'core/hooks/useAccess';
 
 type Props = {
   companyId: string;
@@ -22,10 +23,14 @@ export function CharacterizationBreadcrumbSubareaMenu({
   companyId,
 }: Props): JSX.Element {
   const router = useRouter();
+  const { isMaster } = useAccess();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const items = useMemo(() => getCharacterizationSubareaNavItems(), []);
+  const items = useMemo(
+    () => getCharacterizationSubareaNavItems({ showAiProfiles: isMaster }),
+    [isMaster],
+  );
 
   const handleOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();

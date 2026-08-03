@@ -7,6 +7,7 @@ import {
   CharacterizationAiProfileBrowseResult,
   CharacterizationAiProfileDraftDto,
   CharacterizationAiProfileDto,
+  CharacterizationAiProfileSummaryBrowseResult,
   CharacterizationAiProfileTranscribeResult,
   CreateCharacterizationAiProfilePayload,
   GenerateCharacterizationAiProfileDraftPayload,
@@ -24,9 +25,36 @@ export async function browseCharacterizationAiProfiles(
   },
 ) {
   const { companyId, ...query } = params;
-  const response = await api.get<CharacterizationAiProfileBrowseResult>(
+  const response = await api.get<CharacterizationAiProfileSummaryBrowseResult>(
     bindUrlParams({
       path: CharacterizationRoutes.AI_PROFILE.BROWSE,
+      pathParams: { companyId },
+    }),
+    {
+      params: {
+        search: query.search || undefined,
+        // Summary browse is for Assistente / common users — active only by default.
+        isActive: query.isActive ?? 'true',
+        page: query.page ?? 1,
+        limit: query.limit ?? 50,
+      },
+    },
+  );
+  return response.data;
+}
+
+export async function browseCharacterizationAiProfilesAdmin(
+  params: CompanyParams & {
+    search?: string;
+    isActive?: 'all' | 'true' | 'false';
+    page?: number;
+    limit?: number;
+  },
+) {
+  const { companyId, ...query } = params;
+  const response = await api.get<CharacterizationAiProfileBrowseResult>(
+    bindUrlParams({
+      path: CharacterizationRoutes.AI_PROFILE.ADMIN_BROWSE,
       pathParams: { companyId },
     }),
     {
