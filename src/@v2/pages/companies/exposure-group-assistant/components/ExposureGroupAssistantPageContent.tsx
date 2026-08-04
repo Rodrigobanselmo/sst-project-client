@@ -292,7 +292,7 @@ export function ExposureGroupAssistantPageContent({
                 label={`Lacunas de cobertura ocupacional (elementos): ${data.metrics.elementsWithCoverageGap ?? 0}`}
               />
               <Chip
-                label={`Vínculos estruturais a revisar: ${
+                label={`Cargos sem cobertura ocupacional: ${
                   data.summary.findingsByKind?.ROLE_WITHOUT_CHARACTERIZATION_COVERAGE ?? 0
                 }`}
               />
