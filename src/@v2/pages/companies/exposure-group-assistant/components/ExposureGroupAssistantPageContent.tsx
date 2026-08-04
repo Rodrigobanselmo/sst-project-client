@@ -19,6 +19,7 @@ import {
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { useFetchExposureGroupDiagnosis } from '@v2/services/security/exposure-group-assistant/hooks/useFetchExposureGroupDiagnosis';
@@ -95,6 +96,8 @@ export function ExposureGroupAssistantPageContent({
   const [selected, setSelected] = useState<InterpretedRecommendation | null>(
     null,
   );
+  /** Session-only: intro summary starts expanded; not persisted. */
+  const [summaryExpanded, setSummaryExpanded] = useState(true);
   const { isMaster } = useAccess();
 
   const navItems = useMemo(
@@ -217,111 +220,138 @@ export function ExposureGroupAssistantPageContent({
       </CompanyFlowStickySubheader>
 
       <Stack spacing={2.5} sx={{ mt: 2, px: { xs: 1, md: 0 }, pb: 4 }}>
-        <Box>
-          <Typography variant="h5" component="h1">
-            Assistente de Grupos Similares de Exposição
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Parecer estrutural para apoiar a formação e revisão dos Grupos
-            Similares de Exposição.
-          </Typography>
-        </Box>
+        <SAccordion
+          title="Assistente de Grupos Similares de Exposição"
+          subtitle="Parecer estrutural para apoiar a formação e revisão dos Grupos Similares de Exposição."
+          fontWeight="600"
+          expanded={summaryExpanded}
+          onChange={(_event, nextExpanded) => setSummaryExpanded(nextExpanded)}
+          accordionProps={{
+            disableGutters: true,
+            elevation: 0,
+            sx: {
+              bgcolor: 'transparent',
+              boxShadow: 'none',
+              '&::before': { display: 'none' },
+              '& .MuiAccordionSummary-root': {
+                px: 0,
+                minHeight: 0,
+                '& .MuiAccordionSummary-content': {
+                  my: 0.5,
+                },
+              },
+              '& .MuiAccordionDetails-root': {
+                px: 0,
+              },
+            },
+          }}
+        >
+          <Stack spacing={2.5}>
+            {!workspaceId ? (
+              <Alert severity="warning">
+                Selecione um estabelecimento no seletor do cabeçalho para gerar
+                o parecer.
+              </Alert>
+            ) : null}
 
-        {!workspaceId ? (
-          <Alert severity="warning">
-            Selecione um estabelecimento no seletor do cabeçalho para gerar o
-            parecer.
-          </Alert>
-        ) : null}
+            {isLoading || isFetching ? (
+              <SFlex gap={2} direction="column">
+                <SSkeleton height={80} />
+                <SSkeleton height={160} />
+              </SFlex>
+            ) : null}
 
-        {isLoading || isFetching ? (
-          <SFlex gap={2} direction="column">
-            <SSkeleton height={80} />
-            <SSkeleton height={160} />
-            <SSkeleton height={220} />
-          </SFlex>
-        ) : null}
+            {isError ? (
+              <Alert
+                severity="error"
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => refetch()}
+                  >
+                    Tentar novamente
+                  </Button>
+                }
+              >
+                Não foi possível carregar o parecer
+                {error instanceof Error ? `: ${error.message}` : '.'}
+              </Alert>
+            ) : null}
 
-        {isError ? (
-          <Alert
-            severity="error"
-            action={
-              <Button color="inherit" size="small" onClick={() => refetch()}>
-                Tentar novamente
-              </Button>
-            }
-          >
-            Não foi possível carregar o parecer
-            {error instanceof Error ? `: ${error.message}` : '.'}
-          </Alert>
-        ) : null}
+            {data && narrative ? (
+              <>
+                <Alert severity="info">{narrative.opening}</Alert>
+
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  <Chip
+                    label={`Estabelecimento: ${data.workspace.name}${
+                      company?.name ? ` · ${company.name}` : ''
+                    }`}
+                  />
+                  <Chip
+                    color="primary"
+                    variant="outlined"
+                    label={`Maturidade dos dados: ${maturityLabel(data.maturity)}`}
+                  />
+                  <Chip label={`Análise: ${formatDateTime(data.generatedAt)}`} />
+                  <Chip label={`Empregados: ${data.metrics.employees}`} />
+                  <Chip label={`Cargos: ${data.metrics.roles}`} />
+                  <Chip label={`Funções: ${data.metrics.functions}`} />
+                  <Chip label={`Setores: ${data.metrics.sectors}`} />
+                  <Chip
+                    label={`Elementos: ${data.metrics.characterizableElements}`}
+                  />
+                  <Chip
+                    label={`Cobertura ocupacional direta: ${data.metrics.elementsWithDirectRiskCoverage ?? 0}`}
+                  />
+                  <Chip
+                    label={`Cobertura ocupacional indireta: ${data.metrics.elementsWithIndirectWorkerCoverage ?? 0}`}
+                  />
+                  <Chip
+                    label={`Cobertura ocupacional parcial: ${data.metrics.elementsWithPartialWorkerCoverage ?? 0}`}
+                  />
+                  <Chip
+                    label={`Lacunas de cobertura ocupacional (elementos): ${data.metrics.elementsWithCoverageGap ?? 0}`}
+                  />
+                  <Chip
+                    label={`Cargos sem cobertura ocupacional: ${
+                      data.summary.findingsByKind
+                        ?.ROLE_WITHOUT_CHARACTERIZATION_COVERAGE ?? 0
+                    }`}
+                  />
+                  <Chip
+                    label={`Agrupamentos: ${data.metrics.existingExposureGroups}`}
+                  />
+                  <Chip
+                    label={`Cobertura ampla (empregados): ${formatPercent(data.metrics.coverageBroad)}`}
+                  />
+                  <Chip
+                    label={`Cobertura estrita (empregados): ${formatPercent(data.metrics.coverageStrict)}`}
+                  />
+                  <Chip
+                    label={`Processamento: ${data.processingTimeMs} ms`}
+                    variant="outlined"
+                  />
+                </Stack>
+
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Princípios desta análise
+                  </Typography>
+                  {narrative.principles.map((p) => (
+                    <Typography key={p} variant="body2" color="text.secondary">
+                      • {p}
+                    </Typography>
+                  ))}
+                </Box>
+              </>
+            ) : null}
+          </Stack>
+        </SAccordion>
 
         {data && narrative ? (
           <>
-            <Alert severity="info">{narrative.opening}</Alert>
-
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              <Chip
-                label={`Estabelecimento: ${data.workspace.name}${
-                  company?.name ? ` · ${company.name}` : ''
-                }`}
-              />
-              <Chip
-                color="primary"
-                variant="outlined"
-                label={`Maturidade dos dados: ${maturityLabel(data.maturity)}`}
-              />
-              <Chip label={`Análise: ${formatDateTime(data.generatedAt)}`} />
-              <Chip label={`Empregados: ${data.metrics.employees}`} />
-              <Chip label={`Cargos: ${data.metrics.roles}`} />
-              <Chip label={`Funções: ${data.metrics.functions}`} />
-              <Chip label={`Setores: ${data.metrics.sectors}`} />
-              <Chip
-                label={`Elementos: ${data.metrics.characterizableElements}`}
-              />
-              <Chip
-                label={`Cobertura ocupacional direta: ${data.metrics.elementsWithDirectRiskCoverage ?? 0}`}
-              />
-              <Chip
-                label={`Cobertura ocupacional indireta: ${data.metrics.elementsWithIndirectWorkerCoverage ?? 0}`}
-              />
-              <Chip
-                label={`Cobertura ocupacional parcial: ${data.metrics.elementsWithPartialWorkerCoverage ?? 0}`}
-              />
-              <Chip
-                label={`Lacunas de cobertura ocupacional (elementos): ${data.metrics.elementsWithCoverageGap ?? 0}`}
-              />
-              <Chip
-                label={`Cargos sem cobertura ocupacional: ${
-                  data.summary.findingsByKind?.ROLE_WITHOUT_CHARACTERIZATION_COVERAGE ?? 0
-                }`}
-              />
-              <Chip
-                label={`Agrupamentos: ${data.metrics.existingExposureGroups}`}
-              />
-              <Chip
-                label={`Cobertura ampla (empregados): ${formatPercent(data.metrics.coverageBroad)}`}
-              />
-              <Chip
-                label={`Cobertura estrita (empregados): ${formatPercent(data.metrics.coverageStrict)}`}
-              />
-              <Chip
-                label={`Processamento: ${data.processingTimeMs} ms`}
-                variant="outlined"
-              />
-            </Stack>
-
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Princípios desta análise
-              </Typography>
-              {narrative.principles.map((p) => (
-                <Typography key={p} variant="body2" color="text.secondary">
-                  • {p}
-                </Typography>
-              ))}
-            </Box>
-
             <Box>
               <Typography variant="h6" gutterBottom>
                 Conclusões por dimensão
