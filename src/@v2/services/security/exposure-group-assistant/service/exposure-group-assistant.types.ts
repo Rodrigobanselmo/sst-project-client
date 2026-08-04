@@ -166,6 +166,72 @@ export type ReopenIntegrityReviewResponse = {
   review: CharacterizationIntegrityReviewInfo;
 };
 
+export type BulkJustifyListFilters = {
+  operationalBucket?: 'PENDING' | 'INFORMATIONAL';
+  category?: StructureFindingCategory | 'ALL';
+  attentionLevel?: StructureAttentionLevel | 'ALL';
+  stance?: NarrativeStance | 'ALL';
+  entityQuery?: string;
+  existingGseOnly?: boolean;
+};
+
+export type BulkJustifyIntegrityReviewParams = BulkJustifyListFilters & {
+  companyId: string;
+  workspaceId: string;
+};
+
+export type BulkJustifyFiltersSnapshot = {
+  operationalBucket: 'PENDING' | 'INFORMATIONAL';
+  category: StructureFindingCategory | 'ALL';
+  attentionLevel: StructureAttentionLevel | 'ALL';
+  stance: NarrativeStance | 'ALL';
+  entityQuery: string;
+  existingGseOnly: boolean;
+};
+
+export type BulkJustifyIntegrityReviewExecuteParams = {
+  companyId: string;
+  workspaceId: string;
+  reason: string;
+  selectionFingerprint: string;
+  eligibleElementIds: string[];
+} & BulkJustifyListFilters;
+
+export type BulkJustifyIneligibilityGroup = {
+  code: string;
+  message: string;
+  count: number;
+};
+
+export type BulkJustifyPreviewResponse = {
+  companyId: string;
+  workspaceId: string;
+  foundCount: number;
+  eligibleCount: number;
+  ignoredCount: number;
+  confirmableCount: number;
+  filtersSnapshot: BulkJustifyFiltersSnapshot;
+  eligibleElementIds: string[];
+  selectionFingerprint: string;
+  ineligibilitySummary: BulkJustifyIneligibilityGroup[];
+};
+
+export type BulkJustifyFailure = {
+  elementId: string;
+  findingId?: string;
+  reason: string;
+};
+
+export type BulkJustifyResponse = {
+  companyId: string;
+  workspaceId: string;
+  foundCount: number;
+  processedCount: number;
+  ignoredCount: number;
+  selectionFingerprint: string;
+  failures: BulkJustifyFailure[];
+};
+
 export type DevelopedRoleDeletionEligibility =
   | 'ELIGIBLE_DIRECT_DELETE'
   | 'ELIGIBLE_AFTER_EMPLOYEE_DETACH'

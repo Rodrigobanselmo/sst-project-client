@@ -4,6 +4,10 @@ import { api } from 'core/services/apiClient';
 
 import type {
   AnalyzeDevelopedRoleDeletionParams,
+  BulkJustifyIntegrityReviewExecuteParams,
+  BulkJustifyIntegrityReviewParams,
+  BulkJustifyPreviewResponse,
+  BulkJustifyResponse,
   DeleteDevelopedRoleParams,
   DeleteDevelopedRoleResult,
   DevelopedRoleDeletionAnalysis,
@@ -103,6 +107,54 @@ export async function reopenIntegrityReview(
     }),
     {
       findingKind: params.findingKind,
+    },
+  );
+  return response.data;
+}
+
+function bulkJustifyBody(params: BulkJustifyIntegrityReviewParams) {
+  return {
+    operationalBucket: params.operationalBucket ?? 'PENDING',
+    category: params.category ?? 'ALL',
+    attentionLevel: params.attentionLevel ?? 'ALL',
+    stance: params.stance ?? 'ALL',
+    entityQuery: params.entityQuery ?? '',
+    existingGseOnly: Boolean(params.existingGseOnly),
+  };
+}
+
+export async function previewBulkJustifyIntegrityReview(
+  params: BulkJustifyIntegrityReviewParams,
+): Promise<BulkJustifyPreviewResponse> {
+  const response = await api.post<BulkJustifyPreviewResponse>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.INTEGRITY_REVIEW_BULK_JUSTIFY_PREVIEW,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    bulkJustifyBody(params),
+  );
+  return response.data;
+}
+
+export async function bulkJustifyIntegrityReview(
+  params: BulkJustifyIntegrityReviewExecuteParams,
+): Promise<BulkJustifyResponse> {
+  const response = await api.post<BulkJustifyResponse>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.INTEGRITY_REVIEW_BULK_JUSTIFY,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    {
+      ...bulkJustifyBody(params),
+      reason: params.reason,
+      selectionFingerprint: params.selectionFingerprint,
+      eligibleElementIds: params.eligibleElementIds,
     },
   );
   return response.data;

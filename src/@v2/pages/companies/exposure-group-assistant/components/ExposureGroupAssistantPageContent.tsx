@@ -28,10 +28,13 @@ import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { useFetchExposureGroupDiagnosis } from '@v2/services/security/exposure-group-assistant/hooks/useFetchExposureGroupDiagnosis';
 import {
+  useMutateBulkJustifyIntegrityReview,
   useMutateJustifyIntegrityReview,
+  useMutatePreviewBulkJustifyIntegrityReview,
   useMutateReopenIntegrityReview,
 } from '@v2/services/security/exposure-group-assistant/hooks/useMutateIntegrityReview';
 import type {
+  BulkJustifyPreviewResponse,
   InterpretedRecommendation,
   NarrativeStance,
   StructureAttentionLevel,
@@ -148,11 +151,20 @@ export function ExposureGroupAssistantPageContent({
   const { enqueueSnackbar } = useSnackbar();
   const justifyMutation = useMutateJustifyIntegrityReview();
   const reopenMutation = useMutateReopenIntegrityReview();
+  const previewBulkMutation = useMutatePreviewBulkJustifyIntegrityReview();
+  const bulkJustifyMutation = useMutateBulkJustifyIntegrityReview();
   const [justifyTarget, setJustifyTarget] =
     useState<InterpretedRecommendation | null>(null);
   const [justifyReason, setJustifyReason] = useState(
     INTEGRITY_JUSTIFY_REASON_SUGGESTION,
   );
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkReason, setBulkReason] = useState(INTEGRITY_JUSTIFY_REASON_SUGGESTION);
+  const [bulkPreview, setBulkPreview] = useState<BulkJustifyPreviewResponse | null>(
+    null,
+  );
+  const [bulkPreviewError, setBulkPreviewError] = useState<string | null>(null);
+  const [bulkFilterSnapshot, setBulkFilterSnapshot] = useState<Filters | null>(null);
 
   const navItems = useMemo(
     () => getCharacterizationSubareaNavItems({ showAiProfiles: isMaster }),
@@ -265,11 +277,115 @@ export function ExposureGroupAssistantPageContent({
     return '';
   }, [operationalTotals, operationalView, unreachedKindStat]);
 
-  const busyReview = justifyMutation.isPending || reopenMutation.isPending;
+  const busyReview =
+    justifyMutation.isPending ||
+    reopenMutation.isPending ||
+    previewBulkMutation.isPending ||
+    bulkJustifyMutation.isPending;
+
+  const closeBulkModal = () => {
+    setBulkOpen(false);
+    setBulkPreview(null);
+    setBulkPreviewError(null);
+    setBulkFilterSnapshot(null);
+  };
+
+  useEffect(() => {
+    if (!bulkOpen || !bulkFilterSnapshot) return;
+    const filtersChanged =
+      filters.category !== bulkFilterSnapshot.category ||
+      filters.attentionLevel !== bulkFilterSnapshot.attentionLevel ||
+      filters.stance !== bulkFilterSnapshot.stance ||
+      filters.entityQuery !== bulkFilterSnapshot.entityQuery ||
+      filters.existingGseOnly !== bulkFilterSnapshot.existingGseOnly ||
+      operationalView !== 'PENDING';
+    if (!filtersChanged) return;
+    closeBulkModal();
+    enqueueSnackbar(
+      'Os filtros mudaram. O preview em massa foi cancelado — abra novamente para recalcular.',
+      { variant: 'info' },
+    );
+  }, [bulkOpen, bulkFilterSnapshot, filters, operationalView, enqueueSnackbar]);
 
   const openJustify = (rec: InterpretedRecommendation) => {
     setJustifyTarget(rec);
     setJustifyReason(INTEGRITY_JUSTIFY_REASON_SUGGESTION);
+  };
+
+  const openBulkJustify = async () => {
+    if (!workspaceId || operationalView !== 'PENDING') return;
+    const snapshot: Filters = { ...filters };
+    setBulkOpen(true);
+    setBulkReason(INTEGRITY_JUSTIFY_REASON_SUGGESTION);
+    setBulkPreview(null);
+    setBulkPreviewError(null);
+    setBulkFilterSnapshot(snapshot);
+    try {
+      const preview = await previewBulkMutation.mutateAsync({
+        companyId,
+        workspaceId,
+        operationalBucket: 'PENDING',
+        category: snapshot.category,
+        attentionLevel: snapshot.attentionLevel,
+        stance: snapshot.stance,
+        entityQuery: snapshot.entityQuery,
+        existingGseOnly: snapshot.existingGseOnly,
+      });
+      setBulkPreview(preview);
+    } catch (err) {
+      setBulkPreviewError(
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível obter a quantidade filtrada.',
+      );
+    }
+  };
+
+  const submitBulkJustify = async () => {
+    if (!workspaceId || !bulkPreview || !bulkFilterSnapshot) return;
+    const reason = bulkReason.trim();
+    if (!reason) {
+      enqueueSnackbar('Informe a justificativa técnica.', { variant: 'warning' });
+      return;
+    }
+    if (bulkPreview.confirmableCount <= 0) {
+      enqueueSnackbar('Nenhum item elegível para marcar como analisado.', {
+        variant: 'info',
+      });
+      return;
+    }
+    try {
+      const result = await bulkJustifyMutation.mutateAsync({
+        companyId,
+        workspaceId,
+        reason,
+        operationalBucket: bulkPreview.filtersSnapshot.operationalBucket,
+        category: bulkPreview.filtersSnapshot.category,
+        attentionLevel: bulkPreview.filtersSnapshot.attentionLevel,
+        stance: bulkPreview.filtersSnapshot.stance,
+        entityQuery: bulkPreview.filtersSnapshot.entityQuery,
+        existingGseOnly: bulkPreview.filtersSnapshot.existingGseOnly,
+        eligibleElementIds: bulkPreview.eligibleElementIds,
+        selectionFingerprint: bulkPreview.selectionFingerprint,
+      });
+      enqueueSnackbar(
+        `${result.processedCount} pendências foram marcadas como analisadas.`,
+        { variant: 'success' },
+      );
+      if (result.ignoredCount > 0) {
+        enqueueSnackbar(
+          `${result.ignoredCount} item(ns) ignorado(s) (inelegível, concorrência ou alteração de dados).`,
+          { variant: 'info' },
+        );
+      }
+      closeBulkModal();
+      void refetch();
+    } catch (err) {
+      enqueueSnackbar(
+        err instanceof Error ? err.message : 'Falha na análise em massa.',
+        { variant: 'error' },
+      );
+    }
   };
 
   const submitJustify = async () => {
@@ -763,6 +879,16 @@ export function ExposureGroupAssistantPageContent({
                 <Button size="small" onClick={() => setFilters(DEFAULT_FILTERS)}>
                   Limpar filtros
                 </Button>
+                {canReview && operationalView === 'PENDING' ? (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={busyReview || !workspaceId}
+                    onClick={() => void openBulkJustify()}
+                  >
+                    Marcar todos os itens filtrados como analisados
+                  </Button>
+                ) : null}
               </Stack>
 
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
@@ -976,6 +1102,94 @@ export function ExposureGroupAssistantPageContent({
             onClick={() => void submitJustify()}
           >
             Confirmar análise
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={bulkOpen}
+        onClose={() => {
+          if (busyReview) return;
+          closeBulkModal();
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Marcar itens filtrados como analisados</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={1.5}>
+            {previewBulkMutation.isPending ? (
+              <Typography variant="body2" color="text.secondary">
+                Calculando quantidade no servidor…
+              </Typography>
+            ) : null}
+            {bulkPreviewError ? (
+              <Alert severity="error">{bulkPreviewError}</Alert>
+            ) : null}
+            {bulkPreview ? (
+              <>
+                <Typography>
+                  Encontrados: <strong>{bulkPreview.foundCount}</strong>
+                </Typography>
+                <Typography>
+                  Elegíveis para análise:{' '}
+                  <strong>{bulkPreview.eligibleCount}</strong>
+                </Typography>
+                <Typography>
+                  Não elegíveis: <strong>{bulkPreview.ignoredCount}</strong>
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Serão registrados como analisados{' '}
+                  <strong>{bulkPreview.confirmableCount}</strong> pendências.
+                  Esta ação remove esses itens de Pendências e os move para
+                  Informativos. O conjunto confirmado é o snapshot deste preview
+                  (não depende da paginação/exibição).
+                </Typography>
+                {bulkPreview.ineligibilitySummary?.length ? (
+                  <Alert severity="info">
+                    {bulkPreview.ineligibilitySummary.map((g) => (
+                      <Typography key={g.code} variant="body2" component="div">
+                        {g.message}
+                      </Typography>
+                    ))}
+                  </Alert>
+                ) : null}
+                {bulkPreview.foundCount === 0 ? (
+                  <Alert severity="info">
+                    Nenhum item corresponde aos filtros deste preview.
+                  </Alert>
+                ) : null}
+              </>
+            ) : null}
+            <TextField
+              label="Justificativa técnica"
+              required
+              multiline
+              minRows={4}
+              fullWidth
+              value={bulkReason}
+              onChange={(e) => setBulkReason(e.target.value)}
+              disabled={busyReview || previewBulkMutation.isPending}
+              helperText="Uma única justificativa será aplicada a todos os itens elegíveis deste preview."
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={busyReview} onClick={closeBulkModal}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            disabled={
+              busyReview ||
+              previewBulkMutation.isPending ||
+              !bulkPreview ||
+              bulkPreview.confirmableCount <= 0 ||
+              !bulkReason.trim()
+            }
+            onClick={() => void submitBulkJustify()}
+          >
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>
