@@ -127,6 +127,9 @@ export const CharacterizationEditView = ({
   };
 
   const title = isNew ? 'Nova Caracterização' : 'Editar Caracterização';
+  /** Nome do elemento — contexto estável em todas as abas (sem fetch extra). */
+  const elementName = (characterizationData?.name || '').trim();
+  const headerSubtitle = !isNew && elementName ? elementName : undefined;
 
   if (shouldShowError) {
     const errorContent = (
@@ -136,11 +139,12 @@ export const CharacterizationEditView = ({
         gap={3}
         sx={{ py: 6, px: 2, width: '100%', minHeight: 280 }}
       >
-        {embedded ? (
-          <SPageHeader mb={0} title={title} onBack={onBack} />
-        ) : (
-          <SPageHeader mb={0} title={title} onBack={onBack} />
-        )}
+        <SPageHeader
+          mb={0}
+          title={title}
+          subtitle={headerSubtitle}
+          onBack={onBack}
+        />
         <Alert severity="error" sx={{ width: '100%' }}>
           Não foi possível carregar os dados da caracterização.
         </Alert>
@@ -185,8 +189,20 @@ export const CharacterizationEditView = ({
       typeof initialWizardStep === 'number' && initialWizardStep > 0
         ? 'Preparando a etapa solicitada…'
         : 'Carregando caracterização…';
+    // Mantém o cabeçalho estável durante a hidratação (evita “piscar” o título).
     const loadingContent = (
-      <EditLoadingFallback minHeight={280} message={loadingMessage} />
+      <SFlex
+        direction="column"
+        sx={{ width: '100%', flex: 1, minHeight: 0, px: embedded ? 0 : 2 }}
+      >
+        <SPageHeader
+          mb={4}
+          title={title}
+          subtitle={headerSubtitle}
+          onBack={onBack}
+        />
+        <EditLoadingFallback minHeight={220} message={loadingMessage} />
+      </SFlex>
     );
 
     if (embedded) {
@@ -263,7 +279,7 @@ export const CharacterizationEditView = ({
     </SFlex>
   );
 
-  const headerRow = embedded ? (
+  const headerRow = (
     <SFlex
       align="center"
       justify="space-between"
@@ -272,19 +288,12 @@ export const CharacterizationEditView = ({
       flexWrap="wrap"
       sx={{ flexShrink: 0 }}
     >
-      <SPageHeader mb={0} title={title} onBack={onCloseUnsaved} />
-      {actionButtons}
-    </SFlex>
-  ) : (
-    <SFlex
-      align="center"
-      justify="space-between"
-      mb={4}
-      gap={3}
-      flexWrap="wrap"
-      sx={{ flexShrink: 0 }}
-    >
-      <SPageHeader mb={0} title={title} />
+      <SPageHeader
+        mb={0}
+        title={title}
+        subtitle={headerSubtitle}
+        onBack={embedded ? onCloseUnsaved : undefined}
+      />
       {actionButtons}
     </SFlex>
   );
