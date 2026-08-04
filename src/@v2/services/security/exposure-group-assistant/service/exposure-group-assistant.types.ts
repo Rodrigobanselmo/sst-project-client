@@ -101,6 +101,69 @@ export type InterpretedRecommendation = {
   affectedEntities: StructureEntityRef[];
   totalAffectedCount: number;
   affectedTruncated: boolean;
+  integrityReview?: CharacterizationIntegrityReviewInfo | null;
+  operationalReviewStatus?: IntegrityOperationalReviewStatus;
+  operationalBucket?: 'PENDING' | 'INFORMATIONAL';
+};
+
+export type IntegrityOperationalReviewStatus =
+  | 'PENDING'
+  | 'JUSTIFIED_VALID'
+  | 'JUSTIFIED_STALE';
+
+export type CharacterizationIntegrityReviewInfo = {
+  id: string;
+  status: 'JUSTIFIED' | 'REOPENED';
+  reason: string;
+  reviewedByUserId: number | null;
+  reviewedByName: string | null;
+  reviewedAt: string;
+  reopenedByUserId: number | null;
+  reopenedByName: string | null;
+  reopenedAt: string | null;
+  dependencyHash: string | null;
+  staleDueToDependencyChange: boolean;
+  operationalStatus: IntegrityOperationalReviewStatus;
+};
+
+export const INTEGRITY_JUSTIFY_REASON_SUGGESTION =
+  'Elemento mantido como evidência técnica do levantamento. A cobertura ocupacional e os riscos foram consolidados em estrutura superior, por decisão técnica, evitando duplicação de riscos e recomendações.';
+
+export const UNREACHED_ELEMENT_FINDING_KIND =
+  'ELEMENT_WITHOUT_LINKED_ROLES_OR_EMPLOYEES';
+
+export type JustifyIntegrityReviewParams = {
+  companyId: string;
+  workspaceId: string;
+  elementId: string;
+  reason: string;
+  findingKind?: string;
+};
+
+export type ReopenIntegrityReviewParams = {
+  companyId: string;
+  workspaceId: string;
+  elementId: string;
+  findingKind?: string;
+};
+
+export type JustifyIntegrityReviewResponse = {
+  companyId: string;
+  workspaceId: string;
+  elementId: string;
+  findingKind: string;
+  technicalConditionActive: true;
+  operationalStatus: 'JUSTIFIED_VALID';
+  review: CharacterizationIntegrityReviewInfo;
+};
+
+export type ReopenIntegrityReviewResponse = {
+  companyId: string;
+  workspaceId: string;
+  elementId: string;
+  findingKind: string;
+  operationalStatus: 'PENDING';
+  review: CharacterizationIntegrityReviewInfo;
 };
 
 export type DevelopedRoleDeletionEligibility =
@@ -201,6 +264,12 @@ export type CategoryConclusion = {
   conclusion: string;
   stance: NarrativeStance;
   recommendationCount: number;
+  pendingCount?: number;
+  informationalCount?: number;
+  technicalRecommendationCount?: number;
+  justifiedValidCount?: number;
+  truncated?: boolean;
+  displayedRecommendationCount?: number;
   highestAttentionLevel: StructureAttentionLevel | null;
 };
 
@@ -270,6 +339,30 @@ export type ExposureGroupAssistantDiagnosisResponse = {
     anyTruncated: boolean;
     findingsPerKindCapped: boolean;
     kindsCapped: string[];
+    kindStats?: Array<{
+      kind: string;
+      technicalTotal: number;
+      pendingTotal: number;
+      informationalTotal: number;
+      justifiedValidTotal: number;
+      justifiedStaleTotal: number;
+      displayedPendingTotal: number;
+      displayedInformationalTotal: number;
+      displayedTotal: number;
+      pendingTruncated: boolean;
+      informationalTruncated: boolean;
+      truncated: boolean;
+      limit: number;
+    }>;
+    operationalTotals?: {
+      technicalTotal: number;
+      pendingTotal: number;
+      informationalTotal: number;
+      justifiedValidTotal: number;
+      justifiedStaleTotal: number;
+      displayedPendingTotal: number;
+      displayedInformationalTotal: number;
+    };
     snapshotTruncated: boolean;
     snapshotHashMode: string;
   };

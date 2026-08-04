@@ -8,6 +8,10 @@ import type {
   DeleteDevelopedRoleResult,
   DevelopedRoleDeletionAnalysis,
   ExposureGroupAssistantDiagnosisResponse,
+  JustifyIntegrityReviewParams,
+  JustifyIntegrityReviewResponse,
+  ReopenIntegrityReviewParams,
+  ReopenIntegrityReviewResponse,
   RunExposureGroupDiagnosisParams,
 } from './exposure-group-assistant.types';
 
@@ -60,6 +64,45 @@ export async function deleteDevelopedRole(
         expectedAnalysisHash: params.expectedAnalysisHash,
         confirmation: params.confirmation,
       },
+    },
+  );
+  return response.data;
+}
+
+export async function justifyIntegrityReview(
+  params: JustifyIntegrityReviewParams,
+): Promise<JustifyIntegrityReviewResponse> {
+  const response = await api.post<JustifyIntegrityReviewResponse>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.INTEGRITY_REVIEW_JUSTIFY,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+        elementId: params.elementId,
+      },
+    }),
+    {
+      reason: params.reason,
+      findingKind: params.findingKind,
+    },
+  );
+  return response.data;
+}
+
+export async function reopenIntegrityReview(
+  params: ReopenIntegrityReviewParams,
+): Promise<ReopenIntegrityReviewResponse> {
+  const response = await api.post<ReopenIntegrityReviewResponse>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.INTEGRITY_REVIEW_REOPEN,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+        elementId: params.elementId,
+      },
+    }),
+    {
+      findingKind: params.findingKind,
     },
   );
   return response.data;
