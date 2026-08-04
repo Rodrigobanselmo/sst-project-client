@@ -7,6 +7,10 @@ import {
   CardContent,
   Checkbox,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -23,16 +27,25 @@ import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { useFetchExposureGroupDiagnosis } from '@v2/services/security/exposure-group-assistant/hooks/useFetchExposureGroupDiagnosis';
+import {
+  useMutateJustifyIntegrityReview,
+  useMutateReopenIntegrityReview,
+} from '@v2/services/security/exposure-group-assistant/hooks/useMutateIntegrityReview';
 import type {
   InterpretedRecommendation,
   NarrativeStance,
   StructureAttentionLevel,
   StructureFindingCategory,
 } from '@v2/services/security/exposure-group-assistant/service/exposure-group-assistant.types';
+import {
+  INTEGRITY_JUSTIFY_REASON_SUGGESTION,
+  UNREACHED_ELEMENT_FINDING_KIND,
+} from '@v2/services/security/exposure-group-assistant/service/exposure-group-assistant.types';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import { STabs } from 'components/molecules/STabs';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
+import { useSnackbar } from 'notistack';
 
 import {
   COMPANY_SST_PATHNAME,
@@ -61,6 +74,8 @@ import {
 } from './diagnosis-labels';
 import { RecommendationDetailDialog } from './FindingDetailDialog';
 
+type OperationalView = 'PENDING' | 'INFORMATIONAL';
+
 type Filters = {
   category: StructureFindingCategory | 'ALL';
   attentionLevel: StructureAttentionLevel | 'ALL';
@@ -76,6 +91,34 @@ const DEFAULT_FILTERS: Filters = {
   entityQuery: '',
   existingGseOnly: false,
 };
+
+function recommendationBucket(
+  rec: InterpretedRecommendation,
+): 'PENDING' | 'INFORMATIONAL' {
+  if (rec.operationalBucket) return rec.operationalBucket;
+  if (rec.operationalReviewStatus === 'JUSTIFIED_VALID') return 'INFORMATIONAL';
+  if (rec.operationalReviewStatus === 'JUSTIFIED_STALE') return 'PENDING';
+  if (rec.stance === 'EXPECTED_SITUATION' || rec.stance === 'OPPORTUNITY') {
+    return 'INFORMATIONAL';
+  }
+  if (
+    rec.stance === 'REVIEW_RECOMMENDED' ||
+    rec.stance === 'INTERVENTION_LIKELY' ||
+    rec.stance === 'ATTENTION_POINT'
+  ) {
+    return 'PENDING';
+  }
+  if (rec.attentionLevel === 'INFORMATIONAL') return 'INFORMATIONAL';
+  return 'PENDING';
+}
+
+function isJustifiedValid(rec: InterpretedRecommendation): boolean {
+  return rec.operationalReviewStatus === 'JUSTIFIED_VALID';
+}
+
+function isOperationallyPendingRec(rec: InterpretedRecommendation): boolean {
+  return recommendationBucket(rec) === 'PENDING';
+}
 
 export function ExposureGroupAssistantPageContent({
   companyId,
@@ -93,12 +136,23 @@ export function ExposureGroupAssistantPageContent({
   }>();
 
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [operationalView, setOperationalView] =
+    useState<OperationalView>('PENDING');
   const [selected, setSelected] = useState<InterpretedRecommendation | null>(
     null,
   );
   /** Session-only: intro summary starts expanded; not persisted. */
   const [summaryExpanded, setSummaryExpanded] = useState(true);
   const { isMaster } = useAccess();
+  const canReview = isMaster;
+  const { enqueueSnackbar } = useSnackbar();
+  const justifyMutation = useMutateJustifyIntegrityReview();
+  const reopenMutation = useMutateReopenIntegrityReview();
+  const [justifyTarget, setJustifyTarget] =
+    useState<InterpretedRecommendation | null>(null);
+  const [justifyReason, setJustifyReason] = useState(
+    INTEGRITY_JUSTIFY_REASON_SUGGESTION,
+  );
 
   const navItems = useMemo(
     () => getCharacterizationSubareaNavItems({ showAiProfiles: isMaster }),
@@ -138,9 +192,21 @@ export function ExposureGroupAssistantPageContent({
 
   const narrative = data?.narrative;
   const recommendations = narrative?.recommendations ?? [];
+  const operationalTotals = data?.truncation?.operationalTotals;
+
+  const visibleCategoryCards = useMemo(() => {
+    const cards = narrative?.categoryConclusions ?? [];
+    if (operationalView === 'PENDING') {
+      return cards.filter(
+        (c) => (c.pendingCount ?? c.recommendationCount ?? 0) > 0,
+      );
+    }
+    return cards.filter((c) => (c.informationalCount ?? 0) > 0);
+  }, [narrative?.categoryConclusions, operationalView]);
 
   const filteredRecommendations = useMemo(() => {
     return recommendations.filter((r) => {
+      if (recommendationBucket(r) !== operationalView) return false;
       if (filters.category !== 'ALL' && r.category !== filters.category) return false;
       if (
         filters.attentionLevel !== 'ALL' &&
@@ -150,6 +216,7 @@ export function ExposureGroupAssistantPageContent({
       }
       if (filters.stance !== 'ALL' && r.stance !== filters.stance) return false;
       if (filters.existingGseOnly && r.category !== 'EXISTING_GSE_REVIEW') return false;
+
       if (filters.entityQuery.trim()) {
         const q = filters.entityQuery.trim().toLowerCase();
         const hit = r.affectedEntities.some((e) => {
@@ -162,14 +229,103 @@ export function ExposureGroupAssistantPageContent({
         if (
           !hit &&
           !r.title.toLowerCase().includes(q) &&
-          !r.listSummary.toLowerCase().includes(q)
+          !r.listSummary.toLowerCase().includes(q) &&
+          !(r.primaryEntityName || '').toLowerCase().includes(q)
         ) {
           return false;
         }
       }
       return true;
     });
-  }, [recommendations, filters]);
+  }, [recommendations, filters, operationalView]);
+
+  const unreachedKindStat = useMemo(() => {
+    return data?.truncation?.kindStats?.find(
+      (k) => k.kind === UNREACHED_ELEMENT_FINDING_KIND,
+    );
+  }, [data?.truncation?.kindStats]);
+
+  const truncationCaption = useMemo(() => {
+    if (!operationalTotals) return '';
+    if (operationalView === 'PENDING' && operationalTotals.pendingTotal > operationalTotals.displayedPendingTotal) {
+      return `${operationalTotals.pendingTotal} pendências identificadas; ${operationalTotals.displayedPendingTotal} exibidas.`;
+    }
+    if (
+      operationalView === 'INFORMATIONAL' &&
+      operationalTotals.informationalTotal > operationalTotals.displayedInformationalTotal
+    ) {
+      return `${operationalTotals.informationalTotal} registros informativos; ${operationalTotals.displayedInformationalTotal} exibidos.`;
+    }
+    if (unreachedKindStat?.pendingTruncated && operationalView === 'PENDING') {
+      return `${unreachedKindStat.pendingTotal} pendências identificadas; ${unreachedKindStat.displayedPendingTotal} exibidas.`;
+    }
+    if (unreachedKindStat?.informationalTruncated && operationalView === 'INFORMATIONAL') {
+      return `${unreachedKindStat.informationalTotal} registros informativos; ${unreachedKindStat.displayedInformationalTotal} exibidos.`;
+    }
+    return '';
+  }, [operationalTotals, operationalView, unreachedKindStat]);
+
+  const busyReview = justifyMutation.isPending || reopenMutation.isPending;
+
+  const openJustify = (rec: InterpretedRecommendation) => {
+    setJustifyTarget(rec);
+    setJustifyReason(INTEGRITY_JUSTIFY_REASON_SUGGESTION);
+  };
+
+  const submitJustify = async () => {
+    if (!justifyTarget || !workspaceId) return;
+    const elementId = String(
+      justifyTarget.primaryEntityId ??
+        justifyTarget.affectedEntities[0]?.entityId ??
+        '',
+    );
+    if (!elementId) return;
+    const reason = justifyReason.trim();
+    if (!reason) {
+      enqueueSnackbar('Informe a justificativa técnica.', { variant: 'warning' });
+      return;
+    }
+    try {
+      await justifyMutation.mutateAsync({
+        companyId,
+        workspaceId,
+        elementId,
+        reason,
+        findingKind: UNREACHED_ELEMENT_FINDING_KIND,
+      });
+      enqueueSnackbar('Análise registrada (justificado).', { variant: 'success' });
+      setJustifyTarget(null);
+      void refetch();
+    } catch (err) {
+      enqueueSnackbar(
+        err instanceof Error ? err.message : 'Falha ao justificar.',
+        { variant: 'error' },
+      );
+    }
+  };
+
+  const handleReopen = async (rec: InterpretedRecommendation) => {
+    if (!workspaceId) return;
+    const elementId = String(
+      rec.primaryEntityId ?? rec.affectedEntities[0]?.entityId ?? '',
+    );
+    if (!elementId) return;
+    try {
+      await reopenMutation.mutateAsync({
+        companyId,
+        workspaceId,
+        elementId,
+        findingKind: UNREACHED_ELEMENT_FINDING_KIND,
+      });
+      enqueueSnackbar('Análise reaberta.', { variant: 'success' });
+      void refetch();
+    } catch (err) {
+      enqueueSnackbar(
+        err instanceof Error ? err.message : 'Falha ao reabrir.',
+        { variant: 'error' },
+      );
+    }
+  };
 
   return (
     <Box>
@@ -352,18 +508,64 @@ export function ExposureGroupAssistantPageContent({
 
         {data && narrative ? (
           <>
+            <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+              <Button
+                variant={operationalView === 'PENDING' ? 'contained' : 'outlined'}
+                size="small"
+                onClick={() => {
+                  setOperationalView('PENDING');
+                  setFilters((f) => ({ ...f, category: 'ALL' }));
+                }}
+              >
+                Pendências
+                {operationalTotals
+                  ? ` (${operationalTotals.pendingTotal})`
+                  : ''}
+              </Button>
+              <Button
+                variant={
+                  operationalView === 'INFORMATIONAL' ? 'contained' : 'outlined'
+                }
+                size="small"
+                onClick={() => {
+                  setOperationalView('INFORMATIONAL');
+                  setFilters((f) => ({ ...f, category: 'ALL' }));
+                }}
+              >
+                Informativos
+                {operationalTotals
+                  ? ` (${operationalTotals.informationalTotal})`
+                  : ''}
+              </Button>
+            </Stack>
+
+            {operationalTotals ? (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                Condição técnica: {operationalTotals.technicalTotal}
+                {' · '}
+                Pendências: {operationalTotals.pendingTotal}
+                {' · '}
+                Informativos: {operationalTotals.informationalTotal}
+                {operationalTotals.justifiedValidTotal
+                  ? ` · Justificados: ${operationalTotals.justifiedValidTotal}`
+                  : ''}
+              </Typography>
+            ) : null}
+
             <Box>
               <Typography variant="h6" gutterBottom>
                 Conclusões por dimensão
               </Typography>
               <SText fontSize={13} color="text.secondary" sx={{ mb: 1.5 }}>
-                Cada card resume uma leitura consultiva da estrutura — não uma
-                contagem de irregularidades.
+                {operationalView === 'PENDING'
+                  ? 'Dimensões com pendências operacionais — o que ainda exige análise ou correção.'
+                  : 'Dimensões com registros informativos — situações esperadas, justificadas ou de contexto.'}
               </SText>
-              {narrative.categoryConclusions.length === 0 ? (
-                <Alert severity="success">
-                  Não há recomendações estruturais destacadas para este
-                  estabelecimento com o conjunto atual de análise.
+              {visibleCategoryCards.length === 0 ? (
+                <Alert severity={operationalView === 'PENDING' ? 'success' : 'info'}>
+                  {operationalView === 'PENDING'
+                    ? 'Não há pendências operacionais nesta visão. Consulte Informativos para o contexto técnico.'
+                    : 'Não há registros informativos para exibir com os filtros atuais.'}
                 </Alert>
               ) : (
                 <Box
@@ -377,70 +579,90 @@ export function ExposureGroupAssistantPageContent({
                     },
                   }}
                 >
-                  {narrative.categoryConclusions.map((card) => (
-                    <Card
-                      key={card.category}
-                      variant="outlined"
-                      sx={{
-                        borderColor:
-                          filters.category === card.category
-                            ? 'primary.main'
-                            : undefined,
-                      }}
-                    >
-                      <CardActionArea
-                        onClick={() =>
-                          setFilters((f) => ({
-                            ...f,
-                            category:
-                              f.category === card.category
-                                ? 'ALL'
-                                : card.category,
-                          }))
-                        }
+                  {visibleCategoryCards.map((card) => {
+                    const count =
+                      operationalView === 'PENDING'
+                        ? card.pendingCount ?? card.recommendationCount
+                        : card.informationalCount ?? 0;
+                    return (
+                      <Card
+                        key={card.category}
+                        variant="outlined"
+                        sx={{
+                          borderColor:
+                            filters.category === card.category
+                              ? 'primary.main'
+                              : undefined,
+                        }}
                       >
-                        <CardContent>
-                          <Stack
-                            direction="row"
-                            justifyContent="space-between"
-                            alignItems="flex-start"
-                            spacing={1}
-                          >
-                            <Typography variant="subtitle1">
-                              {card.title}
+                        <CardActionArea
+                          onClick={() =>
+                            setFilters((f) => ({
+                              ...f,
+                              category:
+                                f.category === card.category
+                                  ? 'ALL'
+                                  : card.category,
+                            }))
+                          }
+                        >
+                          <CardContent>
+                            <Stack
+                              direction="row"
+                              justifyContent="space-between"
+                              alignItems="flex-start"
+                              spacing={1}
+                            >
+                              <Typography variant="subtitle1">
+                                {card.title}
+                              </Typography>
+                              <Chip
+                                size="small"
+                                label={STANCE_LABEL_PT[card.stance]}
+                              />
+                            </Stack>
+                            <Typography variant="body2" sx={{ mt: 1.25 }}>
+                              {card.conclusion}
                             </Typography>
-                            <Chip
-                              size="small"
-                              label={STANCE_LABEL_PT[card.stance]}
-                            />
-                          </Stack>
-                          <Typography variant="body2" sx={{ mt: 1.25 }}>
-                            {card.conclusion}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            display="block"
-                            sx={{ mt: 1.25 }}
-                          >
-                            {card.recommendationCount} recomendação(ões) nesta
-                            dimensão
-                            {card.highestAttentionLevel
-                              ? ` · prioridade máx.: ${ATTENTION_LEVEL_LABEL_PT[card.highestAttentionLevel]}`
-                              : ''}
-                          </Typography>
-                        </CardContent>
-                      </CardActionArea>
-                    </Card>
-                  ))}
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              display="block"
+                              sx={{ mt: 1.25 }}
+                            >
+                              {operationalView === 'PENDING'
+                                ? `${count} pendência(s)`
+                                : `${count} informativo(s)`}
+                              {card.technicalRecommendationCount != null
+                                ? ` · ${card.technicalRecommendationCount} ocorrência(s) técnicas na dimensão`
+                                : ''}
+                              {card.justifiedValidCount
+                                ? ` · ${card.justifiedValidCount} justificado(s)`
+                                : ''}
+                              {card.highestAttentionLevel
+                                ? ` · prioridade máx.: ${ATTENTION_LEVEL_LABEL_PT[card.highestAttentionLevel]}`
+                                : ''}
+                            </Typography>
+                          </CardContent>
+                        </CardActionArea>
+                      </Card>
+                    );
+                  })}
                 </Box>
               )}
             </Box>
 
             <Box>
               <Typography variant="h6" gutterBottom>
-                Recomendações para revisão
+                {operationalView === 'PENDING'
+                  ? 'Pendências para revisão'
+                  : 'Considerações e informativos'}
               </Typography>
+              <SText fontSize={13} color="text.secondary" sx={{ mb: 1.5 }}>
+                {operationalView === 'PENDING'
+                  ? 'Itens que ainda exigem análise, decisão ou correção.'
+                  : 'Situações esperadas, justificadas ou mantidas para contextualização técnica.'}
+              </SText>
               <Stack
                 direction={{ xs: 'column', md: 'row' }}
                 spacing={1.5}
@@ -544,12 +766,16 @@ export function ExposureGroupAssistantPageContent({
               </Stack>
 
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                {filteredRecommendations.length} recomendação(ões)
+                {filteredRecommendations.length}{' '}
+                {operationalView === 'PENDING' ? 'pendência(s)' : 'informativo(s)'}
+                {truncationCaption ? ` · ${truncationCaption}` : ''}
               </Typography>
 
               {filteredRecommendations.length === 0 ? (
                 <Alert severity="info">
-                  Nenhuma recomendação com os filtros atuais.
+                  {operationalView === 'PENDING'
+                    ? 'Nenhuma pendência com os filtros atuais.'
+                    : 'Nenhum informativo com os filtros atuais.'}
                 </Alert>
               ) : (
                 <Stack spacing={1}>
@@ -597,17 +823,84 @@ export function ExposureGroupAssistantPageContent({
                                     : ''}
                                 </Typography>
                               ) : null}
+                              {rec.integrityReview &&
+                              (rec.operationalReviewStatus === 'JUSTIFIED_VALID' ||
+                                rec.operationalReviewStatus ===
+                                  'JUSTIFIED_STALE') ? (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  display="block"
+                                  sx={{ mt: 0.5 }}
+                                >
+                                  {rec.integrityReview.reason.length > 160
+                                    ? `${rec.integrityReview.reason.slice(0, 160)}…`
+                                    : rec.integrityReview.reason}
+                                  {rec.integrityReview.reviewedByName
+                                    ? ` · ${rec.integrityReview.reviewedByName}`
+                                    : ''}
+                                  {rec.integrityReview.reviewedAt
+                                    ? ` · ${formatDateTime(rec.integrityReview.reviewedAt)}`
+                                    : ''}
+                                </Typography>
+                              ) : null}
                             </Box>
-                            <Stack direction="row" spacing={0.75}>
-                              <Chip
-                                size="small"
-                                label={STANCE_LABEL_PT[rec.stance]}
-                              />
-                              <Chip
-                                size="small"
-                                variant="outlined"
-                                label={ATTENTION_LEVEL_LABEL_PT[rec.attentionLevel]}
-                              />
+                            <Stack spacing={0.75} alignItems={{ sm: 'flex-end' }}>
+                              <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+                                {rec.operationalReviewStatus ===
+                                'JUSTIFIED_VALID' ? (
+                                  <Chip size="small" color="success" label="Justificado" />
+                                ) : null}
+                                {rec.operationalReviewStatus ===
+                                'JUSTIFIED_STALE' ? (
+                                  <Chip
+                                    size="small"
+                                    color="warning"
+                                    label="Justificativa desatualizada"
+                                  />
+                                ) : null}
+                                <Chip
+                                  size="small"
+                                  label={STANCE_LABEL_PT[rec.stance]}
+                                />
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  label={ATTENTION_LEVEL_LABEL_PT[rec.attentionLevel]}
+                                />
+                              </Stack>
+                              {canReview &&
+                              rec.kind === UNREACHED_ELEMENT_FINDING_KIND &&
+                              isOperationallyPendingRec(rec) ? (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  disabled={busyReview}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    openJustify(rec);
+                                  }}
+                                >
+                                  Marcar como analisado
+                                </Button>
+                              ) : null}
+                              {canReview &&
+                              rec.kind === UNREACHED_ELEMENT_FINDING_KIND &&
+                              isJustifiedValid(rec) ? (
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  disabled={busyReview}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    void handleReopen(rec);
+                                  }}
+                                >
+                                  Reabrir análise
+                                </Button>
+                              ) : null}
                             </Stack>
                           </Stack>
                         </CardContent>
@@ -640,6 +933,52 @@ export function ExposureGroupAssistantPageContent({
           void refetch();
         }}
       />
+
+      <Dialog
+        open={!!justifyTarget}
+        onClose={() => !busyReview && setJustifyTarget(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Marcar como analisado — justificativa técnica</DialogTitle>
+        <DialogContent dividers>
+          {justifyTarget ? (
+            <Stack spacing={1.5}>
+              <Typography fontWeight={700}>
+                {justifyTarget.primaryEntityName || justifyTarget.listSummary}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                A condição técnica do detector permanece. Esta ação apenas
+                registra que a ausência de alcance foi analisada e justificada
+                tecnicamente, retirando o item das pendências operacionais.
+              </Typography>
+              <TextField
+                label="Justificativa técnica"
+                required
+                multiline
+                minRows={4}
+                fullWidth
+                value={justifyReason}
+                onChange={(e) => setJustifyReason(e.target.value)}
+                disabled={busyReview}
+                helperText="Sugestão editável — revise antes de confirmar. Não grave texto vazio."
+              />
+            </Stack>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={busyReview} onClick={() => setJustifyTarget(null)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            disabled={busyReview || !justifyReason.trim()}
+            onClick={() => void submitJustify()}
+          >
+            Confirmar análise
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
