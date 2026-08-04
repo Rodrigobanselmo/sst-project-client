@@ -49,6 +49,8 @@ import {
   browseHierarchySanitization,
   bulkDeleteHierarchySanitization,
   getHierarchySanitizationDetails,
+  justifyHierarchySanitizationReview,
+  reopenHierarchySanitizationReview,
 } from './hierarchy-sanitization.api';
 import type {
   HierarchySanitizationDetailsResponse,
@@ -69,20 +71,48 @@ const modalName = ModalEnum.HIERARCHY_SANITIZATION;
 
 type CategoryFilter = 'ALL' | 'OFFICE' | 'SUB_OFFICE';
 type StatusFilter = 'ALL' | 'ELIGIBLE' | 'BLOCKED';
+type ReviewFilter = 'PENDING' | 'JUSTIFIED' | 'ALL';
 
 type ConfirmState =
   | { kind: 'single'; row: HierarchySanitizationItem }
   | { kind: 'bulk'; message: string; ids: string[] }
   | null;
 
+type JustifyState = {
+  row: HierarchySanitizationItem;
+  details: HierarchySanitizationDetailsResponse | null;
+  loadingDetails: boolean;
+  reason: string;
+} | null;
+
+const emptySummary = {
+  analyzedRoles: 0,
+  officeWithoutEmployees: 0,
+  developedWithoutUse: 0,
+  eligible: 0,
+  blocked: 0,
+  blockedPending: 0,
+  justified: 0,
+};
+
+function formatReviewDate(value: string | null | undefined) {
+  if (!value) return '—';
+  try {
+    return new Date(value).toLocaleString('pt-BR');
+  } catch {
+    return value;
+  }
+}
+
 export const ModalHierarchySanitization = () => {
   const { registerModal, isOpen } = useRegisterModal();
   const { onCloseModal } = useModal();
   const { companyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
-  const { isValidPermissions } = useAccess();
+  const { isValidPermissions, isMaster } = useAccess();
   const { removeNodesFromTree } = useHierarchyTreeActions();
   const canDelete = isValidPermissions([PermissionEnum.EMPLOYEE]);
+  const canReview = isMaster;
   const deleteInFlightRef = useRef(false);
 
   const open = isOpen(modalName);
@@ -93,19 +123,15 @@ export const ModalHierarchySanitization = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('ALL');
   const [status, setStatus] = useState<StatusFilter>('ALL');
+  const [reviewStatus, setReviewStatus] = useState<ReviewFilter>('PENDING');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [selected, setSelected] = useState<string[]>([]);
   const [items, setItems] = useState<HierarchySanitizationItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [summary, setSummary] = useState({
-    analyzedRoles: 0,
-    officeWithoutEmployees: 0,
-    developedWithoutUse: 0,
-    eligible: 0,
-    blocked: 0,
-  });
+  const [summary, setSummary] = useState(emptySummary);
   const [confirm, setConfirm] = useState<ConfirmState>(null);
+  const [justify, setJustify] = useState<JustifyState>(null);
   const [details, setDetails] =
     useState<HierarchySanitizationDetailsResponse | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -126,10 +152,11 @@ export const ModalHierarchySanitization = () => {
         search: search || undefined,
         category,
         status,
+        reviewStatus,
       });
       setItems(result.data);
       setTotal(result.total);
-      setSummary(result.summary);
+      setSummary({ ...emptySummary, ...result.summary });
       setSelected((prev) => pruneSelectionAfterReload(prev, result.data));
     } catch (error: any) {
       enqueueSnackbar(
@@ -146,6 +173,7 @@ export const ModalHierarchySanitization = () => {
     enqueueSnackbar,
     open,
     page,
+    reviewStatus,
     rowsPerPage,
     search,
     status,
@@ -251,6 +279,96 @@ export const ModalHierarchySanitization = () => {
     setConfirm({ kind: 'single', row });
   };
 
+  const openJustify = async (row: HierarchySanitizationItem) => {
+    if (!companyId || !canReview || row.status !== 'BLOCKED') return;
+    if (row.reviewStatus === 'JUSTIFIED') return;
+    setJustify({
+      row,
+      details: null,
+      loadingDetails: true,
+      reason: '',
+    });
+    try {
+      const result = await getHierarchySanitizationDetails({
+        companyId,
+        hierarchyId: row.hierarchyId,
+      });
+      setJustify((prev) =>
+        prev && prev.row.hierarchyId === row.hierarchyId
+          ? { ...prev, details: result, loadingDetails: false }
+          : prev,
+      );
+    } catch (error: any) {
+      setJustify((prev) =>
+        prev && prev.row.hierarchyId === row.hierarchyId
+          ? { ...prev, loadingDetails: false }
+          : prev,
+      );
+      enqueueSnackbar(
+        error?.response?.data?.message ||
+          'Não foi possível carregar os detalhes para justificativa.',
+        { variant: 'error' },
+      );
+    }
+  };
+
+  const submitJustify = async () => {
+    if (!companyId || !justify || busy) return;
+    const reason = justify.reason.trim();
+    if (!reason) {
+      enqueueSnackbar('Informe a justificativa da manutenção.', {
+        variant: 'warning',
+      });
+      return;
+    }
+    setBusy(true);
+    try {
+      await justifyHierarchySanitizationReview({
+        companyId,
+        hierarchyId: justify.row.hierarchyId,
+        reason,
+      });
+      enqueueSnackbar(
+        `Análise registrada: ${justify.row.name}`,
+        { variant: 'success' },
+      );
+      setJustify(null);
+      await load();
+    } catch (error: any) {
+      enqueueSnackbar(
+        error?.response?.data?.message ||
+          'Falha ao registrar a análise justificada.',
+        { variant: 'error' },
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleReopen = async (hierarchyId: string, name: string) => {
+    if (!companyId || !canReview || busy) return;
+    setBusy(true);
+    try {
+      await reopenHierarchySanitizationReview({ companyId, hierarchyId });
+      enqueueSnackbar(`Análise reaberta: ${name}`, { variant: 'success' });
+      if (details?.hierarchyId === hierarchyId) {
+        const refreshed = await getHierarchySanitizationDetails({
+          companyId,
+          hierarchyId,
+        });
+        setDetails(refreshed);
+      }
+      await load();
+    } catch (error: any) {
+      enqueueSnackbar(
+        error?.response?.data?.message || 'Falha ao reabrir a análise.',
+        { variant: 'error' },
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleBulkDelete = async () => {
     if (!companyId || !canDelete || !selected.length || busy) return;
     setBusy(true);
@@ -325,7 +443,9 @@ export const ModalHierarchySanitization = () => {
               ['Cargos s/ empregados', summary.officeWithoutEmployees],
               ['Desenvolvidos s/ uso', summary.developedWithoutUse],
               ['Aptos', summary.eligible],
-              ['Bloqueados', summary.blocked],
+              ['Bloqueados (técnico)', summary.blocked],
+              ['Pendentes', summary.blockedPending],
+              ['Justificados', summary.justified],
             ].map(([label, value]) => (
               <Box
                 key={String(label)}
@@ -381,9 +501,9 @@ export const ModalHierarchySanitization = () => {
               </Select>
             </FormControl>
             <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel>Situação</InputLabel>
+              <InputLabel>Situação técnica</InputLabel>
               <Select
-                label="Situação"
+                label="Situação técnica"
                 value={status}
                 onChange={(e) => {
                   setPage(0);
@@ -393,6 +513,21 @@ export const ModalHierarchySanitization = () => {
                 <MenuItem value="ALL">Todas</MenuItem>
                 <MenuItem value="ELIGIBLE">Aptos</MenuItem>
                 <MenuItem value="BLOCKED">Bloqueados</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Acompanhamento</InputLabel>
+              <Select
+                label="Acompanhamento"
+                value={reviewStatus}
+                onChange={(e) => {
+                  setPage(0);
+                  setReviewStatus(e.target.value as ReviewFilter);
+                }}
+              >
+                <MenuItem value="PENDING">Pendentes</MenuItem>
+                <MenuItem value="JUSTIFIED">Justificados</MenuItem>
+                <MenuItem value="ALL">Todos</MenuItem>
               </Select>
             </FormControl>
             <Box flex={1} />
@@ -602,12 +737,44 @@ export const ModalHierarchySanitization = () => {
                           </Typography>
                         </TableCell>
                         <TableCell className="col-status">
-                          <Chip
-                            size="small"
-                            label={eligible ? 'Apto' : 'Bloqueado'}
-                            color={eligible ? 'success' : 'warning'}
-                            sx={{ maxWidth: '100%', height: 22, fontSize: 11 }}
-                          />
+                          <Box display="flex" flexDirection="column" gap={0.5}>
+                            <Chip
+                              size="small"
+                              label={eligible ? 'Apto' : 'Bloqueado'}
+                              color={eligible ? 'success' : 'warning'}
+                              sx={{
+                                maxWidth: '100%',
+                                height: 22,
+                                fontSize: 11,
+                              }}
+                            />
+                            {row.reviewStatus === 'JUSTIFIED' && (
+                              <Chip
+                                size="small"
+                                variant="outlined"
+                                color="info"
+                                label="Manutenção justificada"
+                                sx={{
+                                  maxWidth: '100%',
+                                  height: 22,
+                                  fontSize: 10,
+                                }}
+                              />
+                            )}
+                            {!eligible &&
+                              row.reviewStatus === 'PENDING' && (
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  label="Pendente"
+                                  sx={{
+                                    maxWidth: '100%',
+                                    height: 22,
+                                    fontSize: 10,
+                                  }}
+                                />
+                              )}
+                          </Box>
                         </TableCell>
                         <TableCell className="col-reason">
                           <Typography
@@ -639,14 +806,58 @@ export const ModalHierarchySanitization = () => {
                           </Button>
                         </TableCell>
                         <TableCell className="col-actions" align="right">
-                          {canDelete ? (
-                            <STagButton
-                              text="Excluir"
-                              icon={SDeleteIcon}
-                              disabled={!eligible || busy}
-                              onClick={() => handleDeleteOne(row)}
-                            />
-                          ) : null}
+                          <Box
+                            display="flex"
+                            flexDirection="column"
+                            alignItems="flex-end"
+                            gap={0.5}
+                          >
+                            {canReview &&
+                              !eligible &&
+                              row.reviewStatus === 'PENDING' && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  disabled={busy}
+                                  onClick={() => void openJustify(row)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    fontSize: 11,
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  Marcar como analisado
+                                </Button>
+                              )}
+                            {canReview &&
+                              row.reviewStatus === 'JUSTIFIED' && (
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  disabled={busy}
+                                  onClick={() =>
+                                    void handleReopen(
+                                      row.hierarchyId,
+                                      row.name,
+                                    )
+                                  }
+                                  sx={{
+                                    textTransform: 'none',
+                                    fontSize: 11,
+                                  }}
+                                >
+                                  Reabrir análise
+                                </Button>
+                              )}
+                            {canDelete ? (
+                              <STagButton
+                                text="Excluir"
+                                icon={SDeleteIcon}
+                                disabled={!eligible || busy}
+                                onClick={() => handleDeleteOne(row)}
+                              />
+                            ) : null}
+                          </Box>
                         </TableCell>
                       </TableRow>
                     );
@@ -763,6 +974,44 @@ export const ModalHierarchySanitization = () => {
                 color={details.status === 'ELIGIBLE' ? 'success' : 'warning'}
                 sx={{ alignSelf: 'flex-start' }}
               />
+              <Typography fontWeight={600}>Revisão da sanitização</Typography>
+              {details.reviewStatus === 'JUSTIFIED' && details.review ? (
+                <Box>
+                  <Typography fontSize={13}>
+                    Situação: Manutenção justificada
+                  </Typography>
+                  <Typography fontSize={13}>
+                    Analisado por:{' '}
+                    {details.review.reviewedByName ||
+                      details.review.reviewedByUserId ||
+                      '—'}
+                  </Typography>
+                  <Typography fontSize={13}>
+                    Data: {formatReviewDate(details.review.reviewedAt)}
+                  </Typography>
+                  <Typography fontSize={13} sx={{ mt: 1 }}>
+                    Justificativa: {details.review.reason}
+                  </Typography>
+                  {canReview && (
+                    <Button
+                      size="small"
+                      sx={{ mt: 1, textTransform: 'none' }}
+                      disabled={busy}
+                      onClick={() =>
+                        void handleReopen(details.hierarchyId, details.name)
+                      }
+                    >
+                      Reabrir análise
+                    </Button>
+                  )}
+                </Box>
+              ) : (
+                <Typography fontSize={13} color="text.secondary">
+                  Situação: Pendente de análise
+                </Typography>
+              )}
+
+              <Divider />
               <Typography fontWeight={600}>Conclusão</Typography>
               <Typography fontSize={14}>{details.conclusion}</Typography>
 
@@ -854,6 +1103,94 @@ export const ModalHierarchySanitization = () => {
             }}
           >
             Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!justify}
+        onClose={() => !busy && setJustify(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Marcar como analisado — manutenção justificada</DialogTitle>
+        <DialogContent dividers>
+          {justify && (
+            <Box display="flex" flexDirection="column" gap={1.5}>
+              <Typography fontWeight={700}>{justify.row.name}</Typography>
+              <Typography fontSize={13} color="text.secondary">
+                {justify.row.typeLabel} · {justify.row.path}
+              </Typography>
+              <Typography fontSize={13}>{justify.row.reason}</Typography>
+              <Typography fontSize={13}>
+                Este item permanecerá no organograma e continuará tecnicamente
+                bloqueado para exclusão. A ação apenas registra que o caso foi
+                analisado e que sua manutenção foi considerada justificada.
+              </Typography>
+              {justify.loadingDetails && (
+                <Box display="flex" justifyContent="center" p={2}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
+              {justify.details && (
+                <>
+                  <Typography fontWeight={600} fontSize={13}>
+                    Elementos / GSE
+                  </Typography>
+                  {!justify.details.hohLinks.length && (
+                    <Typography fontSize={12} color="text.secondary">
+                      Nenhum vínculo HOH.
+                    </Typography>
+                  )}
+                  {justify.details.hohLinks.map((h) => (
+                    <Typography key={h.hohId} fontSize={12}>
+                      {h.characterizationName || h.groupName}
+                      {h.isActiveLink ? ' (ativo)' : ''}
+                    </Typography>
+                  ))}
+                  <Typography fontWeight={600} fontSize={13}>
+                    Riscos relacionados
+                  </Typography>
+                  {!justify.details.risks.length && (
+                    <Typography fontSize={12} color="text.secondary">
+                      Nenhum risco listado.
+                    </Typography>
+                  )}
+                  {justify.details.risks.map((r) => (
+                    <Typography key={r.riskFactorDataId} fontSize={12}>
+                      {r.riskName}
+                      {r.elementName ? ` · via ${r.elementName}` : ''}
+                    </Typography>
+                  ))}
+                </>
+              )}
+              <TextField
+                label="Justificativa da manutenção"
+                required
+                multiline
+                minRows={3}
+                fullWidth
+                value={justify.reason}
+                onChange={(e) =>
+                  setJustify((prev) =>
+                    prev ? { ...prev, reason: e.target.value } : prev,
+                  )
+                }
+                disabled={busy}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={busy} onClick={() => setJustify(null)}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            disabled={busy || !justify?.reason.trim()}
+            onClick={() => void submitJustify()}
+          >
+            Confirmar análise
           </Button>
         </DialogActions>
       </Dialog>

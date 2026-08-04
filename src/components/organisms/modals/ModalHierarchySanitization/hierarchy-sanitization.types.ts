@@ -1,5 +1,23 @@
 export type HierarchySanitizationCategory = 'OFFICE' | 'SUB_OFFICE';
 export type HierarchySanitizationStatus = 'ELIGIBLE' | 'BLOCKED';
+export type HierarchySanitizationOperationalReviewStatus =
+  | 'PENDING'
+  | 'JUSTIFIED';
+export type HierarchySanitizationReviewStatus = 'JUSTIFIED' | 'REOPENED';
+
+export type HierarchySanitizationReviewInfo = {
+  id: string;
+  status: HierarchySanitizationReviewStatus;
+  reason: string;
+  reviewedByUserId: number | null;
+  reviewedByName: string | null;
+  reviewedAt: string;
+  reopenedByUserId: number | null;
+  reopenedByName: string | null;
+  reopenedAt: string | null;
+  dependencyHash: string | null;
+  staleDueToDependencyChange: boolean;
+};
 
 export type HierarchySanitizationItem = {
   hierarchyId: string;
@@ -24,6 +42,8 @@ export type HierarchySanitizationItem = {
   examHistoryCount: number;
   employeesMissingPrimaryRoleCount: number;
   requiresEmployeeDetach: boolean;
+  reviewStatus: HierarchySanitizationOperationalReviewStatus;
+  review: HierarchySanitizationReviewInfo | null;
 };
 
 export type HierarchySanitizationBrowseResponse = {
@@ -33,6 +53,8 @@ export type HierarchySanitizationBrowseResponse = {
     developedWithoutUse: number;
     eligible: number;
     blocked: number;
+    blockedPending: number;
+    justified: number;
   };
   data: HierarchySanitizationItem[];
   total: number;
@@ -70,6 +92,8 @@ export type HierarchySanitizationDetailsResponse = {
   status: HierarchySanitizationStatus;
   reason: string;
   requiresEmployeeDetach: boolean;
+  reviewStatus: HierarchySanitizationOperationalReviewStatus;
+  review: HierarchySanitizationReviewInfo | null;
   summary: {
     activeEmployees: number;
     historicalEmployees: number;
@@ -121,4 +145,20 @@ export type HierarchySanitizationDetailsResponse = {
     examName: string | null;
   }>;
   conclusion: string;
+};
+
+export type JustifyHierarchySanitizationReviewResponse = {
+  hierarchyId: string;
+  companyId: string;
+  review: HierarchySanitizationReviewInfo;
+  technicalStatus: 'BLOCKED';
+  operationalStatus: 'JUSTIFIED';
+};
+
+export type ReopenHierarchySanitizationReviewResponse = {
+  hierarchyId: string;
+  companyId: string;
+  review: HierarchySanitizationReviewInfo;
+  technicalStatus: 'BLOCKED';
+  operationalStatus: 'PENDING';
 };

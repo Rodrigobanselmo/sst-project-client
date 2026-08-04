@@ -5,6 +5,8 @@ import type {
   HierarchySanitizationBrowseResponse,
   HierarchySanitizationBulkResponse,
   HierarchySanitizationDetailsResponse,
+  JustifyHierarchySanitizationReviewResponse,
+  ReopenHierarchySanitizationReviewResponse,
 } from './hierarchy-sanitization.types';
 
 export type {
@@ -14,6 +16,8 @@ export type {
   HierarchySanitizationDetailsResponse,
   HierarchySanitizationItem,
   HierarchySanitizationStatus,
+  JustifyHierarchySanitizationReviewResponse,
+  ReopenHierarchySanitizationReviewResponse,
 } from './hierarchy-sanitization.types';
 
 export {
@@ -31,6 +35,7 @@ export async function browseHierarchySanitization(params: {
   search?: string;
   category?: 'OFFICE' | 'SUB_OFFICE' | 'ALL';
   status?: 'ELIGIBLE' | 'BLOCKED' | 'ALL';
+  reviewStatus?: 'PENDING' | 'JUSTIFIED' | 'ALL';
 }): Promise<HierarchySanitizationBrowseResponse> {
   const { companyId, ...body } = params;
   const { data } = await api.post<HierarchySanitizationBrowseResponse>(
@@ -59,6 +64,28 @@ export async function getHierarchySanitizationDetails(params: {
 }): Promise<HierarchySanitizationDetailsResponse> {
   const { data } = await api.get<HierarchySanitizationDetailsResponse>(
     `${ApiRoutesEnum.HIERARCHY}/sanitization/details/${params.hierarchyId}/${params.companyId}`,
+  );
+  return data;
+}
+
+export async function justifyHierarchySanitizationReview(params: {
+  companyId: string;
+  hierarchyId: string;
+  reason: string;
+}): Promise<JustifyHierarchySanitizationReviewResponse> {
+  const { data } = await api.post<JustifyHierarchySanitizationReviewResponse>(
+    `${ApiRoutesEnum.HIERARCHY}/sanitization/review/${params.hierarchyId}/${params.companyId}`,
+    { reason: params.reason },
+  );
+  return data;
+}
+
+export async function reopenHierarchySanitizationReview(params: {
+  companyId: string;
+  hierarchyId: string;
+}): Promise<ReopenHierarchySanitizationReviewResponse> {
+  const { data } = await api.post<ReopenHierarchySanitizationReviewResponse>(
+    `${ApiRoutesEnum.HIERARCHY}/sanitization/review/${params.hierarchyId}/${params.companyId}/reopen`,
   );
   return data;
 }

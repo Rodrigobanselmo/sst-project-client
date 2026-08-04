@@ -111,13 +111,13 @@ export function formatTypeLabelLines(
  */
 export const SANITIZATION_TABLE_COL_WIDTHS = {
   selection: '3%',
-  name: '29%',
+  name: '26%',
   type: '7%',
-  path: '13%',
-  deps: '18%',
-  status: '7%',
-  reason: '17%',
-  actions: '6%',
+  path: '12%',
+  deps: '16%',
+  status: '10%',
+  reason: '16%',
+  actions: '10%',
 } as const;
 
 export const SANITIZATION_TABLE_LAYOUT = {
