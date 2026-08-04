@@ -61,6 +61,8 @@ const subWithDetach: HierarchySanitizationItem = {
   examHistoryCount: 0,
   employeesMissingPrimaryRoleCount: 0,
   requiresEmployeeDetach: true,
+  reviewStatus: 'PENDING',
+  review: null,
 };
 
 assert.ok(
@@ -109,7 +111,7 @@ assert.ok(formatTypeLabelLines('SUB_OFFICE')[0] === 'Cargo');
 assert.ok(formatTypeLabelLines('SUB_OFFICE')[1] === 'desenvolvido');
 assert.equal(SANITIZATION_TABLE_COL_WIDTHS.type, '7%');
 assert.ok(SANITIZATION_TABLE_LAYOUT.typeMaxPx <= 72);
-assert.equal(SANITIZATION_TABLE_COL_WIDTHS.name, '29%');
+assert.equal(SANITIZATION_TABLE_COL_WIDTHS.name, '26%');
 const namePct = parseFloat(SANITIZATION_TABLE_COL_WIDTHS.name);
 const pathPct = parseFloat(SANITIZATION_TABLE_COL_WIDTHS.path);
 const depsPct = parseFloat(SANITIZATION_TABLE_COL_WIDTHS.deps);
