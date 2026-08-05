@@ -410,6 +410,7 @@ export const DocTable: FC<
     onOpenModal(ModalEnum.DOCUMENT_DOWNLOAD, {
       id: doc.id,
       companyId,
+      workspaceId: workspaceId || doc.workspaceId || '',
       documentType: type,
     } as typeof initialViewDocDownloadState);
   };

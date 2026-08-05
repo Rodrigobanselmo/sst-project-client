@@ -13,6 +13,7 @@ import { DocumentTypeEnum } from 'project/enum/document.enums';
 export const initialViewDocDownloadState = {
   id: '',
   companyId: '',
+  workspaceId: '',
   documentType: undefined as DocumentTypeEnum | undefined,
   downloadRoute: ApiRoutesEnum.DOCUMENTS_BASE,
   downloadAttRoute: ApiRoutesEnum.DOCUMENTS_BASE_ATTACHMENTS,

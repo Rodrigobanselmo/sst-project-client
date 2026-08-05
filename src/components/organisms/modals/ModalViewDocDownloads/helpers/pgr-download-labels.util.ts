@@ -19,7 +19,16 @@ export function formatPgrAttachmentDisplayName(name: string): string {
 export function getPgrMainDocumentDownloadLabel(
   _documentType: DocumentTypeEnum,
 ): string {
-  return 'Baixar documento (sem anexos)';
+  return 'Baixar documento sem anexos';
+}
+
+export function getPgrMainDocumentDownloadDescription(
+  documentType: DocumentTypeEnum,
+): string {
+  if (documentType === DocumentTypeEnum.FRPS) {
+    return 'Corpo principal do FRPS, sem os anexos operacionais.';
+  }
+  return 'Corpo principal do PGR, sem os anexos operacionais.';
 }
 
 export function getPgrEssentialDownloadLabel(
@@ -31,9 +40,34 @@ export function getPgrEssentialDownloadLabel(
   return 'Baixar PGR com anexos essenciais';
 }
 
+export function getPgrEssentialDownloadDescription(
+  documentType: DocumentTypeEnum,
+): string {
+  if (documentType === DocumentTypeEnum.FRPS) {
+    return 'Inclui o corpo principal e os anexos essenciais do FRPS.';
+  }
+  return 'Inclui o corpo principal e os anexos essenciais do PGR.';
+}
+
+export function getPgrEssentialRecommendedBadge(): string {
+  return 'Recomendado';
+}
+
 export function getPgrFullDownloadLabel(documentType: DocumentTypeEnum): string {
   if (documentType === DocumentTypeEnum.FRPS) {
-    return 'Baixar FRPS completo (incluindo anexos 1, 2 e 3)';
+    return 'Baixar FRPS completo';
   }
-  return 'Baixar PGR completo (incluindo anexos 1, 2 e 3)';
+  return 'Baixar PGR completo';
 }
+
+export function getPgrFullDownloadDescription(
+  documentType: DocumentTypeEnum,
+): string {
+  if (documentType === DocumentTypeEnum.FRPS) {
+    return 'Inclui todos os anexos aplicáveis do FRPS.';
+  }
+  return 'Inclui Inventário por Função, Inventário por GSE e Plano de Ação.';
+}
+
+export const PGR_DOWNLOAD_SECTION_DOCUMENT = 'Documento';
+export const PGR_DOWNLOAD_SECTION_ANNEXES = 'Anexos';

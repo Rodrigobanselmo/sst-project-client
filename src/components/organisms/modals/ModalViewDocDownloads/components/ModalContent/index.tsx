@@ -13,18 +13,32 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import {
-  buildPgrConsolidatedDownloadUrl,
-  formatPgrAttachmentDisplayName,
-  getPgrEssentialDownloadLabel,
-  getPgrFullDownloadLabel,
-  getPgrMainDocumentDownloadLabel,
+  PCMSO_DOWNLOAD_SECTION_ANNEXES,
+  PCMSO_DOWNLOAD_SECTION_DOCUMENT,
+} from '../../helpers/pcmso-download-labels.util';
+import {
+  buildPcmsoDownloadModalOptions,
+  groupPcmsoDownloadOptionsBySection,
+  isPcmsoDownloadUrlLoading,
+} from '../../helpers/pcmso-download-modal.util';
+import {
+  PGR_DOWNLOAD_SECTION_ANNEXES,
+  PGR_DOWNLOAD_SECTION_DOCUMENT,
 } from '../../helpers/pgr-download-labels.util';
 import {
-  buildPcmsoConsolidatedDownloadUrl,
-  getPcmsoFullDownloadLabel,
-  getPcmsoMainDocumentDownloadLabel,
-} from '../../helpers/pcmso-download-labels.util';
+  buildPgrDownloadModalOptions,
+  groupPgrDownloadOptionsBySection,
+} from '../../helpers/pgr-download-modal.util';
 import { IUseDocs } from '../../hooks/useModalViewDocDownload';
+
+type DownloadOptionView = {
+  id: string;
+  url: string;
+  label: string;
+  description?: string;
+  badge?: string;
+  recommended?: boolean;
+};
 
 export const ModalContentDoc = ({
   downloadMutation,
@@ -33,33 +47,88 @@ export const ModalContentDoc = ({
 }: IUseDocs) => {
   const { companyId } = useGetCompanyId();
   const resolvedCompanyId = doc.companyId || companyId || '';
+  const resolvedWorkspaceId = doc.workspaceId || docQuery.workspaceId || '';
   const mainDocumentUrl = `${doc.downloadRoute}/${doc.id}/${resolvedCompanyId}`;
   const isPgrOrFrps =
     doc.documentType === DocumentTypeEnum.PGR ||
     doc.documentType === DocumentTypeEnum.FRPS;
   const isPcmso = doc.documentType === DocumentTypeEnum.PCSMO;
 
-  const essentialConsolidatedUrl = buildPgrConsolidatedDownloadUrl({
-    docId: doc.id,
-    companyId: resolvedCompanyId,
-    profile: 'essential',
-  });
+  const pcmsoOptions = isPcmso
+    ? buildPcmsoDownloadModalOptions({
+        docId: doc.id,
+        companyId: resolvedCompanyId,
+        workspaceId: resolvedWorkspaceId,
+        mainDocumentUrl,
+        downloadAttRoute: doc.downloadAttRoute,
+        attachments: docQuery?.attachments,
+      })
+    : [];
+  const pcmsoGrouped = groupPcmsoDownloadOptionsBySection(pcmsoOptions);
 
-  const fullConsolidatedUrl = buildPgrConsolidatedDownloadUrl({
-    docId: doc.id,
-    companyId: resolvedCompanyId,
-    profile: 'full',
-  });
-
-  const pcmsoConsolidatedUrl = buildPcmsoConsolidatedDownloadUrl({
-    docId: doc.id,
-    companyId: resolvedCompanyId,
-  });
+  const pgrOptions =
+    isPgrOrFrps && doc.documentType
+      ? buildPgrDownloadModalOptions({
+          documentType: doc.documentType,
+          docId: doc.id,
+          companyId: resolvedCompanyId,
+          mainDocumentUrl,
+          downloadAttRoute: doc.downloadAttRoute,
+          attachments: docQuery?.attachments,
+        })
+      : [];
+  const pgrGrouped = groupPgrDownloadOptionsBySection(pgrOptions);
 
   const isDownloading = (url: string) =>
-    downloadMutation.isLoading &&
-    !!downloadMutation.variables &&
-    downloadMutation.variables === url;
+    isPcmsoDownloadUrlLoading(url, downloadMutation);
+
+  const renderDocumentButtons = (options: DownloadOptionView[]) =>
+    options.map((option) => (
+      <STagButton
+        key={option.id}
+        text={option.label}
+        topText={option.badge}
+        subText={option.description}
+        loading={isDownloading(option.url)}
+        onClick={() => downloadMutation.mutate(option.url)}
+        width={'100%'}
+        large
+        icon={SDownloadIcon}
+        outline={option.recommended}
+        borderActive={option.recommended ? 'primary' : undefined}
+      />
+    ));
+
+  const renderAnnexButtons = (
+    options: DownloadOptionView[],
+    opts?: { disableGseWithoutWorkspace?: boolean },
+  ) =>
+    options.map((option) => (
+      <STagButton
+        key={option.id}
+        mb={2}
+        text={option.label}
+        subText={option.description}
+        loading={isDownloading(option.url)}
+        onClick={() => {
+          if (
+            !opts?.disableGseWithoutWorkspace ||
+            !option.url.includes('/pcmso-exams-by-gse/') ||
+            resolvedWorkspaceId
+          ) {
+            downloadMutation.mutate(option.url);
+          }
+        }}
+        disabled={
+          !!opts?.disableGseWithoutWorkspace &&
+          option.id === 'pcmso-annex-gse' &&
+          !resolvedWorkspaceId
+        }
+        width={'100%'}
+        large
+        icon={SDownloadIcon}
+      />
+    ));
 
   return (
     <Box>
@@ -87,77 +156,82 @@ export const ModalContentDoc = ({
           />
         )}
       </SFlex>
-      <SText mt={8} color="text.light">
-        Documento
-      </SText>
-      <SFlex direction="column" gap={5} mt={5} mb={10}>
-        <STagButton
-          text={
-            isPgrOrFrps && doc.documentType
-              ? getPgrMainDocumentDownloadLabel(doc.documentType)
-              : isPcmso
-                ? getPcmsoMainDocumentDownloadLabel()
-                : 'Baixar documento'
-          }
-          loading={isDownloading(mainDocumentUrl)}
-          onClick={() => downloadMutation.mutate(mainDocumentUrl)}
-          width={'100%'}
-          large
-          icon={SDownloadIcon}
-        />
-        {isPgrOrFrps && doc.documentType && (
-          <>
-            <STagButton
-              text={getPgrEssentialDownloadLabel(doc.documentType)}
-              loading={isDownloading(essentialConsolidatedUrl)}
-              onClick={() => downloadMutation.mutate(essentialConsolidatedUrl)}
-              width={'100%'}
-              large
-              icon={SDownloadIcon}
-            />
-            <STagButton
-              text={getPgrFullDownloadLabel(doc.documentType)}
-              loading={isDownloading(fullConsolidatedUrl)}
-              onClick={() => downloadMutation.mutate(fullConsolidatedUrl)}
-              width={'100%'}
-              large
-              icon={SDownloadIcon}
-            />
-          </>
-        )}
-        {isPcmso && (
-          <STagButton
-            text={getPcmsoFullDownloadLabel()}
-            loading={isDownloading(pcmsoConsolidatedUrl)}
-            onClick={() => downloadMutation.mutate(pcmsoConsolidatedUrl)}
-            width={'100%'}
-            large
-            icon={SDownloadIcon}
-          />
-        )}
-        <SText mt={4} mb={0} color="text.light">
-          Anexos
-        </SText>
-        {docQuery?.attachments &&
-          docQuery.attachments.map((attachment) => {
-            const attachmentUrl = `${doc.downloadAttRoute.replace(':docId', docQuery.id)}/${
-              attachment.id
-            }/${resolvedCompanyId}`;
 
-            return (
-              <STagButton
-                mb={2}
-                key={attachment.id}
-                text={`Baixar ${formatPgrAttachmentDisplayName(attachment.name)}`}
-                loading={isDownloading(attachmentUrl)}
-                onClick={() => downloadMutation.mutate(attachmentUrl)}
-                width={'100%'}
-                large
-                icon={SDownloadIcon}
-              />
-            );
-          })}
-      </SFlex>
+      {isPcmso && (
+        <>
+          <SText mt={8} color="text.light">
+            {PCMSO_DOWNLOAD_SECTION_DOCUMENT}
+          </SText>
+          <SFlex direction="column" gap={5} mt={5} mb={5}>
+            {renderDocumentButtons(pcmsoGrouped.document)}
+          </SFlex>
+          <SText mt={4} mb={0} color="text.light">
+            {PCMSO_DOWNLOAD_SECTION_ANNEXES}
+          </SText>
+          <SFlex direction="column" gap={5} mt={5} mb={10}>
+            {renderAnnexButtons(pcmsoGrouped.annexes, {
+              disableGseWithoutWorkspace: true,
+            })}
+          </SFlex>
+        </>
+      )}
+
+      {isPgrOrFrps && (
+        <>
+          <SText mt={8} color="text.light">
+            {PGR_DOWNLOAD_SECTION_DOCUMENT}
+          </SText>
+          <SFlex direction="column" gap={5} mt={5} mb={5}>
+            {renderDocumentButtons(pgrGrouped.document)}
+          </SFlex>
+          <SText mt={4} mb={0} color="text.light">
+            {PGR_DOWNLOAD_SECTION_ANNEXES}
+          </SText>
+          <SFlex direction="column" gap={5} mt={5} mb={10}>
+            {renderAnnexButtons(pgrGrouped.annexes)}
+          </SFlex>
+        </>
+      )}
+
+      {!isPcmso && !isPgrOrFrps && (
+        <>
+          <SText mt={8} color="text.light">
+            Documento
+          </SText>
+          <SFlex direction="column" gap={5} mt={5} mb={10}>
+            <STagButton
+              text="Baixar documento"
+              loading={isDownloading(mainDocumentUrl)}
+              onClick={() => downloadMutation.mutate(mainDocumentUrl)}
+              width={'100%'}
+              large
+              icon={SDownloadIcon}
+            />
+            <SText mt={4} mb={0} color="text.light">
+              Anexos
+            </SText>
+            {docQuery?.attachments &&
+              docQuery.attachments.map((attachment) => {
+                const attachmentUrl = `${doc.downloadAttRoute.replace(':docId', docQuery.id)}/${
+                  attachment.id
+                }/${resolvedCompanyId}`;
+
+                return (
+                  <STagButton
+                    mb={2}
+                    key={attachment.id}
+                    text={`Baixar ${attachment.name}`}
+                    loading={isDownloading(attachmentUrl)}
+                    onClick={() => downloadMutation.mutate(attachmentUrl)}
+                    width={'100%'}
+                    large
+                    icon={SDownloadIcon}
+                  />
+                );
+              })}
+          </SFlex>
+        </>
+      )}
     </Box>
   );
 };
