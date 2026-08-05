@@ -41,9 +41,10 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const sstActiveTab = isSstCharacterizationPage
     ? parseCharacterizationActiveTab(query.active)
     : null;
+  // Exams participates in the same tabWorkspaceId header selector as Riscos/GSE/etc.
+  // Protocols remains excluded (legacy: not workspace-scoped in the header).
   const showSstWorkspaceSelector =
     isSstCharacterizationPage &&
-    sstActiveTab !== CharacterizationSubTabEnum.EXAMS &&
     sstActiveTab !== CharacterizationSubTabEnum.PROTOCOLS;
   const isGseCharacterizationPage =
     pathname === CHARACTERIZATION_GSE_PATHNAME;

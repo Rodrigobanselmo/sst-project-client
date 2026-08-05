@@ -8,6 +8,7 @@ import { GhoGseTabContent } from 'components/organisms/modals/ModalAddGHO';
 import { ProtocolsRiskTable } from 'components/organisms/tables/ProtocolsRiskTable/ProtocolsRiskTable';
 import { RiskCompanyTable } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 import { Wizard } from 'react-use-wizard';
 
 import {
@@ -25,6 +26,16 @@ import { useAccess } from 'core/hooks/useAccess';
 import { useCharacterizationInlineEditorOptional } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
 import { RiskToolByEntityTabContent } from './RiskToolByEntityTabContent';
 
+const formatEstablishmentLabel = (workspace?: {
+  name?: string | null;
+  abbreviation?: string | null;
+} | null) => {
+  if (!workspace?.name?.trim()) return null;
+  const name = workspace.name.trim();
+  const abbreviation = workspace.abbreviation?.trim();
+  return abbreviation ? `${name} — ${abbreviation}` : name;
+};
+
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
 export const CharacterizationStage = ({
@@ -37,12 +48,21 @@ export const CharacterizationStage = ({
   // Elementos > Fatores). Prefetching here blocked the default Riscos tab.
   const router = useRouter();
   const companyId = (query?.companyId as string | undefined) || company?.id;
-  const { workspaceId, isWorkspaceFilterReady } =
+  const { workspaceId, isWorkspaceFilterReady, isAllEstablishments } =
     useEnsureCharacterizationTabWorkspace({
       companyId,
       companyWorkspaces: company?.workspace,
       enabled: true,
     });
+
+  const workspaceLabel = useMemo(() => {
+    if (!workspaceId) return null;
+    const fromCompany = company?.workspace?.find(
+      (workspace) => workspace.id === workspaceId,
+    );
+    return formatEstablishmentLabel(fromCompany);
+  }, [company?.workspace, workspaceId]);
+
   const activeTab = parseCharacterizationActiveTab(query?.active);
   const wizardStep = getCharacterizationWizardStep(activeTab);
   const inlineEditor = useCharacterizationInlineEditorOptional();
@@ -172,6 +192,8 @@ export const CharacterizationStage = ({
             enableBulkActions
             showPcmsoStatus
             workspaceId={workspaceId}
+            workspaceLabel={workspaceLabel}
+            isAllEstablishments={isAllEstablishments}
           />
           <ExamsRiskTableList companyFlowSticky companyFlowBelowTabs />
         </>
