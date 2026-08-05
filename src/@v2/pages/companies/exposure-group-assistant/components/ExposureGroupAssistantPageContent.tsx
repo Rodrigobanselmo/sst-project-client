@@ -76,8 +76,10 @@ import {
   maturityLabel,
 } from './diagnosis-labels';
 import { RecommendationDetailDialog } from './FindingDetailDialog';
+import { SimilarityProposalsPanel } from './SimilarityProposalsPanel';
 
 type OperationalView = 'PENDING' | 'INFORMATIONAL';
+type AssistantMainView = 'DIAGNOSIS' | 'SIMILARITY';
 
 type Filters = {
   category: StructureFindingCategory | 'ALL';
@@ -141,6 +143,7 @@ export function ExposureGroupAssistantPageContent({
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [operationalView, setOperationalView] =
     useState<OperationalView>('PENDING');
+  const [mainView, setMainView] = useState<AssistantMainView>('DIAGNOSIS');
   const [selected, setSelected] = useState<InterpretedRecommendation | null>(
     null,
   );
@@ -199,7 +202,7 @@ export function ExposureGroupAssistantPageContent({
   const { data, isLoading, isError, error, refetch, isFetching } =
     useFetchExposureGroupDiagnosis(
       { companyId, workspaceId },
-      Boolean(companyId && workspaceId),
+      Boolean(companyId && workspaceId) && mainView === 'DIAGNOSIS',
     );
 
   const narrative = data?.narrative;
@@ -492,6 +495,39 @@ export function ExposureGroupAssistantPageContent({
       </CompanyFlowStickySubheader>
 
       <Stack spacing={2.5} sx={{ mt: 2, px: { xs: 1, md: 0 }, pb: 4 }}>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant={mainView === 'DIAGNOSIS' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => setMainView('DIAGNOSIS')}
+          >
+            Diagnóstico
+          </Button>
+          <Button
+            variant={mainView === 'SIMILARITY' ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => setMainView('SIMILARITY')}
+          >
+            Propostas de GSE
+          </Button>
+        </Stack>
+
+        {mainView === 'SIMILARITY' ? (
+          !workspaceId ? (
+            <Alert severity="warning">
+              Selecione um estabelecimento no seletor do cabeçalho para calcular
+              candidatos a agrupamento.
+            </Alert>
+          ) : (
+            <SimilarityProposalsPanel
+              companyId={companyId}
+              workspaceId={workspaceId}
+            />
+          )
+        ) : null}
+
+        {mainView === 'DIAGNOSIS' ? (
+        <>
         <SAccordion
           title="Assistente de Grupos Similares de Exposição"
           subtitle="Parecer estrutural para apoiar a formação e revisão dos Grupos Similares de Exposição."
@@ -1047,6 +1083,8 @@ export function ExposureGroupAssistantPageContent({
               {narrative.closing}
             </Typography>
           </>
+        ) : null}
+        </>
         ) : null}
       </Stack>
 

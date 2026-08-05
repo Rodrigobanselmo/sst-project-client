@@ -8,15 +8,24 @@ import type {
   BulkJustifyIntegrityReviewParams,
   BulkJustifyPreviewResponse,
   BulkJustifyResponse,
+  CreateGseFromProposalParams,
+  CreateGseFromProposalResult,
+  CreateGsePreviewParams,
+  CreateGsePreviewResult,
   DeleteDevelopedRoleParams,
   DeleteDevelopedRoleResult,
   DevelopedRoleDeletionAnalysis,
   ExposureGroupAssistantDiagnosisResponse,
   JustifyIntegrityReviewParams,
   JustifyIntegrityReviewResponse,
+  RefineGseDraftBody,
+  RefineGseDraftParams,
+  RefineGseDraftResult,
   ReopenIntegrityReviewParams,
   ReopenIntegrityReviewResponse,
   RunExposureGroupDiagnosisParams,
+  RunSimilarityProposalsParams,
+  SimilarityProposalsResponse,
 } from './exposure-group-assistant.types';
 
 export async function runExposureGroupDiagnosis(
@@ -31,6 +40,113 @@ export async function runExposureGroupDiagnosis(
       },
     }),
     {},
+  );
+  return response.data;
+}
+
+export async function runSimilarityProposals(
+  params: RunSimilarityProposalsParams,
+): Promise<SimilarityProposalsResponse> {
+  const response = await api.post<SimilarityProposalsResponse>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.SIMILARITY_PROPOSALS,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    {
+      confidence: params.confidence,
+      elementTypes: params.elementTypes,
+      nameQuery: params.nameQuery,
+      withoutBlocksOnly: params.withoutBlocksOnly,
+      commonAncestorId: params.commonAncestorId,
+      displayLimit: params.displayLimit,
+      proposalMode: params.proposalMode,
+    },
+  );
+  return response.data;
+}
+
+function buildRefineGseDraftBody(
+  params: RefineGseDraftParams,
+): RefineGseDraftBody {
+  const { draft, riskNameById } = params;
+  return {
+    proposalId: draft.proposalId,
+    proposalMode: draft.proposalMode,
+    classification: draft.classification,
+    name: draft.name,
+    description: draft.description,
+    technicalJustification: draft.technicalJustification,
+    formationReason: draft.formationReason,
+    populationDescription: draft.populationDescription,
+    operationalContext: draft.operationalContext,
+    occupationalContext: draft.occupationalContext,
+    inclusionCriteria: draft.inclusionCriteria,
+    exclusionCriteria: draft.exclusionCriteria,
+    reviewNotes: draft.reviewNotes,
+    includedElements: draft.includedElements.map((el) => ({
+      elementId: el.elementId,
+      name: el.name,
+      type: el.type,
+      coveredEmployeeCount: el.coveredEmployeeCount,
+      riskCount: el.riskCount,
+    })),
+    includedJobs: draft.includedJobs,
+    riskIds: draft.includedRisks.riskIds,
+    riskNameById,
+    includedEmployees: draft.includedEmployees,
+    score: draft.score,
+    confidence: draft.confidence,
+    warnings: draft.warnings,
+  };
+}
+
+export async function refineGseDraft(
+  params: RefineGseDraftParams,
+): Promise<RefineGseDraftResult> {
+  const response = await api.post<RefineGseDraftResult>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.SIMILARITY_PROPOSALS_REFINE_DRAFT,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    buildRefineGseDraftBody(params),
+  );
+  return response.data;
+}
+
+export async function previewCreateGseFromProposal(
+  params: CreateGsePreviewParams,
+): Promise<CreateGsePreviewResult> {
+  const response = await api.post<CreateGsePreviewResult>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.SIMILARITY_PROPOSALS_CREATE_PREVIEW,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    params.body,
+  );
+  return response.data;
+}
+
+export async function createGseFromProposal(
+  params: CreateGseFromProposalParams,
+): Promise<CreateGseFromProposalResult> {
+  const response = await api.post<CreateGseFromProposalResult>(
+    bindUrlParams({
+      path: ExposureGroupAssistantRoutes.SIMILARITY_PROPOSALS_CREATE,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    params.body,
   );
   return response.data;
 }
