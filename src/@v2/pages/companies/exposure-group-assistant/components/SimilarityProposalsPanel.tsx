@@ -62,6 +62,7 @@ import {
   buildOpenGseModalPayload,
   resolveImplementedProposalCopy,
 } from './open-gse-from-assistant';
+import { resolveDiscardedPairUserNarrative } from './discarded-pair-narrative';
 import {
   candidateListKey,
   formatRiskDisplayName,
@@ -1938,22 +1939,41 @@ export function SimilarityProposalsPanel({ companyId, workspaceId }: Props) {
             <Accordion disableGutters elevation={0}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant="subtitle2">
-                  Resumo de pares bloqueados/descartados (
+                  Pares não consolidados automaticamente (
                   {data.discardedSummary.length})
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Stack spacing={1}>
-                  {data.discardedSummary.map((d) => (
-                    <Typography
-                      key={`${d.elementIdA}-${d.elementIdB}`}
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      Par descartado: {d.reason}
-                      {d.globalScore != null ? ` (score ${d.globalScore})` : ''}
-                    </Typography>
-                  ))}
+                <Stack spacing={1.5}>
+                  {data.discardedSummary.map((d) => {
+                    const narrative = resolveDiscardedPairUserNarrative({
+                      blockCodes: d.blockCodes,
+                      reason: d.reason,
+                      globalScore: d.globalScore,
+                    });
+                    return (
+                      <Box key={`${d.elementIdA}-${d.elementIdB}`}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {narrative.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {narrative.body}
+                        </Typography>
+                        <Accordion disableGutters elevation={0} sx={{ bgcolor: 'transparent' }}>
+                          <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 32, px: 0 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              Detalhes técnicos do algoritmo
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ px: 0, pt: 0 }}>
+                            <Typography variant="caption" color="text.secondary" component="pre" sx={{ whiteSpace: 'pre-wrap', m: 0 }}>
+                              {narrative.technicalDetail}
+                            </Typography>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Box>
+                    );
+                  })}
                 </Stack>
               </AccordionDetails>
             </Accordion>
