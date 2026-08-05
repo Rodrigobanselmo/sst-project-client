@@ -1,3 +1,4 @@
+import { StackModalAddGho } from 'components/organisms/modals/ModalAddGHO';
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { NextPage } from 'next';
@@ -17,6 +18,8 @@ const ExposureGroupAssistantRoutePage: NextPage = () => {
         {companyId ? (
           <ExposureGroupAssistantPage companyId={companyId} />
         ) : null}
+        {/* Canonical GSE editor modal — same stack used by /grupos-homogenios */}
+        <StackModalAddGho />
       </SContainer>
     </>
   );

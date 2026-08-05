@@ -451,3 +451,446 @@ export type RunExposureGroupDiagnosisParams = {
   companyId: string;
   workspaceId: string;
 };
+
+export type SimilarityConfidence = 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE';
+
+export type SimilarityIndication =
+  | 'STRONG_CANDIDATE'
+  | 'REVIEW'
+  | 'KEEP_SEPARATE'
+  | 'INSUFFICIENT_DATA'
+  | 'BLOCKED';
+
+export type SimilarityBlock = {
+  code: string;
+  message: string;
+};
+
+export type SimilarityCandidateParticipant = {
+  elementId: string;
+  name: string;
+  type: string;
+  coveredEmployeeCount: number;
+  riskCount: number;
+  riskFingerprintHash: string;
+  riskSourceType?: 'OWN' | 'REPRESENTATIVE_ANCESTOR' | 'UNAVAILABLE';
+  representativeSourceName?: string;
+  representativeDistance?: number;
+};
+
+export type SimilarityProposalMode = 'SINGLETON' | 'CONSOLIDATED';
+
+export type GseDraftClassification =
+  | 'STRUCTURAL'
+  | 'ADMINISTRATIVE'
+  | 'OPERATIONAL'
+  | 'TRANSVERSAL'
+  | 'EQUIPMENT'
+  | 'FUNCTIONAL'
+  | 'MIXED';
+
+export type GseDraftWarning = {
+  code: string;
+  message: string;
+  severity: 'INFO' | 'ATTENTION' | 'CRITICAL';
+};
+
+export type GseDraftProposal = {
+  proposalId: string;
+  proposalMode: SimilarityProposalMode;
+  classification: GseDraftClassification;
+  name: string;
+  description: string;
+  companyId: string;
+  workspaceIds: string[];
+  status: 'ACTIVE';
+  type: null;
+  hierarchyIds: string[];
+  suggestedName: string;
+  suggestedDescription: string;
+  technicalJustification: string;
+  formationReason: string;
+  populationDescription: string;
+  operationalContext: string;
+  occupationalContext: string;
+  includedElements: Array<{
+    elementId: string;
+    name: string;
+    type: string;
+    inclusionReason: string;
+    coveredEmployeeCount: number;
+    riskCount: number;
+  }>;
+  excludedElements: Array<{
+    elementId?: string;
+    name?: string;
+    reason: string;
+  }>;
+  includedEmployees: {
+    count: number;
+    intersectionCount: number;
+    summaryLabel: string;
+  };
+  includedJobs: string[];
+  includedRisks: {
+    riskIds: string[];
+    count: number;
+  };
+  inclusionCriteria: string[];
+  exclusionCriteria: string[];
+  warnings: GseDraftWarning[];
+  confidence: SimilarityConfidence;
+  score: number;
+  reviewNotes: string[];
+  algorithmVersion: string;
+};
+
+export type SimilarityCandidate = {
+  provisionalName: string;
+  elementCount: number;
+  participants: SimilarityCandidateParticipant[];
+  elementTypes: string[];
+  commonAncestorId: string | null;
+  commonAncestorName: string | null;
+  coveredEmployeeCountUnion: number;
+  coveredEmployeeCountIntersection?: number;
+  employeeCoverage?: {
+    unionCount: number;
+    intersectionCount: number;
+    relation: 'SAME' | 'PARTIAL' | 'DISTINCT' | 'UNAVAILABLE' | 'MIXED_EMPTY';
+    summaryLabel: string;
+  };
+  commonRiskIds: string[];
+  exclusiveRiskIdsByElement: Array<{ elementId: string; riskIds: string[] }>;
+  globalScore: number;
+  riskScore: number | null;
+  employeeScore: number | null;
+  structuralScore: number;
+  confidence: SimilarityConfidence;
+  indication: SimilarityIndication;
+  favorableReasons: string[];
+  divergences: string[];
+  blocks: SimilarityBlock[];
+  cohortScoreMin: number;
+  cohortScoreAvg: number;
+  cohortScoreMax: number;
+  pairCount: number;
+  broadCohortReviewRequired?: boolean;
+  intermediateUnitId?: string | null;
+  intermediateUnitName?: string | null;
+  proposalMode?: SimilarityProposalMode;
+  suggestedName?: string;
+  suggestedDescription?: string;
+  technicalJustification?: string;
+  justificationSummary?: string;
+  commonRoleNames?: string[];
+  draft?: GseDraftProposal;
+  materialization?: GseProposalMaterialization;
+};
+
+export type GseMaterializationStatus =
+  | 'NOT_MATERIALIZED'
+  | 'EXACT_CREATED_PROPOSAL'
+  | 'EXACT_EXISTING_GSE'
+  | 'PARTIAL_OVERLAP';
+
+export type GseProposalMaterialization = {
+  status: GseMaterializationStatus;
+  homogeneousGroupId?: string;
+  homogeneousGroupName?: string;
+  createdAt?: string;
+  createdByName?: string | null;
+  matchedHierarchyIds?: string[];
+  missingHierarchyIds?: string[];
+  matchedElementIds?: string[];
+  missingElementIds?: string[];
+  matchReason?: string;
+};
+
+export type SimilarityDiscardedSummary = {
+  elementIdA: string;
+  elementIdB: string;
+  reason: string;
+  blockCodes: string[];
+  globalScore: number | null;
+};
+
+export type SimilarityProposalsResponse = {
+  schemaVersion: string;
+  similarityAlgorithmVersion: string;
+  generatedAt: string;
+  snapshotContentHash: string;
+  workspace: {
+    id: string;
+    name: string;
+    companyId: string;
+    companyName: string;
+  };
+  processingTimeMs: number;
+  timingMs: {
+    load: number;
+    build: number;
+    score: number;
+    total: number;
+  };
+  totals: {
+    elementsEvaluated: number;
+    pairsPossible: number;
+    pairsAfterPrefilter: number;
+    pairsEvaluated: number;
+    candidates: number;
+    blockedOrDiscarded: number;
+    riskContextOwn?: number;
+    riskContextRepresentativeAncestor?: number;
+    riskContextUnavailable?: number;
+    elementsEligibleForProposal?: number;
+    elementsDocumentaryContext?: number;
+    elementsIneligibleOther?: number;
+    elementsReviewRequired?: number;
+    materializedProposals?: number;
+    partialOverlapProposals?: number;
+  };
+  coverage?: {
+    eligibleElementTotal: number;
+    consolidatedProposalTotal: number;
+    singletonProposalTotal: number;
+    elementsInConsolidatedProposals: number;
+    elementsInSingletonProposals: number;
+    eligibleElementsWithoutProposal: number;
+    reviewRequiredTotal: number;
+  };
+  truncation: {
+    displayTruncated: boolean;
+    displayLimit: number;
+    technicalCandidatesTotal: number;
+    pairsEvaluationCapped: boolean;
+    maxPairsEvaluated: number;
+  };
+  formula: {
+    weights: {
+      risks: number;
+      employees: number;
+      structural: number;
+      auxiliary: number;
+    };
+    bands: {
+      strong: string;
+      moderate: string;
+      low: string;
+      notRecommended: string;
+      blocked: string;
+    };
+    notes: string[];
+  };
+  limitations: Array<{ code: string; message: string }>;
+  fingerprintDoc: {
+    algorithm: string;
+    fields: readonly string[];
+    limitations: readonly string[];
+  };
+  candidates: SimilarityCandidate[];
+  discardedSummary: SimilarityDiscardedSummary[];
+  consultativeNotice: string;
+};
+
+export type RunSimilarityProposalsParams = {
+  companyId: string;
+  workspaceId: string;
+  confidence?: SimilarityConfidence[];
+  elementTypes?: string[];
+  nameQuery?: string;
+  withoutBlocksOnly?: boolean;
+  commonAncestorId?: string;
+  displayLimit?: number;
+  proposalMode?: SimilarityProposalMode | 'ALL';
+};
+
+/**
+ * Editable text surface of a GseDraftProposal — the only fields a human or
+ * the AI refinement step may change. Mirrors the API's `GseDraftTextFields`.
+ */
+export type GseDraftTextFields = {
+  name: string;
+  description: string;
+  technicalJustification: string;
+  formationReason: string;
+  populationDescription: string;
+  operationalContext: string;
+  occupationalContext: string;
+  inclusionCriteria: string[];
+  exclusionCriteria: string[];
+  reviewNotes: string[];
+};
+
+// —— Refine draft (AI) ——
+
+export type RefineGseDraftElementInput = {
+  elementId: string;
+  name: string;
+  type: string;
+  coveredEmployeeCount: number;
+  riskCount: number;
+};
+
+export type RefineGseDraftWarningInput = {
+  code: string;
+  message: string;
+  severity: string;
+};
+
+export type RefineGseDraftEmployeesInput = {
+  count: number;
+  intersectionCount: number;
+  summaryLabel: string;
+};
+
+/** Body sent to POST .../similarity-proposals/refine-draft. */
+export type RefineGseDraftBody = {
+  proposalId: string;
+  proposalMode: SimilarityProposalMode;
+  classification: string;
+  name: string;
+  description: string;
+  technicalJustification: string;
+  formationReason: string;
+  populationDescription: string;
+  operationalContext: string;
+  occupationalContext: string;
+  inclusionCriteria: string[];
+  exclusionCriteria: string[];
+  reviewNotes: string[];
+  includedElements: RefineGseDraftElementInput[];
+  includedJobs: string[];
+  riskIds: string[];
+  riskNameById?: Record<string, string>;
+  includedEmployees?: RefineGseDraftEmployeesInput;
+  score?: number;
+  confidence?: string;
+  favorableReasons?: string[];
+  divergences?: string[];
+  warnings?: RefineGseDraftWarningInput[];
+};
+
+export type RefineGseDraftParams = {
+  companyId: string;
+  workspaceId: string;
+  draft: GseDraftProposal;
+  riskNameById?: Record<string, string>;
+};
+
+export type GseDraftRefinementNormalized = GseDraftTextFields & {
+  /** Redactional-only warnings from the AI — never block creation. */
+  editorialWarnings: string[];
+};
+
+export type RefineGseDraftResult = {
+  refined: boolean;
+  draft: GseDraftRefinementNormalized;
+  fallbackReason?: string;
+  aiModel?: string;
+  aiPromptRevision?: number | null;
+};
+
+// —— Create GSE from proposal (preview + create) ——
+
+/** Shared composition + editable texts sent to both create-preview and create. */
+export type CreateGseFromProposalSharedBody = GseDraftTextFields & {
+  proposalId: string;
+  proposalMode: SimilarityProposalMode;
+  classification: string;
+  snapshotHash: string;
+  algorithmVersion: string;
+  elementIds: string[];
+  hierarchyIds: string[];
+  riskIds: string[];
+  commonRoleNames?: string[];
+  employeeUnionCount: number;
+  aiRefined?: boolean;
+  aiModel?: string;
+  aiPromptRevision?: number;
+  /** Original (pre human/AI edit) texts — kept for provenance/audit. */
+  deterministicTexts: GseDraftTextFields;
+};
+
+export type CreateGsePreviewBody = CreateGseFromProposalSharedBody;
+
+export type CreateGseFromProposalBody = CreateGseFromProposalSharedBody & {
+  /** Must match the fingerprint returned by the most recent preview call. */
+  proposalFingerprint: string;
+  /** Explicit confirmation required to proceed when only WARNING-level alerts are present. */
+  confirmBlockingWarnings?: boolean;
+};
+
+export type CreateGsePreviewParams = {
+  companyId: string;
+  workspaceId: string;
+  body: CreateGsePreviewBody;
+};
+
+export type CreateGseFromProposalParams = {
+  companyId: string;
+  workspaceId: string;
+  body: CreateGseFromProposalBody;
+};
+
+export type GseCreationAlertSeverity = 'INFO' | 'WARNING' | 'BLOCKING';
+
+export type GseCreationAlert = {
+  code: string;
+  message: string;
+  severity: GseCreationAlertSeverity;
+};
+
+export type CreateGsePreviewResult = {
+  proposalId: string;
+  proposalFingerprint: string;
+  name: string;
+  description: string;
+  alerts: GseCreationAlert[];
+  hasBlockingAlerts: boolean;
+  hasWarningAlerts: boolean;
+  impact: {
+    willCreateHomogeneousGroup: true;
+    hierarchyLinksCount: number;
+    originElementsCount: number;
+    employeeUnionCount?: number;
+    riskIdsCount?: number;
+    willCopyRiskFactorData: false;
+  };
+  revalidation: {
+    elementsChecked: number;
+    elementsMissing: string[];
+    elementsWrongWorkspace: string[];
+    elementsInactiveOrDeleted: string[];
+    elementsWithoutOwnRisks: string[];
+    hasOccupationalUniverse: boolean;
+  };
+  conflicts: {
+    nameAlreadyUsed: boolean;
+    proposalAlreadyCreated: {
+      homogeneousGroupId: string;
+      homogeneousGroupName?: string;
+    } | null;
+    existingEquivalentGse?: {
+      homogeneousGroupId: string;
+      homogeneousGroupName: string;
+    } | null;
+    elementsAlreadyLinked: string[];
+  };
+  snapshotChangedSincePreview: boolean;
+  generatedAt: string;
+};
+
+export type CreateGseMaterializationStatus =
+  | 'CREATED'
+  | 'ALREADY_CREATED'
+  | 'EXISTING_EQUIVALENT';
+
+export type CreateGseFromProposalResult = {
+  gseId: string;
+  name: string;
+  proposalId: string;
+  proposalFingerprint?: string;
+  alreadyExisted?: boolean;
+  materializationStatus?: CreateGseMaterializationStatus;
+};
