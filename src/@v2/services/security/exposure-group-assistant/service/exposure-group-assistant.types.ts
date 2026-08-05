@@ -561,6 +561,8 @@ export type SimilarityCandidate = {
     summaryLabel: string;
   };
   commonRiskIds: string[];
+  /** Union of participant risk ids (complementary exposure profile). */
+  unionRiskIds?: string[];
   exclusiveRiskIdsByElement: Array<{ elementId: string; riskIds: string[] }>;
   globalScore: number;
   riskScore: number | null;
