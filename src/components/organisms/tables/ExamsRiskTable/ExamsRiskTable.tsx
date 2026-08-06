@@ -2,6 +2,7 @@ import { cloneElement, FC, ReactElement, useEffect, useMemo, useState } from 're
 
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { Alert, Box, BoxProps, FormControlLabel, Switch } from '@mui/material';
@@ -151,6 +152,8 @@ type AiSuggestionsContext = {
   riskSubTypes?: { id: number; name: string }[];
   riskCas?: string | null;
   riskEsocialCode?: string | null;
+  mode?: 'SUGGEST' | 'REVIEW';
+  autoStart?: boolean;
 };
 
 type ExamRiskColumnKey =
@@ -1163,18 +1166,43 @@ export const ExamsRiskTable: FC<
                   applyRecommendedExamsContext,
                 );
 
-                if (!showPlaylistAdd || !statusItem) return null;
-
                 return (
-                  <IconButtonRow
-                    icon={<PlaylistAddIcon />}
-                    tooltipTitle="Adicionar exames recomendados"
-                    sx={{ mx: 0 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenApplySuggestions(statusItem);
-                    }}
-                  />
+                  <>
+                    {showPlaylistAdd && statusItem ? (
+                      <IconButtonRow
+                        icon={<PlaylistAddIcon />}
+                        tooltipTitle="Adicionar exames recomendados"
+                        sx={{ mx: 0 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenApplySuggestions(statusItem);
+                        }}
+                      />
+                    ) : null}
+                    {row.riskId ? (
+                      <IconButtonRow
+                        icon={<AutoAwesomeIcon fontSize="small" />}
+                        tooltipTitle="Revisar exames (Biblioteca × empresa)"
+                        sx={{ mx: 0 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenAiSuggestions({
+                            riskId: row.riskId,
+                            riskName: row.risk?.name || 'Risco',
+                            riskType: row.risk?.type,
+                            riskSubTypes: (row.risk?.subTypes || []).map((entry) => ({
+                              id: Number(entry.sub_type?.id) || 0,
+                              name: entry.sub_type?.name ?? '',
+                            })),
+                            riskCas: row.risk?.cas ?? null,
+                            riskEsocialCode: row.risk?.esocialCode ?? null,
+                            mode: 'REVIEW',
+                            autoStart: true,
+                          });
+                        }}
+                      />
+                    ) : null}
+                  </>
                 );
               })()}
               <IconButtonRow
@@ -1252,6 +1280,8 @@ export const ExamsRiskTable: FC<
         riskSubTypes={aiSuggestionsContext.riskSubTypes}
         riskCas={aiSuggestionsContext.riskCas}
         riskEsocialCode={aiSuggestionsContext.riskEsocialCode}
+        mode={aiSuggestionsContext.mode ?? 'SUGGEST'}
+        autoStart={aiSuggestionsContext.autoStart === true}
         onClose={onCloseAiSuggestions}
         onApplied={onRefetchThrottle}
       />

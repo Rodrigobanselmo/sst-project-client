@@ -1,6 +1,7 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import RestoreIcon from '@mui/icons-material/Restore';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
   Alert,
@@ -13,14 +14,17 @@ import {
   DialogTitle,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 
 import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
 import { useGenerateCompanyExamRiskAiPromptDraft } from '@v2/services/medicine/company-exam-risk-ai-suggestions/hooks/useGenerateCompanyExamRiskAiPromptDraft';
+import { fetchCompanyExamRiskAiPromptGuidanceDefault } from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestions.service';
 import type { IGenerateCompanyExamRiskAiPromptDraftResponse } from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestions.types';
 
 import { ExamRiskAiPromptDraftMasterConfigDialog } from './ExamRiskAiPromptDraftMasterConfigDialog';
+import { ExamRiskAiPromptGuidanceMasterConfigDialog } from './ExamRiskAiPromptGuidanceMasterConfigDialog';
 import {
   applyExamRiskAiPromptDraft,
   hasAnyExamRiskAiPromptDraftFieldFilled,
@@ -40,6 +44,13 @@ type Props = {
   ) => void;
 };
 
+/**
+ * Precedence for "Orientação para gerar o prompt":
+ * 1) texto editado na sessão (nunca sobrescrito silenciosamente);
+ * 2) orientação do modelo de pesquisa salvo, se o formulário a aplicar explicitamente;
+ * 3) SystemAiPrompt EXAM_RISK_AI_PROMPT_GUIDANCE_DEFAULT;
+ * 4) fallback embarcado.
+ */
 export const ExamRiskAiPromptDraftSection: FC<Props> = ({
   companyId,
   riskId,
@@ -51,14 +62,56 @@ export const ExamRiskAiPromptDraftSection: FC<Props> = ({
 }) => {
   const promptDraftMutation = useGenerateCompanyExamRiskAiPromptDraft();
   const [userGuidance, setUserGuidance] = useState('');
+  const [guidanceSourceLabel, setGuidanceSourceLabel] = useState('');
+  const [guidanceLoading, setGuidanceLoading] = useState(true);
+  const [usedEmbeddedFallback, setUsedEmbeddedFallback] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [pendingDraft, setPendingDraft] =
     useState<IGenerateCompanyExamRiskAiPromptDraftResponse | null>(null);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
-  const [masterConfigOpen, setMasterConfigOpen] = useState(false);
+  const [masterGenerationConfigOpen, setMasterGenerationConfigOpen] =
+    useState(false);
+  const [masterGuidanceConfigOpen, setMasterGuidanceConfigOpen] =
+    useState(false);
   const [masterSessionConfig, setMasterSessionConfig] =
     useState<SystemAiMasterConfig>({});
+  const userEditedGuidanceRef = useRef(false);
+
+  const applyOfficialContent = (content: string, sourceLabel: string) => {
+    setGuidanceSourceLabel(sourceLabel);
+    if (!userEditedGuidanceRef.current) {
+      setUserGuidance(content);
+    }
+  };
+
+  const loadGuidance = async (opts?: { forceRestore?: boolean }) => {
+    setGuidanceLoading(true);
+    try {
+      const response =
+        await fetchCompanyExamRiskAiPromptGuidanceDefault(companyId);
+      const label =
+        response.source === 'database'
+          ? 'SystemAiPrompt (padrão oficial)'
+          : 'padrão embarcado (fallback)';
+      setUsedEmbeddedFallback(Boolean(response.usedEmbeddedFallback));
+      setGuidanceSourceLabel(label);
+      if (opts?.forceRestore || !userEditedGuidanceRef.current) {
+        userEditedGuidanceRef.current = false;
+        setUserGuidance(response.content);
+      }
+    } catch {
+      setUsedEmbeddedFallback(true);
+      setGuidanceSourceLabel('padrão indisponível — edite manualmente');
+    } finally {
+      setGuidanceLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadGuidance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once per company open
+  }, [companyId]);
 
   const buildCurrentFields = () => ({
     modelName: currentState.presetName,
@@ -126,23 +179,58 @@ export const ExamRiskAiPromptDraftSection: FC<Props> = ({
     }
   };
 
+  const onRestoreGuidanceDefault = async () => {
+    setErrorMessage('');
+    setSuccessMessage('');
+    await loadGuidance({ forceRestore: true });
+    setSuccessMessage(
+      'Orientação restaurada a partir do SystemAiPrompt (ou fallback embarcado).',
+    );
+  };
+
   return (
     <>
       <Stack spacing={2}>
         <Typography variant="subtitle1">Sugestão de prompt com IA</Typography>
         <Alert severity="info">
-          A IA apenas sugere textos e filtros para revisão. Nada será salvo,
-          vinculado ou analisado automaticamente.
+          1) Orientação padrão → orienta a geração · 2) Prompt gerado → controla
+          a análise · 3) Contexto técnico → descreve a exposição · 4) Dry-run →
+          executa a revisão. Nada é vinculado automaticamente aqui.
         </Alert>
-        <TextField
-          label="Orientação para gerar o prompt"
-          value={userGuidance}
-          onChange={(event) => setUserGuidance(event.target.value)}
-          multiline
-          minRows={2}
-          fullWidth
-          placeholder="Ex.: seja conservador; focar avaliação clínica ocupacional; evitar exames laboratoriais"
-        />
+        <Alert severity="info">
+          Precedência da orientação: sessão editada → modelo de pesquisa (se
+          aplicar explicitamente) → SystemAiPrompt → fallback embarcado. O modelo
+          de pesquisa substitui apenas os campos do formulário que ele preenche;
+          a orientação de sessão permanece independente até você restaurar o
+          padrão.
+        </Alert>
+        <Tooltip title="A edição vale apenas para esta sessão e não altera o padrão global (SystemAiPrompt).">
+          <TextField
+            label="Orientação para gerar o prompt"
+            value={userGuidance}
+            onChange={(event) => {
+              userEditedGuidanceRef.current = true;
+              setUserGuidance(event.target.value);
+            }}
+            multiline
+            minRows={4}
+            fullWidth
+            disabled={guidanceLoading && !userGuidance}
+            helperText={
+              guidanceLoading
+                ? 'Carregando padrão do sistema…'
+                : guidanceSourceLabel
+                  ? `Origem: ${guidanceSourceLabel}. Edição de sessão não altera o padrão global.`
+                  : 'Edição de sessão.'
+            }
+          />
+        </Tooltip>
+        {usedEmbeddedFallback && (
+          <Alert severity="warning">
+            Usando padrão embarcado (fallback). O SystemAiPrompt pode estar
+            indisponível ou sem conteúdo persistido.
+          </Alert>
+        )}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           <Button
             variant="outlined"
@@ -160,14 +248,31 @@ export const ExamRiskAiPromptDraftSection: FC<Props> = ({
               ? 'Gerando sugestão...'
               : 'Gerar sugestão de prompt com IA'}
           </Button>
+          <Button
+            variant="text"
+            disabled={guidanceLoading}
+            startIcon={<RestoreIcon />}
+            onClick={() => void onRestoreGuidanceDefault()}
+          >
+            Restaurar padrão
+          </Button>
           {isMasterAdmin && (
-            <Button
-              variant="text"
-              startIcon={<SettingsIcon />}
-              onClick={() => setMasterConfigOpen(true)}
-            >
-              Configurar prompt da geração
-            </Button>
+            <>
+              <Button
+                variant="text"
+                startIcon={<SettingsIcon />}
+                onClick={() => setMasterGuidanceConfigOpen(true)}
+              >
+                Configurar orientação padrão
+              </Button>
+              <Button
+                variant="text"
+                startIcon={<SettingsIcon />}
+                onClick={() => setMasterGenerationConfigOpen(true)}
+              >
+                Configurar prompt da geração
+              </Button>
+            </>
           )}
         </Box>
         {isMasterAdmin &&
@@ -193,14 +298,32 @@ export const ExamRiskAiPromptDraftSection: FC<Props> = ({
       </Stack>
 
       {isMasterAdmin && (
-        <ExamRiskAiPromptDraftMasterConfigDialog
-          open={masterConfigOpen}
-          onClose={() => setMasterConfigOpen(false)}
-          onApply={(config) => {
-            setMasterSessionConfig(config);
-            setMasterConfigOpen(false);
-          }}
-        />
+        <>
+          <ExamRiskAiPromptGuidanceMasterConfigDialog
+            open={masterGuidanceConfigOpen}
+            onClose={() => setMasterGuidanceConfigOpen(false)}
+            onApply={(config) => {
+              // Session apply of MASTER override for guidance is not used for dry-run;
+              // saving default happens inside the dialog. Refresh official copy for Restaurar.
+              if (config.customPrompt?.trim()) {
+                applyOfficialContent(
+                  config.customPrompt.trim(),
+                  'SystemAiPrompt (aplicado na sessão MASTER)',
+                );
+              }
+              void loadGuidance();
+              setMasterGuidanceConfigOpen(false);
+            }}
+          />
+          <ExamRiskAiPromptDraftMasterConfigDialog
+            open={masterGenerationConfigOpen}
+            onClose={() => setMasterGenerationConfigOpen(false)}
+            onApply={(config) => {
+              setMasterSessionConfig(config);
+              setMasterGenerationConfigOpen(false);
+            }}
+          />
+        </>
       )}
 
       <Dialog
@@ -209,11 +332,12 @@ export const ExamRiskAiPromptDraftSection: FC<Props> = ({
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Aplicar sugestão de prompt</DialogTitle>
-        <DialogContent dividers>
-          <Typography variant="body2" color="text.secondary">
-            Alguns campos já estão preenchidos. Como deseja aplicar a sugestão
-            da IA?
+        <DialogTitle>Como aplicar a sugestão?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Já existem campos preenchidos. Escolha se a sugestão deve preencher
+            apenas os vazios ou substituir todos os campos editáveis. A orientação
+            de sessão acima não é alterada por este merge.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -223,7 +347,7 @@ export const ExamRiskAiPromptDraftSection: FC<Props> = ({
               pendingDraft && applyDraftWithMode(pendingDraft, 'empty-only')
             }
           >
-            Preencher apenas campos vazios
+            Preencher só vazios
           </Button>
           <Button
             variant="contained"
@@ -231,7 +355,7 @@ export const ExamRiskAiPromptDraftSection: FC<Props> = ({
               pendingDraft && applyDraftWithMode(pendingDraft, 'replace-all')
             }
           >
-            Substituir todos
+            Substituir tudo
           </Button>
         </DialogActions>
       </Dialog>

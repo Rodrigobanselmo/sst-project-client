@@ -4,11 +4,21 @@ import { api } from 'core/services/apiClient';
 import type {
   IApplyCompanyExamRiskAiSuggestionsParams,
   IApplyCompanyExamRiskAiSuggestionsResponse,
+  ICompanyExamRiskAiPromptGuidanceDefault,
   IDryRunCompanyExamRiskAiSuggestionsParams,
   IDryRunCompanyExamRiskAiSuggestionsResponse,
   IGenerateCompanyExamRiskAiPromptDraftParams,
   IGenerateCompanyExamRiskAiPromptDraftResponse,
 } from './company-exam-risk-ai-suggestions.types';
+
+export async function fetchCompanyExamRiskAiPromptGuidanceDefault(
+  companyId: string,
+): Promise<ICompanyExamRiskAiPromptGuidanceDefault> {
+  const response = await api.get<ICompanyExamRiskAiPromptGuidanceDefault>(
+    CompanyExamRiskAiSuggestionsRoutes.PROMPT_GUIDANCE_DEFAULT(companyId),
+  );
+  return response.data;
+}
 
 export async function generateCompanyExamRiskAiPromptDraft(
   params: IGenerateCompanyExamRiskAiPromptDraftParams,
