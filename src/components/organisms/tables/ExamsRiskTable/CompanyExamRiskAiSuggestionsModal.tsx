@@ -1,13 +1,26 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
   Checkbox,
   Chip,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -20,6 +33,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from '@mui/material';
 
@@ -38,12 +52,20 @@ import {
 } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant-preset.util';
 import {
   EXAM_RISK_AI_ANALYSIS_STATUS_COLORS,
-  EXAM_RISK_AI_ANALYSIS_STATUS_LABELS,
   EXAM_RISK_AI_CANDIDATE_COMPATIBILITY_COLORS,
   EXAM_RISK_AI_CANDIDATE_COMPATIBILITY_LABELS,
   EXAM_RISK_AI_DECISION_COLORS,
   EXAM_RISK_AI_DECISION_LABELS,
 } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant.constants';
+import {
+  buildPhysicianOverrideConfirmationCopy,
+  getExamRiskAiAdoptionStatusLabel,
+  getExamRiskAiAnalysisStatusLabel,
+  getExamRiskAiProtocolRoleLabel,
+  getExamRiskAiPurposeLabel,
+  getExamRiskAiRecommendedDecisionStatusLabel,
+  getExamRiskAiVerdictLabel,
+} from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-verdict-display.util';
 import {
   buildExamRiskAiAssistantPayload,
   createDefaultExamRiskAiAssistantFormValues,
@@ -61,10 +83,16 @@ import {
   CompanyExamRiskAiApplyItemStatusEnum,
   type IApplyCompanyExamRiskAiSuggestionItemResult,
   type IApplyCompanyExamRiskAiSuggestionsResponse,
+  type ICompanyExamRiskAiExposureContext,
+  type ICompanyExamRiskAiReviewedExam,
   type ICompanyExamRiskAiSuggestionItem,
   type IDryRunCompanyExamRiskAiSuggestionsResponse,
 } from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestions.types';
-import { isCompanyExamRiskAiSuggestionSelectable } from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestion-selectable.util';
+import {
+  isCompanyExamRiskAiSuggestionAutoSelected,
+  isCompanyExamRiskAiSuggestionSelectable,
+  requiresPhysicianOverrideConfirmation,
+} from '@v2/services/medicine/company-exam-risk-ai-suggestions/company-exam-risk-ai-suggestion-selectable.util';
 import type { IResolvedExamRiskConfig } from '@v2/services/medicine/company-exam-risk-suggestions/company-exam-risk-suggestions.types';
 import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
 import { pcmsoLinkStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
@@ -84,6 +112,10 @@ type Props = {
   riskSubTypes?: { id: number; name: string }[];
   riskCas?: string | null;
   riskEsocialCode?: string | null;
+  /** SUGGEST = novos vínculos; REVIEW = auditar ExamToRisk atual × Biblioteca. */
+  mode?: 'SUGGEST' | 'REVIEW';
+  /** When true, starts dry-run automatically (useful for REVIEW from table row). */
+  autoStart?: boolean;
   onApplied: () => void;
 };
 
@@ -149,13 +181,11 @@ const getApplyItemStatusLabel = (
 
 const buildDefaultSelectedKeys = (suggestions: ICompanyExamRiskAiSuggestionItem[]) =>
   suggestions
-    .filter(isCompanyExamRiskAiSuggestionSelectable)
+    .filter(isCompanyExamRiskAiSuggestionAutoSelected)
     .map((item) => item.suggestionKey);
 
 const getAnalysisStatusLabel = (status: string) =>
-  EXAM_RISK_AI_ANALYSIS_STATUS_LABELS[
-    status as keyof typeof EXAM_RISK_AI_ANALYSIS_STATUS_LABELS
-  ] ?? status;
+  getExamRiskAiAnalysisStatusLabel(status);
 
 const getAnalysisStatusColor = (status: string) =>
   EXAM_RISK_AI_ANALYSIS_STATUS_COLORS[
@@ -222,37 +252,217 @@ const ApplyPreviewTable: FC<{
   </Table>
 );
 
+const createDefaultExposureContext = (): ICompanyExamRiskAiExposureContext => ({
+  activityDescription: '',
+  materialsAgents: '',
+  contactForm: '',
+  frequencyDuration: '',
+  exposureRoutes: '',
+  controlMeasures: '',
+  establishmentParticularities: '',
+  analysisPurpose: '',
+  physicianNotes: '',
+  externalRequirements: '',
+  sessionNotes: '',
+});
+
+const trimExposureContext = (
+  context: ICompanyExamRiskAiExposureContext,
+): ICompanyExamRiskAiExposureContext | undefined => {
+  const next: ICompanyExamRiskAiExposureContext = {};
+  (Object.keys(context) as (keyof ICompanyExamRiskAiExposureContext)[]).forEach(
+    (key) => {
+      const value = context[key]?.trim();
+      if (value) next[key] = value;
+    },
+  );
+  return Object.keys(next).length ? next : undefined;
+};
+
+const ANALYSIS_COLLAPSE_MS = 220;
+
+const AnalysisAccordion: FC<{
+  title: string;
+  count?: number;
+  defaultExpanded?: boolean;
+  children: ReactNode;
+}> = ({ title, count, defaultExpanded = false, children }) => (
+  <Accordion
+    defaultExpanded={defaultExpanded}
+    disableGutters
+    elevation={0}
+    sx={{
+      border: '1px solid',
+      borderColor: 'divider',
+      borderRadius: 1,
+      '&:before': { display: 'none' },
+      bgcolor: 'background.paper',
+    }}
+  >
+    <AccordionSummary
+      expandIcon={<ExpandMoreIcon />}
+      sx={{ minHeight: 40, '& .MuiAccordionSummary-content': { my: 0.5 } }}
+    >
+      <Typography variant="subtitle2">
+        {title}
+        {typeof count === 'number' ? ` (${count})` : ''}
+      </Typography>
+    </AccordionSummary>
+    <AccordionDetails sx={{ pt: 0, pb: 1.5 }}>{children}</AccordionDetails>
+  </Accordion>
+);
+
+const ReviewBlockTable: FC<{
+  items: ICompanyExamRiskAiReviewedExam[];
+}> = ({ items }) =>
+  items.length === 0 ? (
+    <Typography variant="body2" color="text.secondary">
+      Nenhum item neste bloco.
+    </Typography>
+  ) : (
+    <TableContainer sx={{ maxHeight: 240 }}>
+      <Table stickyHeader size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Exame</TableCell>
+            <TableCell>Origem</TableCell>
+            <TableCell>Situação</TableCell>
+            <TableCell>Parecer IA</TableCell>
+            <TableCell>Finalidade</TableCell>
+            <TableCell>Status</TableCell>
+            <TableCell>Confiança</TableCell>
+            <TableCell>Justificativa</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {items.map((item) => (
+            <TableRow key={`${item.origin}-${item.examId}`}>
+              <TableCell>
+                <Typography variant="body2">{item.examName}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  #{item.examId}
+                  {item.examType ? ` · ${item.examType}` : ''}
+                </Typography>
+              </TableCell>
+              <TableCell>{item.originLabel}</TableCell>
+              <TableCell>
+                {getExamRiskAiAdoptionStatusLabel(item.adoptionStatus)}
+              </TableCell>
+              <TableCell>
+                <Chip
+                  size="small"
+                  label={getExamRiskAiVerdictLabel(item.verdict)}
+                />
+                {item.selectionBlockReason && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                  >
+                    {item.selectionBlockReason}
+                  </Typography>
+                )}
+              </TableCell>
+              <TableCell>
+                {getExamRiskAiPurposeLabel(item.purpose)}
+              </TableCell>
+              <TableCell>
+                <Chip
+                  size="small"
+                  label={getExamRiskAiRecommendedDecisionStatusLabel(
+                    item.recommendedDecisionStatus,
+                  )}
+                  variant="outlined"
+                />
+                <Typography variant="caption" display="block">
+                  {getExamRiskAiAnalysisStatusLabel(item.analysisStatus)}
+                </Typography>
+              </TableCell>
+              <TableCell>{formatConfidence(item.confidence)}</TableCell>
+              <TableCell>
+                <Typography variant="body2">{item.rationale || '—'}</Typography>
+                {item.conditions && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                  >
+                    Condição: {item.conditions}
+                  </Typography>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+const formatAnalysisSummaryCounts = (
+  data: IDryRunCompanyExamRiskAiSuggestionsResponse,
+) => {
+  const blocks = data.reviewBlocks;
+  const official =
+    data.totals.officialEvaluated ?? blocks?.officialLibrary.length ?? 0;
+  const company =
+    data.totals.companyEvaluated ?? blocks?.companyAdopted.length ?? 0;
+  const clinical = blocks?.clinicalBaseline?.length ?? 0;
+  const additional =
+    data.totals.additionalSuggested ??
+    blocks?.additionalSuggestions.length ??
+    0;
+  return { official, company, clinical, additional };
+};
+
 const SuggestionResultRow: FC<{
   item: ICompanyExamRiskAiSuggestionItem;
   selected: boolean;
   alreadyAccumulated: boolean;
-  onToggle: (suggestionKey: string) => void;
+  onToggle: (item: ICompanyExamRiskAiSuggestionItem) => void;
 }> = ({ item, selected, alreadyAccumulated, onToggle }) => {
-  const isSelectable = isCompanyExamRiskAiSuggestionSelectable(item);
-  const decisionLabel =
-    EXAM_RISK_AI_DECISION_LABELS[
-      item.decision as keyof typeof EXAM_RISK_AI_DECISION_LABELS
-    ] ?? item.decision;
+  const canSelect = isCompanyExamRiskAiSuggestionSelectable(item);
+  const autoSelected = isCompanyExamRiskAiSuggestionAutoSelected(item);
+  const decisionLabel = item.analysisVerdict
+    ? getExamRiskAiVerdictLabel(item.analysisVerdict)
+    : EXAM_RISK_AI_DECISION_LABELS[
+        item.decision as keyof typeof EXAM_RISK_AI_DECISION_LABELS
+      ] ?? item.decision;
   const decisionColor =
-    EXAM_RISK_AI_DECISION_COLORS[
-      item.decision as keyof typeof EXAM_RISK_AI_DECISION_COLORS
-    ] ?? 'default';
+    item.analysisVerdict === 'ADD'
+      ? 'success'
+      : item.analysisVerdict === 'ADD_CONDITIONALLY' ||
+          item.analysisVerdict === 'KEEP_CONDITIONALLY' ||
+          item.analysisVerdict === 'INSUFFICIENT_CONTEXT'
+        ? 'warning'
+        : EXAM_RISK_AI_DECISION_COLORS[
+            item.decision as keyof typeof EXAM_RISK_AI_DECISION_COLORS
+          ] ?? 'default';
 
   return (
     <TableRow>
       <TableCell>
         <Checkbox
           checked={selected}
-          disabled={!isSelectable || alreadyAccumulated}
-          onChange={() => onToggle(item.suggestionKey)}
+          disabled={!canSelect || alreadyAccumulated}
+          onChange={() => onToggle(item)}
         />
         {alreadyAccumulated && (
           <Typography variant="caption" color="success.main" display="block">
             Já adicionado
           </Typography>
         )}
-        {item.selectionBlockReason && !isSelectable && !alreadyAccumulated && (
+        {autoSelected && canSelect && !alreadyAccumulated && (
+          <Typography variant="caption" color="success.main" display="block">
+            Pré-selecionado (recomenda incluir)
+          </Typography>
+        )}
+        {item.selectionBlockReason && canSelect && !autoSelected && !alreadyAccumulated && (
           <Typography variant="caption" color="text.secondary" display="block">
+            {item.selectionBlockReason}
+          </Typography>
+        )}
+        {item.selectionBlockReason && !canSelect && !alreadyAccumulated && (
+          <Typography variant="caption" color="warning.main" display="block">
             {item.selectionBlockReason}
           </Typography>
         )}
@@ -282,7 +492,10 @@ const SuggestionResultRow: FC<{
           label={getCandidateCompatibilityLabel(item.candidateCompatibility)}
           color={getCandidateCompatibilityColor(item.candidateCompatibility)}
           variant={
-            item.candidateCompatibility === 'DIRECT' ? 'filled' : 'outlined'
+            item.candidateCompatibility === 'clinical' ||
+            item.candidateCompatibility === 'official'
+              ? 'filled'
+              : 'outlined'
           }
         />
       </TableCell>
@@ -351,8 +564,11 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   riskSubTypes,
   riskCas,
   riskEsocialCode,
+  mode = 'SUGGEST',
+  autoStart = false,
   onApplied,
 }) => {
+  const isReviewMode = mode === 'REVIEW';
   const dryRunMutation = useDryRunCompanyExamRiskAiSuggestions();
   const applyMutation = useApplyCompanyExamRiskAiSuggestions();
   const { isMasterAdmin } = usePermissionsAccess();
@@ -368,6 +584,8 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   const [formValues, setFormValues] = useState<ExamRiskAiAssistantFormValues>(
     createDefaultExamRiskAiAssistantFormValues(),
   );
+  const [exposureContext, setExposureContext] =
+    useState<ICompanyExamRiskAiExposureContext>(createDefaultExposureContext());
   const [presetName, setPresetName] = useState('');
   const [presetDescription, setPresetDescription] = useState('');
   const [includeExistingLinks, setIncludeExistingLinks] = useState(false);
@@ -375,6 +593,12 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   const [dryRunData, setDryRunData] =
     useState<IDryRunCompanyExamRiskAiSuggestionsResponse | null>(null);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [pendingOverrideItem, setPendingOverrideItem] =
+    useState<ICompanyExamRiskAiSuggestionItem | null>(null);
+  const [aiAnalysisExpanded, setAiAnalysisExpanded] = useState(true);
+  const dialogContentRef = useRef<HTMLDivElement | null>(null);
+  const decisionSectionRef = useRef<HTMLDivElement | null>(null);
+  const userHasScrolledRef = useRef(false);
   const [previewData, setPreviewData] =
     useState<IApplyCompanyExamRiskAiSuggestionsResponse | null>(null);
   const [resultData, setResultData] =
@@ -414,6 +638,13 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     ],
   );
 
+  const autoSelectedSuggestions = useMemo(
+    () =>
+      dryRunData?.suggestions.filter(isCompanyExamRiskAiSuggestionAutoSelected) ??
+      [],
+    [dryRunData],
+  );
+
   const selectableSuggestions = useMemo(
     () =>
       dryRunData?.suggestions.filter(isCompanyExamRiskAiSuggestionSelectable) ??
@@ -451,18 +682,60 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     if (!open) return;
     setStep('setup');
     setFormValues(createDefaultExamRiskAiAssistantFormValues());
+    setExposureContext(createDefaultExposureContext());
     setPresetName('');
     setPresetDescription('');
-    setIncludeExistingLinks(false);
-    setOnlyWithoutCompanyLink(true);
+    setIncludeExistingLinks(isReviewMode);
+    setOnlyWithoutCompanyLink(!isReviewMode);
     setDryRunData(null);
     setSelectedKeys([]);
+    setPendingOverrideItem(null);
+    setAiAnalysisExpanded(true);
+    userHasScrolledRef.current = false;
     setPreviewData(null);
     setResultData(null);
     accumulated.clear();
     dryRunMutation.reset();
     applyMutation.reset();
-  }, [open, riskId]);
+
+    if (!autoStart || !isReviewMode) return;
+
+    let cancelled = false;
+    const run = async () => {
+      const payload = buildExamRiskAiAssistantPayload(
+        createDefaultExamRiskAiAssistantFormValues(),
+      );
+      try {
+        const response = await dryRunMutation.mutateAsync({
+          companyId,
+          riskId,
+          workspaceId,
+          examFilters: payload.examFilters,
+          options: {
+            includeExistingLinks: true,
+            onlyWithoutCompanyLink: false,
+            mode: 'REVIEW',
+          },
+          exposureContext: trimExposureContext(createDefaultExposureContext()),
+          aiConfig: payload.aiConfig,
+        });
+        if (cancelled) return;
+        setDryRunData(response);
+        setSelectedKeys(buildDefaultSelectedKeys(response.suggestions));
+        setAiAnalysisExpanded(true);
+        userHasScrolledRef.current = false;
+        setStep('select');
+      } catch {
+        // error surface via dryRunMutation.isError
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+    // intentionally omit mutation identity — restart only on open/risk/mode
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, riskId, isReviewMode, autoStart, companyId, workspaceId]);
 
   const updateFormField = <K extends keyof ExamRiskAiAssistantFormValues>(
     key: K,
@@ -511,6 +784,13 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     setSelectedKeys([]);
   };
 
+  const updateExposureField = <K extends keyof ICompanyExamRiskAiExposureContext>(
+    key: K,
+    value: ICompanyExamRiskAiExposureContext[K],
+  ) => {
+    setExposureContext((current) => ({ ...current, [key]: value }));
+  };
+
   const onGenerateSuggestions = async () => {
     const payload = buildExamRiskAiAssistantPayload(formValues);
     const response = await dryRunMutation.mutateAsync({
@@ -519,31 +799,86 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
       workspaceId,
       examFilters: payload.examFilters,
       options: {
-        includeExistingLinks,
-        onlyWithoutCompanyLink,
+        includeExistingLinks: isReviewMode ? true : includeExistingLinks,
+        onlyWithoutCompanyLink: isReviewMode ? false : onlyWithoutCompanyLink,
+        mode: isReviewMode ? 'REVIEW' : 'SUGGEST',
       },
+      exposureContext: trimExposureContext(exposureContext),
       aiConfig: payload.aiConfig,
     });
     setDryRunData(response);
     setSelectedKeys(buildDefaultSelectedKeys(response.suggestions));
+    setPendingOverrideItem(null);
+    setAiAnalysisExpanded(true);
+    userHasScrolledRef.current = false;
     setStep('select');
   };
 
-  const onToggleSuggestion = (suggestionKey: string) => {
+  const collapseAiAnalysis = useCallback(() => {
+    setAiAnalysisExpanded(false);
+  }, []);
+
+  const toggleAiAnalysisExpanded = useCallback(() => {
+    setAiAnalysisExpanded((current) => !current);
+  }, []);
+
+  useEffect(() => {
+    if (step !== 'select' || !aiAnalysisExpanded) return;
+    const root = dialogContentRef.current;
+    if (!root) return;
+
+    const onScroll = () => {
+      if (root.scrollTop > 24) {
+        userHasScrolledRef.current = true;
+      }
+      if (!userHasScrolledRef.current) return;
+      const decisionEl = decisionSectionRef.current;
+      if (!decisionEl) return;
+      const rootRect = root.getBoundingClientRect();
+      const decisionRect = decisionEl.getBoundingClientRect();
+      // Decision area starts entering the upper half of the scroll viewport.
+      if (decisionRect.top < rootRect.top + rootRect.height * 0.55) {
+        collapseAiAnalysis();
+      }
+    };
+
+    root.addEventListener('scroll', onScroll, { passive: true });
+    return () => root.removeEventListener('scroll', onScroll);
+  }, [step, aiAnalysisExpanded, collapseAiAnalysis, dryRunData]);
+
+  const onToggleSuggestion = (item: ICompanyExamRiskAiSuggestionItem) => {
+    const { suggestionKey } = item;
+    if (selectedKeys.includes(suggestionKey)) {
+      setSelectedKeys((current) =>
+        current.filter((key) => key !== suggestionKey),
+      );
+      return;
+    }
+    if (requiresPhysicianOverrideConfirmation(item)) {
+      setPendingOverrideItem(item);
+      return;
+    }
     setSelectedKeys((current) =>
-      current.includes(suggestionKey)
-        ? current.filter((key) => key !== suggestionKey)
-        : [...current, suggestionKey],
+      current.includes(suggestionKey) ? current : [...current, suggestionKey],
     );
   };
 
+  const confirmPhysicianOverride = () => {
+    if (!pendingOverrideItem) return;
+    const key = pendingOverrideItem.suggestionKey;
+    setSelectedKeys((current) =>
+      current.includes(key) ? current : [...current, key],
+    );
+    setPendingOverrideItem(null);
+  };
+
   const onToggleAllSelectable = (checked: boolean) => {
+    // "Select all" only covers ADD auto-recommendations — overrides stay manual.
     setSelectedKeys(
       checked
-        ? selectableSuggestions
+        ? autoSelectedSuggestions
             .filter(
-              (item) =>
-                !accumulated.isAccumulated(getAccumulationKey(item)),
+              (item) => !accumulated.isAccumulated(getAccumulationKey(item)),
             )
             .map((item) => item.suggestionKey)
         : [],
@@ -587,17 +922,32 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
 
   const isLoading = dryRunMutation.isLoading || applyMutation.isLoading;
   const allSelectableSelected =
-    selectableSuggestions.length > 0 &&
-    selectableSuggestions.every((item) =>
+    autoSelectedSuggestions.length > 0 &&
+    autoSelectedSuggestions.every((item) =>
       selectedKeys.includes(item.suggestionKey),
     );
 
   const dialogTitle = {
-    setup: 'Assistente IA risco → exames (empresa)',
-    select: 'Sugestões de exames',
+    setup: isReviewMode
+      ? 'Revisar exames (Biblioteca × empresa)'
+      : 'Assistente IA risco → exames (empresa)',
+    select: isReviewMode ? 'Revisão técnica da configuração' : 'Sugestões de exames',
     preview: 'Pré-visualização dos vínculos',
     result: 'Resultado da criação',
   }[step];
+
+  const mutationErrorMessage = (() => {
+    const error = dryRunMutation.error || applyMutation.error;
+    if (!error || typeof error !== 'object') {
+      return 'Não foi possível processar a solicitação. Tente novamente.';
+    }
+    const response = (error as { response?: { data?: { message?: string | string[] } } })
+      .response;
+    const message = response?.data?.message;
+    if (Array.isArray(message) && message.length) return message.join(' ');
+    if (typeof message === 'string' && message.trim()) return message;
+    return 'Não foi possível processar a solicitação. Tente novamente.';
+  })();
 
   const accumulatedPanel =
     accumulated.count > 0 ? (
@@ -615,26 +965,36 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
         {dialogTitle}
       </DialogTitle>
 
-      <DialogContent dividers>
+      <DialogContent
+        dividers
+        ref={dialogContentRef}
+        sx={{
+          maxHeight: 'calc(100vh - 160px)',
+        }}
+      >
         <Stack spacing={3}>
           <ExamRiskAiRiskContextHeader {...displayRiskContext} />
 
           {step === 'setup' && (
             <>
               <Alert severity="warning">
-                A IA apenas sugere exames. Nada será gravado no catálogo da
-                empresa até você revisar tecnicamente, selecionar os itens e
-                confirmar a criação.
+                {isReviewMode
+                  ? 'Modo revisão: a IA compara o padrão oficial da Biblioteca com os vínculos ExamToRisk atuais. Nada será alterado automaticamente.'
+                  : 'A IA apenas sugere exames. Nada será gravado no catálogo da empresa até você revisar tecnicamente, selecionar os itens e confirmar a criação.'}
               </Alert>
-              <Alert severity="info">
-                O dry-run não cria vínculos. A confirmação gera apenas vínculos
-                ExamToRisk nesta empresa e não altera a Biblioteca global.
-                Revise cada sugestão antes de aplicar.
-              </Alert>
-              <Alert severity="info">
-                Você pode rodar vários dry-runs, adicionar sugestões à lista
-                acumulada e aplicar todos os vínculos de uma vez ao final.
-              </Alert>
+              {!isReviewMode && (
+                <>
+                  <Alert severity="info">
+                    O dry-run não cria vínculos. A confirmação gera apenas vínculos
+                    ExamToRisk nesta empresa e não altera a Biblioteca global.
+                    Revise cada sugestão antes de aplicar.
+                  </Alert>
+                  <Alert severity="info">
+                    Você pode rodar vários dry-runs, adicionar sugestões à lista
+                    acumulada e aplicar todos os vínculos de uma vez ao final.
+                  </Alert>
+                </>
+              )}
 
               {isMasterAdmin && (
                 <ExamRiskAiAssistantPresetSection
@@ -686,6 +1046,81 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
                   },
                 ]}
               />
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  Contexto técnico da exposição nesta empresa
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  Informe a atividade real nesta empresa. Esse contexto é enviado à
+                  IA nesta sessão e não sobrescreve a caracterização do risco.
+                </Typography>
+                <Stack spacing={1.5}>
+                  <TextField
+                    label="Descrição da atividade real"
+                    value={exposureContext.activityDescription ?? ''}
+                    onChange={(event) =>
+                      updateExposureField('activityDescription', event.target.value)
+                    }
+                    fullWidth
+                    multiline
+                    minRows={2}
+                  />
+                  <TextField
+                    label="Materiais, agentes, alimentos ou resíduos"
+                    value={exposureContext.materialsAgents ?? ''}
+                    onChange={(event) =>
+                      updateExposureField('materialsAgents', event.target.value)
+                    }
+                    fullWidth
+                    multiline
+                    minRows={2}
+                  />
+                  <TextField
+                    label="Forma de contato / frequência"
+                    value={exposureContext.contactForm ?? ''}
+                    onChange={(event) =>
+                      updateExposureField('contactForm', event.target.value)
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Particularidades do estabelecimento"
+                    value={exposureContext.establishmentParticularities ?? ''}
+                    onChange={(event) =>
+                      updateExposureField(
+                        'establishmentParticularities',
+                        event.target.value,
+                      )
+                    }
+                    fullWidth
+                    multiline
+                    minRows={2}
+                  />
+                  <TextField
+                    label="Exigências externas conhecidas"
+                    value={exposureContext.externalRequirements ?? ''}
+                    onChange={(event) =>
+                      updateExposureField(
+                        'externalRequirements',
+                        event.target.value,
+                      )
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Observações do médico / sessão"
+                    value={exposureContext.sessionNotes ?? ''}
+                    onChange={(event) =>
+                      updateExposureField('sessionNotes', event.target.value)
+                    }
+                    fullWidth
+                    multiline
+                    minRows={2}
+                  />
+                </Stack>
+              </Box>
+
               {accumulatedPanel}
             </>
           )}
@@ -693,47 +1128,322 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
           {step === 'select' && dryRunData && (
             <Stack spacing={2}>
               {accumulatedPanel}
-              <Alert severity="info">
-                Dry-run concluído: {dryRunData.totals.pairsAnalyzed} par(es)
-                analisado(s). Sugestões: {dryRunData.totals.suggested}; ambíguos:{' '}
-                {dryRunData.totals.ambiguous}; excluídos:{' '}
-                {dryRunData.totals.excluded}.
-              </Alert>
 
-              {dryRunData.warnings.length > 0 && (
-                <Alert severity="warning">
-                  {dryRunData.warnings.map((warning) => (
-                    <Typography key={warning} variant="body2">
-                      {warning}
-                    </Typography>
-                  ))}
-                </Alert>
-              )}
+              {(() => {
+                const summary = formatAnalysisSummaryCounts(dryRunData);
+                const blocks = dryRunData.reviewBlocks;
+                return (
+                  <Box
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      overflow: 'hidden',
+                      bgcolor: 'background.paper',
+                    }}
+                  >
+                    <Box
+                      role="button"
+                      tabIndex={0}
+                      onClick={toggleAiAnalysisExpanded}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          toggleAiAnalysisExpanded();
+                        }
+                      }}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        px: 1.5,
+                        py: 1,
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        bgcolor: 'action.hover',
+                        '&:hover': { bgcolor: 'action.selected' },
+                      }}
+                    >
+                      <ExpandMoreIcon
+                        fontSize="small"
+                        sx={{
+                          transform: aiAnalysisExpanded
+                            ? 'rotate(0deg)'
+                            : 'rotate(-90deg)',
+                          transition: `transform ${ANALYSIS_COLLAPSE_MS}ms ease`,
+                        }}
+                      />
+                      <Typography variant="subtitle2" sx={{ flex: 1 }}>
+                        {aiAnalysisExpanded
+                          ? 'Análise técnica da IA'
+                          : 'Mostrar análise técnica da IA'}
+                      </Typography>
+                    </Box>
 
-              {selectableSuggestions.length === 0 ? (
-                <Alert severity="info">
-                  Nenhum exame selecionável foi encontrado para este risco.
-                  Ajuste filtros, exemplos positivos/negativos ou cautelas e gere
-                  novamente.
-                </Alert>
-              ) : (
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={allSelectableSelected}
-                      indeterminate={
-                        selectedKeys.length > 0 && !allSelectableSelected
-                      }
-                      onChange={(event) =>
-                        onToggleAllSelectable(event.target.checked)
-                      }
-                    />
-                  }
-                  label="Selecionar todos os itens elegíveis"
-                />
-              )}
+                    <Collapse
+                      in={!aiAnalysisExpanded}
+                      timeout={ANALYSIS_COLLAPSE_MS}
+                      unmountOnExit={false}
+                    >
+                      <Box
+                        onClick={toggleAiAnalysisExpanded}
+                        sx={{
+                          px: 1.5,
+                          py: 0.75,
+                          cursor: 'pointer',
+                          borderTop: '1px solid',
+                          borderColor: 'divider',
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          component="div"
+                          sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: { xs: 1, sm: 2 },
+                            alignItems: 'center',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          <span>Dry-run concluído</span>
+                          <span>Oficiais........{summary.official}</span>
+                          <span>Empresa.........{summary.company}</span>
+                          <span>Clínico Base....{summary.clinical}</span>
+                          <span>Sugestões IA....{summary.additional}</span>
+                          <span>
+                            Clique para visualizar toda a análise técnica.
+                          </span>
+                        </Typography>
+                      </Box>
+                    </Collapse>
 
-              <TableContainer sx={{ maxHeight: 520 }}>
+                    <Collapse
+                      in={aiAnalysisExpanded}
+                      timeout={ANALYSIS_COLLAPSE_MS}
+                      unmountOnExit={false}
+                    >
+                      <Stack spacing={1.5} sx={{ p: 1.5, pt: 1 }}>
+                        <Alert severity="info">
+                          Dry-run concluído:{' '}
+                          {dryRunData.totals.pairsAnalyzed} item(ns)
+                          analisado(s). Oficiais:{' '}
+                          {dryRunData.totals.officialEvaluated ?? 0}; empresa:{' '}
+                          {dryRunData.totals.companyEvaluated ?? 0}; adicionais:{' '}
+                          {dryRunData.totals.additionalSuggested ?? 0}; revisão
+                          manual:{' '}
+                          {dryRunData.totals.manualReviewRequired ??
+                            dryRunData.totals.ambiguous}
+                          .
+                        </Alert>
+
+                        {dryRunData.warnings.length > 0 && (
+                          <Alert severity="warning">
+                            {dryRunData.warnings.map((warning) => (
+                              <Typography key={warning} variant="body2">
+                                {warning}
+                              </Typography>
+                            ))}
+                          </Alert>
+                        )}
+
+                        {(dryRunData.totals.manualReviewRequired ?? 0) > 0 && (
+                          <Alert severity="error">
+                            Alguns itens não receberam parecer interpretável da
+                            IA (resposta parcial/omitida). Eles não são
+                            selecionáveis como recomendação válida — execute a
+                            análise novamente ou revise manualmente.
+                          </Alert>
+                        )}
+
+                        {blocks && (
+                          <Stack spacing={1}>
+                            <AnalysisAccordion
+                              title="Biblioteca Oficial"
+                              count={blocks.officialLibrary.length}
+                              defaultExpanded={blocks.officialLibrary.length > 0}
+                            >
+                              <ReviewBlockTable items={blocks.officialLibrary} />
+                            </AnalysisAccordion>
+
+                            {(blocks.biologicalIndicators?.length ?? 0) > 0 && (
+                              <AnalysisAccordion
+                                title="Indicadores biológicos (NR-7 / ACGIH)"
+                                count={blocks.biologicalIndicators?.length ?? 0}
+                                defaultExpanded
+                              >
+                                <ReviewBlockTable
+                                  items={blocks.biologicalIndicators ?? []}
+                                />
+                              </AnalysisAccordion>
+                            )}
+
+                            <AnalysisAccordion
+                              title="Exame Clínico Base"
+                              count={blocks.clinicalBaseline?.length ?? 0}
+                              defaultExpanded={
+                                (blocks.clinicalBaseline?.length ?? 0) > 0
+                              }
+                            >
+                              <ReviewBlockTable
+                                items={blocks.clinicalBaseline ?? []}
+                              />
+                            </AnalysisAccordion>
+
+                            <AnalysisAccordion
+                              title="Configuração atual da empresa"
+                              count={blocks.companyAdopted.length}
+                              defaultExpanded={
+                                blocks.companyAdopted.length > 0
+                              }
+                            >
+                              <ReviewBlockTable items={blocks.companyAdopted} />
+                            </AnalysisAccordion>
+
+                            <AnalysisAccordion
+                              title="Sugestões adicionais da IA"
+                              count={blocks.additionalSuggestions.length}
+                              defaultExpanded={
+                                blocks.additionalSuggestions.length > 0
+                              }
+                            >
+                              <ReviewBlockTable
+                                items={blocks.additionalSuggestions}
+                              />
+                            </AnalysisAccordion>
+
+                            <AnalysisAccordion
+                              title="Questões pendentes"
+                              count={blocks.pendingQuestions.length}
+                              defaultExpanded={
+                                blocks.pendingQuestions.length > 0
+                              }
+                            >
+                              {blocks.pendingQuestions.length === 0 ? (
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  Nenhuma questão pendente.
+                                </Typography>
+                              ) : (
+                                <Stack spacing={0.5}>
+                                  {blocks.pendingQuestions.map((question) => (
+                                    <Typography key={question} variant="body2">
+                                      • {question}
+                                    </Typography>
+                                  ))}
+                                </Stack>
+                              )}
+                            </AnalysisAccordion>
+
+                            {blocks.recommendedOccupationalProtocol && (
+                              <AnalysisAccordion
+                                title="Protocolo ocupacional recomendado"
+                                defaultExpanded
+                              >
+                                <Typography variant="body2" sx={{ mb: 1 }}>
+                                  {
+                                    blocks.recommendedOccupationalProtocol
+                                      .summaryJustification
+                                  }
+                                </Typography>
+                                {blocks.recommendedOccupationalProtocol.items.map(
+                                  (item) => (
+                                    <Typography
+                                      key={`${item.origin}-${item.examId}`}
+                                      variant="body2"
+                                    >
+                                      • [
+                                      {getExamRiskAiProtocolRoleLabel(
+                                        item.protocolRole,
+                                      )}
+                                      ] {item.examName} — {item.originLabel}
+                                      {item.conditions
+                                        ? ` (${item.conditions})`
+                                        : ''}
+                                    </Typography>
+                                  ),
+                                )}
+                                <Typography
+                                  variant="caption"
+                                  display="block"
+                                  sx={{ mt: 1 }}
+                                  color="text.secondary"
+                                >
+                                  {
+                                    blocks.recommendedOccupationalProtocol
+                                      .humanValidationNotice
+                                  }
+                                </Typography>
+                              </AnalysisAccordion>
+                            )}
+                          </Stack>
+                        )}
+                      </Stack>
+                    </Collapse>
+                  </Box>
+                );
+              })()}
+
+              <Box
+                ref={decisionSectionRef}
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 3,
+                  bgcolor: 'background.paper',
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
+                  pt: 0.5,
+                  pb: 1,
+                  mx: -0.5,
+                  px: 0.5,
+                }}
+              >
+                {selectableSuggestions.length === 0 ? (
+                  <Alert severity="info" sx={{ mb: 1 }}>
+                    Nenhum exame com análise interpretável para decisão nesta
+                    rodada (falha estrutural / item ausente). Ajuste o contexto e
+                    gere novamente se necessário.
+                  </Alert>
+                ) : (
+                  <FormControlLabel
+                    sx={{ ml: 0, mb: 0.25 }}
+                    control={
+                      <Checkbox
+                        checked={allSelectableSelected}
+                        indeterminate={
+                          selectedKeys.length > 0 && !allSelectableSelected
+                        }
+                        onChange={(event) =>
+                          onToggleAllSelectable(event.target.checked)
+                        }
+                      />
+                    }
+                    label="Selecionar recomendações de inclusão automática da IA"
+                  />
+                )}
+
+                <Typography variant="subtitle2">
+                  Seleção para criar vínculos (inclusão automática pré-marcada;
+                  demais manuais)
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  A IA recomenda; a decisão final é do médico. Pareceres que não
+                  sejam de inclusão automática exigem confirmação na inclusão
+                  manual.
+                </Typography>
+              </Box>
+
+              <TableContainer
+                sx={{
+                  maxHeight: 'min(70vh, 720px)',
+                  minHeight: 360,
+                }}
+              >
                 <Table stickyHeader size="small">
                   <TableHead>
                     <TableRow>
@@ -826,9 +1536,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
           )}
 
           {(dryRunMutation.isError || applyMutation.isError) && (
-            <Alert severity="error">
-              Não foi possível processar a solicitação. Tente novamente.
-            </Alert>
+            <Alert severity="error">{mutationErrorMessage}</Alert>
           )}
         </Stack>
       </DialogContent>
@@ -837,7 +1545,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
         {step === 'setup' && (
           <>
             <Button onClick={onClose}>Cancelar</Button>
-            {accumulated.count > 0 && (
+            {!isReviewMode && accumulated.count > 0 && (
               <Button
                 variant="outlined"
                 disabled={isLoading}
@@ -858,7 +1566,13 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
               }
               onClick={onGenerateSuggestions}
             >
-              {isLoading ? 'Rodando dry-run...' : 'Rodar dry-run'}
+              {isLoading
+                ? isReviewMode
+                  ? 'Revisando...'
+                  : 'Rodando dry-run...'
+                : isReviewMode
+                  ? 'Revisar configuração'
+                  : 'Rodar dry-run'}
             </Button>
           </>
         )}
@@ -868,27 +1582,38 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
             <Button onClick={() => setStep('setup')} disabled={isLoading}>
               Voltar
             </Button>
-            <Button onClick={onClose} disabled={isLoading}>
-              Cancelar
-            </Button>
             <Button
               variant="outlined"
-              disabled={!selectedKeys.length || isLoading}
-              onClick={onAddSelectedToAccumulated}
+              disabled={isLoading}
+              onClick={onGenerateSuggestions}
             >
-              Adicionar selecionados à lista
+              {isLoading ? 'Gerando...' : 'Gerar novamente'}
             </Button>
-            <Button
-              variant="contained"
-              disabled={!accumulated.count || isLoading}
-              onClick={onPreviewApply}
-            >
-              Pré-visualizar vínculos ({accumulated.count})
+            <Button onClick={onClose} disabled={isLoading}>
+              {isReviewMode ? 'Fechar' : 'Cancelar'}
             </Button>
+            {!isReviewMode && (
+              <>
+                <Button
+                  variant="outlined"
+                  disabled={!selectedKeys.length || isLoading}
+                  onClick={onAddSelectedToAccumulated}
+                >
+                  Adicionar selecionados à lista
+                </Button>
+                <Button
+                  variant="contained"
+                  disabled={!accumulated.count || isLoading}
+                  onClick={onPreviewApply}
+                >
+                  Pré-visualizar vínculos ({accumulated.count})
+                </Button>
+              </>
+            )}
           </>
         )}
 
-        {step === 'preview' && (
+        {step === 'preview' && !isReviewMode && (
           <>
             <Button onClick={() => setStep('select')} disabled={isLoading}>
               Voltar
@@ -912,6 +1637,45 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
           </Button>
         )}
       </DialogActions>
+
+      <Dialog
+        open={Boolean(pendingOverrideItem)}
+        onClose={() => setPendingOverrideItem(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Confirmar inclusão manual</DialogTitle>
+        <DialogContent>
+          {pendingOverrideItem &&
+            (() => {
+              const copy = buildPhysicianOverrideConfirmationCopy({
+                examName: pendingOverrideItem.examName,
+                analysisVerdict: pendingOverrideItem.analysisVerdict,
+              });
+              return (
+                <>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    {copy.lead}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 1 }}
+                  >
+                    {copy.headline}
+                  </Typography>
+                  <Typography variant="body2">{copy.body}</Typography>
+                </>
+              );
+            })()}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPendingOverrideItem(null)}>Cancelar</Button>
+          <Button variant="contained" onClick={confirmPhysicianOverride}>
+            Incluir exame
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 };

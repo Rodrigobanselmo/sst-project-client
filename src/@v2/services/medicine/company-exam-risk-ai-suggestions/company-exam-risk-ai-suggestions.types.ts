@@ -33,6 +33,99 @@ export type ICompanyExamRiskAiSuggestionItem = {
   proposedConfig: IResolvedExamRiskConfig;
   isSelectable: boolean;
   selectionBlockReason?: string;
+  isAutoSelected?: boolean;
+  analysisVerdict?: string;
+};
+
+export type ICompanyExamRiskAiExposureContext = {
+  activityDescription?: string;
+  materialsAgents?: string;
+  contactForm?: string;
+  frequencyDuration?: string;
+  exposureRoutes?: string;
+  volumeIntensity?: string;
+  controlMeasures?: string;
+  establishmentParticularities?: string;
+  analysisPurpose?: string;
+  physicianNotes?: string;
+  externalRequirements?: string;
+  sessionNotes?: string;
+};
+
+export type ICompanyExamRiskAiReviewedExam = {
+  examId: number;
+  examName: string;
+  examType: string | null;
+  origin: string;
+  origins?: string[];
+  originLabel: string;
+  adoptionStatus: string;
+  officialRuleId?: string | null;
+  officialMatchReason?: string | null;
+  companyLinkId?: number | null;
+  officialConfigSummary?: string | null;
+  companyConfigSummary?: string | null;
+  biologicalIndicatorName?: string | null;
+  verdict: string;
+  purpose: string;
+  recommendedDecisionStatus: string;
+  confidence: number;
+  rationale: string;
+  conditions: string;
+  pendingQuestions: string[];
+  analysisStatus: string;
+  analysisStatusReason: string;
+  isSelectable: boolean;
+  selectionBlockReason?: string;
+};
+
+export type ICompanyExamRiskAiProtocolItem = {
+  examId: number;
+  examName: string;
+  origin: string;
+  origins: string[];
+  originLabel: string;
+  protocolRole: string;
+  verdict: string;
+  purpose: string;
+  rationale: string;
+  conditions: string;
+  isSelectable: boolean;
+};
+
+export type ICompanyExamRiskAiRecommendedOccupationalProtocol = {
+  items: ICompanyExamRiskAiProtocolItem[];
+  included: ICompanyExamRiskAiProtocolItem[];
+  keptAdopted: ICompanyExamRiskAiProtocolItem[];
+  newRecommended: ICompanyExamRiskAiProtocolItem[];
+  conditional: ICompanyExamRiskAiProtocolItem[];
+  notApplicable: ICompanyExamRiskAiProtocolItem[];
+  needsInformation: ICompanyExamRiskAiProtocolItem[];
+  summaryJustification: string;
+  pendingQuestions: string[];
+  humanValidationNotice: string;
+};
+
+export type ICompanyExamRiskAiReviewBlocks = {
+  officialLibrary: ICompanyExamRiskAiReviewedExam[];
+  biologicalIndicators?: ICompanyExamRiskAiReviewedExam[];
+  clinicalBaseline?: ICompanyExamRiskAiReviewedExam[];
+  companyAdopted: ICompanyExamRiskAiReviewedExam[];
+  additionalSuggestions: ICompanyExamRiskAiReviewedExam[];
+  pendingQuestions: string[];
+  recommendedOccupationalProtocol?: ICompanyExamRiskAiRecommendedOccupationalProtocol;
+};
+
+export type ICompanyExamRiskAiPromptGuidanceDefault = {
+  companyId: string;
+  key: string;
+  content: string;
+  source: string;
+  revision?: number | null;
+  usedEmbeddedFallback?: boolean;
+  systemAiPromptKeyPendingMigration?: boolean;
+  relatedGenerationPromptKey?: string;
+  note?: string;
 };
 
 export type IGenerateCompanyExamRiskAiPromptDraftCurrentFields = {
@@ -96,7 +189,9 @@ export type IDryRunCompanyExamRiskAiSuggestionsParams = {
   options?: {
     includeExistingLinks?: boolean;
     onlyWithoutCompanyLink?: boolean;
+    mode?: 'SUGGEST' | 'REVIEW';
   };
+  exposureContext?: ICompanyExamRiskAiExposureContext;
   aiConfig?: {
     instructions?: string;
     positiveExamples?: string;
@@ -112,7 +207,10 @@ export type IDryRunCompanyExamRiskAiSuggestionsResponse = {
   riskId: string;
   riskName: string;
   workspaceId?: string;
+  mode?: 'SUGGEST' | 'REVIEW';
   suggestions: ICompanyExamRiskAiSuggestionItem[];
+  reviewBlocks?: ICompanyExamRiskAiReviewBlocks;
+  exposureContext?: ICompanyExamRiskAiExposureContext | null;
   totals: {
     pairsAnalyzed: number;
     suggested: number;
@@ -120,6 +218,10 @@ export type IDryRunCompanyExamRiskAiSuggestionsResponse = {
     ambiguous: number;
     skippedExistingLink: number;
     skippedLowRelevance: number;
+    officialEvaluated?: number;
+    companyEvaluated?: number;
+    additionalSuggested?: number;
+    manualReviewRequired?: number;
   };
   warnings: string[];
   promptPreview?: string;
