@@ -21,6 +21,7 @@ interface ICreateRisk
   companyId?: string;
   recMed: IRecMedCreate[];
   generateSource: IGenerateSourceCreate[];
+  asLocalCompanyCopy?: boolean;
 }
 
 export async function createRisk(data: ICreateRisk, companyId?: string) {

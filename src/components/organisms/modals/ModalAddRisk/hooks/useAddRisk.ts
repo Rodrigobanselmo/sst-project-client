@@ -27,6 +27,7 @@ import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 import { useMutDeleteRisk } from 'core/services/hooks/mutations/checklist/risk/useMutDeleteRisk';
 import { useAccess } from 'core/hooks/useAccess';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { sanitizeRiskCreatePayloadForLocalCopy } from 'core/utils/build-risk-factor-duplicate-draft.util';
 import { isRiskFactorCatalogReadOnly } from 'core/utils/risk-factor-catalog-scope.util';
 import { resolveLinkedRiskSubTypeId } from 'core/utils/risk-subtype-display.util';
 import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
@@ -44,6 +45,13 @@ export const initialAddRiskState = {
   isEmergency: false,
   id: '',
   companyId: '',
+  /** Fase 1 — draft de duplicação segura (cópia local sem vínculos). */
+  asLocalCompanyCopy: false as boolean,
+  isDuplicateDraft: false as boolean,
+  isAso: true,
+  isPGR: true,
+  isPCMSO: true,
+  isPPP: true,
   risk: undefined as string | undefined,
   symptoms: undefined as string | undefined,
   method: undefined as string | undefined,
@@ -453,6 +461,12 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       generateSource,
       status,
       isEmergency,
+      asLocalCompanyCopy,
+      isDuplicateDraft,
+      isAso,
+      isPGR,
+      isPCMSO,
+      isPPP,
     } = riskData;
     const typeValue = type as RiskEnum;
     const synonymousArray =
@@ -464,8 +478,9 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       activities: activities?.filter((a) => a.description),
       id,
       companyId,
-      recMed,
-      generateSource,
+      recMed: asLocalCompanyCopy || isDuplicateDraft ? [] : recMed,
+      generateSource:
+        asLocalCompanyCopy || isDuplicateDraft ? [] : generateSource,
       status,
       name,
       type: typeValue,
@@ -474,6 +489,10 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       symptoms,
       subTypesIds: [subType].filter(Boolean),
       isEmergency,
+      isAso,
+      isPGR,
+      isPCMSO,
+      isPPP,
       ...(esocial?.id && { esocialCode: esocial?.id }),
       method,
       propagation: Array.isArray(propagation)
@@ -507,6 +526,9 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       appendix,
       otherAppendix,
       grauInsalubridade: grauInsalubridade || null,
+      ...(asLocalCompanyCopy || isDuplicateDraft
+        ? { asLocalCompanyCopy: true }
+        : {}),
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
@@ -516,11 +538,16 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     //  add risk then connect generate source with recMed
     if (risk.id == '') {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, ...riskData } = risk;
-      let createPayload: Record<string, unknown> = riskData as Record<
+      const { id: _omitId, ...createBody } = risk;
+      let createPayload: Record<string, unknown> = createBody as Record<
         string,
         unknown
       >;
+      if (asLocalCompanyCopy || isDuplicateDraft) {
+        createPayload = sanitizeRiskCreatePayloadForLocalCopy(createPayload, {
+          companyId: String(createBody.companyId || companyId || ''),
+        });
+      }
       if (options?.beforeCreate) {
         const prepared = await options.beforeCreate(createPayload);
         if (prepared == null) return;
@@ -534,30 +561,32 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       if (!createdRisk && options?.keepOpenOnCreateFailure) {
         return;
       }
-      recMed.map(async (rm) => {
-        if (rm.generateSourceLocalId != undefined) {
-          const gsLocal = generateSource.find(
-            (gs) => gs.localId === rm.generateSourceLocalId,
-          );
-          if (gsLocal && createdRisk?.id) {
-            const gsServer = createdRisk.generateSource.find(
-              (gs) => gs.name === gsLocal.name,
+      if (!(asLocalCompanyCopy || isDuplicateDraft)) {
+        recMed.map(async (rm) => {
+          if (rm.generateSourceLocalId != undefined) {
+            const gsLocal = generateSource.find(
+              (gs) => gs.localId === rm.generateSourceLocalId,
             );
+            if (gsLocal && createdRisk?.id) {
+              const gsServer = createdRisk.generateSource.find(
+                (gs) => gs.name === gsLocal.name,
+              );
 
-            const rmServer = createdRisk.recMed.find(
-              (rmServer) =>
-                rmServer.recName === rm.recName &&
-                rmServer.medName === rm.medName,
-            );
-            if (gsServer && rmServer)
-              updateGenerateSourceMut.mutate({
-                id: gsServer.id,
-                riskId: createdRisk.id,
-                recMeds: [{ id: rmServer.id }],
-              });
+              const rmServer = createdRisk.recMed.find(
+                (rmServer) =>
+                  rmServer.recName === rm.recName &&
+                  rmServer.medName === rm.medName,
+              );
+              if (gsServer && rmServer)
+                updateGenerateSourceMut.mutate({
+                  id: gsServer.id,
+                  riskId: createdRisk.id,
+                  recMeds: [{ id: rmServer.id }],
+                });
+            }
           }
-        }
-      });
+        });
+      }
     } else {
       if (risk.status === StatusEnum.INACTIVE) {
         await deleteRiskMut.mutateAsync(risk.id).catch(() => {});
