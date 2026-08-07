@@ -1,6 +1,13 @@
 import { FC, useCallback, useMemo, useState } from 'react';
 
-import { Box, BoxProps } from '@mui/material';
+import {
+  Box,
+  BoxProps,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+} from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
@@ -32,6 +39,8 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { useMutDeleteRisk } from 'core/services/hooks/mutations/checklist/risk/useMutDeleteRisk';
+import { useMutUpdateRiskStatus } from 'core/services/hooks/mutations/checklist/risk/useMutUpdateRiskStatus';
 import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { queryClient } from 'core/services/queryClient';
@@ -57,6 +66,9 @@ import {
   RiskRegisteredListSortBy,
 } from './registeredRisksTable.types';
 import { useQueryRisks } from '@/core/services/hooks/queries/useQueryRisks/useQueryRisks';
+import { effectiveRiskStatus } from 'core/utils/effectiveRiskStatus';
+
+type RiskStatusFilter = 'ACTIVE' | 'INACTIVE' | 'ALL';
 
 type ColumnDef = {
   id: RiskRegisteredColumnId;
@@ -84,6 +96,8 @@ export const RisksTable: FC<
   const filterProps = useFilterTable(undefined, {
     setPage,
   });
+  const [statusFilter, setStatusFilter] =
+    useState<RiskStatusFilter>('ACTIVE');
 
   const isSelect = !!onSelectData;
 
@@ -110,13 +124,14 @@ export const RisksTable: FC<
     }
     return {
       search,
+      statusFilter,
       ...fq,
       ...(sort && {
         listSortBy: sort.field,
         listSortOrder: sort.order,
       }),
     };
-  }, [search, sort, filterProps.filtersQuery]);
+  }, [search, sort, filterProps.filtersQuery, statusFilter]);
 
   const {
     data: risks,
@@ -135,9 +150,19 @@ export const RisksTable: FC<
 
   const { onStackOpenModal } = useModal();
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
+  const deleteRiskMut = useMutDeleteRisk();
+  const updateRiskStatusMut = useMutUpdateRiskStatus();
 
-  const handleEditStatus = (status: StatusEnum) => {
-    // TODO edit checklist status
+  const handleEditStatus = (row: IRiskFactors, status: StatusEnum) => {
+    if (status === StatusEnum.INACTIVE) {
+      deleteRiskMut.mutate(row.id);
+      return;
+    }
+    updateRiskStatusMut.mutate({
+      id: row.id,
+      status: StatusEnum.ACTIVE,
+      companyId: row.companyId || companyId,
+    });
   };
 
   const onAddRisk = () => {
@@ -335,10 +360,12 @@ export const RisksTable: FC<
             sx={{ maxWidth: '90px' }}
             iconProps={{ sx: { fontSize: 10 } }}
             textProps={{ fontSize: 10 }}
-            selected={'status' in row ? row.status : StatusEnum.ACTIVE}
+            selected={effectiveRiskStatus(row)}
             statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
-            handleSelectMenu={(option) => handleEditStatus(option.value)}
-            disabled
+            handleSelectMenu={(option) =>
+              handleEditStatus(row, option.value)
+            }
+            disabled={false}
           />
         );
       case 'edit':
@@ -373,14 +400,32 @@ export const RisksTable: FC<
         }
         toolbarBeforeFilter={
           !isSelect ? (
-            <STableColumnsButton<RiskRegisteredColumnId>
-              showLabel
-              columns={columnPickerItems}
-              hiddenColumns={
-                hiddenColumns as Record<RiskRegisteredColumnId, boolean>
-              }
-              setHiddenColumns={setHiddenColumnsFromPicker}
-            />
+            <>
+              <FormControl size="small" sx={{ minWidth: 140, mr: 1 }}>
+                <InputLabel id="risk-status-filter-label">Status</InputLabel>
+                <Select
+                  labelId="risk-status-filter-label"
+                  label="Status"
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value as RiskStatusFilter);
+                    setPage(1);
+                  }}
+                >
+                  <MenuItem value="ACTIVE">Ativos</MenuItem>
+                  <MenuItem value="INACTIVE">Inativos</MenuItem>
+                  <MenuItem value="ALL">Todos</MenuItem>
+                </Select>
+              </FormControl>
+              <STableColumnsButton<RiskRegisteredColumnId>
+                showLabel
+                columns={columnPickerItems}
+                hiddenColumns={
+                  hiddenColumns as Record<RiskRegisteredColumnId, boolean>
+                }
+                setHiddenColumns={setHiddenColumnsFromPicker}
+              />
+            </>
           ) : undefined
         }
       >

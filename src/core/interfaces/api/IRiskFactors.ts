@@ -114,6 +114,8 @@ export interface IRiskFactors {
   propagation: string[];
   created_at: string;
   status: StatusEnum;
+  /** Soft-delete; se preenchido, estado efetivo é INACTIVE mesmo com status ACTIVE legado. */
+  deleted_at?: string | Date | null;
   exame?: string;
   symptoms?: string;
   method?: string;

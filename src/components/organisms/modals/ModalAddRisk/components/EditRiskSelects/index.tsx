@@ -20,10 +20,12 @@ import {
   IRecMed,
   IRecMedCreate,
 } from 'core/interfaces/api/IRiskFactors';
+import { effectiveRiskStatus } from 'core/utils/effectiveRiskStatus';
 
 interface IEditRiskSelects {
   riskData: {
     status: StatusEnum;
+    deleted_at?: string | Date | null;
     recMed: IRecMedCreate[];
     generateSource: IGenerateSourceCreate[];
   };
@@ -91,10 +93,18 @@ export const EditRiskSelects: FC<{ children?: any } & IEditRiskSelects> = ({
   return (
     <SFlex gap={8} mt={10} align="center">
       <StatusSelect
-        selected={riskData.status}
+        selected={effectiveRiskStatus(riskData)}
         statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
         handleSelectMenu={(option: any) =>
-          setRiskData({ ...riskData, status: option.value })
+          setRiskData({
+            ...riskData,
+            status: option.value,
+            // Espelha a política canônica no estado local (evita badge preso em Inativo).
+            deleted_at:
+              option.value === StatusEnum.ACTIVE
+                ? null
+                : riskData.deleted_at ?? new Date().toISOString(),
+          })
         }
       />
       <STagSearchSelect
