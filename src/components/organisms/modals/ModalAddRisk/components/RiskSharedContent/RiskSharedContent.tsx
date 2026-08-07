@@ -128,7 +128,11 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
         />
         <Box mt={5} mb={10}>
           <InputForm
-            defaultValue={riskData.synonymous?.join('; ') || ''}
+            defaultValue={
+              Array.isArray(riskData.synonymous)
+                ? riskData.synonymous.join('; ')
+                : String(riskData.synonymous || '')
+            }
             label="Sinônimos"
             control={control}
             sx={{ width: ['100%', 600] }}

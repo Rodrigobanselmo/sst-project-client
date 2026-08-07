@@ -27,7 +27,10 @@ import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 import { useMutDeleteRisk } from 'core/services/hooks/mutations/checklist/risk/useMutDeleteRisk';
 import { useAccess } from 'core/hooks/useAccess';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { sanitizeRiskCreatePayloadForLocalCopy } from 'core/utils/build-risk-factor-duplicate-draft.util';
+import {
+  sanitizeRiskCreatePayloadForDuplicate,
+  sanitizeRiskCreatePayloadForLocalCopy,
+} from 'core/utils/build-risk-factor-duplicate-draft.util';
 import { isRiskFactorCatalogReadOnly } from 'core/utils/risk-factor-catalog-scope.util';
 import { resolveLinkedRiskSubTypeId } from 'core/utils/risk-subtype-display.util';
 import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
@@ -45,8 +48,9 @@ export const initialAddRiskState = {
   isEmergency: false,
   id: '',
   companyId: '',
-  /** Fase 1 — draft de duplicação segura (cópia local sem vínculos). */
+  /** Cópia explícita para a empresa aberta (`asLocalCompanyCopy` no POST). */
   asLocalCompanyCopy: false as boolean,
+  /** Draft de Duplicar / cópia local — só pré-preenche; vínculos não vão no POST. */
   isDuplicateDraft: false as boolean,
   isAso: true,
   isPGR: true,
@@ -136,8 +140,29 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   const { user } = useGetCompanyId(true);
 
   const { preventUnwantedChanges } = usePreventAction();
+  /** Intenção pós-save explícita — não misturar com evento de submit. */
+  const saveIntentRef = useRef<'stay' | 'exit'>('stay');
 
   const [riskData, setRiskData] = useState(initialAddRiskState);
+
+  /**
+   * Após save bem-sucedido: dirty=false sem corromper riskData.
+   * getValues() usa tipos de formulário (ex.: synonymous string); riskData
+   * mantém o shape de estado (synonymous string[], recMed[], etc.).
+   */
+  const markFormPristine = () => {
+    const values = getValues();
+    initialDataRef.current = {
+      ...riskData,
+      ...values,
+      hasSubmit: false,
+    };
+    setRiskData((prev) => ({
+      ...prev,
+      hasSubmit: false,
+    }));
+    reset(values);
+  };
 
   const { data: risk, isLoading: riskLoading } = useQueryRisk(
     {
@@ -526,9 +551,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       appendix,
       otherAppendix,
       grauInsalubridade: grauInsalubridade || null,
-      ...(asLocalCompanyCopy || isDuplicateDraft
-        ? { asLocalCompanyCopy: true }
-        : {}),
+      ...(asLocalCompanyCopy ? { asLocalCompanyCopy: true } : {}),
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
@@ -543,10 +566,12 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
         string,
         unknown
       >;
-      if (asLocalCompanyCopy || isDuplicateDraft) {
+      if (asLocalCompanyCopy) {
         createPayload = sanitizeRiskCreatePayloadForLocalCopy(createPayload, {
           companyId: String(createBody.companyId || companyId || ''),
         });
+      } else if (isDuplicateDraft) {
+        createPayload = sanitizeRiskCreatePayloadForDuplicate(createPayload);
       }
       if (options?.beforeCreate) {
         const prepared = await options.beforeCreate(createPayload);
@@ -598,16 +623,22 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
 
     options?.onSubmitSuccess?.(createdRisk);
     // Diálogos embutidos (disableModalClose): o onSubmitSuccess já fecha a UI.
-    // Não chamar onCancel no sucesso — evita race/unmount e efeitos colaterais no pai.
+    // Salvar → stay; Salvar e sair → exit via onCancel após pristine.
     if (options?.disableModalClose) {
-      setRiskData(initialAddRiskState);
-      reset();
+      markFormPristine();
+
+      const intent = saveIntentRef.current;
+      saveIntentRef.current = 'stay';
+      if (intent === 'exit') {
+        options?.onCancel?.();
+      }
       return;
     }
     onClose();
   };
 
   const onClose = () => {
+    saveIntentRef.current = 'stay';
     if (!options?.disableModalClose) {
       onCloseModal(ModalEnum.RISK_ADD);
     }
@@ -629,11 +660,18 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     onClose();
   };
 
+  const requestSubmit = (intent: 'stay' | 'exit' = 'stay') => {
+    saveIntentRef.current = intent === 'exit' ? 'exit' : 'stay';
+    setRiskData((prev) => ({ ...prev, hasSubmit: true }));
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
     onSubmit,
     onClose,
+    requestSubmit,
+    markFormPristine,
     loading: createRiskMut.isLoading || updateRiskMut.isLoading || riskLoading,
     riskData,
     setRiskData,

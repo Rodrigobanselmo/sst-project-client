@@ -73,11 +73,11 @@ export const EditRiskSelects: FC<{ children?: any } & IEditRiskSelects> = ({
   };
 
   const optionsRec = useMemo(() => {
-    return riskData.recMed.filter((r) => r.recName);
+    return riskData.recMed?.filter((r) => r.recName) || [];
   }, [riskData]);
 
   const optionsMed = useMemo(() => {
-    return riskData.recMed.filter((r) => r.medName);
+    return riskData.recMed?.filter((r) => r.medName) || [];
   }, [riskData]);
 
   const optionsGenerateSource = useMemo(() => {

@@ -8,7 +8,9 @@ import { RiskEnum } from 'project/enum/risk.enums';
 
 import {
   buildRiskFactorDuplicateDraft,
+  buildRiskFactorLocalCompanyCopyDraft,
   buildSuggestedDuplicateRiskName,
+  sanitizeRiskCreatePayloadForDuplicate,
   sanitizeRiskCreatePayloadForLocalCopy,
 } from './build-risk-factor-duplicate-draft.util';
 
@@ -55,14 +57,11 @@ const source = {
   created_at: '2020-01-01',
 } as any;
 
-const draft = buildRiskFactorDuplicateDraft({
-  source,
-  companyId: 'tenant-a',
-});
+const draft = buildRiskFactorDuplicateDraft({ source });
 
 assert.equal(draft.id, '');
-assert.equal(draft.companyId, 'tenant-a');
-assert.equal(draft.asLocalCompanyCopy, true);
+assert.equal(draft.companyId, undefined);
+assert.equal(draft.asLocalCompanyCopy, undefined);
 assert.equal(draft.isDuplicateDraft, true);
 assert.deepEqual(draft.recMed, []);
 assert.deepEqual(draft.generateSource, []);
@@ -80,6 +79,42 @@ assert.equal((draft as any).system, undefined);
 assert.equal((draft as any).representAll, undefined);
 assert.equal((draft as any).examToRisk, undefined);
 assert.equal((draft as any).riskFactorData, undefined);
+
+const localDraft = buildRiskFactorLocalCompanyCopyDraft({
+  source,
+  companyId: 'tenant-a',
+});
+assert.equal(localDraft.companyId, 'tenant-a');
+assert.equal(localDraft.asLocalCompanyCopy, true);
+assert.equal(localDraft.isDuplicateDraft, true);
+assert.deepEqual(localDraft.recMed, []);
+
+const sanitizedDuplicate = sanitizeRiskCreatePayloadForDuplicate({
+  id: 'should-go',
+  name: 'Cópia de Ruído',
+  type: RiskEnum.FIS,
+  companyId: 'should-keep-or-resolve',
+  system: true,
+  representAll: true,
+  asLocalCompanyCopy: true,
+  recMed: [{ recName: 'a', medName: 'b' }],
+  generateSource: [{ name: 'gs' }],
+  examToRisk: [{ id: 1 }],
+  search: 'noise',
+  esocial: { id: 'x' },
+});
+
+assert.equal(sanitizedDuplicate.id, undefined);
+assert.equal(sanitizedDuplicate.system, undefined);
+assert.equal(sanitizedDuplicate.representAll, undefined);
+assert.equal(sanitizedDuplicate.search, undefined);
+assert.equal(sanitizedDuplicate.examToRisk, undefined);
+assert.equal(sanitizedDuplicate.esocial, undefined);
+assert.equal(sanitizedDuplicate.asLocalCompanyCopy, undefined);
+assert.equal(sanitizedDuplicate.companyId, 'should-keep-or-resolve');
+assert.deepEqual(sanitizedDuplicate.recMed, []);
+assert.deepEqual(sanitizedDuplicate.generateSource, []);
+assert.equal(sanitizedDuplicate.name, 'Cópia de Ruído');
 
 const sanitized = sanitizeRiskCreatePayloadForLocalCopy(
   {

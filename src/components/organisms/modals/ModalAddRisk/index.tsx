@@ -18,7 +18,7 @@ import { useAddRisk } from './hooks/useAddRisk';
 
 export const ModalAddRisk = () => {
   const props = useAddRisk();
-  const { requestDuplicateRiskFactor, canDuplicateRiskFactor } =
+  const { requestLocalCompanyCopy, canDuplicateRiskFactor } =
     useDuplicateRiskFactor();
 
   const {
@@ -71,7 +71,7 @@ export const ModalAddRisk = () => {
           canCopyToCompany={canDuplicateRiskFactor}
           onCopyToCompany={() => {
             if (!riskData?.id) return;
-            requestDuplicateRiskFactor(riskData as any);
+            requestLocalCompanyCopy(riskData as any);
           }}
         />
 

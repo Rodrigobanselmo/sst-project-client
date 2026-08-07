@@ -2,6 +2,7 @@ import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { Box, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SPageTitle from 'components/atoms/SPageTitle';
@@ -21,8 +22,11 @@ const RiskEditPage: NextPage = () => {
   const router = useRouter();
   const companyId = router.query.companyId as string;
   const riskId = router.query.riskId as string;
-  const { canDuplicateRiskFactor, requestDuplicateRiskFactor } =
-    useDuplicateRiskFactor();
+  const {
+    canDuplicateRiskFactor,
+    requestDuplicateRiskFactor,
+    requestLocalCompanyCopy,
+  } = useDuplicateRiskFactor();
 
   const { data: risk, isLoading, isError } = useQueryRisk(
     { companyId, id: riskId },
@@ -41,11 +45,10 @@ const RiskEditPage: NextPage = () => {
   });
 
   const {
-    riskData,
-    setRiskData,
     handleSubmit,
     onSubmit,
     onCloseUnsaved,
+    requestSubmit,
     loading,
     isCatalogReadOnly,
   } = props;
@@ -105,7 +108,8 @@ const RiskEditPage: NextPage = () => {
           <SFlex align="center" gap={4} mb={8} justify="space-between">
             <SFlex align="center" gap={4}>
               <IconButton
-                onClick={handleBackToList}
+                onClick={onCloseUnsaved}
+                aria-label="Voltar"
                 sx={{
                   color: 'text.primary',
                   '&:hover': { backgroundColor: 'action.hover' },
@@ -121,15 +125,27 @@ const RiskEditPage: NextPage = () => {
                 Editar Fator de Risco
               </SPageTitle>
             </SFlex>
-            {canDuplicateRiskFactor && (
-              <SButton
-                variant="outlined"
-                size="small"
-                onClick={() => requestDuplicateRiskFactor(risk, companyId)}
+            <SFlex align="center" gap={2}>
+              {canDuplicateRiskFactor && (
+                <SButton
+                  variant="outlined"
+                  size="small"
+                  onClick={() => requestDuplicateRiskFactor(risk)}
+                >
+                  Duplicar
+                </SButton>
+              )}
+              <IconButton
+                onClick={onCloseUnsaved}
+                aria-label="Fechar"
+                sx={{
+                  color: 'text.primary',
+                  '&:hover': { backgroundColor: 'action.hover' },
+                }}
               >
-                Duplicar
-              </SButton>
-            )}
+                <CloseIcon />
+              </IconButton>
+            </SFlex>
           </SFlex>
           <Box
             component="form"
@@ -147,7 +163,7 @@ const RiskEditPage: NextPage = () => {
               {...props}
               canCopyToCompany={canDuplicateRiskFactor}
               onCopyToCompany={() =>
-                requestDuplicateRiskFactor(risk, companyId)
+                requestLocalCompanyCopy(risk, companyId)
               }
             />
 
@@ -161,9 +177,19 @@ const RiskEditPage: NextPage = () => {
                 type="submit"
                 loading={loading}
                 disabled={isCatalogReadOnly}
-                onClick={() => setRiskData({ ...riskData, hasSubmit: true })}
+                onClick={() => requestSubmit('stay')}
               >
                 Salvar
+              </SButton>
+              <SButton
+                variant="outlined"
+                size="small"
+                type="submit"
+                loading={loading}
+                disabled={isCatalogReadOnly}
+                onClick={() => requestSubmit('exit')}
+              >
+                Salvar e sair
               </SButton>
             </SFlex>
           </Box>

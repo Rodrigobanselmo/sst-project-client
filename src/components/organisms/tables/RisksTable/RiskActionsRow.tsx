@@ -61,7 +61,7 @@ export const RiskActionsRow: FC<RiskActionsRowProps> = ({
     }
 
     if (option.value === 'duplicate') {
-      requestDuplicateRiskFactor(risk, companyId);
+      requestDuplicateRiskFactor(risk);
     }
   };
 
