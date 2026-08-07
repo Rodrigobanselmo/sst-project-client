@@ -44,6 +44,7 @@ import {
 } from './components/RiskToolWideViewContext';
 import { useOpenRiskTool } from './hooks/useOpenRiskTool';
 import { useRiskToolCopyGhoImportFlow } from './hooks/useRiskToolCopyGhoImportFlow';
+import { RiskCatalogDndProvider } from './risk-catalog-dnd/RiskCatalogDndProvider';
 import { STBoxStack, STTableContainer } from './RiskTool.styles';
 import {
   IViewsDataOption,
@@ -395,55 +396,57 @@ export const RiskToolV2 = ({
       </Box>
     </Box>
   ) : (
-    <RiskToolWideViewProvider>
-      <RiskToolWideFrame selectExpanded={!!selectExpanded}>
-        <RiskToolTopButtons
-          onChangeView={handleChangeView}
-          onChangeViewData={handleChangeViewData}
-          viewType={viewType}
-          viewDataType={effectiveViewDataType}
-          handleSelectGHO={handleSelectGHO}
-          riskInit={true}
-          riskGroupId={riskGroupIdMemo}
-          hideViewSwitcher={hideViewSwitcher}
-          hideCloseButton={embedded}
-        />
-        <STTableContainer
-          sx={{
-            flex: 1,
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <RiskRowsExpandProvider>
-            <RiskToolHeader
-              handleCopyGHO={handleCopyGHO}
-              handleSelectGHO={handleSelectGHO}
-              handleEditGHO={handleEditGHO}
-              handleAddGHO={handleAddGHO as any}
-              isAddLoading={addMutation.isLoading}
-              riskInit={true}
-              inputRef={inputRef}
-              viewDataType={effectiveViewDataType}
-              viewType={viewType}
-              ghoQuery={ghoQuery}
-              loadingCopy={loadingCopyHomo}
-              riskGroupId={riskGroupIdMemo}
-              companyId={companyId}
-              hideGhoPicker={hideGhoPicker}
-              lockedGhoName={lockedGhoName}
-              disableEditGho={disableEditGho}
-            />
-            <RiskToolStackBody
-              viewType={viewType}
-              selectExpanded={!!selectExpanded}
-              riskGroupId={riskGroupIdMemo}
-            />
-          </RiskRowsExpandProvider>
-        </STTableContainer>
-      </RiskToolWideFrame>
-    </RiskToolWideViewProvider>
+    <RiskCatalogDndProvider>
+      <RiskToolWideViewProvider>
+        <RiskToolWideFrame selectExpanded={!!selectExpanded}>
+          <RiskToolTopButtons
+            onChangeView={handleChangeView}
+            onChangeViewData={handleChangeViewData}
+            viewType={viewType}
+            viewDataType={effectiveViewDataType}
+            handleSelectGHO={handleSelectGHO}
+            riskInit={true}
+            riskGroupId={riskGroupIdMemo}
+            hideViewSwitcher={hideViewSwitcher}
+            hideCloseButton={embedded}
+          />
+          <STTableContainer
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <RiskRowsExpandProvider>
+              <RiskToolHeader
+                handleCopyGHO={handleCopyGHO}
+                handleSelectGHO={handleSelectGHO}
+                handleEditGHO={handleEditGHO}
+                handleAddGHO={handleAddGHO as any}
+                isAddLoading={addMutation.isLoading}
+                riskInit={true}
+                inputRef={inputRef}
+                viewDataType={effectiveViewDataType}
+                viewType={viewType}
+                ghoQuery={ghoQuery}
+                loadingCopy={loadingCopyHomo}
+                riskGroupId={riskGroupIdMemo}
+                companyId={companyId}
+                hideGhoPicker={hideGhoPicker}
+                lockedGhoName={lockedGhoName}
+                disableEditGho={disableEditGho}
+              />
+              <RiskToolStackBody
+                viewType={viewType}
+                selectExpanded={!!selectExpanded}
+                riskGroupId={riskGroupIdMemo}
+              />
+            </RiskRowsExpandProvider>
+          </STTableContainer>
+        </RiskToolWideFrame>
+      </RiskToolWideViewProvider>
+    </RiskCatalogDndProvider>
   );
 };
 
