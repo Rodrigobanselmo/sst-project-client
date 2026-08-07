@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 
 import { Box } from '@mui/material';
 import { RecSelect } from 'components/organisms/tagSelects/RecSelect';
@@ -29,6 +29,10 @@ import {
   isRecommendationDeletionAllowed,
   recommendationHasDerivedMeasureLink,
 } from '../../../../../utils/characterization-action-plan-visual';
+import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/RiskCatalogBatchCopyButton';
+import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
+import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
+import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
 
 const REC_DELETE_BLOCKED_HINT =
   'Não é possível excluir esta recomendação: o item no Plano de Ação já saiu do status Pendente (Iniciado, Concluído ou Cancelado).';
@@ -47,6 +51,21 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   const validRecs = (data?.recs ?? []).filter(
     (rec): rec is IRecMed => !!rec && typeof rec.id === 'string' && !!rec.id,
   );
+
+  const batchItems = useMemo((): RiskCatalogDndDragItem[] => {
+    return (data?.recs ?? [])
+      .filter(
+        (rec): rec is IRecMed =>
+          !!rec && typeof rec.id === 'string' && !!rec.id && !!rec.recName,
+      )
+      .map((rec) => ({
+        kind: 'rec' as const,
+        sourceRiskId: risk?.id || '',
+        name: rec.recName || '',
+        catalogId: rec.id,
+        recType: rec.recType || undefined,
+      }));
+  }, [data?.recs, risk?.id]);
 
   const buildAddPayload = (rec: IRecMed): Partial<IUpsertRiskData> => {
     const nextRecs = [...validRecs, rec];
@@ -117,79 +136,104 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   };
 
   return (
-    <Box>
-      <RecSelect
-        disabled={!risk?.id}
-        onlyInput="rec"
-        text={'adicionar'}
-        onlyFromActualRisks
-        tooltipTitle=""
-        multiple={false}
-        riskIds={[risk?.id || '']}
-        risk={risk ? risk : undefined}
-        onCreate={(rec) => {
-          if (rec && rec.id)
-            handleSelect(buildAddPayload(rec), rec);
+    <RiskCatalogDropColumn
+      kind="rec"
+      risk={risk}
+      riskData={data as IRiskData}
+      handleSelect={handleSelect}
+    >
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <RecSelect
+            disabled={!risk?.id}
+            onlyInput="rec"
+            text={'adicionar'}
+            onlyFromActualRisks
+            tooltipTitle=""
+            multiple={false}
+            riskIds={[risk?.id || '']}
+            risk={risk ? risk : undefined}
+            onCreate={(rec) => {
+              if (rec && rec.id)
+                handleSelect(buildAddPayload(rec), rec);
 
-          document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
-        }}
-        handleSelect={(options) => {
-          const op = options as IRecMed;
-          if (op?.id) handleSelect(buildAddPayload(op), op);
-        }}
-      />
-      {validRecs.map((rec) => {
-        const planStatus = getRecommendationPlanStatus(
-          data as IRiskData,
-          rec.id,
-          planWorkspaceId,
-        );
-        const planTooltipStatus = getRecommendationPlanTooltipStatus(
-          data as IRiskData,
-          rec.id,
-          planWorkspaceId,
-        );
-        const canRemoveRec = isRecommendationDeletionAllowed(
-          data as IRiskData,
-          rec.id,
-          planWorkspaceId,
-        );
-        const showDerivedNote =
-          planTooltipStatus === StatusEnum.DONE &&
-          recommendationHasDerivedMeasureLink(
+              document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
+            }}
+            handleSelect={(options) => {
+              const op = options as IRecMed;
+              if (op?.id) handleSelect(buildAddPayload(op), op);
+            }}
+          />
+          <RiskCatalogBatchCopyButton
+            kind="rec"
+            risk={risk}
+            items={batchItems}
+          />
+        </Box>
+        {validRecs.map((rec) => {
+          const planStatus = getRecommendationPlanStatus(
             data as IRiskData,
             rec.id,
             planWorkspaceId,
           );
-        const missingType = isRecommendationRecTypeMissing(rec.recType);
-        return (
-          <SelectedTableItem
-            key={rec.id}
-            name={rec.recName || 'Recomendação'}
-            planStatus={planStatus}
-            planTooltipStatus={planTooltipStatus}
-            showPlanDerivedTransformedNote={showDerivedNote}
-            planDeleteBlockedHint={
-              canRemoveRec ? undefined : REC_DELETE_BLOCKED_HINT
-            }
-            itemTintSx={getCharacterizationPlanItemTintSx(planTooltipStatus)}
-            showMissingTypeWarning={missingType}
-            missingTypeTooltip={MISSING_REC_TYPE_TOOLTIP}
-            onQuickClassifyRecType={
-              missingType
-                ? (recType) => handleQuickClassify(rec, recType)
-                : undefined
-            }
-            quickClassifyLoading={classifyingRecId === rec.id}
-            handleEdit={() => handleEditRec(rec)}
-            handleRemove={
-              canRemoveRec
-                ? () => handleRemove(buildRemovePayload(rec.id))
-                : undefined
-            }
-          />
-        );
-      })}
-    </Box>
+          const planTooltipStatus = getRecommendationPlanTooltipStatus(
+            data as IRiskData,
+            rec.id,
+            planWorkspaceId,
+          );
+          const canRemoveRec = isRecommendationDeletionAllowed(
+            data as IRiskData,
+            rec.id,
+            planWorkspaceId,
+          );
+          const showDerivedNote =
+            planTooltipStatus === StatusEnum.DONE &&
+            recommendationHasDerivedMeasureLink(
+              data as IRiskData,
+              rec.id,
+              planWorkspaceId,
+            );
+          const missingType = isRecommendationRecTypeMissing(rec.recType);
+          return (
+            <RiskCatalogDraggableItem
+              key={rec.id}
+              item={{
+                kind: 'rec',
+                sourceRiskId: risk?.id || '',
+                name: rec.recName || '',
+                catalogId: rec.id,
+                recType: rec.recType || undefined,
+              }}
+              disabled={!risk?.id || !rec.recName}
+            >
+              <SelectedTableItem
+                name={rec.recName || 'Recomendação'}
+                planStatus={planStatus}
+                planTooltipStatus={planTooltipStatus}
+                showPlanDerivedTransformedNote={showDerivedNote}
+                planDeleteBlockedHint={
+                  canRemoveRec ? undefined : REC_DELETE_BLOCKED_HINT
+                }
+                itemTintSx={getCharacterizationPlanItemTintSx(planTooltipStatus)}
+                showMissingTypeWarning={missingType}
+                missingTypeTooltip={MISSING_REC_TYPE_TOOLTIP}
+                onQuickClassifyRecType={
+                  missingType
+                    ? (recType) => handleQuickClassify(rec, recType)
+                    : undefined
+                }
+                quickClassifyLoading={classifyingRecId === rec.id}
+                handleEdit={() => handleEditRec(rec)}
+                handleRemove={
+                  canRemoveRec
+                    ? () => handleRemove(buildRemovePayload(rec.id))
+                    : undefined
+                }
+              />
+            </RiskCatalogDraggableItem>
+          );
+        })}
+      </Box>
+    </RiskCatalogDropColumn>
   );
 };
