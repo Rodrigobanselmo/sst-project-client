@@ -1,12 +1,16 @@
 import { FC, MouseEvent, useMemo, useState } from 'react';
 
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import EditIcon from 'assets/icons/SEditIcon';
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import { SMenu } from 'components/molecules/SMenu';
 import { IMenuOption } from 'components/molecules/SMenu/types';
+import { useAccess } from 'core/hooks/useAccess';
 import { useDuplicateRiskFactor } from 'core/hooks/useDuplicateRiskFactor';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+
+import { RiskHardDeleteImpactModal } from './RiskHardDeleteImpactModal';
 
 type RiskActionsRowProps = {
   risk: IRiskFactors;
@@ -20,6 +24,8 @@ export const RiskActionsRow: FC<RiskActionsRowProps> = ({
   onEdit,
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [hardDeleteOpen, setHardDeleteOpen] = useState(false);
+  const { isMaster } = useAccess();
   const { canDuplicateRiskFactor, requestDuplicateRiskFactor } =
     useDuplicateRiskFactor();
 
@@ -41,8 +47,17 @@ export const RiskActionsRow: FC<RiskActionsRowProps> = ({
       });
     }
 
+    if (isMaster) {
+      items.push({
+        value: 'hard-delete',
+        name: 'Excluir definitivamente',
+        icon: DeleteForeverIcon,
+        borderTop: true,
+      });
+    }
+
     return items;
-  }, [canDuplicateRiskFactor]);
+  }, [canDuplicateRiskFactor, isMaster]);
 
   const handleOpen = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -62,6 +77,11 @@ export const RiskActionsRow: FC<RiskActionsRowProps> = ({
 
     if (option.value === 'duplicate') {
       requestDuplicateRiskFactor(risk);
+      return;
+    }
+
+    if (option.value === 'hard-delete') {
+      setHardDeleteOpen(true);
     }
   };
 
@@ -78,6 +98,12 @@ export const RiskActionsRow: FC<RiskActionsRowProps> = ({
         anchorEl={anchorEl}
         handleSelect={handleSelect}
         options={options}
+      />
+      <RiskHardDeleteImpactModal
+        open={hardDeleteOpen}
+        riskId={hardDeleteOpen ? risk.id : null}
+        riskName={risk.name}
+        onClose={() => setHardDeleteOpen(false)}
       />
     </>
   );

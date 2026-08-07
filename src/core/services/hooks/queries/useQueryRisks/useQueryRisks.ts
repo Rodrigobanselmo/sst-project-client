@@ -16,6 +16,7 @@ export interface IQueryRisks {
   companyId?: string;
   listSortBy?: string;
   listSortOrder?: 'asc' | 'desc';
+  statusFilter?: 'ACTIVE' | 'INACTIVE' | 'ALL';
   riskTypes?: string[];
   severities?: number[];
   riskSubTypeIds?: number[];
