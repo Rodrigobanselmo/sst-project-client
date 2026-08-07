@@ -7,10 +7,10 @@ import type {
 import { resolveLinkedRiskSubTypeId } from 'core/utils/risk-subtype-display.util';
 
 export const RISK_FACTOR_DUPLICATE_CONFIRM_MESSAGE =
-  'Será criado um novo fator de risco utilizando apenas os dados cadastrais do fator atual. Caracterizações, exames, protocolos, recomendações e demais vínculos não serão copiados.';
+  'Será criado um novo fator de risco com os dados deste cadastro. Nenhum vínculo do fator original será copiado. Revise as informações antes de salvar.';
 
 export const RISK_FACTOR_DUPLICATE_NAME_HINT =
-  'Revise o nome sugerido antes de salvar. A cópia será um fator local da empresa, sem vínculos do original.';
+  'Revise o nome sugerido antes de salvar. Nenhum vínculo do fator original será copiado.';
 
 export const buildSuggestedDuplicateRiskName = (name?: string | null): string => {
   const trimmed = String(name || '').trim();
@@ -18,11 +18,9 @@ export const buildSuggestedDuplicateRiskName = (name?: string | null): string =>
   return `Cópia de ${trimmed}`;
 };
 
-export type RiskFactorDuplicateDraft = {
+type RiskFactorDraftBase = {
   id: '';
-  companyId: string;
   status: StatusEnum;
-  asLocalCompanyCopy: true;
   isDuplicateDraft: true;
   name: string;
   type: string;
@@ -70,6 +68,21 @@ export type RiskFactorDuplicateDraft = {
   generateSource: [];
 };
 
+/** Duplicar: mesmo escopo da criação normal (+); só pré-preenche o cadastro. */
+export type RiskFactorDuplicateDraft = RiskFactorDraftBase & {
+  companyId?: string;
+  asLocalCompanyCopy?: false;
+};
+
+/**
+ * Cópia explícita para a empresa aberta (banner “Criar cópia para minha empresa”).
+ * Usa `asLocalCompanyCopy` — distinto de Duplicar.
+ */
+export type RiskFactorLocalCompanyCopyDraft = RiskFactorDraftBase & {
+  companyId: string;
+  asLocalCompanyCopy: true;
+};
+
 type RiskFactorDuplicateSource = Partial<IRiskFactors> & {
   subType?: string | number | null;
   risk?: string | null;
@@ -114,23 +127,12 @@ const copyActivities = (
     }));
 };
 
-/**
- * Monta draft de criação a partir do fator de origem.
- * Não inclui id, system, representAll, vínculos nem metadados de sistema.
- */
-export const buildRiskFactorDuplicateDraft = (params: {
-  source: RiskFactorDuplicateSource;
-  companyId: string;
-}): RiskFactorDuplicateDraft => {
-  const { source, companyId } = params;
+const buildIntrinsicDraftFields = (
+  source: RiskFactorDuplicateSource,
+): Omit<RiskFactorDraftBase, 'id' | 'status' | 'isDuplicateDraft'> => {
   const subType = resolveLinkedRiskSubTypeId(source);
 
   return {
-    id: '',
-    companyId,
-    status: StatusEnum.ACTIVE,
-    asLocalCompanyCopy: true,
-    isDuplicateDraft: true,
     name: buildSuggestedDuplicateRiskName(source.name),
     type: (source.type as string) || '',
     severity: typeof source.severity === 'number' ? source.severity : 0,
@@ -178,6 +180,39 @@ export const buildRiskFactorDuplicateDraft = (params: {
   };
 };
 
+/**
+ * Draft de Duplicar: campos intrínsecos pré-preenchidos.
+ * Escopo (system/companyId) fica com o mesmo fluxo da criação normal (+).
+ * Não inclui id, system, representAll, vínculos nem metadados de sistema.
+ */
+export const buildRiskFactorDuplicateDraft = (params: {
+  source: RiskFactorDuplicateSource;
+}): RiskFactorDuplicateDraft => {
+  return {
+    id: '',
+    status: StatusEnum.ACTIVE,
+    isDuplicateDraft: true,
+    ...buildIntrinsicDraftFields(params.source),
+  };
+};
+
+/**
+ * Draft de “Criar cópia para minha empresa”: força cópia local do tenant aberto.
+ */
+export const buildRiskFactorLocalCompanyCopyDraft = (params: {
+  source: RiskFactorDuplicateSource;
+  companyId: string;
+}): RiskFactorLocalCompanyCopyDraft => {
+  return {
+    id: '',
+    companyId: params.companyId,
+    status: StatusEnum.ACTIVE,
+    asLocalCompanyCopy: true,
+    isDuplicateDraft: true,
+    ...buildIntrinsicDraftFields(params.source),
+  };
+};
+
 const RELATION_KEYS = [
   'id',
   'system',
@@ -198,11 +233,11 @@ const RELATION_KEYS = [
 ] as const;
 
 /**
- * Garante que o POST /risk de uma cópia local não leve vínculos nem metadados.
+ * Remove vínculos/metadados do POST /risk sem forçar escopo local.
+ * Usado na Duplicação (herda criação normal).
  */
-export const sanitizeRiskCreatePayloadForLocalCopy = (
+export const sanitizeRiskCreatePayloadForDuplicate = (
   payload: Record<string, unknown>,
-  options: { companyId: string },
 ): Record<string, unknown> => {
   const sanitized: Record<string, unknown> = { ...payload };
 
@@ -212,11 +247,26 @@ export const sanitizeRiskCreatePayloadForLocalCopy = (
 
   delete sanitized.recMed;
   delete sanitized.generateSource;
+  delete sanitized.asLocalCompanyCopy;
+
+  sanitized.recMed = [];
+  sanitized.generateSource = [];
+
+  return sanitized;
+};
+
+/**
+ * Sanitiza POST /risk de cópia local explícita (`asLocalCompanyCopy`).
+ * Remove vínculos e força companyId do tenant + flag local.
+ */
+export const sanitizeRiskCreatePayloadForLocalCopy = (
+  payload: Record<string, unknown>,
+  options: { companyId: string },
+): Record<string, unknown> => {
+  const sanitized = sanitizeRiskCreatePayloadForDuplicate(payload);
 
   sanitized.companyId = options.companyId;
   sanitized.asLocalCompanyCopy = true;
-  sanitized.recMed = [];
-  sanitized.generateSource = [];
 
   return sanitized;
 };

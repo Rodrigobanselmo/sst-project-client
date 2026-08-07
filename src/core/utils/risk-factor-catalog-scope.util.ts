@@ -45,5 +45,7 @@ export const isRiskFactorCatalogReadOnly = (params: {
 };
 
 /**
- * Cópia local: use `buildRiskFactorDuplicateDraft` + `asLocalCompanyCopy` no POST /risk.
+ * Cópia local explícita (banner “Criar cópia para minha empresa”):
+ * `buildRiskFactorLocalCompanyCopyDraft` + `asLocalCompanyCopy` no POST /risk.
+ * Duplicar usa criação normal (sem forçar escopo local).
  */
