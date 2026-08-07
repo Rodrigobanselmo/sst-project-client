@@ -10,7 +10,7 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 type RiskActionsRowProps = {
   risk: IRiskFactors;
-  companyId: string;
+  companyId?: string;
   onEdit: (risk: IRiskFactors) => void;
 };
 
