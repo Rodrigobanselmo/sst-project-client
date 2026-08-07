@@ -35,6 +35,7 @@ export type ICompanyExamRiskAiSuggestionItem = {
   selectionBlockReason?: string;
   isAutoSelected?: boolean;
   analysisVerdict?: string;
+  purpose?: string;
 };
 
 export type ICompanyExamRiskAiExposureContext = {
@@ -253,6 +254,7 @@ export enum CompanyExamRiskAiApplyMechanismEnum {
 export type IApplyCompanyExamRiskAiSuggestionsItem = {
   examId: number;
   rationale?: string;
+  purpose?: string;
 };
 
 export type IApplyCompanyExamRiskAiSuggestionsParams = {
