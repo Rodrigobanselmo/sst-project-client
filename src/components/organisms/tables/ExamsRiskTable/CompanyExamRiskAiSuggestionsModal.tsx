@@ -977,6 +977,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     accumulated.items.map((item) => ({
       examId: item.examId,
       rationale: item.rationale,
+      purpose: item.purpose,
     }));
 
   const onPreviewApply = async () => {
