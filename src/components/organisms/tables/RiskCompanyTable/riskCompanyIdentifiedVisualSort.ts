@@ -2,20 +2,20 @@ import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { RiskEnum } from 'project/enum/risk.enums';
 
-/** Ordem dos tipos principais na listagem (coerente com o chip / família). */
+/**
+ * Ordem global do catálogo (igual à API `risk-catalog-sort.util`).
+ * ACI → BIO → ERG → FIS → QUI → OUTROS
+ */
 const MAIN_TYPE_ORDER: Partial<Record<RiskEnum, number>> = {
-  [RiskEnum.BIO]: 1,
-  [RiskEnum.QUI]: 2,
-  [RiskEnum.FIS]: 3,
-  [RiskEnum.ACI]: 4,
-  [RiskEnum.OUTROS]: 5,
-  [RiskEnum.ERG]: 6,
+  [RiskEnum.ACI]: 1,
+  [RiskEnum.BIO]: 2,
+  [RiskEnum.ERG]: 3,
+  [RiskEnum.FIS]: 4,
+  [RiskEnum.QUI]: 5,
+  [RiskEnum.OUTROS]: 6,
 };
 
-/**
- * Ordem dos subtipos ergonômicos (mesmos nomes que `STagRisk` / cadastro).
- * Menor = aparece antes no bloco ERG.
- */
+/** Subtipos ERG por nome (espelha slugs da API). */
 const ERG_SUBTYPE_ORDER: Record<string, number> = {
   Psicossociais: 1,
   Biomecânicos: 2,
@@ -24,6 +24,16 @@ const ERG_SUBTYPE_ORDER: Record<string, number> = {
   'Mobiliário e Equipamentos': 5,
 };
 
+/** Subtipos OUTROS por nome (espelha slugs da API). */
+const OUTROS_SUBTYPE_ORDER: Record<string, number> = {
+  'Indicadores de Controles': 1,
+  'Indicadores de Saúde': 2,
+};
+
+function comparePtBr(a: string, b: string): number {
+  return a.localeCompare(b, 'pt-BR', { sensitivity: 'base' });
+}
+
 function mainTypeRank(type: IRiskFactors['type']): number {
   if (type && type in MAIN_TYPE_ORDER) {
     return MAIN_TYPE_ORDER[type as RiskEnum]!;
@@ -31,15 +41,27 @@ function mainTypeRank(type: IRiskFactors['type']): number {
   return 99;
 }
 
-/** Dentro do bloco ERG: subtipo mapeado; 999 = ERG sem subtipo conhecido (por último). */
-function ergSubtypeRank(risk: IRiskFactors): number {
-  if (risk.type !== RiskEnum.ERG) return 0;
-  for (const name of Object.keys(ERG_SUBTYPE_ORDER)) {
-    if (risk.subTypes?.some((s) => s?.sub_type?.name === name)) {
-      return ERG_SUBTYPE_ORDER[name];
-    }
+function primarySubtypeName(risk: IRiskFactors): string | null {
+  const names = (risk.subTypes || [])
+    .map((s) => s?.sub_type?.name)
+    .filter((n): n is string => !!n);
+  if (!names.length) return null;
+  names.sort(comparePtBr);
+  return names[0];
+}
+
+function subtypeSortKey(risk: IRiskFactors): { rank: number; label: string } {
+  const name = primarySubtypeName(risk);
+  if (!name) return { rank: 9999, label: '' };
+
+  if (risk.type === RiskEnum.ERG) {
+    return { rank: ERG_SUBTYPE_ORDER[name] ?? 999, label: name };
   }
-  return 999;
+  if (risk.type === RiskEnum.OUTROS) {
+    return { rank: OUTROS_SUBTYPE_ORDER[name] ?? 999, label: name };
+  }
+  // QUI e demais: agrupa alfabeticamente pelo nome do subtipo.
+  return { rank: 0, label: name };
 }
 
 function compareRiskFactorTypeAndSubtype(
@@ -50,11 +72,10 @@ function compareRiskFactorTypeAndSubtype(
   const pb = mainTypeRank(b.type);
   if (pa !== pb) return pa - pb;
 
-  if (a.type === RiskEnum.ERG && b.type === RiskEnum.ERG) {
-    const sa = ergSubtypeRank(a);
-    const sb = ergSubtypeRank(b);
-    if (sa !== sb) return sa - sb;
-  }
+  const sa = subtypeSortKey(a);
+  const sb = subtypeSortKey(b);
+  if (sa.rank !== sb.rank) return sa.rank - sb.rank;
+  if (sa.label !== sb.label) return comparePtBr(sa.label, sb.label);
 
   return 0;
 }
@@ -63,12 +84,16 @@ function compareIdentifiedVisual(a: IRiskFactors, b: IRiskFactors): number {
   const typeCmp = compareRiskFactorTypeAndSubtype(a, b);
   if (typeCmp !== 0) return typeCmp;
 
-  return (a.name || '').localeCompare(b.name || '', 'pt-BR', {
-    sensitivity: 'base',
-  });
+  const nameCmp = comparePtBr(a.name || '', b.name || '');
+  if (nameCmp !== 0) return nameCmp;
+
+  return comparePtBr(a.id || '', b.id || '');
 }
 
-/** Ordenação local por página: agrupa por chip visual; desempate por nome. */
+/**
+ * Sort defensivo idempotente: reproduz a ordem global da API na página atual.
+ * A paginação coerente depende da API ordenar antes do LIMIT/OFFSET.
+ */
 export function sortRisksIdentifiedForVisualDisplay(
   risks: IRiskFactors[],
 ): IRiskFactors[] {
