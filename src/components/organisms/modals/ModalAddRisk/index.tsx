@@ -9,6 +9,7 @@ import SModal, {
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useDuplicateRiskFactor } from 'core/hooks/useDuplicateRiskFactor';
 
 import { ModalAddGenerateSource } from '../ModalAddGenerateSource';
 import { ModalAddRecMed } from '../ModalAddRecMed';
@@ -17,6 +18,8 @@ import { useAddRisk } from './hooks/useAddRisk';
 
 export const ModalAddRisk = () => {
   const props = useAddRisk();
+  const { requestDuplicateRiskFactor, canDuplicateRiskFactor } =
+    useDuplicateRiskFactor();
 
   const {
     registerModal,
@@ -28,6 +31,8 @@ export const ModalAddRisk = () => {
     handleSubmit,
     isCatalogReadOnly,
   } = props;
+
+  const isDuplicateDraft = Boolean(riskData?.isDuplicateDraft);
 
   const buttons = [
     {},
@@ -55,9 +60,20 @@ export const ModalAddRisk = () => {
         <SModalHeader
           tag={riskData?.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Fator de risco'}
+          title={
+            isDuplicateDraft
+              ? 'Duplicar fator de risco'
+              : 'Fator de risco'
+          }
         />
-        <RiskEditorFields {...props} />
+        <RiskEditorFields
+          {...props}
+          canCopyToCompany={canDuplicateRiskFactor}
+          onCopyToCompany={() => {
+            if (!riskData?.id) return;
+            requestDuplicateRiskFactor(riskData as any);
+          }}
+        />
 
         <SModalButtons
           loading={loading}

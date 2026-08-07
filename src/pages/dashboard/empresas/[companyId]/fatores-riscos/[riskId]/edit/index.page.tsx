@@ -12,6 +12,7 @@ import { RiskEditorFields } from 'components/organisms/modals/ModalAddRisk/compo
 import { useAddRisk } from 'components/organisms/modals/ModalAddRisk/hooks/useAddRisk';
 import { StackModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useDuplicateRiskFactor } from 'core/hooks/useDuplicateRiskFactor';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryRisk';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
@@ -20,8 +21,9 @@ const RiskEditPage: NextPage = () => {
   const router = useRouter();
   const companyId = router.query.companyId as string;
   const riskId = router.query.riskId as string;
+  const { canDuplicateRiskFactor, requestDuplicateRiskFactor } =
+    useDuplicateRiskFactor();
 
-  // Fetch the risk data using the dedicated endpoint
   const { data: risk, isLoading, isError } = useQueryRisk(
     { companyId, id: riskId },
     { refetchOnMount: 'always' },
@@ -100,23 +102,34 @@ const RiskEditPage: NextPage = () => {
       <SHeaderTag title={'Editar Fator de Risco'} />
       <SContainer>
         <Box sx={{ px: 5, py: 10 }}>
-          <SFlex align="center" gap={4} mb={8}>
-            <IconButton
-              onClick={handleBackToList}
-              sx={{
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'action.hover' },
-              }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <SPageTitle
-              mb={0}
-              icon={SRiskFactorIcon}
-              subtitle="Edição de fator de risco"
-            >
-              Editar Fator de Risco
-            </SPageTitle>
+          <SFlex align="center" gap={4} mb={8} justify="space-between">
+            <SFlex align="center" gap={4}>
+              <IconButton
+                onClick={handleBackToList}
+                sx={{
+                  color: 'text.primary',
+                  '&:hover': { backgroundColor: 'action.hover' },
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <SPageTitle
+                mb={0}
+                icon={SRiskFactorIcon}
+                subtitle="Edição de fator de risco"
+              >
+                Editar Fator de Risco
+              </SPageTitle>
+            </SFlex>
+            {canDuplicateRiskFactor && (
+              <SButton
+                variant="outlined"
+                size="small"
+                onClick={() => requestDuplicateRiskFactor(risk, companyId)}
+              >
+                Duplicar
+              </SButton>
+            )}
           </SFlex>
           <Box
             component="form"
@@ -130,7 +143,13 @@ const RiskEditPage: NextPage = () => {
               backgroundColor: 'background.paper',
             }}
           >
-            <RiskEditorFields {...props} />
+            <RiskEditorFields
+              {...props}
+              canCopyToCompany={canDuplicateRiskFactor}
+              onCopyToCompany={() =>
+                requestDuplicateRiskFactor(risk, companyId)
+              }
+            />
 
             <SFlex justify="end" mt={10} gap={4}>
               <SButton variant="outlined" size="small" onClick={onCloseUnsaved}>

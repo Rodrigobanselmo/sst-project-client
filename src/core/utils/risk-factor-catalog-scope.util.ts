@@ -1,8 +1,11 @@
 export const GLOBAL_CATALOG_RISK_READ_ONLY_MESSAGE =
   'Este fator de risco pertence ao catálogo padrão SimpleSST. Usuários não master não podem alterar este cadastro global.';
 
-export const FUTURE_COMPANY_RISK_COPY_HINT =
-  'Em uma próxima versão, será possível criar uma cópia deste fator de risco para personalização na sua empresa.';
+export const COMPANY_RISK_COPY_HINT =
+  'Cria um novo fator local na sua empresa com os dados cadastrais deste item. Caracterizações, exames, protocolos e demais vínculos não são copiados.';
+
+/** @deprecated Use COMPANY_RISK_COPY_HINT */
+export const FUTURE_COMPANY_RISK_COPY_HINT = COMPANY_RISK_COPY_HINT;
 
 export type RiskFactorCatalogScopeSource = {
   id?: string;
@@ -42,6 +45,5 @@ export const isRiskFactorCatalogReadOnly = (params: {
 };
 
 /**
- * Futuro: fluxo "Criar cópia para minha empresa" deve gerar registro com
- * `system: false`, `companyId` do tenant e campos copiados do catálogo global.
+ * Cópia local: use `buildRiskFactorDuplicateDraft` + `asLocalCompanyCopy` no POST /risk.
  */

@@ -10,7 +10,6 @@ import {
   STableHRow,
   STableRow,
 } from 'components/atoms/STable';
-import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
@@ -25,7 +24,6 @@ import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import EditIcon from 'assets/icons/SEditIcon';
 import SReloadIcon from 'assets/icons/SReloadIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
@@ -40,6 +38,7 @@ import { queryClient } from 'core/services/queryClient';
 
 import { getRiskDoc } from '../RiskCompanyTable/RiskCompanyTable';
 import { sortRisksIdentifiedForVisualDisplay } from '../RiskCompanyTable/riskCompanyIdentifiedVisualSort';
+import { RiskActionsRow } from './RiskActionsRow';
 import { registeredRisksFilterList } from './registeredRisksFilterList';
 import {
   DEFAULT_RISKS_REGISTERED_PAGE_SIZE,
@@ -212,7 +211,7 @@ export const RisksTable: FC<
       {
         id: 'edit',
         column: '80px',
-        label: 'Editar',
+        label: 'Ações',
         justifyContent: 'center',
       },
     ];
@@ -344,14 +343,13 @@ export const RisksTable: FC<
         );
       case 'edit':
         return (
-          <IconButtonRow
-            key="edit"
-            icon={<EditIcon />}
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditRisk(row);
-            }}
-          />
+          <Box key="edit" onClick={(e) => e.stopPropagation()}>
+            <RiskActionsRow
+              risk={row}
+              companyId={companyId}
+              onEdit={onEditRisk}
+            />
+          </Box>
         );
       default:
         return null;

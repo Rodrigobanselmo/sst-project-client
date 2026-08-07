@@ -1,6 +1,8 @@
 import React, { FC } from 'react';
 
-import { Box } from '@mui/material';
+import { Alert, Box, Typography } from '@mui/material';
+
+import { RISK_FACTOR_DUPLICATE_NAME_HINT } from 'core/utils/build-risk-factor-duplicate-draft.util';
 
 import { EditRiskSelects } from '../EditRiskSelects';
 import { RiskCatalogReadOnlyBanner } from '../RiskCatalogReadOnlyBanner/RiskCatalogReadOnlyBanner';
@@ -8,12 +10,36 @@ import { RiskQuiContent } from '../RiskQuiContent/RiskQuiContent';
 import { RiskSharedContent } from '../RiskSharedContent/RiskSharedContent';
 import { IUseAddRisk } from '../../hooks/useAddRisk';
 
-export const RiskEditorFields: FC<IUseAddRisk> = (props) => {
-  const { type, riskData, setRiskData, isCatalogReadOnly } = props;
+type RiskEditorFieldsProps = IUseAddRisk & {
+  canCopyToCompany?: boolean;
+  onCopyToCompany?: () => void;
+};
+
+export const RiskEditorFields: FC<RiskEditorFieldsProps> = (props) => {
+  const {
+    type,
+    riskData,
+    setRiskData,
+    isCatalogReadOnly,
+    canCopyToCompany,
+    onCopyToCompany,
+  } = props;
+
+  const isDuplicateDraft = Boolean(riskData?.isDuplicateDraft);
 
   return (
     <>
-      {isCatalogReadOnly && <RiskCatalogReadOnlyBanner />}
+      {isCatalogReadOnly && (
+        <RiskCatalogReadOnlyBanner
+          canCopyToCompany={canCopyToCompany}
+          onCopyToCompany={onCopyToCompany}
+        />
+      )}
+      {isDuplicateDraft && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="body2">{RISK_FACTOR_DUPLICATE_NAME_HINT}</Typography>
+        </Alert>
+      )}
       <Box
         component="fieldset"
         disabled={isCatalogReadOnly}
@@ -21,7 +47,9 @@ export const RiskEditorFields: FC<IUseAddRisk> = (props) => {
       >
         <RiskSharedContent {...props} />
         {type == 'QUI' && <RiskQuiContent {...props} />}
-        <EditRiskSelects riskData={riskData} setRiskData={setRiskData} />
+        {!isDuplicateDraft && (
+          <EditRiskSelects riskData={riskData} setRiskData={setRiskData} />
+        )}
       </Box>
     </>
   );
