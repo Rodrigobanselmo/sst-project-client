@@ -81,6 +81,7 @@ import { useApplyCompanyExamRiskAiSuggestions } from '@v2/services/medicine/comp
 import { useDryRunCompanyExamRiskAiSuggestions } from '@v2/services/medicine/company-exam-risk-ai-suggestions/hooks/useDryRunCompanyExamRiskAiSuggestions';
 import {
   CompanyExamRiskAiApplyItemStatusEnum,
+  CompanyExamRiskAiApplyMechanismEnum,
   type IApplyCompanyExamRiskAiSuggestionItemResult,
   type IApplyCompanyExamRiskAiSuggestionsResponse,
   type ICompanyExamRiskAiExposureContext,
@@ -161,13 +162,13 @@ const getApplyItemStatusLabel = (
     case CompanyExamRiskAiApplyItemStatusEnum.WOULD_CREATE:
       return 'Pronto para criar';
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_ALREADY_LINKED:
-      return 'Já vinculado';
+      return 'Já adotado';
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_DUPLICATE_REQUEST:
       return 'Duplicado na solicitação';
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_NOT_CHARACTERIZED:
       return pcmsoLinkStatusLabels[PcmsoLinkStatusEnum.RISK_NOT_CHARACTERIZED];
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_NO_LIBRARY_REFERENCE:
-      return pcmsoLinkStatusLabels[PcmsoLinkStatusEnum.NO_LIBRARY_REFERENCE];
+      return 'Sem referência na Biblioteca para este item';
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_NOT_ELIGIBLE:
       return 'Não elegível';
     case CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_LOW_RELEVANCE:
@@ -177,6 +178,84 @@ const getApplyItemStatusLabel = (
     default:
       return status;
   }
+};
+
+const getApplyMechanismLabel = (mechanism?: string) => {
+  switch (mechanism) {
+    case CompanyExamRiskAiApplyMechanismEnum.ADOPT_OFFICIAL_LIBRARY:
+      return 'Adotar Biblioteca Oficial';
+    case CompanyExamRiskAiApplyMechanismEnum.CREATE_COMPANY_LINK:
+      return 'Criar vínculo da empresa';
+    case CompanyExamRiskAiApplyMechanismEnum.ALREADY_ADOPTED:
+      return 'Já adotado';
+    case CompanyExamRiskAiApplyMechanismEnum.BLOCKED_STRUCTURAL:
+      return 'Bloqueado';
+    default:
+      return mechanism || '—';
+  }
+};
+
+const buildApplyPreviewSummaryMessage = (
+  data: IApplyCompanyExamRiskAiSuggestionsResponse,
+) => {
+  const creatable =
+    data.summary.creatable ??
+    data.items.filter(
+      (item) =>
+        item.willCreate === true ||
+        item.status === CompanyExamRiskAiApplyItemStatusEnum.WOULD_CREATE,
+    ).length;
+  const alreadyAdopted = data.items.filter(
+    (item) =>
+      item.status === CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_ALREADY_LINKED,
+  ).length;
+  const otherSkipped = Math.max(0, data.summary.skipped - alreadyAdopted);
+
+  if (creatable <= 0) {
+    return 'Nenhum vínculo poderá ser criado com a seleção atual. Revise os status dos itens.';
+  }
+
+  const parts = [
+    `Serão criados ${creatable} vínculo${creatable === 1 ? '' : 's'} novo${
+      creatable === 1 ? '' : 's'
+    } nesta empresa.`,
+  ];
+  if (alreadyAdopted > 0) {
+    parts.push(
+      `${alreadyAdopted} item${alreadyAdopted === 1 ? '' : 's'} já adotado${
+        alreadyAdopted === 1 ? '' : 's'
+      } e será${alreadyAdopted === 1 ? '' : 'ão'} ignorado${
+        alreadyAdopted === 1 ? '' : 's'
+      }.`,
+    );
+  }
+  if (otherSkipped > 0) {
+    parts.push(
+      `${otherSkipped} item${otherSkipped === 1 ? '' : 's'} ignorado${
+        otherSkipped === 1 ? '' : 's'
+      } por outros motivos.`,
+    );
+  }
+  parts.push('Nenhuma regra global será alterada.');
+  return parts.join(' ');
+};
+
+const buildApplyResultSeverity = (
+  data: IApplyCompanyExamRiskAiSuggestionsResponse,
+): 'success' | 'warning' | 'info' | 'error' => {
+  if (data.summary.errors > 0) return 'error';
+  if (data.summary.created > 0) return 'success';
+  if (
+    data.summary.skipped > 0 &&
+    data.items.every(
+      (item) =>
+        item.status ===
+        CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_ALREADY_LINKED,
+    )
+  ) {
+    return 'info';
+  }
+  return 'warning';
 };
 
 const buildDefaultSelectedKeys = (suggestions: ICompanyExamRiskAiSuggestionItem[]) =>
@@ -211,6 +290,7 @@ const ApplyPreviewTable: FC<{
     <TableHead>
       <TableRow>
         <TableCell>Exame</TableCell>
+        <TableCell>Mecanismo</TableCell>
         <TableCell>Periodicidade</TableCell>
         <TableCell>Sexo</TableCell>
         <TableCell>Faixa etária</TableCell>
@@ -218,14 +298,22 @@ const ApplyPreviewTable: FC<{
         <TableCell>Considerar (dias)</TableCell>
         <TableCell>Qualitativo</TableCell>
         <TableCell>Quantitativo</TableCell>
-        <TableCell>Origem</TableCell>
+        <TableCell>Config. PCMSO</TableCell>
         <TableCell>Status</TableCell>
       </TableRow>
     </TableHead>
     <TableBody>
       {items.map((item) => (
         <TableRow key={item.examId}>
-          <TableCell>{item.examName}</TableCell>
+          <TableCell>
+            <Typography variant="body2">{item.examName}</Typography>
+            {item.message && (
+              <Typography variant="caption" color="text.secondary" display="block">
+                {item.message}
+              </Typography>
+            )}
+          </TableCell>
+          <TableCell>{getApplyMechanismLabel(item.mechanism)}</TableCell>
           <TableCell>{formatPeriodicity(item.proposedConfig)}</TableCell>
           <TableCell>{formatSex(item.proposedConfig)}</TableCell>
           <TableCell>{formatAgeRange(item.proposedConfig)}</TableCell>
@@ -906,6 +994,11 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
 
   const onConfirmApply = async () => {
     if (!previewData || !accumulated.count) return;
+    const previewCreatable =
+      previewData.summary.creatable ??
+      previewData.items.filter((item) => item.willCreate === true).length;
+    if (previewCreatable <= 0) return;
+
     const response = await applyMutation.mutateAsync({
       companyId,
       riskId,
@@ -915,10 +1008,28 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     });
     setResultData(response);
     setStep('result');
-    if (response.summary.created > 0) {
+    const allAlreadyAdopted =
+      response.summary.created === 0 &&
+      response.summary.errors === 0 &&
+      response.summary.skipped > 0 &&
+      response.items.every(
+        (item) =>
+          item.status ===
+          CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_ALREADY_LINKED,
+      );
+    if (response.summary.created > 0 || allAlreadyAdopted) {
       onApplied();
     }
   };
+
+  const previewCreatableCount = previewData
+    ? previewData.summary.creatable ??
+      previewData.items.filter(
+        (item) =>
+          item.willCreate === true ||
+          item.status === CompanyExamRiskAiApplyItemStatusEnum.WOULD_CREATE,
+      ).length
+    : 0;
 
   const isLoading = dryRunMutation.isLoading || applyMutation.isLoading;
   const allSelectableSelected =
@@ -1488,10 +1599,11 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
           {step === 'preview' && previewData && (
             <Box>
               {accumulatedPanel}
-              <Alert severity="info" sx={{ mb: 2, mt: accumulated.count ? 2 : 0 }}>
-                Serão criados vínculos novos no catálogo desta empresa. Nenhum
-                vínculo existente será alterado e nenhuma regra global será
-                publicada.
+              <Alert
+                severity={previewCreatableCount > 0 ? 'info' : 'warning'}
+                sx={{ mb: 2, mt: accumulated.count ? 2 : 0 }}
+              >
+                {buildApplyPreviewSummaryMessage(previewData)}
               </Alert>
               {previewData.warnings.length > 0 && (
                 <Alert severity="warning" sx={{ mb: 2 }}>
@@ -1512,12 +1624,20 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
           {step === 'result' && resultData && (
             <Box>
               <Alert
-                severity={resultData.summary.errors > 0 ? 'warning' : 'success'}
+                severity={buildApplyResultSeverity(resultData)}
                 sx={{ mb: 2 }}
               >
-                {resultData.summary.created} criado(s),{' '}
-                {resultData.summary.skipped} ignorado(s),{' '}
-                {resultData.summary.errors} erro(s).
+                {resultData.summary.created > 0
+                  ? `${resultData.summary.created} vínculo(s) criado(s), ${resultData.summary.skipped} ignorado(s), ${resultData.summary.errors} erro(s).`
+                  : resultData.summary.errors > 0
+                    ? `Nenhum vínculo criado. ${resultData.summary.errors} erro(s), ${resultData.summary.skipped} ignorado(s).`
+                    : resultData.items.every(
+                          (item) =>
+                            item.status ===
+                            CompanyExamRiskAiApplyItemStatusEnum.SKIPPED_ALREADY_LINKED,
+                        )
+                      ? `Nenhum vínculo novo: todos os ${resultData.summary.skipped} item(ns) já estavam adotados.`
+                      : `Nenhum vínculo criado. ${resultData.summary.skipped} item(ns) ignorado(s).`}
               </Alert>
               {resultData.warnings.length > 0 && (
                 <Alert severity="warning" sx={{ mb: 2 }}>
@@ -1623,7 +1743,9 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
             </Button>
             <Button
               variant="contained"
-              disabled={isLoading || !previewData}
+              disabled={
+                isLoading || !previewData || previewCreatableCount <= 0
+              }
               onClick={onConfirmApply}
             >
               Confirmar

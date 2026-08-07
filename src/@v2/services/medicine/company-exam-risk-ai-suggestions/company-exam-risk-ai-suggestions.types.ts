@@ -243,6 +243,13 @@ export enum CompanyExamRiskAiApplyItemStatusEnum {
   ERROR = 'ERROR',
 }
 
+export enum CompanyExamRiskAiApplyMechanismEnum {
+  ADOPT_OFFICIAL_LIBRARY = 'ADOPT_OFFICIAL_LIBRARY',
+  CREATE_COMPANY_LINK = 'CREATE_COMPANY_LINK',
+  ALREADY_ADOPTED = 'ALREADY_ADOPTED',
+  BLOCKED_STRUCTURAL = 'BLOCKED_STRUCTURAL',
+}
+
 export type IApplyCompanyExamRiskAiSuggestionsItem = {
   examId: number;
   rationale?: string;
@@ -262,6 +269,8 @@ export type IApplyCompanyExamRiskAiSuggestionItemResult = {
   resolvedExamId: number;
   examName: string;
   status: CompanyExamRiskAiApplyItemStatusEnum;
+  mechanism?: CompanyExamRiskAiApplyMechanismEnum | string;
+  willCreate?: boolean;
   linkId?: number;
   message?: string;
   proposedConfig: IResolvedExamRiskConfig;
@@ -277,6 +286,7 @@ export type IApplyCompanyExamRiskAiSuggestionsResponse = {
     created: number;
     skipped: number;
     errors: number;
+    creatable?: number;
   };
   warnings: string[];
   meta: {
