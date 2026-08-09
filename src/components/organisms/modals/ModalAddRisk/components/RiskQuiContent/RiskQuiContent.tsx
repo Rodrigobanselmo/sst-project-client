@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
-import { Box, TextField, Typography } from '@mui/material';
+import { Box, InputAdornment, TextField, Typography } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
-import { extractRiskFactorLel } from 'core/utils/extract-risk-factor-lel.util';
+import { extractRiskFactorIpvsMeta } from 'core/utils/extract-risk-factor-ipvs-meta.util';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
 
@@ -17,7 +17,8 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
   control,
   setValue,
 }) => {
-  const lel = extractRiskFactorLel(riskData.json);
+  const ipvsMeta = extractRiskFactorIpvsMeta(riskData.json);
+  const ipvsUnitLabel = ipvsMeta?.unit || '';
 
   return (
     <>
@@ -132,41 +133,48 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
           />
         </Box>
       </SFlex>
-      <Box mt={4}>
-        <InputForm
-          setValue={setValue}
-          defaultValue={riskData.ipvs}
-          label="NIOSH IDLH / IPVS"
-          control={control}
-          placeholder={'valor...'}
-          name="ipvs"
-          size="small"
-        />
-      </Box>
-      <SFlex mt={4} gap={8}>
+      <SFlex mt={4} gap={8} alignItems="flex-start">
         <Box flex={1}>
-          <TextField
-            label="LEL / Limite Inferior de Explosividade"
-            value={lel?.value || ''}
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.ipvs}
+            label="NIOSH IDLH / IPVS"
+            control={control}
+            placeholder={'valor...'}
+            name="ipvs"
             size="small"
-            fullWidth
-            InputProps={{ readOnly: true }}
+            InputProps={
+              ipvsUnitLabel
+                ? {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {ipvsUnitLabel}
+                      </InputAdornment>
+                    ),
+                  }
+                : undefined
+            }
             helperText={
-              lel?.source
-                ? `Fonte: ${lel.source}${lel.note ? ` — ${lel.note}` : ''}`
-                : 'Não confundir com NIOSH IDLH / IPVS'
+              ipvsUnitLabel &&
+              riskData.unit &&
+              riskData.unit !== ipvsUnitLabel
+                ? `Unidade dos OELs: ${riskData.unit}`
+                : undefined
             }
           />
         </Box>
-        <Box width={140}>
-          <TextField
-            label="Unidade LEL"
-            value={lel?.unit || ''}
-            size="small"
-            fullWidth
-            InputProps={{ readOnly: true }}
-          />
-        </Box>
+        {ipvsMeta?.reference ? (
+          <Box width={220}>
+            <TextField
+              label="Referência"
+              value={ipvsMeta.reference}
+              size="small"
+              fullWidth
+              InputProps={{ readOnly: true }}
+              helperText={ipvsMeta.origin || undefined}
+            />
+          </Box>
+        ) : null}
       </SFlex>
 
       <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
