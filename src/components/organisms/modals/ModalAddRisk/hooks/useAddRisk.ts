@@ -77,6 +77,7 @@ export const initialAddRiskState = {
   aihaWeel: undefined as undefined | string,
   aihaWeelStel: undefined as undefined | string,
   aihaWeelCeiling: undefined as undefined | string,
+  json: undefined as IRiskFactors['json'] | undefined,
   pv: undefined as undefined | string,
   pe: undefined as undefined | string,
   breather: undefined as undefined | string,

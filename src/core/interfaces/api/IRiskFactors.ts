@@ -137,6 +137,23 @@ export interface IRiskFactors {
   aihaWeel?: string;
   aihaWeelStel?: string;
   aihaWeelCeiling?: string;
+  /**
+   * Metadata opcional do RiskFactor (ex.: json.limits.lel).
+   * Leitura via API; writers devem fazer merge, nunca overwrite.
+   */
+  json?: {
+    rsdata?: unknown;
+    limits?: {
+      lel?: {
+        value?: string;
+        unit?: string;
+        source?: string;
+        origin?: string;
+        note?: string;
+      };
+    };
+    [key: string]: unknown;
+  } | null;
   pv?: string;
   pe?: string;
   isEmergency?: boolean;

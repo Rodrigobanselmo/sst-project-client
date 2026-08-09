@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
-import { Box, Typography } from '@mui/material';
+import { Box, TextField, Typography } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
+import { extractRiskFactorLel } from 'core/utils/extract-risk-factor-lel.util';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
 
@@ -16,6 +17,8 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
   control,
   setValue,
 }) => {
+  const lel = extractRiskFactorLel(riskData.json);
+
   return (
     <>
       <SFlex mt={8}>
@@ -140,6 +143,31 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
           size="small"
         />
       </Box>
+      <SFlex mt={4} gap={8}>
+        <Box flex={1}>
+          <TextField
+            label="LEL / Limite Inferior de Explosividade"
+            value={lel?.value || ''}
+            size="small"
+            fullWidth
+            InputProps={{ readOnly: true }}
+            helperText={
+              lel?.source
+                ? `Fonte: ${lel.source}${lel.note ? ` — ${lel.note}` : ''}`
+                : 'Não confundir com NIOSH IDLH / IPVS'
+            }
+          />
+        </Box>
+        <Box width={140}>
+          <TextField
+            label="Unidade LEL"
+            value={lel?.unit || ''}
+            size="small"
+            fullWidth
+            InputProps={{ readOnly: true }}
+          />
+        </Box>
+      </SFlex>
 
       <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
         Limites OSHA

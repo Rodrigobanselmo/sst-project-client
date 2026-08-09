@@ -160,6 +160,7 @@ const buildIntrinsicDraftFields = (
     aihaWeel: copyString(source.aihaWeel),
     aihaWeelStel: copyString(source.aihaWeelStel),
     aihaWeelCeiling: copyString(source.aihaWeelCeiling),
+    json: source.json ? structuredClone(source.json) : undefined,
     pv: copyString(source.pv),
     pe: copyString(source.pe),
     carnogenicityACGIH: copyString(source.carnogenicityACGIH),
