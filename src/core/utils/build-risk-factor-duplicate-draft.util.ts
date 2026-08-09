@@ -48,6 +48,7 @@ type RiskFactorDraftBase = {
   aihaWeel?: string;
   aihaWeelStel?: string;
   aihaWeelCeiling?: string;
+  json?: IRiskFactors['json'];
   pv?: string;
   pe?: string;
   carnogenicityACGIH?: string;
