@@ -24,6 +24,7 @@ const mapAiAgentToSuggestion = (
         acgihStel: toImportField(agent.occupationalLimits.acgihStel),
         acgihCeiling: toImportField(agent.occupationalLimits.acgihCeiling),
         aihaWeel: toImportField(agent.occupationalLimits.aihaWeel),
+        aihaWeelStel: toImportField(agent.occupationalLimits.aihaWeelStel),
         aihaWeelCeiling: toImportField(agent.occupationalLimits.aihaWeelCeiling),
         oshaPel: toImportField(agent.occupationalLimits.oshaPel),
         oshaStel: toImportField(agent.occupationalLimits.oshaStel),

@@ -13,6 +13,7 @@ export type RiskComplementFieldKey =
   | 'nioshStel'
   | 'nioshCeiling'
   | 'aihaWeel'
+  | 'aihaWeelStel'
   | 'aihaWeelCeiling'
   | 'unit'
   | 'cas'
@@ -78,6 +79,12 @@ const LIMIT_FIELD_MAP: Array<{
     label: 'AIHA WEEL',
     read: (risk) => risk.aihaWeel,
     readSuggestion: (agent) => agent.occupationalLimits?.aihaWeel?.value,
+  },
+  {
+    key: 'aihaWeelStel',
+    label: 'AIHA WEEL-STEL',
+    read: (risk) => risk.aihaWeelStel,
+    readSuggestion: (agent) => agent.occupationalLimits?.aihaWeelStel?.value,
   },
   {
     key: 'aihaWeelCeiling',

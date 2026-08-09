@@ -18,6 +18,7 @@ export type RiskFactorAiSuggestionLimitsPayload = {
   oshaStel?: string;
   oshaCeiling?: string;
   aihaWeel?: string;
+  aihaWeelStel?: string;
   aihaWeelCeiling?: string;
 };
 

@@ -111,6 +111,7 @@ export type HoMethodRiskFactorSnapshot = {
   oshaStel: string | null;
   oshaCeiling: string | null;
   aihaWeel: string | null;
+  aihaWeelStel: string | null;
   aihaWeelCeiling: string | null;
   coments: string | null;
 };
@@ -318,6 +319,7 @@ export type HoMethodImportOccupationalLimitSuggestions = {
   acgihStel: HoMethodImportField<string>;
   acgihCeiling: HoMethodImportField<string>;
   aihaWeel: HoMethodImportField<string>;
+  aihaWeelStel: HoMethodImportField<string>;
   aihaWeelCeiling: HoMethodImportField<string>;
   oshaPel: HoMethodImportField<string>;
   oshaStel: HoMethodImportField<string>;

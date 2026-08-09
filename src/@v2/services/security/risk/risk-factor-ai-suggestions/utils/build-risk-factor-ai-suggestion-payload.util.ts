@@ -50,6 +50,7 @@ const pickLimits = (
     oshaStel: pickString(form.oshaStel),
     oshaCeiling: pickString(form.oshaCeiling),
     aihaWeel: pickString(form.aihaWeel),
+    aihaWeelStel: pickString(form.aihaWeelStel),
     aihaWeelCeiling: pickString(form.aihaWeelCeiling),
   };
 

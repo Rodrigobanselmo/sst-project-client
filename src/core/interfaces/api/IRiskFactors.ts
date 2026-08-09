@@ -135,6 +135,7 @@ export interface IRiskFactors {
   oshaStel?: string;
   oshaCeiling?: string;
   aihaWeel?: string;
+  aihaWeelStel?: string;
   aihaWeelCeiling?: string;
   pv?: string;
   pe?: string;

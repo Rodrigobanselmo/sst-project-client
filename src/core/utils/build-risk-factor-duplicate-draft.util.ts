@@ -46,6 +46,7 @@ type RiskFactorDraftBase = {
   oshaStel?: string;
   oshaCeiling?: string;
   aihaWeel?: string;
+  aihaWeelStel?: string;
   aihaWeelCeiling?: string;
   pv?: string;
   pe?: string;
@@ -157,6 +158,7 @@ const buildIntrinsicDraftFields = (
     oshaStel: copyString(source.oshaStel),
     oshaCeiling: copyString(source.oshaCeiling),
     aihaWeel: copyString(source.aihaWeel),
+    aihaWeelStel: copyString(source.aihaWeelStel),
     aihaWeelCeiling: copyString(source.aihaWeelCeiling),
     pv: copyString(source.pv),
     pe: copyString(source.pe),

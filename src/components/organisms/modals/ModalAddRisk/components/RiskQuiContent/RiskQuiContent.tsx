@@ -198,6 +198,17 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         <Box>
           <InputForm
             setValue={setValue}
+            defaultValue={riskData.aihaWeelStel}
+            label="AIHA WEEL-STEL"
+            control={control}
+            placeholder={'valor...'}
+            name="aihaWeelStel"
+            size="small"
+          />
+        </Box>
+        <Box>
+          <InputForm
+            setValue={setValue}
             defaultValue={riskData.aihaWeelCeiling}
             label="AIHA WEEL-C"
             control={control}

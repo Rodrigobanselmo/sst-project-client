@@ -147,6 +147,7 @@ export function riskHasRegisteredOccupationalLimits(risk?: IRiskFactors | null) 
     risk.oshaStel,
     risk.oshaCeiling,
     risk.aihaWeel,
+    risk.aihaWeelStel,
     risk.aihaWeelCeiling,
   ].some((value) => hasValue(value));
 }
@@ -209,6 +210,7 @@ export function mapRiskFactorsToHoMethodSnapshot(
     oshaStel: risk.oshaStel ?? null,
     oshaCeiling: risk.oshaCeiling ?? null,
     aihaWeel: risk.aihaWeel ?? null,
+    aihaWeelStel: risk.aihaWeelStel ?? null,
     aihaWeelCeiling: risk.aihaWeelCeiling ?? null,
     coments: risk.coments ?? null,
   };
@@ -236,6 +238,7 @@ export function mapRiskSnapshotToRiskFactors(
     oshaStel: snapshot.oshaStel ?? undefined,
     oshaCeiling: snapshot.oshaCeiling ?? undefined,
     aihaWeel: snapshot.aihaWeel ?? undefined,
+    aihaWeelStel: snapshot.aihaWeelStel ?? undefined,
     aihaWeelCeiling: snapshot.aihaWeelCeiling ?? undefined,
     coments: snapshot.coments ?? undefined,
   } as IRiskFactors;

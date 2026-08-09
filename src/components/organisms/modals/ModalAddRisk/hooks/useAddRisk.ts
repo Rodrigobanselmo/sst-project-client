@@ -75,6 +75,7 @@ export const initialAddRiskState = {
   oshaStel: undefined as undefined | string,
   oshaCeiling: undefined as undefined | string,
   aihaWeel: undefined as undefined | string,
+  aihaWeelStel: undefined as undefined | string,
   aihaWeelCeiling: undefined as undefined | string,
   pv: undefined as undefined | string,
   pe: undefined as undefined | string,
@@ -432,6 +433,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     syncField('stel', initialData.stel);
     syncField('acgihCeiling', initialData.acgihCeiling);
     syncField('aihaWeel', initialData.aihaWeel);
+    syncField('aihaWeelStel', initialData.aihaWeelStel);
     syncField('aihaWeelCeiling', initialData.aihaWeelCeiling);
     syncField('coments', initialData.coments);
   }, [options?.initialData, getFieldState, setValue]);
@@ -460,6 +462,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     oshaStel,
     oshaCeiling,
     aihaWeel,
+    aihaWeelStel,
     aihaWeelCeiling,
     pv,
     pe,
@@ -539,6 +542,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       oshaStel,
       oshaCeiling,
       aihaWeel,
+      aihaWeelStel,
       aihaWeelCeiling,
       pv,
       pe,

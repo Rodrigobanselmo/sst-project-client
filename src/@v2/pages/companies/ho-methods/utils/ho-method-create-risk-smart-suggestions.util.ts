@@ -51,6 +51,7 @@ const inferSeverityFromLimits = (
     limits?.nioshStel,
     limits?.nioshCeiling,
     limits?.aihaWeel,
+    limits?.aihaWeelStel,
     limits?.aihaWeelCeiling,
   ].some((field) => Boolean(pickImportField(field)));
 

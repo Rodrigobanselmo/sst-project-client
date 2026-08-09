@@ -49,7 +49,7 @@ export type ParsedOccupationalLimitExpression = {
 };
 
 const LIMIT_LABEL_PREFIX =
-  /^(?:PEL|REL|TWA|STEL|Ceiling|CEILING|Ceil\.?|WEEL|WEEL-C|IDLH|IPVS)\s*:?\s*/i;
+  /^(?:PEL|REL|TWA|STEL|Ceiling|CEILING|Ceil\.?|WEEL-STEL|WEEL-C|WEEL|IDLH|IPVS)\s*:?\s*/i;
 
 const TRAILING_NOTE_PATTERN = /\(([^)]+)\)\s*$/;
 
@@ -307,6 +307,11 @@ export const buildHoMethodCreateRiskPrefill = (
     },
     { key: 'ipvs' as const, label: 'NIOSH IDLH', parsed: pickParsedLimit(limits?.nioshIdlh) },
     { key: 'aihaWeel' as const, label: 'AIHA WEEL', parsed: pickParsedLimit(limits?.aihaWeel) },
+    {
+      key: 'aihaWeelStel' as const,
+      label: 'AIHA WEEL-STEL',
+      parsed: pickParsedLimit(limits?.aihaWeelStel),
+    },
     {
       key: 'aihaWeelCeiling' as const,
       label: 'AIHA WEEL-C',
