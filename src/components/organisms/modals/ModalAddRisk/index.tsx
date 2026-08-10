@@ -25,6 +25,7 @@ export const ModalAddRisk = () => {
     registerModal,
     onCloseUnsaved,
     onSubmit,
+    onInvalidSubmit,
     loading,
     riskData,
     setRiskData,
@@ -55,7 +56,7 @@ export const ModalAddRisk = () => {
         center
         p={8}
         component="form"
-        onSubmit={(handleSubmit as any)(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit, onInvalidSubmit)}
       >
         <SModalHeader
           tag={riskData?.id ? 'edit' : 'add'}

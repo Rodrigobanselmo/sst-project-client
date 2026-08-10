@@ -33,6 +33,7 @@ import {
 } from 'core/utils/build-risk-factor-duplicate-draft.util';
 import { isRiskFactorCatalogReadOnly } from 'core/utils/risk-factor-catalog-scope.util';
 import { resolveLinkedRiskSubTypeId } from 'core/utils/risk-subtype-display.util';
+import { scrollToFirstFormError } from 'core/utils/scroll-to-first-form-error.util';
 import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 import type { RiskFactorAiSuggestionSourceContextPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 
@@ -125,10 +126,18 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddRiskState);
 
-  const { handleSubmit, control, reset, getValues, setValue, watch, getFieldState } =
-    useForm<any>({
-      resolver: yupResolver(Yup.object().shape(riskSchema)),
-    });
+  const {
+    handleSubmit,
+    control,
+    reset,
+    getValues,
+    setValue,
+    setFocus,
+    watch,
+    getFieldState,
+  } = useForm<any>({
+    resolver: yupResolver(Yup.object().shape(riskSchema)),
+  });
 
   const type = watch('type');
 
@@ -682,10 +691,18 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     setRiskData((prev) => ({ ...prev, hasSubmit: true }));
   };
 
+  /** Callback de invalidação do RHF: scroll genérico ao primeiro erro (qualquer campo). */
+  const onInvalidSubmit = (errors: Record<string, unknown>) => {
+    scrollToFirstFormError(errors as any, {
+      setFocus: (name) => setFocus(name as any),
+    });
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
     onSubmit,
+    onInvalidSubmit,
     onClose,
     requestSubmit,
     markFormPristine,

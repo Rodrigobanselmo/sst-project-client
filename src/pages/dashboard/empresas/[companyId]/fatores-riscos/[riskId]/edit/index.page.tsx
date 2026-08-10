@@ -47,6 +47,7 @@ const RiskEditPage: NextPage = () => {
   const {
     handleSubmit,
     onSubmit,
+    onInvalidSubmit,
     onCloseUnsaved,
     requestSubmit,
     loading,
@@ -125,7 +126,36 @@ const RiskEditPage: NextPage = () => {
                 Editar Fator de Risco
               </SPageTitle>
             </SFlex>
-            <SFlex align="center" gap={2}>
+            <SFlex align="center" gap={2} flexWrap="wrap" justify="flex-end">
+              <SButton
+                variant="outlined"
+                size="small"
+                onClick={onCloseUnsaved}
+              >
+                Cancelar
+              </SButton>
+              <SButton
+                variant="contained"
+                size="small"
+                type="submit"
+                form="risk-factor-editor-form"
+                loading={loading}
+                disabled={isCatalogReadOnly}
+                onClick={() => requestSubmit('stay')}
+              >
+                Salvar
+              </SButton>
+              <SButton
+                variant="outlined"
+                size="small"
+                type="submit"
+                form="risk-factor-editor-form"
+                loading={loading}
+                disabled={isCatalogReadOnly}
+                onClick={() => requestSubmit('exit')}
+              >
+                Salvar e sair
+              </SButton>
               {canDuplicateRiskFactor && (
                 <SButton
                   variant="outlined"
@@ -148,8 +178,9 @@ const RiskEditPage: NextPage = () => {
             </SFlex>
           </SFlex>
           <Box
+            id="risk-factor-editor-form"
             component="form"
-            onSubmit={(handleSubmit as any)(onSubmit)}
+            onSubmit={(handleSubmit as any)(onSubmit, onInvalidSubmit)}
             sx={{
               mt: 6,
               border: '1px solid',
