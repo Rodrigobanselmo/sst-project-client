@@ -619,10 +619,22 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       }
     } else {
       if (risk.status === StatusEnum.INACTIVE) {
-        await deleteRiskMut.mutateAsync(risk.id).catch(() => {});
+        try {
+          await deleteRiskMut.mutateAsync(risk.id);
+        } catch {
+          // Erro já tratado no onError da mutation — não marcar como salvo nem sair.
+          return;
+        }
       } else {
-        await updateRiskMut.mutateAsync(risk).catch(() => {});
-        createdRisk = risk as unknown as IRiskFactors;
+        try {
+          const updated = await updateRiskMut.mutateAsync(risk);
+          // Sem companyId a API helper retorna null sem persistir.
+          if (!updated) return;
+          createdRisk = updated;
+        } catch {
+          // Erro já tratado no onError da mutation — não marcar como salvo nem sair.
+          return;
+        }
       }
     }
 

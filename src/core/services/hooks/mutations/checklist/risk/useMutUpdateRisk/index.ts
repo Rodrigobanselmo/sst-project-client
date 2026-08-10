@@ -41,40 +41,41 @@ export function useMutUpdateRisk() {
       updateRisk(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
-        if (resp) {
-          queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
-          queryClient.invalidateQueries([QueryEnum.RISK, resp.companyId]);
+        // Sem resposta não houve persistência (ex.: companyId ausente) — não tratar como sucesso.
+        if (!resp) return resp;
 
-          const replace = (company: string) => {
-            const actualData = queryClient.getQueryData(
-              // eslint-disable-next-line prettier/prettier
+        queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+        queryClient.invalidateQueries([QueryEnum.RISK, resp.companyId]);
+
+        const replace = (company: string) => {
+          const actualData = queryClient.getQueryData(
+            // eslint-disable-next-line prettier/prettier
+            [QueryEnum.RISK, company],
+          );
+          if (actualData)
+            queryClient.setQueryData(
               [QueryEnum.RISK, company],
+              (oldData: IRiskFactors[] | undefined) =>
+                oldData
+                  ? oldData.map((risk) =>
+                      risk.id == resp.id
+                        ? {
+                            ...risk,
+                            ...resp,
+                            recMed: [...resp.recMed],
+                            generateSource: [...resp.generateSource],
+                          }
+                        : risk,
+                    )
+                  : [],
             );
-            if (actualData)
-              queryClient.setQueryData(
-                [QueryEnum.RISK, company],
-                (oldData: IRiskFactors[] | undefined) =>
-                  oldData
-                    ? oldData.map((risk) =>
-                        risk.id == resp.id
-                          ? {
-                              ...risk,
-                              ...resp,
-                              recMed: [...resp.recMed],
-                              generateSource: [...resp.generateSource],
-                            }
-                          : risk,
-                      )
-                    : [],
-              );
-          };
+        };
 
-          const id =
-            resp.companyId == user?.companyId ? companyId : resp.companyId;
+        const id =
+          resp.companyId == user?.companyId ? companyId : resp.companyId;
 
-          replace(resp.companyId);
-          if (resp.companyId != id) replace(companyId || '');
-        }
+        replace(resp.companyId);
+        if (resp.companyId != id) replace(companyId || '');
 
         enqueueSnackbar('Fator de risco editado com sucesso', {
           variant: 'success',
