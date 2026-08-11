@@ -4,11 +4,14 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Link,
   Stack,
+  Typography,
 } from '@mui/material';
 import { RiskEditorFields } from 'components/organisms/modals/ModalAddRisk/components/RiskEditorFields/RiskEditorFields';
 import {
@@ -19,7 +22,11 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useSnackbar } from 'notistack';
 
 import { searchChemicalRiskFactors } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
-import type { ChemicalRiskOption } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import type {
+  ChemicalOccupationalEnrichResult,
+  ChemicalOccupationalValue,
+  ChemicalRiskOption,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 
 import type { ChemicalCurationCreateRiskPrefill } from './chemical-curation-create-risk.util';
 import {
@@ -33,6 +40,8 @@ type Props = {
   companyId: string;
   workspaceId: string;
   initialData: ChemicalCurationCreateRiskPrefill;
+  occupationalEnrich?: ChemicalOccupationalEnrichResult | null;
+  occupationalLoading?: boolean;
   onClose: () => void;
   onCreated: (risk: IRiskFactors) => void;
   onSelectExisting?: (risk: ChemicalRiskOption) => void;
@@ -43,6 +52,8 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
   companyId,
   workspaceId,
   initialData,
+  occupationalEnrich = null,
+  occupationalLoading = false,
   onClose,
   onCreated,
   onSelectExisting,
@@ -125,8 +136,6 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
       if (!created?.id) return;
       setDuplicateRisks([]);
       setAllowDuplicateCas(false);
-      // Não chama onClose/onCancel aqui: useAddRisk (disableModalClose) não
-      // dispara onCancel no sucesso; o painel aplica MANUAL_FACTOR e fecha.
       onCreated(created);
     },
   });
@@ -134,14 +143,16 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
   const { riskData, setRiskData, handleSubmit, onSubmit, onCloseUnsaved, loading } =
     props;
 
-  const busy = loading || checkingCas;
+  const busy = loading || checkingCas || occupationalLoading;
 
   const titleNote = useMemo(() => {
     if (!initialData.cas) {
       return 'Revise nome e CAS antes de salvar. O CAS não foi inventado automaticamente.';
     }
-    return 'Revise os dados pré-preenchidos antes de salvar. Nada é cadastrado automaticamente.';
+    return 'Revise identidade e limites ocupacionais antes de salvar. Nada é cadastrado automaticamente.';
   }, [initialData.cas]);
+
+  const occ = occupationalEnrich?.occupationalData;
 
   return (
     <Dialog open={open} onClose={onCloseUnsaved} maxWidth="md" fullWidth>
@@ -150,6 +161,112 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
         <DialogContent dividers>
           <Stack spacing={1.5}>
             <Alert severity="info">{titleNote}</Alert>
+
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'grey.50',
+              }}
+            >
+              <Typography variant="subtitle2" fontWeight={700} mb={0.5}>
+                Identidade química
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Nome: {initialData.name || '—'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                CAS: {initialData.cas || '— (sem CAS confirmado)'}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Fonte de identidade: PubChem + catálogo interno (etapa anterior).
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'primary.light',
+                bgcolor: 'background.paper',
+              }}
+            >
+              <Typography variant="subtitle2" fontWeight={700} mb={0.75}>
+                Dados ocupacionais encontrados
+              </Typography>
+              {occupationalLoading ? (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <CircularProgress size={16} />
+                  <Typography variant="body2" color="text.secondary">
+                    Consultando NIOSH / OSHA…
+                  </Typography>
+                </Stack>
+              ) : !initialData.cas ? (
+                <Alert severity="warning">
+                  Sem CAS confirmado — a pesquisa de limites ocupacionais não é
+                  executada.
+                </Alert>
+              ) : occ?.notFoundMessage ? (
+                <Alert severity="info">{occ.notFoundMessage}</Alert>
+              ) : (
+                <Stack spacing={1}>
+                  <OccupationalSourceBlock
+                    title="NIOSH Pocket Guide"
+                    url={occ?.niosh?.sourceUrl}
+                    found={Boolean(occ?.niosh?.found)}
+                    lines={[
+                      [
+                        'REL TWA',
+                        formatOccupationalLine(occ?.niosh?.relTwa),
+                      ],
+                      ['STEL', formatOccupationalLine(occ?.niosh?.stel)],
+                      ['Ceiling', formatOccupationalLine(occ?.niosh?.ceiling)],
+                      ['IDLH/IPVS', formatOccupationalLine(occ?.niosh?.idlh)],
+                      [
+                        'Respirador',
+                        formatOccupationalLine(occ?.niosh?.respirator),
+                      ],
+                    ]}
+                  />
+                  <OccupationalSourceBlock
+                    title="OSHA Occupational Chemical Database"
+                    url={occ?.osha?.sourceUrl}
+                    found={Boolean(occ?.osha?.found)}
+                    lines={[
+                      ['PEL TWA', formatOccupationalLine(occ?.osha?.pel)],
+                      ['STEL', formatOccupationalLine(occ?.osha?.stel)],
+                      ['Ceiling', formatOccupationalLine(occ?.osha?.ceiling)],
+                    ]}
+                  />
+                  {occ?.unitConflict || occ?.unitReviewRequired ? (
+                    <Alert severity="warning">
+                      Conflito/revisão de unidade — o campo “Unidade” não foi
+                      pré-preenchido. Valores no formulário são apenas numéricos
+                      (sem concatenar unidades). Revise alternativas
+                      multiunidade manualmente.
+                    </Alert>
+                  ) : null}
+                  {(occ?.warnings || []).slice(0, 4).map((warning) => (
+                    <Typography
+                      key={warning}
+                      variant="caption"
+                      color="text.secondary"
+                      display="block"
+                    >
+                      {warning}
+                    </Typography>
+                  ))}
+                  <Typography variant="caption" color="text.secondary">
+                    NR-15, ACGIH e AIHA WEEL não são preenchidos automaticamente
+                    nesta fase.
+                  </Typography>
+                </Stack>
+              )}
+            </Box>
+
             {duplicateRisks.length ? (
               <Alert
                 severity="warning"
@@ -209,3 +326,64 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
     </Dialog>
   );
 };
+
+function formatOccupationalLine(
+  value: ChemicalOccupationalValue | null | undefined,
+): string | undefined {
+  if (!value) return undefined;
+  const formPart =
+    value.applyStatus === 'APPLY_SAFE' && value.formValue
+      ? `form: ${value.formValue}${value.unit ? ` ${value.unit}` : ''}`
+      : value.applyStatus === 'UNIT_REVIEW_REQUIRED'
+        ? 'form: revisão de unidade'
+        : 'form: —';
+  const rawPart = value.raw || value.value;
+  const alternates =
+    value.alternateRepresentations && value.alternateRepresentations.length
+      ? ` | alt: ${value.alternateRepresentations.map((a) => a.rawFragment).join(', ')}`
+      : '';
+  return `${rawPart} (${formPart}${alternates})`;
+}
+
+function OccupationalSourceBlock(props: {
+  title: string;
+  url?: string | null;
+  found: boolean;
+  lines: Array<[string, string | null | undefined]>;
+}) {
+  const filled = props.lines.filter(([, value]) => Boolean(value));
+  return (
+    <Box
+      sx={{
+        p: 1,
+        borderRadius: 1,
+        bgcolor: 'grey.50',
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Typography variant="body2" fontWeight={700}>
+        {props.title}
+        {props.url ? (
+          <>
+            {' · '}
+            <Link href={props.url} target="_blank" rel="noreferrer" fontSize={12}>
+              fonte
+            </Link>
+          </>
+        ) : null}
+      </Typography>
+      {!props.found || !filled.length ? (
+        <Typography variant="caption" color="text.secondary">
+          Limite não localizado nas fontes consultadas.
+        </Typography>
+      ) : (
+        filled.map(([label, value]) => (
+          <Typography key={label} variant="caption" display="block">
+            {label}: {value}
+          </Typography>
+        ))
+      )}
+    </Box>
+  );
+}

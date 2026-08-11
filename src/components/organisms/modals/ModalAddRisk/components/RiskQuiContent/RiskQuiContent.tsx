@@ -7,6 +7,7 @@ import { InputForm } from 'components/molecules/form/input';
 import { extractRiskFactorIpvsMeta } from 'core/utils/extract-risk-factor-ipvs-meta.util';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
+import { OccupationalLimitSearchButton } from './OccupationalLimitSearchButton';
 
 const limitHelperTeto = 'utilizar "T" para indicar TETO';
 const limitHelperLegacyCeiling =
@@ -16,6 +17,10 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
   riskData,
   control,
   setValue,
+  setRiskData,
+  getValues,
+  watch,
+  isCatalogReadOnly,
 }) => {
   const ipvsMeta = extractRiskFactorIpvsMeta(riskData.json);
   const ipvsUnitLabel = ipvsMeta?.unit || '';
@@ -95,8 +100,27 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         </Box>
       </SFlex>
 
-      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+      {!isCatalogReadOnly ? (
+        <OccupationalLimitSearchButton
+          riskData={riskData}
+          setRiskData={setRiskData}
+          setValue={setValue}
+          getValues={getValues}
+          watch={watch}
+        />
+      ) : null}
+
+      <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>
         Limites NIOSH
+      </Typography>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        display="block"
+        sx={{ mb: 1 }}
+      >
+        A pesquisa acima preenche apenas campos vazios (NIOSH/OSHA/IPVS). ACGIH,
+        NR-15 e AIHA não são pesquisados automaticamente.
       </Typography>
       <SFlex mt={4}>
         <Box>

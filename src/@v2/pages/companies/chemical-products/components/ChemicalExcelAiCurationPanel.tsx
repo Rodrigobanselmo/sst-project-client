@@ -1,11 +1,15 @@
 import { SText } from '@v2/components/atoms/SText/SText';
 import { useAuthShow } from 'components/molecules/SAuthShow';
-import { searchChemicalRiskFactors } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
+import {
+  enrichChemicalOccupationalData,
+  searchChemicalRiskFactors,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type {
   AiCurationEvidence,
   AiCurationSuggestion,
   ChemicalAiCurationDecision,
   ChemicalAiCurationPendingItem,
+  ChemicalOccupationalEnrichResult,
   ChemicalRiskOption,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import {
@@ -51,9 +55,12 @@ import {
   type ChemicalCurationSplitPartDraft,
 } from './chemical-ai-curation-draft.util';
 import {
+  applyOccupationalPrefillToCreateRisk,
   buildChemicalCurationCreateRiskPrefill,
   buildManualFactorDecision,
   canCreateChemicalRiskPermission,
+  isValidCasRn,
+  softNormalizeCas,
   shouldShowCreateChemicalRiskButton,
   type ChemicalCurationPendingManualFactor,
 } from './chemical-curation-create-risk.util';
@@ -241,6 +248,8 @@ export const ChemicalExcelAiCurationPanel = ({
     sourceRowId: string;
     partId?: string | null;
     initialData: ReturnType<typeof buildChemicalCurationCreateRiskPrefill>;
+    occupationalEnrich: ChemicalOccupationalEnrichResult | null;
+    occupationalLoading: boolean;
   } | null>(null);
   const createRiskScopeKeyRef = useRef<string | null>(null);
 
@@ -320,32 +329,81 @@ export const ChemicalExcelAiCurationPanel = ({
     }
   };
 
-  const openCreateRiskDialog = (
+  const openCreateRiskDialog = async (
     sourceRowId: string,
     partId?: string | null,
   ) => {
-    if (!companyId) return;
+    if (!companyId || !workspaceId) return;
     const pending = pendingItems.find((item) => item.sourceRowId === sourceRowId);
     if (!pending) return;
     const scopeKey = curationDraftScopeKey(sourceRowId, partId);
     const draft = identityDraftsByScope[scopeKey];
+    const basePrefill = buildChemicalCurationCreateRiskPrefill({
+      companyId,
+      pending,
+      suggestion: suggestionById.get(sourceRowId) || null,
+      identityDraft: draft
+        ? {
+            officialName: draft.officialName,
+            cas: draft.cas,
+            synonyms: draft.synonyms,
+          }
+        : null,
+    });
+
     setCreateRiskSession({
       scopeKey,
       sourceRowId,
       partId: partId || null,
-      initialData: buildChemicalCurationCreateRiskPrefill({
-        companyId,
-        pending,
-        suggestion: suggestionById.get(sourceRowId) || null,
-        identityDraft: draft
-          ? {
-              officialName: draft.officialName,
-              cas: draft.cas,
-              synonyms: draft.synonyms,
-            }
-          : null,
-      }),
+      initialData: basePrefill,
+      occupationalEnrich: null,
+      occupationalLoading: Boolean(basePrefill.cas),
     });
+
+    const casCandidate = softNormalizeCas(basePrefill.cas).value;
+    if (!casCandidate || !isValidCasRn(casCandidate)) {
+      setCreateRiskSession((prev) =>
+        prev && prev.scopeKey === scopeKey
+          ? { ...prev, occupationalLoading: false }
+          : prev,
+      );
+      return;
+    }
+
+    try {
+      const enrich = await enrichChemicalOccupationalData({
+        companyId,
+        workspaceId,
+        cas: casCandidate,
+        officialName: basePrefill.name,
+      });
+      setCreateRiskSession((prev) => {
+        if (!prev || prev.scopeKey !== scopeKey) return prev;
+        return {
+          ...prev,
+          initialData: applyOccupationalPrefillToCreateRisk(
+            prev.initialData,
+            enrich.prefill,
+          ),
+          occupationalEnrich: enrich,
+          occupationalLoading: false,
+        };
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Falha ao consultar limites ocupacionais.';
+      enqueueSnackbar(
+        `Limites ocupacionais: ${message}. Você pode preencher manualmente.`,
+        { variant: 'warning' },
+      );
+      setCreateRiskSession((prev) =>
+        prev && prev.scopeKey === scopeKey
+          ? { ...prev, occupationalLoading: false }
+          : prev,
+      );
+    }
   };
 
   const closeCreateRiskDialog = () => {
@@ -2211,6 +2269,8 @@ export const ChemicalExcelAiCurationPanel = ({
           companyId={companyId}
           workspaceId={workspaceId}
           initialData={createRiskSession.initialData}
+          occupationalEnrich={createRiskSession.occupationalEnrich}
+          occupationalLoading={createRiskSession.occupationalLoading}
           onClose={closeCreateRiskDialog}
           onCreated={(risk) => {
             applyCreatedRiskToCuration(

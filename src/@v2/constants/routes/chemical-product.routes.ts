@@ -17,6 +17,8 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/risk-factors/search',
   MANUFACTURERS:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/manufacturers',
+  OCCUPATIONAL_ENRICH:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/occupational-enrich',
   UPLOAD_FILE:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/files',
   PARSE_FISPQ:
@@ -45,6 +47,8 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/ai-curation/suggest',
   EXCEL_AI_CURATION_EXPORT:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/ai-curation/export',
+  EXCEL_AI_CURATION_OCCUPATIONAL_ENRICH:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/prepare/ai-curation/occupational-enrich',
   EXCEL_VALIDATE_PREVIEW:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/validate/preview',
   EXCEL_VALIDATE_EXPORT_CORRECTED:

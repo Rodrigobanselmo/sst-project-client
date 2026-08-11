@@ -12,6 +12,7 @@ import {
   ChemicalPreparePreviewResult,
   ChemicalAiCurationDecision,
   ChemicalAiCurationSuggestResult,
+  ChemicalOccupationalEnrichResult,
   AiCurationSuggestion,
   ChemicalProductDetail,
   ChemicalProductListItem,
@@ -504,6 +505,31 @@ export async function suggestChemicalExcelAiCuration(
     }),
     formData,
     { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return response.data;
+}
+
+export async function enrichChemicalOccupationalData(
+  params: WorkspaceParams & {
+    cas: string;
+    officialName?: string | null;
+    /** Unidade já adotada no RiskFactor (ppm / mg/m3). */
+    targetUnit?: string | null;
+  },
+) {
+  const response = await api.post<ChemicalOccupationalEnrichResult>(
+    bindUrlParams({
+      path: ChemicalProductRoutes.OCCUPATIONAL_ENRICH,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    {
+      cas: params.cas,
+      officialName: params.officialName ?? null,
+      targetUnit: params.targetUnit ?? null,
+    },
   );
   return response.data;
 }

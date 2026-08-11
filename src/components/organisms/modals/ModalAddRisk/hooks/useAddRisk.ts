@@ -445,6 +445,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     syncField('aihaWeel', initialData.aihaWeel);
     syncField('aihaWeelStel', initialData.aihaWeelStel);
     syncField('aihaWeelCeiling', initialData.aihaWeelCeiling);
+    syncField('breather', initialData.breather);
     syncField('coments', initialData.coments);
   }, [options?.initialData, getFieldState, setValue]);
 
@@ -565,6 +566,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       appendix,
       otherAppendix,
       grauInsalubridade: grauInsalubridade || null,
+      ...(riskData.json ? { json: riskData.json } : {}),
       ...(asLocalCompanyCopy ? { asLocalCompanyCopy: true } : {}),
     };
 

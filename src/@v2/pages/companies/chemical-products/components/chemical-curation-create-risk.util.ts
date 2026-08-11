@@ -114,6 +114,23 @@ export type ChemicalCurationCreateRiskPrefill = {
   generateSource: [];
   hasSubmit: false;
   isEmergency: false;
+  /** OEL pré-preenchidos (revisão humana; nunca inventados por LLM). */
+  nioshRel?: string;
+  nioshStel?: string;
+  nioshCeiling?: string;
+  ipvs?: string;
+  oshaPel?: string;
+  oshaStel?: string;
+  oshaCeiling?: string;
+  unit?: string;
+  breather?: string;
+  json?: {
+    ipvs?: {
+      unit?: string;
+      reference?: string;
+      origin?: string;
+    };
+  };
 };
 
 /** Detecta texto já disponível com sinais de português — não traduz. */
@@ -223,6 +240,38 @@ export function buildChemicalCurationCreateRiskPrefill(params: {
     generateSource: [],
     hasSubmit: false,
     isEmergency: false,
+  };
+}
+
+/** Aplica prefill ocupacional (NIOSH/OSHA) sobre identidade já montada. */
+export function applyOccupationalPrefillToCreateRisk(
+  base: ChemicalCurationCreateRiskPrefill,
+  prefill: {
+    nioshRel: string | null;
+    nioshStel: string | null;
+    nioshCeiling: string | null;
+    ipvs: string | null;
+    oshaPel: string | null;
+    oshaStel: string | null;
+    oshaCeiling: string | null;
+    unit: string | null;
+    breather: string | null;
+    json: ChemicalCurationCreateRiskPrefill['json'] | null;
+  } | null | undefined,
+): ChemicalCurationCreateRiskPrefill {
+  if (!prefill) return base;
+  return {
+    ...base,
+    ...(prefill.nioshRel ? { nioshRel: prefill.nioshRel } : {}),
+    ...(prefill.nioshStel ? { nioshStel: prefill.nioshStel } : {}),
+    ...(prefill.nioshCeiling ? { nioshCeiling: prefill.nioshCeiling } : {}),
+    ...(prefill.ipvs ? { ipvs: prefill.ipvs } : {}),
+    ...(prefill.oshaPel ? { oshaPel: prefill.oshaPel } : {}),
+    ...(prefill.oshaStel ? { oshaStel: prefill.oshaStel } : {}),
+    ...(prefill.oshaCeiling ? { oshaCeiling: prefill.oshaCeiling } : {}),
+    ...(prefill.unit ? { unit: prefill.unit } : {}),
+    ...(prefill.breather ? { breather: prefill.breather } : {}),
+    ...(prefill.json ? { json: prefill.json } : {}),
   };
 }
 

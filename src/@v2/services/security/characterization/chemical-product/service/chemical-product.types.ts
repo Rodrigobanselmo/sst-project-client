@@ -481,6 +481,159 @@ export type ChemicalAiCurationSuggestResult = {
   phase2ContractsReady: true;
 };
 
+export type ChemicalOccupationalApplyStatus =
+  | 'APPLY_SAFE'
+  | 'UNIT_REVIEW_REQUIRED'
+  | 'UNPARSEABLE'
+  | 'NOT_FOUND';
+
+export type ChemicalOccupationalConversionVerification =
+  | 'CONVERSION_VERIFIED'
+  | 'UNIT_REVIEW_REQUIRED'
+  | 'NOT_APPLICABLE';
+
+export type ChemicalOccupationalAlternateRepresentation = {
+  numeric: string;
+  unit: string;
+  rawFragment: string;
+};
+
+export type ChemicalOccupationalConversionTrace = {
+  molecularWeight: number;
+  molecularWeightSource: 'PUBCHEM' | 'OSHA_CHEMICAL_DB';
+  molecularWeightSourceUrl: string | null;
+  temperatureC: number;
+  pressureAtm: number;
+  formula: string;
+  originalValue: string;
+  originalUnit: string;
+  convertedValue: string;
+  convertedUnit: string;
+  verificationStatus: ChemicalOccupationalConversionVerification;
+  publishedAlternate: string | null;
+  calculatedAlternate: string | null;
+  relativeError: number | null;
+};
+
+export type ChemicalOccupationalValue = {
+  /** Expressão bruta da fonte (evidência / UI). */
+  value: string;
+  /** Número para o campo RiskFactor — nunca "400 ppm (1200 mg/m³)". */
+  formValue: string | null;
+  unit: string | null;
+  applyStatus: ChemicalOccupationalApplyStatus;
+  primaryUnitFromSource?: string | null;
+  alternateRepresentations?: ChemicalOccupationalAlternateRepresentation[];
+  source: 'NIOSH_POCKET_GUIDE' | 'OSHA_OCCUPATIONAL_CHEMICAL_DB';
+  sourceName: string;
+  sourceUrl: string | null;
+  sourceField?: string;
+  retrievedAt: string;
+  raw: string;
+  numericValue?: string | null;
+  hasMultipleUnits?: boolean;
+  notes?: string | null;
+  conversion?: ChemicalOccupationalConversionTrace | null;
+  conversionVerification?: ChemicalOccupationalConversionVerification | null;
+};
+
+export type ChemicalOccupationalEnrichResult = {
+  identity: {
+    cas: string;
+    officialName: string | null;
+  };
+  occupationalData: {
+    cas: string;
+    queriedName: string | null;
+    matchKind: 'CAS' | 'NAME' | 'NONE';
+    matchConfidence: 'HIGH' | 'MEDIUM' | 'LOW';
+    niosh: {
+      relTwa: ChemicalOccupationalValue | null;
+      stel: ChemicalOccupationalValue | null;
+      ceiling: ChemicalOccupationalValue | null;
+      idlh: ChemicalOccupationalValue | null;
+      unit: string | null;
+      respirator: ChemicalOccupationalValue | null;
+      sourceName: string;
+      sourceUrl: string | null;
+      pocketGuideName: string | null;
+      notes: string | null;
+      found: boolean;
+    } | null;
+    osha: {
+      pel: ChemicalOccupationalValue | null;
+      stel: ChemicalOccupationalValue | null;
+      ceiling: ChemicalOccupationalValue | null;
+      unit: string | null;
+      sourceName: string;
+      sourceUrl: string | null;
+      analyteName: string | null;
+      notes: string | null;
+      found: boolean;
+    } | null;
+    suggestedUnit: string | null;
+    targetUnit?: string | null;
+    unitConflict: boolean;
+    unitReviewRequired?: boolean;
+    unitConflictDetails: string[];
+    molecularWeight?: {
+      molecularWeight: number;
+      source: 'PUBCHEM' | 'OSHA_CHEMICAL_DB';
+      sourceUrl: string | null;
+      sourceField: string;
+    } | null;
+    attempts: Array<{
+      provider: string;
+      query: string;
+      matchKind: string;
+      outcome: string;
+      reason: string;
+    }>;
+    warnings: string[];
+    traces: Array<{
+      riskField: string;
+      source: string;
+      sourceName: string;
+      sourceField: string;
+      raw: string;
+      normalizedValue: string;
+      formValue?: string | null;
+      numericValue: string | null;
+      unit: string | null;
+      applyStatus?: ChemicalOccupationalApplyStatus;
+      hasMultipleUnits: boolean;
+      alternateRepresentations?: ChemicalOccupationalAlternateRepresentation[];
+      sourceUrl: string | null;
+      conversion?: ChemicalOccupationalConversionTrace | null;
+      conversionVerification?: ChemicalOccupationalConversionVerification | null;
+    }>;
+    notFoundMessage: string | null;
+    retrievedAt: string;
+  };
+  prefill: {
+    nioshRel: string | null;
+    nioshStel: string | null;
+    nioshCeiling: string | null;
+    ipvs: string | null;
+    oshaPel: string | null;
+    oshaStel: string | null;
+    oshaCeiling: string | null;
+    unit: string | null;
+    breather: string | null;
+    json: {
+      ipvs?: {
+        unit?: string;
+        reference?: string;
+        origin?: string;
+      };
+    } | null;
+  };
+  sourcesConsulted: Array<
+    'NIOSH_POCKET_GUIDE' | 'OSHA_OCCUPATIONAL_CHEMICAL_DB'
+  >;
+  enabled: boolean;
+};
+
 export type ChemicalValidateSafeCasConsolidation = {
   productKey: string;
   tradeName: string;

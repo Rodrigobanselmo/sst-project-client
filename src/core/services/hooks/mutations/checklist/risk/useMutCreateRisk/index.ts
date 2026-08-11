@@ -16,7 +16,25 @@ import { queryClient } from 'core/services/queryClient';
 import { IErrorResp } from '../../../../../errors/types';
 
 interface ICreateRisk
-  extends Partial<Pick<IRiskFactors, 'name' | 'type' | 'status'>> {
+  extends Partial<
+    Pick<
+      IRiskFactors,
+      | 'name'
+      | 'type'
+      | 'status'
+      | 'json'
+      | 'ipvs'
+      | 'nioshRel'
+      | 'nioshStel'
+      | 'nioshCeiling'
+      | 'oshaPel'
+      | 'oshaStel'
+      | 'oshaCeiling'
+      | 'unit'
+      | 'cas'
+      | 'breather'
+    >
+  > {
   id?: '';
   companyId?: string;
   recMed: IRecMedCreate[];
