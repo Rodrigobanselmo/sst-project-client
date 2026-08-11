@@ -8,6 +8,7 @@ import type {
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 
 import {
+  applyOccupationalPrefillToCreateRisk,
   buildChemicalCurationCreateRiskPrefill,
   buildManualFactorDecision,
   canCreateChemicalRiskPermission,
@@ -266,6 +267,56 @@ const prefillInvalidCasIgnored = buildChemicalCurationCreateRiskPrefill({
 assert(
   prefillInvalidCasIgnored.cas === undefined,
   'CAS inválido não pré-preenche (exige correção humana)',
+);
+
+const baseCreatePrefill = buildChemicalCurationCreateRiskPrefill({
+  companyId: 'company-a',
+  pending,
+  suggestion: identitySuggestion,
+});
+baseCreatePrefill.json = {
+  ipvs: {
+    unit: 'ppm',
+    reference: 'https://example.test',
+    origin: 'NIOSH',
+  },
+};
+
+const withOccupationalAudit = applyOccupationalPrefillToCreateRisk(
+  baseCreatePrefill,
+  {
+    nioshRel: null,
+    nioshStel: null,
+    nioshCeiling: null,
+    ipvs: null,
+    oshaPel: null,
+    oshaStel: null,
+    oshaCeiling: null,
+    unit: null,
+    breather: null,
+    json: null,
+  },
+  {
+    v: 1,
+    status: 'NOT_FOUND',
+    searchedAt: '2026-08-11T12:00:00.000Z',
+    cas: '630-20-6',
+    sourcesConsulted: ['NIOSH_POCKET_GUIDE', 'OSHA_OCCUPATIONAL_CHEMICAL_DB'],
+    providers: [],
+    summary: {
+      hasAnyLimit: false,
+      unitReviewRequired: false,
+      message: 'Nenhum limite localizado nas fontes consultadas.',
+    },
+  },
+);
+assert(
+  withOccupationalAudit.json?.ipvs?.unit === 'ppm',
+  'create draft preserva json.ipvs ao mesclar occupationalSearch',
+);
+assert(
+  withOccupationalAudit.json?.occupationalSearch?.status === 'NOT_FOUND',
+  'create draft inclui occupationalSearch até o create',
 );
 
 console.log('chemical-curation-create-risk.util.spec.ts OK');

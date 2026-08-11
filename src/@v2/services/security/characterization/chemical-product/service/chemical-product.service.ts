@@ -13,6 +13,7 @@ import {
   ChemicalAiCurationDecision,
   ChemicalAiCurationSuggestResult,
   ChemicalOccupationalEnrichResult,
+  ChemicalOccupationalSearchAudit,
   AiCurationSuggestion,
   ChemicalProductDetail,
   ChemicalProductListItem,
@@ -515,6 +516,11 @@ export async function enrichChemicalOccupationalData(
     officialName?: string | null;
     /** Unidade já adotada no RiskFactor (ppm / mg/m3). */
     targetUnit?: string | null;
+    /**
+     * RF existente: persiste só json.occupationalSearch na API
+     * (sem alterar OEL). Omitir em create/rascunho.
+     */
+    persistToRiskId?: string | null;
   },
 ) {
   const response = await api.post<ChemicalOccupationalEnrichResult>(
@@ -529,6 +535,37 @@ export async function enrichChemicalOccupationalData(
       cas: params.cas,
       officialName: params.officialName ?? null,
       targetUnit: params.targetUnit ?? null,
+      ...(params.persistToRiskId
+        ? { persistToRiskId: params.persistToRiskId }
+        : {}),
+    },
+  );
+  return response.data;
+}
+
+/** Registra auditoria INCOMPLETE quando o enrich HTTP falhou (RF existente). */
+export async function recordOccupationalSearchAuditIncomplete(
+  params: WorkspaceParams & {
+    riskId: string;
+    cas: string;
+    message?: string | null;
+  },
+) {
+  const response = await api.post<{
+    riskId: string;
+    occupationalSearch: ChemicalOccupationalSearchAudit;
+  }>(
+    bindUrlParams({
+      path: ChemicalProductRoutes.OCCUPATIONAL_SEARCH_AUDIT_INCOMPLETE,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    {
+      riskId: params.riskId,
+      cas: params.cas,
+      message: params.message ?? null,
     },
   );
   return response.data;

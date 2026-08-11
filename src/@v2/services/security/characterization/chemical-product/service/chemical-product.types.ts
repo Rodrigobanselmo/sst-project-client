@@ -537,6 +537,30 @@ export type ChemicalOccupationalValue = {
   conversionVerification?: ChemicalOccupationalConversionVerification | null;
 };
 
+export type ChemicalOccupationalSearchStatus =
+  | 'FOUND'
+  | 'NOT_FOUND'
+  | 'REVIEW_REQUIRED'
+  | 'INCOMPLETE';
+
+export type ChemicalOccupationalSearchAudit = {
+  v: 1;
+  status: ChemicalOccupationalSearchStatus;
+  searchedAt: string;
+  cas: string;
+  sourcesConsulted: string[];
+  providers: Array<{
+    provider: string;
+    outcome: string;
+    reason: string;
+  }>;
+  summary: {
+    hasAnyLimit: boolean;
+    unitReviewRequired: boolean;
+    message: string | null;
+  };
+};
+
 export type ChemicalOccupationalEnrichResult = {
   identity: {
     cas: string;
@@ -626,12 +650,15 @@ export type ChemicalOccupationalEnrichResult = {
         reference?: string;
         origin?: string;
       };
+      occupationalSearch?: ChemicalOccupationalSearchAudit;
     } | null;
   };
   sourcesConsulted: Array<
     'NIOSH_POCKET_GUIDE' | 'OSHA_OCCUPATIONAL_CHEMICAL_DB'
   >;
   enabled: boolean;
+  searchAudit: ChemicalOccupationalSearchAudit;
+  searchAuditPersisted?: boolean;
 };
 
 export type ChemicalValidateSafeCasConsolidation = {

@@ -384,6 +384,7 @@ export const ChemicalExcelAiCurationPanel = ({
           initialData: applyOccupationalPrefillToCreateRisk(
             prev.initialData,
             enrich.prefill,
+            enrich.searchAudit,
           ),
           occupationalEnrich: enrich,
           occupationalLoading: false,

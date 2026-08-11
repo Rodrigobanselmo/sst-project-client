@@ -19,6 +19,8 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/manufacturers',
   OCCUPATIONAL_ENRICH:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/occupational-enrich',
+  OCCUPATIONAL_SEARCH_AUDIT_INCOMPLETE:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/occupational-search-audit/incomplete',
   UPLOAD_FILE:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/files',
   PARSE_FISPQ:

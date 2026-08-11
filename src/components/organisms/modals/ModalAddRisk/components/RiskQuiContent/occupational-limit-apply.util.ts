@@ -17,6 +17,7 @@ export type OccupationalLimitFormSnapshot = {
       reference?: string;
       origin?: string;
     };
+    occupationalSearch?: unknown;
   } | null;
 };
 

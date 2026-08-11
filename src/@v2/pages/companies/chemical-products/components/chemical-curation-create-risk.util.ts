@@ -130,6 +130,23 @@ export type ChemicalCurationCreateRiskPrefill = {
       reference?: string;
       origin?: string;
     };
+    occupationalSearch?: {
+      v: 1;
+      status: string;
+      searchedAt: string;
+      cas: string;
+      sourcesConsulted: string[];
+      providers: Array<{
+        provider: string;
+        outcome: string;
+        reason: string;
+      }>;
+      summary: {
+        hasAnyLimit: boolean;
+        unitReviewRequired: boolean;
+        message: string | null;
+      };
+    };
   };
 };
 
@@ -258,20 +275,39 @@ export function applyOccupationalPrefillToCreateRisk(
     breather: string | null;
     json: ChemicalCurationCreateRiskPrefill['json'] | null;
   } | null | undefined,
+  /** Auditoria da pesquisa — só persiste no create do RF. */
+  searchAudit?: NonNullable<
+    ChemicalCurationCreateRiskPrefill['json']
+  >['occupationalSearch'] | null,
 ): ChemicalCurationCreateRiskPrefill {
-  if (!prefill) return base;
+  if (!prefill && !searchAudit) return base;
+
+  const nextJson: ChemicalCurationCreateRiskPrefill['json'] = {
+    ...(base.json || {}),
+    ...(prefill?.json || {}),
+  };
+  if (prefill?.json?.ipvs) {
+    nextJson.ipvs = {
+      ...(base.json?.ipvs || {}),
+      ...prefill.json.ipvs,
+    };
+  }
+  if (searchAudit) {
+    nextJson.occupationalSearch = searchAudit;
+  }
+
   return {
     ...base,
-    ...(prefill.nioshRel ? { nioshRel: prefill.nioshRel } : {}),
-    ...(prefill.nioshStel ? { nioshStel: prefill.nioshStel } : {}),
-    ...(prefill.nioshCeiling ? { nioshCeiling: prefill.nioshCeiling } : {}),
-    ...(prefill.ipvs ? { ipvs: prefill.ipvs } : {}),
-    ...(prefill.oshaPel ? { oshaPel: prefill.oshaPel } : {}),
-    ...(prefill.oshaStel ? { oshaStel: prefill.oshaStel } : {}),
-    ...(prefill.oshaCeiling ? { oshaCeiling: prefill.oshaCeiling } : {}),
-    ...(prefill.unit ? { unit: prefill.unit } : {}),
-    ...(prefill.breather ? { breather: prefill.breather } : {}),
-    ...(prefill.json ? { json: prefill.json } : {}),
+    ...(prefill?.nioshRel ? { nioshRel: prefill.nioshRel } : {}),
+    ...(prefill?.nioshStel ? { nioshStel: prefill.nioshStel } : {}),
+    ...(prefill?.nioshCeiling ? { nioshCeiling: prefill.nioshCeiling } : {}),
+    ...(prefill?.ipvs ? { ipvs: prefill.ipvs } : {}),
+    ...(prefill?.oshaPel ? { oshaPel: prefill.oshaPel } : {}),
+    ...(prefill?.oshaStel ? { oshaStel: prefill.oshaStel } : {}),
+    ...(prefill?.oshaCeiling ? { oshaCeiling: prefill.oshaCeiling } : {}),
+    ...(prefill?.unit ? { unit: prefill.unit } : {}),
+    ...(prefill?.breather ? { breather: prefill.breather } : {}),
+    ...(Object.keys(nextJson).length ? { json: nextJson } : {}),
   };
 }
 

@@ -1,15 +1,21 @@
 import { FC, useMemo, useState } from 'react';
 
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Tooltip, Typography } from '@mui/material';
 import type {
   UseFormGetValues,
   UseFormSetValue,
   UseFormWatch,
 } from 'react-hook-form';
 
-import { enrichChemicalOccupationalData } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
-import type { ChemicalOccupationalEnrichResult } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import {
+  enrichChemicalOccupationalData,
+  recordOccupationalSearchAuditIncomplete,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
+import type {
+  ChemicalOccupationalEnrichResult,
+  ChemicalOccupationalSearchAudit,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { pickDefaultWorkspace } from 'core/utils/helpers/pick-default-workspace.util';
@@ -26,6 +32,11 @@ import {
 } from './OccupationalLimitReviewDialog';
 import type { OccupationalLimitFormSnapshot } from './occupational-limit-apply.util';
 import { assertNoLegacyLimitString } from './occupational-limit-apply.util';
+import {
+  formatOccupationalSearchStatusLabel,
+  formatOccupationalSearchTooltip,
+  parseOccupationalSearchAudit,
+} from './occupational-search-status.util';
 
 type OccupationalLimitSearchButtonProps = {
   riskData: Record<string, any>;
@@ -53,6 +64,12 @@ function snapshotFromForm(
     breather: values.breather ?? riskData.breather ?? null,
     json: (riskData.json as OccupationalLimitFormSnapshot['json']) || null,
   };
+}
+
+function existingRiskId(riskData: Record<string, any>): string | null {
+  const id = String(riskData?.id || '').trim();
+  if (!id || id === 'undefined' || id === 'null') return null;
+  return id;
 }
 
 export const OccupationalLimitSearchButton: FC<
@@ -93,6 +110,23 @@ export const OccupationalLimitSearchButton: FC<
 
   const watchedCas = watch('cas');
 
+  const persistedAudit = useMemo(
+    () => parseOccupationalSearchAudit(riskData.json),
+    [riskData.json],
+  );
+  const statusLabel = formatOccupationalSearchStatusLabel(persistedAudit);
+  const statusTooltip = formatOccupationalSearchTooltip(persistedAudit);
+
+  const mirrorAuditLocally = (audit: ChemicalOccupationalSearchAudit) => {
+    setRiskData((current) => ({
+      ...current,
+      json: {
+        ...(current.json || {}),
+        occupationalSearch: audit,
+      },
+    }));
+  };
+
   const handleSearch = async () => {
     const values = getValues();
     const current = snapshotFromForm(riskData, values);
@@ -112,6 +146,8 @@ export const OccupationalLimitSearchButton: FC<
       return;
     }
 
+    const riskId = existingRiskId(riskData);
+
     setLoading(true);
     setResult(null);
     try {
@@ -121,9 +157,15 @@ export const OccupationalLimitSearchButton: FC<
         cas,
         officialName: values.name || riskData.name || null,
         targetUnit: current.unit || values.unit || riskData.unit || null,
+        persistToRiskId: riskId,
       });
       setSnapshotAtSearch(current);
       setResult(enrich);
+      // Espelha audit no estado local (persistido na API se RF existente).
+      // Cancelar o modal de revisão NÃO apaga este registro.
+      if (enrich.searchAudit) {
+        mirrorAuditLocally(enrich.searchAudit);
+      }
       setReviewOpen(true);
     } catch (error: any) {
       const message =
@@ -131,6 +173,23 @@ export const OccupationalLimitSearchButton: FC<
         error?.message ||
         'Falha ao pesquisar limites ocupacionais.';
       enqueueSnackbar(String(message), { variant: 'error' });
+
+      if (riskId) {
+        try {
+          const incomplete = await recordOccupationalSearchAuditIncomplete({
+            companyId: resolvedCompanyId,
+            workspaceId: resolvedWorkspaceId,
+            riskId,
+            cas,
+            message: String(message),
+          });
+          if (incomplete?.occupationalSearch) {
+            mirrorAuditLocally(incomplete.occupationalSearch);
+          }
+        } catch {
+          // Falha silenciosa no registro de incompleto — não bloquear UX.
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -177,6 +236,11 @@ export const OccupationalLimitSearchButton: FC<
         next.json = {
           ...(current.json || {}),
           ...patch.json,
+          // Preserva auditoria já espelhada/persistida.
+          occupationalSearch:
+            patch.json.occupationalSearch ||
+            current.json?.occupationalSearch ||
+            undefined,
           ipvs: {
             ...(current.json?.ipvs || {}),
             ...(patch.json.ipvs || {}),
@@ -214,10 +278,26 @@ export const OccupationalLimitSearchButton: FC<
         >
           {loading ? 'Pesquisando…' : 'Pesquisar limites ocupacionais'}
         </Button>
-        <Typography variant="caption" color="text.secondary">
-          Consulta NIOSH/OSHA · revisão humana · não salva automaticamente
-        </Typography>
+        <Tooltip
+          title={
+            <Box component="span" sx={{ whiteSpace: 'pre-line' }}>
+              {statusTooltip}
+            </Box>
+          }
+          arrow
+        >
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ cursor: 'help', maxWidth: 420 }}
+          >
+            {statusLabel}
+          </Typography>
+        </Tooltip>
       </Box>
+      <Typography variant="caption" color="text.secondary" display="block">
+        Consulta NIOSH/OSHA · revisão humana · não salva automaticamente
+      </Typography>
       <OccupationalLimitSearchBusy loading={loading} />
 
       <OccupationalLimitCasRequiredDialog
