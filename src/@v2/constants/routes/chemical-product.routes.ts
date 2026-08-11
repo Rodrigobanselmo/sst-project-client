@@ -55,4 +55,14 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/validate/preview',
   EXCEL_VALIDATE_EXPORT_CORRECTED:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/validate/export-corrected',
+  EXCEL_SURVEY_IMPORT_PREVIEW:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/survey/import/preview',
+  EXCEL_SURVEY_IMPORT_COMMIT:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/survey/import/commit',
+  USE_SCENARIOS:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios',
+  USE_SCENARIO_BY_ID:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/:scenarioId',
+  USE_SCENARIOS_BY_PRODUCT:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/use-scenarios',
 } as const;

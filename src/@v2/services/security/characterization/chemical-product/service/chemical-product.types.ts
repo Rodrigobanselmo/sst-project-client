@@ -797,3 +797,99 @@ export type ChemicalExcelImportPreview = {
   }>;
   issues: ChemicalExcelIssue[];
 };
+
+export type ChemicalSurveyStatus =
+  | 'RASCUNHO'
+  | 'LEVANTAMENTO_EM_ANDAMENTO'
+  | 'LEVANTAMENTO_CONCLUIDO'
+  | 'AGUARDANDO_ANALISE_TECNICA';
+
+export type ChemicalUseScenarioListItem = {
+  id: string;
+  chemicalProductId: string;
+  surveyStatus: ChemicalSurveyStatus;
+  activityName: string | null;
+  sectorSnapshot: string | null;
+  exposureGroupSnapshot: string | null;
+  exposedRolesSnapshot: string | null;
+  frequencyCount: number | null;
+  frequencyPeriod: string | null;
+  durationMinutes: number | null;
+  quantity: string | null;
+  quantityUnit: string | null;
+  peakContactMoment: string | null;
+  controlMeasures: string | null;
+  linachHint: string | null;
+  relevanceHint: string | null;
+  sourceSheet: string | null;
+  sourceRows: number[];
+  sourceProductLabel: string | null;
+  sourceRaw: unknown;
+  product: {
+    id: string;
+    tradeName: string;
+    manufacturer: string | null;
+    isPureSubstance: boolean;
+    status: string;
+    activeComposition: {
+      id: string;
+      ingredients: Array<{
+        id: string;
+        chemicalName: string;
+        cas: string | null;
+        concentrationKind: ChemicalConcentrationKind;
+        exactPercent: number | null;
+        minPercent: number | null;
+        maxPercent: number | null;
+        riskFactorId: string | null;
+      }>;
+    } | null;
+  };
+};
+
+export type ChemicalSurveyProductKeyMapEntry = {
+  tradeName: string;
+  manufacturer?: string | null;
+  chemicalProductId: string;
+};
+
+export type ChemicalSurveyPreviewScenario = {
+  clusterKey: string;
+  productResolution: 'MATCH_UNIQUE' | 'MATCH_AMBIGUOUS' | 'MATCH_NOT_FOUND';
+  chemicalProductId: string | null;
+  productCandidates: Array<{
+    id: string;
+    tradeName: string;
+    manufacturer: string | null;
+  }>;
+  productKey: string;
+  tradeName: string;
+  manufacturer: string | null;
+  activityName: string | null;
+  sourceRows: number[];
+  canCommit: boolean;
+  blockers: string[];
+};
+
+export type ChemicalSurveyImportPreview = {
+  mode: 'SURVEY';
+  fileName: string;
+  sheetName: string;
+  summary: {
+    sourceRows: number;
+    scenarioClusters: number;
+    matchUnique: number;
+    matchAmbiguous: number;
+    matchNotFound: number;
+    canCommitCount: number;
+    blockedCount: number;
+  };
+  scenarios: ChemicalSurveyPreviewScenario[];
+  productKeys: Array<{
+    productKey: string;
+    tradeName: string;
+    manufacturer: string | null;
+    resolution: string;
+    chemicalProductId: string | null;
+  }>;
+};

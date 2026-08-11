@@ -52,6 +52,8 @@ import { ChemicalExcelPrepareDialog } from './ChemicalExcelPrepareDialog';
 import { ChemicalExcelValidateDialog } from './ChemicalExcelValidateDialog';
 import { ChemicalProductDetailDialog } from './ChemicalProductDetailDialog';
 import { ChemicalProductFormDialog } from './ChemicalProductFormDialog';
+import { ChemicalSurveyImportDialog } from './ChemicalSurveyImportDialog';
+import { ChemicalUseScenariosPanel } from './ChemicalUseScenariosPanel';
 
 function formatConcentration(item: {
   concentrationKind: string;
@@ -222,6 +224,9 @@ export const ChemicalProductsPageContent = ({
   const [excelImportOpen, setExcelImportOpen] = useState(false);
   const [excelPrepareOpen, setExcelPrepareOpen] = useState(false);
   const [excelValidateOpen, setExcelValidateOpen] = useState(false);
+  const [surveyImportOpen, setSurveyImportOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'products' | 'scenarios'>('products');
+  const [scenariosRefreshKey, setScenariosRefreshKey] = useState(0);
   const { isMaster } = useAccess();
 
   const navItems = useMemo(
@@ -442,11 +447,25 @@ export const ChemicalProductsPageContent = ({
             Inventário e Triagem de Produtos Químicos
           </SText>
           <SText fontSize={13} color="text.secondary">
-            Cadastro manual, produto puro, FISPQ, Excel TECHNICAL, composição
-            versionada e exportação do inventário do estabelecimento.
+            Cadastro manual, produto puro, FISPQ, Excel TECHNICAL, levantamento
+            SURVEY (cenários de uso), composição versionada e exportação do
+            inventário do estabelecimento.
           </SText>
         </Box>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Button
+            variant={viewMode === 'products' ? 'contained' : 'outlined'}
+            onClick={() => setViewMode('products')}
+          >
+            Produtos
+          </Button>
+          <Button
+            variant={viewMode === 'scenarios' ? 'contained' : 'outlined'}
+            onClick={() => setViewMode('scenarios')}
+            disabled={!workspaceId}
+          >
+            Cenários de uso
+          </Button>
           <Button
             variant="outlined"
             disabled={downloadExcelTemplate.isPending || !workspaceId}
@@ -469,6 +488,15 @@ export const ChemicalProductsPageContent = ({
             sx={{ ml: 0.5 }}
           >
             Importar Excel
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => setSurveyImportOpen(true)}
+            disabled={!workspaceId}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Importar levantamento (SURVEY)
           </Button>
           <Button
             variant="outlined"
@@ -499,6 +527,17 @@ export const ChemicalProductsPageContent = ({
         </Stack>
       </SFlex>
 
+      {viewMode === 'scenarios' && workspaceId ? (
+        <Box mb={3}>
+          <ChemicalUseScenariosPanel
+            companyId={companyId}
+            workspaceId={workspaceId}
+            refreshKey={scenariosRefreshKey}
+          />
+        </Box>
+      ) : null}
+
+      {viewMode === 'products' ? (
       <SFlex mb={2} gap={2} alignItems="center" flexWrap="wrap">
         <TextField
           size="small"
@@ -517,17 +556,20 @@ export const ChemicalProductsPageContent = ({
           label="Incluir arquivados"
         />
       </SFlex>
+      ) : null}
 
-      {isError ? (
+      {viewMode === 'products' && isError ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {(error as Error)?.message ||
             'Não foi possível carregar os produtos.'}
         </Alert>
       ) : null}
 
-      {isLoading ? (
+      {viewMode === 'products' && isLoading ? (
         <SSkeleton height={240} />
-      ) : (
+      ) : null}
+
+      {viewMode === 'products' && !isLoading ? (
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -644,7 +686,7 @@ export const ChemicalProductsPageContent = ({
             ) : null}
           </TableBody>
         </Table>
-      )}
+      ) : null}
 
       <ChemicalProductFormDialog
         open={createOpen || Boolean(editProduct)}
@@ -666,6 +708,17 @@ export const ChemicalProductsPageContent = ({
         onClose={() => setExcelImportOpen(false)}
         companyId={companyId}
         workspaceId={workspaceId}
+      />
+
+      <ChemicalSurveyImportDialog
+        open={surveyImportOpen}
+        onClose={() => setSurveyImportOpen(false)}
+        companyId={companyId}
+        workspaceId={workspaceId}
+        onCommitted={() => {
+          setViewMode('scenarios');
+          setScenariosRefreshKey((value) => value + 1);
+        }}
       />
 
       <ChemicalExcelPrepareDialog

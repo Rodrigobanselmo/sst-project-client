@@ -789,3 +789,115 @@ export async function downloadChemicalExcelValidateCorrected(
     throw err;
   }
 }
+
+export async function browseChemicalUseScenarios(
+  params: WorkspaceParams & {
+    chemicalProductId?: string;
+    search?: string;
+    surveyStatus?: string;
+  },
+) {
+  const response = await api.get<
+    import('./chemical-product.types').ChemicalUseScenarioListItem[]
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIOS,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    {
+      params: {
+        chemicalProductId: params.chemicalProductId,
+        search: params.search || undefined,
+        surveyStatus: params.surveyStatus || undefined,
+      },
+    },
+  );
+  return response.data;
+}
+
+export async function browseChemicalUseScenariosByProduct(
+  params: WorkspaceParams & { productId: string },
+) {
+  const response = await api.get<
+    import('./chemical-product.types').ChemicalUseScenarioListItem[]
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIOS_BY_PRODUCT,
+      pathParams: params,
+    }),
+  );
+  return response.data;
+}
+
+export async function readChemicalUseScenario(
+  params: WorkspaceParams & { scenarioId: string },
+) {
+  const response = await api.get<
+    import('./chemical-product.types').ChemicalUseScenarioListItem
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIO_BY_ID,
+      pathParams: params,
+    }),
+  );
+  return response.data;
+}
+
+export async function previewChemicalSurveyImport(
+  params: WorkspaceParams & {
+    file: File;
+    sheetName?: string;
+    productKeyMap?: import('./chemical-product.types').ChemicalSurveyProductKeyMapEntry[];
+  },
+) {
+  const formData = new FormData();
+  formData.append('file', params.file);
+  if (params.sheetName) formData.append('sheetName', params.sheetName);
+  if (params.productKeyMap?.length) {
+    formData.append('productKeyMap', JSON.stringify(params.productKeyMap));
+  }
+  const response = await api.post<
+    import('./chemical-product.types').ChemicalSurveyImportPreview
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.EXCEL_SURVEY_IMPORT_PREVIEW,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return response.data;
+}
+
+export async function commitChemicalSurveyImport(
+  params: WorkspaceParams & {
+    file: File;
+    sheetName?: string;
+    productKeyMap?: import('./chemical-product.types').ChemicalSurveyProductKeyMapEntry[];
+  },
+) {
+  const formData = new FormData();
+  formData.append('file', params.file);
+  if (params.sheetName) formData.append('sheetName', params.sheetName);
+  if (params.productKeyMap?.length) {
+    formData.append('productKeyMap', JSON.stringify(params.productKeyMap));
+  }
+  const response = await api.post(
+    bindUrlParams({
+      path: ChemicalProductRoutes.EXCEL_SURVEY_IMPORT_COMMIT,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return response.data;
+}
