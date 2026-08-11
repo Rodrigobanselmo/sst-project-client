@@ -464,8 +464,9 @@ export const ChemicalProductsPageContent = ({
             Exportar Excel
           </Button>
           <Button
-            variant="outlined"
+            variant="contained"
             onClick={() => setExcelImportOpen(true)}
+            sx={{ ml: 0.5 }}
           >
             Importar Excel
           </Button>
@@ -473,7 +474,7 @@ export const ChemicalProductsPageContent = ({
             variant="outlined"
             color="secondary"
             onClick={() => setExcelPrepareOpen(true)}
-            sx={{ whiteSpace: 'nowrap' }}
+            sx={{ ml: 0.5, whiteSpace: 'nowrap' }}
           >
             Preparar planilha para importação
           </Button>
@@ -491,7 +492,7 @@ export const ChemicalProductsPageContent = ({
               setEditProduct(null);
               setCreateOpen(true);
             }}
-            sx={{ whiteSpace: 'nowrap' }}
+            sx={{ ml: 0.5, whiteSpace: 'nowrap' }}
           >
             Novo produto
           </Button>

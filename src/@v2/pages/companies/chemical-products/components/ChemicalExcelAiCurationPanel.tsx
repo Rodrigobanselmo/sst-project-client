@@ -86,6 +86,7 @@ import {
   pruneSelectionToActiveQueue,
   resolveCurationQueueFilter,
   slimEvidencesForExport,
+  suggestionTypeChipLabel,
   type ChemicalAiCurationProgress,
   type CurationFilter,
 } from './chemical-ai-curation-ui.util';
@@ -95,21 +96,6 @@ export type { CurationFilter } from './chemical-ai-curation-ui.util';
 export { isBatchConfirmEligible } from './chemical-ai-curation-ui.util';
 
 const PAGE_SIZE = CURATION_QUEUE_PAGE_SIZE;
-
-function typeLabel(type: string) {
-  switch (type) {
-    case 'EXISTING_RISK_MATCH':
-      return 'Vínculo com catálogo SimpleSST';
-    case 'CHEMICAL_IDENTITY':
-      return 'Identidade química (sem fator no catálogo)';
-    case 'SPLIT_COMPONENT':
-      return 'Divisão em substâncias';
-    case 'INSUFFICIENT_EVIDENCE':
-      return 'Evidência insuficiente';
-    default:
-      return type;
-  }
-}
 
 function classificationLabel(value: string | null | undefined) {
   if (value === 'SINGLE_CHEMICAL') return 'Substância única';
@@ -1463,7 +1449,11 @@ export const ChemicalExcelAiCurationPanel = ({
                         >
                           <Chip
                             size="small"
-                            label={typeLabel(suggestion.type)}
+                            label={suggestionTypeChipLabel({
+                              type: suggestion.type,
+                              catalogLinkStatus: suggestion.catalogLinkStatus,
+                              riskFactorId: top?.riskFactorId,
+                            })}
                           />
                           <Chip
                             size="small"

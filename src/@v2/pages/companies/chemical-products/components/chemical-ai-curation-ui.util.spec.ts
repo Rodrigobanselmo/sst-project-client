@@ -21,8 +21,10 @@ import {
   resolveCurationQueueFilter,
   formatCurationElapsedMs,
   formatCurationProcessingLabel,
+  getCurationCatalogActionMode,
   slimDecisionForExport,
   slimEvidencesForExport,
+  suggestionTypeChipLabel,
 } from './chemical-ai-curation-ui.util';
 
 function assert(condition: boolean, message: string) {
@@ -451,6 +453,100 @@ function run() {
   assert(
     payloadBytes < 1_048_576,
     `payload slim de 139 decisões deve caber em 1MB, got ${payloadBytes}`,
+  );
+
+  // --- getCurationCatalogActionMode (catálogo ↔ decisão) ---
+  const uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+
+  assert(
+    getCurationCatalogActionMode({
+      suggestionType: 'EXISTING_RISK_MATCH',
+      catalogLinkStatus: 'exact',
+      riskFactorId: uuid,
+    }) === 'confirm_exact',
+    'exact + EXISTING_RISK_MATCH + UUID → confirm_exact',
+  );
+
+  assert(
+    getCurationCatalogActionMode({
+      suggestionType: 'CHEMICAL_IDENTITY',
+      catalogLinkStatus: 'exact',
+      riskFactorId: uuid,
+    }) === 'confirm_exact',
+    'exact + CHEMICAL_IDENTITY + UUID → confirm_exact (órfão de type)',
+  );
+
+  assert(
+    getCurationCatalogActionMode({
+      suggestionType: 'CHEMICAL_IDENTITY',
+      catalogLinkStatus: 'exact',
+      riskFactorId: null,
+    }) === 'search',
+    'exact sem UUID → search',
+  );
+
+  assert(
+    getCurationCatalogActionMode({
+      suggestionType: 'CHEMICAL_IDENTITY',
+      catalogLinkStatus: 'class',
+      riskFactorId: uuid,
+    }) === 'confirm_class',
+    'class + UUID → confirm_class',
+  );
+
+  assert(
+    getCurationCatalogActionMode({
+      suggestionType: 'EXISTING_RISK_MATCH',
+      catalogLinkStatus: 'multiple',
+      riskFactorId: uuid,
+    }) === 'choose_multiple',
+    'multiple → choose_multiple',
+  );
+
+  assert(
+    getCurationCatalogActionMode({
+      suggestionType: 'CHEMICAL_IDENTITY',
+      catalogLinkStatus: 'none',
+      riskFactorId: null,
+    }) === 'search',
+    'none / sem match → search',
+  );
+
+  assert(
+    getCurationCatalogActionMode({
+      suggestionType: 'CHEMICAL_IDENTITY',
+      catalogLinkStatus: undefined,
+      riskFactorId: null,
+    }) === 'search',
+    'sem catalogLinkStatus → search',
+  );
+
+  // Chip: CHEMICAL_IDENTITY + exact + UUID não deve dizer "sem fator"
+  assert(
+    suggestionTypeChipLabel({
+      type: 'CHEMICAL_IDENTITY',
+      catalogLinkStatus: 'exact',
+      riskFactorId: uuid,
+    }) === 'Identidade química identificada',
+    'chip CHEMICAL_IDENTITY+exact+UUID neutro',
+  );
+
+  assert(
+    suggestionTypeChipLabel({
+      type: 'CHEMICAL_IDENTITY',
+      catalogLinkStatus: 'none',
+      riskFactorId: null,
+    }) === 'Identidade química (sem fator no catálogo)',
+    'chip CHEMICAL_IDENTITY sem match mantém qualificação',
+  );
+
+  assert(
+    suggestionTypeChipLabel({
+      type: 'EXISTING_RISK_MATCH',
+      catalogLinkStatus: 'exact',
+      riskFactorId: uuid,
+    }) === 'Vínculo com catálogo SimpleSST',
+    'chip EXISTING_RISK_MATCH inalterado',
   );
 
   console.log('chemical-ai-curation-ui.util.spec: loading checks OK');

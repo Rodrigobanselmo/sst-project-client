@@ -207,17 +207,42 @@ export function getCurationCatalogActionMode(params: {
   if (riskFactorId && params.catalogLinkStatus === 'class') {
     return 'confirm_class';
   }
-  if (
-    riskFactorId &&
-    params.suggestionType === 'EXISTING_RISK_MATCH' &&
-    params.catalogLinkStatus === 'exact'
-  ) {
+  // Align with catalog UI: usable exact match is driven by status + UUID,
+  // not by suggestion.type (CHEMICAL_IDENTITY can still carry riskFactorId).
+  if (riskFactorId && params.catalogLinkStatus === 'exact') {
     return 'confirm_exact';
   }
   if (riskFactorId && params.treatRiskFactorIdAsDirectConfirm) {
     return 'confirm_exact';
   }
   return 'search';
+}
+
+/**
+ * Chip label for suggestion.type. Visual-only: when CHEMICAL_IDENTITY already
+ * has a usable catalog UUID, do not claim "sem fator no catálogo".
+ */
+export function suggestionTypeChipLabel(params: {
+  type: string;
+  catalogLinkStatus?: AiCurationSuggestion['catalogLinkStatus'];
+  riskFactorId?: string | null;
+}): string {
+  if (params.type === 'EXISTING_RISK_MATCH') {
+    return 'Vínculo com catálogo SimpleSST';
+  }
+  if (params.type === 'CHEMICAL_IDENTITY') {
+    const riskFactorId = params.riskFactorId?.trim() || null;
+    const hasUsableCatalogMatch =
+      Boolean(riskFactorId) &&
+      (params.catalogLinkStatus === 'exact' ||
+        params.catalogLinkStatus === 'class');
+    return hasUsableCatalogMatch
+      ? 'Identidade química identificada'
+      : 'Identidade química (sem fator no catálogo)';
+  }
+  if (params.type === 'SPLIT_COMPONENT') return 'Divisão em substâncias';
+  if (params.type === 'INSUFFICIENT_EVIDENCE') return 'Evidência insuficiente';
+  return params.type;
 }
 
 export function partitionPubChemEvidences(evidences: AiCurationEvidence[]) {
