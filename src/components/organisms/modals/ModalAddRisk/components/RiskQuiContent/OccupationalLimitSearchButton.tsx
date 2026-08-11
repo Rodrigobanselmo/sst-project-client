@@ -287,9 +287,23 @@ export const OccupationalLimitSearchButton: FC<
           arrow
         >
           <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ cursor: 'help', maxWidth: 420 }}
+            variant="body2"
+            color={
+              persistedAudit?.status === 'FOUND'
+                ? 'success.main'
+                : persistedAudit?.status === 'REVIEW_REQUIRED'
+                  ? 'warning.main'
+                  : persistedAudit?.status === 'INCOMPLETE'
+                    ? 'error.main'
+                    : persistedAudit?.status === 'NOT_FOUND'
+                      ? 'text.primary'
+                      : 'text.secondary'
+            }
+            sx={{
+              cursor: 'help',
+              maxWidth: 480,
+              fontWeight: persistedAudit?.status ? 600 : 400,
+            }}
           >
             {statusLabel}
           </Typography>

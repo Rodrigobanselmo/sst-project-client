@@ -15,6 +15,7 @@ import { StackModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useDuplicateRiskFactor } from 'core/hooks/useDuplicateRiskFactor';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryRisk';
+import { pickRisksListQueryFromRouter } from 'components/organisms/tables/RisksTable/risksListQuery.util';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
@@ -34,7 +35,11 @@ const RiskEditPage: NextPage = () => {
   );
 
   const handleBackToList = () => {
-    router.push(RoutesEnum.RISKS.replace(/:companyId/g, companyId));
+    const listQuery = pickRisksListQueryFromRouter(router.query);
+    void router.push({
+      pathname: RoutesEnum.RISKS.replace(/:companyId/g, companyId),
+      query: listQuery,
+    });
   };
 
   const props = useAddRisk({

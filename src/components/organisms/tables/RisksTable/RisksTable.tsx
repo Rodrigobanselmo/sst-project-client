@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Box,
@@ -29,6 +29,7 @@ import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import { initialAddRiskState } from 'components/organisms/modals/ModalAddRisk/hooks/useAddRisk';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
+import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SReloadIcon from 'assets/icons/SReloadIcon';
@@ -65,10 +66,16 @@ import {
   RiskRegisteredColumnId,
   RiskRegisteredListSortBy,
 } from './registeredRisksTable.types';
+import {
+  buildRegisteredFiltersFromUrl,
+  parseRisksListQuery,
+  RISKS_LIST_QUERY_KEYS,
+  risksListQueryEqual,
+  serializeRisksListQuery,
+  type RiskStatusFilter,
+} from './risksListQuery.util';
 import { useQueryRisks } from '@/core/services/hooks/queries/useQueryRisks/useQueryRisks';
 import { effectiveRiskStatus } from 'core/utils/effectiveRiskStatus';
-
-type RiskStatusFilter = 'ACTIVE' | 'INACTIVE' | 'ALL';
 
 type ColumnDef = {
   id: RiskRegisteredColumnId;
@@ -84,7 +91,10 @@ export const RisksTable: FC<
       onSelectData?: (company: IRiskFactors) => void;
       selectedData?: IRiskFactors[];
       query?: IQueryExam;
-      onEditRisk?: (risk: IRiskFactors) => void;
+      onEditRisk?: (
+        risk: IRiskFactors,
+        listQuery?: Record<string, string>,
+      ) => void;
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
@@ -92,27 +102,129 @@ export const RisksTable: FC<
   selectedData,
   onEditRisk: onEditRiskExternal,
 }) => {
-  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
-  const filterProps = useFilterTable(undefined, {
-    setPage,
+  const router = useRouter();
+  const initialList = useMemo(
+    () => parseRisksListQuery(router.query),
+    // Hydrate once from the URL when the table mounts (list page waits for router.isReady).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const { handleSearchChange, search, page, setPage } = useTableSearchAsync({
+    initialSearch: initialList.search,
+    initialPage: initialList.page,
   });
-  const [statusFilter, setStatusFilter] =
-    useState<RiskStatusFilter>('ACTIVE');
+  const filterProps = useFilterTable(
+    buildRegisteredFiltersFromUrl(initialList),
+  );
+  const [statusFilter, setStatusFilter] = useState<RiskStatusFilter>(
+    initialList.status,
+  );
 
   const isSelect = !!onSelectData;
 
-  const [sort, setSort] = useState<StoredRiskRegisteredSort | null>(() =>
-    loadRisksRegisteredSort(),
+  const [sort, setSort] = useState<StoredRiskRegisteredSort | null>(
+    () => initialList.sort || loadRisksRegisteredSort(),
   );
   const [hiddenColumns, setHiddenColumns] = useState<
     Partial<Record<RiskRegisteredColumnId, boolean>>
   >(() => loadRisksRegisteredHiddenColumns());
 
-  const [pageSize, setPageSize] = useState(() =>
-    typeof rowsPerPageProp === 'number'
-      ? rowsPerPageProp
-      : loadRisksRegisteredPageSize(),
-  );
+  const [pageSize, setPageSize] = useState(() => {
+    if (typeof rowsPerPageProp === 'number') return rowsPerPageProp;
+    if (
+      initialList.pageSize &&
+      isAllowedRisksRegisteredPageSize(initialList.pageSize)
+    ) {
+      return initialList.pageSize;
+    }
+    return loadRisksRegisteredPageSize();
+  });
+
+  const prevFiltersQueryKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    // Only reset page when filter *content* actually changes (user action).
+    // Do NOT reset on mount / Strict Mode double-invoke / same-content remounts —
+    // that was wiping hydrated `page` from the URL after edit → list return.
+    const key = JSON.stringify(filterProps.filtersQuery ?? {});
+    if (prevFiltersQueryKeyRef.current === null) {
+      prevFiltersQueryKeyRef.current = key;
+      return;
+    }
+    if (prevFiltersQueryKeyRef.current === key) return;
+    prevFiltersQueryKeyRef.current = key;
+    setPage(1);
+  }, [filterProps.filtersQuery, setPage]);
+
+  // Keep list context in the URL (source of truth for edit → list return).
+  useEffect(() => {
+    if (isSelect || !router.isReady) return;
+
+    const companyId = router.query.companyId;
+    if (!companyId || Array.isArray(companyId)) return;
+
+    const serialized = serializeRisksListQuery({
+      search,
+      page,
+      pageSize: typeof rowsPerPageProp === 'number' ? null : pageSize,
+      status: statusFilter,
+      riskTypes: (filterProps.filtersQuery.riskTypes as string[]) || [],
+      severities: (
+        (filterProps.filtersQuery.severities as Array<string | number>) || []
+      )
+        .map((n) => Number(n))
+        .filter((n) => Number.isFinite(n)),
+      riskSubTypeIds: (
+        (filterProps.filtersQuery.riskSubTypeIds as Array<string | number>) ||
+        []
+      )
+        .map((n) => Number(n))
+        .filter((n) => Number.isFinite(n)),
+      mustIsPGR: Boolean(filterProps.filtersQuery.mustIsPGR),
+      mustIsPPP: Boolean(filterProps.filtersQuery.mustIsPPP),
+      mustIsPCMSO: Boolean(filterProps.filtersQuery.mustIsPCMSO),
+      mustIsAso: Boolean(filterProps.filtersQuery.mustIsAso),
+      sort,
+    });
+
+    const nextQuery: Record<string, string> = {
+      companyId,
+      ...serialized,
+    };
+    const active = router.query.active;
+    if (typeof active === 'string' && active !== '') {
+      nextQuery.active = active;
+    }
+
+    const currentQuery: Record<string, string> = { companyId };
+    for (const key of [...RISKS_LIST_QUERY_KEYS, 'active'] as const) {
+      const value = router.query[key];
+      if (typeof value === 'string' && value !== '') {
+        currentQuery[key] = value;
+      }
+    }
+
+    if (risksListQueryEqual(nextQuery, currentQuery)) return;
+
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: nextQuery,
+      },
+      undefined,
+      { shallow: true },
+    );
+  }, [
+    isSelect,
+    router,
+    search,
+    page,
+    pageSize,
+    statusFilter,
+    filterProps.filtersQuery,
+    sort,
+    rowsPerPageProp,
+  ]);
 
   const queryWithSort = useMemo(() => {
     const fq = { ...filterProps.filtersQuery };
@@ -169,9 +281,51 @@ export const RisksTable: FC<
     onStackOpenModal(ModalEnum.RISK_ADD, {} as typeof initialAddRiskState);
   };
 
+  const buildListQueryForNavigation = useCallback(() => {
+    const serialized = serializeRisksListQuery({
+      search,
+      page,
+      pageSize: typeof rowsPerPageProp === 'number' ? null : pageSize,
+      status: statusFilter,
+      riskTypes: (filterProps.filtersQuery.riskTypes as string[]) || [],
+      severities: (
+        (filterProps.filtersQuery.severities as Array<string | number>) || []
+      )
+        .map((n) => Number(n))
+        .filter((n) => Number.isFinite(n)),
+      riskSubTypeIds: (
+        (filterProps.filtersQuery.riskSubTypeIds as Array<string | number>) ||
+        []
+      )
+        .map((n) => Number(n))
+        .filter((n) => Number.isFinite(n)),
+      mustIsPGR: Boolean(filterProps.filtersQuery.mustIsPGR),
+      mustIsPPP: Boolean(filterProps.filtersQuery.mustIsPPP),
+      mustIsPCMSO: Boolean(filterProps.filtersQuery.mustIsPCMSO),
+      mustIsAso: Boolean(filterProps.filtersQuery.mustIsAso),
+      sort,
+    });
+    const active = router.query.active;
+    if (typeof active === 'string' && active !== '') {
+      return { ...serialized, active };
+    }
+    return serialized;
+  }, [
+    search,
+    page,
+    pageSize,
+    statusFilter,
+    filterProps.filtersQuery,
+    sort,
+    rowsPerPageProp,
+    router.query.active,
+  ]);
+
   const onEditRisk = (risk: IRiskFactors) => {
     if (onEditRiskExternal) {
-      onEditRiskExternal(risk);
+      // Prefer in-memory list state over router.query so a lagged shallow
+      // replace cannot drop `page` when opening /edit.
+      onEditRiskExternal(risk, buildListQueryForNavigation());
       return;
     }
 
@@ -392,6 +546,7 @@ export const RisksTable: FC<
       )}
       <STableSearch
         onAddClick={onAddRisk}
+        defaultValue={initialList.search}
         onChange={(e) => handleSearchChange(e.target.value)}
         filterProps={
           !isSelect

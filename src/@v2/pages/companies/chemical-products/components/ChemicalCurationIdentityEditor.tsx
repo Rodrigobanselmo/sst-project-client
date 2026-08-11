@@ -22,7 +22,7 @@ type Props = {
   disabled?: boolean;
   onChange: (next: ChemicalCurationIdentityDraft) => void;
   onConfirmIdentity: (next: ChemicalCurationIdentityDraft) => void;
-  /** Título do bloco (padrão: Identidade química — edição) */
+  /** Título do bloco (padrão: Identidade química proposta para curadoria) */
   title?: string;
 };
 
@@ -33,7 +33,7 @@ export function ChemicalCurationIdentityEditor({
   disabled,
   onChange,
   onConfirmIdentity,
-  title = 'Identidade química — edição manual',
+  title = 'Identidade química proposta para curadoria',
 }: Props) {
   const casFeedback = validateCasClientFeedback(draft.cas);
   const synonymsText = draft.synonyms.join(', ');

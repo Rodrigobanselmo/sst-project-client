@@ -41,6 +41,7 @@ import { useSnackbar } from 'notistack';
 
 import { ChemicalCurationCreateRiskDialog } from './ChemicalCurationCreateRiskDialog';
 import { ChemicalCurationIdentityEditor } from './ChemicalCurationIdentityEditor';
+import { ChemicalCurationSectionBox } from './ChemicalCurationSectionBox';
 import { ChemicalCurationSplitPartCard } from './ChemicalCurationSplitPartCard';
 import {
   buildConfirmSplitParts,
@@ -1323,6 +1324,10 @@ export const ChemicalExcelAiCurationPanel = ({
                   }}
                 >
                   <Stack spacing={1.25}>
+                    <ChemicalCurationSectionBox
+                      title="DADOS DA PLANILHA"
+                      tone="planilha"
+                    >
                     <Stack
                       direction="row"
                       spacing={1}
@@ -1394,7 +1399,23 @@ export const ChemicalExcelAiCurationPanel = ({
                           </SText>
                         </Box>
                       </Stack>
-                      {suggestion ? (
+                    </Stack>
+                    </ChemicalCurationSectionBox>
+
+                    {failure ? (
+                      <Alert severity="warning" sx={{ py: 0 }}>
+                        Falha: {failure.message}
+                      </Alert>
+                    ) : null}
+
+                    {suggestion ? (
+                      <>
+                        <ChemicalCurationSectionBox
+                          title="IDENTIDADE QUÍMICA IDENTIFICADA"
+                          tone="identidade"
+                          subtitle="Identidade reconhecida por fontes externas. Isso não significa que já exista um fator correspondente no catálogo SimpleSST."
+                        >
+                        <Stack spacing={1}>
                         <Stack
                           direction="row"
                           spacing={0.75}
@@ -1414,31 +1435,15 @@ export const ChemicalExcelAiCurationPanel = ({
                                   ? 'warning'
                                   : 'default'
                             }
-                            label={confidenceLabel(suggestion.confidence)}
+                            label={`Confiança IA: ${confidenceLabel(suggestion.confidence)}`}
                           />
                         </Stack>
-                      ) : null}
-                    </Stack>
-
-                    {failure ? (
-                      <Alert severity="warning" sx={{ py: 0 }}>
-                        Falha: {failure.message}
-                      </Alert>
-                    ) : null}
-
-                    {suggestion ? (
-                      <>
                         <SText fontSize={13}>
                           {humanizeCurationWarning(suggestion.rationale)}
                         </SText>
-                        <Stack spacing={1}>
                           <Box>
                             <SText fontSize={12} fontWeight={600} mb={0.5}>
-                              Identidade química
-                            </SText>
-                            <SText fontSize={11} color="text.secondary" mb={0.5}>
-                              Substância reconhecida por fontes externas (ex.:
-                              PubChem). Independente do vínculo com o catálogo.
+                              Resultado da identificação
                             </SText>
                             <Stack
                               direction="row"
@@ -1501,67 +1506,6 @@ export const ChemicalExcelAiCurationPanel = ({
                               ) : null}
                             </Stack>
                           </Box>
-                          <Box>
-                            <SText fontSize={12} fontWeight={600} mb={0.5}>
-                              Catálogo SimpleSST
-                            </SText>
-                            <SText fontSize={11} color="text.secondary" mb={0.5}>
-                              Vínculo com fator interno do sistema. Pode existir
-                              identidade química sem fator correspondente.
-                            </SText>
-                            <Stack
-                              direction="row"
-                              spacing={1}
-                              flexWrap="wrap"
-                              useFlexGap
-                            >
-                              <Chip
-                                size="small"
-                                color={
-                                  suggestion.catalogLinkStatus === 'exact'
-                                    ? 'success'
-                                    : suggestion.catalogLinkStatus === 'class'
-                                      ? 'warning'
-                                      : 'default'
-                                }
-                                label={catalogLinkStatusLabel(
-                                  suggestion.catalogLinkStatus,
-                                )}
-                              />
-                              {top?.riskFactorId &&
-                              (displayOfficialName(top.officialName) ||
-                                item.deterministicCandidates.find(
-                                  (c) => c.riskFactorId === top.riskFactorId,
-                                )?.riskFactorName) ? (
-                                <Chip
-                                  size="small"
-                                  variant="outlined"
-                                  label={`Fator: ${
-                                    displayOfficialName(top.officialName) ||
-                                    item.deterministicCandidates.find(
-                                      (c) =>
-                                        c.riskFactorId === top.riskFactorId,
-                                    )?.riskFactorName
-                                  }`}
-                                />
-                              ) : null}
-                              {suggestion.catalogLinkConfidence ? (
-                                <Chip
-                                  size="small"
-                                  variant="outlined"
-                                  label={`Vínculo: ${confidenceLabel(suggestion.catalogLinkConfidence)}`}
-                                />
-                              ) : null}
-                              {classWarning ? (
-                                <Chip
-                                  size="small"
-                                  color="warning"
-                                  label="Fator interno mais amplo"
-                                />
-                              ) : null}
-                            </Stack>
-                          </Box>
-                        </Stack>
 
                         {top?.warnings?.length ? (
                           <Alert severity="warning" sx={{ py: 0 }}>
@@ -1820,13 +1764,125 @@ export const ChemicalExcelAiCurationPanel = ({
                             ) : null}
                           </Stack>
                         </Collapse>
-                      </>
-                    ) : (
-                      <SText fontSize={12} color="text.secondary">
-                        Sem sugestão IA ainda.
-                      </SText>
-                    )}
 
+                        {suggestion.type !== 'SPLIT_COMPONENT' &&
+                        !decision &&
+                        identityDraft ? (
+                          <ChemicalCurationIdentityEditor
+                            draft={identityDraft}
+                            aiSynonyms={aiSynonyms}
+                            originalPlanilhaText={item.componentOriginal}
+                            disabled={busy}
+                            onChange={(next) =>
+                              onIdentityDraftsByScopeChange((prev) => ({
+                                ...prev,
+                                [itemScopeKey]: next,
+                              }))
+                            }
+                            onConfirmIdentity={(next) =>
+                              onIdentityDraftsByScopeChange((prev) => ({
+                                ...prev,
+                                [itemScopeKey]: next,
+                              }))
+                            }
+                          />
+                        ) : null}
+                        </Stack>
+                        </ChemicalCurationSectionBox>
+
+                        <ChemicalCurationSectionBox
+                          title="SITUAÇÃO NO CATÁLOGO SIMPLESST"
+                          tone="catalogo"
+                        >
+                          <Stack spacing={1}>
+                            {suggestion.catalogLinkStatus === 'exact' ||
+                            suggestion.catalogLinkStatus === 'class' ||
+                            suggestion.catalogLinkStatus === 'multiple' ||
+                            (suggestion.type === 'EXISTING_RISK_MATCH' &&
+                              Boolean(top?.riskFactorId)) ? (
+                              <>
+                                <SText fontSize={13} fontWeight={700} color="success.main">
+                                  Encontrado no catálogo SimpleSST
+                                </SText>
+                                <SText fontSize={11} color="text.secondary">
+                                  Há correspondência com fator interno do
+                                  sistema. Confirme ou ajuste o vínculo na
+                                  curadoria.
+                                </SText>
+                              </>
+                            ) : (
+                              <>
+                                <SText fontSize={13} fontWeight={700} color="text.primary">
+                                  Não encontrado no catálogo SimpleSST
+                                </SText>
+                                <SText fontSize={11} color="text.secondary">
+                                  A identidade química pode ter sido
+                                  reconhecida, porém não existe RiskFactor
+                                  correspondente confirmado no catálogo. Isso
+                                  não é um erro técnico — é o estado atual do
+                                  cadastro.
+                                </SText>
+                              </>
+                            )}
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              flexWrap="wrap"
+                              useFlexGap
+                            >
+                              <Chip
+                                size="small"
+                                color={
+                                  suggestion.catalogLinkStatus === 'exact'
+                                    ? 'success'
+                                    : suggestion.catalogLinkStatus === 'class'
+                                      ? 'warning'
+                                      : 'default'
+                                }
+                                label={catalogLinkStatusLabel(
+                                  suggestion.catalogLinkStatus,
+                                )}
+                              />
+                              {top?.riskFactorId &&
+                              (displayOfficialName(top.officialName) ||
+                                item.deterministicCandidates.find(
+                                  (c) => c.riskFactorId === top.riskFactorId,
+                                )?.riskFactorName) ? (
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  label={`Fator: ${
+                                    displayOfficialName(top.officialName) ||
+                                    item.deterministicCandidates.find(
+                                      (c) =>
+                                        c.riskFactorId === top.riskFactorId,
+                                    )?.riskFactorName
+                                  }`}
+                                />
+                              ) : null}
+                              {suggestion.catalogLinkConfidence ? (
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  label={`Vínculo: ${confidenceLabel(suggestion.catalogLinkConfidence)}`}
+                                />
+                              ) : null}
+                              {classWarning ? (
+                                <Chip
+                                  size="small"
+                                  color="warning"
+                                  label="Fator interno mais amplo"
+                                />
+                              ) : null}
+                            </Stack>
+                          </Stack>
+                        </ChemicalCurationSectionBox>
+
+                        <ChemicalCurationSectionBox
+                          title="CURADORIA / DECISÃO"
+                          tone="decisao"
+                        >
+                          <Stack spacing={1}>
                     {decision ? (
                       <Chip
                         size="small"
@@ -1987,30 +2043,6 @@ export const ChemicalExcelAiCurationPanel = ({
                           );
                         })}
                       </Stack>
-                    ) : null}
-
-                    {suggestion &&
-                    suggestion.type !== 'SPLIT_COMPONENT' &&
-                    !decision &&
-                    identityDraft ? (
-                      <ChemicalCurationIdentityEditor
-                        draft={identityDraft}
-                        aiSynonyms={aiSynonyms}
-                        originalPlanilhaText={item.componentOriginal}
-                        disabled={busy}
-                        onChange={(next) =>
-                          onIdentityDraftsByScopeChange((prev) => ({
-                            ...prev,
-                            [itemScopeKey]: next,
-                          }))
-                        }
-                        onConfirmIdentity={(next) =>
-                          onIdentityDraftsByScopeChange((prev) => ({
-                            ...prev,
-                            [itemScopeKey]: next,
-                          }))
-                        }
-                      />
                     ) : null}
 
                     {!decision &&
@@ -2247,6 +2279,14 @@ export const ChemicalExcelAiCurationPanel = ({
                         ) : null}
                       </Stack>
                     ) : null}
+                          </Stack>
+                        </ChemicalCurationSectionBox>
+                      </>
+                    ) : (
+                      <SText fontSize={12} color="text.secondary">
+                        Sem sugestão IA ainda.
+                      </SText>
+                    )}
                   </Stack>
                 </Box>
               );

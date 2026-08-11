@@ -2,11 +2,14 @@ import { useState } from 'react';
 
 import { useDebouncedCallback } from 'use-debounce';
 
-// interface IUseTableSearch {}
+type Options = {
+  initialSearch?: string;
+  initialPage?: number;
+};
 
-export const useTableSearchAsync = () => {
-  const [search, setSearch] = useState<string>('');
-  const [page, setPage] = useState(1);
+export const useTableSearchAsync = (options?: Options) => {
+  const [search, setSearch] = useState<string>(options?.initialSearch ?? '');
+  const [page, setPage] = useState(options?.initialPage ?? 1);
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
     setSearch(value);
