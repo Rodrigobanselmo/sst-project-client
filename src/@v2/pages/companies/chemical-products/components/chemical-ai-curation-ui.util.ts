@@ -188,6 +188,38 @@ export function catalogLinkStatusLabel(
   return 'Nenhum fator correspondente';
 }
 
+/** UX-only: which catalog action path to surface (does not change matching). */
+export type CurationCatalogActionMode =
+  | 'confirm_exact'
+  | 'confirm_class'
+  | 'choose_multiple'
+  | 'search';
+
+export function getCurationCatalogActionMode(params: {
+  suggestionType?: string | null;
+  catalogLinkStatus?: AiCurationSuggestion['catalogLinkStatus'];
+  riskFactorId?: string | null;
+  /** Split part: UUID on the part candidate is enough for direct confirm. */
+  treatRiskFactorIdAsDirectConfirm?: boolean;
+}): CurationCatalogActionMode {
+  const riskFactorId = params.riskFactorId?.trim() || null;
+  if (params.catalogLinkStatus === 'multiple') return 'choose_multiple';
+  if (riskFactorId && params.catalogLinkStatus === 'class') {
+    return 'confirm_class';
+  }
+  if (
+    riskFactorId &&
+    params.suggestionType === 'EXISTING_RISK_MATCH' &&
+    params.catalogLinkStatus === 'exact'
+  ) {
+    return 'confirm_exact';
+  }
+  if (riskFactorId && params.treatRiskFactorIdAsDirectConfirm) {
+    return 'confirm_exact';
+  }
+  return 'search';
+}
+
 export function partitionPubChemEvidences(evidences: AiCurationEvidence[]) {
   const confirmedCas: AiCurationEvidence[] = [];
   const registryNumbers: AiCurationEvidence[] = [];

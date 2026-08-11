@@ -11,9 +11,11 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import { useState } from 'react';
 
 import { ChemicalCurationIdentityEditor } from './ChemicalCurationIdentityEditor';
 import { ChemicalCurationSectionBox } from './ChemicalCurationSectionBox';
+import { getCurationCatalogActionMode } from './chemical-ai-curation-ui.util';
 import type {
   ChemicalCurationIdentityDraft,
   ChemicalCurationSplitPartDraft,
@@ -46,6 +48,8 @@ type Props = {
   onSelectFactor: (factor: ChemicalCurationPendingManualFactor) => void;
   onClearFactor: () => void;
   onConfirmManualFactor: () => void;
+  /** Confirm using the AI/part catalog candidate UUID (no re-search). */
+  onConfirmSuggestedFactor?: () => void;
   onKeepUnlinked: () => void;
   onRejectPart: () => void;
   onUndoResolution: () => void;
@@ -80,6 +84,7 @@ export function ChemicalCurationSplitPartCard({
   onSelectFactor,
   onClearFactor,
   onConfirmManualFactor,
+  onConfirmSuggestedFactor,
   onKeepUnlinked,
   onRejectPart,
   onUndoResolution,
@@ -87,9 +92,24 @@ export function ChemicalCurationSplitPartCard({
 }: Props) {
   const resolved = Boolean(part.resolution);
   const rejected = part.resolution?.action === 'REJECT_PART';
+  const [showManualSearch, setShowManualSearch] = useState(false);
+
+  const catalogActionMode = getCurationCatalogActionMode({
+    riskFactorId: aiCandidate?.riskFactorId,
+    treatRiskFactorIdAsDirectConfirm: true,
+  });
+  const canConfirmSuggested =
+    catalogActionMode === 'confirm_exact' &&
+    Boolean(aiCandidate?.riskFactorId) &&
+    Boolean(onConfirmSuggestedFactor);
   const catalogFound = Boolean(
     pendingFactor?.riskFactorId || aiCandidate?.riskFactorId,
   );
+  const showManualFactorSearch =
+    Boolean(pendingFactor) ||
+    showManualSearch ||
+    catalogActionMode === 'search' ||
+    !canConfirmSuggested;
 
   return (
     <Box
@@ -189,15 +209,27 @@ export function ChemicalCurationSplitPartCard({
                     }`}
                   />
                 ) : aiCandidate?.officialName ? (
-                  <Chip
-                    size="small"
-                    sx={{ mt: 1 }}
-                    color="success"
-                    variant="outlined"
-                    label={`Fator sugerido: ${aiCandidate.officialName}${
-                      aiCandidate.cas ? ` · CAS ${aiCandidate.cas}` : ''
-                    }`}
-                  />
+                  <Stack
+                    direction="row"
+                    spacing={0.75}
+                    flexWrap="wrap"
+                    useFlexGap
+                    mt={1}
+                  >
+                    <Chip
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                      label={`Fator sugerido: ${aiCandidate.officialName}`}
+                    />
+                    {aiCandidate.cas ? (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={`CAS: ${aiCandidate.cas}`}
+                      />
+                    ) : null}
+                  </Stack>
                 ) : null}
               </>
             ) : (
@@ -224,6 +256,33 @@ export function ChemicalCurationSplitPartCard({
               <SText fontSize={12} fontWeight={600}>
                 Ações para esta parte
               </SText>
+
+              {canConfirmSuggested && !pendingFactor ? (
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  flexWrap="wrap"
+                  useFlexGap
+                >
+                  <Button
+                    size="small"
+                    variant="contained"
+                    disabled={disabled || !identity.identityConfirmed}
+                    onClick={onConfirmSuggestedFactor}
+                  >
+                    Confirmar este vínculo
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={disabled}
+                    onClick={() => setShowManualSearch(true)}
+                  >
+                    Escolher outro fator
+                  </Button>
+                </Stack>
+              ) : null}
+
               {pendingFactor ? (
                 <Alert
                   severity="success"
@@ -237,7 +296,7 @@ export function ChemicalCurationSplitPartCard({
                   <strong>{pendingFactor.officialName}</strong>
                   {pendingFactor.cas ? ` · CAS ${pendingFactor.cas}` : ''}
                 </Alert>
-              ) : (
+              ) : showManualFactorSearch ? (
                 <>
                   <Stack direction="row" spacing={1}>
                     <TextField
@@ -284,7 +343,7 @@ export function ChemicalCurationSplitPartCard({
                     </Button>
                   ) : null}
                 </>
-              )}
+              ) : null}
 
               <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
                 {pendingFactor ? (

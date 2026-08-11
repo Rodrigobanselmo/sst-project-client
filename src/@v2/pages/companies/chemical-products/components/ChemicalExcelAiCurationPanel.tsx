@@ -75,6 +75,7 @@ import {
   formatCurationProcessingLabel,
   getActiveCurationPendingItems,
   getActiveSelectionIds,
+  getCurationCatalogActionMode,
   humanizeCurationWarning,
   identityStatusLabel,
   initialCurationFilter,
@@ -243,6 +244,10 @@ export const ChemicalExcelAiCurationPanel = ({
     Record<string, ChemicalRiskOption[]>
   >({});
   const [searchBusy, setSearchBusy] = useState<string | null>(null);
+  /** Show manual factor search after "Escolher outro fator" (or when no direct match). */
+  const [manualFactorSearchByScope, setManualFactorSearchByScope] = useState<
+    Record<string, boolean>
+  >({});
   const [elapsedMs, setElapsedMs] = useState(0);
   const [createRiskSession, setCreateRiskSession] = useState<{
     scopeKey: string;
@@ -787,9 +792,11 @@ export const ChemicalExcelAiCurationPanel = ({
   const confirmPendingManualFactor = (
     sourceRowId: string,
     partId?: string | null,
+    factorOverride?: ChemicalCurationPendingManualFactor | null,
   ) => {
     const scopeKey = curationDraftScopeKey(sourceRowId, partId);
-    const pendingFactor = pendingManualFactorByScope[scopeKey];
+    const pendingFactor =
+      factorOverride || pendingManualFactorByScope[scopeKey];
     if (!pendingFactor) return;
     const suggestion = suggestionById.get(sourceRowId);
     const draft = identityDraftsByScope[scopeKey];
@@ -1052,6 +1059,25 @@ export const ChemicalExcelAiCurationPanel = ({
             />
             <Chip size="small" label={`${filteredItems.length} na lista`} />
           </Stack>
+          <Button
+            variant="contained"
+            color="warning"
+            disabled={busy}
+            startIcon={
+              busy ? <CircularProgress size={16} color="inherit" /> : undefined
+            }
+            onClick={() =>
+              onStartAi(
+                selectedPendingIds.length ? selectedPendingIds : undefined,
+              )
+            }
+          >
+            {busy
+              ? processingLabel || 'Processando…'
+              : selectedPendingIds.length
+                ? `Iniciar curadoria assistida — ${selectedPendingIds.length} itens`
+                : `Iniciar curadoria assistida — fila ativa (${activePendingItems.length})`}
+          </Button>
           <Stack spacing={1}>
             {pageItems.map((item) => (
               <Box
@@ -1310,6 +1336,19 @@ export const ChemicalExcelAiCurationPanel = ({
                   identityByScope: identityDraftsByScope,
                   sourceRowId: item.sourceRowId,
                 });
+              const catalogActionMode = getCurationCatalogActionMode({
+                suggestionType: suggestion?.type,
+                catalogLinkStatus: suggestion?.catalogLinkStatus,
+                riskFactorId: top?.riskFactorId,
+              });
+              const canConfirmSuggestedCatalog =
+                (catalogActionMode === 'confirm_exact' ||
+                  catalogActionMode === 'confirm_class') &&
+                Boolean(top?.riskFactorId);
+              const showManualFactorSearch =
+                Boolean(pendingManualFactor) ||
+                Boolean(manualFactorSearchByScope[itemScopeKey]) ||
+                catalogActionMode === 'search';
 
               return (
                 <Box
@@ -1805,9 +1844,9 @@ export const ChemicalExcelAiCurationPanel = ({
                                   Encontrado no catálogo SimpleSST
                                 </SText>
                                 <SText fontSize={11} color="text.secondary">
-                                  Há correspondência com fator interno do
-                                  sistema. Confirme ou ajuste o vínculo na
-                                  curadoria.
+                                  Correspondência com fator interno do sistema.
+                                  Use &quot;Confirmar este vínculo&quot; ou
+                                  escolha outro fator na curadoria.
                                 </SText>
                               </>
                             ) : (
@@ -1860,6 +1899,13 @@ export const ChemicalExcelAiCurationPanel = ({
                                   }`}
                                 />
                               ) : null}
+                              {top?.cas ? (
+                                <Chip
+                                  size="small"
+                                  variant="outlined"
+                                  label={`CAS: ${top.cas}`}
+                                />
+                              ) : null}
                               {suggestion.catalogLinkConfidence ? (
                                 <Chip
                                   size="small"
@@ -1867,7 +1913,8 @@ export const ChemicalExcelAiCurationPanel = ({
                                   label={`Vínculo: ${confidenceLabel(suggestion.catalogLinkConfidence)}`}
                                 />
                               ) : null}
-                              {classWarning ? (
+                              {classWarning ||
+                              suggestion.catalogLinkStatus === 'class' ? (
                                 <Chip
                                   size="small"
                                   color="warning"
@@ -1967,6 +2014,21 @@ export const ChemicalExcelAiCurationPanel = ({
                                   part.partId,
                                 )
                               }
+                              onConfirmSuggestedFactor={() => {
+                                if (!aiPart?.riskFactorId) return;
+                                confirmPendingManualFactor(
+                                  item.sourceRowId,
+                                  part.partId,
+                                  {
+                                    riskFactorId: aiPart.riskFactorId,
+                                    officialName:
+                                      aiPart.officialName ||
+                                      part.originalText ||
+                                      `Parte ${idx + 1}`,
+                                    cas: aiPart.cas ?? null,
+                                  },
+                                );
+                              }}
                               onKeepUnlinked={() => {
                                 if (!partIdentity.identityConfirmed) {
                                   enqueueSnackbar(
@@ -2047,179 +2109,306 @@ export const ChemicalExcelAiCurationPanel = ({
 
                     {!decision &&
                     suggestion &&
-                    suggestion.type !== 'SPLIT_COMPONENT' &&
-                    companyId &&
-                    workspaceId ? (
-                      <Stack spacing={0.75}>
-                        {pendingManualFactor ? (
-                          <Alert
-                            severity="success"
-                            action={
-                              <Button
-                                color="inherit"
-                                size="small"
-                                onClick={() =>
-                                  clearPendingManualFactor(itemScopeKey)
-                                }
+                    suggestion.type !== 'SPLIT_COMPONENT' ? (
+                          <Stack spacing={1}>
+                            {catalogActionMode === 'confirm_class' &&
+                            !pendingManualFactor ? (
+                              <Alert severity="warning" sx={{ py: 0 }}>
+                                Este fator é uma correspondência mais ampla que
+                                a identidade química identificada. Revise antes
+                                de confirmar.
+                              </Alert>
+                            ) : null}
+
+                            {catalogActionMode === 'choose_multiple' &&
+                            !pendingManualFactor &&
+                            !manualFactorSearchByScope[itemScopeKey] ? (
+                              <Alert severity="info" sx={{ py: 0 }}>
+                                Há múltiplos candidatos no catálogo. Escolha o
+                                fator correto antes de confirmar o vínculo.
+                              </Alert>
+                            ) : null}
+
+                            {canConfirmSuggestedCatalog &&
+                            !pendingManualFactor ? (
+                              <Stack
+                                direction="row"
+                                spacing={0.75}
+                                flexWrap="wrap"
+                                useFlexGap
                               >
-                                Trocar fator
-                              </Button>
-                            }
-                          >
-                            Fator selecionado:{' '}
-                            <strong>{pendingManualFactor.officialName}</strong>
-                            {pendingManualFactor.cas
-                              ? ` · CAS ${pendingManualFactor.cas}`
-                              : ''}
-                            . Confirme o vínculo para aplicar à planilha.
-                          </Alert>
-                        ) : (
-                          <>
-                            <Stack direction="row" spacing={1}>
-                              <TextField
-                                size="small"
-                                label="Buscar fator"
-                                value={searchByScope[itemScopeKey] || ''}
-                                onChange={(e) =>
-                                  setSearchByScope((prev) => ({
-                                    ...prev,
-                                    [itemScopeKey]: e.target.value,
-                                  }))
-                                }
-                              />
-                              <Button
-                                size="small"
-                                disabled={
-                                  busy || searchBusy === itemScopeKey
-                                }
-                                onClick={() =>
-                                  handleSearchFactor(itemScopeKey)
-                                }
-                              >
-                                Buscar
-                              </Button>
-                            </Stack>
-                            {(searchResults[itemScopeKey] || []).map(
-                              (risk) => (
                                 <Button
-                                  key={risk.id}
+                                  size="small"
+                                  variant="contained"
+                                  disabled={busy || identityBlocksTerminal}
+                                  onClick={() => {
+                                    if (!top?.riskFactorId) return;
+                                    handleDecisionAndDeselect({
+                                      sourceRowId: item.sourceRowId,
+                                      action: 'CONFIRM_EXISTING',
+                                      riskFactorId: top.riskFactorId,
+                                      officialName:
+                                        identityDraft?.identityConfirmed
+                                          ? identityDraft.officialName
+                                          : top.officialName,
+                                      cas: identityDraft?.identityConfirmed
+                                        ? identityDraft.cas
+                                        : top.cas,
+                                      identity: identityDraft?.identityConfirmed
+                                        ? draftToApiIdentity(identityDraft)
+                                        : undefined,
+                                      confidence: suggestion.confidence,
+                                      suggestionType: suggestion.type,
+                                      rationale: suggestion.rationale,
+                                      evidences: slimEvidencesForExport(
+                                        top.evidences,
+                                      ),
+                                    });
+                                  }}
+                                >
+                                  Confirmar este vínculo
+                                </Button>
+                                <Button
                                   size="small"
                                   variant="outlined"
+                                  disabled={busy}
                                   onClick={() =>
-                                    setPendingManualFactor(itemScopeKey, {
-                                      riskFactorId: risk.id,
-                                      officialName: risk.name,
-                                      cas: risk.cas ?? null,
-                                    })
+                                    setManualFactorSearchByScope((prev) => ({
+                                      ...prev,
+                                      [itemScopeKey]: true,
+                                    }))
                                   }
                                 >
-                                  Escolher: {risk.name}
-                                  {risk.cas ? ` [${risk.cas}]` : ''}
+                                  Escolher outro fator
                                 </Button>
-                              ),
-                            )}
-                            {shouldShowCreateChemicalRiskButton({
-                              canCreateRisk,
-                              pending: item,
-                              suggestion,
-                              hasAppliedDecision: Boolean(decision),
-                              hasPendingManualFactor: false,
-                            }) ? (
+                              </Stack>
+                            ) : null}
+
+                            {catalogActionMode === 'choose_multiple' &&
+                            !pendingManualFactor &&
+                            !manualFactorSearchByScope[itemScopeKey] ? (
                               <Button
                                 size="small"
-                                variant="outlined"
-                                color="secondary"
+                                variant="contained"
                                 disabled={busy}
                                 onClick={() =>
-                                  openCreateRiskDialog(item.sourceRowId)
+                                  setManualFactorSearchByScope((prev) => ({
+                                    ...prev,
+                                    [itemScopeKey]: true,
+                                  }))
                                 }
                               >
-                                Cadastrar fator químico
+                                Escolher fator
                               </Button>
                             ) : null}
-                          </>
-                        )}
-                      </Stack>
+
+                            {companyId &&
+                            workspaceId &&
+                            showManualFactorSearch ? (
+                              <Stack spacing={0.75}>
+                                {pendingManualFactor ? (
+                                  <Alert
+                                    severity="success"
+                                    action={
+                                      <Button
+                                        color="inherit"
+                                        size="small"
+                                        onClick={() =>
+                                          clearPendingManualFactor(itemScopeKey)
+                                        }
+                                      >
+                                        Trocar fator
+                                      </Button>
+                                    }
+                                  >
+                                    Fator selecionado:{' '}
+                                    <strong>
+                                      {pendingManualFactor.officialName}
+                                    </strong>
+                                    {pendingManualFactor.cas
+                                      ? ` · CAS ${pendingManualFactor.cas}`
+                                      : ''}
+                                    . Confirme o vínculo para aplicar à
+                                    planilha.
+                                  </Alert>
+                                ) : (
+                                  <>
+                                    <Stack direction="row" spacing={1}>
+                                      <TextField
+                                        size="small"
+                                        label="Buscar fator"
+                                        value={
+                                          searchByScope[itemScopeKey] || ''
+                                        }
+                                        onChange={(e) =>
+                                          setSearchByScope((prev) => ({
+                                            ...prev,
+                                            [itemScopeKey]: e.target.value,
+                                          }))
+                                        }
+                                      />
+                                      <Button
+                                        size="small"
+                                        disabled={
+                                          busy || searchBusy === itemScopeKey
+                                        }
+                                        onClick={() =>
+                                          handleSearchFactor(itemScopeKey)
+                                        }
+                                      >
+                                        Buscar
+                                      </Button>
+                                    </Stack>
+                                    {(searchResults[itemScopeKey] || []).map(
+                                      (risk) => (
+                                        <Button
+                                          key={risk.id}
+                                          size="small"
+                                          variant="outlined"
+                                          onClick={() =>
+                                            setPendingManualFactor(
+                                              itemScopeKey,
+                                              {
+                                                riskFactorId: risk.id,
+                                                officialName: risk.name,
+                                                cas: risk.cas ?? null,
+                                              },
+                                            )
+                                          }
+                                        >
+                                          Escolher: {risk.name}
+                                          {risk.cas ? ` [${risk.cas}]` : ''}
+                                        </Button>
+                                      ),
+                                    )}
+                                    {shouldShowCreateChemicalRiskButton({
+                                      canCreateRisk,
+                                      pending: item,
+                                      suggestion,
+                                      hasAppliedDecision: Boolean(decision),
+                                      hasPendingManualFactor: false,
+                                    }) ? (
+                                      <Button
+                                        size="small"
+                                        variant="outlined"
+                                        color="secondary"
+                                        disabled={busy}
+                                        onClick={() =>
+                                          openCreateRiskDialog(item.sourceRowId)
+                                        }
+                                      >
+                                        Cadastrar fator químico
+                                      </Button>
+                                    ) : null}
+                                  </>
+                                )}
+                              </Stack>
+                            ) : null}
+
+                            <Stack
+                              direction="row"
+                              spacing={0.75}
+                              flexWrap="wrap"
+                              useFlexGap
+                            >
+                              {pendingManualFactor ? (
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  disabled={busy || identityBlocksTerminal}
+                                  onClick={() =>
+                                    confirmPendingManualFactor(item.sourceRowId)
+                                  }
+                                >
+                                  Confirmar vínculo
+                                </Button>
+                              ) : null}
+                              <Button
+                                size="small"
+                                disabled={busy}
+                                onClick={() =>
+                                  handleDecisionAndDeselect({
+                                    sourceRowId: item.sourceRowId,
+                                    action: 'REJECT',
+                                    suggestionType: suggestion.type,
+                                    confidence: suggestion.confidence,
+                                  })
+                                }
+                              >
+                                Rejeitar sugestão
+                              </Button>
+                              <Button
+                                size="small"
+                                disabled={busy || identityBlocksTerminal}
+                                onClick={() =>
+                                  handleDecisionAndDeselect({
+                                    sourceRowId: item.sourceRowId,
+                                    action: 'KEEP_UNLINKED',
+                                    officialName:
+                                      identityDraft?.identityConfirmed
+                                        ? identityDraft.officialName
+                                        : displayOfficialName(
+                                            top?.officialName,
+                                          ) || item.componentOriginal,
+                                    cas: identityDraft?.identityConfirmed
+                                      ? identityDraft.cas
+                                      : top?.cas || null,
+                                    identity: identityDraft?.identityConfirmed
+                                      ? draftToApiIdentity(identityDraft)
+                                      : undefined,
+                                    suggestionType: suggestion.type,
+                                    confidence: suggestion.confidence,
+                                    evidences: slimEvidencesForExport(
+                                      top?.evidences,
+                                    ),
+                                  })
+                                }
+                              >
+                                Manter sem vínculo
+                              </Button>
+                              {identityBlocksTerminal ? (
+                                <Alert
+                                  severity="warning"
+                                  sx={{ py: 0, width: '100%' }}
+                                >
+                                  Há edição manual de identidade não
+                                  confirmada. Confirme a identidade antes da
+                                  decisão final.
+                                </Alert>
+                              ) : null}
+                            </Stack>
+                          </Stack>
                     ) : null}
 
-                    {!decision && suggestion ? (
+                    {!decision &&
+                    suggestion?.type === 'SPLIT_COMPONENT' ? (
                       <Stack
                         direction="row"
                         spacing={0.75}
                         flexWrap="wrap"
                         useFlexGap
                       >
-                        {suggestion.type !== 'SPLIT_COMPONENT' &&
-                        pendingManualFactor ? (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            disabled={busy || identityBlocksTerminal}
-                            onClick={() =>
-                              confirmPendingManualFactor(item.sourceRowId)
-                            }
-                          >
-                            Confirmar vínculo
-                          </Button>
-                        ) : null}
-                        {suggestion.type !== 'SPLIT_COMPONENT' &&
-                        !pendingManualFactor &&
-                        suggestion.type === 'EXISTING_RISK_MATCH' &&
-                        top?.riskFactorId ? (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            disabled={busy || identityBlocksTerminal}
-                            onClick={() =>
-                              handleDecisionAndDeselect({
+                        <Button
+                          size="small"
+                          variant="contained"
+                          disabled={busy || !splitReady}
+                          onClick={() =>
+                            handleDecisionAndDeselect({
+                              sourceRowId: item.sourceRowId,
+                              action: 'CONFIRM_SPLIT',
+                              split: buildConfirmSplitParts({
+                                parts: splitParts,
+                                identityByScope: identityDraftsByScope,
                                 sourceRowId: item.sourceRowId,
-                                action: 'CONFIRM_EXISTING',
-                                riskFactorId: top.riskFactorId,
-                                officialName:
-                                  identityDraft?.identityConfirmed
-                                    ? identityDraft.officialName
-                                    : top.officialName,
-                                cas: identityDraft?.identityConfirmed
-                                  ? identityDraft.cas
-                                  : top.cas,
-                                identity: identityDraft?.identityConfirmed
-                                  ? draftToApiIdentity(identityDraft)
-                                  : undefined,
-                                confidence: suggestion.confidence,
-                                suggestionType: suggestion.type,
-                                rationale: suggestion.rationale,
-                                evidences: slimEvidencesForExport(
-                                  top.evidences,
-                                ),
-                              })
-                            }
-                          >
-                            Confirmar vínculo
-                          </Button>
-                        ) : null}
-                        {suggestion.type === 'SPLIT_COMPONENT' ? (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            disabled={busy || !splitReady}
-                            onClick={() =>
-                              handleDecisionAndDeselect({
-                                sourceRowId: item.sourceRowId,
-                                action: 'CONFIRM_SPLIT',
-                                split: buildConfirmSplitParts({
-                                  parts: splitParts,
-                                  identityByScope: identityDraftsByScope,
-                                  sourceRowId: item.sourceRowId,
-                                }),
-                                confidence: suggestion.confidence,
-                                suggestionType: suggestion.type,
-                                rationale: suggestion.rationale,
-                              })
-                            }
-                          >
-                            Aceitar divisão
-                          </Button>
-                        ) : null}
+                              }),
+                              confidence: suggestion.confidence,
+                              suggestionType: suggestion.type,
+                              rationale: suggestion.rationale,
+                            })
+                          }
+                        >
+                          Aceitar divisão
+                        </Button>
                         <Button
                           size="small"
                           disabled={busy}
@@ -2234,43 +2423,7 @@ export const ChemicalExcelAiCurationPanel = ({
                         >
                           Rejeitar sugestão
                         </Button>
-                        {suggestion.type !== 'SPLIT_COMPONENT' ? (
-                          <Button
-                            size="small"
-                            disabled={busy || identityBlocksTerminal}
-                            onClick={() =>
-                              handleDecisionAndDeselect({
-                                sourceRowId: item.sourceRowId,
-                                action: 'KEEP_UNLINKED',
-                                officialName: identityDraft?.identityConfirmed
-                                  ? identityDraft.officialName
-                                  : displayOfficialName(top?.officialName) ||
-                                    item.componentOriginal,
-                                cas: identityDraft?.identityConfirmed
-                                  ? identityDraft.cas
-                                  : top?.cas || null,
-                                identity: identityDraft?.identityConfirmed
-                                  ? draftToApiIdentity(identityDraft)
-                                  : undefined,
-                                suggestionType: suggestion.type,
-                                confidence: suggestion.confidence,
-                                evidences: slimEvidencesForExport(
-                                  top?.evidences,
-                                ),
-                              })
-                            }
-                          >
-                            Manter sem vínculo
-                          </Button>
-                        ) : null}
-                        {identityBlocksTerminal ? (
-                          <Alert severity="warning" sx={{ py: 0, width: '100%' }}>
-                            Há edição manual de identidade não confirmada.
-                            Confirme a identidade antes da decisão final.
-                          </Alert>
-                        ) : null}
-                        {suggestion.type === 'SPLIT_COMPONENT' &&
-                        !splitReady ? (
+                        {!splitReady ? (
                           <Alert severity="info" sx={{ py: 0, width: '100%' }}>
                             Resolva todas as partes (identidade + vínculo/sem
                             vínculo/rejeição) para habilitar &quot;Aceitar
