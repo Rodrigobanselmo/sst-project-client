@@ -853,6 +853,14 @@ export type ChemicalSurveyProductKeyMapEntry = {
   chemicalProductId: string;
 };
 
+export type ChemicalSurveyPreviewSourceRawLine = {
+  sourceRow: number;
+  component: string | null;
+  percentRaw: string | null;
+  tradeName: string;
+  manufacturer: string | null;
+};
+
 export type ChemicalSurveyPreviewScenario = {
   clusterKey: string;
   productResolution: 'MATCH_UNIQUE' | 'MATCH_AMBIGUOUS' | 'MATCH_NOT_FOUND';
@@ -866,7 +874,24 @@ export type ChemicalSurveyPreviewScenario = {
   tradeName: string;
   manufacturer: string | null;
   activityName: string | null;
+  sectorSnapshot: string | null;
+  exposureGroupSnapshot: string | null;
+  exposedRolesSnapshot: string | null;
+  frequencyCount: number | null;
+  frequencyPeriod: string | null;
+  durationMinutes: number | null;
+  quantity: string | null;
+  quantityUnit: string | null;
+  peakContactMoment: string | null;
+  controlMeasures: string | null;
+  linachHint: string | null;
+  relevanceHint: string | null;
+  sourceSheet: string;
   sourceRows: number[];
+  sourceProductLabel: string;
+  sourceRaw: {
+    lines: ChemicalSurveyPreviewSourceRawLine[];
+  };
   canCommit: boolean;
   blockers: string[];
 };

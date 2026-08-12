@@ -3,9 +3,13 @@ import {
   commitChemicalSurveyImport,
   previewChemicalSurveyImport,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
-import type { ChemicalSurveyImportPreview } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import type {
+  ChemicalSurveyImportPreview,
+  ChemicalSurveyPreviewScenario,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import {
   Alert,
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -18,7 +22,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 type Props = {
   open: boolean;
@@ -26,6 +30,90 @@ type Props = {
   companyId: string;
   workspaceId: string;
   onCommitted?: () => void;
+};
+
+const display = (value: string | number | null | undefined) => {
+  if (value == null) return '—';
+  const text = String(value).trim();
+  return text ? text : '—';
+};
+
+const SurveyPreviewScenarioDetail = ({
+  row,
+}: {
+  row: ChemicalSurveyPreviewScenario;
+}) => {
+  const sourceLines = row.sourceRaw?.lines || [];
+  return (
+    <Stack spacing={1}>
+      <SText fontSize={13}>Produto: {display(row.tradeName)}</SText>
+      <SText fontSize={13}>Fabricante: {display(row.manufacturer)}</SText>
+      <SText fontSize={13}>Setor: {display(row.sectorSnapshot)}</SText>
+      <SText fontSize={13}>
+        GHE / grupo de exposição: {display(row.exposureGroupSnapshot)}
+      </SText>
+      <SText fontSize={13}>
+        Cargos expostos: {display(row.exposedRolesSnapshot)}
+      </SText>
+      <SText fontSize={13}>Tarefa: {display(row.activityName)}</SText>
+      <SText fontSize={13}>
+        Frequência:{' '}
+        {row.frequencyCount == null && !String(row.frequencyPeriod || '').trim()
+          ? '—'
+          : `${display(row.frequencyCount)}${
+              String(row.frequencyPeriod || '').trim()
+                ? ` ${String(row.frequencyPeriod).trim()}`
+                : ''
+            }`}
+      </SText>
+      <SText fontSize={13}>
+        Duração:{' '}
+        {row.durationMinutes == null
+          ? '—'
+          : `${row.durationMinutes} min`}
+      </SText>
+      <SText fontSize={13}>
+        Quantidade:{' '}
+        {!String(row.quantity || '').trim() &&
+        !String(row.quantityUnit || '').trim()
+          ? '—'
+          : `${display(row.quantity)}${
+              String(row.quantityUnit || '').trim()
+                ? ` ${String(row.quantityUnit).trim()}`
+                : ''
+            }`}
+      </SText>
+      <SText fontSize={13}>
+        Momento de maior contato: {display(row.peakContactMoment)}
+      </SText>
+      <SText fontSize={13}>
+        Medidas de controle: {display(row.controlMeasures)}
+      </SText>
+      <SText fontSize={13}>LINACH: {display(row.linachHint)}</SText>
+      <SText fontSize={13}>Relevante: {display(row.relevanceHint)}</SText>
+      <SText fontSize={13}>
+        Linhas de origem ({display(row.sourceSheet)}):{' '}
+        {row.sourceRows?.length ? row.sourceRows.join(', ') : '—'}
+      </SText>
+      <SText fontSize={13} fontWeight={600}>
+        Componentes / % (sourceRaw)
+      </SText>
+      {sourceLines.length ? (
+        <Box sx={{ pl: 1 }}>
+          {sourceLines.map((line) => (
+            <SText key={`${row.clusterKey}-${line.sourceRow}`} fontSize={12}>
+              Linha {line.sourceRow}: {display(line.component)} · %{' '}
+              {display(line.percentRaw)}
+            </SText>
+          ))}
+        </Box>
+      ) : (
+        <SText fontSize={13} color="text.secondary">
+          —
+        </SText>
+      )}
+    </Stack>
+  );
 };
 
 export const ChemicalSurveyImportDialog = ({
@@ -41,12 +129,14 @@ export const ChemicalSurveyImportDialog = ({
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const reset = () => {
     setFile(null);
     setPreview(null);
     setError(null);
     setBusy(false);
+    setExpandedKey(null);
   };
 
   const handleClose = () => {
@@ -65,6 +155,7 @@ export const ChemicalSurveyImportDialog = ({
         file,
       });
       setPreview(result);
+      setExpandedKey(null);
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
@@ -72,6 +163,7 @@ export const ChemicalSurveyImportDialog = ({
           'Falha no preview SURVEY.',
       );
       setPreview(null);
+      setExpandedKey(null);
     } finally {
       setBusy(false);
     }
@@ -127,6 +219,7 @@ export const ChemicalSurveyImportDialog = ({
             onChange={(e) => {
               setFile(e.target.files?.[0] || null);
               setPreview(null);
+              setExpandedKey(null);
             }}
           />
           {error ? <Alert severity="error">{error}</Alert> : null}
@@ -148,23 +241,52 @@ export const ChemicalSurveyImportDialog = ({
                     <TableCell>Linhas</TableCell>
                     <TableCell>Resolução</TableCell>
                     <TableCell>Status</TableCell>
+                    <TableCell width={110} />
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {preview.scenarios.map((row) => (
-                    <TableRow key={row.clusterKey}>
-                      <TableCell>{row.tradeName}</TableCell>
-                      <TableCell>{row.manufacturer || '—'}</TableCell>
-                      <TableCell>{row.activityName || '—'}</TableCell>
-                      <TableCell>{row.sourceRows.join(', ')}</TableCell>
-                      <TableCell>{row.productResolution}</TableCell>
-                      <TableCell>
-                        {row.canCommit
-                          ? 'OK'
-                          : row.blockers[0] || 'Bloqueado'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {preview.scenarios.map((row) => {
+                    const openDetail = expandedKey === row.clusterKey;
+                    return (
+                      <Fragment key={row.clusterKey}>
+                        <TableRow>
+                          <TableCell>{row.tradeName}</TableCell>
+                          <TableCell>{display(row.manufacturer)}</TableCell>
+                          <TableCell>{display(row.activityName)}</TableCell>
+                          <TableCell>
+                            {row.sourceRows?.length
+                              ? row.sourceRows.join(', ')
+                              : '—'}
+                          </TableCell>
+                          <TableCell>{row.productResolution}</TableCell>
+                          <TableCell>
+                            {row.canCommit
+                              ? 'OK'
+                              : row.blockers[0] || 'Bloqueado'}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="small"
+                              onClick={() =>
+                                setExpandedKey(
+                                  openDetail ? null : row.clusterKey,
+                                )
+                              }
+                            >
+                              {openDetail ? 'Ocultar' : 'Detalhes'}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        {openDetail ? (
+                          <TableRow>
+                            <TableCell colSpan={7} sx={{ bgcolor: 'grey.50' }}>
+                              <SurveyPreviewScenarioDetail row={row} />
+                            </TableCell>
+                          </TableRow>
+                        ) : null}
+                      </Fragment>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </>
