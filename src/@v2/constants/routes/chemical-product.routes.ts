@@ -13,6 +13,8 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/deletion-eligibility',
   COMPOSITION:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/composition-versions',
+  INGREDIENT_RISK_FACTOR:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/:productId/ingredients/:ingredientId/risk-factor',
   RISK_SEARCH:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/risk-factors/search',
   MANUFACTURERS:

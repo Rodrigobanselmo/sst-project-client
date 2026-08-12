@@ -217,6 +217,37 @@ export async function searchChemicalRiskFactors(
   return response.data;
 }
 
+export async function updateChemicalIngredientRiskFactor(
+  params: WorkspaceParams & {
+    productId: string;
+    ingredientId: string;
+    riskFactorId: string;
+  },
+) {
+  const response = await api.patch<{
+    id: string;
+    chemicalName: string;
+    cas: string | null;
+    riskFactorId: string | null;
+    compositionVersionId: string;
+    importTrace: unknown;
+    previousRiskFactorId: string | null;
+    riskFactor: ChemicalRiskOption | null;
+  }>(
+    bindUrlParams({
+      path: ChemicalProductRoutes.INGREDIENT_RISK_FACTOR,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+        productId: params.productId,
+        ingredientId: params.ingredientId,
+      },
+    }),
+    { riskFactorId: params.riskFactorId },
+  );
+  return response.data;
+}
+
 export async function browseChemicalManufacturers(
   params: WorkspaceParams & { search?: string },
 ) {

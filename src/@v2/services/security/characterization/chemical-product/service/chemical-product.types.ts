@@ -804,6 +804,43 @@ export type ChemicalSurveyStatus =
   | 'LEVANTAMENTO_CONCLUIDO'
   | 'AGUARDANDO_ANALISE_TECNICA';
 
+export type ChemicalSurveyPreviewSourceRawLine = {
+  sourceRow: number;
+  component: string | null;
+  percentRaw: string | null;
+  tradeName: string;
+  manufacturer: string | null;
+};
+
+export type ChemicalUseScenarioActivityRiskFactor = {
+  id: string;
+  name: string;
+  cas: string | null;
+  system: boolean;
+  companyId: string;
+  type: string;
+};
+
+export type ChemicalUseScenarioActivityRiskResolution =
+  | {
+      status: 'RESOLVED';
+      resolution: 'SOURCE_ROW' | 'CHEMICAL_SOURCE_KEY';
+      sourceRow: number;
+      component: string | null;
+      componentOriginal: string | null;
+      ingredientId: string;
+      riskFactor: ChemicalUseScenarioActivityRiskFactor;
+    }
+  | {
+      status: 'UNRESOLVED';
+      resolution: 'NO_MATCH' | 'AMBIGUOUS' | 'UNLINKED';
+      sourceRow: number;
+      component: string | null;
+      componentOriginal: string | null;
+      ingredientId: string | null;
+      riskFactor: null;
+    };
+
 export type ChemicalUseScenarioListItem = {
   id: string;
   chemicalProductId: string;
@@ -824,7 +861,11 @@ export type ChemicalUseScenarioListItem = {
   sourceSheet: string | null;
   sourceRows: number[];
   sourceProductLabel: string | null;
-  sourceRaw: unknown;
+  sourceRaw: {
+    lines: ChemicalSurveyPreviewSourceRawLine[];
+  } | null;
+  activityRiskResolutions?: ChemicalUseScenarioActivityRiskResolution[];
+  activityRiskFactors?: ChemicalUseScenarioActivityRiskFactor[];
   product: {
     id: string;
     tradeName: string;
@@ -842,6 +883,13 @@ export type ChemicalUseScenarioListItem = {
         minPercent: number | null;
         maxPercent: number | null;
         riskFactorId: string | null;
+        riskFactor?: ChemicalRiskOption | null;
+        importTrace?: {
+          sourceRow?: number | null;
+          sourceSheet?: string | null;
+          componentOriginal?: string | null;
+          chemicalSourceKey?: string | null;
+        } | null;
       }>;
     } | null;
   };
@@ -851,14 +899,6 @@ export type ChemicalSurveyProductKeyMapEntry = {
   tradeName: string;
   manufacturer?: string | null;
   chemicalProductId: string;
-};
-
-export type ChemicalSurveyPreviewSourceRawLine = {
-  sourceRow: number;
-  component: string | null;
-  percentRaw: string | null;
-  tradeName: string;
-  manufacturer: string | null;
 };
 
 export type ChemicalSurveyPreviewScenario = {
