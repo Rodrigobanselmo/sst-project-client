@@ -52,7 +52,6 @@ import {
 } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
 import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
 import { FormParticipantsRecorteExportButton } from './components/FormParticipantsRecorteExportButton';
-import { useFetchFormParticipantsAdherenceEvolution } from '@v2/services/forms/form-participants/adherence-evolution/hooks/useFetchFormParticipantsAdherenceEvolution';
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
@@ -229,19 +228,6 @@ export const FormParticipantsTable = ({
     queryParams.responseFilter,
   ]);
 
-  const structuralFilters = useMemo(
-    () => ({
-      search: browseFilters.search,
-      hierarchyIds: browseFilters.hierarchyIds,
-      workspaceIds: browseFilters.workspaceIds,
-    }),
-    [
-      browseFilters.search,
-      browseFilters.hierarchyIds,
-      browseFilters.workspaceIds,
-    ],
-  );
-
   const { formParticipants, isLoading } = useFetchBrowseFormParticipants({
     companyId,
     applicationId,
@@ -264,16 +250,6 @@ export const FormParticipantsTable = ({
       page: queryParams.page || 1,
       limit: pageLimit,
     },
-  });
-
-  const {
-    evolution,
-    isLoading: isEvolutionLoading,
-    isError: isEvolutionError,
-  } = useFetchFormParticipantsAdherenceEvolution({
-    companyId,
-    applicationId,
-    filters: structuralFilters,
   });
 
   const { onOrderBy, orderChipList: orderChipsBase } = useOrderBy({
@@ -651,9 +627,6 @@ export const FormParticipantsTable = ({
       <FormParticipantsFilterSummary
         summary={filterSummaryForUi}
         isLoading={isLoading}
-        evolution={evolution}
-        evolutionLoading={isEvolutionLoading}
-        evolutionError={isEvolutionError}
       />
       <STableSearch
         search={searchInput}
@@ -673,9 +646,6 @@ export const FormParticipantsTable = ({
               isHierarchyGroupViewMode(viewMode)
                 ? hierarchyGroupsForGrouping
                 : undefined
-            }
-            evolution={
-              !isEvolutionError && !isEvolutionLoading ? evolution : undefined
             }
           />
           <STableButton
