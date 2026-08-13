@@ -71,6 +71,8 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { useAccess } from 'core/hooks/useAccess';
 import { AiTemporaryPdfSourceField } from '../AiTemporaryPdfSourceField/AiTemporaryPdfSourceField';
+import { AiAnalyzeGuidanceAudioField } from './AiAnalyzeGuidanceAudioField';
+import { appendTranscribedGuidance } from './append-transcribed-guidance.util';
 
 const summarizeRiskDataLabels = (
   items: Array<{ name?: string; medName?: string; recName?: string }> | undefined,
@@ -330,6 +332,11 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   >(null);
   const analyzeAbortControllerRef = useRef<AbortController | null>(null);
   const analyzeRequestIdRef = useRef(0);
+  const [guidanceAudioBusy, setGuidanceAudioBusy] = useState(false);
+
+  const handleGuidanceTranscription = useCallback((text: string) => {
+    setUserGuidance((current) => appendTranscribedGuidance(current, text));
+  }, [setUserGuidance]);
 
   const hasInsufficientCharacterizationText = useMemo(
     () => isCharacterizationTextInsufficient(characterizationData),
@@ -531,7 +538,8 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       !characterizationData.id ||
       !characterizationData.companyId ||
       !characterizationData.workspaceId ||
-      aiAnalyzeMutation.isPending
+      aiAnalyzeMutation.isPending ||
+      guidanceAudioBusy
     ) {
       return;
     }
@@ -1157,15 +1165,15 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 </Alert>
               )}
 
-              <TextField
-                label="Orientações adicionais para análise de riscos"
-                placeholder="Ex.: avaliar queda ao mar, ruído, movimentação de cargas, trabalho em altura, intempéries..."
+              <AiAnalyzeGuidanceAudioField
+                companyId={characterizationData.companyId}
+                workspaceId={characterizationData.workspaceId}
+                characterizationId={characterizationData.id}
                 value={userGuidance}
-                onChange={(event) => setUserGuidance(event.target.value)}
-                multiline
-                minRows={3}
-                fullWidth
-                size="small"
+                onChange={setUserGuidance}
+                disabled={aiAnalyzeMutation.isPending}
+                onBusyChange={setGuidanceAudioBusy}
+                onTranscription={handleGuidanceTranscription}
               />
 
               <AiTemporaryPdfSourceField
@@ -1191,7 +1199,9 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                       : 'Analisar riscos com IA'
                   }
                   loading={aiAnalyzeMutation.isPending}
-                  disabled={aiAnalyzeMutation.isPending}
+                  disabled={
+                    aiAnalyzeMutation.isPending || guidanceAudioBusy
+                  }
                   onExecute={() => void handleAnalyze()}
                   onConfigure={() => setAiConfigDialogOpen(true)}
                   isMaster={isMaster}
