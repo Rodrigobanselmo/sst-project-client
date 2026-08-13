@@ -1,5 +1,9 @@
 import type { IFormParticipantsAdherenceEvolutionModel } from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
+import {
+  groupAdherenceRemindersOnSeries,
+  reminderLabel,
+} from '@v2/models/form/helpers/form-participants-adherence-evolution-reminder-markers';
 import { Box } from '@mui/material';
 import {
   BarController,
@@ -18,6 +22,7 @@ import {
 } from 'chart.js';
 import { useMemo } from 'react';
 import { Chart } from 'react-chartjs-2';
+import { createAdherenceReminderMarkersPlugin } from './form-participants-adherence-reminder-plugin';
 
 ChartJS.register(
   BarController,
@@ -58,6 +63,22 @@ export const FormParticipantsAdherenceEvolutionChart = ({
   evolution,
 }: Props) => {
   const series = evolution.series;
+  const reminderGroups = useMemo(
+    () =>
+      groupAdherenceRemindersOnSeries(
+        series.map((point) => point.date),
+        evolution.reminders,
+      ),
+    [evolution.reminders, series],
+  );
+  const reminderPlugin = useMemo(
+    () =>
+      createAdherenceReminderMarkersPlugin(
+        series.map((point) => point.date),
+        evolution.reminders,
+      ),
+    [evolution.reminders, series],
+  );
   const lastPercent =
     series.length > 0 ? series[series.length - 1].cumulativePercent : 0;
   const lineColor = getResponseRateBarColor(lastPercent);
@@ -152,6 +173,12 @@ export const FormParticipantsAdherenceEvolutionChart = ({
               if (goal != null) {
                 lines.push(`Meta: ${formatPercent(goal)}%`);
               }
+              const rounds = reminderGroups.find(
+                (group) => group.index === index,
+              )?.rounds;
+              if (rounds?.length) {
+                rounds.forEach((round) => lines.push(reminderLabel(round)));
+              }
               return lines;
             },
           },
@@ -205,12 +232,14 @@ export const FormParticipantsAdherenceEvolutionChart = ({
         },
       },
     }),
-    [goal, series],
+    [goal, reminderGroups, series],
   );
+
+  const plugins = useMemo(() => [reminderPlugin], [reminderPlugin]);
 
   return (
     <Box height={{ xs: 260, md: 320 }} width="100%">
-      <Chart type="bar" data={data} options={options} />
+      <Chart type="bar" data={data} options={options} plugins={plugins} />
     </Box>
   );
 };

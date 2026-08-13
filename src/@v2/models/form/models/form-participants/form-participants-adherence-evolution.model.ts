@@ -7,6 +7,11 @@ export type IFormParticipantsAdherenceEvolutionSeriesPoint = {
   cumulativePercent: number;
 };
 
+export type IFormParticipantsAdherenceEvolutionReminder = {
+  sentAt: string;
+  round: number;
+};
+
 export type IFormParticipantsAdherenceEvolutionModel = {
   startedAt: string;
   endedAt: string | null;
@@ -16,6 +21,7 @@ export type IFormParticipantsAdherenceEvolutionModel = {
   respondedCount: number;
   participationGoal: number | null;
   series: IFormParticipantsAdherenceEvolutionSeriesPoint[];
+  reminders: IFormParticipantsAdherenceEvolutionReminder[];
 };
 
 function asIsoString(value: unknown): string | null {
@@ -29,6 +35,45 @@ function asIsoString(value: unknown): string | null {
 function asNonNegativeNumber(value: unknown): number {
   const n = Number(value);
   return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+function asPositiveInt(value: unknown): number | null {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.trunc(n);
+}
+
+export function toSaoPauloDateKeyFromIso(value: string): string | null {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: ADHERENCE_EVOLUTION_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(parsed);
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  const day = parts.find((part) => part.type === 'day')?.value;
+  if (!year || !month || !day) return null;
+  return `${year}-${month}-${day}`;
+}
+
+function normalizeReminders(
+  raw: unknown,
+): IFormParticipantsAdherenceEvolutionReminder[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const row = item as Record<string, unknown>;
+      const sentAt = asIsoString(row.sentAt) ?? asIsoString(row.sent_at);
+      const round = asPositiveInt(row.round);
+      if (!sentAt || round == null) return null;
+      return { sentAt, round };
+    })
+    .filter((row): row is IFormParticipantsAdherenceEvolutionReminder => !!row)
+    .sort((a, b) => a.round - b.round);
 }
 
 export function normalizeAdherenceEvolutionPayload(
@@ -75,5 +120,6 @@ export function normalizeAdherenceEvolutionPayload(
         };
       })
       .filter((row): row is IFormParticipantsAdherenceEvolutionSeriesPoint => !!row),
+    reminders: normalizeReminders(d.reminders),
   };
 }
