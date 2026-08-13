@@ -55,10 +55,10 @@ export function buildAdherenceEvolutionPdfSection(
       ? evolution.participationGoal
       : null;
 
-  const width = 720;
-  const height = 268;
-  const padL = 48;
-  const padR = 48;
+  const width = 960;
+  const height = 300;
+  const padL = 52;
+  const padR = 52;
   const padT = 16;
   const padB = 54;
   const plotW = width - padL - padR;
@@ -122,15 +122,15 @@ export function buildAdherenceEvolutionPdfSection(
     })
     .join('');
 
-  const legendY = height - 14;
+  const legendY = height - 16;
   const legend = [
-    `<rect x="48" y="${legendY - 8}" width="12" height="8" fill="rgba(25,118,210,0.42)" stroke="rgba(25,118,210,0.85)"/>`,
-    `<text x="64" y="${legendY}" font-size="11" fill="#333">Novas respostas</text>`,
-    `<line x1="188" y1="${legendY - 4}" x2="212" y2="${legendY - 4}" stroke="${escapeXml(lineColor)}" stroke-width="2.2"/>`,
-    `<text x="218" y="${legendY}" font-size="11" fill="#333">Adesão acumulada</text>`,
+    `<rect x="${padL}" y="${legendY - 8}" width="12" height="8" fill="rgba(25,118,210,0.42)" stroke="rgba(25,118,210,0.85)"/>`,
+    `<text x="${padL + 16}" y="${legendY}" font-size="11" fill="#333">Novas respostas</text>`,
+    `<line x1="250" y1="${legendY - 4}" x2="274" y2="${legendY - 4}" stroke="${escapeXml(lineColor)}" stroke-width="2.2"/>`,
+    `<text x="280" y="${legendY}" font-size="11" fill="#333">Adesão acumulada</text>`,
     goal == null
       ? ''
-      : `<line x1="368" y1="${legendY - 4}" x2="392" y2="${legendY - 4}" stroke="#546e7a" stroke-width="1.5" stroke-dasharray="6 4"/><text x="398" y="${legendY}" font-size="11" fill="#333">Meta (${escapeXml(formatPercent(goal))}%)</text>`,
+      : `<line x1="490" y1="${legendY - 4}" x2="514" y2="${legendY - 4}" stroke="#546e7a" stroke-width="1.5" stroke-dasharray="6 4"/><text x="520" y="${legendY}" font-size="11" fill="#333">Meta (${escapeXml(formatPercent(goal))}%)</text>`,
   ].join('');
 
   const lastPct = formatPercent(last.cumulativePercent);

@@ -417,14 +417,14 @@ export const FormParticipantsRecorteExportButton = ({
           .meta{color:#555;font-size:13px;margin-bottom:16px}
           .section-title{font-size:14px;font-weight:600;color:#c2410c;text-align:center;margin:24px 0 12px}
           .pct{font-size:32px;font-weight:700;text-align:center;margin:8px 0 16px;color:${barColor}}
-          .bar-wrap{max-width:640px;margin:0 auto 20px}
+          .bar-wrap{width:100%;margin:0 0 20px}
           .bar{height:20px;background:#e0e0e0;border-radius:10px;overflow:hidden;border:1px solid #ccc;box-sizing:border-box}
           .bar > div{height:100%;min-width:2px;border-radius:10px;width:${barW}%;max-width:100%;background:${barColor};-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
           .bar,.bar > div{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
           .sub{font-size:14px;color:#444;text-align:center;margin-bottom:12px;font-weight:500}
           .recorte-intro{page-break-inside:avoid;break-inside:avoid;margin-bottom:8px}
-          .evolution-block{max-width:720px;margin:4px auto 16px;page-break-inside:avoid;break-inside:avoid;page-break-after:auto}
-          .evolution-svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+          .evolution-block{width:100%;margin:4px 0 16px;page-break-inside:avoid;break-inside:avoid;page-break-after:auto}
+          .evolution-svg{display:block;width:100%;height:auto;margin:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
           .evolution-summary{font-size:12px;color:#333;text-align:center;margin:6px 0 0;font-weight:600}
           .evolution-note{font-size:11px;color:#666;text-align:center;margin:4px 0 0}
           table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
