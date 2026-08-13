@@ -22,10 +22,20 @@ import { parseAiTemporarySourcePdf } from '@v2/services/security/characterizatio
 import { extractApiError } from '@v2/utils/extract-api-error';
 import { IErrorResp } from '@v2/types/error.type';
 
+type ParseAiTemporaryPdfFn = (params: {
+  companyId: string;
+  workspaceId: string;
+  characterizationId?: string;
+  file: File;
+}) => Promise<AiTemporaryPdfParseResult>;
+
 type Props = {
   companyId?: string;
   workspaceId?: string;
   characterizationId?: string;
+  parsePdf?: ParseAiTemporaryPdfFn;
+  persistHint?: string;
+  unsavedMessage?: string;
   value: AiTemporaryDocumentSource | null;
   onChange: (value: AiTemporaryDocumentSource | null) => void;
   disabled?: boolean;
@@ -42,6 +52,9 @@ export const AiTemporaryPdfSourceField: React.FC<Props> = ({
   companyId,
   workspaceId,
   characterizationId,
+  parsePdf,
+  persistHint,
+  unsavedMessage,
   value,
   onChange,
   disabled,
@@ -50,7 +63,7 @@ export const AiTemporaryPdfSourceField: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
 
-  const canParse = Boolean(companyId && workspaceId && characterizationId);
+  const canParse = Boolean(companyId && workspaceId && (characterizationId || parsePdf));
 
   const handleRemove = () => {
     setError(null);
@@ -80,18 +93,25 @@ export const AiTemporaryPdfSourceField: React.FC<Props> = ({
     }
 
     if (!canParse) {
-      setError('Salve a caracterização antes de anexar um PDF temporário.');
+      setError(unsavedMessage || 'Salve a caracterização antes de anexar um PDF temporário.');
       return;
     }
 
     setParsing(true);
     try {
-      const result: AiTemporaryPdfParseResult = await parseAiTemporarySourcePdf({
-        companyId: companyId as string,
-        workspaceId: workspaceId as string,
-        characterizationId: characterizationId as string,
-        file,
-      });
+      const result: AiTemporaryPdfParseResult = parsePdf
+        ? await parsePdf({
+            companyId: companyId as string,
+            workspaceId: workspaceId as string,
+            characterizationId,
+            file,
+          })
+        : await parseAiTemporarySourcePdf({
+            companyId: companyId as string,
+            workspaceId: workspaceId as string,
+            characterizationId: characterizationId as string,
+            file,
+          });
       onChange(toTemporaryDocumentSource(result));
       setWarnings(result.warnings || []);
     } catch (err) {
@@ -109,8 +129,8 @@ export const AiTemporaryPdfSourceField: React.FC<Props> = ({
       </SText>
 
       <Alert severity="info" sx={{ mb: 1.5 }}>
-        Este PDF será usado apenas como contexto desta execução da IA. Ele não
-        será salvo na caracterização.
+        {persistHint ||
+          'Este PDF será usado apenas como contexto desta execução da IA. Ele não será salvo na caracterização.'}
       </Alert>
 
       <Alert severity="warning" sx={{ mb: 1.5 }}>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Wizard } from 'react-use-wizard';
 
+import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import { Box } from '@mui/material';
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { SButton } from 'components/atoms/SButton';
@@ -23,8 +24,14 @@ import {
 } from 'react-hook-form';
 
 import { EditGhoSelects } from './EditGhoSelects';
+import { GhoAiAnalysisContent } from './GhoAiAnalysisContent';
 import { RiskToolForGse } from './RiskToolForGse';
 import { initialAddGhoState } from '../hooks/useAddGho';
+import {
+  getGseWizardTabOptions,
+  GSE_WIZARD_STEP,
+  GSE_WIZARD_TAB_LABELS,
+} from '../gse-wizard-steps';
 
 export type GhoAddLayout = 'modal' | 'page';
 
@@ -68,14 +75,22 @@ export const GhoFormContent = ({
   const isPage = layout === 'page';
   const isEdit = !!ghoData.id;
   const risksTabDisabled = !isEdit;
-
-  const wizardTabsOptions = isPage
-    ? [
-        { label: 'Dados' },
-        { label: 'Cargos' },
-        { label: 'Fatores de Riscos', disabled: risksTabDisabled },
-      ]
-    : [{ label: 'Dados' }, { label: 'Cargos' }];
+  const wizardTabsOptions = getGseWizardTabOptions({
+    layout,
+    isEdit,
+  }).map((option) =>
+    option.label === GSE_WIZARD_TAB_LABELS.AI_ANALYSIS
+      ? {
+          ...option,
+          icon: (
+            <AutoFixHighOutlinedIcon
+              sx={{ fontSize: 16, color: 'primary.main' }}
+            />
+          ),
+          iconPosition: 'start' as const,
+        }
+      : option,
+  );
 
   const wizard = (
     <Wizard
@@ -84,7 +99,9 @@ export const GhoFormContent = ({
           shadow
           {...(isPage && {
             onChangeTab: (index, cb) =>
-              risksTabDisabled && index === 2 ? undefined : cb(index),
+              risksTabDisabled && index >= GSE_WIZARD_STEP.RISKS
+                ? undefined
+                : cb(index),
           })}
           options={wizardTabsOptions}
         />
@@ -158,6 +175,13 @@ export const GhoFormContent = ({
             />
           )}
         </Box>
+      )}
+      {isPage && (
+        <GhoAiAnalysisContent
+          companyId={companyId}
+          ghoData={ghoData}
+          ghoQuery={ghoQuery}
+        />
       )}
     </Wizard>
   );

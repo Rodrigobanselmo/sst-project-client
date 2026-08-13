@@ -2,7 +2,22 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { transcribeAiAnalyzeCharacterizationAudio } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/transcribe-ai-analyze-characterization-audio.service';
 
+import {
+  MIN_AI_ANALYZE_AUDIO_BYTES,
+  isRecorderBlobTooShort,
+  stopAndCollectMediaRecorderBlob,
+  type MediaRecorderLike,
+} from './collect-media-recorder-blob.util';
+
 export type AiAnalyzeAudioRecorderState = 'idle' | 'recording' | 'transcribing';
+
+export type TranscribeAiAnalyzeAudioFn = (params: {
+  companyId: string;
+  workspaceId: string;
+  characterizationId?: string;
+  audio: Blob;
+  fileName?: string;
+}) => Promise<{ text: string }>;
 
 const MAX_DURATION_SECONDS = 600;
 
@@ -47,7 +62,8 @@ function extractErrorMessage(error: unknown, fallback: string): string {
 export function useCharacterizationAiAnalyzeAudioRecorder(params: {
   companyId: string;
   workspaceId: string;
-  characterizationId: string;
+  characterizationId?: string;
+  transcribe?: TranscribeAiAnalyzeAudioFn;
   onTranscription: (text: string) => void;
 }) {
   const [state, setState] = useState<AiAnalyzeAudioRecorderState>('idle');
@@ -62,6 +78,7 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
   );
   const mimeTypeRef = useRef('audio/webm');
   const cancelledRef = useRef(false);
+  const collectingRef = useRef(false);
   const onTranscriptionRef = useRef(params.onTranscription);
   onTranscriptionRef.current = params.onTranscription;
 
@@ -89,11 +106,13 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
     cancelledRef.current = true;
     const mediaRecorder = mediaRecorderRef.current;
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.onstop = () => {
-        cleanupStream();
-      };
-      mediaRecorder.stop();
-    } else {
+      try {
+        mediaRecorder.stop();
+      } catch {
+        // already stopping
+      }
+    }
+    if (!collectingRef.current) {
       cleanupStream();
     }
     setDuration(0);
@@ -110,23 +129,26 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
     }
 
     cancelledRef.current = false;
+    collectingRef.current = true;
 
-    const blob = await new Promise<Blob | null>((resolve) => {
-      mediaRecorder.onstop = () => {
-        const mimeType = mediaRecorder.mimeType || mimeTypeRef.current;
-        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-        cleanupStream();
-        resolve(audioBlob);
-      };
-      mediaRecorder.stop();
-    });
+    let blob: Blob;
+    try {
+      blob = await stopAndCollectMediaRecorderBlob({
+        mediaRecorder: mediaRecorder as unknown as MediaRecorderLike,
+        chunks: audioChunksRef.current,
+        mimeType: mediaRecorder.mimeType || mimeTypeRef.current,
+      });
+    } finally {
+      collectingRef.current = false;
+      cleanupStream();
+    }
 
     if (cancelledRef.current) {
       setState('idle');
       return;
     }
 
-    if (!blob || blob.size < 1024) {
+    if (!blob || isRecorderBlobTooShort(blob, MIN_AI_ANALYZE_AUDIO_BYTES)) {
       setError('Gravação muito curta. Tente novamente.');
       setState('idle');
       return;
@@ -143,13 +165,31 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
           : blob.type.includes('mp4')
             ? 'mp4'
             : 'webm';
-      const result = await transcribeAiAnalyzeCharacterizationAudio({
-        companyId: params.companyId,
-        workspaceId: params.workspaceId,
-        characterizationId: params.characterizationId,
-        audio: blob,
-        fileName: `recording.${extension}`,
-      });
+      const result = await (async () => {
+        if (params.transcribe) {
+          return params.transcribe({
+            companyId: params.companyId,
+            workspaceId: params.workspaceId,
+            characterizationId: params.characterizationId,
+            audio: blob,
+            fileName: `recording.${extension}`,
+          });
+        }
+
+        if (!params.characterizationId) {
+          throw new Error(
+            'Identificador do elemento não encontrado para transcrever o áudio.',
+          );
+        }
+
+        return transcribeAiAnalyzeCharacterizationAudio({
+          companyId: params.companyId,
+          workspaceId: params.workspaceId,
+          characterizationId: params.characterizationId,
+          audio: blob,
+          fileName: `recording.${extension}`,
+        });
+      })();
 
       if (cancelledRef.current) {
         setState('idle');
@@ -183,6 +223,7 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
     cleanupStream,
     params.characterizationId,
     params.companyId,
+    params.transcribe,
     params.workspaceId,
   ]);
 
@@ -211,14 +252,8 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
       });
 
       audioChunksRef.current = [];
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.start(1000);
       mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
       setState('recording');
 
       const startTime = Date.now();

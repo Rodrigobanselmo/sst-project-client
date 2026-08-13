@@ -12,11 +12,13 @@ import {
 import { SText } from '@v2/components/atoms/SText/SText';
 
 import { useCharacterizationAiAnalyzeAudioRecorder } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/hooks/useCharacterizationAiAnalyzeAudioRecorder';
+import type { TranscribeAiAnalyzeAudioFn } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/hooks/useCharacterizationAiAnalyzeAudioRecorder';
 
 type Props = {
   companyId: string;
   workspaceId: string;
-  characterizationId: string;
+  characterizationId?: string;
+  transcribe?: TranscribeAiAnalyzeAudioFn;
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
@@ -28,6 +30,7 @@ export function AiAnalyzeGuidanceAudioField({
   companyId,
   workspaceId,
   characterizationId,
+  transcribe,
   value,
   onChange,
   disabled,
@@ -38,6 +41,7 @@ export function AiAnalyzeGuidanceAudioField({
     companyId,
     workspaceId,
     characterizationId,
+    transcribe,
     onTranscription,
   });
 

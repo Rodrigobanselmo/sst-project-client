@@ -25,12 +25,14 @@ export type AiRiskAnalysisSessionSnapshot = {
 
 export type AiRiskAnalysisSessionKeyParams = {
   characterizationId?: string;
+  gseId?: string;
   riskGroupId?: string;
   companyId?: string;
   workspaceId?: string;
 };
 
 const STORAGE_PREFIX = 'characterization-ai-risk-analysis';
+const GSE_STORAGE_PREFIX = 'gse-ai-risk-analysis';
 
 function normalizeTemporaryDocumentSource(
   value: unknown,
@@ -61,20 +63,15 @@ function normalizeTemporaryDocumentSource(
 export function buildAiRiskAnalysisSessionKey(
   params: AiRiskAnalysisSessionKeyParams,
 ): string | null {
-  const characterizationId = params.characterizationId?.trim();
+  const entityId = params.gseId?.trim() || params.characterizationId?.trim();
   const riskGroupId = params.riskGroupId?.trim();
-  if (!characterizationId || !riskGroupId) return null;
+  if (!entityId || !riskGroupId) return null;
 
   const companyId = params.companyId?.trim() || 'unknown-company';
   const workspaceId = params.workspaceId?.trim() || 'unknown-workspace';
+  const prefix = params.gseId?.trim() ? GSE_STORAGE_PREFIX : STORAGE_PREFIX;
 
-  return [
-    STORAGE_PREFIX,
-    companyId,
-    workspaceId,
-    characterizationId,
-    riskGroupId,
-  ].join(':');
+  return [prefix, companyId, workspaceId, entityId, riskGroupId].join(':');
 }
 
 export function readAiRiskAnalysisSession(

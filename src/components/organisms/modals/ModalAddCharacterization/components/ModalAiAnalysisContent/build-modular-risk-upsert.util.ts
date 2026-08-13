@@ -1,8 +1,8 @@
-import {
+import type {
   AiRiskFieldSuggestionField,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
-import { IRiskData } from 'core/interfaces/api/IRiskData';
-import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
+import type { IRiskData } from 'core/interfaces/api/IRiskData';
+import type { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 

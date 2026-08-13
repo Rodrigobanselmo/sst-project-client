@@ -37,12 +37,14 @@ export const useCharacterizationAiRiskAnalysisState = (
     () =>
       buildAiRiskAnalysisSessionKey({
         characterizationId: params.characterizationId,
+        gseId: params.gseId,
         riskGroupId: params.riskGroupId,
         companyId: params.companyId,
         workspaceId: params.workspaceId,
       }),
     [
       params.characterizationId,
+      params.gseId,
       params.riskGroupId,
       params.companyId,
       params.workspaceId,
