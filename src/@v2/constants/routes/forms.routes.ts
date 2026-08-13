@@ -74,6 +74,8 @@ export const FormRoutes = {
       'v2/companies/:companyId/forms/applications/:applicationId/participants/send-email',
     SEND_REMINDER:
       'v2/companies/:companyId/forms/applications/:applicationId/participants/send-reminder',
+    ADHERENCE_EVOLUTION:
+      'v2/companies/:companyId/forms/applications/:applicationId/participants/adherence-evolution',
   },
   /** Biblioteca de Perguntas Preliminares (Fase 1 API). */
   FORM_PRELIMINARY_LIBRARY: {

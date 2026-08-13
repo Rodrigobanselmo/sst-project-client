@@ -2,23 +2,50 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
+import type { IFormParticipantsAdherenceEvolutionModel } from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
 import type { IFormParticipantsFilterSummary } from '@v2/models/form/models/form-participants/form-participants-browse.model';
 import { Box, LinearProgress, Typography } from '@mui/material';
+import dynamic from 'next/dynamic';
+
+const FormParticipantsAdherenceEvolutionChart = dynamic(
+  () =>
+    import('./FormParticipantsAdherenceEvolutionChart').then(
+      (mod) => mod.FormParticipantsAdherenceEvolutionChart,
+    ),
+  { ssr: false },
+);
 
 type Props = {
   summary: IFormParticipantsFilterSummary;
   isLoading?: boolean;
+  evolution?: IFormParticipantsAdherenceEvolutionModel;
+  evolutionLoading?: boolean;
+  evolutionError?: boolean;
 };
 
-export const FormParticipantsFilterSummary = ({ summary, isLoading }: Props) => {
+export const FormParticipantsFilterSummary = ({
+  summary,
+  isLoading,
+  evolution,
+  evolutionLoading,
+  evolutionError,
+}: Props) => {
   const pct = summary.responseRatePercent;
   const barPct = Math.min(100, Math.max(0, pct));
   const barColor = getResponseRateBarColor(pct);
+  const showEvolutionChart =
+    !evolutionLoading &&
+    !evolutionError &&
+    !!evolution &&
+    evolution.series.length > 0 &&
+    evolution.totalParticipants > 0;
 
   return (
     <SPaper
       sx={{
-        p: 3,
+        px: 2.5,
+        pt: 2,
+        pb: 2,
         mb: 2,
         borderRadius: 2,
         border: '2px solid',
@@ -26,41 +53,50 @@ export const FormParticipantsFilterSummary = ({ summary, isLoading }: Props) => 
         backgroundColor: 'grey.50',
       }}
     >
-      <Typography variant="subtitle1" fontWeight={600} color="text.secondary" gutterBottom>
+      <Typography
+        variant="subtitle1"
+        fontWeight={600}
+        color="text.secondary"
+        sx={{ mb: 1 }}
+      >
         Resumo do recorte filtrado
       </Typography>
       {isLoading ? (
         <SText color="text.secondary">Carregando indicadores…</SText>
       ) : (
-        <Box maxWidth={720} mx="auto">
+        <Box maxWidth={760} mx="auto">
           <Typography
             variant="body2"
             textAlign="center"
             color="warning.main"
-            fontWeight={600}
-            mb={1}
+            fontWeight={700}
+            mb={0.75}
           >
             Taxa de resposta no recorte
           </Typography>
-          <Box width="100%" mb={1}>
+          <Box width="100%">
             <LinearProgress
               variant="determinate"
               value={barPct}
               sx={{
-                height: 20,
-                borderRadius: 10,
+                height: 28,
+                borderRadius: 14,
                 backgroundColor: '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: barColor,
-                  borderRadius: 10,
+                  borderRadius: 14,
                 },
               }}
             />
             <Typography
-              variant="h4"
               textAlign="center"
-              mt={2}
-              sx={{ color: barColor, fontWeight: 700 }}
+              mt={1}
+              sx={{
+                color: barColor,
+                fontWeight: 800,
+                fontSize: { xs: '2rem', sm: '2.35rem' },
+                lineHeight: 1.15,
+              }}
             >
               {pct.toLocaleString('pt-BR', {
                 minimumFractionDigits: 0,
@@ -68,12 +104,18 @@ export const FormParticipantsFilterSummary = ({ summary, isLoading }: Props) => 
               })}
               %
             </Typography>
-            <Typography variant="body2" textAlign="center" color="text.secondary" mt={1}>
+            <Typography
+              variant="body2"
+              textAlign="center"
+              color="text.secondary"
+              mt={0.5}
+            >
               Total: {summary.totalParticipants} participantes | Responderam:{' '}
-              {summary.respondedCount} | Não responderam: {summary.notRespondedCount}
+              {summary.respondedCount} | Não responderam:{' '}
+              {summary.notRespondedCount}
             </Typography>
           </Box>
-          <SFlex gap={3} flexWrap="wrap" justifyContent="center" mt={2}>
+          <SFlex gap={3} flexWrap="wrap" justifyContent="center" mt={1.25}>
             <Box textAlign="center">
               <SText fontSize={11} color="grey.600">
                 Participantes
@@ -101,6 +143,48 @@ export const FormParticipantsFilterSummary = ({ summary, isLoading }: Props) => 
           </SFlex>
         </Box>
       )}
+
+      <Box mt={isLoading ? 1.5 : 2.25}>
+        <Typography
+          variant="subtitle2"
+          fontWeight={700}
+          color="text.primary"
+          textAlign="center"
+          sx={{ mb: 0.5 }}
+        >
+          Evolução da adesão
+        </Typography>
+        {evolutionLoading ? (
+          <SText color="text.secondary" textAlign="center">
+            Carregando evolução…
+          </SText>
+        ) : evolutionError ? (
+          <SText color="text.secondary" textAlign="center">
+            Não foi possível carregar a evolução da adesão.
+          </SText>
+        ) : evolution && evolution.totalParticipants === 0 ? (
+          <SText color="text.secondary" textAlign="center">
+            Nenhum participante no recorte atual.
+          </SText>
+        ) : showEvolutionChart && evolution ? (
+          <>
+            <FormParticipantsAdherenceEvolutionChart evolution={evolution} />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              textAlign="center"
+              mt={0.75}
+            >
+              Evolução calculada com base nos participantes atuais do recorte.
+            </Typography>
+          </>
+        ) : (
+          <SText color="text.secondary" textAlign="center">
+            Sem dados de evolução para o período da campanha.
+          </SText>
+        )}
+      </Box>
     </SPaper>
   );
 };
