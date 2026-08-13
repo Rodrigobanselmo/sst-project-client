@@ -26,9 +26,19 @@ export function isCharacterizationAiAnalysisStep(
   );
 }
 
+const STEPS_REQUIRING_SAVED_ENTITY = new Set<number>([
+  CHARACTERIZATION_WIZARD_STEP.RISKS,
+  CHARACTERIZATION_WIZARD_STEP.TRACEABILITY,
+]);
+
+export function requiresSavedCharacterization(step: number): boolean {
+  return STEPS_REQUIRING_SAVED_ENTITY.has(step);
+}
+
 /**
  * A etapa solicitada só pode ser aplicada quando o editor tem o mínimo
- * necessário. Etapas ≥ Fatores exigem caracterização já persistida.
+ * necessário. Fatores de Riscos e Rastreabilidade Técnica exigem
+ * caracterização já persistida (`isEdit`).
  */
 export function canApplyCharacterizationWizardStep(params: {
   requestedStep?: number | null;
@@ -48,7 +58,7 @@ export function canApplyCharacterizationWizardStep(params: {
   if (!params.hasType) {
     return { ok: false, reason: 'missing-type' };
   }
-  if (step >= CHARACTERIZATION_WIZARD_STEP.RISKS && !params.isEdit) {
+  if (requiresSavedCharacterization(step) && !params.isEdit) {
     return { ok: false, reason: 'requires-saved-entity' };
   }
   return { ok: true };

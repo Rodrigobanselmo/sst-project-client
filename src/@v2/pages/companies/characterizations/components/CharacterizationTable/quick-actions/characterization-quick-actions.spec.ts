@@ -1,5 +1,5 @@
 /**
- * Contrato Fase 2A — ações rápidas + abertura segura da Análise IA.
+ * Contrato Fase 2A — ações rápidas + abertura segura da Análise de Riscos IA.
  *
  * Executar:
  * npx tsx src/@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-quick-actions.spec.ts
@@ -10,25 +10,116 @@ import {
   canApplyCharacterizationWizardStep,
   clampCharacterizationWizardStep,
   isCharacterizationAiAnalysisStep,
+  requiresSavedCharacterization,
 } from './characterization-wizard-step.util';
-import { CHARACTERIZATION_WIZARD_STEP } from './characterization-wizard-steps';
+import {
+  CHARACTERIZATION_WIZARD_STEP,
+  CHARACTERIZATION_WIZARD_TAB_LABELS,
+  CHARACTERIZATION_WIZARD_TAB_ORDER,
+} from './characterization-wizard-steps';
 
 const INACTIVE_ACTION_TOOLTIP =
   'Reative o elemento antes de alterar seus vínculos.';
 
 assert.ok(INACTIVE_ACTION_TOOLTIP.includes('Reative'));
 
-assert.equal(CHARACTERIZATION_WIZARD_STEP.RISKS, 2);
-assert.equal(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS, 4);
-assert.equal(isCharacterizationAiAnalysisStep(4), true);
-assert.equal(isCharacterizationAiAnalysisStep(2), false);
+assert.equal(CHARACTERIZATION_WIZARD_STEP.DATA, 0);
+assert.equal(CHARACTERIZATION_WIZARD_STEP.CARGOS, 1);
+assert.equal(CHARACTERIZATION_WIZARD_STEP.MEDIA, 2);
+assert.equal(CHARACTERIZATION_WIZARD_STEP.TRACEABILITY, 3);
+assert.equal(CHARACTERIZATION_WIZARD_STEP.RISKS, 4);
+assert.equal(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS, 5);
+assert.equal(CHARACTERIZATION_WIZARD_TAB_ORDER.length, 6);
+assert.deepEqual(CHARACTERIZATION_WIZARD_TAB_ORDER, [
+  CHARACTERIZATION_WIZARD_TAB_LABELS.DATA,
+  CHARACTERIZATION_WIZARD_TAB_LABELS.CARGOS,
+  CHARACTERIZATION_WIZARD_TAB_LABELS.MEDIA,
+  CHARACTERIZATION_WIZARD_TAB_LABELS.TRACEABILITY,
+  CHARACTERIZATION_WIZARD_TAB_LABELS.RISKS,
+  CHARACTERIZATION_WIZARD_TAB_LABELS.AI_ANALYSIS,
+]);
+assert.equal(CHARACTERIZATION_WIZARD_TAB_LABELS.MEDIA, 'Áudios e Vídeos');
+assert.equal(
+  CHARACTERIZATION_WIZARD_TAB_LABELS.AI_ANALYSIS,
+  'Análise de Riscos IA',
+);
+assert.equal(isCharacterizationAiAnalysisStep(5), true);
+assert.equal(isCharacterizationAiAnalysisStep(4), false);
 
-assert.equal(clampCharacterizationWizardStep(4), 4);
+assert.equal(
+  clampCharacterizationWizardStep(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS),
+  CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+);
 assert.equal(clampCharacterizationWizardStep(99), 0);
 assert.equal(clampCharacterizationWizardStep(undefined), 0);
 assert.equal(clampCharacterizationWizardStep(-1), 0);
 
-/** 1) wizardStep Análise IA antes do detalhe carregar → não aplica. */
+assert.equal(requiresSavedCharacterization(CHARACTERIZATION_WIZARD_STEP.DATA), false);
+assert.equal(requiresSavedCharacterization(CHARACTERIZATION_WIZARD_STEP.CARGOS), false);
+assert.equal(requiresSavedCharacterization(CHARACTERIZATION_WIZARD_STEP.MEDIA), false);
+assert.equal(
+  requiresSavedCharacterization(CHARACTERIZATION_WIZARD_STEP.TRACEABILITY),
+  true,
+);
+assert.equal(requiresSavedCharacterization(CHARACTERIZATION_WIZARD_STEP.RISKS), true);
+assert.equal(
+  requiresSavedCharacterization(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS),
+  false,
+);
+
+const readyGate = {
+  hasType: true,
+  isDetailLoading: false,
+  isDetailError: false,
+};
+
+/** TRACEABILITY exige caracterização salva. */
+assert.deepEqual(
+  canApplyCharacterizationWizardStep({
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.TRACEABILITY,
+    isEdit: false,
+    ...readyGate,
+  }),
+  { ok: false, reason: 'requires-saved-entity' },
+);
+assert.deepEqual(
+  canApplyCharacterizationWizardStep({
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.TRACEABILITY,
+    isEdit: true,
+    ...readyGate,
+  }),
+  { ok: true },
+);
+
+/** RISKS exige caracterização salva. */
+assert.deepEqual(
+  canApplyCharacterizationWizardStep({
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
+    isEdit: false,
+    ...readyGate,
+  }),
+  { ok: false, reason: 'requires-saved-entity' },
+);
+assert.deepEqual(
+  canApplyCharacterizationWizardStep({
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
+    isEdit: true,
+    ...readyGate,
+  }),
+  { ok: true },
+);
+
+/** MEDIA não exige isEdit só porque passou a ser o índice 2. */
+assert.deepEqual(
+  canApplyCharacterizationWizardStep({
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.MEDIA,
+    isEdit: false,
+    ...readyGate,
+  }),
+  { ok: true },
+);
+
+/** 1) wizardStep Análise de Riscos IA antes do detalhe carregar → não aplica. */
 assert.deepEqual(
   canApplyCharacterizationWizardStep({
     requestedStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
@@ -107,7 +198,7 @@ assert.equal(
     hasHydratedType: false,
     isDetailLoading: true,
     isDetailError: false,
-    requestedStep: 4,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
     isEdit: true,
   }),
   'loading',
@@ -118,7 +209,7 @@ assert.equal(
     hasHydratedType: false,
     isDetailLoading: false,
     isDetailError: true,
-    requestedStep: 4,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
     isEdit: true,
   }),
   'error-ui',
@@ -129,7 +220,7 @@ assert.equal(
     hasHydratedType: false,
     isDetailLoading: false,
     isDetailError: true,
-    requestedStep: 4,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
     isEdit: true,
   }),
   'error-ui',
@@ -140,12 +231,12 @@ assert.ok(
     hasHydratedType: false,
     isDetailLoading: false,
     isDetailError: true,
-    requestedStep: 4,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
     isEdit: true,
   }) !== ('null' as unknown as 'error-ui'),
 );
 
-/** 8) Fatores de Risco permanece aplicável após hidratação. */
+/** 8) Fatores de Riscos permanece aplicável após hidratação. */
 assert.deepEqual(
   canApplyCharacterizationWizardStep({
     requestedStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
@@ -167,16 +258,28 @@ function preserveRequestedStepDuringHydration(
     applied: gateOk ? requested : null,
   };
 }
-assert.deepEqual(preserveRequestedStepDuringHydration(4, false), {
-  intent: 4,
-  applied: null,
-});
-assert.deepEqual(preserveRequestedStepDuringHydration(4, true), {
-  intent: 4,
-  applied: 4,
-});
+assert.deepEqual(
+  preserveRequestedStepDuringHydration(
+    CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+    false,
+  ),
+  {
+    intent: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+    applied: null,
+  },
+);
+assert.deepEqual(
+  preserveRequestedStepDuringHydration(
+    CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+    true,
+  ),
+  {
+    intent: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+    applied: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+  },
+);
 
-/** IA nunca auto-executa ao abrir a aba. */
+/** Clique rápido: Riscos → Fatores; IA → Análise de Riscos IA. Sem auto-run. */
 function resolveRisksTarget(target: 'factors' | 'ai') {
   return {
     wizardStep:
@@ -187,11 +290,11 @@ function resolveRisksTarget(target: 'factors' | 'ai') {
   };
 }
 assert.deepEqual(resolveRisksTarget('ai'), {
-  wizardStep: 4,
+  wizardStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
   autoRunAi: false,
 });
 assert.deepEqual(resolveRisksTarget('factors'), {
-  wizardStep: 2,
+  wizardStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
   autoRunAi: false,
 });
 

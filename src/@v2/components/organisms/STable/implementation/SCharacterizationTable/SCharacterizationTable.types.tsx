@@ -44,7 +44,7 @@ export interface ICharacterizationTableTableProps {
     row: CharacterizationBrowseResultModel,
   ) => void;
   /** Ações rápidas Fase 2 — inventário operacional na tabela. */
-  /** Contagem → Fatores de Risco; ícone IA → Análise IA. */
+  /** Contagem → Fatores de Riscos; ícone IA → Análise de Riscos IA. */
   onQuickRisks?: (
     row: CharacterizationBrowseResultModel,
     target: 'factors' | 'ai',

@@ -7,19 +7,47 @@
 import assert from 'node:assert/strict';
 
 import { decideApplyInitialWizardStep } from './apply-initial-wizard-step.util';
-import { CHARACTERIZATION_WIZARD_STEP } from '../characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-steps';
+import {
+  CHARACTERIZATION_WIZARD_STEP,
+  CHARACTERIZATION_WIZARD_TAB_LABELS,
+  CHARACTERIZATION_WIZARD_TAB_ORDER,
+} from '../characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-steps';
 
-const STEP_COUNT = 6;
+const STEP_COUNT = CHARACTERIZATION_WIZARD_TAB_ORDER.length;
+assert.equal(STEP_COUNT, 6);
 
-/** Aplicação inicial para cada aba. */
+/** Aplicação inicial para cada aba, na ordem canônica. */
 const entries: Array<{ step: number; label: string }> = [
-  { step: CHARACTERIZATION_WIZARD_STEP.DATA, label: 'Dados' },
-  { step: CHARACTERIZATION_WIZARD_STEP.CARGOS, label: 'Cargos' },
-  { step: CHARACTERIZATION_WIZARD_STEP.RISKS, label: 'Fatores de Riscos' },
-  { step: CHARACTERIZATION_WIZARD_STEP.MEDIA, label: 'Áudios e Vídeos' },
-  { step: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS, label: 'Análise IA' },
-  { step: CHARACTERIZATION_WIZARD_STEP.TRACEABILITY, label: 'Rastreabilidade' },
+  {
+    step: CHARACTERIZATION_WIZARD_STEP.DATA,
+    label: CHARACTERIZATION_WIZARD_TAB_LABELS.DATA,
+  },
+  {
+    step: CHARACTERIZATION_WIZARD_STEP.CARGOS,
+    label: CHARACTERIZATION_WIZARD_TAB_LABELS.CARGOS,
+  },
+  {
+    step: CHARACTERIZATION_WIZARD_STEP.MEDIA,
+    label: CHARACTERIZATION_WIZARD_TAB_LABELS.MEDIA,
+  },
+  {
+    step: CHARACTERIZATION_WIZARD_STEP.TRACEABILITY,
+    label: CHARACTERIZATION_WIZARD_TAB_LABELS.TRACEABILITY,
+  },
+  {
+    step: CHARACTERIZATION_WIZARD_STEP.RISKS,
+    label: CHARACTERIZATION_WIZARD_TAB_LABELS.RISKS,
+  },
+  {
+    step: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+    label: CHARACTERIZATION_WIZARD_TAB_LABELS.AI_ANALYSIS,
+  },
 ];
+
+assert.deepEqual(
+  entries.map((entry) => entry.label),
+  [...CHARACTERIZATION_WIZARD_TAB_ORDER],
+);
 
 for (const { step, label } of entries) {
   const decision = decideApplyInitialWizardStep({
@@ -39,11 +67,15 @@ assert.deepEqual(
   decideApplyInitialWizardStep({
     enabled: true,
     alreadyApplied: false,
-    requestedStep: 2,
-    activeStep: 2,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.MEDIA,
+    activeStep: CHARACTERIZATION_WIZARD_STEP.MEDIA,
     stepCount: STEP_COUNT,
   }),
-  { shouldGoToStep: false, target: 2, markApplied: true },
+  {
+    shouldGoToStep: false,
+    target: CHARACTERIZATION_WIZARD_STEP.MEDIA,
+    markApplied: true,
+  },
 );
 
 /** Após aplicado: clique em outra aba NÃO deve voltar ao step inicial. */
@@ -51,7 +83,7 @@ assert.deepEqual(
   decideApplyInitialWizardStep({
     enabled: true,
     alreadyApplied: true,
-    requestedStep: 2,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.MEDIA,
     activeStep: 0,
     stepCount: STEP_COUNT,
   }),
@@ -62,8 +94,8 @@ assert.deepEqual(
   decideApplyInitialWizardStep({
     enabled: true,
     alreadyApplied: true,
-    requestedStep: 4,
-    activeStep: 1,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
+    activeStep: CHARACTERIZATION_WIZARD_STEP.CARGOS,
     stepCount: STEP_COUNT,
   }),
   { shouldGoToStep: false, markApplied: true },
@@ -74,8 +106,8 @@ assert.deepEqual(
   decideApplyInitialWizardStep({
     enabled: true,
     alreadyApplied: true,
-    requestedStep: 4,
-    activeStep: 4,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
+    activeStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
     stepCount: STEP_COUNT,
   }),
   { shouldGoToStep: false, markApplied: true },
@@ -86,7 +118,7 @@ assert.deepEqual(
   decideApplyInitialWizardStep({
     enabled: false,
     alreadyApplied: false,
-    requestedStep: 4,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
     activeStep: 0,
     stepCount: STEP_COUNT,
   }),
@@ -123,11 +155,15 @@ assert.deepEqual(
   decideApplyInitialWizardStep({
     enabled: true,
     alreadyApplied: false,
-    requestedStep: 5,
+    requestedStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
     activeStep: 0,
     stepCount: STEP_COUNT,
   }),
-  { shouldGoToStep: true, target: 5, markApplied: true },
+  {
+    shouldGoToStep: true,
+    target: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+    markApplied: true,
+  },
 );
 
 console.log('apply-initial-wizard-step.util.spec.ts OK');

@@ -8,7 +8,7 @@ type CharacterizationRisksQuickCellProps = {
   countTooltip: string;
   /** Clique na quantidade → Fatores de Risco (sempre permitido para visualizar). */
   onOpenFactors: () => void;
-  /** Ícone IA → aba Análise IA (bloqueado se inactive). */
+  /** Ícone IA → aba Análise de Riscos IA (bloqueado se inactive). */
   onOpenAiAnalysis: () => void;
   aiDisabled?: boolean;
   aiDisabledReason?: string;
@@ -16,7 +16,7 @@ type CharacterizationRisksQuickCellProps = {
 };
 
 /**
- * Coluna Riscos: contagem → Fatores de Risco; ícone IA → Análise IA.
+ * Coluna Riscos: contagem → Fatores de Riscos; ícone IA → Análise de Riscos IA.
  * Evita a duplicidade do antigo "+" que abria a mesma aba.
  */
 export function CharacterizationRisksQuickCell({

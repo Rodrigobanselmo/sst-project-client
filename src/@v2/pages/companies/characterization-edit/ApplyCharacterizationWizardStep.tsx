@@ -4,7 +4,7 @@ import { useWizard } from 'react-use-wizard';
 import { decideApplyInitialWizardStep } from './apply-initial-wizard-step.util';
 
 type ApplyCharacterizationWizardStepProps = {
-  /** Intenção de abertura (ex.: 4 = Análise IA). Aplicada uma única vez. */
+  /** Intenção de abertura (ex.: Análise de Riscos IA). Aplicada uma única vez. */
   requestedStep?: number;
   /** Só navega quando o editor estiver hidratado e o step for válido. */
   enabled: boolean;

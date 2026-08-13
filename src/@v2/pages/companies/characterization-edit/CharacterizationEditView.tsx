@@ -29,7 +29,7 @@ export type CharacterizationEditViewProps = {
   onBack: () => void;
   /** Sem `SHeader` global; integrado à aba de Caracterização. */
   embedded?: boolean;
-  /** Abre wizard em aba específica (0 Dados, 1 Cargos, 2 Riscos, 4 Análise IA…). */
+  /** Abre wizard em aba específica (`CHARACTERIZATION_WIZARD_STEP`). */
   initialWizardStep?: number;
   /** Fase 2B — abre Assistente IA ou fluxo de Resumo após hidratar. */
   initialAiAction?: 'assist' | 'inventory-summary';

@@ -2,6 +2,7 @@
 import React, { ReactNode, useEffect, useMemo } from 'react';
 import { Wizard } from 'react-use-wizard';
 
+import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import { Box, CircularProgress, Grid } from '@mui/material';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { RiskToolV2 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/RiskTool';
@@ -34,7 +35,10 @@ import {
   canApplyCharacterizationWizardStep,
   clampCharacterizationWizardStep,
 } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-step.util';
-import { CHARACTERIZATION_WIZARD_STEP } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-steps';
+import {
+  CHARACTERIZATION_WIZARD_STEP,
+  CHARACTERIZATION_WIZARD_TAB_LABELS,
+} from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-wizard-steps';
 
 const RiskToolForCharacterization: React.FC<{
   riskGroupId: string;
@@ -157,7 +161,7 @@ export const ModalAddHierarchyRisk = (
   // Intenção preservada; só aplica quando o detalhe está pronto.
   // Importante: NÃO passar `active={step}` ao WizardTabs — em wizard aninhado
   // (company-flow + editor) o goToStep contínuo pode atingir o wizard externo
-  // e desmontar Elementos Caracterizados (tela branca no 1º acesso à Análise IA).
+  // e desmontar Elementos Caracterizados (tela branca no 1º acesso à Análise de Riscos IA).
   const canApplyStep = stepGate.ok;
 
   return (
@@ -186,14 +190,32 @@ export const ModalAddHierarchyRisk = (
             <WizardTabs
               onChangeTab={(v, cb) => (!isDisable ? cb(v) : undefined)}
               options={[
-                { label: 'Dados' },
-                { label: 'Cargos', disabled: isDisable },
-                { label: 'Fatores de Riscos', disabled: isDisable || !isEdit },
-                { label: 'Audios e Videos', disabled: isDisable },
-                { label: 'Análise IA', disabled: isDisable },
+                { label: CHARACTERIZATION_WIZARD_TAB_LABELS.DATA },
                 {
-                  label: 'Rastreabilidade Técnica',
+                  label: CHARACTERIZATION_WIZARD_TAB_LABELS.CARGOS,
+                  disabled: isDisable,
+                },
+                {
+                  label: CHARACTERIZATION_WIZARD_TAB_LABELS.MEDIA,
+                  disabled: isDisable,
+                },
+                {
+                  label: CHARACTERIZATION_WIZARD_TAB_LABELS.TRACEABILITY,
                   disabled: isDisable || !isEdit,
+                },
+                {
+                  label: CHARACTERIZATION_WIZARD_TAB_LABELS.RISKS,
+                  disabled: isDisable || !isEdit,
+                },
+                {
+                  label: CHARACTERIZATION_WIZARD_TAB_LABELS.AI_ANALYSIS,
+                  disabled: isDisable,
+                  icon: (
+                    <AutoFixHighOutlinedIcon
+                      sx={{ fontSize: 16, color: 'primary.main' }}
+                    />
+                  ),
+                  iconPosition: 'start',
                 },
               ]}
             />
@@ -231,6 +253,93 @@ export const ModalAddHierarchyRisk = (
             isCreate={!isEdit}
           />
         </Box>
+        <Box sx={{ px: 5, pb: 10 }}>
+          {!!data.description && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                border: '1px solid #ccc',
+                borderRadius: 1,
+                p: 8,
+                mb: 2,
+              }}
+            >
+              <SText variant="body1" textAlign="center">
+                {data.description}
+              </SText>
+            </Box>
+          )}
+          {!query?.files?.length && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                border: '1px solid #ccc',
+                borderRadius: 1,
+                p: 8,
+              }}
+            >
+              <SText variant="body1" textAlign="center">
+                Nenhum aquivo encontrado. <br />
+                Arquivos atualmente só podem ser adicionados pelo aplicativo
+                mobile
+              </SText>
+            </Box>
+          )}
+          <Box
+            sx={{
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              display: 'grid',
+              gap: 2,
+            }}
+          >
+            {query?.files?.map((file) => {
+              const url = String(file?.url);
+              const isAudio = url && url.includes('.mp3');
+
+              if (isAudio)
+                return (
+                  <audio controls key={file.id}>
+                    <source src={String(file?.url)} type="audio/mpeg" />
+                  </audio>
+                );
+
+              return null;
+            })}
+          </Box>
+          <Box
+            sx={{
+              gridTemplateColumns: '1fr',
+              display: 'grid',
+              mt: 5,
+            }}
+          >
+            {query?.files?.map((file, i) => {
+              const url = String(file?.url);
+              const isVideo = url && url.includes('.mp4');
+
+              if (isVideo)
+                return (
+                  <Box key={i}>
+                    <video
+                      controls
+                      key={file.id}
+                      src={url}
+                      style={{
+                        height: '400px',
+                        width: '100%',
+                        marginTop: 10,
+                      }}
+                    />
+                  </Box>
+                );
+
+              return null;
+            })}
+          </Box>
+        </Box>
+        <ModalAiTraceabilityContent {...props} />
         <Box
           sx={{
             px: embedded ? 0 : 5,
@@ -328,98 +437,11 @@ export const ModalAddHierarchyRisk = (
             </Box>
           )}
         </Box>
-        <Box sx={{ px: 5, pb: 10 }}>
-          {!!data.description && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                border: '1px solid #ccc',
-                borderRadius: 1,
-                p: 8,
-                mb: 2,
-              }}
-            >
-              <SText variant="body1" textAlign="center">
-                {data.description}
-              </SText>
-            </Box>
-          )}
-          {!query?.files?.length && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                border: '1px solid #ccc',
-                borderRadius: 1,
-                p: 8,
-              }}
-            >
-              <SText variant="body1" textAlign="center">
-                Nenhum aquivo encontrado. <br />
-                Arquivos atualmente só podem ser adicionados pelo aplicativo
-                mobile
-              </SText>
-            </Box>
-          )}
-          <Box
-            sx={{
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              display: 'grid',
-              gap: 2,
-            }}
-          >
-            {query?.files?.map((file) => {
-              const url = String(file?.url);
-              const isAudio = url && url.includes('.mp3');
-
-              if (isAudio)
-                return (
-                  <audio controls key={file.id}>
-                    <source src={String(file?.url)} type="audio/mpeg" />
-                  </audio>
-                );
-
-              return null;
-            })}
-          </Box>
-          <Box
-            sx={{
-              gridTemplateColumns: '1fr',
-              display: 'grid',
-              mt: 5,
-            }}
-          >
-            {query?.files?.map((file, i) => {
-              const url = String(file?.url);
-              const isVideo = url && url.includes('.mp4');
-
-              if (isVideo)
-                return (
-                  <Box key={i}>
-                    <video
-                      controls
-                      key={file.id}
-                      src={url}
-                      style={{
-                        height: '400px',
-                        width: '100%',
-                        marginTop: 10,
-                      }}
-                    />
-                  </Box>
-                );
-
-              return null;
-            })}
-          </Box>
-        </Box>
         <CharacterizationEditStepErrorBoundary
-          title="Não foi possível abrir a Análise IA."
+          title="Não foi possível abrir a Análise de Riscos IA."
         >
           <ModalAiAnalysisContent {...props} />
         </CharacterizationEditStepErrorBoundary>
-        <ModalAiTraceabilityContent {...props} />
       </Wizard>
     </Box>
   );

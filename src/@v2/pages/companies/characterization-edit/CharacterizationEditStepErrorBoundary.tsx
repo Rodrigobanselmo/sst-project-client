@@ -17,7 +17,7 @@ type State = {
 };
 
 /**
- * Isola falhas de renderização do editor/etapa (ex.: Análise IA) para não
+ * Isola falhas de renderização do editor/etapa (ex.: Análise de Riscos IA) para não
  * apagar o shell inteiro da aplicação.
  */
 export class CharacterizationEditStepErrorBoundary extends Component<
