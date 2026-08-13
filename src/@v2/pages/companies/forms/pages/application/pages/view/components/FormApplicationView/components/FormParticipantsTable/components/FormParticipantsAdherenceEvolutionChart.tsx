@@ -2,11 +2,13 @@ import type { IFormParticipantsAdherenceEvolutionModel } from '@v2/models/form/m
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import { Box } from '@mui/material';
 import {
+  BarController,
   BarElement,
   CategoryScale,
   Chart as ChartJS,
   Legend,
   LinearScale,
+  LineController,
   LineElement,
   PointElement,
   Tooltip,
@@ -18,6 +20,8 @@ import { useMemo } from 'react';
 import { Chart } from 'react-chartjs-2';
 
 ChartJS.register(
+  BarController,
+  LineController,
   CategoryScale,
   LinearScale,
   BarElement,
