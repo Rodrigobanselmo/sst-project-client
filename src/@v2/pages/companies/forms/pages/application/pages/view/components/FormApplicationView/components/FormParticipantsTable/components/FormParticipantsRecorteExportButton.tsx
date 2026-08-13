@@ -12,6 +12,8 @@ import {
 } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-group';
 import { buildSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-sector';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
+import { buildAdherenceEvolutionPdfSection } from '@v2/models/form/helpers/form-participants-adherence-evolution-pdf-svg';
+import type { IFormParticipantsAdherenceEvolutionModel } from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
 import {
   getFormParticipantHierarchyChain,
   getFormParticipantSectorLabel,
@@ -60,6 +62,8 @@ type Props = {
   hierarchyLabels: string;
   viewMode: FormParticipantsPdfViewMode;
   hierarchyGroups?: HierarchyGroupForParticipants[];
+  /** Série já carregada na tela. Ausência = PDF antigo, sem gráfico. */
+  evolution?: IFormParticipantsAdherenceEvolutionModel;
 };
 
 function escapeHtml(s: string) {
@@ -357,6 +361,7 @@ export const FormParticipantsRecorteExportButton = ({
   hierarchyLabels,
   viewMode,
   hierarchyGroups: hierarchyGroupsProp,
+  evolution,
 }: Props) => {
   const [loading, setLoading] = useState(false);
 
@@ -416,7 +421,12 @@ export const FormParticipantsRecorteExportButton = ({
           .bar{height:20px;background:#e0e0e0;border-radius:10px;overflow:hidden;border:1px solid #ccc;box-sizing:border-box}
           .bar > div{height:100%;min-width:2px;border-radius:10px;width:${barW}%;max-width:100%;background:${barColor};-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
           .bar,.bar > div{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-          .sub{font-size:14px;color:#444;text-align:center;margin-bottom:20px;font-weight:500}
+          .sub{font-size:14px;color:#444;text-align:center;margin-bottom:12px;font-weight:500}
+          .recorte-intro{page-break-inside:avoid;break-inside:avoid;margin-bottom:8px}
+          .evolution-block{max-width:720px;margin:4px auto 16px;page-break-inside:avoid;break-inside:avoid;page-break-after:auto}
+          .evolution-svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+          .evolution-summary{font-size:12px;color:#333;text-align:center;margin:6px 0 0;font-weight:600}
+          .evolution-note{font-size:11px;color:#666;text-align:center;margin:4px 0 0}
           table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}
           th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}
           th{background:#f5f5f5}
@@ -434,6 +444,8 @@ export const FormParticipantsRecorteExportButton = ({
             tfoot{display:table-footer-group}
             tr.est-row,tr.group-row{page-break-inside:avoid;break-inside:avoid}
             tbody tr{page-break-inside:auto;break-inside:auto}
+            .recorte-intro,.evolution-block{page-break-inside:avoid;break-inside:avoid}
+            .evolution-svg{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
           }
       `;
 
@@ -457,9 +469,11 @@ export const FormParticipantsRecorteExportButton = ({
       }
 
       const titleMain = getGroupedPdfTitle(viewMode);
+      const evolutionHtml = buildAdherenceEvolutionPdfSection(evolution);
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Recorte — ${escapeHtml(appName)}</title>
         <style>${sharedStyles}</style></head><body>
+        <div class="recorte-intro">
         <h1>${escapeHtml(titleMain)}</h1>
         <div class="meta">
         <strong>Gerado em:</strong> ${escapeHtml(generatedAt)}<br/>
@@ -468,6 +482,8 @@ export const FormParticipantsRecorteExportButton = ({
         <div class="pct">${pctLabel}%</div>
         <div class="bar-wrap"><div class="bar"><div></div></div></div>
         <div class="sub">Total: ${fs.totalParticipants} participantes | Responderam: ${fs.respondedCount} | Não responderam: ${fs.notRespondedCount}</div>
+        </div>
+        ${evolutionHtml}
         ${tableSection}
         ${noteHtml}
         </body></html>`;
@@ -490,6 +506,7 @@ export const FormParticipantsRecorteExportButton = ({
     hierarchyLabels,
     viewMode,
     hierarchyGroupsProp,
+    evolution,
   ]);
 
   return (
