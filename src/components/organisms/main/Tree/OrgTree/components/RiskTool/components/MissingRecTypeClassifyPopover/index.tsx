@@ -22,6 +22,8 @@ export type MissingRecTypeClassifyPopoverProps = {
   tooltipFallback?: string;
   /** Notifica o item pai para fechar/desabilitar o tooltip informativo. */
   onOpenChange?: (open: boolean) => void;
+  /** Substitui o alerta amarelo padrão (ex.: ícone ADM/ENG/EPI na lista). */
+  trigger?: React.ReactNode;
 };
 
 /**
@@ -35,6 +37,7 @@ export const MissingRecTypeClassifyPopover: FC<
   loading = false,
   tooltipFallback,
   onOpenChange,
+  trigger,
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
@@ -86,10 +89,12 @@ export const MissingRecTypeClassifyPopover: FC<
         title={open ? undefined : tooltipFallback}
         aria-label="Classificar tipo da recomendação"
       >
-        <Icon
-          component={WarningAmberRoundedIcon}
-          sx={{ fontSize: 15, color: 'warning.main' }}
-        />
+        {trigger ?? (
+          <Icon
+            component={WarningAmberRoundedIcon}
+            sx={{ fontSize: 15, color: 'warning.main' }}
+          />
+        )}
       </SIconButton>
       <Popover
         open={open}

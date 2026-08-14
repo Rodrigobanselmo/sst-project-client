@@ -111,6 +111,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
         onlyFromActualRisks
         tooltipTitle=""
         multiple={false}
+        enableRecTypeQuickClassify
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
         onCreate={(rec) => {

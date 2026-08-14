@@ -4,7 +4,6 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialAddRecMedState } from 'components/organisms/modals/ModalAddRecMed/hooks/useAddRecMed';
-import { RiskEnum } from 'project/enum/risk.enums';
 import sortArray from 'sort-array';
 
 import EditIcon from 'assets/icons/SEditIcon';
@@ -15,12 +14,13 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
+import { useMutUpdateRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutUpdateRecMed';
 import { useQueryRecMed } from 'core/services/hooks/queries/useQueryRecMed/useQueryRecMed';
-import { useQueryAllRisk } from 'core/services/hooks/queries/useQueryRiskAll';
-import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
-import { sortString } from 'core/utils/sorts/string.sort';
+import { RecTypeEnum } from 'project/enum/recType.enum';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
+import { RecSelectRecTypeAdornment } from './RecSelectRecTypeAdornment';
+import { buildRecMedQuickClassifyPayload } from './resolve-rec-type-visual-state.util';
 import { IRecMedSelectProps } from './types';
 
 export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
@@ -35,12 +35,15 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   onCreate = () => {},
   onlyInput,
   type,
+  enableRecTypeQuickClassify = false,
   ...props
 }) => {
   const riskIdsArray = [...(riskIds.map((rId) => String(rId)) || [])];
   if (risk) riskIdsArray.push(risk.id);
 
   const [disabled, isDisabled] = useState(true);
+  const [classifyingRecId, setClassifyingRecId] = useState<string | null>(null);
+  const updateRecMedMut = useMutUpdateRecMed();
 
   const { data: recMed } = useQueryRecMed(
     1,
@@ -104,6 +107,22 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
     );
   };
 
+  const handleQuickClassify = async (rec: IRecMed, recType: RecTypeEnum) => {
+    const payload = buildRecMedQuickClassifyPayload({
+      rec,
+      recType,
+      fallbackRiskId: risk?.id,
+    });
+    if (!payload) return;
+
+    setClassifyingRecId(payload.id);
+    try {
+      await updateRecMedMut.mutateAsync(payload);
+    } finally {
+      setClassifyingRecId(null);
+    }
+  };
+
   const options = useMemo(() => {
     const recMedList = recMed;
 
@@ -134,6 +153,16 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       selected={selectedRec || []}
       startAdornment={(options: IRecMed | undefined) => {
         if (!options?.recName) return <></>;
+
+        if (enableRecTypeQuickClassify) {
+          return (
+            <RecSelectRecTypeAdornment
+              rec={options}
+              loading={classifyingRecId === options.id}
+              onClassify={(recType) => handleQuickClassify(options, recType)}
+            />
+          );
+        }
 
         return (
           <STooltip enterDelay={1200} withWrapper title={options.recName}>

@@ -19,4 +19,6 @@ export interface IRecMedSelectProps
   onEnter?: (value: string) => void;
   onCreate?: (value: IRecMed | null) => void;
   onlyInput?: 'adm' | 'eng' | 'rec' | '';
+  /** RiskTool only: mostra recType e permite classificar na lista. */
+  enableRecTypeQuickClassify?: boolean;
 }
