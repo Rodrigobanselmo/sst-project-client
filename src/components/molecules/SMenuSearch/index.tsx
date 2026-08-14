@@ -11,6 +11,7 @@ import { useDebouncedCallback } from 'use-debounce';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 
+import { resolveFuseSearchQuery } from './resolve-fuse-search-query';
 import { SMenuSearchItems } from './SMenuSearchItems';
 import { STMenu, STSInput } from './styles';
 import { IMenuSearchOption, SMenuSearchProps } from './types';
@@ -39,6 +40,7 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
   isLoading,
   handleMultiSelectMenu,
   renderContent,
+  transformSearch,
   ...props
 }) => {
   const [search, setSearch] = useState<string>('');
@@ -125,9 +127,10 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
 
   const numberOfRows = 20 + 200 * scroll;
 
+  const fuseQuery = resolveFuseSearchQuery(search, transformSearch);
   const fuseResults = asyncLoad
     ? null
-    : fuse.search(diacritics.remove(search), { limit: 20 + 40 * scroll });
+    : fuse.search(diacritics.remove(fuseQuery), { limit: 20 + 40 * scroll });
   const results = asyncLoad
     ? optionsMemoized
     : search

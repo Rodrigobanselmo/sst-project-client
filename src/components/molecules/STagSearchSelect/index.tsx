@@ -39,6 +39,7 @@ export const STagSearchSelect: FC<
   preventOpen,
   renderContent,
   renderButton,
+  transformSearch,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -115,6 +116,7 @@ export const STagSearchSelect: FC<
         listMaxHeight={listMaxHeight}
         onEnter={onEnter}
         onSearch={onSearch}
+        transformSearch={transformSearch}
         handleMultiSelectMenu={handleMultiSelectMenu}
         renderContent={renderContent}
       />

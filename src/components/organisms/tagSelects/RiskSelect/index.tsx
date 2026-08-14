@@ -1,6 +1,5 @@
 import React, { FC, useCallback, useMemo, useState, MouseEvent } from 'react';
 
-import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import { Box, Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
@@ -17,6 +16,12 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { riskMatchesActiveFilters } from 'core/utils/risk-chip.util';
+import {
+  mapRiskSelectSearchFields,
+  normalizeRiskSelectSearchQuery,
+  RISK_SELECT_FUSE_KEYS,
+  toRiskSelectDomainOption,
+} from 'core/utils/risk-select-search.util';
 import { sortString } from 'core/utils/sorts/string.sort';
 
 import { useQueryAllRisk } from '../../../../core/services/hooks/queries/useQueryRiskAll';
@@ -39,8 +44,21 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const { onStackOpenModal } = useModal();
 
-  const handleSelectRisk = (options: string[]) => {
-    if (handleSelect) handleSelect(options);
+  const resolveOriginalRisk = (option: IRiskFactors): IRiskFactors => {
+    const original = data.find((risk) => risk.id === option.id);
+    if (original) return original;
+    return toRiskSelectDomainOption(
+      option as IRiskFactors & { casDigits?: string },
+    );
+  };
+
+  const handleSelectRisk = (options: string[] | IRiskFactors) => {
+    if (!handleSelect) return;
+    if (Array.isArray(options)) {
+      handleSelect(options);
+      return;
+    }
+    handleSelect(resolveOriginalRisk(options));
   };
 
   const handleAddRisk = () => {
@@ -58,11 +76,13 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
     option?: IRiskFactors,
   ) => {
     e.stopPropagation();
-    if (option)
+    if (option) {
+      const original = resolveOriginalRisk(option);
       onStackOpenModal(ModalEnum.RISK_ADD, {
-        ...option,
-        propagation: option?.propagation?.join(', '),
+        ...original,
+        propagation: original?.propagation?.join(', '),
       } as Partial<typeof initialAddRiskState>);
+    }
   };
 
   const riskLength = String(selectedRiskIds ? selectedRiskIds.length : 0);
@@ -93,15 +113,9 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
       return filterData
         .filter((risk) => riskMatchesActiveFilters(risk, activeFilters))
         .sort((a, b) => sortString(a, b, 'name'))
-        .map(({ cas, ...filter }) => ({
-          cas: onlyNumbers(cas || ''),
-          ...filter,
-        }));
+        .map(mapRiskSelectSearchFields);
 
-    return filterData.map(({ cas, ...filter }) => ({
-      cas: onlyNumbers(cas || ''),
-      ...filter,
-    }));
+    return filterData.map(mapRiskSelectSearchFields);
   }, [data, activeFilters]);
 
   return (
@@ -111,7 +125,8 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
       multiple={multiple}
       additionalButton={handleAddRisk}
       text={text || (riskLength === '0' ? '' : riskLength)}
-      keys={['name', 'cas']}
+      keys={[...RISK_SELECT_FUSE_KEYS]}
+      transformSearch={normalizeRiskSelectSearchQuery}
       large={large}
       handleSelectMenu={handleSelectRisk}
       selected={selectedRiskIds || []}

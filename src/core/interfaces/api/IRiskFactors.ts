@@ -121,6 +121,8 @@ export interface IRiskFactors {
   method?: string;
   unit?: string;
   cas?: string;
+  /** Índice textual já persistido no RiskFactor; usado só para busca no seletor. */
+  search?: string;
   breather?: string;
   nr15lt?: string;
   vmp?: string;

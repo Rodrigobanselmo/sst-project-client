@@ -43,6 +43,8 @@ export interface ISTagSearchSelectProps
   listMaxHeight?: number | string;
   error?: boolean;
   onSearch?: (value: string) => void;
+  /** Encaminhado ao Fuse do SMenuSearch. */
+  transformSearch?: (value: string) => string;
   renderContent?: (option: IMenuSearchOption) => ReactNode;
   renderButton?: (option: {
     large: boolean | undefined;

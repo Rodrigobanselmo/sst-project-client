@@ -43,5 +43,7 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
     e: MouseEvent<HTMLLIElement>,
   ) => void;
   asyncLoad?: boolean;
+  /** Normaliza a query antes do Fuse (ex.: compactar CAS). Não aplicar em todo texto. */
+  transformSearch?: (value: string) => string;
   renderContent?: (option: IMenuSearchOption) => ReactNode;
 }
