@@ -61,6 +61,11 @@ const itemSx = getCompanyWorkspaceContextualNavItemSx() as Record<
 >;
 assert.equal(itemSx.flexDirection, 'column');
 assert.equal(itemSx.overflow, 'visible');
+assert.equal(itemSx.fontSize, 15);
+assert.equal(itemSx.fontWeight, 600);
+assert.equal(itemSx.minHeight, 44);
+assert.equal(itemSx.px, 2.25);
+assert.equal(itemSx.py, 0.75);
 
 const activeMarker = getCompanyWorkspaceContextualNavMarkerSx(
   true,

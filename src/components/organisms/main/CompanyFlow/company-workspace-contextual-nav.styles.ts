@@ -1,8 +1,8 @@
 import type { SxProps, Theme } from '@mui/material';
 
 /** Marcador inferior curto e centralizado (inativo transparente / ativo laranja). */
-export const COMPANY_WORKSPACE_NAV_MARKER_WIDTH = 20;
-export const COMPANY_WORKSPACE_NAV_MARKER_HEIGHT = 2;
+export const COMPANY_WORKSPACE_NAV_MARKER_WIDTH = 28;
+export const COMPANY_WORKSPACE_NAV_MARKER_HEIGHT = 3;
 
 /**
  * Estilos do item (label). O marcador recebe sx próprio no componente
@@ -14,12 +14,12 @@ export function getCompanyWorkspaceContextualNavItemSx(): SxProps<Theme> {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    px: 1.75,
-    py: 0.5,
-    minHeight: 34,
+    px: 2.25,
+    py: 0.75,
+    minHeight: 44,
     borderRadius: 0.75,
-    fontSize: 12.5,
-    fontWeight: 500,
+    fontSize: 15,
+    fontWeight: 600,
     lineHeight: 1.2,
     color: 'text.secondary',
     bgcolor: 'transparent',

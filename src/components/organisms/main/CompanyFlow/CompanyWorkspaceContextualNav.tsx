@@ -90,8 +90,8 @@ export function CompanyWorkspaceContextualNav({ companyId }: Props) {
     >
       <SFlex
         align="center"
-        gap={0.75}
-        sx={{ minWidth: 'max-content', py: 0.25 }}
+        gap={1.25}
+        sx={{ minWidth: 'max-content', py: 0.5 }}
       >
         {renderGroup('management')}
         <Box
@@ -100,7 +100,7 @@ export function CompanyWorkspaceContextualNav({ companyId }: Props) {
           sx={{
             width: '2px',
             alignSelf: 'center',
-            height: 22,
+            height: 28,
             mx: 2,
             bgcolor: 'grey.400',
             borderRadius: 1,

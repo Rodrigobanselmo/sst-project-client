@@ -66,7 +66,7 @@ export const STabs: FC<{ children?: any } & STabsProps> = ({
       >
         {options.map((options) => (
           <Tab
-            sx={{ fontSize: [10, 10, 14] }}
+            sx={{ fontSize: [10, 10, 14], textTransform: 'none' }}
             key={options.label}
             {...options}
           />

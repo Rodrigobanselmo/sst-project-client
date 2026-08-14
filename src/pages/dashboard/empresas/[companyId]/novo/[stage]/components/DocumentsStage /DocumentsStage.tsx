@@ -177,10 +177,10 @@ export const DocumentsStage = ({
                   label: 'PCMSO',
                 },
                 {
-                  label: 'PERICULOSIDADE',
+                  label: 'Periculosidade',
                 },
                 {
-                  label: 'INSALUBRIDADE',
+                  label: 'Insalubridade',
                 },
                 {
                   label: 'LTCAT',
