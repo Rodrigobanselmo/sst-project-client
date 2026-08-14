@@ -14,13 +14,13 @@ import {
   stopRecSelectAdornmentEvent,
 } from './resolve-rec-type-visual-state.util';
 
-const REC_TYPE_ICON = {
+export const REC_TYPE_ICON = {
   [RecTypeEnum.ADM]: AssignmentOutlinedIcon,
   [RecTypeEnum.ENG]: PrecisionManufacturingOutlinedIcon,
   [RecTypeEnum.EPI]: SEpiIcon,
 } as const;
 
-const REC_TYPE_COLOR = {
+export const REC_TYPE_COLOR = {
   [RecTypeEnum.ADM]: 'info.main',
   [RecTypeEnum.ENG]: 'success.main',
   [RecTypeEnum.EPI]: 'text.secondary',

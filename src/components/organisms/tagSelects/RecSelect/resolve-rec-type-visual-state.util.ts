@@ -59,6 +59,44 @@ export function shouldSelectRecOnListClick(source: 'adornment' | 'item'): boolea
   return source === 'item';
 }
 
+export type RecTypeListFilter = 'all' | RecTypeEnum;
+
+export const REC_TYPE_LIST_FILTERS: RecTypeListFilter[] = [
+  'all',
+  RecTypeEnum.ADM,
+  RecTypeEnum.ENG,
+  RecTypeEnum.EPI,
+];
+
+export function matchesRecTypeListFilter(
+  recType: RecTypeEnum | string | null | undefined,
+  filter: RecTypeListFilter,
+): boolean {
+  if (filter === 'all') return true;
+  const visual = resolveRecTypeVisualState(recType);
+  return visual.kind === 'classified' && visual.recType === filter;
+}
+
+export function filterRecsByType<
+  T extends { recType?: RecTypeEnum | string | null },
+>(recs: T[], filter: RecTypeListFilter): T[] {
+  if (filter === 'all') return recs;
+  return recs.filter((rec) => matchesRecTypeListFilter(rec.recType, filter));
+}
+
+export function intersectRecTypeAndTextFilter<
+  T extends { recType?: RecTypeEnum | string | null; recName?: string },
+>(recs: T[], filter: RecTypeListFilter, search: string): T[] {
+  const byType = filterRecsByType(recs, filter);
+  const query = search.trim().toLowerCase();
+  if (!query) return byType;
+  return byType.filter((rec) =>
+    String(rec.recName || '')
+      .toLowerCase()
+      .includes(query),
+  );
+}
+
 export function buildRecMedQuickClassifyPayload(params: {
   rec: { id?: string; riskId?: string; companyId?: string };
   recType: RecTypeEnum;

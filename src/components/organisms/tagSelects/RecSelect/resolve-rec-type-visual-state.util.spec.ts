@@ -13,6 +13,9 @@ import { MISSING_REC_TYPE_TOOLTIP } from 'components/organisms/main/Tree/OrgTree
 
 import {
   buildRecMedQuickClassifyPayload,
+  filterRecsByType,
+  intersectRecTypeAndTextFilter,
+  matchesRecTypeListFilter,
   resolveRecTypeVisualState,
   shouldSelectRecOnListClick,
   stopRecSelectAdornmentEvent,
@@ -104,6 +107,51 @@ assert.equal(
   null,
 );
 
+const recs = [
+  { id: 'adm-1', recName: 'Treinamento ADM', recType: RecTypeEnum.ADM },
+  { id: 'eng-1', recName: 'Exaustão ENG', recType: RecTypeEnum.ENG },
+  { id: 'epi-1', recName: 'Luva EPI', recType: RecTypeEnum.EPI },
+  { id: 'miss-1', recName: 'Sem classificação', recType: null },
+  { id: 'adm-2', recName: 'Luva ADM', recType: RecTypeEnum.ADM },
+];
+
+assert.deepEqual(
+  filterRecsByType(recs, 'all').map((rec) => rec.id),
+  ['adm-1', 'eng-1', 'epi-1', 'miss-1', 'adm-2'],
+);
+assert.deepEqual(
+  filterRecsByType(recs, RecTypeEnum.ADM).map((rec) => rec.id),
+  ['adm-1', 'adm-2'],
+);
+assert.deepEqual(
+  filterRecsByType(recs, RecTypeEnum.ENG).map((rec) => rec.id),
+  ['eng-1'],
+);
+assert.deepEqual(
+  filterRecsByType(recs, RecTypeEnum.EPI).map((rec) => rec.id),
+  ['epi-1'],
+);
+assert.equal(matchesRecTypeListFilter(null, 'all'), true);
+assert.equal(matchesRecTypeListFilter(null, RecTypeEnum.ADM), false);
+assert.deepEqual(
+  intersectRecTypeAndTextFilter(recs, RecTypeEnum.ADM, 'Luva').map(
+    (rec) => rec.id,
+  ),
+  ['adm-2'],
+);
+
+let handleSelectCalls = 0;
+const handleSelect = () => {
+  handleSelectCalls += 1;
+};
+const setRecTypeFilter = (_filter: typeof RecTypeEnum.ADM | 'all') => {
+  /* filtro local: não adiciona recomendação */
+};
+setRecTypeFilter(RecTypeEnum.ADM);
+setRecTypeFilter('all');
+assert.equal(handleSelectCalls, 0);
+assert.equal(typeof handleSelect, 'function');
+
 const recSelectSource = readFileSync(
   resolve('src/components/organisms/tagSelects/RecSelect/index.tsx'),
   'utf8',
@@ -114,8 +162,28 @@ assert.equal(
 );
 assert.equal(recSelectSource.includes('SMeasureControlIcon'), true);
 assert.equal(recSelectSource.includes('RecSelectRecTypeAdornment'), true);
+assert.equal(recSelectSource.includes('RecSelectTypeFilterBar'), true);
+assert.equal(recSelectSource.includes('filterRecsByType'), true);
+assert.equal(recSelectSource.includes("useState<RecTypeListFilter>('all')"), true);
+assert.equal(recSelectSource.includes("setRecTypeFilter('all')"), true);
+assert.equal(recSelectSource.includes('onChange={setRecTypeFilter}'), true);
 assert.equal(recSelectSource.includes('mutateAsync(payload)'), true);
 assert.equal(recSelectSource.includes('probabilityAfter'), false);
+assert.equal(recSelectSource.includes('recType: [recTypeFilter]'), false);
+
+const filterBarSource = readFileSync(
+  resolve(
+    'src/components/organisms/tagSelects/RecSelect/RecSelectTypeFilterBar.tsx',
+  ),
+  'utf8',
+);
+assert.equal(filterBarSource.includes('handleSelect'), false);
+assert.equal(filterBarSource.includes('REC_TYPE_ICON'), true);
+assert.equal(filterBarSource.includes('REC_TYPE_COLOR'), true);
+assert.equal(
+  filterBarSource.includes("from './RecSelectRecTypeAdornment'"),
+  true,
+);
 
 const adornmentSource = readFileSync(
   resolve(
@@ -166,5 +234,7 @@ const checklistModal = readFileSync(
   'utf8',
 );
 assert.equal(checklistModal.includes('enableRecTypeQuickClassify'), false);
+assert.equal(checklistNode.includes('RecSelectTypeFilterBar'), false);
+assert.equal(checklistModal.includes('RecSelectTypeFilterBar'), false);
 
 console.log('resolve-rec-type-visual-state.util.spec.ts ok');

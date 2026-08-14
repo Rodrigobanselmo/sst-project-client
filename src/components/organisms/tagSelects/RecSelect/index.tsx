@@ -20,7 +20,12 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { RecSelectRecTypeAdornment } from './RecSelectRecTypeAdornment';
-import { buildRecMedQuickClassifyPayload } from './resolve-rec-type-visual-state.util';
+import { RecSelectTypeFilterBar } from './RecSelectTypeFilterBar';
+import {
+  buildRecMedQuickClassifyPayload,
+  filterRecsByType,
+  RecTypeListFilter,
+} from './resolve-rec-type-visual-state.util';
 import { IRecMedSelectProps } from './types';
 
 export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
@@ -43,6 +48,7 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
 
   const [disabled, isDisabled] = useState(true);
   const [classifyingRecId, setClassifyingRecId] = useState<string | null>(null);
+  const [recTypeFilter, setRecTypeFilter] = useState<RecTypeListFilter>('all');
   const updateRecMedMut = useMutUpdateRecMed();
 
   const { data: recMed } = useQueryRecMed(
@@ -126,14 +132,17 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   const options = useMemo(() => {
     const recMedList = recMed;
 
-    return sortArray(recMedList, {
+    const sorted = sortArray(recMedList, {
       by: ['all', 'recName'],
       order: ['desc', 'asc'],
       computed: {
         all: (v) => !v.isAll,
       },
     });
-  }, [recMed]);
+
+    if (!enableRecTypeQuickClassify) return sorted;
+    return filterRecsByType(sorted, recTypeFilter);
+  }, [enableRecTypeQuickClassify, recMed, recTypeFilter]);
 
   const recMedLength = String(selectedRec ? selectedRec.length : 0);
 
@@ -141,7 +150,6 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
     <STagSearchSelect
       onClick={() => isDisabled(false)}
       isLoading={disabled}
-      options={options}
       icon={SRecommendationIcon}
       multiple={multiple}
       additionalButton={handleAddRecMed}
@@ -190,6 +198,21 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       }}
       optionsFieldName={{ valueField: 'id', contentField: 'recName' }}
       {...props}
+      options={options}
+      renderFilter={
+        enableRecTypeQuickClassify
+          ? () => (
+              <RecSelectTypeFilterBar
+                value={recTypeFilter}
+                onChange={setRecTypeFilter}
+              />
+            )
+          : props.renderFilter
+      }
+      onClose={() => {
+        setRecTypeFilter('all');
+        props.onClose?.();
+      }}
     />
   );
 };
