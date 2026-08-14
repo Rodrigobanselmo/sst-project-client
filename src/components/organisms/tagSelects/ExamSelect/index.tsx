@@ -166,6 +166,24 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
     setSearch(value);
   }, 300);
 
+  const onCreatedExam = (exam: IExam | null) => {
+    if (!exam) return;
+    if (onlyExam) {
+      handleSelect?.(exam);
+      return;
+    }
+    onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
+      onSubmit: handleSelect,
+      riskType,
+      risk,
+      ...exam,
+      examRiskData: {
+        ...initialExamDataState.examRiskData,
+        ...mapPcmsoDefaultsToExamRisk(pcmsoDefaults),
+      },
+    } as Partial<typeof initialExamDataState>);
+  };
+
   const handleSelectExam = (options: IExam) => {
     const selectedExam =
       data.find((exam) => exam.id === options.id) ?? options;
@@ -179,23 +197,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
         name: t27Name,
         esocial27Code: selectedExam.esocial27Code,
         analyses: t27Name,
-        callback: (exam) => {
-          if (!exam) return;
-          if (onlyExam) {
-            handleSelect?.(exam);
-            return;
-          }
-          onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
-            onSubmit: handleSelect,
-            riskType,
-            risk,
-            ...exam,
-            examRiskData: {
-              ...initialExamDataState.examRiskData,
-              ...mapPcmsoDefaultsToExamRisk(pcmsoDefaults),
-            },
-          } as Partial<typeof initialExamDataState>);
-        },
+        callback: onCreatedExam,
       });
       return;
     }
@@ -245,6 +247,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
 
     onStackOpenModal<Partial<typeof initialExamState>>(ModalEnum.EXAMS_ADD, {
       name,
+      callback: onCreatedExam,
     });
   };
 
