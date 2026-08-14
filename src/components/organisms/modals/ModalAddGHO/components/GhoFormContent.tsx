@@ -26,8 +26,10 @@ import {
 import { EditGhoSelects } from './EditGhoSelects';
 import { GhoAiAnalysisContent } from './GhoAiAnalysisContent';
 import { RiskToolForGse } from './RiskToolForGse';
+import { ApplyGseWizardStep } from './ApplyGseWizardStep';
 import { initialAddGhoState } from '../hooks/useAddGho';
 import {
+  clampGseWizardStep,
   getGseWizardTabOptions,
   GSE_WIZARD_STEP,
   GSE_WIZARD_TAB_LABELS,
@@ -78,6 +80,10 @@ export const GhoFormContent = ({
   const isPage = layout === 'page';
   const isEdit = !!ghoData.id;
   const risksTabDisabled = !isEdit;
+  const requestedStep = isPage
+    ? clampGseWizardStep(ghoData.initialWizardStep)
+    : GSE_WIZARD_STEP.DATA;
+  const canApplyInitialStep = isPage && isEdit;
   const wizardTabsOptions = getGseWizardTabOptions({
     layout,
     isEdit,
@@ -97,17 +103,26 @@ export const GhoFormContent = ({
 
   const wizard = (
     <Wizard
+      startIndex={canApplyInitialStep ? requestedStep : GSE_WIZARD_STEP.DATA}
       header={
-        <WizardTabs
-          shadow
-          {...(isPage && {
-            onChangeTab: (index, cb) =>
-              risksTabDisabled && index >= GSE_WIZARD_STEP.RISKS
-                ? undefined
-                : cb(index),
-          })}
-          options={wizardTabsOptions}
-        />
+        <>
+          <ApplyGseWizardStep
+            requestedStep={
+              canApplyInitialStep ? ghoData.initialWizardStep : undefined
+            }
+            enabled={canApplyInitialStep}
+          />
+          <WizardTabs
+            shadow
+            {...(isPage && {
+              onChangeTab: (index, cb) =>
+                risksTabDisabled && index >= GSE_WIZARD_STEP.RISKS
+                  ? undefined
+                  : cb(index),
+            })}
+            options={wizardTabsOptions}
+          />
+        </>
       }
     >
       <Box sx={{ px: isPage ? 0 : 2, pt: 6, pb: 4 }}>

@@ -51,6 +51,7 @@ export const initialAddGhoState = {
   startDate: undefined as Date | undefined,
   endDate: undefined as Date | undefined,
   layout: 'modal' as GhoAddLayout,
+  initialWizardStep: undefined as number | undefined,
 };
 
 export const useAddGho = () => {

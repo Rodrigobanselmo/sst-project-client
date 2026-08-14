@@ -21,6 +21,8 @@ import {
 } from 'components/organisms/modals/ModalAddGHO/hooks/useAddGho';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
+import { CharacterizationQuickCountCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationQuickCountCell';
+import { CharacterizationRisksQuickCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationRisksQuickCell';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { SGhoIcon } from 'assets/icons/SGhoIcon';
@@ -33,6 +35,7 @@ import {
   IQueryGhos,
   useQueryGhos,
 } from 'core/services/hooks/queries/useQueryGhos/useQueryGhos';
+import { resolveGseTableOpenStep } from 'components/organisms/modals/ModalAddGHO/gse-wizard-steps';
 
 const GHO_TABLE_PAGE_SIZES = [15, 25, 50, 100] as const;
 const DEFAULT_GHO_TABLE_PAGE_SIZE = 15;
@@ -102,18 +105,33 @@ export const GhosTable: FC<
     onStackOpenModal(ModalEnum.GHO_ADD, ghoModalPayload());
   };
 
-  const onEditGHO = (gho: IGho) => {
-    onStackOpenModal(ModalEnum.GHO_ADD, ghoModalPayload(gho as any));
+  const onEditGHO = (
+    gho: IGho,
+    action: 'row' | 'edit' | 'cargos' | 'risks' | 'ai' = 'edit',
+  ) => {
+    onStackOpenModal(
+      ModalEnum.GHO_ADD,
+      ghoModalPayload({
+        ...(gho as any),
+        initialWizardStep: resolveGseTableOpenStep(action),
+      }),
+    );
   };
 
   const onSelectRow = (risk: IGho) => {
     if (isSelect) {
       onSelectData(risk);
-    } else onEditGHO(risk);
+    } else onEditGHO(risk, 'row');
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Nome', column: 'minmax(160px, 1fr)' },
+    ...(pageGhoLayout
+      ? [
+          { text: 'Cargos', column: '90px', justifyContent: 'center' },
+          { text: 'Riscos', column: '90px', justifyContent: 'center' },
+        ]
+      : []),
     { text: 'Status', column: '90px', justifyContent: 'center' },
     { text: 'Editar', column: '80px', justifyContent: 'center' },
   ];
@@ -155,6 +173,26 @@ export const GhosTable: FC<
             />
           )}
           <TextIconRow clickable text={row.name || '-'} />
+          {pageGhoLayout && (
+            <CharacterizationQuickCountCell
+              count={row.hierarchyCount ?? 0}
+              showZeroCount
+              emptyTooltip="Abrir cargos do GSE"
+              countTooltip="Abrir cargos do GSE"
+              addTooltip="Adicionar cargo ao GSE"
+              onOpen={() => onEditGHO(row, 'cargos')}
+              onAdd={() => onEditGHO(row, 'cargos')}
+            />
+          )}
+          {pageGhoLayout && (
+            <CharacterizationRisksQuickCell
+              count={row.riskCount ?? 0}
+              countTooltip="Abrir Fatores de Riscos"
+              onOpenFactors={() => onEditGHO(row, 'risks')}
+              onOpenAiAnalysis={() => onEditGHO(row, 'ai')}
+              aiTooltip="Analisar riscos com IA"
+            />
+          )}
           <StatusSelect
             large={false}
             sx={{ maxWidth: '90px' }}
@@ -167,7 +205,7 @@ export const GhosTable: FC<
             icon={<EditIcon />}
             onClick={(e) => {
               e.stopPropagation();
-              onEditGHO(row);
+              onEditGHO(row, 'edit');
             }}
           />
         </STableRow>

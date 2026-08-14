@@ -16,6 +16,69 @@ export const GSE_WIZARD_TAB_LABELS = {
 
 export type GseAddLayout = 'modal' | 'page';
 
+export const GSE_EDITOR_STEP_COUNT = 4;
+
+export type GseTableOpenAction = 'row' | 'edit' | 'cargos' | 'risks' | 'ai';
+
+export function clampGseWizardStep(
+  step: number | undefined | null,
+): number {
+  if (typeof step !== 'number' || !Number.isFinite(step)) {
+    return GSE_WIZARD_STEP.DATA;
+  }
+  const rounded = Math.trunc(step);
+  if (rounded < 0 || rounded >= GSE_EDITOR_STEP_COUNT) {
+    return GSE_WIZARD_STEP.DATA;
+  }
+  return rounded;
+}
+
+export function resolveGseTableOpenStep(
+  action: GseTableOpenAction,
+): number {
+  if (action === 'cargos') return GSE_WIZARD_STEP.CARGOS;
+  if (action === 'risks') return GSE_WIZARD_STEP.RISKS;
+  if (action === 'ai') return GSE_WIZARD_STEP.AI_ANALYSIS;
+  return GSE_WIZARD_STEP.DATA;
+}
+
+export type ApplyGseWizardStepDecision = {
+  shouldGoToStep: boolean;
+  target?: number;
+  markApplied: boolean;
+};
+
+export function decideApplyGseWizardStep(params: {
+  enabled: boolean;
+  alreadyApplied: boolean;
+  requestedStep?: number;
+  activeStep: number;
+  stepCount: number;
+}): ApplyGseWizardStepDecision {
+  if (params.alreadyApplied) {
+    return { shouldGoToStep: false, markApplied: true };
+  }
+
+  if (!params.enabled) {
+    return { shouldGoToStep: false, markApplied: false };
+  }
+
+  if (typeof params.requestedStep !== 'number') {
+    return { shouldGoToStep: false, markApplied: true };
+  }
+
+  const target = clampGseWizardStep(params.requestedStep);
+  if (target < 0 || target >= params.stepCount) {
+    return { shouldGoToStep: false, markApplied: false };
+  }
+
+  if (params.activeStep === target) {
+    return { shouldGoToStep: false, target, markApplied: true };
+  }
+
+  return { shouldGoToStep: true, target, markApplied: true };
+}
+
 export function getGseWizardTabOptions(params: {
   layout: GseAddLayout;
   isEdit: boolean;

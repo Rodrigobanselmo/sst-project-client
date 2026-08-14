@@ -17,9 +17,12 @@ import { CharacterizationRoutes } from '@v2/constants/routes/characterization.ro
 
 import { buildAiRiskAnalysisSessionKey } from '../ModalAddCharacterization/utils/ai-risk-analysis-session-storage.util';
 import {
+  clampGseWizardStep,
+  decideApplyGseWizardStep,
   getGseWizardTabOptions,
   GSE_WIZARD_STEP,
   GSE_WIZARD_TAB_LABELS,
+  resolveGseTableOpenStep,
 } from './gse-wizard-steps';
 
 assert.equal(GSE_WIZARD_STEP.DATA, 0);
@@ -69,6 +72,64 @@ assert.equal(
 assert.equal(CHARACTERIZATION_WIZARD_STEP.DATA, 0);
 assert.equal(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS, 5);
 assert.equal(CHARACTERIZATION_WIZARD_TAB_ORDER.length, 6);
+
+assert.equal(clampGseWizardStep(undefined), GSE_WIZARD_STEP.DATA);
+assert.equal(clampGseWizardStep(GSE_WIZARD_STEP.CARGOS), 1);
+assert.equal(clampGseWizardStep(GSE_WIZARD_STEP.RISKS), 2);
+assert.equal(clampGseWizardStep(GSE_WIZARD_STEP.AI_ANALYSIS), 3);
+assert.equal(clampGseWizardStep(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS), 0);
+assert.equal(resolveGseTableOpenStep('row'), GSE_WIZARD_STEP.DATA);
+assert.equal(resolveGseTableOpenStep('edit'), GSE_WIZARD_STEP.DATA);
+assert.equal(resolveGseTableOpenStep('cargos'), GSE_WIZARD_STEP.CARGOS);
+assert.equal(resolveGseTableOpenStep('risks'), GSE_WIZARD_STEP.RISKS);
+assert.equal(resolveGseTableOpenStep('ai'), GSE_WIZARD_STEP.AI_ANALYSIS);
+
+const applyCargos = decideApplyGseWizardStep({
+  enabled: true,
+  alreadyApplied: false,
+  requestedStep: GSE_WIZARD_STEP.CARGOS,
+  activeStep: 0,
+  stepCount: 4,
+});
+assert.equal(applyCargos.shouldGoToStep, true);
+assert.equal(applyCargos.target, 1);
+
+const applyRisks = decideApplyGseWizardStep({
+  enabled: true,
+  alreadyApplied: false,
+  requestedStep: GSE_WIZARD_STEP.RISKS,
+  activeStep: 0,
+  stepCount: 4,
+});
+assert.equal(applyRisks.target, 2);
+
+const applyAi = decideApplyGseWizardStep({
+  enabled: true,
+  alreadyApplied: false,
+  requestedStep: GSE_WIZARD_STEP.AI_ANALYSIS,
+  activeStep: 0,
+  stepCount: 4,
+});
+assert.equal(applyAi.target, 3);
+
+const applyData = decideApplyGseWizardStep({
+  enabled: true,
+  alreadyApplied: false,
+  requestedStep: GSE_WIZARD_STEP.DATA,
+  activeStep: 0,
+  stepCount: 4,
+});
+assert.equal(applyData.shouldGoToStep, false);
+assert.equal(applyData.markApplied, true);
+
+const modalStepCount = decideApplyGseWizardStep({
+  enabled: true,
+  alreadyApplied: false,
+  requestedStep: GSE_WIZARD_STEP.AI_ANALYSIS,
+  activeStep: 0,
+  stepCount: 2,
+});
+assert.equal(modalStepCount.shouldGoToStep, false);
 
 const gseSession = buildAiRiskAnalysisSessionKey({
   gseId: 'gse-1',

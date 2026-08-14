@@ -20,6 +20,8 @@ type CharacterizationQuickCountCellProps = {
   quickUnlinkDisabledReason?: string;
   onQuickUnlink?: () => void;
   quickUnlinkLoading?: boolean;
+  /** GSE: exibe 0 em vez do rótulo de vazio; o atalho continua clicável. */
+  showZeroCount?: boolean;
 };
 
 /**
@@ -41,6 +43,7 @@ export function CharacterizationQuickCountCell({
   quickUnlinkDisabledReason,
   onQuickUnlink,
   quickUnlinkLoading = false,
+  showZeroCount = false,
 }: CharacterizationQuickCountCellProps) {
   const blockReason = disabled
     ? disabledReason || 'Ação indisponível'
@@ -64,7 +67,7 @@ export function CharacterizationQuickCountCell({
     onQuickUnlink?.();
   };
 
-  if (count <= 0) {
+  if (count <= 0 && !showZeroCount) {
     return (
       <Box
         display="flex"

@@ -40,6 +40,10 @@ export interface IGho {
   riskData?: IRiskData;
   characterization?: IGhoCharacterizationRef;
   environment?: IGhoEnvironmentRef;
+  /** Listagem paginada: vínculos ativos de cargo. */
+  hierarchyCount?: number;
+  /** Listagem paginada: RiskFactorData ativos do GSE. */
+  riskCount?: number;
 }
 
 export interface IHierarchyOnHomogeneous {
