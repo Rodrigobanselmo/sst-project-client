@@ -29,6 +29,12 @@ import {
   mapModalSelectIdsToGhoLinks,
   mergeGhoHierarchyLinks,
 } from './ghoHierarchyLinks';
+import {
+  buildGhoStaySnapshot,
+  GhoSaveIntent,
+  resolveGhoSaveIntent,
+  shouldStayAfterGhoSave,
+} from '../gho-save-intent.util';
 
 export type GhoAddLayout = 'modal' | 'page';
 
@@ -53,6 +59,7 @@ export const useAddGho = () => {
   const { selectStartEndDate } = useStartEndDate();
   const store = useStore<any>();
   const initialDataRef = useRef(initialAddGhoState);
+  const saveIntentRef = useRef<GhoSaveIntent>('exit');
 
   const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(ghoSchema),
@@ -118,6 +125,7 @@ export const useAddGho = () => {
   }, [getModalData]);
 
   const onClose = (data?: any) => {
+    saveIntentRef.current = 'exit';
     onCloseModal(ModalEnum.GHO_ADD, data);
     setGhoData(initialAddGhoState);
     reset();
@@ -133,10 +141,54 @@ export const useAddGho = () => {
       .catch(() => null);
   };
 
+  const setSaveIntent = (intent: GhoSaveIntent) => {
+    saveIntentRef.current = intent;
+  };
+
+  const applyStay = (params: {
+    savedId: string;
+    form: { name: string; description: string };
+    workspaceIds?: string[];
+  }) => {
+    const next = buildGhoStaySnapshot({
+      current: ghoData,
+      form: params.form,
+      savedId: params.savedId,
+      workspaceIds: params.workspaceIds,
+    });
+    initialDataRef.current = next;
+    setGhoData(next);
+    saveIntentRef.current = 'exit';
+  };
+
+  const finishSubmit = (params: {
+    intent: GhoSaveIntent;
+    savedId?: string | null;
+    form: { name: string; description: string };
+    workspaceIds?: string[];
+  }) => {
+    if (shouldStayAfterGhoSave({ intent: params.intent, savedId: params.savedId })) {
+      applyStay({
+        savedId: params.savedId as string,
+        form: params.form,
+        workspaceIds: params.workspaceIds,
+      });
+      return;
+    }
+    saveIntentRef.current = 'exit';
+    onClose();
+  };
+
   const onSubmit: SubmitHandler<{
     name: string;
     description: string;
   }> = async (data) => {
+    const intent = resolveGhoSaveIntent({
+      layout: ghoData.layout,
+      requestedIntent: saveIntentRef.current,
+    });
+    saveIntentRef.current = 'exit';
+
     const submitData = {
       status: ghoData.status,
       ...data,
@@ -166,8 +218,15 @@ export const useAddGho = () => {
             [] as { id: string; workspaceId: string }[],
           ),
         })
-        .then(() => {
-          onClose();
+        .then((resp) => {
+          finishSubmit({
+            intent,
+            savedId: resp?.id,
+            form: data,
+            workspaceIds: ghoData.workspaceIds.length
+              ? ghoData.workspaceIds
+              : undefined,
+          });
         })
         .catch(() => {});
     } else {
@@ -223,7 +282,12 @@ export const useAddGho = () => {
             }),
           })
           .then(() => {
-            onClose();
+            finishSubmit({
+              intent,
+              savedId: ghoData.id,
+              form: data,
+              workspaceIds: selectedWorkspaceIds,
+            });
           })
           .catch((error: any) => {
             const status = error?.response?.status;
@@ -377,5 +441,6 @@ export const useAddGho = () => {
     onAddHierarchy,
     ghoQuery,
     setValue,
+    setSaveIntent,
   };
 };

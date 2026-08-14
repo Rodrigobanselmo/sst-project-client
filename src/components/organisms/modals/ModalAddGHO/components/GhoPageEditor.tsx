@@ -26,6 +26,7 @@ export const GhoPageEditor = () => {
     ghoQuery,
     setValue,
     loadingQuery,
+    setSaveIntent,
   } = ghoProps;
 
   const isOpen = registerModal(ModalEnum.GHO_ADD).open;
@@ -55,6 +56,7 @@ export const GhoPageEditor = () => {
         hierarchies={hierarchies as any}
         loadingQuery={loadingQuery}
         loading={loading}
+        setSaveIntent={setSaveIntent}
       />
     </Box>
   );

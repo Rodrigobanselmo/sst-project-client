@@ -32,6 +32,7 @@ import {
   GSE_WIZARD_STEP,
   GSE_WIZARD_TAB_LABELS,
 } from '../gse-wizard-steps';
+import { GhoSaveIntent } from '../gho-save-intent.util';
 
 export type GhoAddLayout = 'modal' | 'page';
 
@@ -50,6 +51,7 @@ type GhoFormContentProps = {
   hierarchies: IHierarchy[];
   loadingQuery: boolean;
   loading: boolean;
+  setSaveIntent?: (intent: GhoSaveIntent) => void;
 };
 
 export const GhoFormContent = ({
@@ -67,11 +69,12 @@ export const GhoFormContent = ({
   hierarchies,
   loadingQuery,
   loading,
+  setSaveIntent,
 }: GhoFormContentProps) => {
   const router = useRouter();
   const companyId = router.query.companyId as string;
   const title = ghoData.id ? 'Editar GSE' : 'Grupo similar de exposição';
-  const submitLabel = ghoData.id ? 'Salvar' : 'Criar';
+  const exitLabel = ghoData.id ? 'Salvar e Sair' : 'Criar';
   const isPage = layout === 'page';
   const isEdit = !!ghoData.id;
   const risksTabDisabled = !isEdit;
@@ -222,13 +225,28 @@ export const GhoFormContent = ({
               Cancelar
             </SButton>
             <SButton
+              variant="outlined"
+              type="submit"
+              style={{ minWidth: 100 }}
+              loading={loading}
+              onClick={() => {
+                setSaveIntent?.('stay');
+                setGhoData({ ...ghoData });
+              }}
+            >
+              Salvar
+            </SButton>
+            <SButton
               variant="contained"
               type="submit"
               style={{ minWidth: 100 }}
               loading={loading}
-              onClick={() => setGhoData({ ...ghoData })}
+              onClick={() => {
+                setSaveIntent?.('exit');
+                setGhoData({ ...ghoData });
+              }}
             >
-              {submitLabel}
+              {exitLabel}
             </SButton>
           </SFlex>
         </SFlex>
