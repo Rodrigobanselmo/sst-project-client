@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box, Switch } from '@mui/material';
+import { Box, Button, Switch } from '@mui/material';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
@@ -30,7 +30,8 @@ export const ModalExamStep = ({
   loading,
   isMasterAdmin,
   companyId,
-}: IUseEditExam) => {
+  onCopyFromRisk,
+}: IUseEditExam & { onCopyFromRisk?: () => void }) => {
   const riskType = examData.risk?.type;
 
   return (
@@ -222,6 +223,25 @@ export const ModalExamStep = ({
               text={examData.risk?.name || 'selecione um risco'}
               multiple={false}
             />
+            {onCopyFromRisk && (
+              <Box mt={2}>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="small"
+                  disabled={!examData.riskId || examData.isAll}
+                  onClick={onCopyFromRisk}
+                >
+                  Copiar exames de outro fator
+                </Button>
+                {(!examData.riskId || examData.isAll) && (
+                  <SText sx={{ fontSize: 12, color: 'text.light', mt: 1 }}>
+                    Selecione o fator de risco de destino para copiar exames de
+                    outro fator.
+                  </SText>
+                )}
+              </Box>
+            )}
           </Box>
         )}
 

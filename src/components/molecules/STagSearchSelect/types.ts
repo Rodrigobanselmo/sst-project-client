@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ElementType, MouseEvent, ReactNode } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { BoxProps, MenuProps } from '@mui/material';
 import { ISTagButtonProps } from 'components/atoms/STagButton/types';
 import Fuse from 'fuse.js';
 
@@ -53,4 +53,6 @@ export interface ISTagSearchSelectProps
     text: string;
     onClick: (e: MouseEvent<HTMLDivElement>) => void;
   }) => ReactNode;
+  /** Encaminhado ao SMenuSearch/MUI Menu deste seletor. Não altera o padrão global. */
+  menuProps?: Partial<Omit<MenuProps, 'open' | 'onClose' | 'anchorEl'>>;
 }

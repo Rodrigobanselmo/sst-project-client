@@ -40,6 +40,7 @@ export const STagSearchSelect: FC<
   renderContent,
   renderButton,
   transformSearch,
+  menuProps,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -119,6 +120,7 @@ export const STagSearchSelect: FC<
         transformSearch={transformSearch}
         handleMultiSelectMenu={handleMultiSelectMenu}
         renderContent={renderContent}
+        {...menuProps}
       />
     </>
   );
