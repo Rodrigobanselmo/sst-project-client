@@ -10,12 +10,16 @@ import type {
   ChemicalProductDetail,
   ChemicalProductListItem,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Alert,
   Box,
   Button,
   Chip,
+  Divider,
   FormControlLabel,
+  Menu,
+  MenuItem,
   Stack,
   Switch,
   Table,
@@ -225,6 +229,9 @@ export const ChemicalProductsPageContent = ({
   const [excelPrepareOpen, setExcelPrepareOpen] = useState(false);
   const [excelValidateOpen, setExcelValidateOpen] = useState(false);
   const [surveyImportOpen, setSurveyImportOpen] = useState(false);
+  const [excelMenuAnchor, setExcelMenuAnchor] = useState<null | HTMLElement>(
+    null,
+  );
   const [viewMode, setViewMode] = useState<'products' | 'scenarios'>('products');
   const [scenariosRefreshKey, setScenariosRefreshKey] = useState(0);
   const { isMaster } = useAccess();
@@ -441,8 +448,8 @@ export const ChemicalProductsPageContent = ({
         />
       </CompanyFlowStickySubheader>
 
-      <SFlex justifyContent="space-between" alignItems="center" mb={2} gap={2}>
-        <Box>
+      <Box mb={2}>
+        <Box mb={1.5}>
           <SText fontSize={18} fontWeight={700}>
             Inventário e Triagem de Produtos Químicos
           </SText>
@@ -452,80 +459,130 @@ export const ChemicalProductsPageContent = ({
             inventário do estabelecimento.
           </SText>
         </Box>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          <Button
-            variant={viewMode === 'products' ? 'contained' : 'outlined'}
-            onClick={() => setViewMode('products')}
+        <SFlex
+          justifyContent="space-between"
+          alignItems="center"
+          gap={2}
+          flexWrap="wrap"
+        >
+          <Stack direction="row" spacing={1} flexShrink={0}>
+            <Button
+              variant={viewMode === 'products' ? 'contained' : 'outlined'}
+              onClick={() => {
+                setExcelMenuAnchor(null);
+                setViewMode('products');
+              }}
+            >
+              Produtos
+            </Button>
+            <Button
+              variant={viewMode === 'scenarios' ? 'contained' : 'outlined'}
+              onClick={() => {
+                setExcelMenuAnchor(null);
+                setViewMode('scenarios');
+              }}
+              disabled={!workspaceId}
+            >
+              Cenários de uso
+            </Button>
+          </Stack>
+
+          <Stack
+            direction="row"
+            spacing={1}
+            flexWrap="wrap"
+            useFlexGap
+            justifyContent="flex-end"
+            sx={{ ml: 'auto' }}
           >
-            Produtos
-          </Button>
-          <Button
-            variant={viewMode === 'scenarios' ? 'contained' : 'outlined'}
-            onClick={() => setViewMode('scenarios')}
-            disabled={!workspaceId}
-          >
-            Cenários de uso
-          </Button>
-          <Button
-            variant="outlined"
-            disabled={downloadExcelTemplate.isPending || !workspaceId}
-            onClick={() =>
-              downloadExcelTemplate.mutate({ companyId, workspaceId })
-            }
-          >
-            Baixar modelo Excel
-          </Button>
-          <Button
-            variant="outlined"
-            disabled={exportExcel.isPending || !workspaceId}
-            onClick={() => exportExcel.mutate({ companyId, workspaceId })}
-          >
-            Exportar Excel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => setExcelImportOpen(true)}
-            sx={{ ml: 0.5 }}
-          >
-            Importar Excel
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => setSurveyImportOpen(true)}
-            disabled={!workspaceId}
-            sx={{ whiteSpace: 'nowrap' }}
-          >
-            Importar levantamento (SURVEY)
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => setExcelPrepareOpen(true)}
-            sx={{ ml: 0.5, whiteSpace: 'nowrap' }}
-          >
-            Preparar planilha para importação
-          </Button>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => setExcelValidateOpen(true)}
-            sx={{ whiteSpace: 'nowrap' }}
-          >
-            Validar planilha preparada
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setEditProduct(null);
-              setCreateOpen(true);
-            }}
-            sx={{ ml: 0.5, whiteSpace: 'nowrap' }}
-          >
-            Novo produto
-          </Button>
-        </Stack>
-      </SFlex>
+            {viewMode === 'products' ? (
+              <>
+                <Button
+                  variant="outlined"
+                  endIcon={<ExpandMoreIcon />}
+                  onClick={(event) => setExcelMenuAnchor(event.currentTarget)}
+                  disabled={!workspaceId}
+                  aria-haspopup="menu"
+                  aria-expanded={Boolean(excelMenuAnchor)}
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
+                  Excel
+                </Button>
+                <Menu
+                  anchorEl={excelMenuAnchor}
+                  open={Boolean(excelMenuAnchor)}
+                  onClose={() => setExcelMenuAnchor(null)}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                >
+                  <MenuItem
+                    disabled={downloadExcelTemplate.isPending || !workspaceId}
+                    onClick={() => {
+                      setExcelMenuAnchor(null);
+                      downloadExcelTemplate.mutate({ companyId, workspaceId });
+                    }}
+                  >
+                    Baixar modelo Excel
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setExcelMenuAnchor(null);
+                      setExcelPrepareOpen(true);
+                    }}
+                  >
+                    Preparar planilha para importação
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setExcelMenuAnchor(null);
+                      setExcelValidateOpen(true);
+                    }}
+                  >
+                    Validar planilha preparada
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem
+                    disabled={exportExcel.isPending || !workspaceId}
+                    onClick={() => {
+                      setExcelMenuAnchor(null);
+                      exportExcel.mutate({ companyId, workspaceId });
+                    }}
+                  >
+                    Exportar Excel
+                  </MenuItem>
+                </Menu>
+                <Button
+                  variant="contained"
+                  onClick={() => setExcelImportOpen(true)}
+                  disabled={!workspaceId}
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
+                  Importar Excel
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setEditProduct(null);
+                    setCreateOpen(true);
+                  }}
+                  sx={{ whiteSpace: 'nowrap' }}
+                >
+                  Novo produto
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={() => setSurveyImportOpen(true)}
+                disabled={!workspaceId}
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                Importar levantamento (SURVEY)
+              </Button>
+            )}
+          </Stack>
+        </SFlex>
+      </Box>
 
       {viewMode === 'scenarios' && workspaceId ? (
         <Box mb={3}>
