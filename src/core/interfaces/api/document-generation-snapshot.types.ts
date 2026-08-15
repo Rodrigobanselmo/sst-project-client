@@ -20,6 +20,6 @@ export type DocumentGenerationSnapshot = {
   }>;
   riskFilter?: DocumentGenerationRiskFilter;
   promotedFromTestVersionId?: string;
-  /** Vínculo explícito FRPS ↔ FormApplication (congelado na versão). */
+  /** Vínculo explícito da versão (FRPS ou PGR) ↔ FormApplication (congelado na versão). */
   formApplicationId?: string;
 };

@@ -3,13 +3,22 @@
  *
  * Create: omitir quando não houver seleção (undefined).
  * Regenerate: string substitui; null remove; omitido preserva (API).
+ * Tipos que expõem o seletor: FRPS e PGR (modelos PGR com blocos COPSOQ).
  */
+
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 export type FormApplicationPickerStatus =
   | 'idle'
   | 'loading'
   | 'ready'
   | 'error';
+
+export function documentTypeBindsFormApplication(
+  type?: DocumentTypeEnum | string | null,
+): boolean {
+  return type === DocumentTypeEnum.FRPS || type === DocumentTypeEnum.PGR;
+}
 
 export function resolveFormApplicationIdForCreate(
   value: string | null,

@@ -259,7 +259,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
             />
           </Box>
 
-          {isFrpsDocument && (
+          {(isFrpsDocument || isPgrDocument) && (
             <Box mb={5} maxWidth={['520px']}>
               <FormApplicationBrowseAutocomplete
                 companyId={data.companyId}

@@ -19,7 +19,7 @@ export type FormApplicationBrowseAutocompleteProps = {
   companyId: string;
   value?: string | null;
   onChange: (formApplicationId: string | null) => void;
-  /** Quando false, o fetch não dispara (ex.: modal de outro tipo documental). */
+  /** Quando false, o fetch não dispara (ex.: modal de PCMSO/LTCAT). */
   enabled?: boolean;
   mb?: number;
   /** Notifica loading / ready / error para bloquear submit com vínculo invisível. */

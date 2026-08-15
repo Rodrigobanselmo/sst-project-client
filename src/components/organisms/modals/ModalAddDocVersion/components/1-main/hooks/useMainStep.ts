@@ -7,6 +7,7 @@ import { useSnackbar } from 'notistack';
 
 import {
   FormApplicationPickerStatus,
+  documentTypeBindsFormApplication,
   resolveFormApplicationIdForCreate,
   resolveFormApplicationIdForRegenerate,
 } from '@v2/components/organisms/forms/FormApplicationBrowseAutocomplete/form-application-binding.util';
@@ -299,7 +300,7 @@ export const useMainStep = ({
       return setError('model', { message: 'Campo obrigatório' });
 
     if (
-      data.type === DocumentTypeEnum.FRPS &&
+      documentTypeBindsFormApplication(data.type) &&
       (formApplicationPickerStatusRef.current === 'loading' ||
         formApplicationPickerStatusRef.current === 'error')
     ) {
