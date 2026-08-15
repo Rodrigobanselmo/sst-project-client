@@ -14,6 +14,7 @@ import {
   pendingToRiskOption,
   removePendingRiskFactorByKey,
   setPendingRiskFactorByKey,
+  shouldShowCreateChemicalRiskInProductForm,
   toPendingRiskFactor,
 } from './chemical-product-edit-risk-link.util';
 
@@ -123,5 +124,78 @@ const invalidCasPrefill = buildEditIngredientCreateRiskPrefill({
   cas: '123',
 });
 assert(invalidCasPrefill.cas === undefined, 'invalid cas omitted');
+
+assert(
+  shouldShowCreateChemicalRiskInProductForm({
+    canCreateRisk: true,
+    chemicalName: 'Irganox 1010',
+    matchStatus: 'NO_MATCH',
+  }) === true,
+  'FISPQ NO_MATCH + permission shows button',
+);
+assert(
+  shouldShowCreateChemicalRiskInProductForm({
+    canCreateRisk: false,
+    chemicalName: 'Irganox 1010',
+    matchStatus: 'NO_MATCH',
+  }) === false,
+  'without permission hides button',
+);
+assert(
+  shouldShowCreateChemicalRiskInProductForm({
+    canCreateRisk: true,
+    chemicalName: '',
+    matchStatus: 'NO_MATCH',
+  }) === false,
+  'empty chemical name hides button',
+);
+assert(
+  shouldShowCreateChemicalRiskInProductForm({
+    canCreateRisk: true,
+    chemicalName: 'Irganox 1010',
+    matchStatus: 'MATCHED',
+    riskOption: { id: 'rf-1' },
+    riskFactorId: 'rf-1',
+  }) === false,
+  'MATCHED hides button',
+);
+assert(
+  shouldShowCreateChemicalRiskInProductForm({
+    canCreateRisk: true,
+    chemicalName: 'Ácido sulfâmico',
+    riskOption: { id: 'rf-1' },
+  }) === false,
+  'already selected factor hides button',
+);
+assert(
+  shouldShowCreateChemicalRiskInProductForm({
+    canCreateRisk: true,
+    chemicalName: 'Ácido sulfâmico',
+    riskFactorId: 'rf-1',
+  }) === false,
+  'riskFactorId hides button',
+);
+assert(
+  shouldShowCreateChemicalRiskInProductForm({
+    canCreateRisk: true,
+    chemicalName: 'Ácido sulfâmico',
+  }) === true,
+  'mixture without factor shows button',
+);
+
+const linkedPayload = {
+  chemicalName: confirmed.chemicalName,
+  cas: confirmed.cas || null,
+  concentrationKind: confirmed.concentrationKind,
+  exactPercent: confirmed.exactPercent ?? null,
+  minPercent: confirmed.minPercent ?? null,
+  maxPercent: confirmed.maxPercent ?? null,
+  riskFactorId: confirmed.riskFactorId || null,
+  sortOrder: 0,
+};
+assert(
+  linkedPayload.riskFactorId === 'risk-new',
+  'payload includes riskFactorId after link',
+);
 
 console.log('chemical-product-edit-risk-link.util.spec.ts: OK');

@@ -109,6 +109,22 @@ export function canKeepWithoutRiskLink(params: {
   return Boolean(params.pending) || Boolean(params.ingredient.riskFactorId);
 }
 
+/** Botão de criação inline no cadastro (FISPQ / mistura). Edição não usa isto. */
+export function shouldShowCreateChemicalRiskInProductForm(params: {
+  canCreateRisk: boolean;
+  chemicalName: string;
+  riskFactorId?: string | null;
+  riskOption?: { id?: string } | null;
+  matchStatus?: IngredientDraft['matchStatus'];
+}): boolean {
+  if (!params.canCreateRisk) return false;
+  if (!String(params.chemicalName || '').trim()) return false;
+  if (params.matchStatus === 'MATCHED') return false;
+  if (params.riskOption?.id) return false;
+  if (params.riskFactorId) return false;
+  return true;
+}
+
 export function buildEditIngredientCreateRiskPrefill(params: {
   companyId: string;
   chemicalName: string;

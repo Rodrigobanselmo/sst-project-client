@@ -2,10 +2,12 @@ import { SText } from '@v2/components/atoms/SText/SText';
 import { useMutateChemicalProduct } from '@v2/services/security/characterization/chemical-product/hooks/useMutateChemicalProduct';
 import {
   browseChemicalManufacturers,
+  enrichChemicalOccupationalData,
   searchChemicalRiskFactors,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type {
   ChemicalConcentrationKind,
+  ChemicalOccupationalEnrichResult,
   ChemicalProductDetail,
   ChemicalRiskOption,
   ParseFispqResult,
@@ -31,6 +33,7 @@ import {
 } from '@mui/material';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import type { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { useSnackbar } from 'notistack';
 import { useEffect, useMemo, useState } from 'react';
 
 import {
@@ -40,7 +43,13 @@ import {
   emptyIngredient,
   IngredientDraft,
 } from './chemical-composition-draft.util';
-import { canCreateChemicalRiskPermission } from './chemical-curation-create-risk.util';
+import {
+  applyOccupationalPrefillToCreateRisk,
+  canCreateChemicalRiskPermission,
+  isValidCasRn,
+  softNormalizeCas,
+  type ChemicalCurationCreateRiskPrefill,
+} from './chemical-curation-create-risk.util';
 import { ChemicalCurationCreateRiskDialog } from './ChemicalCurationCreateRiskDialog';
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
 import { mapChemicalFispqImportError } from './chemical-fispq-import-error.util';
@@ -55,8 +64,16 @@ import {
   pendingToRiskOption,
   removePendingRiskFactorByKey,
   setPendingRiskFactorByKey,
+  shouldShowCreateChemicalRiskInProductForm,
   toPendingRiskFactor,
 } from './chemical-product-edit-risk-link.util';
+
+type CreateRiskFormSession = {
+  ingredientKey: string;
+  initialData: ChemicalCurationCreateRiskPrefill;
+  occupationalEnrich: ChemicalOccupationalEnrichResult | null;
+  occupationalLoading: boolean;
+};
 
 type Mode = 'mixture' | 'pure' | 'fispq' | 'excel';
 
@@ -93,6 +110,7 @@ export const ChemicalProductFormDialog = ({
 
   const isEdit = Boolean(editProduct);
   const { isAuthSuccess } = useAuthShow();
+  const { enqueueSnackbar } = useSnackbar();
   const canCreateRisk = canCreateChemicalRiskPermission({ isAuthSuccess });
   const [mode, setMode] = useState<Mode>('mixture');
   const [tradeName, setTradeName] = useState('');
@@ -108,9 +126,8 @@ export const ChemicalProductFormDialog = ({
   );
   const [pendingRiskFactorByIngredientKey, setPendingRiskFactorByIngredientKey] =
     useState<PendingRiskFactorByIngredientKey>({});
-  const [createRiskIngredientKey, setCreateRiskIngredientKey] = useState<
-    string | null
-  >(null);
+  const [createRiskSession, setCreateRiskSession] =
+    useState<CreateRiskFormSession | null>(null);
   const [selectedRisk, setSelectedRisk] = useState<ChemicalRiskOption | null>(
     null,
   );
@@ -154,14 +171,14 @@ export const ChemicalProductFormDialog = ({
           : [emptyIngredient()],
       );
       setPendingRiskFactorByIngredientKey({});
-      setCreateRiskIngredientKey(null);
+      setCreateRiskSession(null);
       setRiskSearchByKey({});
       setIsDirty(false);
       setTradeNameTouched(false);
       setIsSubmitting(false);
     } else {
       setPendingRiskFactorByIngredientKey({});
-      setCreateRiskIngredientKey(null);
+      setCreateRiskSession(null);
       setIsDirty(false);
       setTradeNameTouched(false);
       setIsSubmitting(false);
@@ -233,7 +250,7 @@ export const ChemicalProductFormDialog = ({
     setFispqPreviewReady(false);
     setRiskSearchByKey({});
     setPendingRiskFactorByIngredientKey({});
-    setCreateRiskIngredientKey(null);
+    setCreateRiskSession(null);
     setPureRiskSearch('');
     setIsDirty(false);
     setIsSubmitting(false);
@@ -253,6 +270,7 @@ export const ChemicalProductFormDialog = ({
       reason,
       hasDraft,
       userConfirmedDiscard: false,
+      nestedDialogOpen: Boolean(createRiskSession),
     });
     if (decision === 'keep-open') return;
     if (decision === 'ask-confirm') {
@@ -338,8 +356,8 @@ export const ChemicalProductFormDialog = ({
       delete next[ingredientKey];
       return next;
     });
-    if (createRiskIngredientKey === ingredientKey) {
-      setCreateRiskIngredientKey(null);
+    if (createRiskSession?.ingredientKey === ingredientKey) {
+      setCreateRiskSession(null);
     }
   };
 
@@ -400,24 +418,81 @@ export const ChemicalProductFormDialog = ({
     type: String(created.type || 'QUI'),
   });
 
-  const createRiskIngredient = createRiskIngredientKey
-    ? ingredients.find((item) => item.key === createRiskIngredientKey) || null
-    : null;
+  const closeCreateRiskSession = () => setCreateRiskSession(null);
 
-  const createRiskPrefill = useMemo(
-    () =>
-      buildEditIngredientCreateRiskPrefill({
-        companyId,
-        chemicalName: createRiskIngredient?.chemicalName || '',
-        cas: createRiskIngredient?.cas || '',
-      }),
-    [
+  const applyCreatedRiskToIngredient = (risk: ChemicalRiskOption) => {
+    const ingredientKey = createRiskSession?.ingredientKey;
+    if (!ingredientKey) return;
+    if (isEdit) {
+      setPendingForIngredient(ingredientKey, risk);
+      closeCreateRiskSession();
+      return;
+    }
+    const ingredient = ingredients.find((item) => item.key === ingredientKey);
+    if (ingredient) applyRiskToIngredient(ingredient, risk);
+    closeCreateRiskSession();
+  };
+
+  const openCreateRiskForIngredient = async (ingredient: IngredientDraft) => {
+    const ingredientKey = ingredient.key;
+    const basePrefill = buildEditIngredientCreateRiskPrefill({
       companyId,
-      createRiskIngredient?.chemicalName,
-      createRiskIngredient?.cas,
-      createRiskIngredientKey,
-    ],
-  );
+      chemicalName: ingredient.chemicalName,
+      cas: ingredient.cas,
+    });
+    setCreateRiskSession({
+      ingredientKey,
+      initialData: basePrefill,
+      occupationalEnrich: null,
+      occupationalLoading: Boolean(basePrefill.cas),
+    });
+
+    const casCandidate = softNormalizeCas(basePrefill.cas).value;
+    if (!casCandidate || !isValidCasRn(casCandidate)) {
+      setCreateRiskSession((prev) =>
+        prev && prev.ingredientKey === ingredientKey
+          ? { ...prev, occupationalLoading: false }
+          : prev,
+      );
+      return;
+    }
+
+    try {
+      const enrich = await enrichChemicalOccupationalData({
+        companyId,
+        workspaceId,
+        cas: casCandidate,
+        officialName: basePrefill.name,
+      });
+      setCreateRiskSession((prev) => {
+        if (!prev || prev.ingredientKey !== ingredientKey) return prev;
+        return {
+          ...prev,
+          initialData: applyOccupationalPrefillToCreateRisk(
+            prev.initialData,
+            enrich.prefill,
+            enrich.searchAudit,
+          ),
+          occupationalEnrich: enrich,
+          occupationalLoading: false,
+        };
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Falha ao consultar limites ocupacionais.';
+      enqueueSnackbar(
+        `Limites ocupacionais: ${message}. Você pode preencher manualmente.`,
+        { variant: 'warning' },
+      );
+      setCreateRiskSession((prev) =>
+        prev && prev.ingredientKey === ingredientKey
+          ? { ...prev, occupationalLoading: false }
+          : prev,
+      );
+    }
+  };
 
   const handleParseFispq = async (file: File | null) => {
     if (!file) return;
@@ -663,6 +738,13 @@ export const ChemicalProductFormDialog = ({
       ingredient,
       pending: pendingRisk,
     });
+    const showCreateRiskInCreate = shouldShowCreateChemicalRiskInProductForm({
+      canCreateRisk,
+      chemicalName: ingredient.chemicalName,
+      riskFactorId: ingredient.riskFactorId,
+      riskOption: ingredient.riskOption,
+      matchStatus: ingredient.matchStatus,
+    });
 
     return (
       <Stack
@@ -769,9 +851,7 @@ export const ChemicalProductFormDialog = ({
                   <Button
                     size="small"
                     variant="outlined"
-                    onClick={() =>
-                      setCreateRiskIngredientKey(ingredient.key)
-                    }
+                    onClick={() => void openCreateRiskForIngredient(ingredient)}
                   >
                     Cadastrar fator químico
                   </Button>
@@ -798,32 +878,44 @@ export const ChemicalProductFormDialog = ({
               borderColor: 'primary.main',
             }}
           >
-            <Autocomplete
-              options={options}
-              value={ingredient.riskOption || null}
-              onChange={(_, value) => applyRiskToIngredient(ingredient, value)}
-              onInputChange={(_, value, reason) => {
-                if (reason === 'input') {
-                  setRiskSearchByKey((current) => ({
-                    ...current,
-                    [ingredient.key]: value,
-                  }));
-                }
-              }}
-              getOptionLabel={riskLabel}
-              isOptionEqualToValue={(a, b) => a.id === b.id}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Fator de risco (global ou da empresa)"
-                  helperText={
-                    ingredient.riskOption
-                      ? `Selecionado: ${riskLabel(ingredient.riskOption)}`
-                      : 'Sem vínculo — preencha nome/CAS manualmente se necessário'
+            <Stack spacing={1}>
+              <Autocomplete
+                options={options}
+                value={ingredient.riskOption || null}
+                onChange={(_, value) => applyRiskToIngredient(ingredient, value)}
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') {
+                    setRiskSearchByKey((current) => ({
+                      ...current,
+                      [ingredient.key]: value,
+                    }));
                   }
-                />
-              )}
-            />
+                }}
+                getOptionLabel={riskLabel}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Fator de risco (global ou da empresa)"
+                    helperText={
+                      ingredient.riskOption
+                        ? `Selecionado: ${riskLabel(ingredient.riskOption)}`
+                        : 'Sem vínculo — preencha nome/CAS manualmente se necessário'
+                    }
+                  />
+                )}
+              />
+              {showCreateRiskInCreate ? (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => void openCreateRiskForIngredient(ingredient)}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  Cadastrar fator químico
+                </Button>
+              ) : null}
+            </Stack>
           </Box>
         )}
 
@@ -926,7 +1018,7 @@ export const ChemicalProductFormDialog = ({
     <>
     <Dialog
       open={open}
-      disableEscapeKeyDown={hasDraft}
+      disableEscapeKeyDown={hasDraft || Boolean(createRiskSession)}
       onClose={(_event, reason) => requestClose(reason)}
       fullWidth
       maxWidth="md"
@@ -1224,21 +1316,20 @@ export const ChemicalProductFormDialog = ({
       </DialogActions>
     </Dialog>
 
-      {createRiskIngredientKey && createRiskIngredient ? (
+      {createRiskSession ? (
         <ChemicalCurationCreateRiskDialog
           open
           companyId={companyId}
           workspaceId={workspaceId}
-          initialData={createRiskPrefill}
-          onClose={() => setCreateRiskIngredientKey(null)}
+          initialData={createRiskSession.initialData}
+          occupationalEnrich={createRiskSession.occupationalEnrich}
+          occupationalLoading={createRiskSession.occupationalLoading}
+          onClose={closeCreateRiskSession}
           onCreated={(created) => {
-            const option = createdRiskToOption(created);
-            setPendingForIngredient(createRiskIngredientKey, option);
-            setCreateRiskIngredientKey(null);
+            applyCreatedRiskToIngredient(createdRiskToOption(created));
           }}
           onSelectExisting={(risk) => {
-            setPendingForIngredient(createRiskIngredientKey, risk);
-            setCreateRiskIngredientKey(null);
+            applyCreatedRiskToIngredient(risk);
           }}
         />
       ) : null}

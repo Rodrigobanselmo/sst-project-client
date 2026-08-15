@@ -13,8 +13,12 @@ export function resolveChemicalDialogClose(params: {
   reason: ChemicalDialogCloseReason;
   hasDraft: boolean;
   userConfirmedDiscard: boolean;
+  /** Modal filho (ex.: cadastrar fator) — não fechar nem perguntar descarte. */
+  nestedDialogOpen?: boolean;
 }): 'keep-open' | 'ask-confirm' | 'close' {
-  const { reason, hasDraft, userConfirmedDiscard } = params;
+  const { reason, hasDraft, userConfirmedDiscard, nestedDialogOpen } = params;
+
+  if (nestedDialogOpen) return 'keep-open';
 
   if (reason === 'backdropClick') {
     return hasDraft ? 'keep-open' : 'close';
