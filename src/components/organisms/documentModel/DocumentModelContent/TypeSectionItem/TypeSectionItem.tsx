@@ -354,6 +354,32 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           src={item.url || '/images/placeholder-image.png'}
         />
       ),
+      [DocumentSectionChildrenTypeEnum.LEGAL_RESPONSIBLE_SIGNATURE]: () => (
+        <STOther
+          sx={{
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            pt: 8,
+            pb: 4,
+          }}
+        >
+          <Box
+            sx={{
+              width: { xs: '70%', sm: '46%' },
+              borderTop: '1px solid',
+              borderColor: 'grey.800',
+              mb: 2,
+            }}
+          />
+          <SText fontSize={12} fontWeight={700} textAlign="center">
+            Assinatura do Responsável Legal
+          </SText>
+          <SText fontSize={11} color="text.secondary" textAlign="center">
+            Nome, CPF e NIT do cadastro da empresa · data do documento
+          </SText>
+        </STOther>
+      ),
     }),
     [variables, headingNumbering],
   );
