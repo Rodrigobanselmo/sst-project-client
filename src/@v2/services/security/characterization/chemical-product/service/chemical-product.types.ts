@@ -97,6 +97,17 @@ export type ParseFispqResult = {
     language: string | null;
     section3Text: string | null;
     ingredients: ParsedFispqIngredient[];
+    aiContext?: {
+      sections: {
+        section2?: string;
+        section8?: string;
+        section10?: string;
+        section11?: string;
+      };
+      excerpt?: string;
+      truncated: boolean;
+      charCount: number;
+    };
   } | null;
 };
 

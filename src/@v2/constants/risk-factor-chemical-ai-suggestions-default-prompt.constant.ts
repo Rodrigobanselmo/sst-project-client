@@ -148,6 +148,8 @@ Use os dados fornecidos no payload como ponto de partida, incluindo:
 - dados do cadastro interno;
 - dados extraídos do PDF.
 
+Quando o payload trouxer origin=chemical-fispq e trechos de FISPQ, trate a FISPQ como fonte prioritária daquele produto, complemente com cadastro interno e demais evidências, não a use como verdade única e não altere a severity só porque existe uma SDS. A decisão humana permanece.
+
 Complemente a análise, quando possível, com conhecimento técnico consolidado de fontes reconhecidas, como:
 - NIOSH Pocket Guide;
 - CDC/NIOSH;

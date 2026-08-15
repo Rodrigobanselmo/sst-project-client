@@ -254,6 +254,13 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
         isMaster={isMaster}
       />
 
+      {sourceContext?.origin === 'chemical-fispq' &&
+      Boolean(knownDataExtras?.fispqExcerpt?.trim()) ? (
+        <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+          FISPQ disponível — será considerada como fonte prioritária na sugestão.
+        </Typography>
+      ) : null}
+
       <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
         A sugestão é assistida e deve ser revisada tecnicamente antes de salvar.
       </Typography>
@@ -286,6 +293,12 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
         <Alert severity="warning" sx={{ mt: 1 }}>
           {lastResult.warnings.join(' ')}
         </Alert>
+      ) : null}
+
+      {lastResult && Boolean(knownDataExtras?.fispqExcerpt?.trim()) ? (
+        <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+          Contexto fornecido à IA: FISPQ
+        </Typography>
       ) : null}
 
       {lastResult?.sourceTrace?.length ? (

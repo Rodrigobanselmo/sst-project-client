@@ -53,6 +53,10 @@ import {
 import { ChemicalCurationCreateRiskDialog } from './ChemicalCurationCreateRiskDialog';
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
 import { mapChemicalFispqImportError } from './chemical-fispq-import-error.util';
+import {
+  pickFispqAiSuggestionContext,
+  type ChemicalFispqAiSuggestionContext,
+} from './chemical-fispq-ai-suggestion-context.util';
 import { planRiskFactorIngredientFill } from './chemical-ingredient-risk-fill.util';
 import {
   buildEditIngredientCreateRiskPrefill,
@@ -73,6 +77,7 @@ type CreateRiskFormSession = {
   initialData: ChemicalCurationCreateRiskPrefill;
   occupationalEnrich: ChemicalOccupationalEnrichResult | null;
   occupationalLoading: boolean;
+  fispqAiContext?: ChemicalFispqAiSuggestionContext | null;
 };
 
 type Mode = 'mixture' | 'pure' | 'fispq' | 'excel';
@@ -445,6 +450,8 @@ export const ChemicalProductFormDialog = ({
       initialData: basePrefill,
       occupationalEnrich: null,
       occupationalLoading: Boolean(basePrefill.cas),
+      fispqAiContext:
+        mode === 'fispq' ? pickFispqAiSuggestionContext(fispqParse?.preview) : null,
     });
 
     const casCandidate = softNormalizeCas(basePrefill.cas).value;
@@ -1324,6 +1331,7 @@ export const ChemicalProductFormDialog = ({
           initialData={createRiskSession.initialData}
           occupationalEnrich={createRiskSession.occupationalEnrich}
           occupationalLoading={createRiskSession.occupationalLoading}
+          fispqAiContext={createRiskSession.fispqAiContext}
           onClose={closeCreateRiskSession}
           onCreated={(created) => {
             applyCreatedRiskToIngredient(createdRiskToOption(created));

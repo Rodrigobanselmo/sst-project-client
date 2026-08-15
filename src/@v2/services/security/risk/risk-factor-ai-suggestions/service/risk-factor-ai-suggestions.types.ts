@@ -3,7 +3,8 @@ export type RiskFactorAiSuggestionConfidence = 'low' | 'medium' | 'high';
 export type RiskFactorAiSuggestionSourceOrigin =
   | 'ho-method-import'
   | 'ho-method-manual'
-  | 'risk-factor-form';
+  | 'risk-factor-form'
+  | 'chemical-fispq';
 
 export type RiskFactorAiSuggestionLimitsPayload = {
   nr15lt?: string;
@@ -34,6 +35,8 @@ export type RiskFactorAiSuggestionKnownDataPayload = {
   methodContext?: string;
   pdfObservations?: string;
   parseWarnings?: string[];
+  /** Compact FISPQ excerpt (sections 2/8/10/11). Not HO pdfObservations. */
+  fispqExcerpt?: string;
 };
 
 export type RiskFactorAiSuggestionSourceContextPayload = {

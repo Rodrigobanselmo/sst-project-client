@@ -34,6 +34,10 @@ import {
   isValidCasRn,
   softNormalizeCas,
 } from './chemical-curation-create-risk.util';
+import {
+  resolveChemicalCreateRiskAiSuggestionOptions,
+  type ChemicalFispqAiSuggestionContext,
+} from './chemical-fispq-ai-suggestion-context.util';
 
 type Props = {
   open: boolean;
@@ -45,6 +49,7 @@ type Props = {
   onClose: () => void;
   onCreated: (risk: IRiskFactors) => void;
   onSelectExisting?: (risk: ChemicalRiskOption) => void;
+  fispqAiContext?: ChemicalFispqAiSuggestionContext | null;
 };
 
 export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
@@ -57,6 +62,7 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
   onClose,
   onCreated,
   onSelectExisting,
+  fispqAiContext = null,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
   const [duplicateRisks, setDuplicateRisks] = useState<ChemicalRiskOption[]>(
@@ -75,6 +81,11 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
     [initialData],
   );
 
+  const aiSuggestionOptions = useMemo(
+    () => resolveChemicalCreateRiskAiSuggestionOptions(fispqAiContext),
+    [fispqAiContext],
+  );
+
   const props = useAddRisk({
     initialData: mergedInitialData,
     disableModalClose: true,
@@ -86,9 +97,8 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
       setAllowDuplicateCas(false);
       onClose();
     },
-    aiSuggestionSourceContext: {
-      origin: 'ho-method-manual',
-    },
+    aiSuggestionSourceContext: aiSuggestionOptions.sourceContext,
+    aiSuggestionKnownDataExtras: aiSuggestionOptions.knownDataExtras,
     beforeCreate: async (payload) => {
       const rawCas = String(payload.cas ?? '').trim();
       if (!rawCas) {
