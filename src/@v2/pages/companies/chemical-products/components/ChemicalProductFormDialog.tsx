@@ -17,12 +17,15 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
+  FormControlLabel,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -43,6 +46,16 @@ import {
   emptyIngredient,
   IngredientDraft,
 } from './chemical-composition-draft.util';
+import {
+  buildCreateFromFispqCompositionPayload,
+  hasUsableExtractedIngredients,
+  isUnindividualizedDisclosure,
+  resolveFispqUndeclaredSubmitBlock,
+  shouldSkipCompositionVersionOnEdit,
+  UNINDIVIDUALIZED_COMPOSITION_CHECKBOX_LABEL,
+  UNINDIVIDUALIZED_COMPOSITION_HELPER,
+  UNINDIVIDUALIZED_COMPOSITION_LABEL,
+} from './chemical-composition-disclosure.util';
 import {
   applyOccupationalPrefillToCreateRisk,
   canCreateChemicalRiskPermission,
@@ -146,6 +159,10 @@ export const ChemicalProductFormDialog = ({
   const [fispqIssuedAt, setFispqIssuedAt] = useState('');
   const [fispqLanguage, setFispqLanguage] = useState('pt');
   const [fispqPreviewReady, setFispqPreviewReady] = useState(false);
+  const [fispqParseHadZeroUsableIngredients, setFispqParseHadZeroUsableIngredients] =
+    useState(false);
+  const [undeclaredComposition, setUndeclaredComposition] = useState(false);
+  const [undeclaredNote, setUndeclaredNote] = useState('');
   const [isDirty, setIsDirty] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tradeNameTouched, setTradeNameTouched] = useState(false);
@@ -160,6 +177,13 @@ export const ChemicalProductFormDialog = ({
       const active = (editProduct.compositionVersions || []).find(
         (version) => version.status === 'ACTIVE',
       );
+      const isUndeclared = isUnindividualizedDisclosure(
+        active?.compositionDisclosure ??
+          editProduct.activeComposition?.compositionDisclosure,
+      );
+      setUndeclaredComposition(isUndeclared);
+      setUndeclaredNote(active?.compositionDisclosureNote || '');
+      setFispqParseHadZeroUsableIngredients(false);
       setIngredients(
         active?.ingredients?.length
           ? active.ingredients.map((ingredient) => ({
@@ -173,7 +197,9 @@ export const ChemicalProductFormDialog = ({
               riskFactorId: ingredient.riskFactorId,
               riskOption: ingredient.riskFactor || null,
             }))
-          : [emptyIngredient()],
+          : isUndeclared
+            ? []
+            : [emptyIngredient()],
       );
       setPendingRiskFactorByIngredientKey({});
       setCreateRiskSession(null);
@@ -187,6 +213,9 @@ export const ChemicalProductFormDialog = ({
       setIsDirty(false);
       setTradeNameTouched(false);
       setIsSubmitting(false);
+      setUndeclaredComposition(false);
+      setUndeclaredNote('');
+      setFispqParseHadZeroUsableIngredients(false);
     }
   }, [open, editProduct]);
 
@@ -253,6 +282,9 @@ export const ChemicalProductFormDialog = ({
     setFispqIssuedAt('');
     setFispqLanguage('pt');
     setFispqPreviewReady(false);
+    setFispqParseHadZeroUsableIngredients(false);
+    setUndeclaredComposition(false);
+    setUndeclaredNote('');
     setRiskSearchByKey({});
     setPendingRiskFactorByIngredientKey({});
     setCreateRiskSession(null);
@@ -524,14 +556,19 @@ export const ChemicalProductFormDialog = ({
       }
 
       const preview = parsed.preview;
+      const parsedIngredients = preview?.ingredients || [];
+      const hasUsable = hasUsableExtractedIngredients(parsedIngredients);
       setTradeName(preview?.tradeName || '');
       setManufacturer(preview?.manufacturer || '');
       setFispqVersionLabel(preview?.versionLabel || '');
       setFispqIssuedAt(preview?.issuedAt || '');
       setFispqLanguage(preview?.language || 'pt');
+      setFispqParseHadZeroUsableIngredients(!hasUsable);
+      setUndeclaredComposition(false);
+      setUndeclaredNote('');
       setIngredients(
-        preview?.ingredients?.length
-          ? preview.ingredients.map((ingredient) => ({
+        hasUsable
+          ? parsedIngredients.map((ingredient) => ({
               ...emptyIngredient(),
               chemicalName: ingredient.chemicalName || '',
               cas: ingredient.cas || '',
@@ -545,7 +582,7 @@ export const ChemicalProductFormDialog = ({
               pending: Boolean(ingredient.pending),
               pendingReason: ingredient.pendingReason || null,
             }))
-          : [emptyIngredient()],
+          : [],
       );
       setFispqPreviewReady(true);
     } catch (err: any) {
@@ -570,7 +607,7 @@ export const ChemicalProductFormDialog = ({
     setError(null);
     setWarnings([]);
 
-    if (mode !== 'pure') {
+    if (mode !== 'pure' && !undeclaredComposition) {
       if (Object.keys(compositionState.rowErrors).length) {
         setError('Corrija os componentes incompletos antes de salvar.');
         return;
@@ -598,13 +635,21 @@ export const ChemicalProductFormDialog = ({
           tradeName: tradeName.trim(),
           manufacturer: manufacturer.trim() || null,
         });
-        await createComposition.mutateAsync({
-          companyId,
-          workspaceId,
-          productId: editProduct.id,
-          sourceType: editProduct.isPureSubstance ? 'PURE' : 'MANUAL',
-          ingredients: toPayload(ingredients),
-        });
+        if (
+          !shouldSkipCompositionVersionOnEdit({
+            undeclaredComposition,
+            ingredients,
+          })
+        ) {
+          await createComposition.mutateAsync({
+            companyId,
+            workspaceId,
+            productId: editProduct.id,
+            sourceType: editProduct.isPureSubstance ? 'PURE' : 'MANUAL',
+            compositionDisclosure: 'DECLARED',
+            ingredients: toPayload(ingredients),
+          });
+        }
         setIsDirty(false);
         closeAfterSave();
         return;
@@ -638,7 +683,11 @@ export const ChemicalProductFormDialog = ({
           versionLabel: fispqVersionLabel || null,
           issuedAt: fispqIssuedAt || null,
           language: fispqLanguage || null,
-          ingredients: toPayload(ingredients),
+          ...buildCreateFromFispqCompositionPayload({
+            undeclaredComposition,
+            disclosureNote: undeclaredNote,
+            ingredients,
+          }),
         });
         setWarnings(result?.compositionWarnings || []);
       } else {
@@ -699,15 +748,18 @@ export const ChemicalProductFormDialog = ({
       return null;
     }
     if (mode !== 'pure' || isEdit) {
-      if (Object.keys(compositionState.rowErrors).length) {
+      if (!undeclaredComposition && Object.keys(compositionState.rowErrors).length) {
         return 'Corrija os componentes incompletos antes de salvar.';
       }
-      if (compositionState.exceeds) {
+      if (!undeclaredComposition && compositionState.exceeds) {
         return compositionState.globalErrors.join(' ');
       }
     }
     if (isEdit) {
       if (!tradeName.trim()) return 'Informe o nome comercial.';
+      if (!undeclaredComposition && !ingredients.length) {
+        return 'Informe ao menos um componente.';
+      }
       return null;
     }
     if (mode === 'fispq') {
@@ -718,7 +770,11 @@ export const ChemicalProductFormDialog = ({
       if (fispqParse.extractable && !fispqPreviewReady) {
         return 'Aguarde o preview da FISPQ.';
       }
-      return null;
+      return resolveFispqUndeclaredSubmitBlock({
+        parseHadZeroUsableIngredients: fispqParseHadZeroUsableIngredients,
+        undeclaredComposition,
+        ingredients,
+      });
     }
     if (!tradeName.trim()) return 'Informe o nome comercial.';
     if (!ingredients.length) return 'Informe ao menos um componente.';
@@ -1228,6 +1284,65 @@ export const ChemicalProductFormDialog = ({
                 </Stack>
               ) : null}
 
+              {(mode === 'fispq' &&
+                fispqPreviewReady &&
+                fispqParseHadZeroUsableIngredients) ||
+              (isEdit && undeclaredComposition) ? (
+                <Alert severity="info">
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={undeclaredComposition}
+                        onChange={(event) => {
+                          markDirty();
+                          const checked = event.target.checked;
+                          setUndeclaredComposition(checked);
+                          if (checked) {
+                            setIngredients([]);
+                            setPendingRiskFactorByIngredientKey({});
+                          } else {
+                            setIngredients((current) =>
+                              current.length ? current : [emptyIngredient()],
+                            );
+                          }
+                        }}
+                      />
+                    }
+                    label={UNINDIVIDUALIZED_COMPOSITION_CHECKBOX_LABEL}
+                  />
+                  <FormHelperText sx={{ mx: 0, mt: 0 }}>
+                    {UNINDIVIDUALIZED_COMPOSITION_HELPER}
+                  </FormHelperText>
+                  {undeclaredComposition ? (
+                    <TextField
+                      label="Nota (opcional)"
+                      value={undeclaredNote}
+                      onChange={(e) => {
+                        markDirty();
+                        setUndeclaredNote(e.target.value);
+                      }}
+                      fullWidth
+                      multiline
+                      minRows={2}
+                      sx={{ mt: 1.5 }}
+                      helperText="Registre por que a FISPQ não individualiza a composição, se útil."
+                    />
+                  ) : (
+                    <SText fontSize={13} sx={{ mt: 1 }}>
+                      Sem declaração, a criação permanece bloqueada até você
+                      adicionar componentes utilizáveis.
+                    </SText>
+                  )}
+                </Alert>
+              ) : null}
+
+              {undeclaredComposition ? (
+                <Alert severity="warning">
+                  {UNINDIVIDUALIZED_COMPOSITION_LABEL}. Nenhum componente será
+                  criado e nenhum fator de risco será gerado.
+                </Alert>
+              ) : (
+                <>
               {ingredients.map((ingredient, index) =>
                 renderIngredientEditor(ingredient, index),
               )}
@@ -1249,17 +1364,30 @@ export const ChemicalProductFormDialog = ({
                   : ''}
                 {compositionState.exceeds ? ' · excedeu 100%' : ''}
               </Alert>
+                </>
+              )}
 
               <Button
-                disabled={!canAddExactComponent(compositionState.exactSum)}
+                disabled={
+                  !undeclaredComposition &&
+                  !canAddExactComponent(compositionState.exactSum)
+                }
                 onClick={() => {
+                  markDirty();
+                  if (undeclaredComposition) {
+                    setUndeclaredComposition(false);
+                    setIngredients([emptyIngredient()]);
+                    return;
+                  }
                   if (!canAddExactComponent(compositionState.exactSum)) return;
                   setIngredients((current) => [...current, emptyIngredient()]);
                 }}
               >
-                {canAddExactComponent(compositionState.exactSum)
-                  ? 'Adicionar componente'
-                  : 'Não é possível adicionar componente exato (soma ≥ 100%)'}
+                {undeclaredComposition
+                  ? 'Adicionar componente (desfazer declaração)'
+                  : canAddExactComponent(compositionState.exactSum)
+                    ? 'Adicionar componente'
+                    : 'Não é possível adicionar componente exato (soma ≥ 100%)'}
               </Button>
             </>
           ) : null}

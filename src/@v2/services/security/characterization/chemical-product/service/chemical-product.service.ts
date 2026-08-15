@@ -7,6 +7,7 @@ import { downloadFile } from 'core/utils/helpers/downloadFile';
 import {
   ChemicalExcelImportPreview,
   ChemicalIngredientPayload,
+  ChemicalCompositionDisclosure,
   ChemicalPrepareAnalyzeResult,
   ChemicalPrepareColumnMapping,
   ChemicalPreparePreviewResult,
@@ -103,6 +104,8 @@ export async function createFromFispqChemicalProduct(
     issuedAt?: string | null;
     language?: string | null;
     ingredients: ChemicalIngredientPayload[];
+    compositionDisclosure?: ChemicalCompositionDisclosure | null;
+    compositionDisclosureNote?: string | null;
   },
 ) {
   const { companyId, workspaceId, ...body } = params;
@@ -188,6 +191,8 @@ export async function createCompositionVersion(
     sourceType: 'MANUAL' | 'PURE' | 'FISPQ';
     sourceDocumentId?: string | null;
     ingredients: ChemicalIngredientPayload[];
+    compositionDisclosure?: ChemicalCompositionDisclosure | null;
+    compositionDisclosureNote?: string | null;
   },
 ) {
   const { companyId, workspaceId, productId, ...body } = params;

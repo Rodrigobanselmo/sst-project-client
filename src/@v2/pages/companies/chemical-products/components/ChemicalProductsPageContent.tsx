@@ -58,6 +58,10 @@ import { ChemicalProductDetailDialog } from './ChemicalProductDetailDialog';
 import { ChemicalProductFormDialog } from './ChemicalProductFormDialog';
 import { ChemicalSurveyImportDialog } from './ChemicalSurveyImportDialog';
 import { ChemicalUseScenariosPanel } from './ChemicalUseScenariosPanel';
+import {
+  isUnindividualizedDisclosure,
+  UNINDIVIDUALIZED_COMPOSITION_LABEL,
+} from './chemical-composition-disclosure.util';
 
 function formatConcentration(item: {
   concentrationKind: string;
@@ -83,6 +87,12 @@ function formatConcentration(item: {
 
 function ingredientsTooltip(product: ChemicalProductListItem) {
   const rows = product.ingredients || [];
+  if (isUnindividualizedDisclosure(product.activeComposition?.compositionDisclosure)) {
+    const note = product.activeComposition?.compositionDisclosureNote?.trim();
+    return note
+      ? `${UNINDIVIDUALIZED_COMPOSITION_LABEL}\n${note}`
+      : UNINDIVIDUALIZED_COMPOSITION_LABEL;
+  }
   if (!rows.length) return 'Sem componentes na composição vigente.';
   return rows
     .map((ingredient) => {
@@ -132,10 +142,21 @@ function IngredientsSummaryCell({
         : null;
 
   if (!first) {
+    const unindividualized = isUnindividualizedDisclosure(
+      product.activeComposition?.compositionDisclosure,
+    );
     return (
-      <Tooltip title="Sem componentes na composição vigente.">
+      <Tooltip
+        title={
+          unindividualized
+            ? ingredientsTooltip(product)
+            : 'Sem componentes na composição vigente.'
+        }
+      >
         <SText fontSize={13} color="text.secondary" sx={{ cursor: 'help' }}>
-          Sem componentes
+          {unindividualized
+            ? UNINDIVIDUALIZED_COMPOSITION_LABEL
+            : 'Sem componentes'}
         </SText>
       </Tooltip>
     );

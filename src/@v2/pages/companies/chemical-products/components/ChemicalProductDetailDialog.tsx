@@ -28,6 +28,10 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
+import {
+  isUnindividualizedDisclosure,
+  UNINDIVIDUALIZED_COMPOSITION_LABEL,
+} from './chemical-composition-disclosure.util';
 import { mapChemicalFispqImportError } from './chemical-fispq-import-error.util';
 import {
   buildCompositionCompareRows,
@@ -444,8 +448,29 @@ export const ChemicalProductDetailDialog = ({
             <SText fontWeight={600}>Composição vigente</SText>
             {(data.compositionVersions || [])
               .filter((version) => version.status === 'ACTIVE')
-              .flatMap((version) =>
-                version.ingredients.map((ingredient) => (
+              .map((version) => {
+                if (isUnindividualizedDisclosure(version.compositionDisclosure)) {
+                  return (
+                    <Stack key={version.id} spacing={0.5}>
+                      <SText fontSize={13}>
+                        {UNINDIVIDUALIZED_COMPOSITION_LABEL}
+                      </SText>
+                      {version.compositionDisclosureNote ? (
+                        <SText fontSize={13} color="text.secondary">
+                          {version.compositionDisclosureNote}
+                        </SText>
+                      ) : null}
+                    </Stack>
+                  );
+                }
+                if (!version.ingredients?.length) {
+                  return (
+                    <SText key={version.id} fontSize={13} color="text.secondary">
+                      Sem componentes
+                    </SText>
+                  );
+                }
+                return version.ingredients.map((ingredient) => (
                   <SText key={ingredient.id} fontSize={13}>
                     {ingredient.chemicalName}
                     {ingredient.cas ? ` · CAS ${ingredient.cas}` : ''}
@@ -462,8 +487,8 @@ export const ChemicalProductDetailDialog = ({
                       ? ` → ${ingredient.riskFactor.name}`
                       : ' → sem fator'}
                   </SText>
-                )),
-              )}
+                ));
+              })}
 
             <Box
               sx={{

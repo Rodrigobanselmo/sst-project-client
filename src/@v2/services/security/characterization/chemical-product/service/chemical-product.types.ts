@@ -16,6 +16,11 @@ export type ChemicalIngredientPayload = {
   sortOrder?: number;
 };
 
+export type ChemicalCompositionDisclosure =
+  | 'DECLARED'
+  | 'PARTIAL'
+  | 'UNINDIVIDUALIZED';
+
 export type ChemicalIngredientSummary = {
   id: string;
   chemicalName: string;
@@ -46,6 +51,8 @@ export type ChemicalProductListItem = {
     id: string;
     versionNumber: number;
     sourceType: string;
+    compositionDisclosure?: ChemicalCompositionDisclosure | null;
+    compositionDisclosureNote?: string | null;
   } | null;
   activeFispq: {
     id: string;
@@ -127,6 +134,8 @@ export type ChemicalProductDetail = ChemicalProductListItem & {
     versionNumber: number;
     sourceType: string;
     status: string;
+    compositionDisclosure?: ChemicalCompositionDisclosure | null;
+    compositionDisclosureNote?: string | null;
     ingredients: Array<{
       id: string;
       chemicalName: string;
