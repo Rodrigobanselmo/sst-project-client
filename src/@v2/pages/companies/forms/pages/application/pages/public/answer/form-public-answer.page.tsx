@@ -24,6 +24,12 @@ import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.e
 import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import { PageRoutes } from '@v2/constants/pages/routes';
+import {
+  buildIdentifiedSectorFieldValue,
+  canPersistPublicFormDraft,
+  getPublicFormDraftStorageKey,
+  resolvePublicFormDraftRestore,
+} from './public-form-draft-storage';
 
 const THANK_YOU_REDIRECT_MS = 10_000;
 
@@ -122,10 +128,6 @@ const transformSectorHierarchies = (
     .sort((a, b) => a.text.localeCompare(b.text));
 };
 
-// Local storage key for saving form state
-const getStorageKey = (applicationId: string) =>
-  `form_answers_${applicationId}`;
-
 export const PublicFormAnswerPage = ({
   testingOnly,
 }: {
@@ -150,12 +152,16 @@ export const PublicFormAnswerPage = ({
     isPublic,
     isTesting,
     hierarchyId,
+    employeeId,
     isLoading,
     hasAlreadyAnswered,
   } = useFetchPublicFormApplication({
     applicationId: applicationId,
     encrypt: router.query?.encrypt as string,
   });
+  const restoredIdentityRef = useRef<string | null>(null);
+  const participantIdentity = `${applicationId}::${employeeId ?? 'anonymous'}`;
+  const isIdentifiedSession = Boolean(router.query?.encrypt);
 
   const getCanAccess = () => {
     if (testingOnly) {
@@ -170,9 +176,16 @@ export const PublicFormAnswerPage = ({
     defaultValues: {},
   });
 
-  // Save form state to local storage
   const saveFormState = useCallback(() => {
     if (!applicationId) return;
+    if (
+      !canPersistPublicFormDraft({
+        employeeId,
+        isIdentifiedSession,
+      })
+    ) {
+      return;
+    }
 
     const formData = form.getValues();
     const formState = {
@@ -183,64 +196,84 @@ export const PublicFormAnswerPage = ({
 
     try {
       localStorage.setItem(
-        getStorageKey(applicationId),
+        getPublicFormDraftStorageKey(applicationId, employeeId),
         JSON.stringify(formState),
       );
       setLastSavedTime(new Date());
     } catch (error) {
       console.warn('Failed to save form state to localStorage:', error);
     }
-  }, [applicationId, currentStep, form]);
+  }, [applicationId, currentStep, employeeId, form, isIdentifiedSession]);
 
-  // Restore form state from local storage
   const restoreFormState = useCallback(() => {
     if (!applicationId) return;
 
     try {
-      const savedState = localStorage.getItem(getStorageKey(applicationId));
-      if (savedState) {
-        const parsedState = JSON.parse(savedState);
+      const identityKey = getPublicFormDraftStorageKey(
+        applicationId,
+        employeeId,
+      );
+      const legacyKey = getPublicFormDraftStorageKey(applicationId);
+      const plan = resolvePublicFormDraftRestore({
+        applicationId,
+        employeeId,
+        identityRaw: localStorage.getItem(identityKey),
+        legacyRaw: localStorage.getItem(legacyKey),
+      });
 
-        // Check if saved state is not too old (24 hours)
-        const isStateValid =
-          Date.now() - parsedState.timestamp < 24 * 60 * 60 * 1000;
-
-        if (isStateValid && parsedState.answers) {
-          // Restore form values
-          Object.entries(parsedState.answers).forEach(([key, value]) => {
-            if (value) {
-              form.setValue(key, value as any);
-            }
-          });
-
-          // Restore current step
-          if (typeof parsedState.currentStep === 'number') {
-            setCurrentStep(parsedState.currentStep);
-          }
+      Object.entries(plan.answers).forEach(([key, value]) => {
+        if (value) {
+          form.setValue(key, value as any);
         }
+      });
+
+      if (typeof plan.currentStep === 'number') {
+        setCurrentStep(plan.currentStep);
       }
     } catch (error) {
       console.warn('Failed to restore form state from localStorage:', error);
     }
-  }, [applicationId, form]);
+  }, [applicationId, employeeId, form]);
 
-  // Clear form state from local storage
   const clearFormState = useCallback(() => {
     if (!applicationId) return;
+    if (
+      !canPersistPublicFormDraft({
+        employeeId,
+        isIdentifiedSession,
+      })
+    ) {
+      return;
+    }
 
     try {
-      localStorage.removeItem(getStorageKey(applicationId));
+      localStorage.removeItem(
+        getPublicFormDraftStorageKey(applicationId, employeeId),
+      );
     } catch (error) {
       console.warn('Failed to clear form state from localStorage:', error);
     }
-  }, [applicationId]);
+  }, [applicationId, employeeId, isIdentifiedSession]);
 
-  // Restore form state when component mounts and form data is available
   useEffect(() => {
-    if (publicFormApplication && applicationId) {
-      restoreFormState();
+    if (!publicFormApplication || !applicationId) {
+      return;
     }
-  }, [publicFormApplication, applicationId, restoreFormState]);
+
+    if (restoredIdentityRef.current !== participantIdentity) {
+      form.reset({});
+      setCurrentStep(0);
+      restoredIdentityRef.current = participantIdentity;
+    }
+
+    restoreFormState();
+  }, [
+    applicationId,
+    form,
+    participantIdentity,
+    publicFormApplication,
+    restoreFormState,
+  ]);
 
   // Save form state whenever form values or current step changes
   useEffect(() => {
@@ -282,10 +315,8 @@ export const PublicFormAnswerPage = ({
     };
   }, [isFormSubmitted, applicationId, router, testingOnly, router.query.encrypt]);
 
-  // Set initial values for SECTOR field when hierarchyId is available
   useEffect(() => {
     if (hierarchyId && publicFormApplication?.groups && options?.hierarchies) {
-      // Find the first question with SECTOR identifier type across all groups
       const firstSectorQuestion = publicFormApplication.groups
         .flatMap((group) => group.questions)
         .find(
@@ -294,26 +325,12 @@ export const PublicFormAnswerPage = ({
         );
 
       if (firstSectorQuestion) {
-        // Transform hierarchies to get the options in the same format as FormAnswerFieldControlledSector
-        const transformedHierarchies = transformSectorHierarchies(
-          options.hierarchies,
-        );
+        const matchingOption = buildIdentifiedSectorFieldValue({
+          hierarchyId,
+          sectorOptions: transformSectorHierarchies(options.hierarchies),
+        });
 
-        // Find the matching hierarchy option, or fall back to a minimal value
-        // built from hierarchyId alone — the backend only needs the id and the
-        // SECTOR question is hidden, so the missing label is harmless.
-        const matchingOption =
-          transformedHierarchies.find((option) => option.id === hierarchyId) ?? {
-            id: hierarchyId,
-            text: '',
-            value: hierarchyId,
-          };
-
-        // Only set the value if it's not already set (to avoid overriding user changes)
-        const currentValue = form.getValues(firstSectorQuestion.id);
-        if (!currentValue) {
-          form.setValue(firstSectorQuestion.id, matchingOption);
-        }
+        form.setValue(firstSectorQuestion.id, matchingOption);
       }
     }
   }, [hierarchyId, publicFormApplication, options, form]);
