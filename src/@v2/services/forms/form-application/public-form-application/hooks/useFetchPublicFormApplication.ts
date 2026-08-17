@@ -1,9 +1,9 @@
-import { QueryKeyFormEnum } from '@v2/constants/enums/form-query-key.enum';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import {
   publicFormApplication,
   PublicFormApplicationParams,
 } from '../service/public-form-application.service';
+import { getPublicFormApplicationQueryKey } from './get-public-form-application-query-key';
 
 export const useFetchPublicFormApplication = (
   params: PublicFormApplicationParams,
@@ -12,7 +12,10 @@ export const useFetchPublicFormApplication = (
     queryFn: async () => {
       return publicFormApplication(params);
     },
-    queryKey: [QueryKeyFormEnum.PUBLIC_FORM_APPLICATION, params.applicationId],
+    queryKey: getPublicFormApplicationQueryKey(
+      params.applicationId,
+      params.encrypt,
+    ),
     refetchOnMount: true,
   });
 
