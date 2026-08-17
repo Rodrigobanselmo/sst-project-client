@@ -76,6 +76,8 @@ export const GhoFormContent = ({
   const router = useRouter();
   const companyId = router.query.companyId as string;
   const title = ghoData.id ? 'Editar GSE' : 'Grupo similar de exposição';
+  const gseName = (ghoData.name || ghoQuery?.name || '').trim();
+  const headerContextName = ghoData.id && gseName ? gseName : undefined;
   const exitLabel = ghoData.id ? 'Salvar e Sair' : 'Criar';
   const isPage = layout === 'page';
   const isEdit = !!ghoData.id;
@@ -218,14 +220,25 @@ export const GhoFormContent = ({
         }}
       >
         <SFlex
-          align="center"
+          align="flex-start"
           justify="space-between"
           gap={3}
           flexWrap="wrap"
           sx={{ flexShrink: 0, mb: 4 }}
         >
-          <SPageHeader mb={0} title={title} onBack={onCloseUnsaved} />
-          <SFlex align="center" gap={3} flexWrap="wrap" justifyContent="flex-end">
+          <SPageHeader
+            mb={0}
+            title={title}
+            contextName={headerContextName}
+            onBack={onCloseUnsaved}
+          />
+          <SFlex
+            align="center"
+            gap={3}
+            flexWrap="wrap"
+            justifyContent="flex-end"
+            sx={{ flexShrink: 0 }}
+          >
             {ghoData.id && (
               <SButton variant="outlined" onClick={onRemove}>
                 Excluir

@@ -11,13 +11,23 @@ import { SPageHeaderProps } from './types';
 export const SPageHeader: FC<SPageHeaderProps> = ({
   mb = 12,
   title,
+  contextName,
   subtitle,
   onBack,
 }) => {
   const router = useRouter();
-  const trimmedSubtitle = subtitle?.trim();
+  const trimmedContext = contextName?.trim();
+  const trimmedSubtitle = trimmedContext ? undefined : subtitle?.trim();
   return (
-    <Box mb={mb} mt={0}>
+    <Box
+      mb={mb}
+      mt={0}
+      sx={
+        trimmedContext
+          ? { flex: '1 1 16rem', minWidth: 0, maxWidth: '100%' }
+          : undefined
+      }
+    >
       <SFlex align="flex-start">
         <Box sx={{ mt: trimmedSubtitle ? '2px' : 0 }}>
           <SIconButton onClick={onBack ?? (() => router.back())}>
@@ -28,14 +38,30 @@ export const SPageHeader: FC<SPageHeaderProps> = ({
             />
           </SIconButton>
         </Box>
-        <Box pl={1} minWidth={0}>
+        <Box pl={1} minWidth={0} flex={1}>
           <SText
             fontSize={['1.3rem', '1.3rem', '1.563rem']}
             variant={'h4'}
             color={'text.main'}
             fontWeight={600}
+            sx={{
+              lineHeight: 1.3,
+              whiteSpace: 'normal',
+              overflowWrap: 'break-word',
+            }}
           >
             {title}
+            {trimmedContext ? (
+              <>
+                {': '}
+                <Box
+                  component="span"
+                  sx={{ fontWeight: 400, fontSize: 'inherit' }}
+                >
+                  {trimmedContext}
+                </Box>
+              </>
+            ) : null}
           </SText>
           {trimmedSubtitle ? (
             <SText

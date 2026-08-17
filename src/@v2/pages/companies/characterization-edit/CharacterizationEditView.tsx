@@ -127,9 +127,9 @@ export const CharacterizationEditView = ({
   };
 
   const title = isNew ? 'Nova Caracterização' : 'Editar Caracterização';
-  /** Nome do elemento — contexto estável em todas as abas (sem fetch extra). */
+  /** Nome do elemento no cabeçalho — estável em todas as abas (sem fetch extra). */
   const elementName = (characterizationData?.name || '').trim();
-  const headerSubtitle = !isNew && elementName ? elementName : undefined;
+  const headerContextName = !isNew && elementName ? elementName : undefined;
 
   if (shouldShowError) {
     const errorContent = (
@@ -142,7 +142,7 @@ export const CharacterizationEditView = ({
         <SPageHeader
           mb={0}
           title={title}
-          subtitle={headerSubtitle}
+          contextName={headerContextName}
           onBack={onBack}
         />
         <Alert severity="error" sx={{ width: '100%' }}>
@@ -198,7 +198,7 @@ export const CharacterizationEditView = ({
         <SPageHeader
           mb={4}
           title={title}
-          subtitle={headerSubtitle}
+          contextName={headerContextName}
           onBack={onBack}
         />
         <EditLoadingFallback minHeight={220} message={loadingMessage} />
@@ -231,7 +231,13 @@ export const CharacterizationEditView = ({
   }
 
   const actionButtons = (
-    <SFlex align="center" gap={3} flexWrap="wrap" justifyContent="flex-end">
+    <SFlex
+      align="center"
+      gap={3}
+      flexWrap="wrap"
+      justifyContent="flex-end"
+      sx={{ flexShrink: 0 }}
+    >
       <SButton
         variant="outlined"
         style={{ minWidth: 100 }}
@@ -281,7 +287,7 @@ export const CharacterizationEditView = ({
 
   const headerRow = (
     <SFlex
-      align="center"
+      align="flex-start"
       justify="space-between"
       mb={4}
       gap={3}
@@ -291,7 +297,7 @@ export const CharacterizationEditView = ({
       <SPageHeader
         mb={0}
         title={title}
-        subtitle={headerSubtitle}
+        contextName={headerContextName}
         onBack={embedded ? onCloseUnsaved : undefined}
       />
       {actionButtons}
