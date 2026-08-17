@@ -18,6 +18,8 @@ export const FormRoutes = {
     PATH_PUBLIC_LOGIN: 'v2/forms/applications/:applicationId/public/login',
     PATH_CLOSING_PRECHECK:
       'v2/companies/:companyId/forms/applications/:applicationId/closing-precheck',
+    PATH_CLOSING_PRECHECK_RESOLUTIONS:
+      'v2/companies/:companyId/forms/applications/:applicationId/closing-precheck/resolutions',
   },
   FORM_QUESTIONS_ANSWERS: {
     PATH: 'v2/companies/:companyId/forms/questions-answers/',

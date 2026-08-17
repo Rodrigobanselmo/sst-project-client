@@ -7,6 +7,20 @@ export type ClosingConsistencyClassification =
   | 'OUT_OF_CURRENT_POPULATION'
   | 'UNRESOLVED_SECTOR';
 
+export type ClosingDivergenceResolutionStatus = 'PENDING' | 'CONFIRMED_LEGITIMATE';
+
+export type ClosingDivergenceResolutionAction = 'CORRECT' | 'CONFIRM_LEGITIMATE';
+
+export type ClosingDivergenceSkipReason =
+  | 'STALE_VALUE'
+  | 'STALE_REFERENCE'
+  | 'STALE_CLASSIFICATION'
+  | 'NOT_ELIGIBLE'
+  | 'MISSING_REFERENCE'
+  | 'MISSING_ANSWER'
+  | 'WRONG_APPLICATION'
+  | 'DUPLICATE_ITEM';
+
 export type ClosingFindingSeverity = 'BLOCKING' | 'WARNING' | 'INFO';
 
 export type ClosingHistoryEvidence = {
@@ -34,6 +48,9 @@ export type ClosingPrecheckSummary = {
   validAnswersTotal: number;
   withoutResponseTotal: number;
   divergenceTotal: number;
+  pendingReviewTotal?: number;
+  correctedTotal?: number;
+  confirmedLegitimateTotal?: number;
   blockingTotal: number;
   warningTotal: number;
   infoTotal: number;
@@ -63,9 +80,17 @@ export type ClosingPrecheckEmployee = {
   submissionId: string | null;
   submissionStatus: string | null;
   submittedAt: string | null;
+  formAnswerId: string | null;
   snapshotSectorId: string | null;
   snapshotSectorName: string | null;
   snapshotHierarchyState: 'ok' | 'missing' | 'inactive' | 'none';
+  coveringSectorId?: string | null;
+  coveringSectorName?: string | null;
+  referenceSectorId?: string | null;
+  referenceSectorName?: string | null;
+  canCorrect?: boolean;
+  canConfirmLegitimate?: boolean;
+  resolutionStatus?: ClosingDivergenceResolutionStatus | null;
   classification: ClosingConsistencyClassification;
   snapshotClassification: ClosingConsistencyClassification | null;
   severity: ClosingFindingSeverity | 'OK';
@@ -96,9 +121,45 @@ export type ClosingPrecheckFinding = {
 
 export type ClosingPrecheckResult = {
   readOnly: true;
+  canResolve?: boolean;
   summary: ClosingPrecheckSummary;
   sectors: ClosingPrecheckSector[];
   employees: ClosingPrecheckEmployee[];
   possibleDuplicateHierarchyNames: PossibleDuplicateHierarchyName[];
   findings: ClosingPrecheckFinding[];
+};
+
+export type ResolveClosingDivergenceItem = {
+  employeeId: number;
+  submissionId: string;
+  formAnswerId: string;
+  expectedPreviousValue: string;
+  expectedReferenceValue: string;
+  expectedClassification: ClosingConsistencyClassification;
+};
+
+export type ResolveClosingDivergencesParams = {
+  companyId: string;
+  applicationId: string;
+  action: ClosingDivergenceResolutionAction;
+  observation?: string;
+  items: ResolveClosingDivergenceItem[];
+};
+
+export type ResolveClosingDivergencesResult = {
+  requested: number;
+  applied: number;
+  skipped: Array<{
+    employeeId: number;
+    formAnswerId: string;
+    reason: ClosingDivergenceSkipReason;
+  }>;
+  results: Array<{
+    employeeId: number;
+    formAnswerId: string;
+    previousValue: string | null;
+    resultingValue: string | null;
+    referenceValue: string | null;
+  }>;
+  batchId: string | null;
 };
