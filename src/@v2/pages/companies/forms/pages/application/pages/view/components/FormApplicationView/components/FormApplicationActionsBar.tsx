@@ -9,6 +9,11 @@ import { FormApplicationStatusChange } from './FormApplicationStatusChange';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormCampaignBanner } from './FormCampaignBanner/FormCampaignBanner';
+import { ClosingReviewModal } from './closing-review/ClosingReviewModal';
+import { canShowClosingAuditAction } from './closing-review/closing-review-ui.rules';
+import { useAccess } from 'core/hooks/useAccess';
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
+import { useState } from 'react';
 
 export const FormApplicationActionsBar = ({
   formApplication,
@@ -20,6 +25,12 @@ export const FormApplicationActionsBar = ({
   modelQuestionCount?: number | null;
 }) => {
   const { openModal, closeModal } = useModal();
+  const { isMaster } = useAccess();
+  const [auditOpen, setAuditOpen] = useState(false);
+  const showAuditAction = canShowClosingAuditAction({
+    isMaster,
+    formType: formApplication.form?.type,
+  });
 
   const handleOpenShareModal = () => {
     openModal(
@@ -69,6 +80,15 @@ export const FormApplicationActionsBar = ({
           modelQuestionCount={modelQuestionCount}
         />
       )}
+      {showAuditAction && (
+        <SButton
+          text="Auditar consistência"
+          icon={<FactCheckOutlinedIcon sx={{ fontSize: 18 }} />}
+          onClick={() => setAuditOpen(true)}
+          variant="outlined"
+          color="info"
+        />
+      )}
       <FormApplicationStatusChange
         formApplication={formApplication}
         companyId={companyId}
@@ -79,6 +99,15 @@ export const FormApplicationActionsBar = ({
           variant="outlined"
           color="danger"
           onClick={handleOpenDeleteModal}
+        />
+      )}
+      {showAuditAction && (
+        <ClosingReviewModal
+          open={auditOpen}
+          mode="audit"
+          companyId={companyId}
+          applicationId={formApplication.id}
+          onClose={() => setAuditOpen(false)}
         />
       )}
     </SFlex>

@@ -3,17 +3,15 @@ import { FormApplicationReadModel } from '@v2/models/form/models/form-applicatio
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import {
   FormApplicationStatusFilterList,
-  FormApplicationStatusList,
   FormApplicationStatusMap,
 } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/maps/form-application-status-map';
 import { useMutateEditFormApplication } from '@v2/services/forms/form-application/edit-form-application/hooks/useMutateEditFormApplication';
-import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
-import { Box } from '@mui/material';
-import STooltip from '@v2/components/atoms/STooltip/STooltip';
-import { ReactNode } from 'react';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { ReactNode, useState } from 'react';
+import { ClosingReviewModal } from './closing-review/ClosingReviewModal';
+import { shouldOpenClosingReview } from './closing-review/closing-review-ui.rules';
 
 interface FormApplicationStatusChangeProps {
   formApplication: FormApplicationReadModel;
@@ -38,15 +36,30 @@ export const FormApplicationStatusChange = ({
 }: FormApplicationStatusChangeProps) => {
   const { mutate: editFormApplication, isPending } =
     useMutateEditFormApplication();
+  const [closingReviewOpen, setClosingReviewOpen] = useState(false);
+
+  const applyStatus = (status: FormApplicationStatusEnum) => {
+    editFormApplication({
+      companyId,
+      applicationId: formApplication.id,
+      status,
+    });
+  };
 
   const handleStatusChange = (newStatus: StatusOption | null) => {
-    if (newStatus) {
-      editFormApplication({
-        companyId,
-        applicationId: formApplication.id,
-        status: newStatus.value,
-      });
+    if (!newStatus) return;
+
+    if (
+      shouldOpenClosingReview({
+        formType: formApplication.form?.type,
+        nextStatus: newStatus.value,
+      })
+    ) {
+      setClosingReviewOpen(true);
+      return;
     }
+
+    applyStatus(newStatus.value);
   };
 
   const currentStatus = FormApplicationStatusFilterList.find(
@@ -54,36 +67,49 @@ export const FormApplicationStatusChange = ({
   );
 
   return (
-    <SSearchSelect
-      hideSearchInput={true}
-      loading={isPending}
-      getOptionValue={(option) => option.value}
-      getOptionLabel={(option) => option.label}
-      getOptionIsDisabled={(option) =>
-        option.value === FormApplicationStatusEnum.PENDING
-      }
-      onChange={handleStatusChange}
-      options={FormApplicationStatusFilterList}
-      value={currentStatus || null}
-      component={() => (
-        <SButton
-          text={`Status: ${FormApplicationStatusMap[formApplication.status].label}`}
-          icon={
-            <SFlex center mr={5} height={20}>
-              {currentStatus?.startAddon}
-            </SFlex>
-          }
-          disabled={isPending}
-          loading={isPending}
-          schema={FormApplicationStatusMap[formApplication.status].schema}
-        />
-      )}
-      renderItem={({ option }) => (
-        <SFlex alignItems="center" gap={8}>
-          {option.startAddon}
-          <SText>{option.label}</SText>
-        </SFlex>
-      )}
-    />
+    <>
+      <SSearchSelect
+        hideSearchInput={true}
+        loading={isPending}
+        getOptionValue={(option) => option.value}
+        getOptionLabel={(option) => option.label}
+        getOptionIsDisabled={(option) =>
+          option.value === FormApplicationStatusEnum.PENDING
+        }
+        onChange={handleStatusChange}
+        options={FormApplicationStatusFilterList}
+        value={currentStatus || null}
+        component={() => (
+          <SButton
+            text={`Status: ${FormApplicationStatusMap[formApplication.status].label}`}
+            icon={
+              <SFlex center mr={5} height={20}>
+                {currentStatus?.startAddon}
+              </SFlex>
+            }
+            disabled={isPending}
+            loading={isPending}
+            schema={FormApplicationStatusMap[formApplication.status].schema}
+          />
+        )}
+        renderItem={({ option }) => (
+          <SFlex alignItems="center" gap={8}>
+            {option.startAddon}
+            <SText>{option.label}</SText>
+          </SFlex>
+        )}
+      />
+      <ClosingReviewModal
+        open={closingReviewOpen}
+        companyId={companyId}
+        applicationId={formApplication.id}
+        continuing={isPending}
+        onClose={() => setClosingReviewOpen(false)}
+        onContinue={() => {
+          applyStatus(FormApplicationStatusEnum.DONE);
+          setClosingReviewOpen(false);
+        }}
+      />
+    </>
   );
 };

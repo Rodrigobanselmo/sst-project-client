@@ -16,6 +16,8 @@ export const FormRoutes = {
       'v2/companies/:companyId/forms/applications/:applicationId/risk-logs',
     PATH_PUBLIC: 'v2/forms/applications/:applicationId/public',
     PATH_PUBLIC_LOGIN: 'v2/forms/applications/:applicationId/public/login',
+    PATH_CLOSING_PRECHECK:
+      'v2/companies/:companyId/forms/applications/:applicationId/closing-precheck',
   },
   FORM_QUESTIONS_ANSWERS: {
     PATH: 'v2/companies/:companyId/forms/questions-answers/',
