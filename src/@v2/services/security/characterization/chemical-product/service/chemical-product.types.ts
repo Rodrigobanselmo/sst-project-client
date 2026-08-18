@@ -924,6 +924,8 @@ export type ChemicalSurveyProductKeyMapEntry = {
 export type ChemicalSurveyPreviewScenario = {
   clusterKey: string;
   productResolution: 'MATCH_UNIQUE' | 'MATCH_AMBIGUOUS' | 'MATCH_NOT_FOUND';
+  automaticResolution?: 'MATCH_UNIQUE' | 'MATCH_AMBIGUOUS' | 'MATCH_NOT_FOUND';
+  resolutionSource?: 'AUTOMATIC' | 'MANUAL' | null;
   chemicalProductId: string | null;
   productCandidates: Array<{
     id: string;

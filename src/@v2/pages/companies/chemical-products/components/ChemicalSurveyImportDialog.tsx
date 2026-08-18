@@ -1,9 +1,11 @@
 import { SText } from '@v2/components/atoms/SText/SText';
+import { useFetchBrowseChemicalProducts } from '@v2/services/security/characterization/chemical-product/hooks/useFetchBrowseChemicalProducts';
 import {
   commitChemicalSurveyImport,
   previewChemicalSurveyImport,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type {
+  ChemicalProductListItem,
   ChemicalSurveyImportPreview,
   ChemicalSurveyPreviewScenario,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
@@ -11,10 +13,13 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -22,7 +27,14 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
+
+import {
+  surveyCommitEnabled,
+  surveyRowNeedsManualResolution,
+  toSurveyProductKeyMap,
+  type SurveyProductKeySelection,
+} from './chemical-survey-import-resolution.util';
 
 type Props = {
   open: boolean;
@@ -38,6 +50,28 @@ const display = (value: string | number | null | undefined) => {
   return text ? text : '—';
 };
 
+const productLabel = (product: {
+  tradeName: string;
+  manufacturer: string | null;
+}) =>
+  product.manufacturer
+    ? `${product.tradeName} · ${product.manufacturer}`
+    : product.tradeName;
+
+const surveyResolutionChipColor = (
+  resolution: ChemicalSurveyPreviewScenario['productResolution'],
+): 'success' | 'warning' | 'error' | 'default' => {
+  if (resolution === 'MATCH_UNIQUE') return 'success';
+  if (resolution === 'MATCH_AMBIGUOUS') return 'warning';
+  if (resolution === 'MATCH_NOT_FOUND') return 'error';
+  return 'default';
+};
+
+const surveyResolutionLabel = (row: ChemicalSurveyPreviewScenario) =>
+  row.resolutionSource
+    ? `${row.productResolution} · ${row.resolutionSource}`
+    : row.productResolution;
+
 const SurveyPreviewScenarioDetail = ({
   row,
 }: {
@@ -48,6 +82,14 @@ const SurveyPreviewScenarioDetail = ({
     <Stack spacing={1}>
       <SText fontSize={13}>Produto: {display(row.tradeName)}</SText>
       <SText fontSize={13}>Fabricante: {display(row.manufacturer)}</SText>
+      <SText fontSize={13}>
+        Matcher automático: {display(row.automaticResolution || row.productResolution)}
+      </SText>
+      <SText fontSize={13}>
+        Resolução: {row.productResolution}
+        {row.resolutionSource ? ` · ${row.resolutionSource}` : ''}
+      </SText>
+      <SText fontSize={13}>UUID: {display(row.chemicalProductId)}</SText>
       <SText fontSize={13}>Setor: {display(row.sectorSnapshot)}</SText>
       <SText fontSize={13}>
         GHE / grupo de exposição: {display(row.exposureGroupSnapshot)}
@@ -68,9 +110,7 @@ const SurveyPreviewScenarioDetail = ({
       </SText>
       <SText fontSize={13}>
         Duração:{' '}
-        {row.durationMinutes == null
-          ? '—'
-          : `${row.durationMinutes} min`}
+        {row.durationMinutes == null ? '—' : `${row.durationMinutes} min`}
       </SText>
       <SText fontSize={13}>
         Quantidade:{' '}
@@ -89,14 +129,14 @@ const SurveyPreviewScenarioDetail = ({
       <SText fontSize={13}>
         Medidas de controle: {display(row.controlMeasures)}
       </SText>
-      <SText fontSize={13}>LINACH: {display(row.linachHint)}</SText>
-      <SText fontSize={13}>Relevante: {display(row.relevanceHint)}</SText>
+      {row.blockers?.length ? (
+        <SText fontSize={13} color="error.main">
+          {row.blockers.join(' ')}
+        </SText>
+      ) : null}
       <SText fontSize={13}>
         Linhas de origem ({display(row.sourceSheet)}):{' '}
         {row.sourceRows?.length ? row.sourceRows.join(', ') : '—'}
-      </SText>
-      <SText fontSize={13} fontWeight={600}>
-        Componentes / % (sourceRaw)
       </SText>
       {sourceLines.length ? (
         <Box sx={{ pl: 1 }}>
@@ -107,11 +147,7 @@ const SurveyPreviewScenarioDetail = ({
             </SText>
           ))}
         </Box>
-      ) : (
-        <SText fontSize={13} color="text.secondary">
-          —
-        </SText>
-      )}
+      ) : null}
     </Stack>
   );
 };
@@ -127,13 +163,28 @@ export const ChemicalSurveyImportDialog = ({
   const [preview, setPreview] = useState<ChemicalSurveyImportPreview | null>(
     null,
   );
+  const [selections, setSelections] = useState<SurveyProductKeySelection>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
+  const { data: products } = useFetchBrowseChemicalProducts(
+    { companyId, workspaceId, includeArchived: false },
+    open,
+  );
+
+  const activeProducts = useMemo(
+    () =>
+      (products || []).filter(
+        (product: ChemicalProductListItem) => product.status === 'ACTIVE',
+      ),
+    [products],
+  );
+
   const reset = () => {
     setFile(null);
     setPreview(null);
+    setSelections({});
     setError(null);
     setBusy(false);
     setExpandedKey(null);
@@ -144,16 +195,29 @@ export const ChemicalSurveyImportDialog = ({
     onClose();
   };
 
+  const runPreview = async (
+    nextFile: File,
+    nextSelections: SurveyProductKeySelection,
+    currentPreview: ChemicalSurveyImportPreview | null,
+  ) => {
+    const productKeyMap = toSurveyProductKeyMap(
+      currentPreview?.scenarios || [],
+      nextSelections,
+    );
+    return previewChemicalSurveyImport({
+      companyId,
+      workspaceId,
+      file: nextFile,
+      productKeyMap: productKeyMap.length ? productKeyMap : undefined,
+    });
+  };
+
   const handlePreview = async () => {
     if (!file) return;
     setBusy(true);
     setError(null);
     try {
-      const result = await previewChemicalSurveyImport({
-        companyId,
-        workspaceId,
-        file,
-      });
+      const result = await runPreview(file, selections, preview);
       setPreview(result);
       setExpandedKey(null);
     } catch (err: any) {
@@ -169,11 +233,31 @@ export const ChemicalSurveyImportDialog = ({
     }
   };
 
+  const handleSelectProduct = async (productKey: string, productId: string) => {
+    if (!file) return;
+    const nextSelections = { ...selections, [productKey]: productId };
+    setSelections(nextSelections);
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await runPreview(file, nextSelections, preview);
+      setPreview(result);
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          'Falha ao revalidar preview SURVEY.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleCommit = async () => {
     if (!file || !preview) return;
     if (preview.summary.blockedCount > 0) {
       setError(
-        'Há cenários bloqueados (produto ambíguo ou inexistente). Resolva productKeyMap antes do commit.',
+        'Há cenários bloqueados (produto ambíguo ou inexistente). Resolva o produto antes do commit.',
       );
       return;
     }
@@ -184,19 +268,22 @@ export const ChemicalSurveyImportDialog = ({
     setBusy(true);
     setError(null);
     try {
+      const productKeyMap = toSurveyProductKeyMap(
+        preview.scenarios,
+        selections,
+      );
       await commitChemicalSurveyImport({
         companyId,
         workspaceId,
         file,
+        productKeyMap: productKeyMap.length ? productKeyMap : undefined,
       });
       onCommitted?.();
       handleClose();
     } catch (err: any) {
       const payload = err?.response?.data;
       setError(
-        payload?.message ||
-          err?.message ||
-          'Falha no commit SURVEY.',
+        payload?.message || err?.message || 'Falha no commit SURVEY.',
       );
     } finally {
       setBusy(false);
@@ -210,8 +297,9 @@ export const ChemicalSurveyImportDialog = ({
         <Stack spacing={2} mt={1}>
           <SText fontSize={13} color="text.secondary">
             Fluxo separado do Excel TECHNICAL. Agrupa cenários de uso do
-            produto (sem componente/CAS) e associa a ChemicalProducts já
-            existentes. Não cria produto nem RiskFactorData.
+            produto e associa a ChemicalProducts já existentes. Não cria
+            produto, composição nem RiskFactor. Linhas sem match UNIQUE
+            exigem escolha explícita do UUID.
           </SText>
           <input
             type="file"
@@ -219,18 +307,22 @@ export const ChemicalSurveyImportDialog = ({
             onChange={(e) => {
               setFile(e.target.files?.[0] || null);
               setPreview(null);
+              setSelections({});
               setExpandedKey(null);
             }}
           />
           {error ? <Alert severity="error">{error}</Alert> : null}
           {preview ? (
             <>
-              <Alert severity="info">
+              <Alert
+                severity={preview.summary.blockedCount ? 'warning' : 'info'}
+              >
                 Linhas origem: {preview.summary.sourceRows} · Cenários:{' '}
                 {preview.summary.scenarioClusters} · Únicos:{' '}
                 {preview.summary.matchUnique} · Ambíguos:{' '}
                 {preview.summary.matchAmbiguous} · Não encontrados:{' '}
-                {preview.summary.matchNotFound}
+                {preview.summary.matchNotFound} · Bloqueados:{' '}
+                {preview.summary.blockedCount}
               </Alert>
               <Table size="small">
                 <TableHead>
@@ -238,15 +330,16 @@ export const ChemicalSurveyImportDialog = ({
                     <TableCell>Produto</TableCell>
                     <TableCell>Fabricante</TableCell>
                     <TableCell>Tarefa</TableCell>
-                    <TableCell>Linhas</TableCell>
+                    <TableCell>Duração / qtd</TableCell>
                     <TableCell>Resolução</TableCell>
-                    <TableCell>Status</TableCell>
+                    <TableCell>Produto no cadastro</TableCell>
                     <TableCell width={110} />
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {preview.scenarios.map((row) => {
                     const openDetail = expandedKey === row.clusterKey;
+                    const needsManual = surveyRowNeedsManualResolution(row);
                     return (
                       <Fragment key={row.clusterKey}>
                         <TableRow>
@@ -254,15 +347,63 @@ export const ChemicalSurveyImportDialog = ({
                           <TableCell>{display(row.manufacturer)}</TableCell>
                           <TableCell>{display(row.activityName)}</TableCell>
                           <TableCell>
-                            {row.sourceRows?.length
-                              ? row.sourceRows.join(', ')
-                              : '—'}
+                            {display(
+                              row.durationMinutes == null
+                                ? null
+                                : `${row.durationMinutes} min`,
+                            )}
+                            {' · '}
+                            {display(row.quantity)} {display(row.quantityUnit)}
                           </TableCell>
-                          <TableCell>{row.productResolution}</TableCell>
                           <TableCell>
-                            {row.canCommit
-                              ? 'OK'
-                              : row.blockers[0] || 'Bloqueado'}
+                            <Chip
+                              size="small"
+                              variant="outlined"
+                              color={surveyResolutionChipColor(
+                                row.productResolution,
+                              )}
+                              label={surveyResolutionLabel(row)}
+                            />
+                            <Box component="div" sx={{ color: 'text.secondary', fontSize: 12, mt: 0.5 }}>
+                              {row.canCommit
+                                ? display(row.chemicalProductId)
+                                : row.blockers[0] || 'Bloqueado'}
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ minWidth: 240 }}>
+                            {needsManual ? (
+                              <Select
+                                size="small"
+                                fullWidth
+                                displayEmpty
+                                disabled={busy}
+                                value={selections[row.productKey] || ''}
+                                onChange={(event) =>
+                                  handleSelectProduct(
+                                    row.productKey,
+                                    String(event.target.value || ''),
+                                  )
+                                }
+                              >
+                                <MenuItem value="">
+                                  Selecionar produto ACTIVE
+                                </MenuItem>
+                                {activeProducts.map((product) => (
+                                  <MenuItem key={product.id} value={product.id}>
+                                    {productLabel(product)}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            ) : (
+                              display(
+                                row.chemicalProductId
+                                  ? productLabel({
+                                      tradeName: row.tradeName,
+                                      manufacturer: row.manufacturer,
+                                    })
+                                  : null,
+                              )
+                            )}
                           </TableCell>
                           <TableCell>
                             <Button
@@ -296,11 +437,17 @@ export const ChemicalSurveyImportDialog = ({
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
         <Button disabled={!file || busy} onClick={handlePreview}>
-          Preview
+          {preview ? 'Revalidar preview' : 'Preview'}
         </Button>
         <Button
           variant="contained"
-          disabled={!preview || busy || preview.summary.blockedCount > 0}
+          disabled={
+            !surveyCommitEnabled({
+              hasPreview: Boolean(preview),
+              busy,
+              blockedCount: preview?.summary.blockedCount ?? 1,
+            })
+          }
           onClick={handleCommit}
         >
           Confirmar cenários
