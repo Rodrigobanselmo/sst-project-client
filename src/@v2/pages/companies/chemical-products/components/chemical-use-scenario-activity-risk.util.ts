@@ -4,6 +4,8 @@ import type {
   ChemicalUseScenarioListItem,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 
+import { UNINDIVIDUALIZED_COMPOSITION_LABEL } from './chemical-composition-disclosure.util';
+
 export function getScenarioActivityRiskResolutions(
   row: ChemicalUseScenarioListItem,
 ): ChemicalUseScenarioActivityRiskResolution[] {
@@ -24,10 +26,25 @@ export function getScenarioActivityRiskFactors(
   return Array.from(byId.values());
 }
 
+export function isProductCompositionUnindividualized(
+  row: ChemicalUseScenarioListItem,
+): boolean {
+  return (
+    row.activityRiskOrigin === 'PRODUCT_COMPOSITION' &&
+    row.product?.activeComposition?.compositionDisclosure === 'UNINDIVIDUALIZED'
+  );
+}
+
 export function formatActivityRiskFactorsListCell(
   factors: ChemicalUseScenarioActivityRiskFactor[],
+  row?: ChemicalUseScenarioListItem,
 ): string {
-  if (!factors.length) return 'Não correlacionado';
+  if (!factors.length) {
+    if (row && isProductCompositionUnindividualized(row)) {
+      return UNINDIVIDUALIZED_COMPOSITION_LABEL;
+    }
+    return 'Não correlacionado';
+  }
   if (factors.length === 1) return factors[0]!.name;
   if (factors.length === 2) {
     return `${factors[0]!.name}; ${factors[1]!.name}`;

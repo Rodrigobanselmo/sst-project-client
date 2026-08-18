@@ -884,6 +884,7 @@ export type ChemicalUseScenarioListItem = {
   sourceRaw: {
     lines: ChemicalSurveyPreviewSourceRawLine[];
   } | null;
+  activityRiskOrigin?: 'TECHNICAL_PROVENANCE' | 'PRODUCT_COMPOSITION';
   activityRiskResolutions?: ChemicalUseScenarioActivityRiskResolution[];
   activityRiskFactors?: ChemicalUseScenarioActivityRiskFactor[];
   product: {
@@ -894,6 +895,7 @@ export type ChemicalUseScenarioListItem = {
     status: string;
     activeComposition: {
       id: string;
+      compositionDisclosure?: ChemicalCompositionDisclosure | null;
       ingredients: Array<{
         id: string;
         chemicalName: string;

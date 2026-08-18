@@ -265,7 +265,7 @@ export const ChemicalUseScenariosPanel = ({
                 <TableRow key={row.id}>
                   <TableCell>{row.product.tradeName}</TableCell>
                   <TableCell>
-                    {formatActivityRiskFactorsListCell(factors)}
+                    {formatActivityRiskFactorsListCell(factors, row)}
                   </TableCell>
                   <TableCell>{row.activityName || '—'}</TableCell>
                   <TableCell>{row.sectorSnapshot || '—'}</TableCell>
@@ -342,7 +342,20 @@ export const ChemicalUseScenariosPanel = ({
               <SText fontWeight={600}>
                 Fator(es) de risco desta atividade
               </SText>
-              {selectedResolutions.length ? (
+              {selected.activityRiskOrigin === 'PRODUCT_COMPOSITION' ? (
+                selectedFactors.length ? (
+                  selectedFactors.map((factor) => (
+                    <SText key={factor.id} fontSize={13}>
+                      {factor.name}
+                      {factor.cas ? ` · CAS ${factor.cas}` : ''}
+                    </SText>
+                  ))
+                ) : (
+                  <SText fontSize={13} color="text.secondary">
+                    {formatActivityRiskFactorsListCell([], selected)}
+                  </SText>
+                )
+              ) : selectedResolutions.length ? (
                 selectedResolutions.map((item) => {
                   const key = `${item.sourceRow}-${item.component || ''}-${item.resolution}`;
                   const canReview = canReviewScenarioActivityCorrelation(item);
@@ -388,7 +401,9 @@ export const ChemicalUseScenariosPanel = ({
                   Não correlacionado
                 </SText>
               )}
-              {!selectedFactors.length && selectedResolutions.length ? (
+              {selected.activityRiskOrigin !== 'PRODUCT_COMPOSITION' &&
+              !selectedFactors.length &&
+              selectedResolutions.length ? (
                 <SText fontSize={12} color="text.secondary">
                   Nenhum fator resolvido por proveniência TECHNICAL para as
                   linhas deste cenário.
