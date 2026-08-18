@@ -234,6 +234,22 @@ assert(
     PENDING_SURVEY_STATUS_LABEL,
   'board) chip Pendente de levantamento',
 );
+assert(
+  formatUseScenarioBoardStatusChip({
+    kind: 'SCENARIO',
+    surveyStatus: 'LEVANTAMENTO_CONCLUIDO',
+    presentationStatus: 'LEVANTAMENTO_CONCLUIDO',
+  }) === 'Levantamento concluído',
+  'board) chip usa label amigável sem alterar enum interno',
+);
+assert(
+  formatUseScenarioBoardStatusChip({
+    kind: 'SCENARIO',
+    surveyStatus: 'AGUARDANDO_ANALISE_TECNICA',
+    presentationStatus: 'AGUARDANDO_ANALISE_TECNICA',
+  }) === 'Aguardando análise técnica',
+  'board) chip AGUARDANDO_ANALISE_TECNICA amigável',
+);
 assert(!canOpenUseScenarioBoardRow(pendingDeclared), 'board) virtual não abre cenário');
 assert(
   canOpenUseScenarioBoardRow({

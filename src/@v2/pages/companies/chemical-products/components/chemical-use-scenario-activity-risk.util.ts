@@ -9,6 +9,21 @@ import { UNINDIVIDUALIZED_COMPOSITION_LABEL } from './chemical-composition-discl
 
 export const PENDING_SURVEY_STATUS_LABEL = 'Pendente de levantamento';
 
+export const USE_SCENARIO_BOARD_STATUS_LABELS: Record<string, string> = {
+  PENDENTE_DE_LEVANTAMENTO: PENDING_SURVEY_STATUS_LABEL,
+  RASCUNHO: 'Rascunho',
+  LEVANTAMENTO_EM_ANDAMENTO: 'Levantamento em andamento',
+  LEVANTAMENTO_CONCLUIDO: 'Levantamento concluído',
+  AGUARDANDO_ANALISE_TECNICA: 'Aguardando análise técnica',
+};
+
+export function formatUseScenarioBoardStatusLabel(
+  status: string | null | undefined,
+): string {
+  if (!status) return '—';
+  return USE_SCENARIO_BOARD_STATUS_LABELS[status] || status;
+}
+
 type ActivityRiskRow = Pick<
   ChemicalUseScenarioListItem,
   'activityRiskFactors' | 'activityRiskResolutions' | 'activityRiskOrigin'
@@ -38,7 +53,9 @@ export function formatUseScenarioBoardStatusChip(
   >,
 ): string {
   if (isPendingSurveyBoardRow(row)) return PENDING_SURVEY_STATUS_LABEL;
-  return row.surveyStatus || row.presentationStatus || '—';
+  return formatUseScenarioBoardStatusLabel(
+    row.surveyStatus || row.presentationStatus,
+  );
 }
 
 export function getScenarioActivityRiskResolutions(

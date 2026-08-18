@@ -9,6 +9,9 @@ import type {
   ChemicalUseScenarioActivityRiskResolution,
   ChemicalUseScenarioBoardRow,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import { SIconSortArrowDown } from '@v2/assets/icons/SIconSortArrowDown/SIconSortArrowDown';
+import { SIconSortArrowUp } from '@v2/assets/icons/SIconSortArrowUp/SIconSortArrowUp';
+import { SIconUnfolderMore } from '@v2/assets/icons/SIconUnfolderMore/SIconUnfolderMore';
 import {
   Alert,
   Autocomplete,
@@ -19,6 +22,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -27,7 +34,7 @@ import {
   TableRow,
   TextField,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   canOpenUseScenarioBoardRow,
@@ -39,6 +46,16 @@ import {
   getScenarioActivityRiskResolutions,
   isPendingSurveyBoardRow,
 } from './chemical-use-scenario-activity-risk.util';
+import {
+  applyUseScenarioBoardView,
+  EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+  hasActiveUseScenarioBoardView,
+  nextUseScenarioBoardSort,
+  USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS,
+  type UseScenarioBoardViewFilters,
+  type UseScenarioBoardViewSort,
+  type UseScenarioBoardViewSortField,
+} from './chemical-use-scenario-board-view.util';
 
 type Props = {
   companyId: string;
@@ -56,6 +73,37 @@ function riskLabel(option: ChemicalRiskOption) {
   return option.cas ? `${option.name} · CAS ${option.cas}` : option.name;
 }
 
+function SortableHeader({
+  label,
+  field,
+  sort,
+  onSort,
+}: {
+  label: string;
+  field: UseScenarioBoardViewSortField;
+  sort: UseScenarioBoardViewSort | null;
+  onSort: (field: UseScenarioBoardViewSortField) => void;
+}) {
+  const direction = sort?.field === field ? sort.order : undefined;
+  return (
+    <TableCell
+      onClick={() => onSort(field)}
+      sx={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+    >
+      <Box display="flex" alignItems="center" gap={0.5}>
+        {label}
+        {!direction ? <SIconUnfolderMore /> : null}
+        {direction === 'asc' ? (
+          <SIconSortArrowDown color="primary.main" />
+        ) : null}
+        {direction === 'desc' ? (
+          <SIconSortArrowUp color="primary.main" />
+        ) : null}
+      </Box>
+    </TableCell>
+  );
+}
+
 export const ChemicalUseScenariosPanel = ({
   companyId,
   workspaceId,
@@ -63,7 +111,10 @@ export const ChemicalUseScenariosPanel = ({
   refreshKey = 0,
 }: Props) => {
   const [rows, setRows] = useState<ChemicalUseScenarioBoardRow[]>([]);
-  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState<UseScenarioBoardViewFilters>(
+    EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+  );
+  const [sort, setSort] = useState<UseScenarioBoardViewSort | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<ChemicalUseScenarioBoardRow | null>(
@@ -88,7 +139,6 @@ export const ChemicalUseScenariosPanel = ({
       companyId,
       workspaceId,
       chemicalProductId,
-      search: search || undefined,
     })
       .then((data) => {
         if (cancelled) return;
@@ -117,7 +167,6 @@ export const ChemicalUseScenariosPanel = ({
     companyId,
     workspaceId,
     chemicalProductId,
-    search,
     refreshKey,
     listRefresh,
   ]);
@@ -143,6 +192,11 @@ export const ChemicalUseScenariosPanel = ({
       window.clearTimeout(handle);
     };
   }, [reviewTarget, companyId, workspaceId, riskSearch]);
+
+  const visibleRows = useMemo(
+    () => applyUseScenarioBoardView(rows, { filters, sort }),
+    [rows, filters, sort],
+  );
 
   const selectedResolutions = selected
     ? getScenarioActivityRiskResolutions(selected)
@@ -223,6 +277,24 @@ export const ChemicalUseScenariosPanel = ({
     }
   };
 
+  const patchFilter = (
+    field: keyof UseScenarioBoardViewFilters,
+    value: string,
+  ) => {
+    setFilters((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSort = (field: UseScenarioBoardViewSortField) => {
+    setSort((current) => nextUseScenarioBoardSort(current, field));
+  };
+
+  const hasActiveView = hasActiveUseScenarioBoardView(filters, sort);
+
+  const clearView = () => {
+    setFilters(EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS);
+    setSort(null);
+  };
+
   return (
     <Box>
       <Stack
@@ -235,12 +307,69 @@ export const ChemicalUseScenariosPanel = ({
         <SText fontWeight={700}>Cenários de uso</SText>
         <TextField
           size="small"
-          label="Buscar tarefa / setor / produto"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 260 }}
+          label="Buscar"
+          value={filters.search}
+          onChange={(e) => patchFilter('search', e.target.value)}
+          sx={{ minWidth: 200, maxWidth: 280, flex: '1 1 200px' }}
         />
       </Stack>
+      {rows.length ? (
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          useFlexGap
+          mb={1.5}
+          alignItems="center"
+        >
+          <TextField
+            size="small"
+            label="Produto"
+            value={filters.product}
+            onChange={(e) => patchFilter('product', e.target.value)}
+            sx={{ width: 140 }}
+          />
+          <TextField
+            size="small"
+            label="Fator de risco"
+            value={filters.riskFactor}
+            onChange={(e) => patchFilter('riskFactor', e.target.value)}
+            sx={{ width: 150 }}
+          />
+          <TextField
+            size="small"
+            label="Tarefa"
+            value={filters.activity}
+            onChange={(e) => patchFilter('activity', e.target.value)}
+            sx={{ width: 130 }}
+          />
+          <TextField
+            size="small"
+            label="Setor"
+            value={filters.sector}
+            onChange={(e) => patchFilter('sector', e.target.value)}
+            sx={{ width: 130 }}
+          />
+          <FormControl size="small" sx={{ width: 200 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              label="Status"
+              value={filters.status}
+              onChange={(e) => patchFilter('status', String(e.target.value))}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button size="small" onClick={clearView} disabled={!hasActiveView}>
+            Limpar filtros
+          </Button>
+        </Stack>
+      ) : null}
       {error ? <Alert severity="error">{error}</Alert> : null}
       {loading ? <SText fontSize={13}>Carregando…</SText> : null}
       {!loading && !rows.length ? (
@@ -249,24 +378,74 @@ export const ChemicalUseScenariosPanel = ({
           produto na aba Produtos ou restaure um arquivado.
         </Alert>
       ) : null}
-      {rows.length ? (
+      {!loading && rows.length && !visibleRows.length ? (
+        <Alert severity="info">
+          Nenhum cenário corresponde aos filtros.
+        </Alert>
+      ) : null}
+      {visibleRows.length ? (
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Produto</TableCell>
-              <TableCell>Fator(es) de risco desta atividade</TableCell>
-              <TableCell>Tarefa</TableCell>
-              <TableCell>Setor</TableCell>
-              <TableCell>Freq.</TableCell>
-              <TableCell>Duração</TableCell>
-              <TableCell>Qtd</TableCell>
-              <TableCell>Linhas</TableCell>
-              <TableCell>Status</TableCell>
+              <SortableHeader
+                label="Produto"
+                field="product"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Fator(es) de risco desta atividade"
+                field="riskFactors"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Tarefa"
+                field="activity"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Setor"
+                field="sector"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Freq."
+                field="frequency"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Duração"
+                field="duration"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Qtd"
+                field="quantity"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Linhas"
+                field="sourceRows"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
+                label="Status"
+                field="status"
+                sort={sort}
+                onSort={handleSort}
+              />
               <TableCell />
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => {
+            {visibleRows.map((row) => {
               const factors = getScenarioActivityRiskFactors(row);
               const pending = isPendingSurveyBoardRow(row);
               return (
