@@ -31,6 +31,12 @@ import {
 import { useMemo, useState } from 'react';
 
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
+import {
+  chemicalExcelProductActionLabel,
+  CHEMICAL_EXCEL_USE_SCENARIO_ACTION_LABEL,
+  CHEMICAL_EXCEL_USE_SCENARIO_PRODUCT_STATUS_LABEL,
+  summarizeChemicalExcelImportPreview,
+} from './chemical-excel-import-preview-view.util';
 
 type Props = {
   open: boolean;
@@ -92,6 +98,10 @@ export const ChemicalExcelImportDialog = ({
   >({});
 
   const hasDraft = Boolean(file) || Boolean(preview);
+  const importSummary = useMemo(
+    () => (preview ? summarizeChemicalExcelImportPreview(preview) : null),
+    [preview],
+  );
 
   const clear = () => {
     setFile(null);
@@ -241,9 +251,10 @@ export const ChemicalExcelImportDialog = ({
       <DialogContent sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
         <Stack spacing={2} mt={1}>
           <SText fontSize={13} color="text.secondary">
-            Modelo V2: uma linha por componente. Sem CAS, o sistema tenta
-            vincular por nome/sinônimo exatos — nunca por similaridade.
-            Preview não grava nada.
+            Modelo V2: uma linha por componente na aba Importação. A aba
+            Cenários de uso é opcional — uma linha por contexto operacional.
+            Workbooks antigos sem essa aba continuam válidos. Preview não grava
+            nada.
           </SText>
           <Button variant="outlined" component="label">
             Selecionar planilha .xlsx
@@ -264,8 +275,31 @@ export const ChemicalExcelImportDialog = ({
           {preview ? (
             <>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                <Chip label={`Produtos: ${preview.totals.products}`} />
-                <Chip label={`Componentes: ${preview.totals.ingredients}`} />
+                    <Chip
+                      color="success"
+                      label={`Produtos novos: ${importSummary?.newProducts ?? 0}`}
+                    />
+                    <Chip
+                      color="info"
+                      label={`Produtos existentes reutilizados: ${importSummary?.reusedProducts ?? 0}`}
+                    />
+                    <Chip
+                      color={importSummary?.ambiguousProducts ? 'error' : 'default'}
+                      label={`Produtos ambíguos: ${importSummary?.ambiguousProducts ?? 0}`}
+                    />
+                    <Chip
+                      color="success"
+                      label={`Cenários novos: ${importSummary?.newScenarios ?? 0}`}
+                    />
+                    <Chip
+                      label={`Cenários já existentes: ${importSummary?.alreadyImportedScenarios ?? 0}`}
+                    />
+                    <Chip
+                      color={importSummary?.blocked ? 'error' : 'default'}
+                      label={`Bloqueios: ${importSummary?.blocked ?? 0}`}
+                    />
+                    <Chip label={`Produtos: ${preview.totals.products}`} />
+                    <Chip label={`Componentes: ${preview.totals.ingredients}`} />
                 <Chip
                   color={preview.totals.errors ? 'error' : 'default'}
                   label={`Erros: ${preview.totals.errors}`}
@@ -295,6 +329,9 @@ export const ChemicalExcelImportDialog = ({
                   label={`Sem correspondência: ${preview.totals.noMatch ?? preview.totals.withoutRiskFactor}`}
                 />
               </Stack>
+              {importSummary?.commitDisabledReason ? (
+                <Alert severity="warning">{importSummary.commitDisabledReason}</Alert>
+              ) : null}
 
               <ToggleButtonGroup
                 exclusive
@@ -362,7 +399,7 @@ export const ChemicalExcelImportDialog = ({
                       {' · '}
                       Linhas: {product.sourceRows.join(', ') || '—'}
                       {' · '}
-                      Ação: {product.action}
+                      Ação: {chemicalExcelProductActionLabel(product.action)}
                       {product.isPureSubstance ? ' · Puro' : ' · Mistura'}
                     </SText>
                     {product.groupingAmbiguous ? (
@@ -370,14 +407,28 @@ export const ChemicalExcelImportDialog = ({
                         Agrupamento possivelmente ambíguo — revise fabricante.
                       </Alert>
                     ) : null}
-                    {product.similarProductName ? (
+                    {product.action === 'REUSE_EXISTING' ? (
+                      <Alert severity="info" sx={{ mt: 1 }}>
+                        Produto já existente — serão importados apenas cenários
+                        novos. Composição, fabricante e FISPQ não serão
+                        alterados.
+                      </Alert>
+                    ) : product.action === 'AMBIGUOUS_BLOCKED' ? (
+                      <Alert severity="error" sx={{ mt: 1 }}>
+                        Há mais de um produto ACTIVE compatível. Corrija o
+                        cadastro antes de importar.
+                      </Alert>
+                    ) : product.similarProductName ? (
                       <Alert severity="warning" sx={{ mt: 1 }}>
                         Possível duplicidade com “{product.similarProductName}”.
                       </Alert>
                     ) : null}
 
                     <Stack spacing={1.25} mt={1.5}>
-                      {product.ingredients.map((ingredient) => {
+                      {product.action === 'REUSE_EXISTING' ||
+                      product.action === 'AMBIGUOUS_BLOCKED'
+                        ? null
+                        : product.ingredients.map((ingredient) => {
                         const sourceRow = ingredient.sourceRows[0] ?? 0;
                         const key = ingredientKey(product.groupKey, sourceRow);
                         const manual = decisions[key];
@@ -592,6 +643,81 @@ export const ChemicalExcelImportDialog = ({
                   </Box>
                 ))}
               </Stack>
+
+              {preview.useScenarios?.scenarios?.length ? (
+                <>
+                  <SText fontWeight={600}>Cenários de uso</SText>
+                  <Stack spacing={1}>
+                    {(preview.useScenarios.productGroups || []).map((group) => (
+                      <Alert
+                        key={group.productKey}
+                        severity={
+                          group.status === 'AMBIGUOUS' ||
+                          group.status === 'MISSING'
+                            ? 'error'
+                            : group.status === 'EXISTING'
+                              ? 'info'
+                              : 'success'
+                        }
+                      >
+                        {CHEMICAL_EXCEL_USE_SCENARIO_PRODUCT_STATUS_LABEL[
+                          group.status
+                        ]}
+                        {': '}
+                        {group.tradeName}
+                        {group.manufacturer ? ` · ${group.manufacturer}` : ''}
+                        {' — '}
+                        {group.message}
+                      </Alert>
+                    ))}
+                  </Stack>
+                  <Box sx={{ overflowX: 'auto' }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Produto</TableCell>
+                          <TableCell>Tarefa</TableCell>
+                          <TableCell>GSE</TableCell>
+                          <TableCell>Situação</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {preview.useScenarios.scenarios.map((scenario) => (
+                          <TableRow key={scenario.clusterKey}>
+                            <TableCell>
+                              {scenario.tradeName}
+                              {scenario.manufacturer
+                                ? ` · ${scenario.manufacturer}`
+                                : ''}
+                            </TableCell>
+                            <TableCell>{scenario.activityName || '—'}</TableCell>
+                            <TableCell>
+                              {scenario.exposureGroupSnapshot || '—'}
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                size="small"
+                                color={
+                                  scenario.action === 'CREATE_NEW'
+                                    ? 'success'
+                                    : scenario.action === 'ALREADY_IMPORTED'
+                                      ? 'default'
+                                      : 'error'
+                                }
+                                label={
+                                  CHEMICAL_EXCEL_USE_SCENARIO_ACTION_LABEL[
+                                    scenario.action
+                                  ]
+                                }
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </Box>
+                </>
+              ) : null}
             </>
           ) : null}
 

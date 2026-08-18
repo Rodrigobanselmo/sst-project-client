@@ -761,6 +761,55 @@ export type ChemicalValidatePreviewResult = {
   }>;
 };
 
+export type ChemicalExcelProductAction =
+  | 'CREATE_NEW'
+  | 'POSSIBLE_DUPLICATE'
+  | 'REUSE_EXISTING'
+  | 'AMBIGUOUS_BLOCKED'
+  | 'SKIP_INVALID';
+
+export type ChemicalExcelUseScenarioProductStatus =
+  | 'NEW'
+  | 'EXISTING'
+  | 'AMBIGUOUS'
+  | 'MISSING';
+
+export type ChemicalExcelUseScenarioAction =
+  | 'CREATE_NEW'
+  | 'ALREADY_IMPORTED'
+  | 'BLOCKED';
+
+export type ChemicalExcelUseScenarioPreview = {
+  clusterKey: string;
+  productKey: string;
+  tradeName: string;
+  manufacturer: string | null;
+  productStatus: ChemicalExcelUseScenarioProductStatus;
+  action: ChemicalExcelUseScenarioAction;
+  chemicalProductId: string | null;
+  activityName: string | null;
+  sectorSnapshot: string | null;
+  exposureGroupSnapshot: string | null;
+  sourceSheet: string;
+  sourceRows: number[];
+  message: string;
+  blockers: string[];
+};
+
+export type ChemicalExcelUseScenarioProductGroup = {
+  productKey: string;
+  tradeName: string;
+  manufacturer: string | null;
+  status: ChemicalExcelUseScenarioProductStatus;
+  chemicalProductId: string | null;
+  candidates: Array<{
+    id: string;
+    tradeName: string;
+    manufacturer: string | null;
+  }>;
+  message: string;
+};
+
 export type ChemicalExcelImportPreview = {
   layoutVersion: string;
   fileName: string;
@@ -779,6 +828,12 @@ export type ChemicalExcelImportPreview = {
     noMatch?: number;
     withoutRiskFactor: number;
     possibleDuplicates: number;
+    newProducts?: number;
+    reusedProducts?: number;
+    ambiguousProducts?: number;
+    newScenarios?: number;
+    alreadyImportedScenarios?: number;
+    blockedScenarios?: number;
   };
   products: Array<{
     groupKey: string;
@@ -787,7 +842,7 @@ export type ChemicalExcelImportPreview = {
     tradeNameNormalized: string;
     manufacturerNormalized: string | null;
     isPureSubstance: boolean;
-    action: 'CREATE_NEW' | 'POSSIBLE_DUPLICATE' | 'SKIP_INVALID';
+    action: ChemicalExcelProductAction;
     similarProductName: string | null;
     groupingAmbiguous: boolean;
     compositionComplete: boolean;
@@ -815,6 +870,13 @@ export type ChemicalExcelImportPreview = {
     }>;
     issues: ChemicalExcelIssue[];
   }>;
+  useScenarios?: {
+    sheetPresent: boolean;
+    sheetEmpty: boolean;
+    sheetName: string | null;
+    scenarios: ChemicalExcelUseScenarioPreview[];
+    productGroups: ChemicalExcelUseScenarioProductGroup[];
+  };
   issues: ChemicalExcelIssue[];
 };
 
