@@ -13,6 +13,7 @@ export type UseScenarioBoardViewSortField =
   | 'riskFactors'
   | 'activity'
   | 'sector'
+  | 'exposureGroup'
   | 'frequency'
   | 'duration'
   | 'quantity'
@@ -30,6 +31,7 @@ export type UseScenarioBoardViewFilters = {
   riskFactor: string;
   activity: string;
   sector: string;
+  exposureGroup: string;
   status: string;
 };
 
@@ -40,6 +42,7 @@ export const EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS: UseScenarioBoardViewFilters 
     riskFactor: '',
     activity: '',
     sector: '',
+    exposureGroup: '',
     status: '',
   };
 
@@ -82,6 +85,12 @@ function contains(haystack: string | null | undefined, needle: string) {
   const q = normalize(needle);
   if (!q) return true;
   return normalize(haystack).includes(q);
+}
+
+export function formatUseScenarioBoardExposureGroupCell(
+  row: Pick<ChemicalUseScenarioBoardRow, 'exposureGroupSnapshot'>,
+): string {
+  return row.exposureGroupSnapshot?.trim() || '—';
 }
 
 export function getUseScenarioBoardStatusFilterValue(
@@ -156,6 +165,7 @@ export function rowMatchesUseScenarioBoardFilters(
   if (!contains(riskFactorsText(row), filters.riskFactor)) return false;
   if (!contains(row.activityName, filters.activity)) return false;
   if (!contains(row.sectorSnapshot, filters.sector)) return false;
+  if (!contains(row.exposureGroupSnapshot, filters.exposureGroup)) return false;
 
   const search = filters.search;
   if (!normalize(search)) return true;
@@ -193,6 +203,12 @@ export function compareUseScenarioBoardRows(
       return compareText(
         left.sectorSnapshot || '',
         right.sectorSnapshot || '',
+        order,
+      );
+    case 'exposureGroup':
+      return compareText(
+        left.exposureGroupSnapshot || '',
+        right.exposureGroupSnapshot || '',
         order,
       );
     case 'frequency': {

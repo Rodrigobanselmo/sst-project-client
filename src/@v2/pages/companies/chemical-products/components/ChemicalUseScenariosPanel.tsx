@@ -49,6 +49,7 @@ import {
 import {
   applyUseScenarioBoardView,
   EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+  formatUseScenarioBoardExposureGroupCell,
   hasActiveUseScenarioBoardView,
   nextUseScenarioBoardSort,
   USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS,
@@ -350,6 +351,13 @@ export const ChemicalUseScenariosPanel = ({
             onChange={(e) => patchFilter('sector', e.target.value)}
             sx={{ width: 130 }}
           />
+          <TextField
+            size="small"
+            label="GSE"
+            value={filters.exposureGroup}
+            onChange={(e) => patchFilter('exposureGroup', e.target.value)}
+            sx={{ width: 110 }}
+          />
           <FormControl size="small" sx={{ width: 200 }}>
             <InputLabel>Status</InputLabel>
             <Select
@@ -412,6 +420,12 @@ export const ChemicalUseScenariosPanel = ({
                 onSort={handleSort}
               />
               <SortableHeader
+                label="GSE"
+                field="exposureGroup"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <SortableHeader
                 label="Freq."
                 field="frequency"
                 sort={sort}
@@ -456,6 +470,9 @@ export const ChemicalUseScenariosPanel = ({
                   </TableCell>
                   <TableCell>{row.activityName || '—'}</TableCell>
                   <TableCell>{row.sectorSnapshot || '—'}</TableCell>
+                  <TableCell>
+                    {formatUseScenarioBoardExposureGroupCell(row)}
+                  </TableCell>
                   <TableCell>
                     {row.frequencyCount != null
                       ? `${row.frequencyCount} ${row.frequencyPeriod || ''}`

@@ -8,6 +8,7 @@ import { PENDING_SURVEY_STATUS_LABEL } from './chemical-use-scenario-activity-ri
 import {
   applyUseScenarioBoardView,
   EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+  formatUseScenarioBoardExposureGroupCell,
   hasActiveUseScenarioBoardView,
   nextUseScenarioBoardSort,
   USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS,
@@ -76,12 +77,14 @@ const ezolem1 = baseRow({
   id: 's-6',
   kind: 'SCENARIO',
   activityName: 'Dosagem A',
+  exposureGroupSnapshot: '1014',
   sourceRows: [6],
 });
 const ezolem2 = baseRow({
   id: 's-7',
   kind: 'SCENARIO',
   activityName: 'Dosagem B',
+  exposureGroupSnapshot: '10009',
   sourceRows: [7],
   frequencyCount: 2,
   durationMinutes: 20,
@@ -91,6 +94,7 @@ const ezolem3 = baseRow({
   id: 's-8',
   kind: 'SCENARIO',
   activityName: 'Dosagem C',
+  exposureGroupSnapshot: '10009',
   sourceRows: [8],
   frequencyCount: 3,
   durationMinutes: 5,
@@ -141,6 +145,7 @@ const pendingActiclor = baseRow({
   presentationStatus: 'PENDENTE_DE_LEVANTAMENTO',
   activityName: null,
   sectorSnapshot: null,
+  exposureGroupSnapshot: null,
   frequencyCount: null,
   durationMinutes: null,
   quantity: null,
@@ -409,6 +414,81 @@ const cleared = applyUseScenarioBoardView(board, {
 assert(
   ids(cleared).join() === ids(board).join(),
   'limpar filtros/sort restaura ordem natural do board',
+);
+
+assert(
+  EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS.exposureGroup === '',
+  'estado vazio inclui filtro GSE limpo',
+);
+
+const gse10009 = applyUseScenarioBoardView(board, {
+  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, exposureGroup: '10009' },
+});
+assert(gse10009.length === 2, 'filtro GSE 10009 retorna 2 linhas EZOLEM');
+assert(
+  ids(gse10009).join() === 's-7,s-8',
+  'filtro GSE 10009 não colapsa as duas linhas',
+);
+assert(
+  !gse10009.some((row) => row.id === 's-6'),
+  'filtro GSE 10009 exclui a linha 1014',
+);
+assert(
+  !gse10009.some((row) => row.kind === 'PENDING_SURVEY'),
+  'pending com null não casa com filtro GSE preenchido',
+);
+
+const gse1014 = applyUseScenarioBoardView(board, {
+  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, exposureGroup: '1014' },
+});
+assert(ids(gse1014).join() === 's-6', 'filtro GSE 1014 retorna a linha correspondente');
+
+assert(
+  applyUseScenarioBoardView(board, {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, search: '10009' },
+  })
+    .map((row) => row.id)
+    .join() === 's-7,s-8',
+  'busca geral continua encontrando por GSE',
+);
+
+const sortedGseAsc = applyUseScenarioBoardView([ezolem1, ezolem2, ezolem3], {
+  sort: { field: 'exposureGroup', order: 'asc' },
+});
+assert(
+  ids(sortedGseAsc).join() === 's-6,s-7,s-8',
+  'sort GSE asc é textual/numérico e estável',
+);
+const sortedGseDesc = applyUseScenarioBoardView([ezolem1, ezolem2, ezolem3], {
+  sort: { field: 'exposureGroup', order: 'desc' },
+});
+assert(
+  ids(sortedGseDesc).join() === 's-7,s-8,s-6',
+  'sort GSE desc é estável entre as duas linhas 10009',
+);
+
+assert(
+  formatUseScenarioBoardExposureGroupCell(pendingActiclor) === '—',
+  'pending renderiza —',
+);
+assert(
+  formatUseScenarioBoardExposureGroupCell(ezolem1) === '1014',
+  'cenário real mostra o snapshot textual',
+);
+assert(
+  hasActiveUseScenarioBoardView(
+    { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, exposureGroup: '10009' },
+    null,
+  ),
+  'filtro GSE ativa Limpar filtros',
+);
+const clearedGse = applyUseScenarioBoardView(board, {
+  filters: EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+  sort: null,
+});
+assert(
+  ids(clearedGse).join() === ids(board).join(),
+  'limpar filtros remove GSE e restaura a ordem natural',
 );
 
 console.log('chemical-use-scenario-board-view.util.spec.ts: OK');
