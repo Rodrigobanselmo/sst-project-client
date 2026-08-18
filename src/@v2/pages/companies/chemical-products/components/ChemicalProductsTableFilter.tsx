@@ -57,10 +57,13 @@ export function ChemicalProductsTableFilter({
   onIncludeArchivedChange: (checked: boolean) => void;
   manufacturers: string[];
 }) {
-  const manufacturerOptions = [
-    { value: '', label: 'Todos' },
-    ...manufacturers.map((name) => ({ value: name, label: name })),
-  ];
+  const manufacturerOptions = manufacturers.map((name) => ({
+    value: name,
+    label: name,
+  }));
+  const selectedManufacturer =
+    manufacturerOptions.find((option) => option.value === filters.manufacturer) ||
+    null;
 
   return (
     <SFlex direction="column" gap={4} width={360} pb={10}>
@@ -69,6 +72,17 @@ export function ChemicalProductsTableFilter({
         value={includeArchived}
         formControlProps={{ sx: { mx: 1 } }}
         onChange={(_, checked) => onIncludeArchivedChange(checked)}
+      />
+      <SSearchSelect
+        label="Fabricante"
+        placeholder="selecione"
+        value={selectedManufacturer}
+        options={manufacturerOptions}
+        getOptionLabel={(option) => option.label}
+        getOptionValue={(option) => option.value}
+        onChange={(option) =>
+          onFilterChange({ manufacturer: option?.value || '' })
+        }
       />
       <SSearchSelect
         label="Tipo"
@@ -161,20 +175,6 @@ export function ChemicalProductsTableFilter({
               option?.value ||
               EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS.employeesFispq,
           })
-        }
-      />
-      <SSearchSelect
-        label="Fabricante"
-        placeholder="selecione"
-        value={
-          manufacturerOptions.find((option) => option.value === filters.manufacturer) ||
-          manufacturerOptions[0]
-        }
-        options={manufacturerOptions}
-        getOptionLabel={(option) => option.label}
-        getOptionValue={(option) => option.value}
-        onChange={(option) =>
-          onFilterChange({ manufacturer: option?.value || '' })
         }
       />
     </SFlex>

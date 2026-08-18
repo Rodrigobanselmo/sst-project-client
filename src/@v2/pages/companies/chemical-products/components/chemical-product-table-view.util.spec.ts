@@ -245,6 +245,26 @@ assert(
   'filtro fabricante exato a partir do dataset',
 );
 assert(
+  applyChemicalProductTableView(products, {
+    filters: withFilters({ manufacturer: 'BAS' }),
+  }).length === 0,
+  'filtro fabricante não aceita substring',
+);
+assert(
+  applyChemicalProductTableView(products, {
+    filters: withFilters({ manufacturer: '' }),
+  }).map((p) => p.id).join(',') === 'p-soda,p-irganox,p-archived',
+  'limpar fabricante restaura o recorte',
+);
+assert(
+  listChemicalProductManufacturers([
+    ...products,
+    baseProduct({ id: 'p-blank', tradeName: 'Vazio', manufacturer: '  ' }),
+    baseProduct({ id: 'p-dup', tradeName: 'Dup', manufacturer: 'BASF' }),
+  ]).join(',') === 'ACME,BASF,BRASKEM',
+  'fabricantes únicos, sem vazio, ordenados',
+);
+assert(
   applyChemicalProductTableView(products).map((p) => p.id).join(',') ===
     'p-soda,p-irganox,p-archived',
   'view helper não filtra ARCHIVED — includeArchived permanece no GET',

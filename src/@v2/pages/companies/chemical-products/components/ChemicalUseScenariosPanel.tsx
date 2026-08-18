@@ -1,4 +1,12 @@
 import { SText } from '@v2/components/atoms/SText/SText';
+import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
+import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
+import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
+import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
+import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
+import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import {
   browseChemicalUseScenarioBoard,
   searchChemicalRiskFactors,
@@ -9,29 +17,16 @@ import type {
   ChemicalUseScenarioActivityRiskResolution,
   ChemicalUseScenarioBoardRow,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
-import { SIconSortArrowDown } from '@v2/assets/icons/SIconSortArrowDown/SIconSortArrowDown';
-import { SIconSortArrowUp } from '@v2/assets/icons/SIconSortArrowUp/SIconSortArrowUp';
-import { SIconUnfolderMore } from '@v2/assets/icons/SIconUnfolderMore/SIconUnfolderMore';
 import {
   Alert,
   Autocomplete,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TextField,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
@@ -44,7 +39,6 @@ import {
   canReviewScenarioActivityCorrelation,
   formatActivityRiskFactorsListCell,
   formatScenarioActivityCorrelationStatus,
-  formatUseScenarioBoardStatusChip,
   getScenarioActivityRiskFactors,
   getScenarioActivityRiskResolutions,
   isPendingSurveyBoardRow,
@@ -54,13 +48,20 @@ import {
   EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
   formatUseScenarioBoardExposureGroupCell,
   hasActiveUseScenarioBoardView,
+  listUseScenarioBoardFilterChips,
+  listUseScenarioBoardFilterOptions,
   nextUseScenarioBoardSort,
-  USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS,
   type UseScenarioBoardViewFilters,
   type UseScenarioBoardViewSort,
   type UseScenarioBoardViewSortField,
 } from './chemical-use-scenario-board-view.util';
+import {
+  ChemicalUseScenarioColumnsEnum,
+  chemicalUseScenarioColumns,
+} from './chemical-use-scenario-table-columns';
 import { ChemicalUseScenarioFormDialog } from './ChemicalUseScenarioFormDialog';
+import { ChemicalUseScenariosTable } from './ChemicalUseScenariosTable';
+import { ChemicalUseScenariosTableFilter } from './ChemicalUseScenariosTableFilter';
 import { exportUseScenarioBoardPdfInBrowser } from './exportUseScenarioBoardPdfInBrowser';
 
 type Props = {
@@ -79,37 +80,6 @@ function riskLabel(option: ChemicalRiskOption) {
   return option.cas ? `${option.name} · CAS ${option.cas}` : option.name;
 }
 
-function SortableHeader({
-  label,
-  field,
-  sort,
-  onSort,
-}: {
-  label: string;
-  field: UseScenarioBoardViewSortField;
-  sort: UseScenarioBoardViewSort | null;
-  onSort: (field: UseScenarioBoardViewSortField) => void;
-}) {
-  const direction = sort?.field === field ? sort.order : undefined;
-  return (
-    <TableCell
-      onClick={() => onSort(field)}
-      sx={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
-    >
-      <Box display="flex" alignItems="center" gap={0.5}>
-        {label}
-        {!direction ? <SIconUnfolderMore /> : null}
-        {direction === 'asc' ? (
-          <SIconSortArrowDown color="primary.main" />
-        ) : null}
-        {direction === 'desc' ? (
-          <SIconSortArrowUp color="primary.main" />
-        ) : null}
-      </Box>
-    </TableCell>
-  );
-}
-
 export const ChemicalUseScenariosPanel = ({
   companyId,
   workspaceId,
@@ -124,6 +94,13 @@ export const ChemicalUseScenariosPanel = ({
     EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
   );
   const [sort, setSort] = useState<UseScenarioBoardViewSort | null>(null);
+  const [searchFieldKey, setSearchFieldKey] = useState(0);
+  const [hiddenColumns, setHiddenColumns] = usePersistedState<
+    Record<ChemicalUseScenarioColumnsEnum, boolean>
+  >(
+    persistKeys.COLUMNS_CHEMICAL_USE_SCENARIOS,
+    {} as Record<ChemicalUseScenarioColumnsEnum, boolean>,
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<ChemicalUseScenarioBoardRow | null>(
@@ -206,6 +183,14 @@ export const ChemicalUseScenariosPanel = ({
   const visibleRows = useMemo(
     () => applyUseScenarioBoardView(rows, { filters, sort }),
     [rows, filters, sort],
+  );
+  const filterOptions = useMemo(
+    () => listUseScenarioBoardFilterOptions(rows),
+    [rows],
+  );
+  const filterChips = useMemo(
+    () => listUseScenarioBoardFilterChips(filters, sort, filterOptions),
+    [filters, sort, filterOptions],
   );
 
   const selectedResolutions = selected
@@ -301,8 +286,9 @@ export const ChemicalUseScenariosPanel = ({
   const hasActiveView = hasActiveUseScenarioBoardView(filters, sort);
 
   const clearView = () => {
-    setFilters(EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS);
+    setFilters({ ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS });
     setSort(null);
+    setSearchFieldKey((key) => key + 1);
   };
 
   const exportPdf = async () => {
@@ -355,13 +341,14 @@ export const ChemicalUseScenariosPanel = ({
           flexWrap="wrap"
           useFlexGap
         >
-          <TextField
-            size="small"
-            label="Buscar"
-            value={filters.search}
-            onChange={(e) => patchFilter('search', e.target.value)}
-            sx={{ minWidth: 200, maxWidth: 280, flex: '1 1 200px' }}
-          />
+          <Button
+            variant="outlined"
+            onClick={() => void exportPdf()}
+            disabled={isExportingPdf || !visibleRows.length}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Exportar PDF
+          </Button>
           <Button
             variant="contained"
             onClick={() => setCreateOpen(true)}
@@ -371,221 +358,86 @@ export const ChemicalUseScenariosPanel = ({
           </Button>
         </Stack>
       </Stack>
-      {rows.length ? (
-        <Stack
-          direction="row"
-          spacing={1}
-          flexWrap="wrap"
-          useFlexGap
-          mb={1.5}
-          alignItems="center"
-        >
-          <TextField
-            size="small"
-            label="Produto"
-            value={filters.product}
-            onChange={(e) => patchFilter('product', e.target.value)}
-            sx={{ width: 140 }}
+      <STableSearch
+        key={searchFieldKey}
+        search={filters.search}
+        autoFocus={false}
+        onSearch={(search) => patchFilter('search', search)}
+        inputProps={{
+          placeholder:
+            'Buscar produto, fabricante, fator, tarefa, setor, GSE ou status',
+        }}
+      >
+        <STableSearchContent>
+          {null}
+          <STableColumnsButton
+            showLabel
+            hiddenColumns={hiddenColumns}
+            setHiddenColumns={setHiddenColumns}
+            columns={chemicalUseScenarioColumns}
           />
-          <TextField
-            size="small"
-            label="Fator de risco"
-            value={filters.riskFactor}
-            onChange={(e) => patchFilter('riskFactor', e.target.value)}
-            sx={{ width: 150 }}
-          />
-          <TextField
-            size="small"
-            label="Tarefa"
-            value={filters.activity}
-            onChange={(e) => patchFilter('activity', e.target.value)}
-            sx={{ width: 130 }}
-          />
-          <TextField
-            size="small"
-            label="Setor"
-            value={filters.sector}
-            onChange={(e) => patchFilter('sector', e.target.value)}
-            sx={{ width: 130 }}
-          />
-          <TextField
-            size="small"
-            label="GSE"
-            value={filters.exposureGroup}
-            onChange={(e) => patchFilter('exposureGroup', e.target.value)}
-            sx={{ width: 110 }}
-          />
-          <FormControl size="small" sx={{ width: 200 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              label="Status"
-              value={filters.status}
-              onChange={(e) => patchFilter('status', String(e.target.value))}
-            >
-              <MenuItem value="">Todos</MenuItem>
-              {USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button size="small" onClick={clearView} disabled={!hasActiveView}>
-            Limpar filtros
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => void exportPdf()}
-            disabled={isExportingPdf || !visibleRows.length}
-          >
-            Exportar PDF
-          </Button>
-        </Stack>
+          <STableFilterButton text="Filtros">
+            <ChemicalUseScenariosTableFilter
+              filters={filters}
+              options={filterOptions}
+              onFilterChange={(patch) =>
+                setFilters((current) => ({ ...current, ...patch }))
+              }
+            />
+          </STableFilterButton>
+        </STableSearchContent>
+      </STableSearch>
+      {filterChips.length ? (
+        <STableInfoSection>
+          <STableFilterChipList onClean={clearView}>
+            {filterChips.map((chip) => (
+              <STableFilterChip
+                key={chip.key}
+                leftLabel={chip.leftLabel}
+                label={chip.label}
+                onDelete={() => {
+                  if (chip.key === 'sort') {
+                    setSort(null);
+                    return;
+                  }
+                  if (chip.key === 'search') {
+                    patchFilter('search', '');
+                    setSearchFieldKey((key) => key + 1);
+                    return;
+                  }
+                  patchFilter(
+                    chip.key as keyof UseScenarioBoardViewFilters,
+                    EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS[
+                      chip.key as keyof UseScenarioBoardViewFilters
+                    ],
+                  );
+                }}
+              />
+            ))}
+          </STableFilterChipList>
+        </STableInfoSection>
       ) : null}
       {error ? <Alert severity="error">{error}</Alert> : null}
-      {loading ? <SText fontSize={13}>Carregando…</SText> : null}
       {!loading && !rows.length ? (
         <Alert severity="info">
           Nenhum produto ACTIVE neste estabelecimento para exibir. Cadastre um
           produto na aba Produtos ou restaure um arquivado.
         </Alert>
       ) : null}
-      {!loading && rows.length && !visibleRows.length ? (
-        <Alert severity="info">
-          Nenhum cenário corresponde aos filtros.
-        </Alert>
-      ) : null}
-      {visibleRows.length ? (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <SortableHeader
-                label="Produto"
-                field="product"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Fator(es) de risco desta atividade"
-                field="riskFactors"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Tarefa"
-                field="activity"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Setor"
-                field="sector"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="GSE"
-                field="exposureGroup"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Freq."
-                field="frequency"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Duração"
-                field="duration"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Qtd"
-                field="quantity"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Linhas"
-                field="sourceRows"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <SortableHeader
-                label="Status"
-                field="status"
-                sort={sort}
-                onSort={handleSort}
-              />
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {visibleRows.map((row) => {
-              const factors = getScenarioActivityRiskFactors(row);
-              const pending = isPendingSurveyBoardRow(row);
-              return (
-                <TableRow key={row.id}>
-                  <TableCell>{row.product.tradeName}</TableCell>
-                  <TableCell>
-                    {formatActivityRiskFactorsListCell(factors, row)}
-                  </TableCell>
-                  <TableCell>{row.activityName || '—'}</TableCell>
-                  <TableCell>{row.sectorSnapshot || '—'}</TableCell>
-                  <TableCell>
-                    {formatUseScenarioBoardExposureGroupCell(row)}
-                  </TableCell>
-                  <TableCell>
-                    {row.frequencyCount != null
-                      ? `${row.frequencyCount} ${row.frequencyPeriod || ''}`
-                      : '—'}
-                  </TableCell>
-                  <TableCell>
-                    {row.durationMinutes != null
-                      ? `${row.durationMinutes} min`
-                      : '—'}
-                  </TableCell>
-                  <TableCell>
-                    {row.quantity
-                      ? `${row.quantity} ${row.quantityUnit || ''}`
-                      : '—'}
-                  </TableCell>
-                  <TableCell>
-                    {(row.sourceRows || []).join(', ') || '—'}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      label={formatUseScenarioBoardStatusChip(row)}
-                      color={pending ? 'error' : 'default'}
-                      variant="filled"
-                      sx={
-                        pending
-                          ? {
-                              backgroundColor: 'error.main',
-                              color: 'common.white',
-                              border: '1px solid',
-                              borderColor: 'error.main',
-                            }
-                          : undefined
-                      }
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {canOpenUseScenarioBoardRow(row) ? (
-                      <Button size="small" onClick={() => setSelected(row)}>
-                        Abrir
-                      </Button>
-                    ) : null}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+      {rows.length || loading ? (
+        <ChemicalUseScenariosTable
+          rows={visibleRows}
+          isLoading={loading}
+          hiddenColumns={hiddenColumns}
+          sort={sort}
+          onSortField={handleSort}
+          emptyMessage={
+            hasActiveView
+              ? 'Nenhum cenário corresponde aos filtros.'
+              : 'Nenhum cenário de uso neste estabelecimento.'
+          }
+          onOpen={setSelected}
+        />
       ) : null}
 
       <Dialog

@@ -10,6 +10,8 @@ import {
   EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
   formatUseScenarioBoardExposureGroupCell,
   hasActiveUseScenarioBoardView,
+  listUseScenarioBoardFilterChips,
+  listUseScenarioBoardFilterOptions,
   nextUseScenarioBoardSort,
   USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS,
 } from './chemical-use-scenario-board-view.util';
@@ -211,7 +213,10 @@ assert(
 );
 
 const ezolemFiltered = applyUseScenarioBoardView(board, {
-  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'EZOLEM' },
+  filters: {
+    ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+    product: 'BRASKEM EZOLEM 6/7',
+  },
 });
 assert(ezolemFiltered.length === 3, 'EZOLEM continua com 3 linhas após filtro');
 assert(
@@ -221,13 +226,19 @@ assert(
 
 assert(
   applyUseScenarioBoardView(board, {
-    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: '651ST' },
+    filters: {
+      ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+      product: 'CHEM-AQUA 651ST- 5790',
+    },
   }).map((row) => row.id).join() === 's-651',
   '651ST permanece separado do 910',
 );
 assert(
   applyUseScenarioBoardView(board, {
-    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: '910' },
+    filters: {
+      ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+      product: 'CHEM-AQUA 910- 5471',
+    },
   }).map((row) => row.id).join() === 's-910',
   '910 permanece separado do 651ST',
 );
@@ -278,20 +289,26 @@ assert(
   applyUseScenarioBoardView(board, {
     filters: {
       ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
-      riskFactor: 'Hipoclorito',
+      riskFactor: 'rf-hypo',
     },
   }).map((row) => row.id).join() === 'pending:p-acticlor',
   'pending participa do filtro de fator',
 );
 
 assert(
+  !listUseScenarioBoardFilterOptions(board).riskFactors.some(
+    (option) => option.label === UNINDIVIDUALIZED_COMPOSITION_LABEL,
+  ),
+  'opções de fator não usam o texto resumido da célula',
+);
+assert(
   applyUseScenarioBoardView(board, {
     filters: {
       ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
       riskFactor: UNINDIVIDUALIZED_COMPOSITION_LABEL,
     },
-  }).some((row) => row.id === 'pending:p-u'),
-  'UNINDIVIDUALIZED continua filtrável pelo texto homologado',
+  }).length === 0,
+  'filtro de fator não persiste texto arbitrário da célula',
 );
 
 assert(
@@ -302,7 +319,7 @@ assert(
 );
 
 const sortedActivity = applyUseScenarioBoardView(board, {
-  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'EZOLEM' },
+  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'BRASKEM EZOLEM 6/7' },
   sort: { field: 'activity', order: 'desc' },
 });
 assert(
@@ -336,7 +353,7 @@ assert(
 
 const snapshot = ids(board).join();
 applyUseScenarioBoardView(board, {
-  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'EZOLEM' },
+  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'BRASKEM EZOLEM 6/7' },
   sort: { field: 'status', order: 'asc' },
 });
 assert(ids(board).join() === snapshot, 'apply não muta rows originais');
@@ -389,7 +406,7 @@ assert(
 );
 assert(
   hasActiveUseScenarioBoardView(
-    { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'EZOLEM' },
+    { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'BRASKEM EZOLEM 6/7' },
     null,
   ),
   'filtro de produto ativa limpar',
@@ -403,7 +420,7 @@ assert(
 );
 
 const filteredSorted = applyUseScenarioBoardView(board, {
-  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'EZOLEM' },
+  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'BRASKEM EZOLEM 6/7' },
   sort: { field: 'activity', order: 'desc' },
 });
 assert(ids(filteredSorted).join() === 's-8,s-7,s-6', 'recorte filtrado+ordenado');
@@ -489,6 +506,174 @@ const clearedGse = applyUseScenarioBoardView(board, {
 assert(
   ids(clearedGse).join() === ids(board).join(),
   'limpar filtros remove GSE e restaura a ordem natural',
+);
+
+assert(
+  applyUseScenarioBoardView(board, {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, sector: 'Caldeira' },
+  }).filter((row) => row.kind === 'SCENARIO').length === 5,
+  'filtro de setor Caldeira casa os cenários reais',
+);
+
+assert(
+  applyUseScenarioBoardView(board, {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, search: 'BRASKEM' },
+  }).length === board.length,
+  'busca geral encontra por fabricante',
+);
+assert(
+  applyUseScenarioBoardView(board, {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, search: 'Dosagem A' },
+  })
+    .map((row) => row.id)
+    .join() === 's-6',
+  'busca geral encontra por tarefa',
+);
+assert(
+  applyUseScenarioBoardView(board, {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, search: 'Caldeira' },
+  }).some((row) => row.id === 's-6'),
+  'busca geral encontra por setor',
+);
+assert(
+  applyUseScenarioBoardView(board, {
+    filters: {
+      ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+      search: 'Pendente de levantamento',
+    },
+  }).every((row) => row.kind === 'PENDING_SURVEY'),
+  'busca geral encontra por status amigável',
+);
+
+const combined = applyUseScenarioBoardView(board, {
+  filters: {
+    ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+    search: 'EZOLEM',
+    product: 'BRASKEM EZOLEM 6/7',
+    exposureGroup: '10009',
+    sector: 'Caldeira',
+  },
+  sort: { field: 'activity', order: 'desc' },
+});
+assert(ids(combined).join() === 's-8,s-7', 'filtros combinados + sort');
+
+const recortePdf = applyUseScenarioBoardView(board, {
+  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, exposureGroup: '10009' },
+  sort: { field: 'activity', order: 'desc' },
+});
+assert(
+  ids(recortePdf).join() === 's-8,s-7',
+  'visibleRows/PDF: GSE 10009 + sort tarefa desc = as 2 linhas na mesma ordem',
+);
+
+const dirty = applyUseScenarioBoardView(board, {
+  filters: {
+    ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+    search: 'EZOLEM',
+    product: 'BRASKEM EZOLEM 6/7',
+    status: 'LEVANTAMENTO_CONCLUIDO',
+  },
+  sort: { field: 'product', order: 'asc' },
+});
+assert(dirty.length === 3, 'recorte sujo com busca+filtros+sort');
+const limpar = applyUseScenarioBoardView(board, {
+  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS },
+  sort: null,
+});
+assert(
+  ids(limpar).join() === ids(board).join(),
+  'Limpar com busca vazia, filtros default e sort none restaura o board',
+);
+
+const chips = listUseScenarioBoardFilterChips(
+  {
+    ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+    search: 'EZOLEM',
+    exposureGroup: '10009',
+    status: 'PENDENTE_DE_LEVANTAMENTO',
+  },
+  { field: 'activity', order: 'desc' },
+);
+assert(
+  chips.map((chip) => chip.key).join() === 'search,exposureGroup,status,sort',
+  'chips de Limpar cobrem busca, filtros e sort',
+);
+assert(
+  chips.find((chip) => chip.key === 'status')?.label ===
+    'Pendente de levantamento',
+  'chip de status usa label amigável e valor interno permanece no filtro',
+);
+
+const filterOptions = listUseScenarioBoardFilterOptions(board);
+assert(
+  filterOptions.products.join('|') ===
+    'ACRYLUX|ACTICHLOR- 5270|BRASKEM EZOLEM 6/7|CHEM-AQUA 651ST- 5790|CHEM-AQUA 910- 5471',
+  'opções de Produto são únicas, não vazias e ordenadas',
+);
+assert(
+  filterOptions.products.filter((name) => name === 'BRASKEM EZOLEM 6/7')
+    .length === 1,
+  'EZOLEM vira uma opção mesmo com 3 linhas',
+);
+assert(
+  filterOptions.activities.join('|') === 'Dosagem|Dosagem A|Dosagem B|Dosagem C',
+  'opções de Tarefa são únicas e não incluem pending vazio',
+);
+assert(filterOptions.sectors.join('|') === 'Caldeira', 'opções de Setor deduplicadas');
+assert(
+  filterOptions.exposureGroups.join('|') === '1014|10009',
+  'opções de GSE são únicas, não vazias e ordenadas',
+);
+assert(
+  !filterOptions.products.includes('') &&
+    !filterOptions.activities.includes('') &&
+    !filterOptions.sectors.includes('') &&
+    !filterOptions.exposureGroups.includes(''),
+  'valor vazio não vira opção',
+);
+
+const naoh = filterOptions.riskFactors.find((option) => option.id === 'rf-naoh');
+const hypo = filterOptions.riskFactors.find((option) => option.id === 'rf-hypo');
+const sulfito = filterOptions.riskFactors.find((option) => option.id === 'rf-so');
+assert(Boolean(naoh && hypo && sulfito), 'fator de risco usa fatores individuais reais');
+assert(
+  filterOptions.riskFactors.filter((option) => option.id === 'rf-naoh').length ===
+    1,
+  'fator repetido em várias linhas aparece uma vez',
+);
+assert(
+  !filterOptions.riskFactors.some((option) => option.label.includes('+')),
+  'opções de fator não usam resumo da célula com +N',
+);
+
+assert(
+  applyUseScenarioBoardView(board, {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, riskFactor: 'rf-naoh' },
+  }).every((row) =>
+    (row.activityRiskFactors || []).some((factor) => factor.id === 'rf-naoh'),
+  ),
+  'seleção de fator filtra linhas que contêm aquele fator',
+);
+
+const optionsSnapshot = JSON.stringify(filterOptions);
+listUseScenarioBoardFilterOptions(board);
+assert(
+  ids(board).join() === snapshot,
+  'listar opções não muta rows',
+);
+assert(
+  JSON.stringify(listUseScenarioBoardFilterOptions(board)) === optionsSnapshot,
+  'listar opções é determinístico',
+);
+
+const riskChip = listUseScenarioBoardFilterChips(
+  { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, riskFactor: 'rf-hypo' },
+  null,
+  filterOptions,
+).find((chip) => chip.key === 'riskFactor');
+assert(
+  riskChip?.label === 'Hipoclorito de sódio · CAS 7681-52-9',
+  'chip de fator mostra o nome, não o id',
 );
 
 console.log('chemical-use-scenario-board-view.util.spec.ts: OK');

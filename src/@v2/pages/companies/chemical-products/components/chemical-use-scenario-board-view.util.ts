@@ -152,6 +152,75 @@ function compareText(
   return order === 'asc' ? result : -result;
 }
 
+function uniqueSortedTexts(values: Array<string | null | undefined>): string[] {
+  const unique = new Set<string>();
+  for (const value of values) {
+    const text = (value || '').trim();
+    if (text) unique.add(text);
+  }
+  return [...unique].sort((left, right) =>
+    left.localeCompare(right, 'pt-BR', { numeric: true, sensitivity: 'base' }),
+  );
+}
+
+function equalsText(haystack: string | null | undefined, selected: string) {
+  const value = selected.trim();
+  if (!value) return true;
+  return (haystack || '').trim() === value;
+}
+
+export type UseScenarioBoardRiskFactorFilterOption = {
+  id: string;
+  label: string;
+};
+
+export type UseScenarioBoardFilterOptions = {
+  products: string[];
+  riskFactors: UseScenarioBoardRiskFactorFilterOption[];
+  activities: string[];
+  sectors: string[];
+  exposureGroups: string[];
+};
+
+export function formatUseScenarioBoardRiskFactorOptionLabel(factor: {
+  name?: string | null;
+  cas?: string | null;
+}): string {
+  const name = (factor.name || '').trim();
+  const cas = (factor.cas || '').trim();
+  if (name && cas) return `${name} · CAS ${cas}`;
+  return name;
+}
+
+export function listUseScenarioBoardFilterOptions(
+  rows: ChemicalUseScenarioBoardRow[],
+): UseScenarioBoardFilterOptions {
+  const riskById = new Map<string, UseScenarioBoardRiskFactorFilterOption>();
+  for (const row of rows) {
+    for (const factor of getScenarioActivityRiskFactors(row)) {
+      if (!factor?.id || riskById.has(factor.id)) continue;
+      const label = formatUseScenarioBoardRiskFactorOptionLabel(factor);
+      if (!label) continue;
+      riskById.set(factor.id, { id: factor.id, label });
+    }
+  }
+
+  return {
+    products: uniqueSortedTexts(rows.map((row) => row.product?.tradeName)),
+    riskFactors: [...riskById.values()].sort((left, right) =>
+      left.label.localeCompare(right.label, 'pt-BR', {
+        numeric: true,
+        sensitivity: 'base',
+      }),
+    ),
+    activities: uniqueSortedTexts(rows.map((row) => row.activityName)),
+    sectors: uniqueSortedTexts(rows.map((row) => row.sectorSnapshot)),
+    exposureGroups: uniqueSortedTexts(
+      rows.map((row) => row.exposureGroupSnapshot),
+    ),
+  };
+}
+
 export function rowMatchesUseScenarioBoardFilters(
   row: ChemicalUseScenarioBoardRow,
   filters: UseScenarioBoardViewFilters,
@@ -161,11 +230,19 @@ export function rowMatchesUseScenarioBoardFilters(
       return false;
     }
   }
-  if (!contains(row.product?.tradeName, filters.product)) return false;
-  if (!contains(riskFactorsText(row), filters.riskFactor)) return false;
-  if (!contains(row.activityName, filters.activity)) return false;
-  if (!contains(row.sectorSnapshot, filters.sector)) return false;
-  if (!contains(row.exposureGroupSnapshot, filters.exposureGroup)) return false;
+  if (!equalsText(row.product?.tradeName, filters.product)) return false;
+  if (filters.riskFactor.trim()) {
+    const selectedId = filters.riskFactor.trim();
+    const hasFactor = getScenarioActivityRiskFactors(row).some(
+      (factor) => factor.id === selectedId,
+    );
+    if (!hasFactor) return false;
+  }
+  if (!equalsText(row.activityName, filters.activity)) return false;
+  if (!equalsText(row.sectorSnapshot, filters.sector)) return false;
+  if (!equalsText(row.exposureGroupSnapshot, filters.exposureGroup)) {
+    return false;
+  }
 
   const search = filters.search;
   if (!normalize(search)) return true;
@@ -251,6 +328,95 @@ export function compareUseScenarioBoardRows(
     default:
       return 0;
   }
+}
+
+export type UseScenarioBoardFilterChip = {
+  key: string;
+  leftLabel: string;
+  label: string;
+};
+
+const SORT_FIELD_CHIP_LABEL: Record<UseScenarioBoardViewSortField, string> = {
+  product: 'Produto',
+  riskFactors: 'Fator(es) de risco',
+  activity: 'Tarefa',
+  sector: 'Setor',
+  exposureGroup: 'GSE',
+  frequency: 'Freq.',
+  duration: 'Duração',
+  quantity: 'Qtd',
+  sourceRows: 'Linhas',
+  status: 'Status',
+};
+
+export function listUseScenarioBoardFilterChips(
+  filters: UseScenarioBoardViewFilters,
+  sort: UseScenarioBoardViewSort | null,
+  options?: Pick<UseScenarioBoardFilterOptions, 'riskFactors'>,
+): UseScenarioBoardFilterChip[] {
+  const chips: UseScenarioBoardFilterChip[] = [];
+  const search = filters.search.trim();
+  if (search) {
+    chips.push({ key: 'search', leftLabel: 'Busca', label: search });
+  }
+  if (filters.product.trim()) {
+    chips.push({
+      key: 'product',
+      leftLabel: 'Produto',
+      label: filters.product.trim(),
+    });
+  }
+  if (filters.riskFactor.trim()) {
+    const riskLabel =
+      options?.riskFactors.find((factor) => factor.id === filters.riskFactor)
+        ?.label || filters.riskFactor.trim();
+    chips.push({
+      key: 'riskFactor',
+      leftLabel: 'Fator de risco',
+      label: riskLabel,
+    });
+  }
+  if (filters.activity.trim()) {
+    chips.push({
+      key: 'activity',
+      leftLabel: 'Tarefa',
+      label: filters.activity.trim(),
+    });
+  }
+  if (filters.sector.trim()) {
+    chips.push({
+      key: 'sector',
+      leftLabel: 'Setor',
+      label: filters.sector.trim(),
+    });
+  }
+  if (filters.exposureGroup.trim()) {
+    chips.push({
+      key: 'exposureGroup',
+      leftLabel: 'GSE',
+      label: filters.exposureGroup.trim(),
+    });
+  }
+  if (filters.status.trim()) {
+    const statusOption = USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS.find(
+      (option) => option.value === filters.status,
+    );
+    chips.push({
+      key: 'status',
+      leftLabel: 'Status',
+      label: statusOption?.label || filters.status,
+    });
+  }
+  if (sort) {
+    chips.push({
+      key: 'sort',
+      leftLabel: 'Ordenação',
+      label: `${SORT_FIELD_CHIP_LABEL[sort.field]} ${
+        sort.order === 'asc' ? 'crescente' : 'decrescente'
+      }`,
+    });
+  }
+  return chips;
 }
 
 export function nextUseScenarioBoardSort(
