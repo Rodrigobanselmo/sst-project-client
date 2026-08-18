@@ -34,7 +34,10 @@ import {
   TableRow,
   TextField,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 import { useEffect, useMemo, useState } from 'react';
+
+import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 
 import {
   canOpenUseScenarioBoardRow,
@@ -57,6 +60,7 @@ import {
   type UseScenarioBoardViewSort,
   type UseScenarioBoardViewSortField,
 } from './chemical-use-scenario-board-view.util';
+import { exportUseScenarioBoardPdfInBrowser } from './exportUseScenarioBoardPdfInBrowser';
 
 type Props = {
   companyId: string;
@@ -111,7 +115,10 @@ export const ChemicalUseScenariosPanel = ({
   chemicalProductId,
   refreshKey = 0,
 }: Props) => {
+  const { enqueueSnackbar } = useSnackbar();
   const [rows, setRows] = useState<ChemicalUseScenarioBoardRow[]>([]);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfLoadingMessage, setPdfLoadingMessage] = useState('');
   const [filters, setFilters] = useState<UseScenarioBoardViewFilters>(
     EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
   );
@@ -296,6 +303,39 @@ export const ChemicalUseScenariosPanel = ({
     setSort(null);
   };
 
+  const exportPdf = async () => {
+    if (isExportingPdf) return;
+    if (!visibleRows.length) {
+      enqueueSnackbar('Nenhum cenário corresponde aos filtros atuais.', {
+        variant: 'warning',
+      });
+      return;
+    }
+    setIsExportingPdf(true);
+    setPdfLoadingMessage('Iniciando geração do PDF...');
+    try {
+      await exportUseScenarioBoardPdfInBrowser(
+        {
+          visibleRows,
+          filters,
+          sort,
+        },
+        (message) => setPdfLoadingMessage(message),
+      );
+      enqueueSnackbar('PDF gerado com sucesso!', { variant: 'success' });
+    } catch (err) {
+      enqueueSnackbar(
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível gerar o PDF dos cenários de uso.',
+        { variant: 'error' },
+      );
+    } finally {
+      setIsExportingPdf(false);
+      setPdfLoadingMessage('');
+    }
+  };
+
   return (
     <Box>
       <Stack
@@ -375,6 +415,14 @@ export const ChemicalUseScenariosPanel = ({
           </FormControl>
           <Button size="small" onClick={clearView} disabled={!hasActiveView}>
             Limpar filtros
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => void exportPdf()}
+            disabled={isExportingPdf || !visibleRows.length}
+          >
+            Exportar PDF
           </Button>
         </Stack>
       ) : null}
@@ -701,6 +749,7 @@ export const ChemicalUseScenariosPanel = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <SPdfLoadingModal open={isExportingPdf} message={pdfLoadingMessage} />
     </Box>
   );
 };
