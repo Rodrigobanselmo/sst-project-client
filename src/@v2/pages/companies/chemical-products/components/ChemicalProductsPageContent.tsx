@@ -1,6 +1,14 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
+import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
+import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
+import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
+import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
+import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { useFetchBrowseChemicalProducts } from '@v2/services/security/characterization/chemical-product/hooks/useFetchBrowseChemicalProducts';
@@ -15,20 +23,10 @@ import {
   Alert,
   Box,
   Button,
-  Chip,
   Divider,
-  FormControlLabel,
   Menu,
   MenuItem,
   Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
 } from '@mui/material';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import { STabs } from 'components/molecules/STabs';
@@ -56,171 +54,24 @@ import { ChemicalExcelPrepareDialog } from './ChemicalExcelPrepareDialog';
 import { ChemicalExcelValidateDialog } from './ChemicalExcelValidateDialog';
 import { ChemicalProductDetailDialog } from './ChemicalProductDetailDialog';
 import { ChemicalProductFormDialog } from './ChemicalProductFormDialog';
+import {
+  ChemicalProductColumnsEnum,
+  chemicalProductColumns,
+} from './chemical-product-table-columns';
+import {
+  applyChemicalProductTableView,
+  EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS,
+  hasActiveChemicalProductTableView,
+  listChemicalProductManufacturers,
+  listChemicalProductTableFilterChips,
+  nextChemicalProductTableSort,
+  type ChemicalProductTableSort,
+  type ChemicalProductTableViewFilters,
+} from './chemical-product-table-view.util';
+import { ChemicalProductsTable } from './ChemicalProductsTable';
+import { ChemicalProductsTableFilter } from './ChemicalProductsTableFilter';
 import { ChemicalSurveyImportDialog } from './ChemicalSurveyImportDialog';
 import { ChemicalUseScenariosPanel } from './ChemicalUseScenariosPanel';
-import {
-  isUnindividualizedDisclosure,
-  UNINDIVIDUALIZED_COMPOSITION_LABEL,
-} from './chemical-composition-disclosure.util';
-
-function formatConcentration(item: {
-  concentrationKind: string;
-  exactPercent: number | null;
-  minPercent: number | null;
-  maxPercent: number | null;
-}) {
-  if (item.concentrationKind === 'EXACT' && item.exactPercent != null) {
-    return `${item.exactPercent}%`;
-  }
-  if (
-    item.concentrationKind === 'RANGE' &&
-    item.minPercent != null &&
-    item.maxPercent != null
-  ) {
-    return `${item.minPercent}-${item.maxPercent}%`;
-  }
-  if (item.concentrationKind === 'CONFIDENTIAL') return 'Confidencial';
-  if (item.concentrationKind === 'NOT_INFORMED') return 'Não informada';
-  if (item.concentrationKind === 'UNDETERMINED') return 'Indeterminada';
-  return item.concentrationKind;
-}
-
-function ingredientsTooltip(product: ChemicalProductListItem) {
-  const rows = product.ingredients || [];
-  if (isUnindividualizedDisclosure(product.activeComposition?.compositionDisclosure)) {
-    const note = product.activeComposition?.compositionDisclosureNote?.trim();
-    return note
-      ? `${UNINDIVIDUALIZED_COMPOSITION_LABEL}\n${note}`
-      : UNINDIVIDUALIZED_COMPOSITION_LABEL;
-  }
-  if (!rows.length) return 'Sem componentes na composição vigente.';
-  return rows
-    .map((ingredient) => {
-      const risk = ingredient.riskFactor?.name
-        ? ` · RF: ${ingredient.riskFactor.name}`
-        : ' · Sem RF';
-      return `${ingredient.chemicalName || '—'}${
-        ingredient.cas ? ` · CAS ${ingredient.cas}` : ''
-      } · ${formatConcentration(ingredient)}${risk}`;
-    })
-    .join('\n');
-}
-
-function productMatchesLocalSearch(
-  product: ChemicalProductListItem,
-  rawSearch: string,
-): boolean {
-  const query = rawSearch.trim().toLowerCase();
-  if (!query) return true;
-  if (product.tradeName.toLowerCase().includes(query)) return true;
-  if ((product.manufacturer || '').toLowerCase().includes(query)) return true;
-  return (product.ingredients || []).some((ingredient) => {
-    if ((ingredient.chemicalName || '').toLowerCase().includes(query)) {
-      return true;
-    }
-    if ((ingredient.cas || '').toLowerCase().includes(query)) return true;
-    return false;
-  });
-}
-
-function IngredientsSummaryCell({
-  product,
-}: {
-  product: ChemicalProductListItem;
-}) {
-  const ingredients = product.ingredients || [];
-  const first = ingredients[0];
-  const extraCount = Math.max(0, ingredients.length - 1);
-  const chemicalName = first?.chemicalName?.trim() || null;
-  const cas = first?.cas?.trim() || null;
-  const firstHasNoRiskFactor = Boolean(first && !first.riskFactorId);
-  const extraLabel =
-    extraCount === 1
-      ? '+1 componente'
-      : extraCount > 1
-        ? `+${extraCount} componentes`
-        : null;
-
-  if (!first) {
-    const unindividualized = isUnindividualizedDisclosure(
-      product.activeComposition?.compositionDisclosure,
-    );
-    return (
-      <Tooltip
-        title={
-          unindividualized
-            ? ingredientsTooltip(product)
-            : 'Sem componentes na composição vigente.'
-        }
-      >
-        <SText fontSize={13} color="text.secondary" sx={{ cursor: 'help' }}>
-          {unindividualized
-            ? UNINDIVIDUALIZED_COMPOSITION_LABEL
-            : 'Sem componentes'}
-        </SText>
-      </Tooltip>
-    );
-  }
-
-  return (
-    <Tooltip
-      title={
-        <Box component="span" sx={{ whiteSpace: 'pre-line' }}>
-          {ingredientsTooltip(product)}
-        </Box>
-      }
-    >
-      <Stack spacing={0.35} sx={{ cursor: 'help', maxWidth: 380, py: 0.25 }}>
-        <SText
-          fontSize={13}
-          fontWeight={600}
-          lineNumber={1}
-          noBreak
-          title={chemicalName || '—'}
-          sx={{ maxWidth: 360 }}
-        >
-          {chemicalName || '—'}
-        </SText>
-        <Stack
-          direction="row"
-          spacing={0.75}
-          alignItems="center"
-          flexWrap="wrap"
-          useFlexGap
-        >
-          {cas ? (
-            <SText
-              fontSize={12}
-              color="text.secondary"
-              lineNumber={1}
-              noBreak
-              title={`CAS ${cas}`}
-              sx={{ maxWidth: 140 }}
-            >
-              CAS {cas}
-            </SText>
-          ) : (
-            <SText fontSize={12} color="text.disabled">
-              Sem CAS
-            </SText>
-          )}
-          {extraLabel ? (
-            <Chip size="small" color="primary" variant="outlined" label={extraLabel} />
-          ) : null}
-          {firstHasNoRiskFactor || product.hasUnlinkedIngredient ? (
-            <Chip size="small" color="info" label="Sem RF" />
-          ) : null}
-          {product.hasConfidentialIngredient ? (
-            <Chip size="small" label="Confidencial" />
-          ) : null}
-          {product.compositionIncomplete ? (
-            <Chip size="small" color="warning" label="<100%" />
-          ) : null}
-        </Stack>
-      </Stack>
-    </Tooltip>
-  );
-}
 
 export const ChemicalProductsPageContent = ({
   companyId,
@@ -238,7 +89,20 @@ export const ChemicalProductsPageContent = ({
   });
 
   const [includeArchived, setIncludeArchived] = useState(false);
-  const [search, setSearch] = useState('');
+  const [tableFilters, setTableFilters] =
+    useState<ChemicalProductTableViewFilters>(
+      EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS,
+    );
+  const [tableSort, setTableSort] = useState<ChemicalProductTableSort | null>(
+    null,
+  );
+  const [searchFieldKey, setSearchFieldKey] = useState(0);
+  const [hiddenColumns, setHiddenColumns] = usePersistedState<
+    Record<ChemicalProductColumnsEnum, boolean>
+  >(
+    persistKeys.COLUMNS_CHEMICAL_PRODUCTS,
+    {} as Record<ChemicalProductColumnsEnum, boolean>,
+  );
   const [createOpen, setCreateOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<ChemicalProductDetail | null>(
     null,
@@ -298,6 +162,28 @@ export const ChemicalProductsPageContent = ({
     exportExcel,
   } = useMutateChemicalProduct();
 
+  const loadedProducts = (data || []) as ChemicalProductListItem[];
+  const manufacturers = useMemo(
+    () => listChemicalProductManufacturers(loadedProducts),
+    [data],
+  );
+  const products = useMemo(
+    () =>
+      applyChemicalProductTableView(loadedProducts, {
+        filters: tableFilters,
+        sort: tableSort,
+      }),
+    [data, tableFilters, tableSort],
+  );
+  const filterChips = useMemo(
+    () => listChemicalProductTableFilterChips(tableFilters, tableSort),
+    [tableFilters, tableSort],
+  );
+  const hasActiveView = hasActiveChemicalProductTableView(
+    tableFilters,
+    tableSort,
+  );
+
   if (isLoadingAllWorkspaces) {
     return <SSkeleton height={400} />;
   }
@@ -317,10 +203,6 @@ export const ChemicalProductsPageContent = ({
       </Box>
     );
   }
-
-  const products = ((data || []) as ChemicalProductListItem[]).filter(
-    (product) => productMatchesLocalSearch(product, search),
-  );
 
   const confirmArchive = (product: ChemicalProductListItem) => {
     const ok = window.confirm(
@@ -616,24 +498,74 @@ export const ChemicalProductsPageContent = ({
       ) : null}
 
       {viewMode === 'products' ? (
-      <SFlex mb={2} gap={2} alignItems="center" flexWrap="wrap">
-        <TextField
-          size="small"
-          label="Buscar nome, fabricante, substância ou CAS"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 320 }}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={includeArchived}
-              onChange={(_, checked) => setIncludeArchived(checked)}
-            />
-          }
-          label="Incluir arquivados"
-        />
-      </SFlex>
+        <>
+          <STableSearch
+            key={searchFieldKey}
+            search={tableFilters.search}
+            autoFocus={false}
+            onSearch={(search) =>
+              setTableFilters((current) => ({ ...current, search }))
+            }
+            inputProps={{
+              placeholder: 'Buscar nome, fabricante, substância ou CAS',
+            }}
+          >
+            <STableSearchContent>
+              {null}
+              <STableColumnsButton
+                showLabel
+                hiddenColumns={hiddenColumns}
+                setHiddenColumns={setHiddenColumns}
+                columns={chemicalProductColumns}
+              />
+              <STableFilterButton text="Filtros">
+                <ChemicalProductsTableFilter
+                  filters={tableFilters}
+                  onFilterChange={(patch) =>
+                    setTableFilters((current) => ({ ...current, ...patch }))
+                  }
+                  includeArchived={includeArchived}
+                  onIncludeArchivedChange={setIncludeArchived}
+                  manufacturers={manufacturers}
+                />
+              </STableFilterButton>
+            </STableSearchContent>
+          </STableSearch>
+          {filterChips.length ? (
+            <STableInfoSection>
+              <STableFilterChipList
+                onClean={() => {
+                  setTableFilters({
+                    ...EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS,
+                  });
+                  setTableSort(null);
+                  setSearchFieldKey((key) => key + 1);
+                }}
+              >
+                {filterChips.map((chip) => (
+                  <STableFilterChip
+                    key={chip.key}
+                    leftLabel={chip.leftLabel}
+                    label={chip.label}
+                    onDelete={() => {
+                      if (chip.key === 'sort') {
+                        setTableSort(null);
+                        return;
+                      }
+                      setTableFilters((current) => ({
+                        ...current,
+                        [chip.key]:
+                          EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS[
+                            chip.key as keyof ChemicalProductTableViewFilters
+                          ],
+                      }));
+                    }}
+                  />
+                ))}
+              </STableFilterChipList>
+            </STableInfoSection>
+          ) : null}
+        </>
       ) : null}
 
       {viewMode === 'products' && isError ? (
@@ -643,128 +575,43 @@ export const ChemicalProductsPageContent = ({
         </Alert>
       ) : null}
 
-      {viewMode === 'products' && isLoading ? (
-        <SSkeleton height={240} />
+      {viewMode === 'products' ? (
+        <ChemicalProductsTable
+          products={products}
+          isLoading={isLoading}
+          hiddenColumns={hiddenColumns}
+          sort={tableSort}
+          onSortField={(field) =>
+            setTableSort((current) => nextChemicalProductTableSort(current, field))
+          }
+          emptyMessage={
+            hasActiveView
+              ? 'Nenhum produto encontrado com os filtros atuais.'
+              : 'Nenhum produto cadastrado neste estabelecimento.'
+          }
+          onOpen={(product) => setSelectedProductId(product.id)}
+          onEdit={async (product) => {
+            try {
+              const detail = await readChemicalProduct({
+                companyId,
+                workspaceId,
+                productId: product.id,
+              });
+              setEditProduct(detail);
+            } catch {
+              window.alert('Não foi possível abrir a edição.');
+            }
+          }}
+          onArchive={confirmArchive}
+          onDelete={confirmHardDelete}
+          onRestore={confirmRestore}
+          archivePending={archive.isPending}
+          restorePending={restore.isPending}
+          deletePending={hardDelete.isPending}
+        />
       ) : null}
 
-      {viewMode === 'products' && !isLoading ? (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Nome comercial</TableCell>
-              <TableCell>Fabricante</TableCell>
-              <TableCell>Tipo</TableCell>
-              <TableCell>Componentes</TableCell>
-              <TableCell>FISPQ vigente</TableCell>
-              <TableCell>Empregados</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id} hover>
-                <TableCell>{product.tradeName}</TableCell>
-                <TableCell>{product.manufacturer || '—'}</TableCell>
-                <TableCell>
-                  {product.isPureSubstance ? 'Puro' : 'Mistura'}
-                </TableCell>
-                <TableCell>
-                  <IngredientsSummaryCell product={product} />
-                </TableCell>
-                <TableCell>
-                  {product.activeFispq
-                    ? `${product.activeFispq.versionLabel || 'sem versão'}${
-                        product.activeFispq.issuedAt
-                          ? ` · ${String(product.activeFispq.issuedAt).slice(0, 10)}`
-                          : ''
-                      }`
-                    : '—'}
-                </TableCell>
-                <TableCell>
-                  {product.activeFispq?.publishedForEmployees ? (
-                    <Chip size="small" color="success" label="Disponível" />
-                  ) : (
-                    <Chip size="small" label="Não" />
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    size="small"
-                    label={product.status}
-                    color={
-                      product.status === 'ACTIVE' ? 'primary' : 'default'
-                    }
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <Button
-                    size="small"
-                    onClick={() => setSelectedProductId(product.id)}
-                  >
-                    Abrir
-                  </Button>
-                  {product.status === 'ACTIVE' ? (
-                    <>
-                      <Button
-                        size="small"
-                        onClick={async () => {
-                          try {
-                            const detail = await readChemicalProduct({
-                              companyId,
-                              workspaceId,
-                              productId: product.id,
-                            });
-                            setEditProduct(detail);
-                          } catch {
-                            window.alert('Não foi possível abrir a edição.');
-                          }
-                        }}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        size="small"
-                        color="warning"
-                        disabled={archive.isPending}
-                        onClick={() => confirmArchive(product)}
-                      >
-                        Arquivar
-                      </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        disabled={hardDelete.isPending}
-                        onClick={() => confirmHardDelete(product)}
-                      >
-                        Excluir
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="small"
-                      color="success"
-                      disabled={restore.isPending}
-                      onClick={() => confirmRestore(product)}
-                    >
-                      Restaurar
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {!products.length ? (
-              <TableRow>
-                <TableCell colSpan={8}>
-                  <SText color="text.secondary">
-                    Nenhum produto cadastrado neste estabelecimento.
-                  </SText>
-                </TableCell>
-              </TableRow>
-            ) : null}
-          </TableBody>
-        </Table>
-      ) : null}
+
 
       <ChemicalProductFormDialog
         open={createOpen || Boolean(editProduct)}

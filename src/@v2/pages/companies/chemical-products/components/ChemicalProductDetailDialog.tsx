@@ -833,8 +833,8 @@ export const ChemicalProductDetailDialog = ({
                                     {formatConcentration(row.current)}
                                     {' · '}
                                     {row.current.riskFactorName
-                                      ? `RF: ${row.current.riskFactorName}`
-                                      : 'Sem RF'}
+                                      ? `FR: ${row.current.riskFactorName}`
+                                      : 'Sem FR'}
                                   </SText>
                                 ) : (
                                   <SText fontSize={13} color="text.secondary">
