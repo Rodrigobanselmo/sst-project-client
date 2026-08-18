@@ -1,13 +1,13 @@
 import { SText } from '@v2/components/atoms/SText/SText';
 import {
-  browseChemicalUseScenarios,
+  browseChemicalUseScenarioBoard,
   searchChemicalRiskFactors,
   updateChemicalIngredientRiskFactor,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type {
   ChemicalRiskOption,
   ChemicalUseScenarioActivityRiskResolution,
-  ChemicalUseScenarioListItem,
+  ChemicalUseScenarioBoardRow,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import {
   Alert,
@@ -30,11 +30,14 @@ import {
 import { useEffect, useState } from 'react';
 
 import {
+  canOpenUseScenarioBoardRow,
   canReviewScenarioActivityCorrelation,
   formatActivityRiskFactorsListCell,
   formatScenarioActivityCorrelationStatus,
+  formatUseScenarioBoardStatusChip,
   getScenarioActivityRiskFactors,
   getScenarioActivityRiskResolutions,
+  isPendingSurveyBoardRow,
 } from './chemical-use-scenario-activity-risk.util';
 
 type Props = {
@@ -45,7 +48,7 @@ type Props = {
 };
 
 type ReviewTarget = {
-  scenario: ChemicalUseScenarioListItem;
+  scenario: ChemicalUseScenarioBoardRow;
   resolution: ChemicalUseScenarioActivityRiskResolution;
 };
 
@@ -59,11 +62,11 @@ export const ChemicalUseScenariosPanel = ({
   chemicalProductId,
   refreshKey = 0,
 }: Props) => {
-  const [rows, setRows] = useState<ChemicalUseScenarioListItem[]>([]);
+  const [rows, setRows] = useState<ChemicalUseScenarioBoardRow[]>([]);
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<ChemicalUseScenarioListItem | null>(
+  const [selected, setSelected] = useState<ChemicalUseScenarioBoardRow | null>(
     null,
   );
   const [listRefresh, setListRefresh] = useState(0);
@@ -81,7 +84,7 @@ export const ChemicalUseScenariosPanel = ({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    browseChemicalUseScenarios({
+    browseChemicalUseScenarioBoard({
       companyId,
       workspaceId,
       chemicalProductId,
@@ -149,9 +152,11 @@ export const ChemicalUseScenariosPanel = ({
     : [];
 
   const openReview = (
-    scenario: ChemicalUseScenarioListItem,
+    scenario: ChemicalUseScenarioBoardRow,
     resolution: ChemicalUseScenarioActivityRiskResolution,
   ) => {
+    if (isPendingSurveyBoardRow(scenario)) return;
+    if (!canOpenUseScenarioBoardRow(scenario)) return;
     if (!canReviewScenarioActivityCorrelation(resolution)) return;
     setReviewError(null);
     setSelectedRisk(
@@ -182,6 +187,8 @@ export const ChemicalUseScenariosPanel = ({
     if (!reviewTarget || !selectedRisk || !reviewTarget.resolution.ingredientId) {
       return;
     }
+    if (isPendingSurveyBoardRow(reviewTarget.scenario)) return;
+    if (!canOpenUseScenarioBoardRow(reviewTarget.scenario)) return;
     const previousId =
       reviewTarget.resolution.status === 'RESOLVED'
         ? reviewTarget.resolution.riskFactor.id
@@ -238,8 +245,8 @@ export const ChemicalUseScenariosPanel = ({
       {loading ? <SText fontSize={13}>Carregando…</SText> : null}
       {!loading && !rows.length ? (
         <Alert severity="info">
-          Nenhum cenário de uso cadastrado. Use “Importar levantamento
-          (SURVEY)” ou crie via API após a migration.
+          Nenhum produto ACTIVE neste estabelecimento para exibir. Cadastre um
+          produto na aba Produtos ou restaure um arquivado.
         </Alert>
       ) : null}
       {rows.length ? (
@@ -261,6 +268,7 @@ export const ChemicalUseScenariosPanel = ({
           <TableBody>
             {rows.map((row) => {
               const factors = getScenarioActivityRiskFactors(row);
+              const pending = isPendingSurveyBoardRow(row);
               return (
                 <TableRow key={row.id}>
                   <TableCell>{row.product.tradeName}</TableCell>
@@ -288,12 +296,19 @@ export const ChemicalUseScenariosPanel = ({
                     {(row.sourceRows || []).join(', ') || '—'}
                   </TableCell>
                   <TableCell>
-                    <Chip size="small" label={row.surveyStatus} />
+                    <Chip
+                      size="small"
+                      label={formatUseScenarioBoardStatusChip(row)}
+                      color={pending ? 'warning' : 'default'}
+                      variant={pending ? 'outlined' : 'filled'}
+                    />
                   </TableCell>
                   <TableCell>
-                    <Button size="small" onClick={() => setSelected(row)}>
-                      Abrir
-                    </Button>
+                    {canOpenUseScenarioBoardRow(row) ? (
+                      <Button size="small" onClick={() => setSelected(row)}>
+                        Abrir
+                      </Button>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               );
@@ -342,7 +357,8 @@ export const ChemicalUseScenariosPanel = ({
               <SText fontWeight={600}>
                 Fator(es) de risco desta atividade
               </SText>
-              {selected.activityRiskOrigin === 'PRODUCT_COMPOSITION' ? (
+              {selected.activityRiskOrigin === 'PRODUCT_COMPOSITION' ||
+              isPendingSurveyBoardRow(selected) ? (
                 selectedFactors.length ? (
                   selectedFactors.map((factor) => (
                     <SText key={factor.id} fontSize={13}>
@@ -384,7 +400,8 @@ export const ChemicalUseScenariosPanel = ({
                         {' → '}
                         {formatScenarioActivityCorrelationStatus(item)}
                       </SText>
-                      {canReview ? (
+                      {canReview &&
+                      !isPendingSurveyBoardRow(selected) ? (
                         <Button
                           size="small"
                           variant={isPrimaryAction ? 'contained' : 'text'}

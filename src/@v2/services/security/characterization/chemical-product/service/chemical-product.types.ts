@@ -824,6 +824,12 @@ export type ChemicalSurveyStatus =
   | 'LEVANTAMENTO_CONCLUIDO'
   | 'AGUARDANDO_ANALISE_TECNICA';
 
+export type ChemicalUseScenarioBoardKind = 'SCENARIO' | 'PENDING_SURVEY';
+
+export type ChemicalUseScenarioPresentationStatus =
+  | ChemicalSurveyStatus
+  | 'PENDENTE_DE_LEVANTAMENTO';
+
 export type ChemicalSurveyPreviewSourceRawLine = {
   sourceRow: number;
   component: string | null;
@@ -915,6 +921,15 @@ export type ChemicalUseScenarioListItem = {
       }>;
     } | null;
   };
+};
+
+export type ChemicalUseScenarioBoardRow = Omit<
+  ChemicalUseScenarioListItem,
+  'surveyStatus'
+> & {
+  kind: ChemicalUseScenarioBoardKind;
+  surveyStatus: ChemicalSurveyStatus | null;
+  presentationStatus: ChemicalUseScenarioPresentationStatus;
 };
 
 export type ChemicalSurveyProductKeyMapEntry = {

@@ -63,6 +63,8 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-products/excel/survey/import/commit',
   USE_SCENARIOS:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios',
+  USE_SCENARIO_BOARD:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/board',
   USE_SCENARIO_BY_ID:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/:scenarioId',
   USE_SCENARIOS_BY_PRODUCT:

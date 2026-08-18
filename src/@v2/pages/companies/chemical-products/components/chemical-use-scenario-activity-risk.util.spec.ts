@@ -9,9 +9,13 @@ import type {
 
 import { UNINDIVIDUALIZED_COMPOSITION_LABEL } from './chemical-composition-disclosure.util';
 import {
+  canOpenUseScenarioBoardRow,
   canReviewScenarioActivityCorrelation,
   formatActivityRiskFactorsListCell,
   formatScenarioActivityCorrelationStatus,
+  formatUseScenarioBoardStatusChip,
+  isPendingSurveyBoardRow,
+  PENDING_SURVEY_STATUS_LABEL,
 } from './chemical-use-scenario-activity-risk.util';
 
 function assert(cond: boolean, msg: string) {
@@ -196,6 +200,69 @@ assert(
     activityRiskOrigin: 'TECHNICAL_PROVENANCE',
   }) === 'Não correlacionado',
   '17) TECHNICAL vazio permanece Não correlacionado',
+);
+
+const pendingDeclared = {
+  ...surveyRow('DECLARED'),
+  kind: 'PENDING_SURVEY' as const,
+  id: 'pending:p1',
+  surveyStatus: null,
+  presentationStatus: 'PENDENTE_DE_LEVANTAMENTO' as const,
+  activityName: null,
+  sectorSnapshot: null,
+  frequencyCount: null,
+  durationMinutes: null,
+  quantity: null,
+  sourceRows: [],
+  activityRiskFactors: [rfNaoh],
+};
+
+const pendingUnindividualized = {
+  ...surveyRow('UNINDIVIDUALIZED'),
+  kind: 'PENDING_SURVEY' as const,
+  id: 'pending:p-u',
+  surveyStatus: null,
+  presentationStatus: 'PENDENTE_DE_LEVANTAMENTO' as const,
+  activityName: null,
+  sectorSnapshot: null,
+  sourceRows: [],
+  activityRiskFactors: [],
+};
+
+assert(
+  formatUseScenarioBoardStatusChip(pendingDeclared) ===
+    PENDING_SURVEY_STATUS_LABEL,
+  'board) chip Pendente de levantamento',
+);
+assert(!canOpenUseScenarioBoardRow(pendingDeclared), 'board) virtual não abre cenário');
+assert(
+  canOpenUseScenarioBoardRow({
+    kind: 'SCENARIO',
+    id: 'real-uuid',
+  }),
+  'board) linha real continua abrindo',
+);
+assert(
+  isPendingSurveyBoardRow({ id: 'pending:p1' }),
+  'board) id sintético não é tratado como UUID',
+);
+assert(
+  !isPendingSurveyBoardRow({ kind: 'SCENARIO', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }),
+  'board) UUID real não é pending',
+);
+assert(
+  formatActivityRiskFactorsListCell([], pendingUnindividualized) ===
+    UNINDIVIDUALIZED_COMPOSITION_LABEL,
+  'board) UNINDIVIDUALIZED virtual mantém o texto',
+);
+assert(
+  formatActivityRiskFactorsListCell(pendingDeclared.activityRiskFactors) ===
+    'Hidróxido de sódio',
+  'board) pending DECLARED mostra RF vinculado',
+);
+assert(
+  !canReviewScenarioActivityCorrelation(noMatch),
+  'board) virtual não usa revisão TECHNICAL',
 );
 
 console.log('chemical-use-scenario-activity-risk.util.spec.ts: OK');

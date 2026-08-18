@@ -1,19 +1,54 @@
 import type {
   ChemicalUseScenarioActivityRiskFactor,
   ChemicalUseScenarioActivityRiskResolution,
+  ChemicalUseScenarioBoardRow,
   ChemicalUseScenarioListItem,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 
 import { UNINDIVIDUALIZED_COMPOSITION_LABEL } from './chemical-composition-disclosure.util';
 
+export const PENDING_SURVEY_STATUS_LABEL = 'Pendente de levantamento';
+
+type ActivityRiskRow = Pick<
+  ChemicalUseScenarioListItem,
+  'activityRiskFactors' | 'activityRiskResolutions' | 'activityRiskOrigin'
+> & {
+  kind?: ChemicalUseScenarioBoardRow['kind'];
+  id?: string;
+  product?: ChemicalUseScenarioListItem['product'];
+};
+
+export function isPendingSurveyBoardRow(
+  row: Pick<Partial<ChemicalUseScenarioBoardRow>, 'kind' | 'id'>,
+): boolean {
+  if (row.kind === 'PENDING_SURVEY') return true;
+  return typeof row.id === 'string' && row.id.startsWith('pending:');
+}
+
+export function canOpenUseScenarioBoardRow(
+  row: Pick<Partial<ChemicalUseScenarioBoardRow>, 'kind' | 'id'>,
+): boolean {
+  return !isPendingSurveyBoardRow(row);
+}
+
+export function formatUseScenarioBoardStatusChip(
+  row: Pick<
+    Partial<ChemicalUseScenarioBoardRow>,
+    'kind' | 'id' | 'surveyStatus' | 'presentationStatus'
+  >,
+): string {
+  if (isPendingSurveyBoardRow(row)) return PENDING_SURVEY_STATUS_LABEL;
+  return row.surveyStatus || row.presentationStatus || '—';
+}
+
 export function getScenarioActivityRiskResolutions(
-  row: ChemicalUseScenarioListItem,
+  row: ActivityRiskRow,
 ): ChemicalUseScenarioActivityRiskResolution[] {
   return row.activityRiskResolutions || [];
 }
 
 export function getScenarioActivityRiskFactors(
-  row: ChemicalUseScenarioListItem,
+  row: ActivityRiskRow,
 ): ChemicalUseScenarioActivityRiskFactor[] {
   if (row.activityRiskFactors?.length) return row.activityRiskFactors;
   const byId = new Map<string, ChemicalUseScenarioActivityRiskFactor>();
@@ -27,7 +62,7 @@ export function getScenarioActivityRiskFactors(
 }
 
 export function isProductCompositionUnindividualized(
-  row: ChemicalUseScenarioListItem,
+  row: ActivityRiskRow,
 ): boolean {
   return (
     row.activityRiskOrigin === 'PRODUCT_COMPOSITION' &&
@@ -37,7 +72,7 @@ export function isProductCompositionUnindividualized(
 
 export function formatActivityRiskFactorsListCell(
   factors: ChemicalUseScenarioActivityRiskFactor[],
-  row?: ChemicalUseScenarioListItem,
+  row?: ActivityRiskRow,
 ): string {
   if (!factors.length) {
     if (row && isProductCompositionUnindividualized(row)) {

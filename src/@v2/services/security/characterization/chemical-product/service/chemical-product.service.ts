@@ -854,6 +854,32 @@ export async function browseChemicalUseScenarios(
   return response.data;
 }
 
+export async function browseChemicalUseScenarioBoard(
+  params: WorkspaceParams & {
+    chemicalProductId?: string;
+    search?: string;
+  },
+) {
+  const response = await api.get<
+    import('./chemical-product.types').ChemicalUseScenarioBoardRow[]
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIO_BOARD,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    {
+      params: {
+        chemicalProductId: params.chemicalProductId,
+        search: params.search || undefined,
+      },
+    },
+  );
+  return response.data;
+}
+
 export async function browseChemicalUseScenariosByProduct(
   params: WorkspaceParams & { productId: string },
 ) {
