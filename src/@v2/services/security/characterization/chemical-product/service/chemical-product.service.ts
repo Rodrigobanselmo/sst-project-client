@@ -908,6 +908,23 @@ export async function readChemicalUseScenario(
   return response.data;
 }
 
+export async function createChemicalUseScenario(
+  params: WorkspaceParams &
+    import('./chemical-product.types').CreateChemicalUseScenarioPayload,
+) {
+  const { companyId, workspaceId, ...body } = params;
+  const response = await api.post<
+    import('./chemical-product.types').ChemicalUseScenarioListItem
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIOS,
+      pathParams: { companyId, workspaceId },
+    }),
+    body,
+  );
+  return response.data;
+}
+
 export async function previewChemicalSurveyImport(
   params: WorkspaceParams & {
     file: File;

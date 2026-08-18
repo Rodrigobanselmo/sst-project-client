@@ -60,6 +60,7 @@ import {
   type UseScenarioBoardViewSort,
   type UseScenarioBoardViewSortField,
 } from './chemical-use-scenario-board-view.util';
+import { ChemicalUseScenarioFormDialog } from './ChemicalUseScenarioFormDialog';
 import { exportUseScenarioBoardPdfInBrowser } from './exportUseScenarioBoardPdfInBrowser';
 
 type Props = {
@@ -138,6 +139,7 @@ export const ChemicalUseScenariosPanel = ({
   );
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewSaving, setReviewSaving] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -346,13 +348,28 @@ export const ChemicalUseScenariosPanel = ({
         mb={1.5}
       >
         <SText fontWeight={700}>Cenários de uso</SText>
-        <TextField
-          size="small"
-          label="Buscar"
-          value={filters.search}
-          onChange={(e) => patchFilter('search', e.target.value)}
-          sx={{ minWidth: 200, maxWidth: 280, flex: '1 1 200px' }}
-        />
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          flexWrap="wrap"
+          useFlexGap
+        >
+          <TextField
+            size="small"
+            label="Buscar"
+            value={filters.search}
+            onChange={(e) => patchFilter('search', e.target.value)}
+            sx={{ minWidth: 200, maxWidth: 280, flex: '1 1 200px' }}
+          />
+          <Button
+            variant="contained"
+            onClick={() => setCreateOpen(true)}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Novo cenário
+          </Button>
+        </Stack>
       </Stack>
       {rows.length ? (
         <Stack
@@ -543,8 +560,18 @@ export const ChemicalUseScenariosPanel = ({
                     <Chip
                       size="small"
                       label={formatUseScenarioBoardStatusChip(row)}
-                      color={pending ? 'warning' : 'default'}
-                      variant={pending ? 'outlined' : 'filled'}
+                      color={pending ? 'error' : 'default'}
+                      variant="filled"
+                      sx={
+                        pending
+                          ? {
+                              backgroundColor: 'error.main',
+                              color: 'common.white',
+                              border: '1px solid',
+                              borderColor: 'error.main',
+                            }
+                          : undefined
+                      }
                     />
                   </TableCell>
                   <TableCell>
@@ -749,6 +776,18 @@ export const ChemicalUseScenariosPanel = ({
           </Button>
         </DialogActions>
       </Dialog>
+      <ChemicalUseScenarioFormDialog
+        open={createOpen}
+        companyId={companyId}
+        workspaceId={workspaceId}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => {
+          enqueueSnackbar('Cenário de uso criado com sucesso.', {
+            variant: 'success',
+          });
+          setListRefresh((n) => n + 1);
+        }}
+      />
       <SPdfLoadingModal open={isExportingPdf} message={pdfLoadingMessage} />
     </Box>
   );

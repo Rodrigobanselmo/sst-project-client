@@ -886,6 +886,22 @@ export type ChemicalSurveyStatus =
   | 'LEVANTAMENTO_CONCLUIDO'
   | 'AGUARDANDO_ANALISE_TECNICA';
 
+export type CreateChemicalUseScenarioPayload = {
+  chemicalProductId: string;
+  surveyStatus: 'LEVANTAMENTO_CONCLUIDO';
+  activityName: string;
+  sectorSnapshot: string | null;
+  exposureGroupSnapshot: string | null;
+  exposedRolesSnapshot: string | null;
+  frequencyCount: number | null;
+  frequencyPeriod: string | null;
+  durationMinutes: number | null;
+  quantity: string | null;
+  quantityUnit: string | null;
+  peakContactMoment: string | null;
+  controlMeasures: string | null;
+};
+
 export type ChemicalUseScenarioBoardKind = 'SCENARIO' | 'PENDING_SURVEY';
 
 export type ChemicalUseScenarioPresentationStatus =
