@@ -133,6 +133,22 @@ export const STBreakPage = styled(Box)`
   width: 100%;
 `;
 
+export const STSectionBreak = styled(Box)`
+  display: flex;
+  font-weight: bold;
+  align-items: center;
+  border: 1px dashed;
+  border-color: ${(props) => props.theme.palette.info.dark};
+  background-color: ${(props) => props.theme.palette.info.light};
+  color: ${(props) => props.theme.palette.info.contrastText || props.theme.palette.info.dark};
+  padding: 3px 20px;
+  border-radius: 4px;
+  margin-top: 20px;
+  margin-bottom: 80px;
+  font-size: 14px;
+  width: 100%;
+`;
+
 export const STOther = styled(Box)`
   display: flex;
   font-weight: bold;

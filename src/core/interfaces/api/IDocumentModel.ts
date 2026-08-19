@@ -61,6 +61,8 @@ export type IDocumentModelElement = {
   lineHeightBlock?: number[];
   inlineStyleRangeBlock?: IInlineStyleRange[][];
   entityRangeBlock?: IEntityRange[][];
+  /** Only used by SECTION_BREAK. Applies to the following content. */
+  orientation?: DocModelPageOrientation;
 } & IBase;
 
 export type IDocumentModelSection = {

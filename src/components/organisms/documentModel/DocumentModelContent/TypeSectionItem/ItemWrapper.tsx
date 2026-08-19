@@ -27,6 +27,7 @@ import { SSaveIcon } from 'assets/icons/SSaveIcon';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import {
+  DocModelPageOrientation,
   IDocumentModelFull,
   IDocVariablesAllType,
   IEntityRange,
@@ -598,6 +599,26 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                   <ElementTypeModelSelect
                     elements={elements}
                     selected={item.type}
+                    selectedOptionValue={
+                      item.type ===
+                      DocumentSectionChildrenTypeEnum.SECTION_BREAK
+                        ? `${DocumentSectionChildrenTypeEnum.SECTION_BREAK}:${
+                            item.orientation ===
+                            DocModelPageOrientation.LANDSCAPE
+                              ? DocModelPageOrientation.LANDSCAPE
+                              : DocModelPageOrientation.PORTRAIT
+                          }`
+                        : item.type
+                    }
+                    text={
+                      item.type ===
+                      DocumentSectionChildrenTypeEnum.SECTION_BREAK
+                        ? item.orientation ===
+                          DocModelPageOrientation.LANDSCAPE
+                          ? 'Quebra de Seção — Paisagem'
+                          : 'Quebra de Seção — Retrato'
+                        : undefined
+                    }
                     minWidth={80}
                     borderActive="info"
                     active
@@ -605,7 +626,18 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     marginRight="5px"
                     handleSelect={(value) =>
                       value.type &&
-                      onEditChild({ id: item.id, type: value.type })
+                      onEditChild({
+                        id: item.id,
+                        type: value.type,
+                        orientation:
+                          value.type ===
+                          DocumentSectionChildrenTypeEnum.SECTION_BREAK
+                            ? value.orientation ===
+                              DocModelPageOrientation.LANDSCAPE
+                              ? DocModelPageOrientation.LANDSCAPE
+                              : DocModelPageOrientation.PORTRAIT
+                            : undefined,
+                      })
                     }
                   />
                 )}

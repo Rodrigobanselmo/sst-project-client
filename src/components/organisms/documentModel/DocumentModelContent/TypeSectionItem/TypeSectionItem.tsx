@@ -9,6 +9,7 @@ import {
 
 import { styled } from '@mui/material';
 import {
+  DocModelPageOrientation,
   IDocumentModelFull,
   IDocVariablesAllType,
 } from 'core/interfaces/api/IDocumentModel';
@@ -32,6 +33,7 @@ import {
   STOther,
   STParagraph,
   STSection,
+  STSectionBreak,
 } from './styles';
 
 type Props = {
@@ -347,6 +349,13 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
       ),
       [DocumentSectionChildrenTypeEnum.BREAK]: (item: IElement) => (
         <STBreakPage>Quebra de Página</STBreakPage>
+      ),
+      [DocumentSectionChildrenTypeEnum.SECTION_BREAK]: (item: IElement) => (
+        <STSectionBreak>
+          {item.orientation === DocModelPageOrientation.LANDSCAPE
+            ? 'Quebra de Seção — Paisagem'
+            : 'Quebra de Seção — Retrato'}
+        </STSectionBreak>
       ),
       [DocumentSectionChildrenTypeEnum.IMAGE]: (item: IElement) => (
         <StyledImage
