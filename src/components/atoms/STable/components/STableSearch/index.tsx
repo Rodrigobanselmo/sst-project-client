@@ -1,56 +1,31 @@
 import React, { FC } from 'react';
 
-import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import { Box, Icon } from '@mui/material';
-import { SButton } from 'components/atoms/SButton';
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
-import STooltip from 'components/atoms/STooltip';
+import { STableAddButton as V2STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 
 import SReloadIcon from 'assets/icons/SReloadIcon';
-import { SUploadIcon } from 'assets/icons/SUploadIcon';
 
 import { STableButton } from '../STableButton';
 import { STableExport } from '../STableExport';
 import { STableFilterIcon } from '../STableFilter/STableFilterIcon/STableFilterIcon';
-import { STableButtonProps, STableSearchProps } from './types';
+import { STableSearchProps } from './types';
 
 export const STableAddButton: FC<{ children?: any } & STableSearchProps> = ({
   onAddClick,
   addText,
-  sm,
 }) => {
+  if (!onAddClick) return null;
+
+  const text =
+    typeof addText === 'string' ? addText.trim() || 'Adicionar' : 'Adicionar';
+
   return (
-    <STooltip title={addText ? '' : 'Adicionar'}>
-      <Box>
-        <SButton
-          onClick={onAddClick}
-          color="success"
-          sx={{
-            height: sm ? 30 : [30, 30, 38],
-            minWidth: sm ? 30 : [30, 30, 38],
-            borderRadius: 1,
-            m: 0,
-            ml: 2,
-            px: 4,
-          }}
-        >
-          <Icon
-            component={AddIcon}
-            sx={{
-              fontSize: [
-                sm
-                  ? ['0.9rem', '0.9rem', '1rem']
-                  : ['1.1rem', '1.1rem', '1.4rem'],
-              ],
-              color: 'common.white',
-            }}
-          />
-          {addText && <Box mr={3}>{addText}</Box>}
-        </SButton>
-      </Box>
-    </STooltip>
+    <Box sx={{ ml: 2 }}>
+      <V2STableAddButton onClick={onAddClick} text={text} />
+    </Box>
   );
 };
 

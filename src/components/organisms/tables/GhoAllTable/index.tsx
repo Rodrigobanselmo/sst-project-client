@@ -24,6 +24,7 @@ import {
   type QueryGHOListFilters,
   useQueryGHOAll,
 } from 'core/services/hooks/queries/useQueryGHOAll';
+import { filterTechnicalGses } from './is-technical-gse.util';
 
 export const GhoAllTable: FC<
   { children?: any } & BoxProps & {
@@ -34,6 +35,8 @@ export const GhoAllTable: FC<
       selectedData?: IGho[];
       /** Ex.: importação de riscos — lista só origens com fatores ativos no PGR/SST informado. */
       originListQuery?: QueryGHOListFilters;
+      /** Importar GSE: oculta HG de caracterização, ambiente e hierarquia. */
+      technicalGseOnly?: boolean;
     }
 > = ({
   onSelectData,
@@ -41,6 +44,7 @@ export const GhoAllTable: FC<
   companyId,
   workspaceIdFilter,
   originListQuery,
+  technicalGseOnly = false,
 }) => {
   const { data, isLoading } = useQueryGHOAll(companyId, originListQuery);
   // const { onOpenModal } = useModal();
@@ -96,13 +100,15 @@ export const GhoAllTable: FC<
       };
     };
 
+    const scoped = technicalGseOnly ? filterTechnicalGses(data) : data;
+
     const filtered = !workspaceIdFilter
-      ? data
-      : data.filter((gho) => {
+      ? scoped
+      : scoped.filter((gho) => {
           const ids = gho.workspaceIds?.map(String) ?? [];
           const fromNested = (gho.workspaces || []).map((w) => String(w.id));
           const merged = [...new Set([...ids, ...fromNested])];
-          if (!merged.length) return true;
+          if (!merged.length) return !technicalGseOnly;
           return merged.includes(String(workspaceIdFilter));
         });
 
@@ -120,7 +126,7 @@ export const GhoAllTable: FC<
       //   sortString(a.order ? a : 10000, b.order ? b : 10000, 'order'),
       // ),
     ];
-  }, [data, workspaceIdFilter]);
+  }, [data, technicalGseOnly, workspaceIdFilter]);
 
   const { handleSearchChange, results } = useTableSearch({
     data: dataResult,

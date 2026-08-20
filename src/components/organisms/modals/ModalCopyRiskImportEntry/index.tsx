@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 
 import {
   Autocomplete,
@@ -13,6 +13,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -21,7 +22,10 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { queryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 import { useQuery } from 'react-query';
+
+import { stringifyCompanySearchOption } from './company-search-option.util';
 
 export const initialCopyRiskImportEntryState = {
   onContinue: (_ctx: { sourceCompanyId: string; workspaceId?: string }) => {},
@@ -42,7 +46,8 @@ const workspaceFilterOptions = createFilterOptions<IWorkspace>({
 });
 
 const companyFilterOptions = createFilterOptions<ICompany>({
-  stringify: (option) => option.name || option.id,
+  ignoreCase: true,
+  stringify: stringifyCompanySearchOption,
 });
 
 /** Popper do Autocomplete no body: z-index acima do SModal deste fluxo (5000). */
@@ -57,6 +62,13 @@ export const ModalCopyRiskImportEntry: FC = () => {
   const [selectData, setSelectData] = useState(initialCopyRiskImportEntryState);
   const [sourceCompanyId, setSourceCompanyId] = useState('');
   const [workspaceId, setWorkspaceId] = useState<string | undefined>(undefined);
+  const [companyInputValue, setCompanyInputValue] = useState('');
+  const [companySearch, setCompanySearch] = useState('');
+  const [companyInputDirty, setCompanyInputDirty] = useState(false);
+
+  const handleCompanySearchChange = useDebouncedCallback((value: string) => {
+    setCompanySearch(value.trim());
+  }, 300);
 
   useEffect(() => {
     const fromTop = getModalData(
@@ -79,7 +91,14 @@ export const ModalCopyRiskImportEntry: FC = () => {
     }
   }, [currentModal, findModalData, getModalData]);
 
-  const { companies } = useQueryCompanies(1, { findAll: true }, 300);
+  const { companies, isLoading: companiesLoading } = useQueryCompanies(
+    1,
+    {
+      findAll: true,
+      ...(companySearch ? { search: companySearch } : {}),
+    },
+    companySearch ? 20 : 300,
+  );
 
   const { data: sourceCompany } = useQuery(
     [QueryEnum.COMPANY, 'copy-risk-import', sourceCompanyId],
@@ -91,6 +110,31 @@ export const ModalCopyRiskImportEntry: FC = () => {
   );
 
   const workspaces = (sourceCompany as ICompany | undefined)?.workspace || [];
+
+  const selectedCompany = useMemo(() => {
+    return (
+      companies.find((company) => String(company.id) === sourceCompanyId) ||
+      ((sourceCompany as ICompany | undefined) ?? null)
+    );
+  }, [companies, sourceCompany, sourceCompanyId]);
+
+  const companyOptions = useMemo(() => {
+    if (!selectedCompany?.id) return companies;
+    if (companies.some((company) => String(company.id) === String(selectedCompany.id))) {
+      return companies;
+    }
+    return [selectedCompany, ...companies];
+  }, [companies, selectedCompany]);
+
+  useEffect(() => {
+    if (companyInputDirty) return;
+    if (!selectedCompany) return;
+    const label =
+      getCompanyName(selectedCompany) ||
+      selectedCompany.name ||
+      selectedCompany.id;
+    setCompanyInputValue(label);
+  }, [companyInputDirty, selectedCompany]);
 
   const sortedWorkspaces = useMemo(
     () =>
@@ -147,10 +191,18 @@ export const ModalCopyRiskImportEntry: FC = () => {
     workspaceId,
   ]);
 
+  const resetCompanySearchState = () => {
+    setCompanyInputValue('');
+    setCompanySearch('');
+    setCompanyInputDirty(false);
+    handleCompanySearchChange.cancel();
+  };
+
   const onCloseNoSelect = () => {
     setSelectData(initialCopyRiskImportEntryState);
     setSourceCompanyId('');
     setWorkspaceId(undefined);
+    resetCompanySearchState();
     onCloseModal(modalName);
   };
 
@@ -168,6 +220,7 @@ export const ModalCopyRiskImportEntry: FC = () => {
     setSelectData(initialCopyRiskImportEntryState);
     setSourceCompanyId('');
     setWorkspaceId(undefined);
+    resetCompanySearchState();
     onCloseModal(modalName);
 
     onContinue(context);
@@ -200,16 +253,31 @@ export const ModalCopyRiskImportEntry: FC = () => {
           <Autocomplete<ICompany, false, false, false>
             fullWidth
             size="small"
-            options={companies}
+            options={companyOptions}
+            loading={companiesLoading}
             filterOptions={companyFilterOptions}
-            getOptionLabel={(company) => company.name || company.id}
-            value={
-              companies.find((company) => String(company.id) === sourceCompanyId) ||
-              ((sourceCompany as ICompany | undefined) ?? null)
+            getOptionLabel={(company) =>
+              getCompanyName(company) || company.name || company.id
             }
+            value={selectedCompany}
+            inputValue={companyInputValue}
+            onInputChange={(_, value, reason) => {
+              if (reason === 'reset') return;
+              setCompanyInputDirty(true);
+              setCompanyInputValue(value);
+              handleCompanySearchChange(value);
+            }}
             onChange={(_, option) => {
               setSourceCompanyId(option ? String(option.id) : '');
               setWorkspaceId(undefined);
+              setCompanyInputDirty(false);
+              setCompanySearch('');
+              handleCompanySearchChange.cancel();
+              setCompanyInputValue(
+                option
+                  ? getCompanyName(option) || option.name || option.id
+                  : '',
+              );
             }}
             isOptionEqualToValue={(a, b) => String(a.id) === String(b.id)}
             componentsProps={{

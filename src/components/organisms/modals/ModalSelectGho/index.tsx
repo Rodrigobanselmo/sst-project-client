@@ -32,6 +32,8 @@ export const initialGhoSelectState = {
   workspaceIdFilter: undefined as string | undefined,
   /** PGR/SST de origem: usado para listar apenas homogêneos com fatores de risco ativos nesse sistema. */
   riskFactorGroupDataId: undefined as string | undefined,
+  /** Importar GSE: lista só GSE técnico (type = null). */
+  technicalGseOnly: false as boolean,
 };
 
 export const ModalSelectGho: FC = () => {
@@ -127,6 +129,11 @@ export const ModalSelectGho: FC = () => {
                   stackPayload.workspaceIdFilter ||
                   selectData.workspaceIdFilter ||
                   undefined
+                }
+                technicalGseOnly={
+                  !!(
+                    stackPayload.technicalGseOnly || selectData.technicalGseOnly
+                  )
                 }
                 originListQuery={
                   riskFactorGroupDataIdForList

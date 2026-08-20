@@ -59,6 +59,8 @@ export enum ModalEnum {
   HOMOGENEOUS_SELECT = 'HOMOGENEOUS_SELECT',
   /** Origem (empresa/estabelecimento) antes de escolher gestão SST e grupo na importação de riscos. */
   COPY_RISK_IMPORT_ENTRY = 'COPY_RISK_IMPORT_ENTRY',
+  /** Resumo e nome do GSE no destino após escolher a origem. */
+  IMPORT_GSE_CONFIRM = 'IMPORT_GSE_CONFIRM',
   /** Seleção dos riscos a importar após escolher o grupo de origem. */
   COPY_RISK_SELECT = 'COPY_RISK_SELECT',
   DOCUMENT_DOWNLOAD = 'DOCUMENT_DOWNLOAD',

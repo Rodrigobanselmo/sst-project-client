@@ -12,8 +12,12 @@ import {
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
+import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
+import { STableButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/STableButton';
+import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
+import { STableSearch as STableSearchV2 } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import {
   GhoAddLayout,
@@ -36,6 +40,8 @@ import {
   useQueryGhos,
 } from 'core/services/hooks/queries/useQueryGhos/useQueryGhos';
 import { resolveGseTableOpenStep } from 'components/organisms/modals/ModalAddGHO/gse-wizard-steps';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useGseImportFlow } from './useGseImportFlow';
 
 const GHO_TABLE_PAGE_SIZES = [15, 25, 50, 100] as const;
 const DEFAULT_GHO_TABLE_PAGE_SIZE = 15;
@@ -85,6 +91,12 @@ export const GhosTable: FC<
     },
     [setPage],
   );
+
+  const { companyId: destCompanyId } = useGetCompanyId();
+  const { handleImportGse } = useGseImportFlow({
+    destCompanyId,
+    destWorkspaceId: workspaceId,
+  });
 
   const { onStackOpenModal } = useModal();
 
@@ -144,10 +156,23 @@ export const GhosTable: FC<
       {!isSelect && (
         <STableTitle icon={SGhoIcon}>Grupo Similar de Exposição</STableTitle>
       )}
-      <STableSearch
-        onAddClick={onAddGHO}
-        onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      <STableSearchV2 onSearch={handleSearchChange} search={search}>
+        {!isSelect && (
+          <STableSearchContent>
+            <>
+              <STableAddButton onClick={onAddGHO} />
+              <STableButton
+                onClick={handleImportGse}
+                text="Importar GSE"
+                tooltip="Importe um GSE existente, copiando nome, descrição e riscos diretos para este estabelecimento."
+                icon={<ContentCopyOutlinedIcon sx={{ fontSize: 16 }} />}
+                color="success"
+                disabled={!workspaceId}
+              />
+            </>
+          </STableSearchContent>
+        )}
+      </STableSearchV2>
     </>
   );
   const tableHeader = (
