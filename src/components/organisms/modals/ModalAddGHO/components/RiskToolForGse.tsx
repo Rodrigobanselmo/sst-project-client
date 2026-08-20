@@ -14,6 +14,7 @@ import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IGho } from 'core/interfaces/api/IGho';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { GSE_WIZARD_STEP_QUERY_KEY } from 'components/organisms/modals/ModalAddGHO/gse-wizard-steps';
 import {
   CHARACTERIZATION_INLINE_RISK_TOOL_HEIGHT,
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
@@ -78,27 +79,24 @@ export const RiskToolForGse = ({
     );
 
     const { query, pathname } = router;
-    if (
-      query.ghoId === ghoId &&
-      query.viewData === ViewsDataEnum.GSE
-    ) {
-      didSyncUrlRef.current = true;
-      return;
-    }
+    const alreadySynced =
+      query.ghoId === ghoId && query.viewData === ViewsDataEnum.GSE;
 
     didSyncUrlRef.current = true;
-    void router.replace(
-      {
-        pathname,
-        query: {
-          ...query,
-          viewData: ViewsDataEnum.GSE,
-          ghoId,
+    if (!alreadySynced) {
+      void router.replace(
+        {
+          pathname,
+          query: {
+            ...query,
+            viewData: ViewsDataEnum.GSE,
+            ghoId,
+          },
         },
-      },
-      undefined,
-      { shallow: true },
-    );
+        undefined,
+        { shallow: true },
+      );
+    }
 
     return () => {
       if (!didSyncUrlRef.current) return;
@@ -113,6 +111,7 @@ export const RiskToolForGse = ({
       const nextQuery = { ...currentQuery };
       delete nextQuery.ghoId;
       delete nextQuery.viewData;
+      delete nextQuery[GSE_WIZARD_STEP_QUERY_KEY];
 
       void router.replace(
         { pathname: currentPathname, query: nextQuery },
@@ -176,6 +175,7 @@ export const RiskToolForGse = ({
           hideViewSwitcher
           hideGhoPicker
           disableEditGho
+          showEffectiveRisks
         />
       </Box>
     </Box>

@@ -48,6 +48,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   isDeleteLoading,
   isLoading,
   planWorkspaceId,
+  readOnly = false,
   ...props
 }) => {
   const { columns } = useRowColumns();
@@ -67,6 +68,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   );
 
   const onEditDate = () => {
+    if (readOnly) return;
     if (riskData?.homogeneousGroupId && riskData?.riskFactorGroupDataId)
       selectStartEndDate(
         (d) =>
@@ -98,6 +100,9 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
           border: 'none',
           borderRadius: 0,
           backgroundColor: 'background.paper',
+          ...(readOnly
+            ? { pointerEvents: 'none', userSelect: 'text' }
+            : {}),
         }}
         onClick={() =>
           risk?.id
@@ -216,8 +221,8 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
       </STGridItem>
       {showEndDate && riskData && (
         <SFlex align="center">
-          <STooltip title={'Editar data'}>
-            <SEndDateBox mt={1} onClick={onEditDate}>
+          {readOnly ? (
+            <SEndDateBox mt={1} sx={{ cursor: 'default' }}>
               <SText
                 fontSize="11px"
                 color={riskData?.endDate ? 'error.main' : 'text.light'}
@@ -232,19 +237,39 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                 fim: {dateToString(riskData?.endDate)}
               </SText>
             </SEndDateBox>
-          </STooltip>
-          <STooltip withWrapper title={'Limpar dados'}>
-            <SIconButton
-              loading={isDeleteLoading}
-              onClick={() => handleDeleteRiskData?.()}
-              size="small"
-            >
-              <Icon
-                component={SDeleteIcon}
-                sx={{ fontSize: '1.2rem', color: 'error.dark' }}
-              />
-            </SIconButton>
-          </STooltip>
+          ) : (
+            <>
+              <STooltip title={'Editar data'}>
+                <SEndDateBox mt={1} onClick={onEditDate}>
+                  <SText
+                    fontSize="11px"
+                    color={riskData?.endDate ? 'error.main' : 'text.light'}
+                    minWidth={110}
+                  >
+                    inicio: {dateToString(riskData?.startDate)}
+                  </SText>
+                  <SText
+                    fontSize="11px"
+                    color={riskData?.endDate ? 'error.main' : 'text.light'}
+                  >
+                    fim: {dateToString(riskData?.endDate)}
+                  </SText>
+                </SEndDateBox>
+              </STooltip>
+              <STooltip withWrapper title={'Limpar dados'}>
+                <SIconButton
+                  loading={isDeleteLoading}
+                  onClick={() => handleDeleteRiskData?.()}
+                  size="small"
+                >
+                  <Icon
+                    component={SDeleteIcon}
+                    sx={{ fontSize: '1.2rem', color: 'error.dark' }}
+                  />
+                </SIconButton>
+              </STooltip>
+            </>
+          )}
         </SFlex>
       )}
     </Box>

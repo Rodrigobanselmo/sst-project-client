@@ -39,6 +39,19 @@ const RiskCatalogDndContext = createContext<RiskCatalogDndContextValue | null>(
   null,
 );
 
+const RiskCatalogDropLockContext = createContext(false);
+
+export const RiskCatalogDropLock: FC<{ children: ReactNode }> = ({
+  children,
+}) => (
+  <RiskCatalogDropLockContext.Provider value={true}>
+    {children}
+  </RiskCatalogDropLockContext.Provider>
+);
+
+export const useRiskCatalogDropLock = () =>
+  useContext(RiskCatalogDropLockContext);
+
 export const useRiskCatalogDndOptional = () => useContext(RiskCatalogDndContext);
 
 export const useRiskCatalogDnd = () => {

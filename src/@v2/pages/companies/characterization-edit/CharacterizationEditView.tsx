@@ -298,7 +298,7 @@ export const CharacterizationEditView = ({
         mb={0}
         title={title}
         contextName={headerContextName}
-        onBack={embedded ? onCloseUnsaved : undefined}
+        onBack={embedded ? onCloseUnsaved : onBack}
       />
       {actionButtons}
     </SFlex>

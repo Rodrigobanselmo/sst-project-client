@@ -66,6 +66,7 @@ export type RiskToolV2Props = {
   hideViewSwitcher?: boolean;
   hideGhoPicker?: boolean;
   disableEditGho?: boolean;
+  showEffectiveRisks?: boolean;
 };
 
 export const RiskToolV2 = ({
@@ -78,6 +79,7 @@ export const RiskToolV2 = ({
   hideViewSwitcher = false,
   hideGhoPicker = false,
   disableEditGho = false,
+  showEffectiveRisks = false,
 }: RiskToolV2Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
@@ -441,6 +443,7 @@ export const RiskToolV2 = ({
                 viewType={viewType}
                 selectExpanded={!!selectExpanded}
                 riskGroupId={riskGroupIdMemo}
+                showEffectiveRisks={showEffectiveRisks}
               />
             </RiskRowsExpandProvider>
           </STTableContainer>
@@ -454,10 +457,12 @@ function RiskToolStackBody({
   viewType,
   selectExpanded,
   riskGroupId,
+  showEffectiveRisks,
 }: {
   viewType: ViewTypeEnum;
   selectExpanded: boolean;
   riskGroupId: string;
+  showEffectiveRisks: boolean;
 }) {
   const wideView = !!useRiskToolWideViewOptional()?.wideView;
 
@@ -469,7 +474,10 @@ function RiskToolStackBody({
       wide={wideView ? 1 : 0}
     >
       {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
-        <RiskToolGSEView riskGroupId={riskGroupId} />
+        <RiskToolGSEView
+          riskGroupId={riskGroupId}
+          showEffectiveRisks={showEffectiveRisks}
+        />
       )}
     </STBoxStack>
   );

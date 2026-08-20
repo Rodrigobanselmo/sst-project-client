@@ -17,7 +17,7 @@ import { SideRowProps } from './types';
 // STBoxStack é flex column com altura fixa. overflow≠visible no filho zera
 // min-height automático → flex-shrink esmaga o corpo. Ver flexShrink:0 abaixo.
 export const RiskToolGSEViewRow = React.memo<SideRowProps>(
-  ({ risk, riskData, riskGroupId }) => {
+  ({ risk, riskData, riskGroupId, readOnly = false, showOrigin = false, showEditHereAction = false }) => {
     const searchSelected = useAppSelector((state) => state?.gho.searchRisk);
     const expandCtx = useRiskRowsExpandOptional();
     const dnd = useRiskCatalogDndOptional();
@@ -41,7 +41,7 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
     const expanded = expandCtx ? expandCtx.isExpanded(rowId) : false;
     const borderColor = riskData?.endDate ? 'error.main' : 'grey.400';
 
-    const isBatchSelecting = !!dnd?.isSelectingDestination;
+    const isBatchSelecting = !!dnd?.isSelectingDestination && !readOnly;
     const isBatchSource =
       isBatchSelecting && dnd?.batchSession?.sourceRiskId === risk.id;
     const isBatchDestination =
@@ -99,6 +99,10 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
             isRepresentAll={isRepresentAll}
             expanded={expanded}
             framed
+            readOnly={readOnly}
+            showOrigin={showOrigin}
+            showOriginActions={false}
+            showEditHereAction={showEditHereAction}
             onToggleExpand={
               expandCtx && rowId
                 ? () => expandCtx.toggle(rowId)
@@ -123,6 +127,7 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
               risk={risk}
               riskData={riskData}
               isRepresentAll={isRepresentAll}
+              readOnly={readOnly}
             />
           </Box>
         )}

@@ -7,7 +7,10 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 import { IRiskDataRow } from '../components/SideRowTable/types';
-import { useRiskCatalogDndOptional } from './RiskCatalogDndProvider';
+import {
+  useRiskCatalogDndOptional,
+  useRiskCatalogDropLock,
+} from './RiskCatalogDndProvider';
 import {
   RISK_CATALOG_DND_ITEM_TYPE,
   RISK_CATALOG_DND_KIND_LABEL_PLURAL,
@@ -32,12 +35,14 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
   children,
 }) => {
   const dnd = useRiskCatalogDndOptional();
+  const dropLocked = useRiskCatalogDropLock();
   const { onDropCatalogItem, onBatchCopyToDestination } = useRiskCatalogDndCopy();
 
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: RISK_CATALOG_DND_ITEM_TYPE,
       canDrop: (item: RiskCatalogDndDragItem) => {
+        if (dropLocked) return false;
         if (!risk?.id) return false;
         if (item.kind !== kind) return false;
         if (item.sourceRiskId === risk.id) return false;
@@ -58,11 +63,12 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
         canDrop: monitor.canDrop(),
       }),
     }),
-    [kind, risk, riskData, handleSelect, onDropCatalogItem],
+    [kind, risk, riskData, handleSelect, onDropCatalogItem, dropLocked],
   );
 
   const handleBatchDestinationClick = useCallback(
     (event: React.MouseEvent) => {
+      if (dropLocked) return;
       if (!dnd?.batchSession || !risk?.id) return;
 
       const target = event.target as HTMLElement | null;
@@ -96,7 +102,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
         },
       );
     },
-    [dnd, handleSelect, kind, onBatchCopyToDestination, risk, riskData],
+    [dnd, dropLocked, handleSelect, kind, onBatchCopyToDestination, risk, riskData],
   );
 
   if (!dnd) {

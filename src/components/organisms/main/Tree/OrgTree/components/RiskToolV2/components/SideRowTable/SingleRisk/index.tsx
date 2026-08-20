@@ -11,22 +11,34 @@ import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 import { useColumnAction } from '../../../hooks/useColumnAction';
+import { resolveRiskToolOccurrenceSaveTarget } from '../resolve-risk-tool-occurrence-save-target.util';
 import { RowColumns } from '../components/RowColumns';
 import { RiskToolSingleRiskRowProps } from './types';
 import { EsocialCodeEnum } from 'core/enums/esocial-code.enum';
 
 export const RiskToolSingleRiskRow: FC<
   { children?: any } & RiskToolSingleRiskRowProps
-> = ({ risk, riskData, hide, riskGroupId, isRepresentAll }) => {
+> = ({
+  risk,
+  riskData,
+  hide,
+  riskGroupId,
+  isRepresentAll,
+  readOnly = false,
+  originHomogeneousGroupId,
+  planWorkspaceIdOverride,
+}) => {
   const gho = useAppSelector((state) => state.gho.selected);
   const { query } = useRouter();
+  const isOriginEdit = !!originHomogeneousGroupId;
   const planWorkspaceId = useMemo(() => {
+    if (planWorkspaceIdOverride) return planWorkspaceIdOverride;
     const fromQuery = query.workspaceId as string | undefined;
     if (fromQuery) return fromQuery;
     if (!gho?.id) return undefined;
     const parts = String(gho.id).split('//');
     return parts.length >= 2 ? parts[1] : undefined;
-  }, [query.workspaceId, gho?.id]);
+  }, [planWorkspaceIdOverride, query.workspaceId, gho?.id]);
   const {
     onHandleSelectSave,
     enqueueSnackbar,
@@ -39,7 +51,16 @@ export const RiskToolSingleRiskRow: FC<
   } = useColumnAction();
 
   const handleSelect = async (values: Partial<IUpsertRiskData>) => {
-    if (!risk?.id || !gho?.id) return;
+    if (!isOriginEdit && (readOnly || riskData?.canEditOnThisEntity === false)) {
+      return;
+    }
+    if (!risk?.id) return;
+    const saveTarget = resolveRiskToolOccurrenceSaveTarget({
+      originHomogeneousGroupId,
+      selectedGhoId: gho?.id,
+      riskFactorDataId: riskData?.id,
+    });
+    if (!saveTarget) return;
     if (riskData?.isQuantity && values.probability) {
       enqueueSnackbar(
         'Você não pode mudar a probabilidade quando utilizado o método quantitativo.',
@@ -51,19 +72,19 @@ export const RiskToolSingleRiskRow: FC<
       return;
     }
 
-    const isHierarchy = 'childrenIds' in gho;
+    const isHierarchy = !isOriginEdit && gho && 'childrenIds' in gho;
+    const selectedParts = String(gho?.id || '').split('//');
 
-    const homoId = String(gho.id).split('//');
     const submitData = {
       ...values,
-      id: riskData?.id,
-      homogeneousGroupId: homoId[0].split('//')[0],
+      id: saveTarget.riskFactorDataId,
+      homogeneousGroupId: saveTarget.homogeneousGroupId,
       riskId: risk.id,
       riskFactorGroupDataId: riskGroupId as string,
       ...(isHierarchy
         ? {
             type: HomoTypeEnum.HIERARCHY,
-            workspaceId: homoId[1],
+            workspaceId: selectedParts[1],
           }
         : {}),
     } as IUpsertRiskData;
@@ -72,7 +93,10 @@ export const RiskToolSingleRiskRow: FC<
   };
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
-    if (!risk?.id || !gho?.id) return;
+    if (!isOriginEdit && (readOnly || riskData?.canEditOnThisEntity === false)) {
+      return;
+    }
+    if (!risk?.id || (!isOriginEdit && !gho?.id)) return;
     onHandleHelp({
       gho,
       risk,
@@ -82,12 +106,21 @@ export const RiskToolSingleRiskRow: FC<
   };
 
   const handleRemove = async (values: Partial<IUpsertRiskData>) => {
-    if (!risk?.id || !gho?.id) return;
+    if (!isOriginEdit && (readOnly || riskData?.canEditOnThisEntity === false)) {
+      return;
+    }
+    if (!risk?.id) return;
+    const saveTarget = resolveRiskToolOccurrenceSaveTarget({
+      originHomogeneousGroupId,
+      selectedGhoId: gho?.id,
+      riskFactorDataId: riskData?.id,
+    });
+    if (!saveTarget) return;
 
     const submitData = {
       ...values,
-      id: riskData?.id,
-      homogeneousGroupId: gho.id.split('//')[0],
+      id: saveTarget.riskFactorDataId,
+      homogeneousGroupId: saveTarget.homogeneousGroupId,
       riskId: risk.id,
       riskFactorGroupDataId: riskGroupId as string,
       keepEmpty: true,
@@ -97,14 +130,23 @@ export const RiskToolSingleRiskRow: FC<
   };
 
   const handleEditEpi = async (epi: IEpi) => {
+    if (!isOriginEdit && (readOnly || riskData?.canEditOnThisEntity === false)) {
+      return;
+    }
     onHandleEditEpi(epi, (epis) => handleSelect({ epis }));
   };
 
   const handleEditEngs = async (eng: IRecMed) => {
+    if (!isOriginEdit && (readOnly || riskData?.canEditOnThisEntity === false)) {
+      return;
+    }
     onHandleEditEngs(eng, (engs) => handleSelect({ engs }));
   };
 
   const handleEditExams = async (exam: IExam) => {
+    if (!isOriginEdit && (readOnly || riskData?.canEditOnThisEntity === false)) {
+      return;
+    }
     onHandleEditExams(exam, (exams) => handleSelect({ exams }), risk?.type, risk);
   };
 
@@ -122,6 +164,7 @@ export const RiskToolSingleRiskRow: FC<
       handleEditEngs={handleEditEngs}
       isRepresentAll={isRepresentAll}
       planWorkspaceId={planWorkspaceId}
+      readOnly={readOnly}
     />
   );
 };

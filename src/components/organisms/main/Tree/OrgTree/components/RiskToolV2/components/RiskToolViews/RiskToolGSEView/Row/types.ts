@@ -9,4 +9,7 @@ export interface SideRowProps {
   risk: IRiskFactors;
   riskData?: IRiskData;
   riskGroupId: string;
+  readOnly?: boolean;
+  showOrigin?: boolean;
+  showEditHereAction?: boolean;
 }

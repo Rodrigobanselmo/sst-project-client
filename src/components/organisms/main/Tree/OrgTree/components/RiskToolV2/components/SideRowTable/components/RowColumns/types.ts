@@ -27,4 +27,5 @@ export interface RowColumnsProps extends BoxProps {
   handleDeleteRiskData?: () => void;
   /** Workspace do Plano de Ação (URL ou id composto do GHO) para filtrar `dataRecs`. */
   planWorkspaceId?: string;
+  readOnly?: boolean;
 }

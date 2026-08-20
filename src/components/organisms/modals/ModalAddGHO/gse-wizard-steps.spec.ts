@@ -22,7 +22,9 @@ import {
   getGseWizardTabOptions,
   GSE_WIZARD_STEP,
   GSE_WIZARD_TAB_LABELS,
+  parseOptionalGseWizardStep,
   resolveGseTableOpenStep,
+  resolveGseWizardStepFromQuery,
 } from './gse-wizard-steps';
 
 assert.equal(GSE_WIZARD_STEP.DATA, 0);
@@ -83,6 +85,33 @@ assert.equal(resolveGseTableOpenStep('edit'), GSE_WIZARD_STEP.DATA);
 assert.equal(resolveGseTableOpenStep('cargos'), GSE_WIZARD_STEP.CARGOS);
 assert.equal(resolveGseTableOpenStep('risks'), GSE_WIZARD_STEP.RISKS);
 assert.equal(resolveGseTableOpenStep('ai'), GSE_WIZARD_STEP.AI_ANALYSIS);
+
+assert.equal(parseOptionalGseWizardStep(undefined), undefined);
+assert.equal(parseOptionalGseWizardStep('2'), GSE_WIZARD_STEP.RISKS);
+assert.equal(parseOptionalGseWizardStep('9'), undefined);
+assert.equal(
+  resolveGseWizardStepFromQuery({
+    ghoId: 'gse-1',
+    queryGhoId: 'gse-1',
+    queryStep: String(GSE_WIZARD_STEP.RISKS),
+  }),
+  GSE_WIZARD_STEP.RISKS,
+);
+assert.equal(
+  resolveGseWizardStepFromQuery({
+    ghoId: 'gse-1',
+    queryGhoId: 'gse-1',
+  }),
+  undefined,
+);
+assert.equal(
+  resolveGseWizardStepFromQuery({
+    ghoId: 'gse-1',
+    queryGhoId: 'gse-other',
+    queryStep: String(GSE_WIZARD_STEP.RISKS),
+  }),
+  undefined,
+);
 
 const applyCargos = decideApplyGseWizardStep({
   enabled: true,

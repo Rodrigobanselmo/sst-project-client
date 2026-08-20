@@ -7,4 +7,8 @@ export interface RiskToolSingleRiskRowProps {
   hide?: boolean;
   isRepresentAll?: boolean;
   riskGroupId?: string;
+  readOnly?: boolean;
+  /** When set, upserts this occurrence's owner HG — never the selected GSE. */
+  originHomogeneousGroupId?: string;
+  planWorkspaceIdOverride?: string;
 }

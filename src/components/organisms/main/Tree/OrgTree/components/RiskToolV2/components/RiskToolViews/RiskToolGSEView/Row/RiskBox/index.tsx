@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box, Icon } from '@mui/material';
@@ -9,15 +9,23 @@ import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
+import { useRouter } from 'next/router';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useModal } from 'core/hooks/useModal';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 
+import { canEditGseEffectiveOccurrenceHere, getGseEffectiveOriginReturnTo, resolveGseEffectiveOriginAction } from '../../open-gse-effective-origin.util';
+import { GseEffectiveOriginActionButtons } from '../../GseEffectiveOriginActionButtons';
+import { GseInheritedRiskEditModal } from '../../GseInheritedRiskEditModal';
+import { formatGseEffectiveOriginLabel } from '../../split-effective-gse-rows.util';
 import { MatrixEquation } from './MatrixEquation';
 import { STBoxItem } from './styles';
 import { RiskToolGSEViewRowRiskBoxProps } from './types';
@@ -39,13 +47,39 @@ export const RiskToolGSEViewRowRiskBox: FC<
   expanded = true,
   onToggleExpand,
   framed = false,
+  readOnly = false,
+  showOrigin = false,
+  showOriginActions = true,
+  showEditHereAction = false,
 }) => {
   const deleteMutation = useMutDeleteManyRiskData();
   const upsertMutation = useMutUpsertRiskData();
   const { selectStartEndDate } = useStartEndDate();
+  const router = useRouter();
+  const { onStackOpenModal } = useModal();
+  const { companyId } = useGetCompanyId();
+  const selectedGhoId = useAppSelector((state) => state.gho.selected?.id);
+  const [editHereOpen, setEditHereOpen] = useState(false);
   const hasData = riskData && riskData.homogeneousGroupId;
+  const originLabel =
+    showOrigin && !isRepresentAll
+      ? formatGseEffectiveOriginLabel(riskData)
+      : '';
+  const returnTo = getGseEffectiveOriginReturnTo({
+    query: router.query,
+    selectedGhoId,
+  });
+  const originAction = resolveGseEffectiveOriginAction({
+    openOrigin: riskData?.openOrigin,
+    companyId,
+    returnTo,
+  });
+  const canEditHere = canEditGseEffectiveOccurrenceHere(riskData);
+  const showEditHere = (showEditHereAction || showOriginActions) && canEditHere;
+  const showOpenOrigin = showOriginActions && !!originAction;
 
   const cleanData = (risk: IRiskFactors) => {
+    if (readOnly || riskData?.canEditOnThisEntity === false) return;
     if (hasData && riskData.homogeneousGroupId)
       deleteMutation.mutate({
         ids: [riskData.id],
@@ -53,6 +87,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
   };
 
   const onEditDate = () => {
+    if (readOnly || riskData?.canEditOnThisEntity === false) return;
     if (riskData?.homogeneousGroupId)
       selectStartEndDate(
         (d) =>
@@ -71,6 +106,15 @@ export const RiskToolGSEViewRowRiskBox: FC<
           endDate: riskData.endDate ? new Date(riskData.endDate) : undefined,
         },
       );
+  };
+
+  const onOpenOrigin = () => {
+    if (!originAction) return;
+    if (originAction.type === 'characterization') {
+      void router.push(originAction.href);
+      return;
+    }
+    onStackOpenModal(originAction.modal, originAction.payload);
   };
 
   const riskTypeKey = (data?.type ?? '').toLowerCase();
@@ -132,6 +176,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
     !expanded && !isRepresentAll && (!!severity || !!riskData?.probability);
 
   return (
+    <>
     <STBoxItem
       inactive={riskData?.endDate ? 1 : 0}
       collapsed={expanded ? 0 : 1}
@@ -287,7 +332,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
               />
             )
           )}
-          {!hide && hasData && data && (
+          {!hide && hasData && data && !readOnly && (
             <STooltip withWrapper title={'Limpar dados'}>
               <SIconButton
                 loading={deleteMutation.isLoading}
@@ -298,15 +343,36 @@ export const RiskToolGSEViewRowRiskBox: FC<
               </SIconButton>
             </STooltip>
           )}
+          {showEditHere && (
+            <GseEffectiveOriginActionButtons
+              onEditHere={() => setEditHereOpen(true)}
+            />
+          )}
         </SFlex>
       </SFlex>
+      {!!originLabel && (
+        <SFlex
+          align="center"
+          justify="space-between"
+          gap={2}
+          flexWrap="wrap"
+          sx={{ px: 1, pt: 1, pb: expanded ? 0 : 1 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <SText fontSize={12} color="text.secondary">
+            {originLabel}
+          </SText>
+          {showOpenOrigin && (
+            <GseEffectiveOriginActionButtons onOpenOrigin={onOpenOrigin} />
+          )}
+        </SFlex>
+      )}
       {expanded && hasData && (
-        <STooltip title={'Editar data'}>
+        readOnly ? (
           <SFlex
             className="item_end_date"
-            onClick={onEditDate}
             gap={4}
-            sx={{ opacity: 0.85 }}
+            sx={{ opacity: 0.85, cursor: 'default' }}
           >
             <SText fontSize="10px" color="text.disabled" noBreak>
               início: {dateToString(riskData?.startDate)}
@@ -315,8 +381,34 @@ export const RiskToolGSEViewRowRiskBox: FC<
               fim: {dateToString(riskData?.endDate)}
             </SText>
           </SFlex>
-        </STooltip>
+        ) : (
+          <STooltip title={'Editar data'}>
+            <SFlex
+              className="item_end_date"
+              onClick={onEditDate}
+              gap={4}
+              sx={{ opacity: 0.85 }}
+            >
+              <SText fontSize="10px" color="text.disabled" noBreak>
+                início: {dateToString(riskData?.startDate)}
+              </SText>
+              <SText fontSize="10px" color="text.disabled" noBreak>
+                fim: {dateToString(riskData?.endDate)}
+              </SText>
+            </SFlex>
+          </STooltip>
+        )
       )}
     </STBoxItem>
+    {showEditHere && riskData && (
+      <GseInheritedRiskEditModal
+        open={editHereOpen}
+        onClose={() => setEditHereOpen(false)}
+        risk={data}
+        riskData={riskData}
+        riskGroupId={riskGroupId}
+      />
+    )}
+    </>
   );
 };

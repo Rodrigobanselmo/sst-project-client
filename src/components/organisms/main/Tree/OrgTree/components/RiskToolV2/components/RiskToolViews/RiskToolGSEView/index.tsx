@@ -6,6 +6,7 @@ import { selectGhoFilter } from 'store/reducers/hierarchy/ghoSlice';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useQueryAllRisk } from 'core/services/hooks/queries/useQueryRiskAll';
+import { useQueryEffectiveRiskDataByGho } from 'core/services/hooks/queries/useQueryEffectiveRiskDataByGho';
 import { useQueryRiskDataByGho } from 'core/services/hooks/queries/useQueryRiskDataByGho';
 import {
   RISK_LINKAGE_LOAD_ERROR_MESSAGE,
@@ -14,12 +15,18 @@ import {
 
 import { joinRiskToolGseRows } from './join-risk-tool-gse-rows.util';
 import { resolveRiskToolGseListGate } from './resolve-risk-tool-gse-list-gate.util';
+import {
+  groupInheritedRowsByOrigin,
+  splitEffectiveGseRows,
+} from './split-effective-gse-rows.util';
+import { GseInheritedOriginGroupHeader } from './GseInheritedOriginGroupHeader';
 import { useRiskRowsExpandOptional } from './RiskRowsExpandContext';
 import { RiskToolGSEViewRow } from './Row';
 import { RiskToolGSEViewProps } from './types';
 
 export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
   riskGroupId,
+  showEffectiveRisks = false,
 }) => {
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const selectedGho = useAppSelector((state) => state.gho.selected);
@@ -31,11 +38,38 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
   );
 
   const {
-    data: riskDataQuery,
-    isLoading: isRiskGhoLoading,
-    isError: isRiskGhoError,
-    refetch: refetchRiskGho,
-  } = useQueryRiskDataByGho(riskGroupId as string, homoId);
+    data: riskDataDirect,
+    isLoading: isRiskGhoDirectLoading,
+    isError: isRiskGhoDirectError,
+    refetch: refetchRiskGhoDirect,
+  } = useQueryRiskDataByGho(
+    showEffectiveRisks ? '' : (riskGroupId as string),
+    showEffectiveRisks ? '' : homoId,
+  );
+
+  const {
+    data: riskDataEffective,
+    isLoading: isRiskGhoEffectiveLoading,
+    isError: isRiskGhoEffectiveError,
+    refetch: refetchRiskGhoEffective,
+  } = useQueryEffectiveRiskDataByGho(
+    riskGroupId as string,
+    homoId,
+    showEffectiveRisks,
+  );
+
+  const riskDataQuery = showEffectiveRisks
+    ? riskDataEffective
+    : riskDataDirect;
+  const isRiskGhoLoading = showEffectiveRisks
+    ? isRiskGhoEffectiveLoading
+    : isRiskGhoDirectLoading;
+  const isRiskGhoError = showEffectiveRisks
+    ? isRiskGhoEffectiveError
+    : isRiskGhoDirectError;
+  const refetchRiskGho = showEffectiveRisks
+    ? refetchRiskGhoEffective
+    : refetchRiskGhoDirect;
 
   const {
     data: riskCatalog,
@@ -64,6 +98,18 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
     ],
   );
 
+  const groupedRows = useMemo(() => {
+    if (!showEffectiveRisks) {
+      return { direct: riskOrderedData, inherited: [] as typeof riskOrderedData };
+    }
+    return splitEffectiveGseRows({ rows: riskOrderedData, gseId: homoId });
+  }, [homoId, riskOrderedData, showEffectiveRisks]);
+
+  const inheritedOriginGroups = useMemo(
+    () => groupInheritedRowsByOrigin(groupedRows.inherited),
+    [groupedRows.inherited],
+  );
+
   const listGate = resolveRiskToolGseListGate({
     homoId,
     isRiskDataLoading: isRiskGhoLoading,
@@ -76,12 +122,12 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
 
   const knownRowIds = useMemo(
     () =>
-      riskOrderedData
+      [...groupedRows.direct, ...groupedRows.inherited]
         .map(([riskData, risk]) =>
           String(riskData?.id || risk?.id || riskData?.riskId || ''),
         )
         .filter(Boolean),
-    [riskOrderedData],
+    [groupedRows],
   );
 
   useEffect(() => {
@@ -128,16 +174,64 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
     );
   }
 
+  const showInheritedSection =
+    showEffectiveRisks && groupedRows.inherited.length > 0;
+
   return (
     <>
-      {riskOrderedData.map(([riskData, risk]) => (
+      {showInheritedSection && (
+        <SText
+          color="text.secondary"
+          fontSize={13}
+          fontWeight={600}
+          sx={{ px: 1, pt: 1, pb: 1 }}
+        >
+          Riscos vinculados diretamente a este GSE
+        </SText>
+      )}
+      {groupedRows.direct.map(([riskData, risk]) => (
         <RiskToolGSEViewRow
-          key={riskData?.id || risk?.id || riskData?.riskId}
+          key={riskData?.id || `direct-${risk?.id}`}
           risk={risk}
           riskData={riskData}
           riskGroupId={riskGroupId}
         />
       ))}
+      {showInheritedSection && (
+        <>
+          <SText
+            color="text.secondary"
+            fontSize={13}
+            fontWeight={600}
+            sx={{ px: 1, pt: 3, pb: 1 }}
+          >
+            Riscos provenientes de outras origens
+          </SText>
+          {inheritedOriginGroups.map((group, index) => (
+            <Box key={group.key} sx={{ mb: 1 }}>
+              <GseInheritedOriginGroupHeader
+                originTypeLabel={group.originTypeLabel}
+                originName={group.originName}
+                sample={group.sample}
+                isFirst={index === 0}
+              />
+              {group.rows.map(([riskData, risk]) => (
+                <RiskToolGSEViewRow
+                  key={
+                    riskData?.id ||
+                    `inherited-${risk?.id}-${riskData?.homogeneousGroupId}`
+                  }
+                  risk={risk}
+                  riskData={riskData}
+                  riskGroupId={riskGroupId}
+                  readOnly
+                  showEditHereAction
+                />
+              ))}
+            </Box>
+          ))}
+        </>
+      )}
     </>
   );
 };

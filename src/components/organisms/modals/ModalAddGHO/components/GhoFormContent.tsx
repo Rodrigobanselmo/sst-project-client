@@ -32,7 +32,9 @@ import {
   clampGseWizardStep,
   getGseWizardTabOptions,
   GSE_WIZARD_STEP,
+  GSE_WIZARD_STEP_QUERY_KEY,
   GSE_WIZARD_TAB_LABELS,
+  resolveGseWizardStepFromQuery,
 } from '../gse-wizard-steps';
 import { GhoSaveIntent } from '../gho-save-intent.util';
 
@@ -82,8 +84,13 @@ export const GhoFormContent = ({
   const isPage = layout === 'page';
   const isEdit = !!ghoData.id;
   const risksTabDisabled = !isEdit;
+  const returnWizardStep = resolveGseWizardStepFromQuery({
+    ghoId: ghoData.id,
+    queryGhoId: router.query.ghoId,
+    queryStep: router.query[GSE_WIZARD_STEP_QUERY_KEY],
+  });
   const requestedStep = isPage
-    ? clampGseWizardStep(ghoData.initialWizardStep)
+    ? (returnWizardStep ?? clampGseWizardStep(ghoData.initialWizardStep))
     : GSE_WIZARD_STEP.DATA;
   const canApplyInitialStep = isPage && isEdit;
   const wizardTabsOptions = getGseWizardTabOptions({
@@ -110,7 +117,9 @@ export const GhoFormContent = ({
         <>
           <ApplyGseWizardStep
             requestedStep={
-              canApplyInitialStep ? ghoData.initialWizardStep : undefined
+              canApplyInitialStep
+                ? (returnWizardStep ?? ghoData.initialWizardStep)
+                : undefined
             }
             enabled={canApplyInitialStep}
           />

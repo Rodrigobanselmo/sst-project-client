@@ -49,6 +49,7 @@ const formSource = readFileSync(
 assert.equal(formSource.includes('ApplyGseWizardStep'), true);
 assert.equal(formSource.includes('startIndex='), true);
 assert.equal(formSource.includes('ghoData.initialWizardStep'), true);
+assert.equal(formSource.includes('resolveGseWizardStepFromQuery'), true);
 assert.equal(formSource.includes('CHARACTERIZATION_WIZARD_STEP'), false);
 
 const hookSource = readFileSync(

@@ -11,4 +11,8 @@ export interface RiskToolGSEViewRowRiskBoxProps {
   onToggleExpand?: () => void;
   /** Borda externa vem do wrapper do bloco; remove borda própria. */
   framed?: boolean;
+  readOnly?: boolean;
+  showOrigin?: boolean;
+  showOriginActions?: boolean;
+  showEditHereAction?: boolean;
 }

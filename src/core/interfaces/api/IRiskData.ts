@@ -58,6 +58,18 @@ export interface IRiskData {
   activities?: IRiskDataActivities;
   riskFactor?: IRiskFactors;
   origin?: string;
+  originKind?: 'GSE' | 'CHARACTERIZATION' | 'HIERARCHY';
+  originId?: string;
+  originName?: string;
+  originTypeLabel?: string;
+  resolutionSource?: string;
+  isDirect?: boolean;
+  canEditOnThisEntity?: boolean;
+  openOrigin?: {
+    kind: 'CHARACTERIZATION' | 'GSE';
+    id: string;
+    workspaceId?: string;
+  } | null;
   ro?: string;
   level?: number;
   intervention?: string;

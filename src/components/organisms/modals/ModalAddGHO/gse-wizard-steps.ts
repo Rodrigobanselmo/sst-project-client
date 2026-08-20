@@ -18,6 +18,41 @@ export type GseAddLayout = 'modal' | 'page';
 
 export const GSE_EDITOR_STEP_COUNT = 4;
 
+/** Query do editor GSE na home SST. Ausente = usa `initialWizardStep` (lista continua em Dados). */
+export const GSE_WIZARD_STEP_QUERY_KEY = 'gseWizardStep';
+
+function firstQueryString(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+export function parseOptionalGseWizardStep(
+  raw: string | string[] | undefined,
+): number | undefined {
+  const value = firstQueryString(raw);
+  if (value == null || value === '') return undefined;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return undefined;
+  const truncated = Math.trunc(parsed);
+  if (truncated < 0 || truncated >= GSE_EDITOR_STEP_COUNT) return undefined;
+  return truncated;
+}
+
+/** Honra `gseWizardStep` só quando o `ghoId` da URL é o GSE aberto. */
+export function resolveGseWizardStepFromQuery(params: {
+  ghoId?: string;
+  queryGhoId?: string | string[];
+  queryStep?: string | string[];
+}): number | undefined {
+  const queryGhoId = firstQueryString(params.queryGhoId);
+  if (!params.ghoId || !queryGhoId || queryGhoId !== params.ghoId) {
+    return undefined;
+  }
+  return parseOptionalGseWizardStep(params.queryStep);
+}
+
 export type GseTableOpenAction = 'row' | 'edit' | 'cargos' | 'risks' | 'ai';
 
 export function clampGseWizardStep(
