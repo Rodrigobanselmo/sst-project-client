@@ -348,6 +348,46 @@ export const documentSlice = createSlice({
       state.model.sections[0].data = [section, ...state.model.sections[0].data];
       state.needSynchronization = true;
     },
+    setDocumentAddSectionAfterSectionId: (
+      state,
+      action: PayloadAction<{
+        afterSectionId: string;
+        section: NodeDocumentModelSectionData;
+      }>,
+    ) => {
+      if (!action.payload.afterSectionId) return state;
+      if (!action.payload.section.type) return state;
+
+      const data = getSection(state, action.payload.afterSectionId);
+      const sectionsGroup = state.model?.sections || [];
+      const sections = sectionsGroup[data.sectionIndex]?.data;
+
+      if (!sections) return state;
+
+      const cloneSections = clone(sections);
+      const insertIndex = data.sectionSecondIndex + 1;
+      const section = action.payload.section;
+
+      const newSectionId = section.id || v4();
+      const newSection = {
+        id: newSectionId,
+        type: section.type,
+        ...(section.label && { label: section.label }),
+        ...(section.hasChildren && { hasChildren: section.hasChildren }),
+        ...(section.text && { text: section.text }),
+      };
+
+      cloneSections.splice(insertIndex, 0, newSection);
+
+      if (section.hasChildren) {
+        const sectionGroup = sectionsGroup[data.sectionIndex];
+        if (!sectionGroup.children) sectionGroup.children = {};
+        sectionGroup.children[newSectionId] = [];
+      }
+
+      sectionsGroup[data.sectionIndex].data = cloneSections;
+      state.needSynchronization = true;
+    },
     setDocumentModel: (
       state,
       action: PayloadAction<IDocumentSlice['model']>,
@@ -416,6 +456,7 @@ export const {
   setDocumentAddElementAfterChild,
   setDocumentDeleteElementChild,
   setDocumentAddSection,
+  setDocumentAddSectionAfterSectionId,
   setDocumentDeleteSection,
   setDocumentDeleteMany,
   setDocumentAddElementAfterSection,

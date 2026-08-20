@@ -17,6 +17,7 @@ import sortArray from 'sort-array';
 import {
   setDocumentAddElementAfterChild,
   setDocumentAddElementAfterSection,
+  setDocumentAddSectionAfterSectionId,
   setDocumentDeleteElementChild,
   setDocumentDeleteSection,
   setDocumentEditElementChild,
@@ -44,6 +45,13 @@ import { replaceMultiple } from '../../utils/replaceMultiple';
 import { transformArrayToObjectFunction } from '../../utils/transformArrayToObjectFunction';
 import { ITypeDocumentModel } from '../types/types';
 import { parseLineHeightData } from 'components/molecules/form/draft-editor/line-height.util';
+import {
+  filterInsertableContentElements,
+  filterInsertableStructuralSections,
+  getStructuralSectionDefaults,
+  hasInsertableContentCatalog,
+  hasInsertableStructuralCatalog,
+} from '../../utils/filterStructuralInsertCatalog';
 
 import { RemoveDoubleClickButton } from './RemoveDoubleClickButton';
 import { STContainerItem } from './styles';
@@ -182,6 +190,96 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
   const isNewParagraph = (mapProps as any)[item.type]?.paragraph != false;
   const isImage = DocumentSectionChildrenTypeEnum.IMAGE == item.type;
 
+  const insertableSections = useMemo(
+    () => filterInsertableStructuralSections(sections),
+    [sections],
+  );
+
+  const insertableContentElements = useMemo(
+    () => filterInsertableContentElements(elements),
+    [elements],
+  );
+
+  const showStructuralInsert = useMemo(
+    () => hasInsertableStructuralCatalog(sections),
+    [sections],
+  );
+
+  const showContentInsert = useMemo(
+    () => hasInsertableContentCatalog(elements),
+    [elements],
+  );
+
+  const resolveAfterSectionId = () => {
+    if (isSection && item.id) return item.id;
+    if (isElement && item.sectionId) return item.sectionId;
+    return null;
+  };
+
+  const buildContentElementPayload = (
+    elementType: IDocumentModelFull['elements'][0] & {
+      orientation?: DocModelPageOrientation;
+    },
+  ): Omit<NodeDocumentModelElementData, 'id'> => {
+    const catalogEntry = elements[elementType.type];
+
+    return {
+      type: elementType.type,
+      element: true,
+      text:
+        catalogEntry?.text ??
+        (elementType.type === DocumentSectionChildrenTypeEnum.PARAGRAPH
+          ? 'Novo parágrafo....'
+          : ''),
+      ...(elementType.orientation && { orientation: elementType.orientation }),
+    };
+  };
+
+  const handleAddContentElement = (
+    elementType: IDocumentModelFull['elements'][0] & {
+      orientation?: DocModelPageOrientation;
+    },
+  ) => {
+    if (!elementType.type) return;
+
+    const payload = buildContentElementPayload(elementType);
+
+    if (isSection && item.id) {
+      onAddElementAfterSection(payload as NodeDocumentModelElementData, item.id);
+      return;
+    }
+
+    if (isElement) {
+      dispatch(
+        setDocumentAddElementAfterChild({
+          element: {
+            id: item.id,
+            ...payload,
+          },
+        }),
+      );
+    }
+  };
+
+  const handleAddStructuralSection = (
+    sectionType: IDocumentModelFull['sections'][0],
+  ) => {
+    const afterSectionId = resolveAfterSectionId();
+    if (!afterSectionId || !sectionType.type) return;
+
+    dispatch(
+      setDocumentAddSectionAfterSectionId({
+        afterSectionId,
+        section: {
+          id: v4(),
+          section: true,
+          type: sectionType.type,
+          ...getStructuralSectionDefaults(sectionType.type, sections),
+        },
+      }),
+    );
+  };
+
   const onOpen = () => {
     if (!open) {
       setOpen(true);
@@ -262,18 +360,6 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
           }),
       });
     }
-  };
-
-  const handleAddChild = (data: ITypeDocumentModel) => {
-    onAddElementAfterSection(
-      {
-        id: '',
-        text: 'Novo parágrafo....',
-        type: DocumentSectionChildrenTypeEnum.PARAGRAPH,
-        element: true,
-      },
-      data.id,
-    );
   };
 
   const handleDelete = (data: ITypeDocumentModel) => {
@@ -656,19 +742,6 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     }
                   />
                 )}
-                {isSection && (
-                  <STagButton
-                    maxWidth={'300px'}
-                    onClick={() => handleAddChild(item)}
-                    tooltipTitle="Adicionar item abaixo"
-                    text={'Adicionar Parágrafo +'}
-                    active
-                    // bg="success.main"
-                    bg="common.white"
-                    iconProps={{ sx: { color: 'success.main' } }}
-                    borderActive="success"
-                  />
-                )}
                 {isElement && isDuplicate && (
                   <STagButton
                     maxWidth={'300px'}
@@ -682,29 +755,40 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     borderActive="success"
                   />
                 )}
-                {isElement && !isDuplicate && isNewParagraph && (
-                  <STagButton
-                    maxWidth={'300px'}
-                    onClick={() =>
-                      handleDuplicate({
-                        text: '[NOVO PÁRAGRAFO]',
-                        type: DocumentSectionChildrenTypeEnum.PARAGRAPH,
-                        element: true,
-                        id: v4(),
-                        sectionId: item.sectionId,
-                        sectionIndex: item.sectionIndex,
-                        align: item.align,
-                      })
-                    }
-                    tooltipTitle="Adicionar item abaixo"
-                    text={'Parágrafo +'}
-                    active
-                    // bg="success.main"
-                    bg="common.white"
-                    iconProps={{ sx: { color: 'success.main' } }}
-                    borderActive="success"
-                  />
-                )}
+                {showContentInsert &&
+                  Object.keys(insertableContentElements).length > 0 && (
+                    <ElementTypeModelSelect
+                      elements={insertableContentElements}
+                      selected={'' as any}
+                      insertVisualFamily="content"
+                      text="Conteúdo +"
+                      minWidth={80}
+                      active
+                      bg="common.white"
+                      marginRight="5px"
+                      tooltipTitle="Inserir conteúdo interno"
+                      handleSelect={(value) =>
+                        value?.type && handleAddContentElement(value)
+                      }
+                    />
+                  )}
+                {showStructuralInsert &&
+                  Object.keys(insertableSections).length > 0 && (
+                    <SectionTypeModelSelect
+                      sections={insertableSections}
+                      selected={'' as any}
+                      insertVisualFamily="structure"
+                      text="Estrutura +"
+                      minWidth={80}
+                      active
+                      bg="common.white"
+                      marginRight="5px"
+                      tooltipTitle="Inserir bloco estrutural abaixo"
+                      handleSelect={(value) =>
+                        value && handleAddStructuralSection(value)
+                      }
+                    />
+                  )}
                 <RemoveDoubleClickButton
                   onHandleDeletion={() => handleDelete(item)}
                 />

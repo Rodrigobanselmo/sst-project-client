@@ -24,4 +24,5 @@ export interface IElementTypeModelSelectProps extends BoxProps {
   borderActive?: 'error' | 'info' | 'warning' | 'success' | 'primary';
   tooltipTitle?: ReactNode;
   representAll?: boolean;
+  insertVisualFamily?: 'content';
 }

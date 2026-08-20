@@ -18,4 +18,5 @@ export interface ISectionTypeModelSelectProps extends BoxProps {
   borderActive?: 'error' | 'info' | 'warning' | 'success' | 'primary';
   tooltipTitle?: ReactNode;
   representAll?: boolean;
+  insertVisualFamily?: 'structure';
 }

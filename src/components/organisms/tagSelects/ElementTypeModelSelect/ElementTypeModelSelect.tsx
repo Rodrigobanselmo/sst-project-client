@@ -6,6 +6,10 @@ import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enu
 import sortArray from 'sort-array';
 
 import { IElementTypeModelOption, IElementTypeModelSelectProps } from './types';
+import {
+  DOCUMENT_MODEL_INSERT_VISUAL,
+  withContentInsertOptionIcon,
+} from 'components/organisms/documentModel/utils/documentModelInsertVisuals';
 
 const SECTION_BREAK = DocumentSectionChildrenTypeEnum.SECTION_BREAK;
 
@@ -19,15 +23,21 @@ export const ElementTypeModelSelect: FC<
   handleSelect,
   text,
   multiple = false,
+  insertVisualFamily,
   ...props
 }) => {
+  const insertVisual =
+    insertVisualFamily === 'content'
+      ? DOCUMENT_MODEL_INSERT_VISUAL.content
+      : null;
+
   const options = useMemo(() => {
     const sorted = sortArray(Object.values(elements), {
       by: ['order', 'label'],
       order: ['asc', 'asc'],
     }) as IElementTypeModelOption[];
 
-    return sorted.flatMap((option) => {
+    const mapped = sorted.flatMap((option) => {
       if (option.type !== SECTION_BREAK) {
         return [{ ...option, optionValue: option.type }];
       }
@@ -47,7 +57,11 @@ export const ElementTypeModelSelect: FC<
         },
       ];
     });
-  }, [elements]);
+
+    if (!insertVisual) return mapped;
+
+    return mapped.map((option) => withContentInsertOptionIcon(option));
+  }, [elements, insertVisual]);
 
   return (
     <STagSearchSelect
@@ -61,6 +75,12 @@ export const ElementTypeModelSelect: FC<
       selected={[selectedOptionValue || selected]}
       tooltipTitle={elements[selected]?.label}
       optionsFieldName={{ valueField: 'optionValue', contentField: 'label' }}
+      {...(insertVisual && {
+        icon: insertVisual.buttonIcon,
+        iconItem: insertVisual.menuFallbackIcon,
+        iconProps: { sx: { color: insertVisual.menuIconColor, fontSize: 16 } },
+        borderActive: insertVisual.borderActive,
+      })}
       {...props}
     />
   );

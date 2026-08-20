@@ -1,9 +1,10 @@
 import React, { FC, useMemo } from 'react';
 
-import CircleTwoToneIcon from '@mui/icons-material/CircleTwoTone';
-import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
-import { STagSelect } from 'components/molecules/STagSelect';
+import {
+  DOCUMENT_MODEL_INSERT_VISUAL,
+  withStructuralInsertOptionIcon,
+} from 'components/organisms/documentModel/utils/documentModelInsertVisuals';
 import sortArray from 'sort-array';
 
 import { ISectionTypeModelSelectProps } from './types';
@@ -17,14 +18,24 @@ export const SectionTypeModelSelect: FC<
   handleSelect,
   text,
   multiple = false,
+  insertVisualFamily,
   ...props
 }) => {
+  const insertVisual =
+    insertVisualFamily === 'structure'
+      ? DOCUMENT_MODEL_INSERT_VISUAL.structure
+      : null;
+
   const options = useMemo(() => {
-    return sortArray(Object.values(sections), {
+    const sorted = sortArray(Object.values(sections), {
       by: ['order', 'label'],
       order: ['asc', 'asc'],
     });
-  }, [sections]);
+
+    if (!insertVisual) return sorted;
+
+    return sorted.map((option) => withStructuralInsertOptionIcon(option));
+  }, [sections, insertVisual]);
 
   //   tooltipTitle={sections[selected].label}
   // text={sections[selected].label}
@@ -72,6 +83,12 @@ export const SectionTypeModelSelect: FC<
       //   );
       // }}
       optionsFieldName={{ valueField: 'type', contentField: 'label' }}
+      {...(insertVisual && {
+        icon: insertVisual.buttonIcon,
+        iconItem: insertVisual.menuFallbackIcon,
+        iconProps: { sx: { color: insertVisual.menuIconColor, fontSize: 16 } },
+        borderActive: insertVisual.borderActive,
+      })}
       {...props}
     />
   );
