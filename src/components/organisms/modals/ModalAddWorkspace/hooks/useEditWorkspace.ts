@@ -21,6 +21,10 @@ import { useMutDeleteWorkspace } from 'core/services/hooks/mutations/manager/com
 import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
 import { useMutAddWorkspacePhoto } from 'core/services/hooks/mutations/manager/company/useMutAddWorkspacePhoto';
 import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto';
+import {
+  hydrateWorkspaceSectionFlags,
+  mergeWorkspaceCompanyJsonSectionFields,
+} from './workspace-custom-section.util';
 
 export const initialWorkspaceState = {
   id: '',
@@ -95,6 +99,9 @@ export const useEditWorkspace = () => {
       !(initialData as any).passBack
     ) {
       setCompanyData((oldData) => {
+        const sectionFlags = hydrateWorkspaceSectionFlags(
+          (initialData as any).companyJson,
+        );
         const newData = {
           ...oldData,
           ...initialData,
@@ -102,10 +109,8 @@ export const useEditWorkspace = () => {
           hasFirstAidService: initialData.hasFirstAidService ?? null,
           firstAidServiceDescription:
             initialData.firstAidServiceDescription ?? '',
-          // Set useCustomSection based on existing customSectionHTML data
-          useCustomSection: !!(initialData as any).companyJson
-            ?.customSectionHTML,
-          isFromOtherCnpj: !!(initialData as any).companyJson?.isFromOtherCnpj,
+          useCustomSection: sectionFlags.useCustomSection,
+          isFromOtherCnpj: sectionFlags.isFromOtherCnpj,
           primaryCnae: (initialData as any).companyJson?.useCustomSection,
         };
 
@@ -202,13 +207,13 @@ export const useEditWorkspace = () => {
     // Combine description with additional info if provided
     const finalDescription = data.description;
 
-    // Update companyJson with form data
     const updatedCompanyJson = {
-      ...companyData.companyJson,
-      isFromOtherCnpj: companyData.isFromOtherCnpj,
-      useCustomSection: companyData.useCustomSection,
-      ...(data.customSectionHTML !== undefined && {
-        customSectionHTML: data.customSectionHTML,
+      ...mergeWorkspaceCompanyJsonSectionFields(companyData.companyJson, {
+        isFromOtherCnpj: companyData.isFromOtherCnpj,
+        useCustomSection: companyData.useCustomSection,
+        ...(data.customSectionHTML !== undefined && {
+          customSectionHTML: data.customSectionHTML,
+        }),
       }),
       primaryActivity: data.primaryCnae,
     };
