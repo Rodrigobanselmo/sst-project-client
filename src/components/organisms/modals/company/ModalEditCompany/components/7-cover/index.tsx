@@ -136,7 +136,7 @@ export const CoverModalCompanyStep = (props: IUseAddCompany) => {
             capa
           </SText>
 
-          <SectionTitle>Posição do Logo</SectionTitle>
+          <SectionTitle>Posição do Logo da Empresa</SectionTitle>
           <SFlex gap={8} flexWrap="wrap">
             <InputForm
               setValue={setValue}
@@ -170,6 +170,46 @@ export const CoverModalCompanyStep = (props: IUseAddCompany) => {
               label="Altura Máx"
               control={control}
               name="maxLogoHeight"
+              type="number"
+              size="small"
+              sx={{ width: 120 }}
+            />
+          </SFlex>
+
+          <SectionTitle>Posição do Logo do Estabelecimento</SectionTitle>
+          <SFlex gap={8} flexWrap="wrap">
+            <InputForm
+              setValue={setValue}
+              label="X"
+              control={control}
+              name="establishmentLogoX"
+              type="number"
+              size="small"
+              sx={{ width: 100 }}
+            />
+            <InputForm
+              setValue={setValue}
+              label="Y"
+              control={control}
+              name="establishmentLogoY"
+              type="number"
+              size="small"
+              sx={{ width: 100 }}
+            />
+            <InputForm
+              setValue={setValue}
+              label="Largura Máx"
+              control={control}
+              name="maxEstablishmentLogoWidth"
+              type="number"
+              size="small"
+              sx={{ width: 120 }}
+            />
+            <InputForm
+              setValue={setValue}
+              label="Altura Máx"
+              control={control}
+              name="maxEstablishmentLogoHeight"
               type="number"
               size="small"
               sx={{ width: 120 }}

@@ -16,6 +16,13 @@ export interface IDocumentCoverJson {
       x?: number;
       y?: number;
     };
+    /** Logo do estabelecimento (identidade contextual na capa). */
+    establishmentLogoProps?: {
+      maxLogoHeight?: number;
+      maxLogoWidth?: number;
+      x?: number;
+      y?: number;
+    };
     titleProps?: {
       x?: number;
       y?: number;

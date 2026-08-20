@@ -7,11 +7,13 @@ import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto'
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { api } from 'core/services/apiClient';
 import {
   useMutUpsertDocumentCover,
   IDocumentCoverJson,
 } from 'core/services/hooks/mutations/manager/document-cover/useMutUpsertDocumentCover';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryDocumentCovers } from 'core/services/hooks/queries/useQueryDocumentCovers/useQueryDocumentCovers';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
@@ -23,6 +25,10 @@ interface ICoverFormData {
   logoY?: number;
   maxLogoWidth?: number;
   maxLogoHeight?: number;
+  establishmentLogoX?: number;
+  establishmentLogoY?: number;
+  maxEstablishmentLogoWidth?: number;
+  maxEstablishmentLogoHeight?: number;
   titleX?: number;
   titleY?: number;
   titleBoxX?: number;
@@ -49,6 +55,10 @@ const DEFAULT_COVER_VALUES: ICoverFormData = {
   logoY: 58,
   maxLogoWidth: 212,
   maxLogoHeight: 141,
+  establishmentLogoX: 560,
+  establishmentLogoY: 530,
+  maxEstablishmentLogoWidth: 80,
+  maxEstablishmentLogoHeight: 48,
   titleX: 103,
   titleY: 310,
   titleBoxX: 464,
@@ -79,6 +89,7 @@ export const useCoverEdit = ({
   const { data: covers, isLoading: isLoadingCovers } = useQueryDocumentCovers(
     companyData.id,
   );
+  const { data: companyWithWorkspaces } = useQueryCompany(companyData.id);
 
   const form = useForm<ICoverFormData>({
     defaultValues: DEFAULT_COVER_VALUES,
@@ -103,6 +114,19 @@ export const useCoverEdit = ({
           props?.logoProps?.maxLogoWidth ?? DEFAULT_COVER_VALUES.maxLogoWidth,
         maxLogoHeight:
           props?.logoProps?.maxLogoHeight ?? DEFAULT_COVER_VALUES.maxLogoHeight,
+        establishmentLogoX:
+          props?.establishmentLogoProps?.x ??
+          DEFAULT_COVER_VALUES.establishmentLogoX,
+        establishmentLogoY:
+          props?.establishmentLogoProps?.y ??
+          props?.companyProps?.y ??
+          DEFAULT_COVER_VALUES.establishmentLogoY,
+        maxEstablishmentLogoWidth:
+          props?.establishmentLogoProps?.maxLogoWidth ??
+          DEFAULT_COVER_VALUES.maxEstablishmentLogoWidth,
+        maxEstablishmentLogoHeight:
+          props?.establishmentLogoProps?.maxLogoHeight ??
+          DEFAULT_COVER_VALUES.maxEstablishmentLogoHeight,
         titleX: props?.titleProps?.x ?? DEFAULT_COVER_VALUES.titleX,
         titleY: props?.titleProps?.y ?? DEFAULT_COVER_VALUES.titleY,
         titleBoxX: props?.titleProps?.boxX ?? DEFAULT_COVER_VALUES.titleBoxX,
@@ -159,6 +183,24 @@ export const useCoverEdit = ({
         maxLogoHeight: toNumber(
           formData.maxLogoHeight,
           DEFAULT_COVER_VALUES.maxLogoHeight!,
+        ),
+      },
+      establishmentLogoProps: {
+        x: toNumber(
+          formData.establishmentLogoX,
+          DEFAULT_COVER_VALUES.establishmentLogoX!,
+        ),
+        y: toNumber(
+          formData.establishmentLogoY,
+          DEFAULT_COVER_VALUES.establishmentLogoY!,
+        ),
+        maxLogoWidth: toNumber(
+          formData.maxEstablishmentLogoWidth,
+          DEFAULT_COVER_VALUES.maxEstablishmentLogoWidth!,
+        ),
+        maxLogoHeight: toNumber(
+          formData.maxEstablishmentLogoHeight,
+          DEFAULT_COVER_VALUES.maxEstablishmentLogoHeight!,
         ),
       },
       titleProps: {
@@ -233,9 +275,22 @@ export const useCoverEdit = ({
 
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
+  /**
+   * Amostra para o Preview: primeiro estabelecimento terceiro com logo,
+   * mesma condição do DOCX (isOwner === false && logoUrl).
+   */
+  const pickPreviewThirdPartyWorkspace = (): IWorkspace | null => {
+    const list = companyWithWorkspaces?.workspace || [];
+    return (
+      list.find((workspace) => workspace.isOwner === false && !!workspace.logoUrl) ||
+      null
+    );
+  };
+
   const handlePreview = async () => {
     const formData = form.getValues();
     const coverProps = buildCoverJson(formData).coverProps;
+    const previewWorkspace = pickPreviewThirdPartyWorkspace();
 
     const previewData = {
       logoUrl: companyData.logoUrl,
@@ -243,6 +298,17 @@ export const useCoverEdit = ({
       title: 'Título do Documento',
       version: 'Versão 1.0',
       companyName: companyData.name || companyData.fantasy,
+      companyInitials: companyData.initials,
+      workspace: previewWorkspace
+        ? {
+            isOwner: false,
+            logoUrl: previewWorkspace.logoUrl,
+            name: previewWorkspace.name,
+            abbreviation: previewWorkspace.abbreviation,
+            razaoSocial: previewWorkspace.companyJson?.name,
+            companyJsonName: previewWorkspace.companyJson?.name,
+          }
+        : undefined,
       coverProps,
     };
 
