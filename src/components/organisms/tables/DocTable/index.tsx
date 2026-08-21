@@ -29,9 +29,12 @@ import {
   filterUnofficialVersions,
   formatRevisionDisplayLabel,
   getDocumentVersionFamilyLabel,
+  getOfficialDeleteTooltip,
+  isLatestOfficialVersionInSeries,
   isOfficialDocumentVersion,
   isPromoteToOfficialEnabledForDocumentType,
   isUnofficialDocumentVersion,
+  resolveOfficialRevisionSeries,
   validatePromoteTestToOfficial,
 } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-version.helpers';
 import { resolveRegenerateProfessionals } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-generation-professionals.helpers';
@@ -53,6 +56,7 @@ import { SReloadIcon } from 'assets/icons/SReloadIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useAccess } from 'core/hooks/useAccess';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
@@ -196,6 +200,7 @@ export const DocTable: FC<
 
   const { onOpenModal } = useModal();
   const { companyId } = useGetCompanyId();
+  const { isMaster } = useAccess();
   const { preventDelete } = usePreventAction();
   const { showConfirmation } = useConfirmationModal();
   const deleteDocVersion = useMutDeleteDocVersion();
@@ -366,6 +371,29 @@ export const DocTable: FC<
 
   const handleDeleteDoc = useCallback(
     (doc: IRiskDocument) => {
+      const isOfficialVersion = isOfficialDocumentVersion(doc.version);
+
+      if (isOfficialVersion) {
+        if (!isMaster) return;
+
+        preventDelete(
+          async () => {
+            await deleteDocVersion
+              .mutateAsync({ id: doc.id, companyId })
+              .catch(() => {});
+          },
+          `Esta ação removerá permanentemente uma versão oficial do documento. A exclusão só é permitida da versão mais recente para a mais antiga.\n\nDocumento: ${doc.name}\nVersão: ${doc.version}\nRevisão: ${formatRevisionDisplayLabel(doc.version)}\nSérie oficial: ${resolveOfficialRevisionSeries(doc.officialRevisionSeries)}`,
+          {
+            title: 'Excluir versão oficial',
+            confirmText: 'Excluir',
+            tag: 'delete',
+            inputConfirm: true,
+            inputConfirmWord: 'EXCLUIR',
+          },
+        );
+        return;
+      }
+
       preventDelete(
         async () => {
           await deleteDocVersion
@@ -375,7 +403,7 @@ export const DocTable: FC<
         getDeleteConfirmMessage(doc),
       );
     },
-    [companyId, deleteDocVersion, getDeleteConfirmMessage, preventDelete],
+    [companyId, deleteDocVersion, getDeleteConfirmMessage, isMaster, preventDelete],
   );
 
   const handleEditStatus = (_status: StatusEnum) => {
@@ -732,6 +760,18 @@ export const DocTable: FC<
         const showTestVersionActions = !isOfficialVersion;
         const supportsPromoteToOfficial =
           isPromoteToOfficialEnabledForDocumentType(type);
+        const isLatestOfficialInSeries = isLatestOfficialVersionInSeries(
+          row,
+          allDocs,
+        );
+        const canDeleteOfficial =
+          isMaster && isOfficialVersion && isLatestOfficialInSeries;
+        const deleteDisabled = isOfficialVersion
+          ? !canDeleteOfficial ||
+            (deleteDocVersion.isLoading &&
+              deleteDocVersion.variables?.id === row.id)
+          : deleteDocVersion.isLoading &&
+            deleteDocVersion.variables?.id === row.id;
 
         return (
           <SFlex
@@ -817,17 +857,13 @@ export const DocTable: FC<
               ))}
             <IconButtonRow
               icon={<SDeleteIcon />}
-              tooltipTitle={
-                isOfficialVersion
-                  ? 'Versões oficiais não podem ser excluídas'
-                  : 'Excluir'
-              }
+              tooltipTitle={getOfficialDeleteTooltip({
+                isOfficial: isOfficialVersion,
+                isMaster,
+                isLatestInSeries: isLatestOfficialInSeries,
+              })}
               sx={actionIconButtonSx}
-              disabled={
-                isOfficialVersion ||
-                (deleteDocVersion.isLoading &&
-                  deleteDocVersion.variables?.id === row.id)
-              }
+              disabled={deleteDisabled}
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteDoc(row);

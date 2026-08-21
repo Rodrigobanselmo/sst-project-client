@@ -39,6 +39,7 @@ export const isRevisionControlledDocumentVersion = isOfficialDocumentVersion;
 export type DocumentVersionSeriesRow = {
   version: string;
   officialRevisionSeries?: number | null;
+  documentDataId?: string;
 };
 
 export function resolveOfficialRevisionSeries(
@@ -162,6 +163,52 @@ export function getNextOfficialVersion(
   );
 
   return `${maxMajor + 1}.0.0`;
+}
+
+export function getOfficialVersionsInSameSeries<
+  T extends DocumentVersionSeriesRow,
+>(target: T, versions: T[]): T[] {
+  if (!isOfficialDocumentVersion(target.version)) return [];
+
+  const series = resolveOfficialRevisionSeries(target.officialRevisionSeries);
+
+  return versions.filter(
+    (item) =>
+      isOfficialDocumentVersion(item.version) &&
+      (target.documentDataId
+        ? item.documentDataId === target.documentDataId
+        : true) &&
+      resolveOfficialRevisionSeries(item.officialRevisionSeries) === series,
+  );
+}
+
+/** Mais recente da série = maior major N em N.0.0, no mesmo DocumentData + série. */
+export function isLatestOfficialVersionInSeries(
+  target: DocumentVersionSeriesRow,
+  versions: DocumentVersionSeriesRow[],
+): boolean {
+  const sameSeries = getOfficialVersionsInSameSeries(target, versions);
+  if (sameSeries.length === 0) return false;
+
+  const targetMajor = getOfficialVersionMajor(target.version);
+  const maxMajor = Math.max(
+    ...sameSeries.map((item) => getOfficialVersionMajor(item.version)),
+  );
+
+  return targetMajor === maxMajor && targetMajor >= 1;
+}
+
+export function getOfficialDeleteTooltip(params: {
+  isOfficial: boolean;
+  isMaster: boolean;
+  isLatestInSeries: boolean;
+}): string {
+  if (!params.isOfficial) return 'Excluir';
+  if (!params.isMaster) return 'Versões oficiais não podem ser excluídas';
+  if (params.isLatestInSeries) {
+    return 'Excluir versão oficial — ação exclusiva de Master';
+  }
+  return 'Exclua primeiro a versão oficial mais recente desta série.';
 }
 
 /** Número sequencial exibido no DOCX (01, 02, 03…). */

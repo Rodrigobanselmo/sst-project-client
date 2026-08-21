@@ -26,6 +26,7 @@ const DefaultModal: FC = () => {
   const globalModal = useAppSelector(selectModalGlobal);
   const { onCloseGlobalModal } = useGlobalModal();
   const [inputConfirmText, setInputConfirmText] = useState('');
+  const requiredConfirmWord = modalData.inputConfirmWord || 'deletar';
 
   const onConfirm = () => {
     dispatch(setModalAction(true));
@@ -39,7 +40,7 @@ const DefaultModal: FC = () => {
       onClick: onConfirm,
       variant: 'contained',
       disabled: modalData.inputConfirm
-        ? !(inputConfirmText == 'deletar')
+        ? !(inputConfirmText == requiredConfirmWord)
         : false,
     } as IModalButton,
   ];
@@ -62,13 +63,13 @@ const DefaultModal: FC = () => {
         {modalData.inputConfirm && (
           <>
             <Typography fontSize={14} color={'grey.500'} mb={5} mt={10}>
-              Escreva <b>deletar</b> para continuar
+              Escreva <b>{requiredConfirmWord}</b> para continuar
             </Typography>
             <SInput
               value={inputConfirmText}
               onChange={(e) => setInputConfirmText(e.target.value)}
               fullWidth
-              placeholder="deletar"
+              placeholder={requiredConfirmWord}
             />
           </>
         )}

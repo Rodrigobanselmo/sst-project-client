@@ -13,6 +13,8 @@ export interface IModalDataSlice {
   confirmText: string;
   tag?: ITagAction;
   inputConfirm?: boolean;
+  /** Texto que o usuário deve digitar quando inputConfirm=true. Default: deletar */
+  inputConfirmWord?: string;
   confirmCancel: string;
 }
 
