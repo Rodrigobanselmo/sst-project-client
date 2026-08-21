@@ -5,6 +5,7 @@ import { getPathname } from '@v2/hooks/useAppRouter';
 import { PageRoutes } from '@v2/constants/pages/routes';
 import { FormApplicationScopeTypeEnum } from '../../enums/form-application-scope-type.enum';
 import { FormTypeEnum } from '../../enums/form-type.enum';
+import { resolveClientFormReminderLimit } from '../../helpers/resolve-form-reminder-limit';
 
 export type IFormApplicationReadModel = {
   id: string;
@@ -35,6 +36,8 @@ export type IFormApplicationReadModel = {
   bannerWhyText?: string | null;
   bannerContactText?: string | null;
   reminderCount?: number;
+  additionalReminderLimit?: number;
+  reminderLimit?: number;
   questionIdentifierGroup: FormQuestionGroupReadModel;
 };
 
@@ -60,6 +63,8 @@ export class FormApplicationReadModel {
   bannerWhyText: string | null;
   bannerContactText: string | null;
   reminderCount: number;
+  additionalReminderLimit: number;
+  reminderLimit: number;
   scopeType: FormApplicationScopeTypeEnum;
   companyGroupId: number | null;
   participants: {
@@ -100,6 +105,11 @@ export class FormApplicationReadModel {
     this.bannerWhyText = params.bannerWhyText ?? null;
     this.bannerContactText = params.bannerContactText ?? null;
     this.reminderCount = params.reminderCount ?? 0;
+    this.additionalReminderLimit = params.additionalReminderLimit ?? 0;
+    this.reminderLimit = resolveClientFormReminderLimit({
+      reminderLimit: params.reminderLimit,
+      additionalReminderLimit: params.additionalReminderLimit,
+    });
     this.questionIdentifierGroup = new FormQuestionGroupReadModel(
       params.questionIdentifierGroup,
     );

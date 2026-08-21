@@ -6,13 +6,13 @@ import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import { isFormReminderEligible } from '../utils/form-reminder-eligibility';
 import { useMutateSendFormReminder } from './useMutateSendFormReminder';
 import { SendFormReminderResult } from '../service/send-form-reminder.types';
-
-export const FORM_REMINDER_LIMIT = 4;
+import { resolveClientFormReminderLimit } from '@v2/models/form/helpers/resolve-form-reminder-limit';
 
 type SendFormReminderFlowParams = {
   companyId: string;
   applicationId: string;
   reminderCount: number;
+  reminderLimit?: number | null;
   isAcceptingResponses: boolean;
   isShareableLink: boolean;
   onSuccess?: (data: SendFormReminderResult) => void;
@@ -28,20 +28,24 @@ export const useSendFormReminderFlow = () => {
       companyId,
       applicationId,
       reminderCount,
+      reminderLimit: reminderLimitParam,
       isAcceptingResponses,
       isShareableLink,
       onSuccess,
     }: SendFormReminderFlowParams) => {
+      const reminderLimit = resolveClientFormReminderLimit({
+        reminderLimit: reminderLimitParam,
+      });
       if (
         !isFormReminderEligible({ isAcceptingResponses, isShareableLink }) ||
-        reminderCount >= FORM_REMINDER_LIMIT
+        reminderCount >= reminderLimit
       ) {
         return;
       }
 
       const confirmed = await showConfirmation({
         title: 'Enviar E-mail de Reforço',
-        message: `O e-mail de reforço será enviado apenas para participantes que ainda não responderam ao formulário.\n\nParticipantes que já responderam não receberão.\n\nEste envio consome 1 das ${FORM_REMINDER_LIMIT - reminderCount} rodadas restantes (${reminderCount}/${FORM_REMINDER_LIMIT} utilizadas).`,
+        message: `O e-mail de reforço será enviado apenas para participantes que ainda não responderam ao formulário.\n\nParticipantes que já responderam não receberão.\n\nEste envio consome 1 das ${reminderLimit - reminderCount} rodadas restantes (${reminderCount}/${reminderLimit} utilizadas).`,
         confirmText: 'Enviar Reforço',
         cancelText: 'Cancelar',
         variant: 'info',

@@ -8,7 +8,6 @@ export type {
 // Hooks
 export { useMutateSendFormReminder } from './hooks/useMutateSendFormReminder';
 export {
-  FORM_REMINDER_LIMIT,
   useSendFormReminderFlow,
 } from './hooks/useSendFormReminderFlow';
 export { isFormReminderEligible } from './utils/form-reminder-eligibility';

@@ -61,9 +61,12 @@ import {
   shouldShowEstablishmentParticipantViewModes,
 } from '@v2/models/form/helpers/form-participants-view-mode-visibility';
 import {
-  FORM_REMINDER_LIMIT,
   useSendFormReminderFlow,
 } from '@v2/services/forms/form-participants/send-form-reminder';
+import { resolveClientFormReminderLimit } from '@v2/models/form/helpers/resolve-form-reminder-limit';
+import { GrantFormReminderLimitModal } from './components/GrantFormReminderLimitModal';
+import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
+import { useAccess } from 'core/hooks/useAccess';
 import {
   Alert,
   Box,
@@ -129,6 +132,8 @@ export const FormParticipantsTable = ({
       companyId,
       applicationId,
     });
+  const { isMaster } = useAccess();
+  const { openModal, closeModal } = useModal();
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<IFormParticipantsFilterProps>();
@@ -433,7 +438,11 @@ export const FormParticipantsTable = ({
     formApplication?.status === FormApplicationStatusEnum.PROGRESS;
 
   const reminderCount = formApplication?.reminderCount ?? 0;
-  const isReminderLimitReached = reminderCount >= FORM_REMINDER_LIMIT;
+  const reminderLimit = resolveClientFormReminderLimit({
+    reminderLimit: formApplication?.reminderLimit,
+    additionalReminderLimit: formApplication?.additionalReminderLimit,
+  });
+  const isReminderLimitReached = reminderCount >= reminderLimit;
 
   const { sendReminder, isSending: isSendingReminder } = useSendFormReminderFlow();
 
@@ -444,6 +453,7 @@ export const FormParticipantsTable = ({
       companyId,
       applicationId,
       reminderCount,
+      reminderLimit,
       isAcceptingResponses,
       isShareableLink: formApplication.isShareableLink,
     });
@@ -453,7 +463,33 @@ export const FormParticipantsTable = ({
     formApplication,
     isAcceptingResponses,
     reminderCount,
+    reminderLimit,
     sendReminder,
+  ]);
+
+  const handleOpenGrantReminderLimit = useCallback(() => {
+    if (!formApplication) return;
+
+    openModal(
+      ModalKeyEnum.FORM_APPLICATION_GRANT_REMINDER_LIMIT,
+      <GrantFormReminderLimitModal
+        companyId={companyId}
+        applicationId={applicationId}
+        reminderCount={reminderCount}
+        reminderLimit={reminderLimit}
+        onClose={() =>
+          closeModal(ModalKeyEnum.FORM_APPLICATION_GRANT_REMINDER_LIMIT)
+        }
+      />,
+    );
+  }, [
+    applicationId,
+    closeModal,
+    companyId,
+    formApplication,
+    openModal,
+    reminderCount,
+    reminderLimit,
   ]);
 
   const hierarchyFilterDescription = useMemo(() => {
@@ -693,7 +729,7 @@ export const FormParticipantsTable = ({
           />
           <STableButton
             onClick={handleSendReminder}
-            text={`Enviar Reforço (${reminderCount}/${FORM_REMINDER_LIMIT})`}
+            text={`Enviar Reforço (${reminderCount}/${reminderLimit})`}
             icon={<SIconEmail fontSize="16px" />}
             color="primary"
             loading={isSendingReminder}
@@ -704,14 +740,23 @@ export const FormParticipantsTable = ({
             }
             tooltip={
               isReminderLimitReached
-                ? `Limite de ${FORM_REMINDER_LIMIT} rodadas de reforço atingido`
+                ? `Limite de ${reminderLimit} rodadas de reforço atingido`
                 : !isAcceptingResponses
                   ? 'Formulário não está aceitando respostas'
                   : formApplication.isShareableLink
                     ? 'Reforço por e-mail não se aplica a link único compartilhável'
-                    : `Enviar e-mail de reforço para quem ainda não respondeu (${reminderCount}/${FORM_REMINDER_LIMIT})`
+                    : `Enviar e-mail de reforço para quem ainda não respondeu (${reminderCount}/${reminderLimit})`
             }
           />
+          {isMaster && (
+            <STableButton
+              onClick={handleOpenGrantReminderLimit}
+              text="Liberar reforços"
+              color="success"
+              disabled={!formApplication}
+              tooltip="Liberar reforços adicionais nesta campanha (somente Master)"
+            />
+          )}
           {/* <STableAddButton onClick={onFormParticipantAdd} /> */}
           {/* <STableColumnsButton
             showLabel

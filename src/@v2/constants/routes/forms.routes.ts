@@ -78,6 +78,8 @@ export const FormRoutes = {
       'v2/companies/:companyId/forms/applications/:applicationId/participants/send-email',
     SEND_REMINDER:
       'v2/companies/:companyId/forms/applications/:applicationId/participants/send-reminder',
+    GRANT_REMINDER_LIMIT:
+      'v2/companies/:companyId/forms/applications/:applicationId/participants/grant-reminder-limit',
     ADHERENCE_EVOLUTION:
       'v2/companies/:companyId/forms/applications/:applicationId/participants/adherence-evolution',
   },

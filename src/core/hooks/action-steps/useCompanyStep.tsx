@@ -21,6 +21,7 @@ import { FormApplicationStatusTranslate } from '@v2/models/form/translations/for
 import { useFetchBrowseFormApplication } from '@v2/services/forms/form-application/browse-form-application/hooks/useFetchBrowseFormApplication';
 import { FormApplicationOrderByEnum } from '@v2/services/forms/form-application/browse-form-application/service/browse-form-application.types';
 import { readFormApplication } from '@v2/services/forms/form-application/read-form-application/service/read-form-application.service';
+import { resolveClientFormReminderLimit } from '@v2/models/form/helpers/resolve-form-reminder-limit';
 import { isFormReminderEligible } from '@v2/services/forms/form-participants/send-form-reminder';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
@@ -204,6 +205,7 @@ export const useCompanyStep = () => {
       {
         averageTimeSpent: number | null;
         reminderCount: number;
+        reminderLimit: number;
         isShareableLink: boolean;
       }
     >
@@ -227,6 +229,10 @@ export const useCompanyStep = () => {
             applicationId,
             averageTimeSpent: application.averageTimeSpent,
             reminderCount: application.reminderCount ?? 0,
+            reminderLimit: resolveClientFormReminderLimit({
+              reminderLimit: application.reminderLimit,
+              additionalReminderLimit: application.additionalReminderLimit,
+            }),
             isShareableLink: application.isShareableLink,
           };
         }),
@@ -238,6 +244,7 @@ export const useCompanyStep = () => {
           [item.applicationId]: {
             averageTimeSpent: item.averageTimeSpent,
             reminderCount: item.reminderCount,
+            reminderLimit: item.reminderLimit,
             isShareableLink: item.isShareableLink,
           },
         }),
@@ -246,6 +253,7 @@ export const useCompanyStep = () => {
           {
             averageTimeSpent: number | null;
             reminderCount: number;
+            reminderLimit: number;
             isShareableLink: boolean;
           }
         >,
@@ -612,6 +620,7 @@ export const useCompanyStep = () => {
         isBusinessGroupApplication,
         currentCompanyParticipationPercent,
         reminderCount: details?.reminderCount ?? 0,
+        reminderLimit: details?.reminderLimit ?? resolveClientFormReminderLimit({}),
         isAcceptingResponses,
         isShareableLink: details?.isShareableLink ?? true,
         canSendReminder:

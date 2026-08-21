@@ -16,7 +16,6 @@ import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { PageRoutes } from '@v2/constants/pages/routes';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import {
-  FORM_REMINDER_LIMIT,
   useSendFormReminderFlow,
 } from '@v2/services/forms/form-participants/send-form-reminder';
 import SFlex from 'components/atoms/SFlex';
@@ -35,6 +34,7 @@ export type HomeFormLaunchItem = {
   isBusinessGroupApplication?: boolean;
   currentCompanyParticipationPercent?: number;
   reminderCount: number;
+  reminderLimit: number;
   isAcceptingResponses: boolean;
   isShareableLink: boolean;
   canSendReminder: boolean;
@@ -186,7 +186,7 @@ function FormLaunchRow({
   const rowRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const isReminderLimitReached = item.reminderCount >= FORM_REMINDER_LIMIT;
+  const isReminderLimitReached = item.reminderCount >= item.reminderLimit;
 
   const openPreview = useCallback(() => {
     if (closeTimerRef.current) {
@@ -291,8 +291,8 @@ function FormLaunchRow({
                   onClick={handleReminderClick}
                   title={
                     isReminderLimitReached
-                      ? `Limite de ${FORM_REMINDER_LIMIT} rodadas de reforço atingido`
-                      : `Enviar e-mail de reforço (${item.reminderCount}/${FORM_REMINDER_LIMIT})`
+                      ? `Limite de ${item.reminderLimit} rodadas de reforço atingido`
+                      : `Enviar e-mail de reforço (${item.reminderCount}/${item.reminderLimit})`
                   }
                   sx={{
                     flexShrink: 0,
@@ -315,7 +315,7 @@ function FormLaunchRow({
                     },
                   }}
                 >
-                  Reforço ({item.reminderCount}/{FORM_REMINDER_LIMIT})
+                  Reforço ({item.reminderCount}/{item.reminderLimit})
                 </SText>
               </>
             )}
@@ -394,6 +394,7 @@ export function CompanyHomeFormsGroupCard({
         companyId,
         applicationId: item.id,
         reminderCount: item.reminderCount,
+        reminderLimit: item.reminderLimit,
         isAcceptingResponses: item.isAcceptingResponses,
         isShareableLink: item.isShareableLink,
         onSuccess: () => {
