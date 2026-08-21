@@ -52,6 +52,7 @@ import {
   hasInsertableContentCatalog,
   hasInsertableStructuralCatalog,
 } from '../../utils/filterStructuralInsertCatalog';
+import { EMPTY_PARAGRAPH_PLACEHOLDER } from '../../utils/emptyParagraphPlaceholder';
 
 import { RemoveDoubleClickButton } from './RemoveDoubleClickButton';
 import { STContainerItem } from './styles';
@@ -245,7 +246,10 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
     const payload = buildContentElementPayload(elementType);
 
     if (isSection && item.id) {
-      onAddElementAfterSection(payload as NodeDocumentModelElementData, item.id);
+      onAddElementAfterSection(
+        payload as NodeDocumentModelElementData,
+        item.id,
+      );
       return;
     }
 
@@ -616,10 +620,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
       sortArray(
         Object.values(variables)
           .filter(
-            (v) =>
-              v.active != false &&
-              !v.isBoolean &&
-              !!(v.label || v.type),
+            (v) => v.active != false && !v.isBoolean && !!(v.label || v.type),
           )
           .map((variable) => ({
             text: variable.label || variable.type,
@@ -699,8 +700,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     text={
                       item.type ===
                       DocumentSectionChildrenTypeEnum.SECTION_BREAK
-                        ? item.orientation ===
-                          DocModelPageOrientation.LANDSCAPE
+                        ? item.orientation === DocModelPageOrientation.LANDSCAPE
                           ? 'Quebra de Seção — Paisagem'
                           : 'Quebra de Seção — Retrato'
                         : undefined
@@ -827,7 +827,20 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     document_model
                     textProps={{ color: 'grey.700' }}
                     label={''}
-                    placeholder="descrição..."
+                    placeholder={
+                      item.type === DocumentSectionChildrenTypeEnum.PARAGRAPH
+                        ? EMPTY_PARAGRAPH_PLACEHOLDER
+                        : 'descrição...'
+                    }
+                    {...(item.type ===
+                      DocumentSectionChildrenTypeEnum.PARAGRAPH && {
+                      sx: {
+                        '& .public-DraftEditorPlaceholder-root': {
+                          color: 'grey.500',
+                          fontStyle: 'italic',
+                        },
+                      },
+                    })}
                     defaultValue={parseToEditor(item) as any}
                     onChange={(value) =>
                       handleEdit(
@@ -853,7 +866,9 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                         'link',
                       ],
                     }}
-                    {...(!mapProps[item.type]?.toolbar && { toolbarOpen: false })}
+                    {...(!mapProps[item.type]?.toolbar && {
+                      toolbarOpen: false,
+                    })}
                     {...(!(mapProps as any)[item.type]?.multiline && {
                       handleReturn,
                     })}

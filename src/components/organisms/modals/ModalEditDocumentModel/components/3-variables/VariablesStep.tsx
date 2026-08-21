@@ -22,11 +22,14 @@ export const VariablesStep = (data: IUseDocumentModel) => {
   const localVariables = useAppSelector(selectAllDocumentModelVariables);
 
   const buttons = [
-    {},
+    {
+      disabled: data.isPersisting,
+    },
     {
       text: 'Salvar',
       variant: 'contained',
       onClick: () => onSubmit(),
+      disabled: data.isPersisting,
     },
   ] as IModalButton[];
 

@@ -1,25 +1,18 @@
+import { useState } from 'react';
 import { useStore } from 'react-redux';
 
 import { getModelSectionsBySelectedItem } from 'components/organisms/documentModel/DocumentModelContent/utils/getModelBySelectedItem';
-import {
-  IDocumentSlice,
-  setSaveDocument,
-} from 'store/reducers/document/documentSlice';
+import { IDocumentSlice } from 'store/reducers/document/documentSlice';
 
-import { QueryEnum } from 'core/enums/query.enums';
 import { useMutPreviewDocumentModel } from 'core/services/hooks/mutations/checklist/documentData/useMutPreviewDocumentModel/useMutPreviewDocumentModel';
-import { IQueryDocumentModelData } from 'core/services/hooks/queries/useQueryDocumentModelData/useQueryDocumentModelData';
-import { queryClient } from 'core/services/queryClient';
 
-import {
-  getDocumentModelMetadataPatch,
-  IUseDocumentModel,
-} from '../../../hooks/useEditDocumentModel';
+import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 
 export const useViewDocumentModel = (props: IUseDocumentModel) => {
-  const { onClose, data, dispatch, model } = props;
+  const { onClose, data, persistDocumentModel, closeEditor, model } = props;
   const store = useStore<any>();
   const downloadPreview = useMutPreviewDocumentModel();
+  const [saveIntent, setSaveIntent] = useState<'stay' | 'exit' | null>(null);
 
   const onCloseUnsaved = async () => {
     onClose();
@@ -52,39 +45,36 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
     }
   };
 
-  const onSubmit = async () => {
-    const modelData = (store.getState().document as IDocumentSlice).model;
-    if (!modelData) return;
-
-    const query: IQueryDocumentModelData = {
-      id: data.id,
-      companyId: data.companyId,
-    };
-
-    props.updateMutation
-      .mutateAsync({
-        ...getDocumentModelMetadataPatch(data),
-        data: modelData,
-      })
-      .then(() => {
-        dispatch(setSaveDocument());
-        queryClient.setQueryData(
-          [QueryEnum.DOCUMENT_MODEL_DATA, query],
-          (oldData: any) => {
-            return { ...oldData, document: modelData };
-          },
-        );
-      })
-      .catch(() => null);
+  const runPersist = async (intent: 'stay' | 'exit') => {
+    setSaveIntent(intent);
+    const ok = await persistDocumentModel();
+    if (ok && intent === 'exit') {
+      closeEditor();
+      return;
+    }
+    setSaveIntent(null);
   };
+
+  const onSubmit = async () => {
+    await runPersist('stay');
+  };
+
+  const onSubmitAndExit = async () => {
+    await runPersist('exit');
+  };
+
+  const saveBusy = props.updateMutation.isLoading || saveIntent !== null;
 
   return {
     ...props,
     onSubmit,
+    onSubmitAndExit,
     onCloseUnsaved,
     onDownloadPreview,
     downlandLoading: downloadPreview.isLoading,
-    saveLoading: props.updateMutation.isLoading,
+    saveLoading: saveIntent === 'stay',
+    saveAndExitLoading: saveIntent === 'exit',
+    saveBusy,
   };
 };
 

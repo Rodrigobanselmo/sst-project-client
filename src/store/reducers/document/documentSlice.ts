@@ -427,6 +427,7 @@ export const documentSlice = createSlice({
           ...state.model.variables.filter((v) => v.type !== variable.type),
           variable,
         ];
+        state.needSynchronization = true;
       }
     },
     setDocumentModelRemoveVariable: (
@@ -438,6 +439,7 @@ export const documentSlice = createSlice({
         state.model.variables = [
           ...state.model.variables.filter((v) => v.type !== variable.type),
         ];
+        state.needSynchronization = true;
       }
     },
   },

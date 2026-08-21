@@ -13,12 +13,17 @@ import { IUseViewDocumentModel } from '../../hooks/useViewDocumentModel';
 
 export const TopButtons = ({
   onSubmit,
+  onSubmitAndExit,
   downlandLoading,
   onDownloadPreview,
   saveLoading,
+  saveAndExitLoading,
+  saveBusy,
+  isDirty,
   handleDeleteActualItems,
 }: IUseViewDocumentModel & { handleDeleteActualItems?: () => void }) => {
   const selectItem = useAppSelector(selectDocumentSelectItem);
+  const saveActionColor = isDirty ? 'error.main' : 'primary.main';
   return (
     <Box
       zIndex={100}
@@ -33,7 +38,7 @@ export const TopButtons = ({
         <SFlex justifyContent={'end'} alignItems="center" mr={20}>
           <RemoveDoubleClickButton
             onHandleDeletion={() => handleDeleteActualItems?.()}
-            disabled={!selectItem}
+            disabled={!selectItem || saveBusy}
           />
         </SFlex>
         <STableButton
@@ -43,17 +48,26 @@ export const TopButtons = ({
           loading={downlandLoading}
           color="white"
           iconColor="primary.main"
-          disabled={!selectItem}
+          disabled={!selectItem || saveBusy}
           onClick={() => onDownloadPreview()}
           sm
         />
         <STableButton
           text="Salvar"
           icon={SSaveIcon}
-          disabled={!selectItem}
-          color="primary.main"
+          disabled={!selectItem || saveBusy}
+          color={saveActionColor}
           onClick={onSubmit}
           loading={saveLoading}
+          sm
+        />
+        <STableButton
+          text="Salvar e sair"
+          icon={SSaveIcon}
+          disabled={!selectItem || saveBusy}
+          color={saveActionColor}
+          onClick={onSubmitAndExit}
+          loading={saveAndExitLoading}
           sm
         />
       </SFlex>

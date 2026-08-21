@@ -46,7 +46,10 @@ const DefaultModal: FC = () => {
   ];
 
   if (modalData.confirmCancel)
-    buttons.push({ text: 'Cancel', variant: 'outlined' } as IModalButton);
+    buttons.push({
+      text: modalData.confirmCancel,
+      variant: 'outlined',
+    } as IModalButton);
 
   return (
     <SModal open={globalModal} onClose={() => dispatch(setModalGlobal(false))}>

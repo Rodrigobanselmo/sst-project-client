@@ -3,13 +3,13 @@ import React, { FC, useMemo } from 'react';
 import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
 import { DocModelPageOrientation } from 'core/interfaces/api/IDocumentModel';
 import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enum';
-import sortArray from 'sort-array';
 
 import { IElementTypeModelOption, IElementTypeModelSelectProps } from './types';
 import {
   DOCUMENT_MODEL_INSERT_VISUAL,
   withContentInsertOptionIcon,
 } from 'components/organisms/documentModel/utils/documentModelInsertVisuals';
+import { sortContentInsertOptions } from 'components/organisms/documentModel/utils/sortContentInsertOptions';
 
 const SECTION_BREAK = DocumentSectionChildrenTypeEnum.SECTION_BREAK;
 
@@ -32,10 +32,9 @@ export const ElementTypeModelSelect: FC<
       : null;
 
   const options = useMemo(() => {
-    const sorted = sortArray(Object.values(elements), {
-      by: ['order', 'label'],
-      order: ['asc', 'asc'],
-    }) as IElementTypeModelOption[];
+    const sorted = sortContentInsertOptions(
+      Object.values(elements) as IElementTypeModelOption[],
+    );
 
     const mapped = sorted.flatMap((option) => {
       if (option.type !== SECTION_BREAK) {

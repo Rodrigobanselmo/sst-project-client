@@ -32,8 +32,8 @@ export const DataContent = (props: IUseData) => {
     setValue,
     data,
     isEdit,
-    setChangedState,
     updateMutation,
+    markPersisted,
   } = props;
 
   const { enqueueSnackbar } = useSnackbar();
@@ -143,7 +143,10 @@ export const DataContent = (props: IUseData) => {
         sx={{ maxWidth: ['100%', 800] }}
         name="name"
         size="small"
-        onChange={() => setChangedState()}
+        onChange={(e) => {
+          const name = (e.target as HTMLInputElement).value;
+          setData((d) => ({ ...d, name }));
+        }}
       />
       <InputForm
         defaultValue={data?.description}
@@ -158,7 +161,10 @@ export const DataContent = (props: IUseData) => {
         minRows={3}
         maxRows={6}
         multiline
-        onChange={() => setChangedState()}
+        onChange={(e) => {
+          const description = (e.target as HTMLInputElement).value;
+          setData((d) => ({ ...d, description }));
+        }}
       />
 
       <Box maxWidth={['100%', 200]}>
@@ -227,16 +233,20 @@ export const DataContent = (props: IUseData) => {
               setData((d) => ({
                 ...d,
                 classifications: normalized,
-                isChanged: true,
               }));
 
               if (isEdit && data.id) {
-                updateMutation.mutate({
-                  ...getDocumentModelMetadataPatch({
-                    ...data,
-                    classifications: normalized,
-                  }),
-                });
+                updateMutation
+                  .mutateAsync({
+                    ...getDocumentModelMetadataPatch({
+                      ...data,
+                      classifications: normalized,
+                    }),
+                  })
+                  .then(() => {
+                    markPersisted({ classifications: normalized });
+                  })
+                  .catch(() => null);
               }
             }}
           />
@@ -277,8 +287,7 @@ export const DataContent = (props: IUseData) => {
                   placeholder="selecione..."
                   size="small"
                   defaultValue={
-                    data.copyFromOtherType ||
-                    (otherTypeCopyValue?.type ?? '')
+                    data.copyFromOtherType || (otherTypeCopyValue?.type ?? '')
                   }
                   options={otherTypeOptions}
                   onChange={(e) =>
@@ -323,15 +332,19 @@ export const DataContent = (props: IUseData) => {
               setData({
                 ...data,
                 status: option.value,
-                isChanged: true,
               });
               if (data.id) {
-                updateMutation.mutate({
-                  ...getDocumentModelMetadataPatch({
-                    ...data,
-                    status: option.value,
-                  }),
-                });
+                updateMutation
+                  .mutateAsync({
+                    ...getDocumentModelMetadataPatch({
+                      ...data,
+                      status: option.value,
+                    }),
+                  })
+                  .then(() => {
+                    markPersisted({ status: option.value });
+                  })
+                  .catch(() => null);
               }
             }}
           />

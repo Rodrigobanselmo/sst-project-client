@@ -13,14 +13,38 @@ import { useDataStep } from './hooks/useDataStep';
 
 export const DataStep = (data: IUseDocumentModel) => {
   const props = useDataStep(data);
-  const { loading, onCloseUnsaved, onSubmit } = props;
+  const {
+    loading,
+    onCloseUnsaved,
+    onSubmit,
+    onSubmitAndExit,
+    saveLoading,
+    saveAndExitLoading,
+    saveBusy,
+    isDirty,
+  } = props;
+
+  const saveActionColor = isDirty ? 'error' : 'primary';
 
   const buttons = [
-    {},
+    {
+      disabled: saveBusy,
+    },
     {
       text: 'Salvar',
       variant: 'contained',
+      color: saveActionColor,
       onClick: () => onSubmit(),
+      disabled: saveBusy,
+      loading: saveLoading,
+    },
+    {
+      text: 'Salvar e sair',
+      variant: 'contained',
+      color: saveActionColor,
+      onClick: () => onSubmitAndExit(),
+      disabled: saveBusy,
+      loading: saveAndExitLoading,
     },
     ...(data.isEdit && data.handleDelete
       ? [
@@ -29,6 +53,7 @@ export const DataStep = (data: IUseDocumentModel) => {
             variant: 'outlined' as const,
             color: 'error' as const,
             onClick: data.handleDelete,
+            disabled: saveBusy,
           },
         ]
       : []),

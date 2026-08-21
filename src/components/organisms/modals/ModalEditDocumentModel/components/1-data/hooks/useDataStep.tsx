@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
@@ -14,7 +15,17 @@ import { getDocumentModelMetadataPatch } from '../../../hooks/useEditDocumentMod
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 
 export const useDataStep = (props: IUseDocumentModel) => {
-  const { onClose, updateMutation, createMutation, data, setData } = props;
+  const {
+    onClose,
+    closeEditor,
+    updateMutation,
+    createMutation,
+    data,
+    setData,
+    markPersisted,
+  } = props;
+  const [saveIntent, setSaveIntent] = useState<'stay' | 'exit' | null>(null);
+  const saveIntentRef = useRef<'stay' | 'exit'>('stay');
 
   const { getValues, control, setError, reset, setValue, clearErrors } =
     useFormContext();
@@ -25,12 +36,7 @@ export const useDataStep = (props: IUseDocumentModel) => {
 
   const { handleSelectCompany, getIsSameCompany } = useCompanyTenant();
 
-  const lastStep = async () => {
-    await onSubmit();
-    goToStep(stepCount - 1);
-  };
-
-  const onSubmit = async () => {
+  const persistData = async (): Promise<boolean> => {
     clearErrors();
 
     const { name, description } = getValues();
@@ -45,8 +51,8 @@ export const useDataStep = (props: IUseDocumentModel) => {
       error = true;
     }
 
-    if (error) return;
-    if (!data.type) return;
+    if (error) return false;
+    if (!data.type) return false;
 
     const classifications = normalizeDocumentModelClassifications(
       data.classifications,
@@ -58,7 +64,7 @@ export const useDataStep = (props: IUseDocumentModel) => {
 
     if (classificationConflict) {
       setError('type', { message: classificationConflict });
-      return;
+      return false;
     }
 
     const submitData: ICreateDocumentModel = {
@@ -77,42 +83,103 @@ export const useDataStep = (props: IUseDocumentModel) => {
         ...submitData,
         ...(companyId ? { companyId } : {}),
       });
-      if (createdData) {
-        setData((d) => ({
-          ...d,
-          id: createdData?.id,
-          ...(companyId ? { companyId } : {}),
-        }));
+      if (!createdData) return false;
+
+      setData((d) => ({
+        ...d,
+        id: createdData?.id,
+        name: submitData.name,
+        description: submitData.description,
+        ...(companyId ? { companyId } : {}),
+      }));
+      markPersisted({
+        name: submitData.name,
+        description: submitData.description,
+        type: submitData.type,
+        classifications: submitData.classifications,
+        copyFromId: submitData.copyFromId ?? null,
+        status: data.status,
+      });
+
+      if (saveIntentRef.current === 'exit') {
+        closeEditor();
+      } else {
         nextStep();
       }
+      return true;
     };
 
     try {
       if (!data.id) {
         if (!isSameCompany) {
           handleSelectCompany(create, data.companyId);
-        } else {
-          create();
+          return false;
         }
-      } else {
-        await updateMutation.mutateAsync({
-          name: submitData.name,
-          description: submitData.description,
-          type: submitData.type,
-          ...getDocumentModelMetadataPatch(data),
-        });
+        return await create();
       }
-    } catch (error) {}
+
+      await updateMutation.mutateAsync({
+        name: submitData.name,
+        description: submitData.description,
+        type: submitData.type,
+        ...getDocumentModelMetadataPatch(data),
+      });
+      setData((d) => ({
+        ...d,
+        name: submitData.name,
+        description: submitData.description,
+      }));
+      markPersisted({
+        name: submitData.name,
+        description: submitData.description,
+        type: submitData.type,
+        status: data.status,
+        classifications: submitData.classifications,
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
   };
+
+  const onSubmit = async () => {
+    saveIntentRef.current = 'stay';
+    setSaveIntent('stay');
+    const ok = await persistData();
+    setSaveIntent(null);
+    return ok;
+  };
+
+  const onSubmitAndExit = async () => {
+    saveIntentRef.current = 'exit';
+    setSaveIntent('exit');
+    const ok = await persistData();
+    if (ok) {
+      closeEditor();
+      return;
+    }
+    setSaveIntent(null);
+  };
+
+  const lastStep = async () => {
+    await onSubmit();
+    goToStep(stepCount - 1);
+  };
+
+  const saveBusy = props.isPersisting || saveIntent !== null;
 
   return {
     ...props,
     onSubmit,
+    onSubmitAndExit,
     control,
     setValue,
     onCloseUnsaved,
     lastStep,
     previousStep,
+    saveLoading: saveIntent === 'stay',
+    saveAndExitLoading: saveIntent === 'exit',
+    saveBusy,
   };
 };
 

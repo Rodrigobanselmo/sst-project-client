@@ -23,6 +23,11 @@ import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { ITypeDocumentModel } from '../types/types';
 import { getFontSize, getSpacing } from '../utils/getFontSize';
 import { HeadingNumberingMap } from '../../utils/buildDocumentHeadingNumbering';
+import { DEFAULT_LINE_HEIGHT } from 'components/molecules/form/draft-editor/line-height.util';
+import {
+  EMPTY_PARAGRAPH_PLACEHOLDER,
+  isEmptyParagraphContent,
+} from '../../utils/emptyParagraphPlaceholder';
 import { ItemWrapper } from './ItemWrapper';
 import { StyledText } from './StyledText';
 import {
@@ -97,16 +102,33 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
       ),
       [DocumentSectionChildrenTypeEnum.PARAGRAPH]: (item: IElement) => (
         <STParagraph fontSize={getFontSize(10)} pb={getSpacing(160)}>
-          {item.text.split('\n').map((text, index) => (
-            <StyledText
-              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
-              text={text}
-              entityRange={item.entityRangeBlock?.[index] || []}
-              variables={variables}
-              lineHeight={item.lineHeightBlock?.[index]}
-              key={item.id + index}
-            />
-          ))}
+          {isEmptyParagraphContent(item.text) ? (
+            <SText
+              component="p"
+              sx={{
+                m: 0,
+                lineHeight: DEFAULT_LINE_HEIGHT,
+                color: 'grey.500',
+                fontStyle: 'italic',
+                fontSize: 'inherit',
+              }}
+            >
+              {EMPTY_PARAGRAPH_PLACEHOLDER}
+            </SText>
+          ) : (
+            item.text
+              .split('\n')
+              .map((text, index) => (
+                <StyledText
+                  inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+                  text={text}
+                  entityRange={item.entityRangeBlock?.[index] || []}
+                  variables={variables}
+                  lineHeight={item.lineHeightBlock?.[index]}
+                  key={item.id + index}
+                />
+              ))
+          )}
         </STParagraph>
       ),
       // [DocumentSectionChildrenTypeEnum.IMAGE]: (item: IElement) => (

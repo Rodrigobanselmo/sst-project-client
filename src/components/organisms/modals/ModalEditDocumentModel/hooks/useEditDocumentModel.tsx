@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import { Box } from '@mui/material';
@@ -16,10 +16,13 @@ import {
   IDocumentSlice,
   setDocumentModalEditData,
   setDocumentModel,
+  setSaveDocument,
 } from 'store/reducers/document/documentSlice';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -28,7 +31,20 @@ import { useMutCreateDocumentModel } from 'core/services/hooks/mutations/manager
 import { useMutUpdateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutUpdateDocumentModel/useMutUpdateDocumentModel';
 import { useMutDeleteDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutDeleteDocumentModel/useMutDeleteDocumentModel';
 import { useQueryDocumentModel } from 'core/services/hooks/queries/useQueryDocumentModel/useQueryDocumentModel';
-import { useQueryDocumentModelData } from 'core/services/hooks/queries/useQueryDocumentModelData/useQueryDocumentModelData';
+import {
+  IQueryDocumentModelData,
+  useQueryDocumentModelData,
+} from 'core/services/hooks/queries/useQueryDocumentModelData/useQueryDocumentModelData';
+import { queryClient } from 'core/services/queryClient';
+
+import {
+  DOCUMENT_MODEL_DISCARD_MODAL,
+  DocumentModelDirtySnapshot,
+  DocumentModelDirtySource,
+  getDocumentModelDirtySnapshot,
+  isDocumentModelEditorDirty,
+  mergeDocumentModelDirtySnapshot,
+} from '../helpers/document-model-dirty';
 
 import { initialBlankState } from '../../ModalBlank/ModalBlank';
 
@@ -43,7 +59,7 @@ export const initialEditDocumentModelState = {
   name: undefined as string | undefined,
   description: undefined as string | undefined,
   type: undefined as DocumentTypeEnum | undefined,
-  isChanged: true,
+  isChanged: false,
   sync: false,
   status: StatusEnum.ACTIVE as StatusEnum | undefined,
   classifications: [] as DocumentModelClassificationEnum[],
@@ -69,11 +85,13 @@ export const useEditDocumentModel = () => {
   const { onCloseModal } = useModal();
   const dispatch = useAppDispatch();
   const store = useStore<any>();
+  const documentDirty = useAppSelector(
+    (state) => state.document.needSynchronization,
+  );
   const initialDataRef = useRef(initialEditDocumentModelState);
+  const metadataBaselineRef = useRef<DocumentModelDirtySnapshot | null>(null);
   const { onStackOpenModal } = useModal();
-  const { preventDelete } = usePreventAction();
-
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventDelete, preventDiscardIf } = usePreventAction();
 
   const [data, setData] = useState({
     ...initialEditDocumentModelState,
@@ -242,38 +260,112 @@ export const useEditDocumentModel = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getModalData, model]);
 
-  const onClose = (data?: any) => {
-    onCloseModal(modalName, data);
+  useEffect(() => {
+    if (metadataBaselineRef.current) return;
+
+    if (model?.id) {
+      metadataBaselineRef.current = getDocumentModelDirtySnapshot({
+        name: model.name,
+        description: model.description,
+        type: model.type,
+        status: model.status,
+        classifications: model.classifications,
+      });
+      return;
+    }
+
+    if (!data.id && (data.companyId || data.type)) {
+      metadataBaselineRef.current = getDocumentModelDirtySnapshot(data);
+    }
+  }, [data, model]);
+
+  const isPersisting =
+    createMutation.isLoading ||
+    updateMutation.isLoading ||
+    deleteMutation.isLoading;
+
+  const isDirty = isDocumentModelEditorDirty({
+    current: getDocumentModelDirtySnapshot(data),
+    baseline: metadataBaselineRef.current,
+    documentDirty,
+  });
+
+  const closeEditor = (closeData?: any) => {
+    onCloseModal(modalName, closeData);
     setData(initialEditDocumentModelState);
+    metadataBaselineRef.current = null;
+  };
+
+  const markPersisted = (partial: Partial<DocumentModelDirtySource>) => {
+    metadataBaselineRef.current = mergeDocumentModelDirtySnapshot(
+      metadataBaselineRef.current,
+      partial,
+    );
+  };
+
+  const persistDocumentModel = async (): Promise<boolean> => {
+    if (updateMutation.isLoading) return false;
+
+    const modelDocument = (store.getState().document as IDocumentSlice).model;
+    if (!modelDocument || !data.id) return false;
+
+    const query: IQueryDocumentModelData = {
+      id: data.id,
+      companyId: data.companyId,
+    };
+
+    try {
+      await updateMutation.mutateAsync({
+        ...getDocumentModelMetadataPatch(data),
+        data: modelDocument,
+      });
+      dispatch(setSaveDocument());
+      queryClient.setQueryData(
+        [QueryEnum.DOCUMENT_MODEL_DATA, query],
+        (oldData: any) => {
+          return { ...oldData, document: modelDocument };
+        },
+      );
+      markPersisted({
+        status: data.status,
+        classifications: data.classifications,
+        type: data.type,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const onCloseUnsaved = (action?: () => void) => {
+    if (isPersisting) return;
+
     if (
-      preventUnwantedChanges(
-        { isChanged: false },
-        { isChanged: data.isChanged },
-        onClose,
+      preventDiscardIf(
+        isDirty,
+        () => {
+          dispatch(setSaveDocument());
+          closeEditor();
+          action?.();
+        },
+        DOCUMENT_MODEL_DISCARD_MODAL,
       )
     )
       return;
-    onClose();
-    action?.();
-  };
 
-  const setChangedState = () => {
-    if (!data.isChanged)
-      setData((d) => ({
-        ...d,
-        isChanged: true,
-      }));
+    closeEditor();
+    action?.();
   };
 
   const handleDelete = () => {
     preventDelete(
       async () => {
         if (!data.id || !data.companyId) return;
-        await deleteMutation.mutateAsync({ id: data.id, companyId: data.companyId });
-        onClose();
+        await deleteMutation.mutateAsync({
+          id: data.id,
+          companyId: data.companyId,
+        });
+        closeEditor();
       },
       'Deseja realmente excluir este modelo de documento? Ele não aparecerá mais na listagem.',
       { confirmText: 'Excluir' },
@@ -283,6 +375,11 @@ export const useEditDocumentModel = () => {
   return {
     registerModal,
     onClose: onCloseUnsaved,
+    closeEditor,
+    persistDocumentModel,
+    markPersisted,
+    isPersisting,
+    isDirty,
     data,
     setData,
     loading:
@@ -296,7 +393,6 @@ export const useEditDocumentModel = () => {
     isEdit,
     updateMutation,
     createMutation,
-    setChangedState,
     dispatch,
     handleDelete,
   };
