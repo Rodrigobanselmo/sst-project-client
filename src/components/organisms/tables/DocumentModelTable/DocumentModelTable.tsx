@@ -96,8 +96,8 @@ export const DocumentModelTable: FC<
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
-    { text: 'Nome', column: 'minmax(150px, 200px)' },
-    { text: 'Descrição', column: 'minmax(180px, 1fr)' },
+    { text: 'Nome', column: 'minmax(220px, 1fr)' },
+    { text: 'Descrição', column: 'minmax(240px, 1.6fr)' },
     { text: 'Classificações', column: 'minmax(140px, 220px)' },
     { text: 'Tipo', column: '100px' },
     { text: 'Criação', column: 'minmax(100px, 130px)' },
@@ -147,7 +147,12 @@ export const DocumentModelTable: FC<
                     : undefined
                 }
               >
-                <TextIconRow text={row.name} />
+                <TextIconRow
+                  text={row.name}
+                  lineNumber={3}
+                  tooltipTitle={row.name}
+                  tooltipProps={{ minLength: 0 }}
+                />
                 <TextIconRow text={row?.description?.trim()} />
                 <DocumentModelClassificationChips
                   classifications={row.classifications}
