@@ -1,7 +1,6 @@
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import {
-  groupAdherenceRemindersOnSeries,
-  reminderLabel,
+  groupAdherenceEmailMarkersOnSeries,
 } from '@v2/models/form/helpers/form-participants-adherence-evolution-reminder-markers';
 import type { IFormParticipantsAdherenceEvolutionModel } from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
 
@@ -103,17 +102,18 @@ export function buildAdherenceEvolutionPdfSection(
       ? ''
       : `<line x1="${padL}" y1="${yPercent(goal).toFixed(2)}" x2="${padL + plotW}" y2="${yPercent(goal).toFixed(2)}" stroke="#546e7a" stroke-width="1.4" stroke-dasharray="6 4"/>`;
 
-  const reminderMarks = groupAdherenceRemindersOnSeries(
+  const reminderMarks = groupAdherenceEmailMarkersOnSeries(
     series.map((point) => point.date),
     evolution.reminders,
+    evolution.initialEmail,
   )
     .map((group) => {
       const x = xAt(group.index).toFixed(2);
       const line = `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + plotH}" stroke="#5d4037" stroke-width="1" stroke-dasharray="4 3" stroke-opacity="0.7"/>`;
-      const labels = group.rounds
-        .map((round, offset) => {
+      const labels = group.labels
+        .map((label, offset) => {
           const y = padT + 10 + offset * 12;
-          return `<text x="${x}" y="${y.toFixed(2)}" text-anchor="middle" font-size="9" fill="#5d4037">${escapeXml(reminderLabel(round))}</text>`;
+          return `<text x="${x}" y="${y.toFixed(2)}" text-anchor="middle" font-size="9" fill="#5d4037">${escapeXml(label)}</text>`;
         })
         .join('');
       return `${line}${labels}`;

@@ -1,8 +1,7 @@
 import type { IFormParticipantsAdherenceEvolutionModel } from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import {
-  groupAdherenceRemindersOnSeries,
-  reminderLabel,
+  groupAdherenceEmailMarkersOnSeries,
 } from '@v2/models/form/helpers/form-participants-adherence-evolution-reminder-markers';
 import { Box } from '@mui/material';
 import {
@@ -65,19 +64,21 @@ export const FormParticipantsAdherenceEvolutionChart = ({
   const series = evolution.series;
   const reminderGroups = useMemo(
     () =>
-      groupAdherenceRemindersOnSeries(
+      groupAdherenceEmailMarkersOnSeries(
         series.map((point) => point.date),
         evolution.reminders,
+        evolution.initialEmail,
       ),
-    [evolution.reminders, series],
+    [evolution.initialEmail, evolution.reminders, series],
   );
   const reminderPlugin = useMemo(
     () =>
       createAdherenceReminderMarkersPlugin(
         series.map((point) => point.date),
         evolution.reminders,
+        evolution.initialEmail,
       ),
-    [evolution.reminders, series],
+    [evolution.initialEmail, evolution.reminders, series],
   );
   const lastPercent =
     series.length > 0 ? series[series.length - 1].cumulativePercent : 0;
@@ -173,11 +174,11 @@ export const FormParticipantsAdherenceEvolutionChart = ({
               if (goal != null) {
                 lines.push(`Meta: ${formatPercent(goal)}%`);
               }
-              const rounds = reminderGroups.find(
+              const labels = reminderGroups.find(
                 (group) => group.index === index,
-              )?.rounds;
-              if (rounds?.length) {
-                rounds.forEach((round) => lines.push(reminderLabel(round)));
+              )?.labels;
+              if (labels?.length) {
+                labels.forEach((label) => lines.push(label));
               }
               return lines;
             },

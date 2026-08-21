@@ -1,17 +1,19 @@
 import type { Plugin } from 'chart.js';
 import {
-  groupAdherenceRemindersOnSeries,
-  reminderLabel,
-  type AdherenceReminderMarkerGroup,
+  groupAdherenceEmailMarkersOnSeries,
+  type AdherenceEmailMarkerGroup,
 } from '@v2/models/form/helpers/form-participants-adherence-evolution-reminder-markers';
-import type { IFormParticipantsAdherenceEvolutionReminder } from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
+import type {
+  IFormParticipantsAdherenceEvolutionInitialEmail,
+  IFormParticipantsAdherenceEvolutionReminder,
+} from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
 
 const LINE_COLOR = 'rgba(93, 64, 55, 0.55)';
 const LABEL_COLOR = '#5d4037';
 const LABEL_LINE_HEIGHT = 12;
 
 function createPlugin(
-  groups: AdherenceReminderMarkerGroup[],
+  groups: AdherenceEmailMarkerGroup[],
 ): Plugin<'bar' | 'line'> {
   return {
     id: 'formParticipantsAdherenceReminderMarkers',
@@ -41,17 +43,13 @@ function createPlugin(
         ctx.lineTo(x, area.bottom);
         ctx.stroke();
 
-        const nearLeft = x - area.left < 36;
-        const nearRight = area.right - x < 36;
+        const nearLeft = x - area.left < 64;
+        const nearRight = area.right - x < 64;
         ctx.textAlign = nearLeft ? 'left' : nearRight ? 'right' : 'center';
         const textX = nearLeft ? x + 3 : nearRight ? x - 3 : x;
 
-        group.rounds.forEach((round, offset) => {
-          ctx.fillText(
-            reminderLabel(round),
-            textX,
-            area.top + 2 + offset * LABEL_LINE_HEIGHT,
-          );
+        group.labels.forEach((label, offset) => {
+          ctx.fillText(label, textX, area.top + 2 + offset * LABEL_LINE_HEIGHT);
         });
       }
 
@@ -63,6 +61,9 @@ function createPlugin(
 export function createAdherenceReminderMarkersPlugin(
   seriesDates: string[],
   reminders: IFormParticipantsAdherenceEvolutionReminder[] | undefined,
+  initialEmail?: IFormParticipantsAdherenceEvolutionInitialEmail | null,
 ): Plugin<'bar' | 'line'> {
-  return createPlugin(groupAdherenceRemindersOnSeries(seriesDates, reminders));
+  return createPlugin(
+    groupAdherenceEmailMarkersOnSeries(seriesDates, reminders, initialEmail),
+  );
 }

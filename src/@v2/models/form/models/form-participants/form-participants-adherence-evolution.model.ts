@@ -12,6 +12,10 @@ export type IFormParticipantsAdherenceEvolutionReminder = {
   round: number;
 };
 
+export type IFormParticipantsAdherenceEvolutionInitialEmail = {
+  sentAt: string;
+};
+
 export type IFormParticipantsAdherenceEvolutionModel = {
   startedAt: string;
   endedAt: string | null;
@@ -22,6 +26,7 @@ export type IFormParticipantsAdherenceEvolutionModel = {
   participationGoal: number | null;
   series: IFormParticipantsAdherenceEvolutionSeriesPoint[];
   reminders: IFormParticipantsAdherenceEvolutionReminder[];
+  initialEmail: IFormParticipantsAdherenceEvolutionInitialEmail | null;
 };
 
 function asIsoString(value: unknown): string | null {
@@ -76,6 +81,16 @@ function normalizeReminders(
     .sort((a, b) => a.round - b.round);
 }
 
+function normalizeInitialEmail(
+  raw: unknown,
+): IFormParticipantsAdherenceEvolutionInitialEmail | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Record<string, unknown>;
+  const sentAt = asIsoString(row.sentAt) ?? asIsoString(row.sent_at);
+  if (!sentAt) return null;
+  return { sentAt };
+}
+
 export function normalizeAdherenceEvolutionPayload(
   raw: unknown,
 ): IFormParticipantsAdherenceEvolutionModel {
@@ -121,5 +136,6 @@ export function normalizeAdherenceEvolutionPayload(
       })
       .filter((row): row is IFormParticipantsAdherenceEvolutionSeriesPoint => !!row),
     reminders: normalizeReminders(d.reminders),
+    initialEmail: normalizeInitialEmail(d.initialEmail ?? d.initial_email),
   };
 }
