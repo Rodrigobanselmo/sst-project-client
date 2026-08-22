@@ -18,6 +18,7 @@ import {
   isAtomBlock,
   isBulletRunBlock,
   isHeadingBlock,
+  isLegacyBulletSpaceType,
   isTextRunBlock,
 } from './document-editor-state.types';
 import { cloneJson, overlayDefined } from './json-clone';
@@ -55,6 +56,21 @@ function atomFromEditor(block: AtomBlock): IDocumentModelElement {
 }
 
 function bulletFromEditor(bullet: BulletItem): IDocumentModelElement {
+  if (isLegacyBulletSpaceType(bullet.source.type)) {
+    return overlayDefined(bullet.source, {
+      id: bullet.id,
+      type: bullet.source.type,
+      text: bullet.text,
+      align: bullet.align,
+      size: bullet.size,
+      color: bullet.color,
+      lineHeight: bullet.lineHeight,
+      lineHeightBlock: bullet.lineHeightBlock,
+      inlineStyleRangeBlock: bullet.inlineStyleRangeBlock,
+      entityRangeBlock: bullet.entityRangeBlock,
+    });
+  }
+
   return overlayDefined(bullet.source, {
     id: bullet.id,
     type: DocumentSectionChildrenTypeEnum.BULLET,

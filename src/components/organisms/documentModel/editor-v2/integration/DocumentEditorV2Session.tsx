@@ -9,6 +9,7 @@ import React, {
 import { featureFlags } from '@v2/constants/feature-flags';
 import { NodeDocumentModel } from 'components/organisms/documentModel/DocumentModelTree/types/types';
 
+import { DocumentEditorV2HostProvider } from './DocumentEditorV2Host';
 import {
   DOCUMENT_EDITOR_V2_BLOCK_SAVE_REASON,
   DOCUMENT_EDITOR_V2_BLOCK_SWITCH_REASON,
@@ -188,7 +189,7 @@ export function DocumentEditorV2SessionProvider({
 
   return (
     <DocumentEditorV2SessionContext.Provider value={value}>
-      {children}
+      <DocumentEditorV2HostProvider>{children}</DocumentEditorV2HostProvider>
     </DocumentEditorV2SessionContext.Provider>
   );
 }

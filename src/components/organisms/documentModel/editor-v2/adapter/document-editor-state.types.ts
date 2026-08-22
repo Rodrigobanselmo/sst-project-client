@@ -23,13 +23,18 @@ export type DocumentEditorHeadingType =
 /**
  * Fase 1A: PARAGRAPH entra na superfície textual.
  * Fase 3: BULLET também é conteúdo textual (não vira PARAGRAPH no canonical).
- * BULLET_SPACE / captions / IMAGE / BREAK continuam átomos.
+ * Fase 4A: BULLET_SPACE entra na mesma superfície de bullets (level 1),
+ * mas o canonical permanece BULLET_SPACE até conversão explícita.
+ * Captions / IMAGE / BREAK continuam átomos.
  */
 export const DOCUMENT_EDITOR_TEXT_RUN_TYPE =
   DocumentSectionChildrenTypeEnum.PARAGRAPH;
 
 export const DOCUMENT_EDITOR_BULLET_TYPE =
   DocumentSectionChildrenTypeEnum.BULLET;
+
+export const DOCUMENT_EDITOR_BULLET_SPACE_TYPE =
+  DocumentSectionChildrenTypeEnum.BULLET_SPACE;
 
 export type DocumentEditorChildrenOrigin = 'map' | 'inline' | 'none';
 
@@ -135,4 +140,23 @@ export function isDocumentEditorHeadingType(
   type: string,
 ): type is DocumentEditorHeadingType {
   return (DOCUMENT_EDITOR_HEADING_TYPES as readonly string[]).includes(type);
+}
+
+export function isDocumentEditorBulletSurfaceType(type: string): boolean {
+  return (
+    type === DOCUMENT_EDITOR_BULLET_TYPE ||
+    type === DOCUMENT_EDITOR_BULLET_SPACE_TYPE
+  );
+}
+
+export function isLegacyBulletSpaceType(type: string): boolean {
+  return type === DOCUMENT_EDITOR_BULLET_SPACE_TYPE;
+}
+
+export function defaultBulletLevelForSource(source: {
+  type: string;
+  level?: number;
+}): number {
+  if (source.level != null) return source.level;
+  return isLegacyBulletSpaceType(source.type) ? 1 : 0;
 }

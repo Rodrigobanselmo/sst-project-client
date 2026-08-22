@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STableButton } from 'components/atoms/STable/components/STableButton';
 import { RemoveDoubleClickButton } from 'components/organisms/documentModel/DocumentModelContent/TypeSectionItem/RemoveDoubleClickButton';
+import { DocumentEditorV2HeaderControls } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2HeaderControls';
 import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
 import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice';
 
@@ -27,6 +28,8 @@ export const TopButtons = ({
   const v2Session = useDocumentEditorV2Session();
   const officialSaveBlocked = v2Session.shouldBlockOfficialSave;
   const saveActionColor = isDirty ? 'error.main' : 'primary.main';
+  const v2ChromeVisible =
+    v2Session.flagEnabled && v2Session.visibleSurface === 'v2';
   return (
     <Box
       zIndex={100}
@@ -34,10 +37,17 @@ export const TopButtons = ({
       top={0}
       p={8}
       px={20}
-      mb={-20}
+      mb={v2ChromeVisible ? 0 : -20}
       sx={{ backgroundColor: 'grey.50' }}
     >
-      <SFlex justifyContent={'end'} alignItems="center">
+      <SFlex
+        justifyContent={'space-between'}
+        alignItems="center"
+        flexWrap="wrap"
+        gap={2}
+      >
+        <DocumentEditorV2HeaderControls />
+        <SFlex justifyContent={'end'} alignItems="center">
         <SFlex justifyContent={'end'} alignItems="center" mr={20}>
           <RemoveDoubleClickButton
             onHandleDeletion={() => handleDeleteActualItems?.()}
@@ -73,6 +83,7 @@ export const TopButtons = ({
           loading={saveAndExitLoading}
           sm
         />
+        </SFlex>
       </SFlex>
     </Box>
   );

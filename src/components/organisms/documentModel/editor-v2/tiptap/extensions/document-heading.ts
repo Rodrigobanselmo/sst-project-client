@@ -25,7 +25,14 @@ export const DocumentHeading = Node.create({
   },
 
   parseHTML() {
-    return [{ tag: 'h1[data-doc-heading]' }, { tag: 'h2[data-doc-heading]' }];
+    return [
+      { tag: 'h1[data-doc-heading]' },
+      { tag: 'h2[data-doc-heading]' },
+      { tag: 'h3[data-doc-heading]' },
+      { tag: 'h4[data-doc-heading]' },
+      { tag: 'h5[data-doc-heading]' },
+      { tag: 'h6[data-doc-heading]' },
+    ];
   },
 
   renderHTML({ HTMLAttributes }) {

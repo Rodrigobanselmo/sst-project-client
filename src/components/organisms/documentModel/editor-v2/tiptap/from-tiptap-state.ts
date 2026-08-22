@@ -12,7 +12,9 @@ import {
   DocumentEditorState,
   HeadingBlock,
   TextRunParagraph,
+  defaultBulletLevelForSource,
   isDocumentEditorHeadingType,
+  isLegacyBulletSpaceType,
 } from '../adapter/document-editor-state.types';
 import { cloneJson, overlayDefined } from '../adapter/json-clone';
 import {
@@ -103,17 +105,19 @@ function headingFromNode(node: JSONContent): HeadingBlock {
   }
 
   const extracted = extractParagraphContent(node.content);
+  const overlay: Partial<IDocumentModelElement> = {
+    id,
+    type: headingType,
+    text: extracted.text,
+  };
+  applyExtractedRanges(overlay, source, extracted);
 
   return {
     kind: 'heading',
     id,
     type: headingType as DocumentEditorHeadingType,
     text: extracted.text,
-    source: overlayDefined(source, {
-      id,
-      type: headingType,
-      text: extracted.text,
-    }),
+    source: overlayDefined(source, overlay),
   };
 }
 
@@ -180,20 +184,31 @@ function bulletFromNode(
   createId: DocumentEditorIdFactory,
 ): BulletItem {
   const id = resolveEditableId(node, createId);
+  const rawSourceType =
+    typeof node.attrs?.source?.type === 'string'
+      ? node.attrs.source.type
+      : DocumentSectionChildrenTypeEnum.BULLET;
+  const keepLegacySpace = isLegacyBulletSpaceType(rawSourceType);
   const source = resolveEditableSource(
     node,
     id,
-    DocumentSectionChildrenTypeEnum.BULLET,
+    keepLegacySpace
+      ? DocumentSectionChildrenTypeEnum.BULLET_SPACE
+      : DocumentSectionChildrenTypeEnum.BULLET,
   );
   const extracted = extractParagraphContent(node.content);
   const level =
-    node.attrs?.level != null ? Number(node.attrs.level) : source.level;
+    node.attrs?.level != null
+      ? Number(node.attrs.level)
+      : defaultBulletLevelForSource(source);
 
   const overlay: Partial<IDocumentModelElement> = {
     id,
-    type: DocumentSectionChildrenTypeEnum.BULLET,
+    type: keepLegacySpace
+      ? DocumentSectionChildrenTypeEnum.BULLET_SPACE
+      : DocumentSectionChildrenTypeEnum.BULLET,
     text: extracted.text,
-    ...(level != null && { level }),
+    ...(!keepLegacySpace && level != null && { level }),
   };
 
   applyExtractedRanges(overlay, source, extracted);
@@ -203,7 +218,7 @@ function bulletFromNode(
   return {
     id,
     text: extracted.text,
-    ...(nextSource.level != null && { level: nextSource.level }),
+    level,
     ...(nextSource.align != null && { align: nextSource.align }),
     ...(nextSource.size != null && { size: nextSource.size }),
     ...(nextSource.color != null && { color: nextSource.color }),

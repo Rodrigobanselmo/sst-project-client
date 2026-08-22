@@ -17,9 +17,11 @@ import {
   HeadingBlock,
   TextRunBlock,
   TextRunParagraph,
-  DOCUMENT_EDITOR_BULLET_TYPE,
   DOCUMENT_EDITOR_TEXT_RUN_TYPE,
+  defaultBulletLevelForSource,
+  isDocumentEditorBulletSurfaceType,
   isDocumentEditorHeadingType,
+  isLegacyBulletSpaceType,
 } from './document-editor-state.types';
 import { cloneJson } from './json-clone';
 
@@ -83,9 +85,12 @@ function toAtomBlock(element: IDocumentModelElement): AtomBlock {
 }
 
 function toBulletItem(element: IDocumentModelElement): BulletItem {
+  const level = isLegacyBulletSpaceType(element.type)
+    ? defaultBulletLevelForSource(element)
+    : element.level;
   return {
     ...toTextRunParagraph(element),
-    ...(element.level != null && { level: element.level }),
+    ...(level != null && { level }),
   };
 }
 
@@ -123,7 +128,7 @@ function groupElementsToBlocks(
       return;
     }
 
-    if (element.type === DOCUMENT_EDITOR_BULLET_TYPE) {
+    if (isDocumentEditorBulletSurfaceType(element.type)) {
       flushTextRun();
       bulletBuffer.push(toBulletItem(element));
       return;

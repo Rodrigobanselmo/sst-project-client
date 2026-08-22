@@ -21,3 +21,15 @@ export function overlayDefined<T extends object>(
 
   return next;
 }
+
+/** Remove only the listed keys. Does not rebuild the rest of the source. */
+export function omitKeys<T extends object>(
+  source: T,
+  keys: readonly string[],
+): T {
+  const next = cloneJson(source) as Record<string, unknown>;
+  keys.forEach((key) => {
+    delete next[key];
+  });
+  return next as T;
+}

@@ -12,7 +12,7 @@ import { toDocumentEditorState } from '../adapter';
 import { createDocumentEditorExtensions } from '../tiptap/extensions/create-document-editor-extensions';
 import { toTipTapState } from '../tiptap/to-tiptap-state';
 import { decorateTipTapProjection } from './decorate-tiptap-projection';
-import { DocumentEditorV2Toolbar } from './DocumentEditorV2Toolbar';
+import { useDocumentEditorV2Host } from './DocumentEditorV2Host';
 import { useDocumentEditorV2Session } from './DocumentEditorV2Session';
 import { consumeEditorEscapeEvent } from './document-editor-v2-session';
 import { ProtectV2Boundaries } from './protect-v2-boundaries.extension';
@@ -27,6 +27,7 @@ export function DocumentEditorV2SectionView({
   elements?: IDocumentModelFull['elements'];
 }) {
   const { remountKey, markLocalDirty } = useDocumentEditorV2Session();
+  const { registerEditor, notifyEditorActivity } = useDocumentEditorV2Host();
   const skipFirstUpdateRef = useRef(true);
 
   const content = useMemo(() => {
@@ -68,6 +69,22 @@ export function DocumentEditorV2SectionView({
     },
     [remountKey, content],
   );
+
+  useEffect(() => {
+    registerEditor(editor);
+    return () => registerEditor(null);
+  }, [editor, registerEditor]);
+
+  useEffect(() => {
+    if (!editor) return undefined;
+    const onActivity = () => notifyEditorActivity();
+    editor.on('selectionUpdate', onActivity);
+    editor.on('transaction', onActivity);
+    return () => {
+      editor.off('selectionUpdate', onActivity);
+      editor.off('transaction', onActivity);
+    };
+  }, [editor, notifyEditorActivity]);
 
   if (!documentData || !content) {
     return (
@@ -122,7 +139,6 @@ export function DocumentEditorV2SectionView({
         },
       }}
     >
-      <DocumentEditorV2Toolbar editor={editor} />
       <EditorContent editor={editor} />
     </Box>
   );

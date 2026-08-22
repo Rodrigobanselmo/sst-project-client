@@ -5,6 +5,7 @@ import {
   DocumentEditorState,
   BulletItem,
   TextRunParagraph,
+  defaultBulletLevelForSource,
   isAtomBlock,
   isBulletRunBlock,
   isHeadingBlock,
@@ -22,7 +23,11 @@ function headingToNode(
       headingType: block.type,
       source: block.source,
     },
-    content: paragraphTextToContent(block.text),
+    content: paragraphTextToContent(
+      block.text,
+      block.source.inlineStyleRangeBlock,
+      block.source.entityRangeBlock,
+    ),
   };
 }
 
@@ -51,7 +56,7 @@ function bulletToNode(bullet: BulletItem): JSONContent {
     type: 'docBullet',
     attrs: {
       id: bullet.id,
-      level: bullet.level ?? bullet.source.level ?? 0,
+      level: bullet.level ?? defaultBulletLevelForSource(bullet.source),
       align: bullet.align ?? bullet.source.align ?? null,
       size: bullet.size ?? null,
       color: bullet.color ?? null,

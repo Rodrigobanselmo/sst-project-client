@@ -1,11 +1,15 @@
 export {
+  DOCUMENT_EDITOR_BULLET_SPACE_TYPE,
   DOCUMENT_EDITOR_BULLET_TYPE,
   DOCUMENT_EDITOR_HEADING_TYPES,
   DOCUMENT_EDITOR_TEXT_RUN_TYPE,
+  defaultBulletLevelForSource,
   isAtomBlock,
   isBulletRunBlock,
+  isDocumentEditorBulletSurfaceType,
   isDocumentEditorHeadingType,
   isHeadingBlock,
+  isLegacyBulletSpaceType,
   isTextRunBlock,
 } from './document-editor-state.types';
 export type {

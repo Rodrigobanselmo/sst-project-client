@@ -86,9 +86,19 @@ run('2. flag on → switch disponível', () => {
     resolveVisibleSurface({ flagEnabled: true, surface: 'v2' }),
     'v2',
   );
-  const boundary = readRel('./DocumentModelEditorBoundary.tsx');
-  assert.equal(boundary.includes('Clássico'), true);
-  assert.equal(boundary.includes('V2 experimental'), true);
+  const header = readRel('./DocumentEditorV2HeaderControls.tsx');
+  assert.equal(header.includes('Clássico'), true);
+  assert.equal(header.includes('V2 experimental'), true);
+  const topButtons = readRel(
+    '../../../modals/ModalEditDocumentModel/components/2-viewDocumentModelStep/components/TopButtons/TopButtons.tsx',
+  );
+  assert.equal(topButtons.includes('DocumentEditorV2HeaderControls'), true);
+  assert.equal(
+    readRel('./DocumentEditorV2SectionView.tsx').includes(
+      'DocumentEditorV2StickyChrome',
+    ),
+    false,
+  );
 });
 
 run('3. V2 lê a mesma SECTION da árvore', () => {

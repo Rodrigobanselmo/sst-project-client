@@ -7,6 +7,10 @@
 import assert from 'assert';
 
 import { IDocumentModelData } from 'core/interfaces/api/IDocumentModel';
+import {
+  DocumentSectionChildrenTypeEnum,
+  DocumentSectionTypeEnum,
+} from 'project/enum/document-model.enum';
 
 import {
   collectCanonicalIds,
@@ -255,6 +259,57 @@ run('variáveis do modelo são clonadas, não compartilhadas', () => {
   const restored = fromDocumentEditorState(toDocumentEditorState(model));
   restored.variables[0].label = 'alterado no restored';
   assert.strictEqual(model.variables[0].label, 'PGR — POC Adapter');
+});
+
+run('BULLET_SPACE entra na superfície de bullets com level 1 e sai lossless', () => {
+  const model: IDocumentModelData = {
+    variables: [],
+    sections: [
+      {
+        data: [
+          {
+            id: 'section-body',
+            type: DocumentSectionTypeEnum.SECTION,
+            hasChildren: true,
+          },
+        ],
+        children: {
+          'section-body': [
+            {
+              id: 'el-space',
+              type: DocumentSectionChildrenTypeEnum.BULLET_SPACE,
+              text: 'Marcador recuado',
+            },
+            {
+              id: 'el-bullet',
+              type: DocumentSectionChildrenTypeEnum.BULLET,
+              text: 'Marcador normal',
+              level: 1,
+            },
+          ],
+        },
+      },
+    ],
+  };
+
+  const state = toDocumentEditorState(model);
+  const body = state.groups[0].sections[0];
+  assert.ok(isBulletRunBlock(body.blocks[0]));
+  assert.equal(body.blocks[0].bullets[0].id, 'el-space');
+  assert.equal(body.blocks[0].bullets[0].level, 1);
+  assert.equal(body.blocks[0].bullets[0].source.type, 'BULLET_SPACE');
+  assert.equal(body.blocks[0].bullets[1].id, 'el-bullet');
+  assert.equal(body.blocks[0].bullets[1].source.type, 'BULLET');
+  assert.equal(body.blocks[0].bullets[1].level, 1);
+
+  assertRoundtrip(model);
+  const restored = fromDocumentEditorState(state).sections[0].children?.[
+    'section-body'
+  ];
+  assert.equal(restored?.[0].type, 'BULLET_SPACE');
+  assert.equal(restored?.[0].level, undefined);
+  assert.equal(restored?.[1].type, 'BULLET');
+  assert.equal(restored?.[1].level, 1);
 });
 
 console.log('\nAll document-editor-adapter roundtrip tests passed.');
