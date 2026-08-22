@@ -1,5 +1,7 @@
 import { Mark, mergeAttributes } from '@tiptap/core';
 
+import { inlineStyleCss } from './document-visual-css';
+
 export const DocumentStyle = Mark.create({
   name: 'docStyle',
   excludes: '',
@@ -22,6 +24,7 @@ export const DocumentStyle = Mark.create({
       mergeAttributes({
         'data-doc-style': HTMLAttributes.style,
         'data-doc-value': HTMLAttributes.value ?? '',
+        style: inlineStyleCss(HTMLAttributes.style, HTMLAttributes.value),
       }),
       0,
     ];

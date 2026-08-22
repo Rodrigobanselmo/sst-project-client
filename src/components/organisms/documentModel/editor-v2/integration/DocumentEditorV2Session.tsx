@@ -98,9 +98,6 @@ export function DocumentEditorV2SessionProvider({
       }
       setSurface(next);
       setExperimentNotice(null);
-      if (next === 'v1') {
-        setV2LocalDirty(false);
-      }
       return true;
     },
     [flagEnabled, surface, v2LocalDirty],

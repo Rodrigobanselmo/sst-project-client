@@ -70,7 +70,13 @@ export const TopButtons = ({
           icon={SSaveIcon}
           disabled={!selectItem || saveBusy || officialSaveBlocked}
           color={saveActionColor}
-          onClick={onSubmit}
+          onClick={() => {
+            if (officialSaveBlocked) {
+              v2Session.reportBlockedSave();
+              return;
+            }
+            onSubmit();
+          }}
           loading={saveLoading}
           sm
         />
@@ -79,7 +85,13 @@ export const TopButtons = ({
           icon={SSaveIcon}
           disabled={!selectItem || saveBusy || officialSaveBlocked}
           color={saveActionColor}
-          onClick={onSubmitAndExit}
+          onClick={() => {
+            if (officialSaveBlocked) {
+              v2Session.reportBlockedSave();
+              return;
+            }
+            onSubmitAndExit();
+          }}
           loading={saveAndExitLoading}
           sm
         />

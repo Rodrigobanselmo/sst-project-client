@@ -132,6 +132,11 @@ export function attrsForConvertedNode(args: {
     id: args.id,
     headingType: args.target,
     headingNumber: args.headingNumber ?? null,
+    align: source.align ?? null,
+    size: source.size ?? null,
+    color: source.color ?? null,
+    lineHeight: source.lineHeight ?? null,
+    lineHeightBlock: source.lineHeightBlock ?? null,
     source,
   };
 }

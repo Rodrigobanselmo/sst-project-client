@@ -355,9 +355,10 @@ run('save oficial bloqueado no fluxo do modal', () => {
     'utf8',
   );
 
-  assert.equal(editHook.includes('shouldBlockOfficialSave'), true);
+  assert.equal(editHook.includes('resolveOfficialSaveAttempt'), true);
+  assert.equal(editHook.includes('shouldRebaseOfficialDocument'), true);
   assert.equal(editHook.includes('v2Session.v2LocalDirty'), true);
-  assert.equal(viewHook.includes('shouldBlockOfficialSave'), true);
+  assert.equal(viewHook.includes('resolveOfficialSaveAttempt'), true);
   assert.equal(topButtons.includes('officialSaveBlocked'), true);
   assert.equal(editHook.includes('fromTipTapState'), false);
   assert.equal(viewHook.includes('fromTipTapState'), false);

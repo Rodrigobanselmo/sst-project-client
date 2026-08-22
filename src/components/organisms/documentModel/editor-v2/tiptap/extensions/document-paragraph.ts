@@ -1,11 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
-function cssAlign(align?: string | null) {
-  if (align === 'both' || align === 'justified') return 'justify';
-  if (align === 'start') return 'left';
-  if (align === 'end') return 'right';
-  return align || undefined;
-}
+import { blockVisualStyle } from './document-visual-css';
 
 export const DocumentParagraph = Node.create({
   name: 'docParagraph',
@@ -29,20 +24,12 @@ export const DocumentParagraph = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const align = cssAlign(HTMLAttributes.align);
-    const lineHeight = HTMLAttributes.lineHeight;
-
     return [
       'p',
       mergeAttributes({
         'data-doc-paragraph': '',
         'data-doc-id': HTMLAttributes.id,
-        style: [
-          align ? `text-align:${align}` : '',
-          lineHeight != null ? `line-height:${lineHeight}` : '',
-        ]
-          .filter(Boolean)
-          .join(';'),
+        style: blockVisualStyle(HTMLAttributes),
       }),
       0,
     ];

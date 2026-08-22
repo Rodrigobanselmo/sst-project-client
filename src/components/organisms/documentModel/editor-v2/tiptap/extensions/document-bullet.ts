@@ -1,11 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
-function cssAlign(align?: string | null) {
-  if (align === 'both' || align === 'justified') return 'justify';
-  if (align === 'start') return 'left';
-  if (align === 'end') return 'right';
-  return align || undefined;
-}
+import { blockVisualStyle } from './document-visual-css';
 
 export const DocumentBullet = Node.create({
   name: 'docBullet',
@@ -30,9 +25,8 @@ export const DocumentBullet = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const align = cssAlign(HTMLAttributes.align);
-    const lineHeight = HTMLAttributes.lineHeight;
     const level = Number(HTMLAttributes.level || 0);
+    const visual = blockVisualStyle(HTMLAttributes);
 
     return [
       'p',
@@ -41,8 +35,7 @@ export const DocumentBullet = Node.create({
         'data-doc-id': HTMLAttributes.id,
         'data-bullet-level': level,
         style: [
-          align ? `text-align:${align}` : '',
-          lineHeight != null ? `line-height:${lineHeight}` : '',
+          visual,
           `padding-left:${16 + level * 24}px`,
           `--doc-bullet-level:${level}`,
         ]

@@ -6,6 +6,11 @@ import clone from 'clone';
 import SText from 'components/atoms/SText';
 import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
 import { DOCUMENT_EDITOR_V2_DISCARD_MODAL } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-notices';
+import {
+  createV2SaveGuardSession,
+  resolveOfficialSaveAttempt,
+  shouldRebaseOfficialDocument,
+} from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-save-guard';
 import { parseInlineStyleText } from 'components/organisms/documentModel/utils/parseInlineStyleText';
 import {
   DocumentModelClassificationEnum,
@@ -189,7 +194,13 @@ export const useEditDocumentModel = () => {
       };
 
       if (!needSynchronization) {
-        setDocument();
+        if (
+          shouldRebaseOfficialDocument({
+            v2LocalDirty: v2Session.v2LocalDirty,
+          })
+        ) {
+          setDocument();
+        }
       } else {
         if (!data.sync)
           onStackOpenModal(ModalEnum.MODAL_BLANK, {
@@ -226,7 +237,15 @@ export const useEditDocumentModel = () => {
           } as Partial<typeof initialBlankState>);
       }
     }
-  }, [data.sync, dispatch, modelData, onStackOpenModal, preventDelete, store]);
+  }, [
+    data.sync,
+    dispatch,
+    modelData,
+    onStackOpenModal,
+    preventDelete,
+    store,
+    v2Session.v2LocalDirty,
+  ]);
 
   useEffect(() => {
     const initialData =
@@ -307,7 +326,16 @@ export const useEditDocumentModel = () => {
   };
 
   const persistDocumentModel = async (): Promise<boolean> => {
-    if (v2Session.shouldBlockOfficialSave) {
+    const saveAttempt = resolveOfficialSaveAttempt(
+      createV2SaveGuardSession({
+        surface: v2Session.visibleSurface,
+        v2LocalDirty: v2Session.v2LocalDirty,
+        experimentNotice: v2Session.experimentNotice,
+        remountKey: v2Session.remountKey,
+      }),
+      'stay',
+    );
+    if (!saveAttempt.persist) {
       v2Session.reportBlockedSave();
       return false;
     }

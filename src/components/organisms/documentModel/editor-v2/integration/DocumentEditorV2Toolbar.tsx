@@ -23,6 +23,7 @@ import {
   createBulletLevelTransaction,
   resolveActiveBlock,
 } from '../tiptap/apply-block-format';
+import { DocumentEditorV2TextFormatControls } from './DocumentEditorV2TextFormatControls';
 
 function promptExternalLink(editor: Editor) {
   const previous = String(editor.getAttributes('link').href || '');
@@ -116,9 +117,11 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
           </IconButton>
         </Stack>
       ) : null}
+      <DocumentEditorV2TextFormatControls editor={editor} />
       <Button
         size="small"
         variant={editor.isActive('bold') ? 'contained' : 'outlined'}
+        disabled={active.kind === 'atom'}
         onClick={() => editor.chain().focus().toggleBold().run()}
         sx={{ minWidth: 36, fontWeight: 700 }}
       >
@@ -127,6 +130,7 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
       <Button
         size="small"
         variant={editor.isActive('italic') ? 'contained' : 'outlined'}
+        disabled={active.kind === 'atom'}
         onClick={() => editor.chain().focus().toggleItalic().run()}
         sx={{ minWidth: 36, fontStyle: 'italic' }}
       >
@@ -135,6 +139,7 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
       <Button
         size="small"
         variant={editor.isActive('underline') ? 'contained' : 'outlined'}
+        disabled={active.kind === 'atom'}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
         sx={{ minWidth: 36, textDecoration: 'underline' }}
       >
@@ -143,6 +148,7 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
       <Button
         size="small"
         variant={editor.isActive('link') ? 'contained' : 'outlined'}
+        disabled={active.kind === 'atom'}
         onClick={() => promptExternalLink(editor)}
       >
         Link

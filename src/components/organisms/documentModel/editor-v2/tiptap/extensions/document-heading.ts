@@ -1,5 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
+import { blockVisualStyle } from './document-visual-css';
+
 const headingTag = (type?: string) => {
   if (type === 'H2') return 'h2';
   if (type === 'H3') return 'h3';
@@ -20,6 +22,11 @@ export const DocumentHeading = Node.create({
       id: { default: null },
       headingType: { default: 'H1' },
       headingNumber: { default: null },
+      align: { default: null },
+      size: { default: null },
+      color: { default: null },
+      lineHeight: { default: null },
+      lineHeightBlock: { default: null },
       source: { default: null },
     };
   },
@@ -42,6 +49,7 @@ export const DocumentHeading = Node.create({
         'data-doc-heading': HTMLAttributes.headingType,
         'data-doc-id': HTMLAttributes.id,
         'data-heading-number': HTMLAttributes.headingNumber || null,
+        style: blockVisualStyle(HTMLAttributes),
       }),
       0,
     ];

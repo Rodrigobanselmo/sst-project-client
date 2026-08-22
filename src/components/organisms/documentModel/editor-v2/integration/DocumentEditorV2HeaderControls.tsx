@@ -15,6 +15,7 @@ import { DocumentEditorV2Toolbar } from './DocumentEditorV2Toolbar';
 import { useDocumentEditorV2Host } from './DocumentEditorV2Host';
 import { useDocumentEditorV2Session } from './DocumentEditorV2Session';
 import { DOCUMENT_EDITOR_V2_BLOCK_SECTION_REASON } from './document-editor-v2-notices';
+import { resolveExperimentalStatusMessage } from './document-editor-v2-save-guard';
 import {
   isEditorSwitchVisible,
   resolvePinnedSelection,
@@ -34,13 +35,12 @@ export function DocumentEditorV2HeaderControls() {
     surface: session.visibleSurface,
   });
 
-  const statusMessage =
-    session.experimentNotice ||
-    (pinned.blockedSectionSwitch
-      ? DOCUMENT_EDITOR_V2_BLOCK_SECTION_REASON
-      : session.v2LocalDirty
-        ? 'Alterações locais do V2 — não salvas no modelo.'
-        : null);
+  const statusMessage = resolveExperimentalStatusMessage({
+    v2LocalDirty: session.v2LocalDirty,
+    experimentNotice: session.experimentNotice,
+    blockedSectionSwitch: pinned.blockedSectionSwitch,
+    sectionReason: DOCUMENT_EDITOR_V2_BLOCK_SECTION_REASON,
+  });
 
   return (
     <Stack spacing={0.5} sx={{ minWidth: 0, flex: 1 }}>

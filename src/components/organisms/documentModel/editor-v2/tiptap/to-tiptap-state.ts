@@ -21,6 +21,11 @@ function headingToNode(
     attrs: {
       id: block.id,
       headingType: block.type,
+      align: block.source.align ?? null,
+      size: block.source.size ?? null,
+      color: block.source.color ?? null,
+      lineHeight: block.source.lineHeight ?? null,
+      lineHeightBlock: block.source.lineHeightBlock ?? null,
       source: block.source,
     },
     content: paragraphTextToContent(
@@ -37,10 +42,11 @@ function textRunParagraphToNode(paragraph: TextRunParagraph): JSONContent {
     attrs: {
       id: paragraph.id,
       align: paragraph.align ?? paragraph.source.align ?? null,
-      size: paragraph.size ?? null,
-      color: paragraph.color ?? null,
-      lineHeight: paragraph.lineHeight ?? null,
-      lineHeightBlock: paragraph.lineHeightBlock ?? null,
+      size: paragraph.size ?? paragraph.source.size ?? null,
+      color: paragraph.color ?? paragraph.source.color ?? null,
+      lineHeight: paragraph.lineHeight ?? paragraph.source.lineHeight ?? null,
+      lineHeightBlock:
+        paragraph.lineHeightBlock ?? paragraph.source.lineHeightBlock ?? null,
       source: paragraph.source,
     },
     content: paragraphTextToContent(
@@ -58,10 +64,11 @@ function bulletToNode(bullet: BulletItem): JSONContent {
       id: bullet.id,
       level: bullet.level ?? defaultBulletLevelForSource(bullet.source),
       align: bullet.align ?? bullet.source.align ?? null,
-      size: bullet.size ?? null,
-      color: bullet.color ?? null,
-      lineHeight: bullet.lineHeight ?? null,
-      lineHeightBlock: bullet.lineHeightBlock ?? null,
+      size: bullet.size ?? bullet.source.size ?? null,
+      color: bullet.color ?? bullet.source.color ?? null,
+      lineHeight: bullet.lineHeight ?? bullet.source.lineHeight ?? null,
+      lineHeightBlock:
+        bullet.lineHeightBlock ?? bullet.source.lineHeightBlock ?? null,
       source: bullet.source,
     },
     content: paragraphTextToContent(

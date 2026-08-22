@@ -16,7 +16,7 @@ import {
   isDocumentEditorHeadingType,
   isLegacyBulletSpaceType,
 } from '../adapter/document-editor-state.types';
-import { cloneJson, overlayDefined } from '../adapter/json-clone';
+import { cloneJson, omitKeys, overlayDefined } from '../adapter/json-clone';
 import {
   createDocumentEditorId,
   DocumentEditorIdFactory,
@@ -70,6 +70,50 @@ function resolveEditableSource(
   return { id, type, text: '' };
 }
 
+function applyVisualAttrOverlay(
+  overlay: Partial<IDocumentModelElement>,
+  omit: string[],
+  source: IDocumentModelElement,
+  attrs: Record<string, unknown> | undefined,
+) {
+  const align = attrs?.align ?? null;
+  if (align == null) {
+    if (source.align != null) omit.push('align');
+  } else if (align !== source.align) {
+    overlay.align = align as IDocumentModelElement['align'];
+  }
+
+  const size = attrs?.size ?? null;
+  if (size == null || size === '') {
+    if (source.size != null) omit.push('size');
+  } else if (Number(size) !== source.size) {
+    overlay.size = Number(size);
+  }
+
+  const color = attrs?.color ?? null;
+  if (color == null || color === '') {
+    if (source.color != null) omit.push('color');
+  } else if (String(color) !== source.color) {
+    overlay.color = String(color);
+  }
+
+  const lineHeight = attrs?.lineHeight ?? null;
+  if (lineHeight == null || lineHeight === '') {
+    if (source.lineHeight != null) omit.push('lineHeight');
+  } else if (Number(lineHeight) !== source.lineHeight) {
+    overlay.lineHeight = Number(lineHeight);
+  }
+
+  const lineHeightBlock = attrs?.lineHeightBlock ?? null;
+  if (lineHeightBlock == null) {
+    if (source.lineHeightBlock != null) omit.push('lineHeightBlock');
+  } else if (
+    JSON.stringify(lineHeightBlock) !== JSON.stringify(source.lineHeightBlock)
+  ) {
+    overlay.lineHeightBlock = lineHeightBlock as number[];
+  }
+}
+
 function applyExtractedRanges(
   overlay: Partial<IDocumentModelElement>,
   source: IDocumentModelElement,
@@ -110,14 +154,16 @@ function headingFromNode(node: JSONContent): HeadingBlock {
     type: headingType,
     text: extracted.text,
   };
+  const omit: string[] = [];
   applyExtractedRanges(overlay, source, extracted);
+  applyVisualAttrOverlay(overlay, omit, source, node.attrs);
 
   return {
     kind: 'heading',
     id,
     type: headingType as DocumentEditorHeadingType,
     text: extracted.text,
-    source: overlayDefined(source, overlay),
+    source: omitKeys(overlayDefined(source, overlay), omit),
   };
 }
 
@@ -140,24 +186,10 @@ function paragraphFromNode(
   };
 
   applyExtractedRanges(overlay, source, extracted);
+  const omit: string[] = [];
+  applyVisualAttrOverlay(overlay, omit, source, node.attrs);
 
-  const align = node.attrs?.align ?? undefined;
-  if (align != null && align !== source.align) overlay.align = align;
-
-  const lineHeight = node.attrs?.lineHeight ?? undefined;
-  if (lineHeight != null && lineHeight !== source.lineHeight) {
-    overlay.lineHeight = lineHeight;
-  }
-
-  const lineHeightBlock = node.attrs?.lineHeightBlock ?? undefined;
-  if (
-    lineHeightBlock != null &&
-    JSON.stringify(lineHeightBlock) !== JSON.stringify(source.lineHeightBlock)
-  ) {
-    overlay.lineHeightBlock = lineHeightBlock;
-  }
-
-  const nextSource = overlayDefined(source, overlay);
+  const nextSource = omitKeys(overlayDefined(source, overlay), omit);
 
   return {
     id,
@@ -212,8 +244,10 @@ function bulletFromNode(
   };
 
   applyExtractedRanges(overlay, source, extracted);
+  const omit: string[] = [];
+  applyVisualAttrOverlay(overlay, omit, source, node.attrs);
 
-  const nextSource = overlayDefined(source, overlay);
+  const nextSource = omitKeys(overlayDefined(source, overlay), omit);
 
   return {
     id,

@@ -3,6 +3,10 @@ import { useStore } from 'react-redux';
 
 import { getModelSectionsBySelectedItem } from 'components/organisms/documentModel/DocumentModelContent/utils/getModelBySelectedItem';
 import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
+import {
+  createV2SaveGuardSession,
+  resolveOfficialSaveAttempt,
+} from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-save-guard';
 import { IDocumentSlice } from 'store/reducers/document/documentSlice';
 
 import { useMutPreviewDocumentModel } from 'core/services/hooks/mutations/checklist/documentData/useMutPreviewDocumentModel/useMutPreviewDocumentModel';
@@ -57,8 +61,20 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
     setSaveIntent(null);
   };
 
+  const decideOfficialSave = (intent: 'stay' | 'exit') =>
+    resolveOfficialSaveAttempt(
+      createV2SaveGuardSession({
+        surface: v2Session.visibleSurface,
+        v2LocalDirty: v2Session.v2LocalDirty,
+        experimentNotice: v2Session.experimentNotice,
+        remountKey: v2Session.remountKey,
+      }),
+      intent,
+    );
+
   const onSubmit = async () => {
-    if (v2Session.shouldBlockOfficialSave) {
+    const decision = decideOfficialSave('stay');
+    if (!decision.persist) {
       v2Session.reportBlockedSave();
       return;
     }
@@ -66,7 +82,8 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
   };
 
   const onSubmitAndExit = async () => {
-    if (v2Session.shouldBlockOfficialSave) {
+    const decision = decideOfficialSave('exit');
+    if (!decision.persist || !decision.close) {
       v2Session.reportBlockedSave();
       return;
     }
