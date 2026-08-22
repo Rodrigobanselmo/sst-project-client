@@ -6,6 +6,10 @@ import {
   DocumentEditorIdFactory,
 } from '../../domain/document-editor-id';
 import {
+  applyStableEditableIds,
+  assignStableIds,
+} from '../assign-stable-ids';
+import {
   applyStructuralJoin,
   createStructuralSplitTransaction,
   resolveStructuralJoinBackward,
@@ -14,47 +18,7 @@ import {
   STRUCTURAL_PROTECTED_NODES,
 } from '../structural-join';
 
-function assignStableIds(
-  newState: EditorState,
-  createId: DocumentEditorIdFactory,
-) {
-  let tr = newState.tr;
-  let changed = false;
-  const seen = new Set<string>();
-
-  newState.doc.descendants((node, pos) => {
-    if (!STRUCTURAL_EDITABLE_NODES.has(node.type.name)) return;
-    const currentId = node.attrs.id;
-    if (typeof currentId === 'string' && currentId && !seen.has(currentId)) {
-      seen.add(currentId);
-      return;
-    }
-
-    const nextId = createId();
-    const type = node.type.name === 'docBullet' ? 'BULLET' : 'PARAGRAPH';
-    const source = node.attrs.source
-      ? { ...node.attrs.source, id: nextId, type }
-      : { id: nextId, type, text: node.textContent };
-
-    tr = tr.setNodeMarkup(pos, undefined, {
-      ...node.attrs,
-      id: nextId,
-      source,
-    });
-    seen.add(nextId);
-    changed = true;
-  });
-
-  return changed ? tr : null;
-}
-
-export function applyStableEditableIds(
-  state: EditorState,
-  createId: DocumentEditorIdFactory,
-): EditorState {
-  const transaction = assignStableIds(state, createId);
-  return transaction ? state.apply(transaction) : state;
-}
+export { applyStableEditableIds };
 
 export function createStructuralEditingExtension(
   createId: DocumentEditorIdFactory = createDocumentEditorId,
