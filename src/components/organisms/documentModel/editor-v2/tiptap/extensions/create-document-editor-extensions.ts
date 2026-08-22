@@ -4,9 +4,11 @@ import StarterKit from '@tiptap/starter-kit';
 
 import { DocumentAtom } from './document-atom';
 import { DocumentBullet } from './document-bullet';
+import { DocumentCaption } from './document-caption';
 import { DocumentHeading } from './document-heading';
 import { DocumentParagraph } from './document-paragraph';
 import { DocumentStyle } from './document-style';
+import { DocumentVariable } from './document-variable';
 import {
   DocumentDoc,
   DocumentGroup,
@@ -48,7 +50,9 @@ export function createDocumentEditorExtensions() {
     DocumentHeading,
     DocumentParagraph,
     DocumentBullet,
+    DocumentCaption,
     DocumentAtom,
+    DocumentVariable,
     DocumentStyle,
     Underline,
     DocumentLink.configure({

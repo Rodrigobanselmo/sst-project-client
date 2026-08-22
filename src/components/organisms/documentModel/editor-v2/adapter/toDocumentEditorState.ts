@@ -14,12 +14,14 @@ import {
   DocumentEditorHeadingType,
   DocumentEditorSection,
   DocumentEditorState,
+  CaptionBlock,
   HeadingBlock,
   TextRunBlock,
   TextRunParagraph,
   DOCUMENT_EDITOR_TEXT_RUN_TYPE,
   defaultBulletLevelForSource,
   isDocumentEditorBulletSurfaceType,
+  isDocumentEditorCaptionType,
   isDocumentEditorHeadingType,
   isLegacyBulletSpaceType,
 } from './document-editor-state.types';
@@ -72,6 +74,14 @@ function toHeadingBlock(element: IDocumentModelElement): HeadingBlock {
     type: element.type as DocumentEditorHeadingType,
     text: element.text ?? '',
     source: cloneJson(element),
+  };
+}
+
+function toCaptionBlock(element: IDocumentModelElement): CaptionBlock {
+  return {
+    kind: 'caption',
+    type: element.type as CaptionBlock['type'],
+    ...toTextRunParagraph(element),
   };
 }
 
@@ -139,6 +149,11 @@ function groupElementsToBlocks(
 
     if (isDocumentEditorHeadingType(element.type)) {
       blocks.push(toHeadingBlock(element));
+      return;
+    }
+
+    if (isDocumentEditorCaptionType(element.type)) {
+      blocks.push(toCaptionBlock(element));
       return;
     }
 

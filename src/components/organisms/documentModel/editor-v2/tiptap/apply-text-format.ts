@@ -16,9 +16,27 @@ import {
   TEXT_FORMAT_META,
   TextAlignValue,
 } from '../domain/text-format';
-import { resolveActiveBlock } from './apply-block-format';
+import { ActiveBlockResolution, resolveActiveBlock } from './apply-block-format';
 
-const TEXT_BLOCKS = new Set(['docParagraph', 'docBullet', 'docHeading']);
+const TEXT_BLOCKS = new Set([
+  'docParagraph',
+  'docBullet',
+  'docHeading',
+  'docCaption',
+]);
+
+function isVisualBlock(
+  active: ActiveBlockResolution,
+): active is Extract<
+  ActiveBlockResolution,
+  { kind: 'convertible' } | { kind: 'caption' }
+> {
+  return active.kind === 'convertible' || active.kind === 'caption';
+}
+
+function isMarkableInline(node: ProseMirrorNode) {
+  return node.isText || node.type.name === 'docVariable';
+}
 
 function sourceFromNode(
   node: ProseMirrorNode,
@@ -55,6 +73,11 @@ export function expandSelectionAroundVariables(
   let to = state.selection.to;
 
   state.doc.nodesBetween(from, to, (node, pos) => {
+    if (node.type.name === 'docVariable') {
+      from = Math.min(from, pos);
+      to = Math.max(to, pos + node.nodeSize);
+      return;
+    }
     if (!TEXT_BLOCKS.has(node.type.name)) return;
     const text = node.textContent;
     const start = pos + 1;
@@ -95,7 +118,7 @@ function collectDocStyleValues(
   if (from === to) return values;
 
   state.doc.nodesBetween(from, to, (node) => {
-    if (!node.isText) return;
+    if (!isMarkableInline(node)) return;
     const mark = node.marks.find(
       (item) => item.type.name === 'docStyle' && item.attrs.style === style,
     );
@@ -117,7 +140,7 @@ function collectScriptPresence(
   let saw = false;
   let missing = false;
   state.doc.nodesBetween(from, to, (node) => {
-    if (!node.isText || !node.text) return;
+    if (!isMarkableInline(node)) return;
     const has = node.marks.some(
       (item) => item.type.name === 'docStyle' && item.attrs.style === style,
     );
@@ -141,43 +164,43 @@ export function resolveTextFormatToolbarState(
   const active = resolveActiveBlock(state);
   const atom = active.kind === 'atom';
   const multi = active.kind === 'multi';
-  const convertible = active.kind === 'convertible';
+  const visual = isVisualBlock(active);
   const hasSelection = hasPartialTextSelection(state);
   const { from, to } = expandSelectionAroundVariables(state);
 
   const lineHeightBlock =
-    convertible && Array.isArray(active.node.attrs.lineHeightBlock)
+    visual && Array.isArray(active.node.attrs.lineHeightBlock)
       ? (active.node.attrs.lineHeightBlock as number[])
-      : convertible
+      : visual
         ? active.node.attrs.source?.lineHeightBlock
         : undefined;
 
-  const lineHeightValue = convertible
+  const lineHeightValue = visual
     ? ((active.node.attrs.lineHeight as number | null) ??
       active.node.attrs.source?.lineHeight ??
       null)
     : null;
 
   return {
-    blockEnabled: convertible,
+    blockEnabled: visual,
     inlineEnabled: !atom && hasSelection && !selectionTouchesAtom(state),
     hasSelection,
-    align: convertible
+    align: visual
       ? normalizeAlignRead(
           active.node.attrs.align ?? active.node.attrs.source?.align,
         )
       : null,
     blockSize:
-      convertible && active.node.attrs.size != null
+      visual && active.node.attrs.size != null
         ? Number(active.node.attrs.size)
-        : convertible && active.node.attrs.source?.size != null
+        : visual && active.node.attrs.source?.size != null
           ? Number(active.node.attrs.source.size)
           : null,
     blockColor:
-      (convertible &&
+      (visual &&
         (active.node.attrs.color || active.node.attrs.source?.color)) ||
       null,
-    lineHeight: convertible
+    lineHeight: visual
       ? displayLineHeight(lineHeightValue, lineHeightBlock)
       : { kind: 'default' },
     inlineColor: hasSelection
@@ -235,7 +258,7 @@ export function createBlockVisualTransaction(
   patch: BlockVisualPatch,
 ): Transaction | null {
   const active = resolveActiveBlock(state);
-  if (!active.convertible) return null;
+  if (!isVisualBlock(active)) return null;
   if (!active.id) return null;
 
   const source = nextSourceForVisual(active.node, active.id, patch);
@@ -299,7 +322,7 @@ function removeDocStyles(
   styles: string[],
 ) {
   tr.doc.nodesBetween(from, to, (node, pos) => {
-    if (!node.isText) return;
+    if (!isMarkableInline(node)) return;
     node.marks.forEach((mark) => {
       if (
         mark.type.name === 'docStyle' &&
@@ -484,7 +507,7 @@ export function createLineHeightTransaction(
   value: number | null,
 ): Transaction | null {
   const active = resolveActiveBlock(state);
-  if (!active.convertible) return null;
+  if (!isVisualBlock(active)) return null;
   return createBlockVisualTransaction(
     state,
     lineHeightPatchFor(value, lineCountFromNode(active.node)),

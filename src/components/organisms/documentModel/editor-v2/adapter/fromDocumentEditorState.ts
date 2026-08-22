@@ -13,10 +13,12 @@ import {
   DocumentEditorGroup,
   DocumentEditorSection,
   DocumentEditorState,
+  CaptionBlock,
   HeadingBlock,
   TextRunParagraph,
   isAtomBlock,
   isBulletRunBlock,
+  isCaptionBlock,
   isHeadingBlock,
   isLegacyBulletSpaceType,
   isTextRunBlock,
@@ -45,6 +47,21 @@ function headingFromEditor(block: HeadingBlock): IDocumentModelElement {
     id: block.id,
     type: block.type,
     text: block.text,
+  });
+}
+
+function captionFromEditor(block: CaptionBlock): IDocumentModelElement {
+  return overlayDefined(block.source, {
+    id: block.id,
+    type: block.type,
+    text: block.text,
+    align: block.align,
+    size: block.size,
+    color: block.color,
+    lineHeight: block.lineHeight,
+    lineHeightBlock: block.lineHeightBlock,
+    inlineStyleRangeBlock: block.inlineStyleRangeBlock,
+    entityRangeBlock: block.entityRangeBlock,
   });
 }
 
@@ -97,6 +114,9 @@ function elementsFromBlock(
   }
   if (isHeadingBlock(block)) {
     return [headingFromEditor(block)];
+  }
+  if (isCaptionBlock(block)) {
+    return [captionFromEditor(block)];
   }
   if (isAtomBlock(block)) {
     return [atomFromEditor(block)];

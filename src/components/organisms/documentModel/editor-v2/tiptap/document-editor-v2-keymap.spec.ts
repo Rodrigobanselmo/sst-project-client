@@ -125,7 +125,8 @@ function findBlockPos(doc: Node, id: string): { pos: number; node: Node } {
     if (
       (node.type.name === 'docParagraph' ||
         node.type.name === 'docBullet' ||
-        node.type.name === 'docHeading') &&
+        node.type.name === 'docHeading' ||
+        node.type.name === 'docCaption') &&
       node.attrs.id === id
     ) {
       pos = nodePos;
@@ -144,6 +145,7 @@ function dumpBlocks(doc: Node) {
       node.type.name === 'docParagraph' ||
       node.type.name === 'docBullet' ||
       node.type.name === 'docHeading' ||
+      node.type.name === 'docCaption' ||
       node.type.name === 'docAtom'
     ) {
       blocks.push({

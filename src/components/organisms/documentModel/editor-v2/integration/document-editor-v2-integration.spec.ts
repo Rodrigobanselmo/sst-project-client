@@ -168,14 +168,14 @@ run('6. atoms são boundaries', () => {
     ['IMAGE', 'SECTION_BREAK'],
   );
   assert.deepStrictEqual(summary.bullets, [['el-bullet']]);
-  assert.equal(formatAtomPlaceholder('IMAGE'), 'IMAGEM');
-  assert.equal(formatAtomPlaceholder('BREAK'), 'QUEBRA DE PÁGINA');
+  assert.equal(formatAtomPlaceholder('IMAGE'), 'Imagem');
+  assert.equal(formatAtomPlaceholder('BREAK'), 'Quebra de página');
   assert.equal(
     formatAtomPlaceholder('SECTION_BREAK', { orientation: 'portrait' }),
-    'QUEBRA DE SEÇÃO — RETRATO',
+    'Quebra de seção — Retrato',
   );
-  assert.equal(formatAtomPlaceholder('APR_TABLE'), 'INVENTÁRIO DE RISCOS');
-  assert.equal(formatAtomPlaceholder('PLAN_TABLE'), 'PLANO DE AÇÃO');
+  assert.equal(formatAtomPlaceholder('APR_TABLE'), 'Inventário de Riscos');
+  assert.equal(formatAtomPlaceholder('PLAN_TABLE'), 'Plano de Ação');
   assert.equal(formatAtomPlaceholder('TABLE_GSE'), 'TABLE_GSE');
 });
 
@@ -193,9 +193,10 @@ run('7. atom desconhecido permanece visível', () => {
   );
   const summary = summarizeEditorProjection(toDocumentEditorState(projected!));
   assert.ok(summary.atoms.some((atom) => atom.type === 'WORKSPACE_BLOCK'));
+  assert.equal(formatAtomPlaceholder('WORKSPACE_BLOCK'), 'Estabelecimento');
   assert.equal(
-    formatAtomPlaceholder('WORKSPACE_BLOCK'),
-    'ELEMENTO NÃO SUPORTADO: WORKSPACE_BLOCK',
+    formatAtomPlaceholder('FUTURE_UNKNOWN_TYPE'),
+    'Elemento não suportado: FUTURE_UNKNOWN_TYPE',
   );
 });
 

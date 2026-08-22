@@ -1,6 +1,7 @@
 import { JSONContent } from '@tiptap/core';
 
 import {
+  CaptionBlock,
   DocumentEditorBlock,
   DocumentEditorState,
   BulletItem,
@@ -8,13 +9,16 @@ import {
   defaultBulletLevelForSource,
   isAtomBlock,
   isBulletRunBlock,
+  isCaptionBlock,
   isHeadingBlock,
   isTextRunBlock,
 } from '../adapter/document-editor-state.types';
+import { VariableCatalogEntry } from '../domain/variable-token';
 import { paragraphTextToContent } from './inline-ranges';
 
 function headingToNode(
   block: Extract<DocumentEditorBlock, { kind: 'heading' }>,
+  catalog?: VariableCatalogEntry[],
 ): JSONContent {
   return {
     type: 'docHeading',
@@ -32,11 +36,15 @@ function headingToNode(
       block.text,
       block.source.inlineStyleRangeBlock,
       block.source.entityRangeBlock,
+      catalog,
     ),
   };
 }
 
-function textRunParagraphToNode(paragraph: TextRunParagraph): JSONContent {
+function textRunParagraphToNode(
+  paragraph: TextRunParagraph,
+  catalog?: VariableCatalogEntry[],
+): JSONContent {
   return {
     type: 'docParagraph',
     attrs: {
@@ -53,11 +61,15 @@ function textRunParagraphToNode(paragraph: TextRunParagraph): JSONContent {
       paragraph.text,
       paragraph.inlineStyleRangeBlock,
       paragraph.entityRangeBlock,
+      catalog,
     ),
   };
 }
 
-function bulletToNode(bullet: BulletItem): JSONContent {
+function bulletToNode(
+  bullet: BulletItem,
+  catalog?: VariableCatalogEntry[],
+): JSONContent {
   return {
     type: 'docBullet',
     attrs: {
@@ -75,6 +87,33 @@ function bulletToNode(bullet: BulletItem): JSONContent {
       bullet.text,
       bullet.inlineStyleRangeBlock,
       bullet.entityRangeBlock,
+      catalog,
+    ),
+  };
+}
+
+function captionToNode(
+  block: CaptionBlock,
+  catalog?: VariableCatalogEntry[],
+): JSONContent {
+  return {
+    type: 'docCaption',
+    attrs: {
+      id: block.id,
+      captionType: block.type,
+      align: block.align ?? block.source.align ?? null,
+      size: block.size ?? block.source.size ?? null,
+      color: block.color ?? block.source.color ?? null,
+      lineHeight: block.lineHeight ?? block.source.lineHeight ?? null,
+      lineHeightBlock:
+        block.lineHeightBlock ?? block.source.lineHeightBlock ?? null,
+      source: block.source,
+    },
+    content: paragraphTextToContent(
+      block.text,
+      block.inlineStyleRangeBlock,
+      block.entityRangeBlock,
+      catalog,
     ),
   };
 }
@@ -92,12 +131,19 @@ function atomToNode(
   };
 }
 
-function blocksToContent(blocks: DocumentEditorBlock[]): JSONContent[] {
+function blocksToContent(
+  blocks: DocumentEditorBlock[],
+  catalog?: VariableCatalogEntry[],
+): JSONContent[] {
   const content: JSONContent[] = [];
 
   blocks.forEach((block) => {
     if (isHeadingBlock(block)) {
-      content.push(headingToNode(block));
+      content.push(headingToNode(block, catalog));
+      return;
+    }
+    if (isCaptionBlock(block)) {
+      content.push(captionToNode(block, catalog));
       return;
     }
     if (isAtomBlock(block)) {
@@ -106,13 +152,13 @@ function blocksToContent(blocks: DocumentEditorBlock[]): JSONContent[] {
     }
     if (isTextRunBlock(block)) {
       block.paragraphs.forEach((paragraph) => {
-        content.push(textRunParagraphToNode(paragraph));
+        content.push(textRunParagraphToNode(paragraph, catalog));
       });
       return;
     }
     if (isBulletRunBlock(block)) {
       block.bullets.forEach((bullet) => {
-        content.push(bulletToNode(bullet));
+        content.push(bulletToNode(bullet, catalog));
       });
     }
   });
@@ -140,7 +186,7 @@ export function toTipTapState(state: DocumentEditorState): JSONContent {
           childrenOrigin: section.childrenOrigin,
           source: section.source,
         },
-        content: blocksToContent(section.blocks),
+        content: blocksToContent(section.blocks, state.variables),
       })),
     })),
   };

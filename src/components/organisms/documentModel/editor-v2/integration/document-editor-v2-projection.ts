@@ -12,6 +12,7 @@ import {
   DocumentEditorState,
   isAtomBlock,
   isBulletRunBlock,
+  isCaptionBlock,
   isHeadingBlock,
   isTextRunBlock,
 } from '../adapter/document-editor-state.types';
@@ -78,6 +79,9 @@ export function summarizeEditorProjection(state: DocumentEditorState) {
       .map((block) => block.paragraphs.map((paragraph) => paragraph.id)),
     headings: blocks
       .filter(isHeadingBlock)
+      .map((block) => ({ id: block.id, type: block.type })),
+    captions: blocks
+      .filter(isCaptionBlock)
       .map((block) => ({ id: block.id, type: block.type })),
     atoms: blocks
       .filter(isAtomBlock)

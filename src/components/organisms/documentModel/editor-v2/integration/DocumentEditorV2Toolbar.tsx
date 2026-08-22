@@ -38,6 +38,11 @@ function promptExternalLink(editor: Editor) {
 
 function selectLabel(active: ReturnType<typeof resolveActiveBlock>): string {
   if (active.kind === 'atom') return 'Elemento estrutural';
+  if (active.kind === 'caption') {
+    if (active.captionType === 'PARAGRAPH_TABLE') return 'Título de tabela';
+    if (active.captionType === 'PARAGRAPH_FIGURE') return 'Título de figura';
+    return 'Legenda';
+  }
   if (active.kind === 'multi') return 'Vários blocos';
   if (active.kind === 'convertible') {
     return (

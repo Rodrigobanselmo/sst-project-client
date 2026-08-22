@@ -23,6 +23,7 @@ const FORMAT_NODE_NAMES = new Set([
   'docParagraph',
   'docBullet',
   'docHeading',
+  'docCaption',
   'docAtom',
 ]);
 
@@ -35,6 +36,15 @@ export type ActiveBlockResolution =
       pos: number;
       node: ProseMirrorNode;
       level?: number;
+    }
+  | {
+      kind: 'caption';
+      convertible: false;
+      visual: true;
+      id: string;
+      pos: number;
+      node: ProseMirrorNode;
+      captionType?: string;
     }
   | {
       kind: 'atom';
@@ -77,6 +87,20 @@ function describeNode(
       id,
       pos,
       atomType: node.attrs.atomType ? String(node.attrs.atomType) : undefined,
+    };
+  }
+
+  if (node.type.name === 'docCaption') {
+    return {
+      kind: 'caption',
+      convertible: false,
+      visual: true,
+      id: id || '',
+      pos,
+      node,
+      captionType: node.attrs.captionType
+        ? String(node.attrs.captionType)
+        : undefined,
     };
   }
 

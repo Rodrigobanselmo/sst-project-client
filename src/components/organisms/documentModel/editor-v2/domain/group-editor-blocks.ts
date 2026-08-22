@@ -2,6 +2,7 @@ import {
   AtomBlock,
   BulletItem,
   BulletRunBlock,
+  CaptionBlock,
   DocumentEditorBlock,
   HeadingBlock,
   TextRunBlock,
@@ -13,6 +14,7 @@ export type FlatEditorNode =
   | { kind: 'paragraph'; paragraph: TextRunParagraph }
   | { kind: 'bullet'; bullet: BulletItem }
   | { kind: 'heading'; block: HeadingBlock }
+  | { kind: 'caption'; block: CaptionBlock }
   | { kind: 'atom'; block: AtomBlock };
 
 export function groupFlatNodesToBlocks(

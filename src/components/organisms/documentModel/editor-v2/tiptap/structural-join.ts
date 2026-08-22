@@ -5,7 +5,11 @@ import { snapSplitOffset } from '../domain/structural-edit';
 
 export const STRUCTURAL_EDITABLE_NODES = new Set(['docParagraph', 'docBullet']);
 
-export const STRUCTURAL_PROTECTED_NODES = new Set(['docHeading', 'docAtom']);
+export const STRUCTURAL_PROTECTED_NODES = new Set([
+  'docHeading',
+  'docAtom',
+  'docCaption',
+]);
 
 export type StructuralJoinDecision =
   | { type: 'ignore' }

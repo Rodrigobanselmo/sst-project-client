@@ -5,6 +5,13 @@ import {
 } from 'core/interfaces/api/IDocumentModel';
 import { InlineStyleTypeEnum } from 'project/enum/document-model.enum';
 
+import {
+  resolveVariablePresentation,
+  serializeVariableToken,
+  tokenizeVariableLine,
+  VariableCatalogEntry,
+} from '../domain/variable-token';
+
 type MarkJson = { type: string; attrs?: Record<string, any> };
 
 function markKey(mark: MarkJson): string {
@@ -73,8 +80,9 @@ function sameMarks(a: MarkJson[], b: MarkJson[]) {
   return a.every((mark, index) => markKey(mark) === markKey(b[index]));
 }
 
-export function lineToInlineContent(
+function textSliceToContent(
   text: string,
+  baseOffset: number,
   styles?: IInlineStyleRange[],
   entities?: IEntityRange[],
 ): JSONContent[] {
@@ -84,11 +92,11 @@ export function lineToInlineContent(
   let start = 0;
 
   while (start < text.length) {
-    const current = marksAtOffset(styles, entities, start);
+    const current = marksAtOffset(styles, entities, baseOffset + start);
     let end = start + 1;
     while (
       end < text.length &&
-      sameMarks(current, marksAtOffset(styles, entities, end))
+      sameMarks(current, marksAtOffset(styles, entities, baseOffset + end))
     ) {
       end += 1;
     }
@@ -104,10 +112,45 @@ export function lineToInlineContent(
   return content;
 }
 
+export function lineToInlineContent(
+  text: string,
+  styles?: IInlineStyleRange[],
+  entities?: IEntityRange[],
+  catalog?: VariableCatalogEntry[],
+): JSONContent[] {
+  if (!text) return [];
+
+  const content: JSONContent[] = [];
+
+  tokenizeVariableLine(text).forEach((token) => {
+    if (token.kind === 'text') {
+      content.push(
+        ...textSliceToContent(token.text, token.start, styles, entities),
+      );
+      return;
+    }
+
+    const presentation = resolveVariablePresentation(token.type, catalog);
+    const marks = marksAtOffset(styles, entities, token.start);
+    content.push({
+      type: 'docVariable',
+      attrs: {
+        type: presentation.type,
+        label: presentation.label,
+        unknown: presentation.unknown,
+      },
+      ...(marks.length ? { marks } : {}),
+    });
+  });
+
+  return content;
+}
+
 export function paragraphTextToContent(
   text: string,
   inlineStyleRangeBlock?: IInlineStyleRange[][],
   entityRangeBlock?: IEntityRange[][],
+  catalog?: VariableCatalogEntry[],
 ): JSONContent[] {
   const lines = (text ?? '').split('\n');
   const content: JSONContent[] = [];
@@ -118,6 +161,7 @@ export function paragraphTextToContent(
         line,
         inlineStyleRangeBlock?.[index],
         entityRangeBlock?.[index],
+        catalog,
       ),
     );
     if (index < lines.length - 1) {
@@ -202,6 +246,32 @@ export function extractParagraphContent(content?: JSONContent[]): {
     if (node.type === 'hardBreak') {
       line = { text: '', styles: [], entities: [] };
       lines.push(line);
+      return;
+    }
+
+    if (node.type === 'docVariable') {
+      const chunk = serializeVariableToken(String(node.attrs?.type || ''));
+      const start = line.text.length;
+      line.text += chunk;
+
+      (node.marks || []).forEach((mark) => {
+        const style = styleFromMark(mark);
+        if (style) {
+          pushRange(line.styles, {
+            ...style,
+            offset: start,
+            length: chunk.length,
+          });
+        }
+        const entity = entityFromMark(mark);
+        if (entity) {
+          pushRange(line.entities, {
+            ...entity,
+            offset: start,
+            length: chunk.length,
+          });
+        }
+      });
       return;
     }
 

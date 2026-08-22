@@ -12,6 +12,7 @@ import { fromDocumentEditorState } from '../adapter/fromDocumentEditorState';
 import { buildPocCanonicalModel } from '../adapter/fixtures/poc-canonical.fixture';
 import { UnsupportedTipTapStructureError } from '../domain/unsupported-tiptap.error';
 import { consumeEditorEscapeEvent } from '../integration/document-editor-v2-session';
+import { documentEditorV2SurfaceSx } from '../integration/document-editor-v2-surface-sx';
 import { createDocumentEditorExtensions } from './extensions/create-document-editor-extensions';
 import { buildLargeDefinitionsRunModel } from './fixtures/large-run.fixture';
 import { fromTipTapState } from './from-tiptap-state';
@@ -116,36 +117,10 @@ export function DocumentEditorV2Poc() {
           borderRadius: 1,
           p: 2,
           bgcolor: 'common.white',
+          ...documentEditorV2SurfaceSx,
           '& .ProseMirror': {
             outline: 'none',
             minHeight: 280,
-          },
-          '& .doc-editor-v2-atom': {
-            border: '1px dashed',
-            borderColor: 'grey.500',
-            bgcolor: 'grey.100',
-            px: 1.5,
-            py: 1,
-            my: 1.5,
-            fontFamily: 'monospace',
-            fontSize: 13,
-          },
-          '& [data-doc-heading]': {
-            fontWeight: 700,
-            mt: 2,
-            mb: 1,
-          },
-          '& [data-doc-paragraph]': {
-            my: 0.75,
-          },
-          '& [data-doc-bullet]': {
-            position: 'relative',
-            my: 0.35,
-            '&::before': {
-              content: '"•"',
-              position: 'absolute',
-              left: 'calc(var(--doc-bullet-level, 0) * 24px)',
-            },
           },
         }}
       >

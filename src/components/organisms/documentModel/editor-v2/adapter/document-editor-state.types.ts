@@ -7,6 +7,11 @@ import {
 } from 'core/interfaces/api/IDocumentModel';
 import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enum';
 
+import {
+  DocumentEditorCaptionType,
+  isDocumentEditorCaptionType,
+} from '../domain/caption-block';
+
 export const DOCUMENT_EDITOR_HEADING_TYPES = [
   DocumentSectionChildrenTypeEnum.TITLE,
   DocumentSectionChildrenTypeEnum.H1,
@@ -25,7 +30,8 @@ export type DocumentEditorHeadingType =
  * Fase 3: BULLET também é conteúdo textual (não vira PARAGRAPH no canonical).
  * Fase 4A: BULLET_SPACE entra na mesma superfície de bullets (level 1),
  * mas o canonical permanece BULLET_SPACE até conversão explícita.
- * Captions / IMAGE / BREAK continuam átomos.
+ * Fase 4C: captions (PARAGRAPH_TABLE / PARAGRAPH_FIGURE / LEGEND) são
+ * blocos textuais com chrome; IMAGE / BREAK / tabelas SST continuam átomos.
  */
 export const DOCUMENT_EDITOR_TEXT_RUN_TYPE =
   DocumentSectionChildrenTypeEnum.PARAGRAPH;
@@ -78,6 +84,11 @@ export type HeadingBlock = {
   source: IDocumentModelElement;
 };
 
+export type CaptionBlock = TextRunParagraph & {
+  kind: 'caption';
+  type: DocumentEditorCaptionType;
+};
+
 export type AtomBlock = {
   kind: 'atom';
   id: string;
@@ -89,6 +100,7 @@ export type DocumentEditorBlock =
   | TextRunBlock
   | BulletRunBlock
   | HeadingBlock
+  | CaptionBlock
   | AtomBlock;
 
 export type DocumentEditorSection = {
@@ -126,9 +138,18 @@ export function isHeadingBlock(
   return block.kind === 'heading';
 }
 
+export function isCaptionBlock(
+  block: DocumentEditorBlock,
+): block is CaptionBlock {
+  return block.kind === 'caption';
+}
+
 export function isAtomBlock(block: DocumentEditorBlock): block is AtomBlock {
   return block.kind === 'atom';
 }
+
+export { isDocumentEditorCaptionType };
+export type { DocumentEditorCaptionType };
 
 export function isBulletRunBlock(
   block: DocumentEditorBlock,

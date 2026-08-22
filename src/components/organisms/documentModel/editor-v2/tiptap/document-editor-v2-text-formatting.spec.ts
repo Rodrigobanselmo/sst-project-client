@@ -135,6 +135,7 @@ function findBlockPos(doc: Node, id: string): { pos: number; node: Node } {
       (node.type.name === 'docParagraph' ||
         node.type.name === 'docBullet' ||
         node.type.name === 'docHeading' ||
+        node.type.name === 'docCaption' ||
         node.type.name === 'docAtom') &&
       node.attrs.id === id
     ) {
@@ -619,17 +620,23 @@ run('26. variável com style antes/depois', () => {
 });
 
 run('27. variável não corrompida (expansão do token)', () => {
-  const result = applyInlineColor(
-    setRange(
-      stateFromChildren([
-        paragraph('el-a', 'Antes ??NOME_DA_EMPRESA?? depois'),
-      ]),
-      'el-a',
-      10,
-      14,
+  let state = stateFromChildren([
+    paragraph('el-a', 'Antes ??NOME_DA_EMPRESA?? depois'),
+  ]);
+  let variablePos = -1;
+  state.doc.descendants((node, pos) => {
+    if (node.type.name === 'docVariable' && node.attrs.type === 'NOME_DA_EMPRESA') {
+      variablePos = pos;
+      return false;
+    }
+  });
+  assert.ok(variablePos >= 0);
+  state = state.apply(
+    state.tr.setSelection(
+      TextSelection.create(state.doc, variablePos, variablePos + 1),
     ),
-    '#FF0000',
   );
+  const result = applyInlineColor(state, '#FF0000');
   const child = canonicalChild(result.state, 'el-a');
   assert.equal(child.text, 'Antes ??NOME_DA_EMPRESA?? depois');
   assert.ok(child.text.includes('??NOME_DA_EMPRESA??'));

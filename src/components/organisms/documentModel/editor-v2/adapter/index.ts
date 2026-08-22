@@ -6,6 +6,8 @@ export {
   defaultBulletLevelForSource,
   isAtomBlock,
   isBulletRunBlock,
+  isCaptionBlock,
+  isDocumentEditorCaptionType,
   isDocumentEditorBulletSurfaceType,
   isDocumentEditorHeadingType,
   isHeadingBlock,
@@ -14,11 +16,13 @@ export {
 } from './document-editor-state.types';
 export type {
   AtomBlock,
+  CaptionBlock,
   BulletItem,
   BulletRunBlock,
   DocumentEditorBlock,
   DocumentEditorChildrenOrigin,
   DocumentEditorGroup,
+  DocumentEditorCaptionType,
   DocumentEditorHeadingType,
   DocumentEditorSection,
   DocumentEditorState,

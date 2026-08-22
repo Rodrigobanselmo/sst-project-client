@@ -24,6 +24,10 @@ export function flattenBlockElements(
     }));
   }
 
+  if (block.kind === 'caption') {
+    return [{ id: block.id, type: block.type }];
+  }
+
   return [{ id: block.id, type: block.type }];
 }
 

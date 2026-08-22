@@ -15,6 +15,7 @@ import { decorateTipTapProjection } from './decorate-tiptap-projection';
 import { useDocumentEditorV2Host } from './DocumentEditorV2Host';
 import { useDocumentEditorV2Session } from './DocumentEditorV2Session';
 import { consumeEditorEscapeEvent } from './document-editor-v2-session';
+import { documentEditorV2SurfaceSx } from './document-editor-v2-surface-sx';
 import { ProtectV2Boundaries } from './protect-v2-boundaries.extension';
 
 export function DocumentEditorV2SectionView({
@@ -102,41 +103,7 @@ export function DocumentEditorV2SectionView({
         borderRadius: 1,
         p: 2,
         bgcolor: 'common.white',
-        '& .ProseMirror': {
-          outline: 'none',
-          minHeight: 240,
-        },
-        '& .doc-editor-v2-atom': {
-          border: '1px dashed',
-          borderColor: 'grey.500',
-          bgcolor: 'grey.100',
-          px: 1.5,
-          py: 1,
-          my: 1.5,
-          fontFamily: 'monospace',
-          fontSize: 13,
-          userSelect: 'none',
-        },
-        '& [data-doc-heading]': {
-          fontWeight: 700,
-          mt: 2,
-          mb: 1,
-        },
-        '& [data-heading-number]::before': {
-          content: 'attr(data-heading-number) " "',
-        },
-        '& [data-doc-paragraph]': {
-          my: 0.75,
-        },
-        '& [data-doc-bullet]': {
-          position: 'relative',
-          my: 0.35,
-          '&::before': {
-            content: '"•"',
-            position: 'absolute',
-            left: 'calc(var(--doc-bullet-level, 0) * 24px)',
-          },
-        },
+        ...documentEditorV2SurfaceSx,
       }}
     >
       <EditorContent editor={editor} />

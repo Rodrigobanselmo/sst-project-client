@@ -5,6 +5,7 @@ import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enu
 import {
   AtomBlock,
   BulletItem,
+  CaptionBlock,
   DocumentEditorChildrenOrigin,
   DocumentEditorGroup,
   DocumentEditorHeadingType,
@@ -13,6 +14,7 @@ import {
   HeadingBlock,
   TextRunParagraph,
   defaultBulletLevelForSource,
+  isDocumentEditorCaptionType,
   isDocumentEditorHeadingType,
   isLegacyBulletSpaceType,
 } from '../adapter/document-editor-state.types';
@@ -270,6 +272,57 @@ function bulletFromNode(
   };
 }
 
+function captionFromNode(
+  node: JSONContent,
+  createId: DocumentEditorIdFactory,
+): CaptionBlock {
+  const id = resolveEditableId(node, createId);
+  const rawType =
+    typeof node.attrs?.captionType === 'string'
+      ? node.attrs.captionType
+      : typeof node.attrs?.source?.type === 'string'
+        ? node.attrs.source.type
+        : DocumentSectionChildrenTypeEnum.LEGEND;
+  const captionType = isDocumentEditorCaptionType(rawType)
+    ? rawType
+    : DocumentSectionChildrenTypeEnum.LEGEND;
+  const source = resolveEditableSource(node, id, captionType);
+  const extracted = extractParagraphContent(node.content);
+
+  const overlay: Partial<IDocumentModelElement> = {
+    id,
+    type: captionType,
+    text: extracted.text,
+  };
+
+  applyExtractedRanges(overlay, source, extracted);
+  const omit: string[] = [];
+  applyVisualAttrOverlay(overlay, omit, source, node.attrs);
+
+  const nextSource = omitKeys(overlayDefined(source, overlay), omit);
+
+  return {
+    kind: 'caption',
+    id,
+    type: captionType,
+    text: extracted.text,
+    ...(nextSource.align != null && { align: nextSource.align }),
+    ...(nextSource.size != null && { size: nextSource.size }),
+    ...(nextSource.color != null && { color: nextSource.color }),
+    ...(nextSource.lineHeight != null && { lineHeight: nextSource.lineHeight }),
+    ...(nextSource.lineHeightBlock != null && {
+      lineHeightBlock: nextSource.lineHeightBlock,
+    }),
+    ...(nextSource.inlineStyleRangeBlock != null && {
+      inlineStyleRangeBlock: nextSource.inlineStyleRangeBlock,
+    }),
+    ...(nextSource.entityRangeBlock != null && {
+      entityRangeBlock: nextSource.entityRangeBlock,
+    }),
+    source: nextSource,
+  };
+}
+
 function atomFromNode(node: JSONContent): AtomBlock {
   const id = requireId(node, 'Atom');
   const source = requireSource<IDocumentModelElement>(node, `Atom ${id}`);
@@ -302,6 +355,9 @@ function nodesToFlat(
     }
     if (node.type === 'docBullet') {
       return { kind: 'bullet', bullet: bulletFromNode(node, createId) };
+    }
+    if (node.type === 'docCaption') {
+      return { kind: 'caption', block: captionFromNode(node, createId) };
     }
     if (node.type === 'docAtom') {
       return { kind: 'atom', block: atomFromNode(node) };

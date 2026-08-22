@@ -13,7 +13,9 @@ export function collectProtectedNodeKeys(doc: TipTapLikeDoc): string[] {
   const keys: string[] = [];
   doc.descendants((node) => {
     if (
-      (node.type.name === 'docAtom' || node.type.name === 'docHeading') &&
+      (node.type.name === 'docAtom' ||
+        node.type.name === 'docHeading' ||
+        node.type.name === 'docCaption') &&
       node.attrs?.id
     ) {
       keys.push(`${node.type.name}:${node.attrs.id}`);
