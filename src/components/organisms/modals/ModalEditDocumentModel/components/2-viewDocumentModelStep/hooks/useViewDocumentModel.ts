@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from 'react-redux';
 
 import { getModelSectionsBySelectedItem } from 'components/organisms/documentModel/DocumentModelContent/utils/getModelBySelectedItem';
+import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
 import { IDocumentSlice } from 'store/reducers/document/documentSlice';
 
 import { useMutPreviewDocumentModel } from 'core/services/hooks/mutations/checklist/documentData/useMutPreviewDocumentModel/useMutPreviewDocumentModel';
@@ -10,6 +11,7 @@ import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 
 export const useViewDocumentModel = (props: IUseDocumentModel) => {
   const { onClose, data, persistDocumentModel, closeEditor, model } = props;
+  const v2Session = useDocumentEditorV2Session();
   const store = useStore<any>();
   const downloadPreview = useMutPreviewDocumentModel();
   const [saveIntent, setSaveIntent] = useState<'stay' | 'exit' | null>(null);
@@ -56,10 +58,18 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
   };
 
   const onSubmit = async () => {
+    if (v2Session.shouldBlockOfficialSave) {
+      v2Session.reportBlockedSave();
+      return;
+    }
     await runPersist('stay');
   };
 
   const onSubmitAndExit = async () => {
+    if (v2Session.shouldBlockOfficialSave) {
+      v2Session.reportBlockedSave();
+      return;
+    }
     await runPersist('exit');
   };
 

@@ -4,6 +4,8 @@ import { useStore } from 'react-redux';
 import { Box } from '@mui/material';
 import clone from 'clone';
 import SText from 'components/atoms/SText';
+import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
+import { DOCUMENT_EDITOR_V2_DISCARD_MODAL } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-notices';
 import { parseInlineStyleText } from 'components/organisms/documentModel/utils/parseInlineStyleText';
 import {
   DocumentModelClassificationEnum,
@@ -92,6 +94,7 @@ export const useEditDocumentModel = () => {
   const metadataBaselineRef = useRef<DocumentModelDirtySnapshot | null>(null);
   const { onStackOpenModal } = useModal();
   const { preventDelete, preventDiscardIf } = usePreventAction();
+  const v2Session = useDocumentEditorV2Session();
 
   const [data, setData] = useState({
     ...initialEditDocumentModelState,
@@ -304,6 +307,11 @@ export const useEditDocumentModel = () => {
   };
 
   const persistDocumentModel = async (): Promise<boolean> => {
+    if (v2Session.shouldBlockOfficialSave) {
+      v2Session.reportBlockedSave();
+      return false;
+    }
+
     if (updateMutation.isLoading) return false;
 
     const modelDocument = (store.getState().document as IDocumentSlice).model;
@@ -340,21 +348,37 @@ export const useEditDocumentModel = () => {
   const onCloseUnsaved = (action?: () => void) => {
     if (isPersisting) return;
 
+    const finishClose = () => {
+      if (
+        preventDiscardIf(
+          isDirty,
+          () => {
+            dispatch(setSaveDocument());
+            closeEditor();
+            action?.();
+          },
+          DOCUMENT_MODEL_DISCARD_MODAL,
+        )
+      )
+        return;
+
+      closeEditor();
+      action?.();
+    };
+
     if (
       preventDiscardIf(
-        isDirty,
+        v2Session.v2LocalDirty,
         () => {
-          dispatch(setSaveDocument());
-          closeEditor();
-          action?.();
+          v2Session.discardLocalEdits();
+          finishClose();
         },
-        DOCUMENT_MODEL_DISCARD_MODAL,
+        DOCUMENT_EDITOR_V2_DISCARD_MODAL,
       )
     )
       return;
 
-    closeEditor();
-    action?.();
+    finishClose();
   };
 
   const handleDelete = () => {

@@ -1,0 +1,74 @@
+import {
+  DOCUMENT_EDITOR_V2_BLOCK_SECTION_REASON,
+  DOCUMENT_EDITOR_V2_BLOCK_SWITCH_REASON,
+} from './document-editor-v2-notices';
+
+export type DocumentEditorSurface = 'v1' | 'v2';
+
+export function resolveVisibleSurface(args: {
+  flagEnabled: boolean;
+  surface: DocumentEditorSurface;
+}): DocumentEditorSurface {
+  if (!args.flagEnabled) return 'v1';
+  return args.surface;
+}
+
+export function isEditorSwitchVisible(flagEnabled: boolean): boolean {
+  return flagEnabled;
+}
+
+export function canLeaveV2WithoutProtection(v2LocalDirty: boolean): boolean {
+  return !v2LocalDirty;
+}
+
+export function shouldBlockOfficialSave(args: {
+  surface: DocumentEditorSurface;
+  v2LocalDirty: boolean;
+}): boolean {
+  return args.surface === 'v2' && args.v2LocalDirty;
+}
+
+export function requestSurfaceChange(args: {
+  current: DocumentEditorSurface;
+  next: DocumentEditorSurface;
+  v2LocalDirty: boolean;
+}): { allowed: boolean; reason?: string } {
+  if (args.current === args.next) return { allowed: true };
+  if (args.next === 'v1' && args.v2LocalDirty) {
+    return {
+      allowed: false,
+      reason: DOCUMENT_EDITOR_V2_BLOCK_SWITCH_REASON,
+    };
+  }
+  return { allowed: true };
+}
+
+export function resolvePinnedSelection<
+  T extends { id: string | number },
+>(args: {
+  selectedItem: T | null;
+  pinnedItem: T | null;
+  v2LocalDirty: boolean;
+  surface: DocumentEditorSurface;
+}): { renderItem: T | null; blockedSectionSwitch: boolean } {
+  if (args.surface !== 'v2') {
+    return { renderItem: args.selectedItem, blockedSectionSwitch: false };
+  }
+
+  if (args.v2LocalDirty && args.pinnedItem) {
+    const blocked =
+      String(args.selectedItem?.id ?? '') !== String(args.pinnedItem.id);
+    return {
+      renderItem: args.pinnedItem,
+      blockedSectionSwitch: blocked,
+    };
+  }
+
+  return { renderItem: args.selectedItem, blockedSectionSwitch: false };
+}
+
+export function sectionSwitchProtectionNotice(
+  blockedSectionSwitch: boolean,
+): string | null {
+  return blockedSectionSwitch ? DOCUMENT_EDITOR_V2_BLOCK_SECTION_REASON : null;
+}

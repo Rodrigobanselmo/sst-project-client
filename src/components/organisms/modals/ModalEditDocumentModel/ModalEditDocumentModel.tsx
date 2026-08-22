@@ -5,6 +5,8 @@ import SModal, { SModalHeader, SModalPaper } from 'components/molecules/SModal';
 import { Wizard } from 'components/organisms/main/Wizard';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 
+import { DocumentEditorV2SessionProvider } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
+
 import { DataStep } from './components/1-data/DataStep';
 import { ViewDocumentModelStep } from './components/2-viewDocumentModelStep/ViewDocumentModelStep';
 import { useEditDocumentModel } from './hooks/useEditDocumentModel';
@@ -12,7 +14,13 @@ import { VariablesDocTable } from 'components/organisms/tables/VariablesDocTable
 import { VariablesStep } from './components/3-variables/VariablesStep';
 import { ImagesStep } from './components/4-images/ImagesStep';
 
-export const ModalEditDocumentModelData = () => {
+export const ModalEditDocumentModelData = () => (
+  <DocumentEditorV2SessionProvider>
+    <ModalEditDocumentModelInner />
+  </DocumentEditorV2SessionProvider>
+);
+
+const ModalEditDocumentModelInner = () => {
   const props = useEditDocumentModel();
 
   const { registerModal, onClose, modalName, data, isEdit } = props;

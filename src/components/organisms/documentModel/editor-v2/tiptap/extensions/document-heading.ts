@@ -19,6 +19,7 @@ export const DocumentHeading = Node.create({
     return {
       id: { default: null },
       headingType: { default: 'H1' },
+      headingNumber: { default: null },
       source: { default: null },
     };
   },
@@ -33,6 +34,7 @@ export const DocumentHeading = Node.create({
       mergeAttributes({
         'data-doc-heading': HTMLAttributes.headingType,
         'data-doc-id': HTMLAttributes.id,
+        'data-heading-number': HTMLAttributes.headingNumber || null,
       }),
       0,
     ];

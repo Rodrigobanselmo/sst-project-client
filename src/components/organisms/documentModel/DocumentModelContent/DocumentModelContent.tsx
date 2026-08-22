@@ -6,6 +6,7 @@ import { selectAllDocumentModel } from 'store/reducers/document/documentSlice';
 import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
+import { DocumentModelEditorBoundary } from '../editor-v2/integration/DocumentModelEditorBoundary';
 import { buildDocumentHeadingNumbering } from '../utils/buildDocumentHeadingNumbering';
 import { useContentDocumentModel } from './hooks/useContentDocumentModel';
 import { STStructContainer } from './styles';
@@ -38,13 +39,19 @@ export const DocumentModelContent: React.FC<
         {props.loading && <LinearProgress />}
 
         {data && variables && elements && sections && (
-          <TypeSectionItem
-            data={data}
-            variables={variables}
-            elements={elements}
-            sections={sections}
-            companyId={companyId}
+          <DocumentModelEditorBoundary
+            model={props.model}
             headingNumbering={headingNumbering}
+            v1={
+              <TypeSectionItem
+                data={data}
+                variables={variables}
+                elements={elements}
+                sections={sections}
+                companyId={companyId}
+                headingNumbering={headingNumbering}
+              />
+            }
           />
         )}
       </STStructContainer>

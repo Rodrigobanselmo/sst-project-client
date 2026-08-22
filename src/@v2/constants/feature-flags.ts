@@ -2,6 +2,10 @@
 // Usado por kill-switches de telas administrativas que já são protegidas por role.
 const isFlagEnabledByDefault = (value?: string): boolean => value !== 'false';
 
+// Opt-in explícito. Default OFF: qualquer valor diferente de 'true' mantém o V1.
+export const isDocumentEditorV2Enabled = (value?: string | null): boolean =>
+  value === 'true';
+
 export const featureFlags = {
   // Biblioteca SimpleSST de regras Exame × Risco. Tela administrativa MASTER:
   // ativa por padrão (visível para MASTER) e desligável via env=false como
@@ -53,5 +57,10 @@ export const featureFlags = {
   // catálogo global. Ativa por padrão; kill-switch visual via env=false.
   riskSubTypeCuration: isFlagEnabledByDefault(
     process.env.NEXT_PUBLIC_FEATURE_RISK_SUB_TYPE_CURATION,
+  ),
+  // Editor V2 — integração visual experimental. CLIENT-ONLY, default OFF.
+  // Não persiste no modelo, não liga save e não substitui o V1.
+  documentEditorV2: isDocumentEditorV2Enabled(
+    process.env.NEXT_PUBLIC_FEATURE_DOCUMENT_EDITOR_V2,
   ),
 } as const;

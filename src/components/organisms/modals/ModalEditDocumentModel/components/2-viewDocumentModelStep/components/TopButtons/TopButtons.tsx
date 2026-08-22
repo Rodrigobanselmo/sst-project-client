@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STableButton } from 'components/atoms/STable/components/STableButton';
 import { RemoveDoubleClickButton } from 'components/organisms/documentModel/DocumentModelContent/TypeSectionItem/RemoveDoubleClickButton';
+import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
 import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice';
 
 import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
@@ -23,6 +24,8 @@ export const TopButtons = ({
   handleDeleteActualItems,
 }: IUseViewDocumentModel & { handleDeleteActualItems?: () => void }) => {
   const selectItem = useAppSelector(selectDocumentSelectItem);
+  const v2Session = useDocumentEditorV2Session();
+  const officialSaveBlocked = v2Session.shouldBlockOfficialSave;
   const saveActionColor = isDirty ? 'error.main' : 'primary.main';
   return (
     <Box
@@ -55,7 +58,7 @@ export const TopButtons = ({
         <STableButton
           text="Salvar"
           icon={SSaveIcon}
-          disabled={!selectItem || saveBusy}
+          disabled={!selectItem || saveBusy || officialSaveBlocked}
           color={saveActionColor}
           onClick={onSubmit}
           loading={saveLoading}
@@ -64,7 +67,7 @@ export const TopButtons = ({
         <STableButton
           text="Salvar e sair"
           icon={SSaveIcon}
-          disabled={!selectItem || saveBusy}
+          disabled={!selectItem || saveBusy || officialSaveBlocked}
           color={saveActionColor}
           onClick={onSubmitAndExit}
           loading={saveAndExitLoading}

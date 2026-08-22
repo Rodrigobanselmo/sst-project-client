@@ -1,6 +1,11 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
-function atomLabel(type?: string, source?: { orientation?: string } | null) {
+function atomLabel(
+  type?: string,
+  source?: { orientation?: string } | null,
+  label?: string | null,
+) {
+  if (label) return label;
   if (type === 'SECTION_BREAK') {
     const orientation =
       source?.orientation === 'landscape' ? 'Paisagem' : 'Retrato';
@@ -20,6 +25,7 @@ export const DocumentAtom = Node.create({
     return {
       id: { default: null },
       atomType: { default: 'UNKNOWN' },
+      label: { default: null },
       source: { default: null },
     };
   },
@@ -29,7 +35,11 @@ export const DocumentAtom = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const label = atomLabel(HTMLAttributes.atomType, HTMLAttributes.source);
+    const label = atomLabel(
+      HTMLAttributes.atomType,
+      HTMLAttributes.source,
+      HTMLAttributes.label,
+    );
     return [
       'div',
       mergeAttributes({
