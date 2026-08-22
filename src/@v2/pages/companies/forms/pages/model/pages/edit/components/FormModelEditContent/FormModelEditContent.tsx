@@ -7,6 +7,7 @@ import { validateFormOptions } from '@v2/pages/companies/forms/utils/validate-fo
 import { useMutateDeleteFormModel } from '@v2/services/forms/form/delete-form-model/hooks/useMutateDeleteFormModel';
 import { useMutateEditFormModel } from '@v2/services/forms/form/edit-form-model/hooks/useMutateEditFormModel';
 import { useForm } from 'react-hook-form';
+import { useRef } from 'react';
 import {
   IFormModelForms,
   schemaFormModelForms,
@@ -23,6 +24,10 @@ import { FormModelGroup } from '@v2/pages/companies/forms/pages/model/components
 import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 import { questionsIndicatorMapOptions } from '@v2/pages/companies/forms/components/SFormQuestionAccordion/components/SFormQuestionAccordionBody/components/QuestionOptionsManager/QuestionOptionsManager';
 import { useAccess } from 'core/hooks/useAccess';
+import {
+  getFormModelEditorSnapshot,
+  isFormModelEditorDirty,
+} from '../../../../schemas/form-model-editor-dirty';
 
 export const FormModelEditContent = ({
   companyId,
@@ -85,26 +90,39 @@ export const FormModelEditContent = ({
   const editFormMutation = useMutateEditFormModel();
   const deleteFormMutation = useMutateDeleteFormModel();
   const { showConfirmation } = useConfirmationModal();
+  const watchedValues = formHook.watch();
+  const baselineRef = useRef(
+    getFormModelEditorSnapshot(formHook.getValues()),
+  );
+  const isDirty = isFormModelEditorDirty(watchedValues, baselineRef.current);
 
-  const onSubmit = async (data: IFormModelForms) => {
+  const persist = async (data: IFormModelForms) => {
     formHook.clearErrors();
 
     const hasValidationErrors = validateFormOptions(data, formHook);
 
-    if (hasValidationErrors) return;
+    if (hasValidationErrors) return false;
 
     const apiData = transformFormDataToApiFormat(data, companyId);
     await editFormMutation.mutateAsync({
       ...apiData,
       formId: form.id,
     });
+    baselineRef.current = getFormModelEditorSnapshot(formHook.getValues());
+    return true;
+  };
 
+  const onSubmitStay = formHook.handleSubmit(async (data) => {
+    await persist(data);
+  });
+
+  const onSubmitExit = formHook.handleSubmit(async (data) => {
+    const saved = await persist(data);
+    if (!saved) return;
     router.push(PageRoutes.FORMS.FORMS_MODEL.LIST, {
       pathParams: { companyId },
     });
-  };
-
-  const handleSubmit = formHook.handleSubmit(onSubmit);
+  });
 
   const onCancel = () => {
     router.push(PageRoutes.FORMS.FORMS_MODEL.LIST, {
@@ -140,7 +158,10 @@ export const FormModelEditContent = ({
 
       <FormQuestionsButtons
         onCancel={onCancel}
-        onSubmit={handleSubmit}
+        onSubmit={onSubmitStay}
+        onSubmitAndExit={onSubmitExit}
+        showSaveAndExit={true}
+        isDirty={isDirty}
         errors={formHook.formState.errors}
         loading={editFormMutation.isPending}
       />

@@ -37,6 +37,11 @@ import { scrollToFirstFormError } from 'core/utils/scroll-to-first-form-error.ut
 import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 import type { RiskFactorAiSuggestionSourceContextPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 
+import {
+  getRiskEditorSnapshot,
+  isRiskEditorDirty,
+} from './risk-editor-dirty';
+
 export const initialAddRiskState = {
   status: StatusEnum.ACTIVE,
   severity: 0,
@@ -124,7 +129,8 @@ type IUseAddRiskOptions = {
 export const useAddRisk = (options?: IUseAddRiskOptions) => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
-  const initialDataRef = useRef(initialAddRiskState);
+  const initialDataRef = useRef(getRiskEditorSnapshot(initialAddRiskState, {}));
+  const isHydratingRef = useRef(true);
 
   const {
     handleSubmit,
@@ -150,11 +156,31 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   const { isMaster } = useAccess();
   const { user } = useGetCompanyId(true);
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventDiscardIf } = usePreventAction();
   /** Intenção pós-save explícita — não misturar com evento de submit. */
   const saveIntentRef = useRef<'stay' | 'exit'>('stay');
 
   const [riskData, setRiskData] = useState(initialAddRiskState);
+  const formValues = watch();
+  const isDirty = isRiskEditorDirty(
+    getRiskEditorSnapshot(riskData, formValues),
+    initialDataRef.current,
+  );
+
+  useEffect(() => {
+    if (!isHydratingRef.current) return;
+    const form = getValues();
+    const formName = form.name || '';
+    const dataName = riskData.name || '';
+    if (formName && dataName && formName !== dataName) {
+      isHydratingRef.current = false;
+      return;
+    }
+    initialDataRef.current = getRiskEditorSnapshot(riskData, form);
+    if (dataName && formName === dataName) {
+      isHydratingRef.current = false;
+    }
+  }, [formValues, riskData, getValues]);
 
   /**
    * Após save bem-sucedido: dirty=false sem corromper riskData.
@@ -163,11 +189,11 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
    */
   const markFormPristine = () => {
     const values = getValues();
-    initialDataRef.current = {
-      ...riskData,
-      ...values,
-      hasSubmit: false,
-    };
+    initialDataRef.current = getRiskEditorSnapshot(
+      { ...riskData, hasSubmit: false },
+      values,
+    );
+    isHydratingRef.current = false;
     setRiskData((prev) => ({
       ...prev,
       hasSubmit: false,
@@ -198,6 +224,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   );
 
   useEffect(() => {
+    if (!isHydratingRef.current) return;
+
     const subTypeId =
       resolveLinkedRiskSubTypeId(risk) ??
       resolveLinkedRiskSubTypeId(
@@ -243,8 +271,6 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
         newData.symptoms = oldData.symptoms;
       }
 
-      initialDataRef.current = newData;
-
       return newData;
     });
 
@@ -266,6 +292,18 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
 
     if (risk?.severity && !getFieldState('severity').isDirty) {
       setValue('severity', String(risk.severity));
+    }
+
+    if (isHydratingRef.current) {
+      initialDataRef.current = getRiskEditorSnapshot(
+        {
+          ...riskData,
+          ...(initialData && initialData),
+          ...risk,
+          subType: subTypeId,
+        },
+        getValues(),
+      );
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -385,7 +423,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     if (
       initialData &&
       Object.keys(initialData)?.length &&
-      !(initialData as any).passBack
+      !(initialData as any).passBack &&
+      isHydratingRef.current
     ) {
       setRiskData((oldData) => {
         const severityDirty = getFieldState('severity').isDirty;
@@ -409,7 +448,9 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
           newData.symptoms = oldData.symptoms;
         }
 
-        initialDataRef.current = newData;
+        if (isHydratingRef.current) {
+          initialDataRef.current = getRiskEditorSnapshot(newData, getValues());
+        }
 
         return newData;
       });
@@ -419,6 +460,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   useEffect(() => {
     const initialData = options?.initialData;
     if (!initialData) return;
+    if (!isHydratingRef.current) return;
 
     const syncField = (name: string, value?: string | number | null) => {
       if (value == null || value === '') return;
@@ -672,19 +714,18 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     }
     setRiskData(initialAddRiskState);
     reset();
+    isHydratingRef.current = true;
+    initialDataRef.current = getRiskEditorSnapshot(initialAddRiskState, {});
     options?.onCancel?.();
   };
 
   const onCloseUnsaved = () => {
     const values = getValues();
-    if (
-      preventUnwantedChanges(
-        { ...riskData, ...values },
-        initialDataRef.current,
-        onClose,
-      )
-    )
-      return;
+    const dirty = isRiskEditorDirty(
+      getRiskEditorSnapshot(riskData, values),
+      initialDataRef.current,
+    );
+    if (preventDiscardIf(dirty, onClose)) return;
     onClose();
   };
 
@@ -708,6 +749,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     onClose,
     requestSubmit,
     markFormPristine,
+    isDirty,
     loading: createRiskMut.isLoading || updateRiskMut.isLoading || riskLoading,
     riskData,
     setRiskData,

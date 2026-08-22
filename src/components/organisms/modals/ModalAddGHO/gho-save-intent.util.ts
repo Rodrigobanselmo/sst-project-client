@@ -1,4 +1,38 @@
+import deepEqual from 'deep-equal';
+
+import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+
 export type GhoSaveIntent = 'stay' | 'exit';
+
+export type GhoEditorSnapshotSource = {
+  id?: string;
+  name?: string;
+  description?: string;
+  status?: string;
+  workspaceIds?: string[];
+  workspaceIdsTouched?: boolean;
+};
+
+export function getGhoEditorSnapshot(
+  ghoData: GhoEditorSnapshotSource,
+  form: { name?: string; description?: string } = {},
+) {
+  return {
+    id: ghoData.id || '',
+    name: form.name ?? ghoData.name ?? '',
+    description: form.description ?? ghoData.description ?? '',
+    status: ghoData.status || '',
+    workspaceIds: [...(ghoData.workspaceIds || [])].filter(Boolean).sort(),
+    workspaceIdsTouched: !!ghoData.workspaceIdsTouched,
+  };
+}
+
+export function isGhoEditorDirty(current: unknown, baseline: unknown): boolean {
+  return !deepEqual(
+    cleanObjectValues((current || {}) as object),
+    cleanObjectValues((baseline || {}) as object),
+  );
+}
 
 export function resolveGhoSaveIntent(params: {
   layout: 'modal' | 'page';

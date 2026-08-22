@@ -8,6 +8,7 @@ import SModal, {
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { getSaveActionColor } from 'core/utils/save-action-color';
 import { QueryEnum } from 'core/enums/query.enums';
 import { queryClient } from 'core/services/queryClient';
 import { useQueryClient as useTanstackQueryClient } from '@tanstack/react-query';
@@ -32,19 +33,45 @@ export const ModalEditExamRisk = () => {
     companyId,
     isMasterAdmin,
     onClose,
+    isDirty,
+    setSaveIntent,
   } = props;
   const [copyFromRiskOpen, setCopyFromRiskOpen] = useState(false);
   const tanstackQueryClient = useTanstackQueryClient();
+  const saveActionColor = getSaveActionColor(isDirty);
 
-  const buttons = [
-    {},
-    {
-      text: isEdit ? 'Salvar' : 'Adicionar',
-      variant: 'contained',
-      type: 'submit',
-      onClick: () => {},
-    },
-  ] as IModalButton[];
+  const buttons = (
+    isEdit
+      ? [
+          {},
+          {
+            text: 'Salvar',
+            variant: 'outlined',
+            type: 'submit',
+            color: saveActionColor,
+            disabled: loading,
+            onClick: () => setSaveIntent('stay'),
+          },
+          {
+            text: 'Salvar e sair',
+            variant: 'contained',
+            type: 'submit',
+            color: saveActionColor,
+            disabled: loading,
+            onClick: () => setSaveIntent('exit'),
+          },
+        ]
+      : [
+          {},
+          {
+            text: 'Salvar',
+            variant: 'contained',
+            type: 'submit',
+            disabled: loading,
+            onClick: () => setSaveIntent('exit'),
+          },
+        ]
+  ) as IModalButton[];
 
   const onCopySuccess = () => {
     void queryClient.refetchQueries([QueryEnum.EXAMS_RISK]);

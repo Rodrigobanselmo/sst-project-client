@@ -2,23 +2,36 @@ import { Box, Typography } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
+import { getSaveActionV2Color } from 'core/utils/save-action-color';
 import { FieldErrors } from 'react-hook-form';
 import { IFormModelForms } from '../../pages/model/schemas/form-model.schema';
 
 export const FormQuestionsButtons = ({
   onSubmit,
+  onSubmitAndExit,
   onCancel,
   errors,
   loading = false,
+  isDirty,
+  showSaveAndExit = false,
 }: {
-  onSubmit: () => Promise<void>;
+  onSubmit: () => Promise<void> | void;
+  onSubmitAndExit?: () => Promise<void> | void;
   onCancel: () => void;
-  errors: FieldErrors<IFormModelForms>;
+  errors: FieldErrors<IFormModelForms> | FieldErrors<Record<string, unknown>>;
   loading?: boolean;
+  isDirty?: boolean;
+  showSaveAndExit?: boolean;
 }) => {
   const { showConfirmation } = useConfirmationModal();
+  const saveActionColor = getSaveActionV2Color(!!isDirty);
 
   const handleCancel = async () => {
+    if (isDirty === false) {
+      onCancel();
+      return;
+    }
+
     const confirmed = await showConfirmation({
       title: 'Cancelar Formulário',
       message:
@@ -81,7 +94,7 @@ export const FormQuestionsButtons = ({
         </Box>
       )}
 
-      <SFlex justifyContent="flex-end" gap={3} mt={6}>
+      <SFlex justifyContent="flex-end" gap={3} mt={6} flexWrap="wrap">
         <SButton
           text="Cancelar"
           onClick={handleCancel}
@@ -91,23 +104,40 @@ export const FormQuestionsButtons = ({
           buttonProps={{
             sx: {
               ml: 'auto',
-              width: '200px',
+              minWidth: '140px',
             },
           }}
         />
         <SButton
           text={loading ? 'Salvando...' : 'Salvar'}
           onClick={onSubmit}
-          color="primary"
-          variant="contained"
+          color={showSaveAndExit ? saveActionColor : 'primary'}
+          variant={showSaveAndExit ? 'outlined' : 'contained'}
           size="m"
           loading={loading}
+          disabled={loading}
           buttonProps={{
             sx: {
-              width: '200px',
+              minWidth: '140px',
             },
           }}
         />
+        {showSaveAndExit && (
+          <SButton
+            text={loading ? 'Salvando...' : 'Salvar e sair'}
+            onClick={onSubmitAndExit}
+            color={saveActionColor}
+            variant="contained"
+            size="m"
+            loading={loading}
+            disabled={loading}
+            buttonProps={{
+              sx: {
+                minWidth: '140px',
+              },
+            }}
+          />
+        )}
       </SFlex>
     </div>
   );

@@ -13,6 +13,7 @@ import { RiskTool } from 'components/organisms/main/Tree/OrgTree/components/Risk
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { getSaveActionColor } from 'core/utils/save-action-color';
 
 import { ModalCharacterizationContent } from './components/ModalCharacterizationContent';
 import { useEditCharacterization } from './hooks/useEditCharacterization';
@@ -32,7 +33,10 @@ export const ModalAddCharacterization = () => {
     isRiskOpen,
     saveRef,
     isLoading,
+    hasUnsavedChanges,
   } = props;
+
+  const saveActionColor = getSaveActionColor(hasUnsavedChanges);
 
   const buttons = [
     {},
@@ -57,12 +61,16 @@ export const ModalAddCharacterization = () => {
       variant: 'outlined',
       id: IdsEnum.ADD_CHARACTERIZATION_ID,
       type: 'submit',
+      color: saveActionColor,
+      disabled: loading,
       onClick: () => (saveRef.current = true),
     },
     {
       text: characterizationData.id ? 'Salvar e Sair' : 'Criar',
       variant: 'contained',
       type: 'submit',
+      color: saveActionColor,
+      disabled: loading,
       onClick: () => (saveRef.current = false),
     },
   ] as IModalButton[];

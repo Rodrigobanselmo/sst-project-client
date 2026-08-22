@@ -16,6 +16,7 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useDuplicateRiskFactor } from 'core/hooks/useDuplicateRiskFactor';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryRisk';
 import { pickRisksListQueryFromRouter } from 'components/organisms/tables/RisksTable/risksListQuery.util';
+import { getSaveActionColor } from 'core/utils/save-action-color';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
@@ -57,7 +58,11 @@ const RiskEditPage: NextPage = () => {
     requestSubmit,
     loading,
     isCatalogReadOnly,
+    isDirty,
   } = props;
+
+  const saveActionColor = getSaveActionColor(isDirty);
+  const saveDisabled = isCatalogReadOnly || loading;
 
   if (isLoading) {
     return (
@@ -144,8 +149,9 @@ const RiskEditPage: NextPage = () => {
                 size="small"
                 type="submit"
                 form="risk-factor-editor-form"
+                color={saveActionColor}
                 loading={loading}
-                disabled={isCatalogReadOnly}
+                disabled={saveDisabled}
                 onClick={() => requestSubmit('stay')}
               >
                 Salvar
@@ -155,8 +161,9 @@ const RiskEditPage: NextPage = () => {
                 size="small"
                 type="submit"
                 form="risk-factor-editor-form"
+                color={saveActionColor}
                 loading={loading}
-                disabled={isCatalogReadOnly}
+                disabled={saveDisabled}
                 onClick={() => requestSubmit('exit')}
               >
                 Salvar e sair
@@ -211,8 +218,9 @@ const RiskEditPage: NextPage = () => {
                 variant="contained"
                 size="small"
                 type="submit"
+                color={saveActionColor}
                 loading={loading}
-                disabled={isCatalogReadOnly}
+                disabled={saveDisabled}
                 onClick={() => requestSubmit('stay')}
               >
                 Salvar
@@ -221,8 +229,9 @@ const RiskEditPage: NextPage = () => {
                 variant="outlined"
                 size="small"
                 type="submit"
+                color={saveActionColor}
                 loading={loading}
-                disabled={isCatalogReadOnly}
+                disabled={saveDisabled}
                 onClick={() => requestSubmit('exit')}
               >
                 Salvar e sair

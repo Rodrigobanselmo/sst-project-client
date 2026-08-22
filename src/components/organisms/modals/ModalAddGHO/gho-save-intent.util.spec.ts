@@ -10,6 +10,8 @@ import { resolve } from 'node:path';
 import { getGseWizardTabOptions, GSE_WIZARD_STEP } from './gse-wizard-steps';
 import {
   buildGhoStaySnapshot,
+  getGhoEditorSnapshot,
+  isGhoEditorDirty,
   resolveGhoSaveIntent,
   shouldStayAfterGhoSave,
 } from './gho-save-intent.util';
@@ -139,6 +141,53 @@ assert.equal(formSource.includes("setSaveIntent?.('stay')"), true);
 assert.equal(formSource.includes("setSaveIntent?.('exit')"), true);
 assert.equal(formSource.includes("'Salvar e Sair'"), true);
 assert.equal(formSource.includes('Cancelar'), true);
+assert.equal(formSource.includes('getSaveActionColor'), true);
+assert.equal(formSource.includes('saveActionColor'), true);
+assert.equal(formSource.includes('disabled={loading}'), true);
+assert.equal(formSource.includes('Excluir'), true);
+assert.equal(
+  /Excluir[\s\S]{0,200}saveActionColor/.test(formSource),
+  false,
+);
+
+assert.equal(
+  isGhoEditorDirty(stayAfterCreate, stayAfterCreate),
+  false,
+  'stay baseline is pristine',
+);
+assert.equal(
+  isGhoEditorDirty(
+    { ...stayAfterCreate, name: 'GSE salvo editado' },
+    stayAfterCreate,
+  ),
+  true,
+  'persistent field edit is dirty',
+);
+
+assert.equal(
+  getGhoEditorSnapshot({ name: 'GSE 1', description: 'desc' }, {}).name,
+  'GSE 1',
+);
+assert.equal(
+  getGhoEditorSnapshot(
+    { name: 'GSE 1', description: '' },
+    { description: 'carregada da query' },
+  ).description,
+  'carregada da query',
+);
+assert.equal(
+  isGhoEditorDirty(
+    getGhoEditorSnapshot(
+      { name: 'GSE 1', description: 'carregada da query' },
+      { name: 'GSE 1', description: 'carregada da query' },
+    ),
+    getGhoEditorSnapshot(
+      { name: 'GSE 1', description: 'carregada da query' },
+      { name: 'GSE 1', description: 'carregada da query' },
+    ),
+  ),
+  false,
+);
 
 const modalSource = readFileSync(
   resolve('src/components/organisms/modals/ModalAddGHO/index.tsx'),
@@ -147,5 +196,15 @@ const modalSource = readFileSync(
 assert.equal(modalSource.includes('Salvar e Sair'), false);
 assert.equal(modalSource.includes("text: ghoData.id ? 'Salvar' : 'Criar'"), true);
 assert.equal(modalSource.includes('setSaveIntent'), false);
+assert.equal(modalSource.includes('getSaveActionColor'), false);
+assert.equal(modalSource.includes('saveActionColor'), false);
+
+const hookSource = readFileSync(
+  resolve('src/components/organisms/modals/ModalAddGHO/hooks/useAddGho.ts'),
+  'utf8',
+);
+assert.equal(hookSource.includes('preventDiscardIf'), true);
+assert.equal(hookSource.includes('isGhoEditorDirty'), true);
+assert.equal(hookSource.includes('applyStay'), true);
 
 console.log('gho-save-intent.util.spec.ts ok');

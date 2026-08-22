@@ -31,7 +31,9 @@ import {
 } from './ghoHierarchyLinks';
 import {
   buildGhoStaySnapshot,
+  getGhoEditorSnapshot,
   GhoSaveIntent,
+  isGhoEditorDirty,
   resolveGhoSaveIntent,
   shouldStayAfterGhoSave,
 } from '../gho-save-intent.util';
@@ -59,19 +61,23 @@ export const useAddGho = () => {
   const { onCloseModal, onStackOpenModal } = useModal();
   const { selectStartEndDate } = useStartEndDate();
   const store = useStore<any>();
-  const initialDataRef = useRef(initialAddGhoState);
+  const initialDataRef = useRef(
+    getGhoEditorSnapshot(initialAddGhoState, { name: '', description: '' }),
+  );
   const saveIntentRef = useRef<GhoSaveIntent>('exit');
+  const absorbedQueryKeyRef = useRef('');
+  const isHydratingRef = useRef(true);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
-    resolver: yupResolver(ghoSchema),
-  });
+  const { handleSubmit, control, reset, getValues, setValue, watch } =
+    useForm<any>({
+      resolver: yupResolver(ghoSchema),
+    });
 
   const createGhoMut = useMutCreateGho();
   const updateGhoMut = useMutUpdateGho();
   const deleteGhoMut = useMutDeleteGho();
 
-  const { preventUnwantedChanges, preventDelete, preventWarn } =
-    usePreventAction();
+  const { preventDiscardIf, preventDelete, preventWarn } = usePreventAction();
 
   const [ghoData, setGhoData] = useState({
     ...initialAddGhoState,
@@ -118,18 +124,79 @@ export const useAddGho = () => {
           ...initialData,
         };
 
-        initialDataRef.current = newData;
+        initialDataRef.current = getGhoEditorSnapshot(newData, {
+          name: newData.name || '',
+          description: newData.description || '',
+        });
+        absorbedQueryKeyRef.current = '';
+        isHydratingRef.current = true;
 
         return newData;
       });
+      reset({
+        name: (initialData.name as string) || '',
+        description: (initialData.description as string) || '',
+      });
     }
-  }, [getModalData]);
+  }, [getModalData, reset]);
+
+  useEffect(() => {
+    if (!ghoQuery?.id || !ghoData.id || ghoQuery.id !== ghoData.id) return;
+
+    const key = `${ghoQuery.id}:${ghoQuery.name || ''}:${ghoQuery.description || ''}`;
+    if (absorbedQueryKeyRef.current === key) return;
+
+    const loadedName = ghoData.name || ghoQuery.name || '';
+    const loadedDescription = ghoData.description || ghoQuery.description || '';
+    if (loadedName === (ghoData.name || '') && loadedDescription === (ghoData.description || '')) {
+      absorbedQueryKeyRef.current = key;
+      return;
+    }
+
+    const form = getValues();
+    const userEditedName =
+      !!form.name &&
+      form.name !== (ghoData.name || '') &&
+      form.name !== (ghoQuery.name || '');
+    const userEditedDescription =
+      !!form.description &&
+      form.description !== (ghoData.description || '') &&
+      form.description !== (ghoQuery.description || '');
+
+    absorbedQueryKeyRef.current = key;
+
+    if (userEditedName || userEditedDescription) return;
+
+    const next = {
+      ...ghoData,
+      name: loadedName,
+      description: loadedDescription,
+    };
+    const nextForm = { name: loadedName, description: loadedDescription };
+    setGhoData(next);
+    reset(nextForm);
+    initialDataRef.current = getGhoEditorSnapshot(next, nextForm);
+    isHydratingRef.current = false;
+  }, [
+    ghoData,
+    ghoQuery?.description,
+    ghoQuery?.id,
+    ghoQuery?.name,
+    getValues,
+    reset,
+  ]);
 
   const onClose = (data?: any) => {
     saveIntentRef.current = 'exit';
     onCloseModal(ModalEnum.GHO_ADD, data);
     setGhoData(initialAddGhoState);
     reset();
+    isHydratingRef.current = true;
+    absorbedQueryKeyRef.current = '';
+    initialDataRef.current = getGhoEditorSnapshot(initialAddGhoState, {
+      name: '',
+      description: '',
+    });
   };
 
   const onRemove = () => {
@@ -157,8 +224,13 @@ export const useAddGho = () => {
       savedId: params.savedId,
       workspaceIds: params.workspaceIds,
     });
-    initialDataRef.current = next;
+    initialDataRef.current = getGhoEditorSnapshot(next, params.form);
     setGhoData(next);
+    reset({
+      name: params.form.name || '',
+      description: params.form.description || '',
+    });
+    isHydratingRef.current = false;
     saveIntentRef.current = 'exit';
   };
 
@@ -330,12 +402,35 @@ export const useAddGho = () => {
     }
   };
 
+  const formValues = watch();
+  const isDirty = isGhoEditorDirty(
+    getGhoEditorSnapshot(ghoData, formValues),
+    initialDataRef.current,
+  );
+
+  useEffect(() => {
+    if (!isHydratingRef.current) return;
+    const form = getValues();
+    const formName = form.name || '';
+    const dataName = ghoData.name || '';
+    if (formName && dataName && formName !== dataName) {
+      isHydratingRef.current = false;
+      return;
+    }
+    initialDataRef.current = getGhoEditorSnapshot(ghoData, form);
+    if (dataName && formName === dataName) {
+      isHydratingRef.current = false;
+    }
+  }, [formValues, ghoData, getValues]);
+
   const onCloseUnsaved = () => {
     const values = getValues();
     if (
-      preventUnwantedChanges(
-        { ...ghoData, ...values },
-        initialDataRef.current,
+      preventDiscardIf(
+        isGhoEditorDirty(
+          getGhoEditorSnapshot(ghoData, values),
+          initialDataRef.current,
+        ),
         onClose,
       )
     )
@@ -431,6 +526,7 @@ export const useAddGho = () => {
     onCloseUnsaved,
     onSubmit,
     onClose,
+    isDirty,
     loading: createGhoMut.isLoading || updateGhoMut.isLoading,
     loadingQuery,
     ghoData,

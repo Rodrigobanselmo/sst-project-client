@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import deepEqual from 'deep-equal';
+import { SubmitHandler, useForm, useWatch } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { Box } from '@mui/material';
@@ -9,7 +10,6 @@ import SFlex from 'components/atoms/SFlex';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
 import dayjs from 'dayjs';
-import deepEqual from 'deep-equal';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import {
@@ -55,10 +55,7 @@ import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCh
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { queryClient } from 'core/services/queryClient';
-import {
-  cleanObjectNullValues,
-  cleanObjectValues,
-} from 'core/utils/helpers/cleanObjectValues';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { urlToFile } from 'core/utils/helpers/urlToFile.utils';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
@@ -77,6 +74,10 @@ import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskG
 import { getCurrentRiskGroupId } from '../utils/get-current-risk-group-id.util';
 import { useStartEndDate } from './useStartEndDate';
 import { useCharacterizationAiRiskAnalysisState } from './useCharacterizationAiRiskAnalysisState';
+import {
+  getCharacterizationEditorSnapshot,
+  isCharacterizationEditorDirty,
+} from './characterization-editor-dirty';
 
 export const initialCharacterizationState = {
   id: '',
@@ -145,7 +146,11 @@ export const useEditCharacterization = (
   const { registerModal, getModalData } = useRegisterModal();
   const [isLoading, setIsLoading] = useState(false);
   const { onCloseModal, onStackOpenModal } = useModal();
-  const initialDataRef = useRef(initialCharacterizationState);
+  const isHydratingRef = useRef(true);
+  const emptyEditorBaseline = getCharacterizationEditorSnapshot({
+    current: initialCharacterizationState,
+  });
+  const [editorBaseline, setEditorBaseline] = useState(emptyEditorBaseline);
   const didHydratePropsInitialDataRef = useRef<string>('');
   const saveRef = useRef<boolean | string>(false);
   const aiAssistAppliedTraceIdsRef = useRef<Set<string>>(new Set());
@@ -191,7 +196,7 @@ export const useEditCharacterization = (
 
   const isRiskOpen = query.riskGroupId;
 
-  const { preventUnwantedChanges, preventDelete } = usePreventAction();
+  const { preventDiscardIf, preventDelete } = usePreventAction();
   const { onOpenSelected } = useOpenRiskTool();
 
   const [characterizationData, setCharacterizationData] = useState({
@@ -247,22 +252,62 @@ export const useEditCharacterization = (
     : characterizationData.photos ?? [];
   const isPrincipalNew = !characterizationData.id && !manyProfiles;
 
-  const watchedFormFields = watch(['name', 'description', 'type']);
+  const watchedForm = useWatch({ control }) || {};
+  const characterizationForm = {
+    name: watchedForm?.name,
+    description: watchedForm?.description,
+    type: watchedForm?.type,
+    profileName: watchedForm?.profileName,
+    riskInventorySummary: watchedForm?.riskInventorySummary,
+    noiseValue: watchedForm?.noiseValue,
+    temperature: watchedForm?.temperature,
+    luminosity: watchedForm?.luminosity,
+    moisturePercentage: watchedForm?.moisturePercentage,
+  };
 
-  const hasUnsavedChanges = useMemo(() => {
-    const [name, description, type] = watchedFormFields;
-    const afterObject = cleanObjectValues({
-      ...characterizationData,
-      ...cleanObjectValues({ name, description, type }),
-      photos: photos?.length,
-    });
-    const beforeObject = cleanObjectValues({
-      ...initialDataRef.current,
-      photos: initialDataRef.current.photos?.length,
+  const hasUnsavedChanges = isCharacterizationEditorDirty({
+    current: characterizationData,
+    baseline: editorBaseline,
+    form: characterizationForm,
+    photoCount: photos?.length,
+    baselinePhotoCount:
+      typeof (editorBaseline as { photos?: unknown }).photos === 'number'
+        ? ((editorBaseline as { photos: number }).photos)
+        : undefined,
+  });
+
+  useEffect(() => {
+    if (!isHydratingRef.current) return;
+    if (isEdit && !isDetailLoaded) return;
+
+    const form = getValues();
+    const formName = form.name || '';
+    const dataName = characterizationData.name || '';
+    if (formName && dataName && formName !== dataName) {
+      isHydratingRef.current = false;
+      return;
+    }
+
+    setEditorBaseline((prev) => {
+      const next = getCharacterizationEditorSnapshot({
+        current: characterizationData,
+        form,
+        photoCount: photos?.length,
+      });
+      return deepEqual(prev, next) ? prev : next;
     });
 
-    return !deepEqual(afterObject, beforeObject);
-  }, [characterizationData, watchedFormFields, photos?.length]);
+    if (dataName && formName === dataName) {
+      isHydratingRef.current = false;
+    }
+  }, [
+    characterizationData,
+    characterizationForm,
+    getValues,
+    isDetailLoaded,
+    isEdit,
+    photos?.length,
+  ]);
 
   const { data: riskGroupData } = useQueryRiskGroupData(
     characterizationData.companyId || undefined,
@@ -314,7 +359,6 @@ export const useEditCharacterization = (
           profileParentId: '',
         };
 
-        initialDataRef.current = newData;
         nextType = newData.type;
         return newData;
       });
@@ -329,6 +373,14 @@ export const useEditCharacterization = (
 
       if (nextType !== undefined) {
         setValue('type', nextType);
+      }
+      const mergedName = (initialData as any)?.name || foundCharacterization?.name || '';
+      if (mergedName) setValue('name', mergedName);
+      if ((initialData as any)?.description || foundCharacterization?.description) {
+        setValue(
+          'description',
+          (initialData as any)?.description || foundCharacterization?.description || '',
+        );
       }
     }
 
@@ -392,7 +444,7 @@ export const useEditCharacterization = (
 
     didHydrateFromDetailQueryRef.current = entityId;
 
-    const baselineBeforeDetail = initialDataRef.current;
+    const baselineBeforeDetail = editorBaseline;
 
     setCharacterizationData((oldData) => {
       const detailValues = cleanObjectNullValues({
@@ -418,7 +470,6 @@ export const useEditCharacterization = (
         },
       );
 
-      initialDataRef.current = merged;
       return merged;
     });
 
@@ -495,12 +546,24 @@ export const useEditCharacterization = (
   const onClose = useCallback(
     (data?: any) => {
       if (onCloseOverride) {
+        isHydratingRef.current = true;
+        setEditorBaseline(
+          getCharacterizationEditorSnapshot({
+            current: initialCharacterizationState,
+          }),
+        );
         setCharacterizationData(initialCharacterizationState);
         reset();
         onCloseOverride();
         return;
       }
       onCloseModal(modalName, data);
+      isHydratingRef.current = true;
+      setEditorBaseline(
+        getCharacterizationEditorSnapshot({
+          current: initialCharacterizationState,
+        }),
+      );
       setCharacterizationData(initialCharacterizationState);
       reset();
       const url = new URL(window.location.href);
@@ -512,18 +575,28 @@ export const useEditCharacterization = (
   );
 
   const onCloseUnsaved = () => {
-    const { name, description, type } = getValues();
-
-    const afterObject = cleanObjectValues({
-      ...characterizationData,
-      ...cleanObjectValues({ name, description, type }),
-      photos: photos?.length,
+    const values = getValues();
+    const dirty = isCharacterizationEditorDirty({
+      current: characterizationData,
+      baseline: editorBaseline,
+      form: {
+        name: values.name,
+        description: values.description,
+        type: values.type,
+        profileName: values.profileName,
+        riskInventorySummary: values.riskInventorySummary,
+        noiseValue: values.noiseValue,
+        temperature: values.temperature,
+        luminosity: values.luminosity,
+        moisturePercentage: values.moisturePercentage,
+      },
+      photoCount: photos?.length,
+      baselinePhotoCount:
+        typeof (editorBaseline as { photos?: unknown }).photos === 'number'
+          ? (editorBaseline as { photos: number }).photos
+          : undefined,
     });
-    const beforeObject = cleanObjectValues({
-      ...initialDataRef.current,
-      photos: initialDataRef.current.photos?.length,
-    });
-    if (preventUnwantedChanges(afterObject, beforeObject, onClose)) return;
+    if (preventDiscardIf(dirty, onClose)) return;
     onClose();
   };
 
@@ -686,11 +759,19 @@ export const useEditCharacterization = (
 
           // is add risks
           if (isString && saveRef.current == 'risk') {
-            initialDataRef.current = {
+            const next = {
               ...characterizationData,
               ...data,
               id: characterization.id,
             };
+            isHydratingRef.current = false;
+            setEditorBaseline(
+              getCharacterizationEditorSnapshot({
+                current: next,
+                form: data,
+                photoCount: photos?.length,
+              }),
+            );
             setCharacterizationData({
               ...characterizationData,
               id: characterization.id,
@@ -710,16 +791,40 @@ export const useEditCharacterization = (
 
           // is only save
           if (saveRef.current) {
-            initialDataRef.current = {
+            const nextBaseline = {
               ...characterizationData,
               ...data,
               id: characterization.id,
             };
+            isHydratingRef.current = false;
+            setEditorBaseline(
+              getCharacterizationEditorSnapshot({
+                current: nextBaseline,
+                form: data,
+                photoCount: photos?.length,
+              }),
+            );
 
             setCharacterizationData({
               ...characterizationData,
               name: data.name,
+              type: data.type ?? characterizationData.type,
+              description: data.description ?? characterizationData.description,
+              riskInventorySummary:
+                data.riskInventorySummary ??
+                characterizationData.riskInventorySummary,
+              noiseValue: data.noiseValue ?? characterizationData.noiseValue,
+              temperature: data.temperature ?? characterizationData.temperature,
+              luminosity: data.luminosity ?? characterizationData.luminosity,
+              moisturePercentage:
+                data.moisturePercentage ??
+                characterizationData.moisturePercentage,
               id: characterization.id,
+            });
+            reset({
+              ...getValues(),
+              ...data,
+              name: data.name,
             });
           }
         } catch (error) {
@@ -1307,6 +1412,7 @@ export const useEditCharacterization = (
     handleCopy,
     isLoading,
     hasUnsavedChanges,
+    editorBaseline,
     aiRiskAnalysis,
   };
 };

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from 'react';
+import { useWatch } from 'react-hook-form';
 
 import { Alert, Box, Button, CircularProgress } from '@mui/material';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
@@ -15,6 +16,8 @@ import {
 } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { getSaveActionColor } from 'core/utils/save-action-color';
+import { isCharacterizationEditorDirty } from 'components/organisms/modals/ModalAddCharacterization/hooks/characterization-editor-dirty';
 
 import { CharacterizationEditStepErrorBoundary } from './CharacterizationEditStepErrorBoundary';
 import {
@@ -99,7 +102,33 @@ export const CharacterizationEditView = ({
     isLoading,
     isDetailLoading,
     isDetailError,
+    control,
+    editorBaseline,
+    photos,
   } = props;
+  const liveForm = useWatch({ control }) || {};
+  const hasUnsavedChanges = isCharacterizationEditorDirty({
+    current: characterizationData,
+    baseline: editorBaseline,
+    form: {
+      name: liveForm?.name,
+      description: liveForm?.description,
+      type: liveForm?.type,
+      profileName: liveForm?.profileName,
+      riskInventorySummary: liveForm?.riskInventorySummary,
+      noiseValue: liveForm?.noiseValue,
+      temperature: liveForm?.temperature,
+      luminosity: liveForm?.luminosity,
+      moisturePercentage: liveForm?.moisturePercentage,
+    },
+    photoCount: photos?.length,
+    baselinePhotoCount:
+      typeof editorBaseline?.photos === 'number'
+        ? editorBaseline.photos
+        : undefined,
+  });
+  const saveActionColor = getSaveActionColor(!!hasUnsavedChanges);
+  const saveDisabled = loading;
 
   const hasHydratedType = !!characterizationData?.type;
   const isEditEntity = !isNew && !!characterizationData?.id;
@@ -269,6 +298,8 @@ export const CharacterizationEditView = ({
         type="submit"
         style={{ minWidth: 100 }}
         id={IdsEnum.ADD_CHARACTERIZATION_ID}
+        color={saveActionColor}
+        disabled={saveDisabled}
         onClick={() => (saveRef.current = true)}
       >
         Salvar
@@ -277,7 +308,9 @@ export const CharacterizationEditView = ({
         variant="contained"
         type="submit"
         style={{ minWidth: 100 }}
+        color={saveActionColor}
         loading={loading}
+        disabled={saveDisabled}
         onClick={() => (saveRef.current = false)}
       >
         {characterizationData.id ? 'Salvar e Sair' : 'Criar'}

@@ -14,6 +14,7 @@ import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTab
 import { useRouter } from 'next/router';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { getSaveActionColor } from 'core/utils/save-action-color';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import {
@@ -55,6 +56,7 @@ type GhoFormContentProps = {
   hierarchies: IHierarchy[];
   loadingQuery: boolean;
   loading: boolean;
+  isDirty?: boolean;
   setSaveIntent?: (intent: GhoSaveIntent) => void;
 };
 
@@ -73,6 +75,7 @@ export const GhoFormContent = ({
   hierarchies,
   loadingQuery,
   loading,
+  isDirty = false,
   setSaveIntent,
 }: GhoFormContentProps) => {
   const router = useRouter();
@@ -83,6 +86,7 @@ export const GhoFormContent = ({
   const exitLabel = ghoData.id ? 'Salvar e Sair' : 'Criar';
   const isPage = layout === 'page';
   const isEdit = !!ghoData.id;
+  const saveActionColor = getSaveActionColor(isDirty);
   const risksTabDisabled = !isEdit;
   const returnWizardStep = resolveGseWizardStepFromQuery({
     ghoId: ghoData.id,
@@ -264,8 +268,10 @@ export const GhoFormContent = ({
             <SButton
               variant="outlined"
               type="submit"
+              color={saveActionColor}
               style={{ minWidth: 100 }}
               loading={loading}
+              disabled={loading}
               onClick={() => {
                 setSaveIntent?.('stay');
                 setGhoData({ ...ghoData });
@@ -276,8 +282,10 @@ export const GhoFormContent = ({
             <SButton
               variant="contained"
               type="submit"
+              color={saveActionColor}
               style={{ minWidth: 100 }}
               loading={loading}
+              disabled={loading}
               onClick={() => {
                 setSaveIntent?.('exit');
                 setGhoData({ ...ghoData });

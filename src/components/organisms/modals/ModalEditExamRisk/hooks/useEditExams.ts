@@ -16,7 +16,6 @@ import {
   useMutCreateExamRisk,
 } from 'core/services/hooks/mutations/checklist/exams/useMutCreateExamRisk/useMutCreateExamRisk';
 import { useMutUpdateExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutUpdateExamRisk/useMutUpdateExamRisk';
-import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { resolveExamRiskMinDegreesOnSubmit } from 'core/utils/helpers/examRiskDegreeSubmit.util';
 import { examRiskSchema } from 'core/utils/schemas/exam.schema';
 import { queryClient } from 'core/services/queryClient';
@@ -34,6 +33,10 @@ import {
   enrichRiskWithSystemFlag,
   requiresEquivalenceForPublish,
 } from '../utils/risk-system-flag.util';
+import {
+  getExamRiskEditorSnapshot,
+  isExamRiskEditorDirty,
+} from './exam-risk-editor-dirty';
 
 export const initialExamRiskState = {
   id: 0,
@@ -85,19 +88,23 @@ interface ISubmit {
 export const useEditExams = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
-  const initialDataRef = useRef(initialExamRiskState);
+  const initialDataRef = useRef(
+    getExamRiskEditorSnapshot(initialExamRiskState as any),
+  );
+  const hydratedExamKeyRef = useRef('');
   const switchRef = useRef<HTMLInputElement>(null);
   const { companyId, userCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
   const { isMasterAdmin } = usePermissionsAccess();
 
-  const { handleSubmit, control, setValue, reset, getValues, clearErrors, trigger } =
+  const { handleSubmit, control, setValue, reset, getValues, clearErrors, trigger, watch } =
     useForm<any>({
       resolver: yupResolver(examRiskSchema),
       defaultValues: { isPeriodic: initialExamRiskState.isPeriodic },
     });
 
-  const { preventUnwantedChanges, preventDelete } = usePreventAction();
+  const { preventDiscardIf, preventDelete } = usePreventAction();
+  const saveIntentRef = useRef<'stay' | 'exit'>('exit');
 
   const [examData, setExamData] = useState({
     ...initialExamRiskState,
@@ -128,6 +135,12 @@ export const useEditExams = () => {
       Object.keys(initialData)?.length &&
       !(initialData as any).passBack
     ) {
+      const hydrateKey = `${initialData.id ?? 0}:${initialData.examId ?? ''}:${
+        initialData.riskId ?? ''
+      }`;
+      if (hydratedExamKeyRef.current === hydrateKey) return;
+      hydratedExamKeyRef.current = hydrateKey;
+
       setExamData((oldData) => {
         const mergedRisk = initialData.risk
           ? enrichRiskWithSystemFlag(initialData.risk as IRiskFactors)
@@ -150,7 +163,16 @@ export const useEditExams = () => {
             : {}),
         };
 
-        initialDataRef.current = newData;
+        initialDataRef.current = getExamRiskEditorSnapshot(newData as any, {
+          isPeriodic: newData.isPeriodic,
+          validityInMonths: newData.validityInMonths,
+          lowValidityInMonths: newData.lowValidityInMonths,
+          considerBetweenDays: newData.considerBetweenDays,
+          fromAge: newData.fromAge,
+          toAge: newData.toAge,
+          minRiskDegree: newData.minRiskDegree,
+          minRiskDegreeQuantity: newData.minRiskDegreeQuantity,
+        });
 
         return newData;
       });
@@ -162,23 +184,37 @@ export const useEditExams = () => {
   }, [examData.isPeriodic, setValue]);
 
   const onClose = (data?: any) => {
+    saveIntentRef.current = 'exit';
     onCloseModal(ModalEnum.EXAM_RISK, data);
     setExamData(initialExamRiskState);
     reset();
+    hydratedExamKeyRef.current = '';
+    initialDataRef.current = getExamRiskEditorSnapshot(
+      initialExamRiskState as any,
+    );
+  };
+
+  const formValues = watch();
+  const isDirty = isExamRiskEditorDirty(
+    examData as any,
+    formValues,
+    initialDataRef.current,
+  );
+
+  const setSaveIntent = (intent: 'stay' | 'exit') => {
+    saveIntentRef.current = intent;
   };
 
   const onCloseUnsaved = () => {
     if (loading) return;
 
     const values = getValues();
-
-    const beforeObject = cleanObjectValues({
-      ...examData,
-      ...cleanObjectValues(values),
-    });
-    const afterObject = cleanObjectValues(initialDataRef.current);
-
-    if (preventUnwantedChanges(afterObject, beforeObject, onClose)) return;
+    const dirty = isExamRiskEditorDirty(
+      examData as any,
+      values,
+      initialDataRef.current,
+    );
+    if (preventDiscardIf(dirty, onClose)) return;
     onClose();
   };
 
@@ -296,6 +332,7 @@ export const useEditExams = () => {
     };
 
     try {
+      let savedExam: Partial<IExamToRisk> | null = null;
       if (!submitData.id) {
         delete submitData.id;
         const exam = await createMutation.mutateAsync(submitData);
@@ -332,6 +369,7 @@ export const useEditExams = () => {
           );
         }
         examData.callback(exam);
+        savedExam = exam;
       } else {
         const exam = await updateMutation.mutateAsync(submitData);
         if ((exam as any)?.systemRule) {
@@ -367,9 +405,26 @@ export const useEditExams = () => {
           );
         }
         examData.callback(exam);
+        savedExam = exam;
       }
 
       await refetchExamsRiskList();
+      if (saveIntentRef.current === 'stay') {
+        const next = {
+          ...examData,
+          ...submitData,
+          ...(savedExam?.id ? { id: savedExam.id } : {}),
+          error: { risk: false, exam: false },
+        };
+        initialDataRef.current = getExamRiskEditorSnapshot(
+          next as any,
+          getValues(),
+        );
+        setExamData(next as any);
+        reset(getValues());
+        saveIntentRef.current = 'exit';
+        return;
+      }
       onClose();
     } catch {
       // Snackbar exibido pelo onError das mutations.
@@ -430,6 +485,8 @@ export const useEditExams = () => {
     setValue,
     isMasterAdmin,
     companyId,
+    isDirty,
+    setSaveIntent,
   };
 };
 
