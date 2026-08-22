@@ -3,6 +3,7 @@ import Underline from '@tiptap/extension-underline';
 import StarterKit from '@tiptap/starter-kit';
 
 import { DocumentAtom } from './document-atom';
+import { DocumentBullet } from './document-bullet';
 import { DocumentHeading } from './document-heading';
 import { DocumentParagraph } from './document-paragraph';
 import { DocumentStyle } from './document-style';
@@ -11,6 +12,7 @@ import {
   DocumentGroup,
   DocumentSection,
 } from './document-structure';
+import { createStructuralEditingExtension } from './structural-editing.extension';
 
 const DocumentLink = Link.extend({
   addAttributes() {
@@ -45,6 +47,7 @@ export function createDocumentEditorExtensions() {
     DocumentSection,
     DocumentHeading,
     DocumentParagraph,
+    DocumentBullet,
     DocumentAtom,
     DocumentStyle,
     Underline,
@@ -53,5 +56,6 @@ export function createDocumentEditorExtensions() {
       autolink: false,
       linkOnPaste: false,
     }),
+    createStructuralEditingExtension(),
   ];
 }

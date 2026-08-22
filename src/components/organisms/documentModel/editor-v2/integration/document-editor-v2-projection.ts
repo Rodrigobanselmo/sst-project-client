@@ -11,6 +11,7 @@ import {
 import {
   DocumentEditorState,
   isAtomBlock,
+  isBulletRunBlock,
   isHeadingBlock,
   isTextRunBlock,
 } from '../adapter/document-editor-state.types';
@@ -81,6 +82,9 @@ export function summarizeEditorProjection(state: DocumentEditorState) {
     atoms: blocks
       .filter(isAtomBlock)
       .map((block) => ({ id: block.id, type: block.type })),
+    bullets: blocks
+      .filter(isBulletRunBlock)
+      .map((block) => block.bullets.map((bullet) => bullet.id)),
   };
 }
 

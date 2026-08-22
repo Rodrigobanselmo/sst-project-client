@@ -11,6 +11,7 @@ import {
 import { fromDocumentEditorState } from '../adapter/fromDocumentEditorState';
 import { buildPocCanonicalModel } from '../adapter/fixtures/poc-canonical.fixture';
 import { UnsupportedTipTapStructureError } from '../domain/unsupported-tiptap.error';
+import { consumeEditorEscapeEvent } from '../integration/document-editor-v2-session';
 import { createDocumentEditorExtensions } from './extensions/create-document-editor-extensions';
 import { buildLargeDefinitionsRunModel } from './fixtures/large-run.fixture';
 import { fromTipTapState } from './from-tiptap-state';
@@ -43,6 +44,9 @@ export function DocumentEditorV2Poc() {
       editorProps: {
         attributes: {
           class: 'document-editor-v2-poc',
+        },
+        handleDOMEvents: {
+          keydown: (_view, event) => consumeEditorEscapeEvent(event),
         },
       },
     },
@@ -133,6 +137,15 @@ export function DocumentEditorV2Poc() {
           },
           '& [data-doc-paragraph]': {
             my: 0.75,
+          },
+          '& [data-doc-bullet]': {
+            position: 'relative',
+            my: 0.35,
+            '&::before': {
+              content: '"•"',
+              position: 'absolute',
+              left: 'calc(var(--doc-bullet-level, 0) * 24px)',
+            },
           },
         }}
       >

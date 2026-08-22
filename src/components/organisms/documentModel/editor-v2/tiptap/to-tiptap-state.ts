@@ -3,8 +3,10 @@ import { JSONContent } from '@tiptap/core';
 import {
   DocumentEditorBlock,
   DocumentEditorState,
+  BulletItem,
   TextRunParagraph,
   isAtomBlock,
+  isBulletRunBlock,
   isHeadingBlock,
   isTextRunBlock,
 } from '../adapter/document-editor-state.types';
@@ -44,6 +46,27 @@ function textRunParagraphToNode(paragraph: TextRunParagraph): JSONContent {
   };
 }
 
+function bulletToNode(bullet: BulletItem): JSONContent {
+  return {
+    type: 'docBullet',
+    attrs: {
+      id: bullet.id,
+      level: bullet.level ?? bullet.source.level ?? 0,
+      align: bullet.align ?? bullet.source.align ?? null,
+      size: bullet.size ?? null,
+      color: bullet.color ?? null,
+      lineHeight: bullet.lineHeight ?? null,
+      lineHeightBlock: bullet.lineHeightBlock ?? null,
+      source: bullet.source,
+    },
+    content: paragraphTextToContent(
+      bullet.text,
+      bullet.inlineStyleRangeBlock,
+      bullet.entityRangeBlock,
+    ),
+  };
+}
+
 function atomToNode(
   block: Extract<DocumentEditorBlock, { kind: 'atom' }>,
 ): JSONContent {
@@ -72,6 +95,12 @@ function blocksToContent(blocks: DocumentEditorBlock[]): JSONContent[] {
     if (isTextRunBlock(block)) {
       block.paragraphs.forEach((paragraph) => {
         content.push(textRunParagraphToNode(paragraph));
+      });
+      return;
+    }
+    if (isBulletRunBlock(block)) {
+      block.bullets.forEach((bullet) => {
+        content.push(bulletToNode(bullet));
       });
     }
   });

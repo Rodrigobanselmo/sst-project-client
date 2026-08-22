@@ -1,5 +1,7 @@
 import {
   AtomBlock,
+  BulletItem,
+  BulletRunBlock,
   DocumentEditorBlock,
   HeadingBlock,
   TextRunBlock,
@@ -9,6 +11,7 @@ import {
 
 export type FlatEditorNode =
   | { kind: 'paragraph'; paragraph: TextRunParagraph }
+  | { kind: 'bullet'; bullet: BulletItem }
   | { kind: 'heading'; block: HeadingBlock }
   | { kind: 'atom'; block: AtomBlock };
 
@@ -17,6 +20,7 @@ export function groupFlatNodesToBlocks(
 ): DocumentEditorBlock[] {
   const blocks: DocumentEditorBlock[] = [];
   let paragraphBuffer: TextRunParagraph[] = [];
+  let bulletBuffer: BulletItem[] = [];
 
   const flushTextRun = () => {
     if (!paragraphBuffer.length) return;
@@ -28,16 +32,34 @@ export function groupFlatNodesToBlocks(
     paragraphBuffer = [];
   };
 
+  const flushBulletRun = () => {
+    if (!bulletBuffer.length) return;
+    const block: BulletRunBlock = {
+      kind: 'bullet-run',
+      bullets: bulletBuffer,
+    };
+    blocks.push(block);
+    bulletBuffer = [];
+  };
+
   nodes.forEach((node) => {
     if (node.kind === 'paragraph') {
+      flushBulletRun();
       paragraphBuffer.push(node.paragraph);
       return;
     }
+    if (node.kind === 'bullet') {
+      flushTextRun();
+      bulletBuffer.push(node.bullet);
+      return;
+    }
     flushTextRun();
+    flushBulletRun();
     blocks.push(node.block);
   });
 
   flushTextRun();
+  flushBulletRun();
   return blocks;
 }
 

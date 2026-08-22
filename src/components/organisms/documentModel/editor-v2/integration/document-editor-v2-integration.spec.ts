@@ -28,11 +28,13 @@ import {
 } from './document-editor-v2-projection';
 import {
   canLeaveV2WithoutProtection,
+  consumeEditorEscapeEvent,
   isEditorSwitchVisible,
   requestSurfaceChange,
   resolvePinnedSelection,
   resolveVisibleSurface,
   shouldBlockOfficialSave,
+  shouldIgnoreModalEscapeClose,
 } from './document-editor-v2-session';
 
 function run(name: string, fn: () => void) {
@@ -153,8 +155,9 @@ run('6. atoms são boundaries', () => {
   const summary = summarizeEditorProjection(toDocumentEditorState(projected!));
   assert.deepStrictEqual(
     summary.atoms.map((atom) => atom.type),
-    ['BULLET', 'IMAGE', 'SECTION_BREAK'],
+    ['IMAGE', 'SECTION_BREAK'],
   );
+  assert.deepStrictEqual(summary.bullets, [['el-bullet']]);
   assert.equal(formatAtomPlaceholder('IMAGE'), 'IMAGEM');
   assert.equal(formatAtomPlaceholder('BREAK'), 'QUEBRA DE PÁGINA');
   assert.equal(
@@ -348,6 +351,42 @@ run('save oficial bloqueado no fluxo do modal', () => {
   assert.equal(topButtons.includes('officialSaveBlocked'), true);
   assert.equal(editHook.includes('fromTipTapState'), false);
   assert.equal(viewHook.includes('fromTipTapState'), false);
+});
+
+run('ESC no V2 dirty não equivale a descartar experimento', () => {
+  assert.equal(
+    shouldIgnoreModalEscapeClose({
+      v2LocalDirty: true,
+      reason: 'escapeKeyDown',
+    }),
+    true,
+  );
+  assert.equal(
+    consumeEditorEscapeEvent({
+      key: 'Escape',
+      stopPropagation() {},
+      preventDefault() {},
+    }),
+    true,
+  );
+  assert.equal(
+    requestSurfaceChange({
+      current: 'v2',
+      next: 'v1',
+      v2LocalDirty: true,
+    }).allowed,
+    false,
+  );
+
+  const modal = fs.readFileSync(
+    path.join(
+      __dirname,
+      '../../../modals/ModalEditDocumentModel/ModalEditDocumentModel.tsx',
+    ),
+    'utf8',
+  );
+  assert.equal(modal.includes('disableEscapeKeyDown'), true);
+  assert.equal(modal.includes('shouldIgnoreModalEscapeClose'), true);
 });
 
 console.log('\nFase 2 integration specs: ok');

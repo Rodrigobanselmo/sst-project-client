@@ -1,13 +1,17 @@
 export {
+  DOCUMENT_EDITOR_BULLET_TYPE,
   DOCUMENT_EDITOR_HEADING_TYPES,
   DOCUMENT_EDITOR_TEXT_RUN_TYPE,
   isAtomBlock,
+  isBulletRunBlock,
   isDocumentEditorHeadingType,
   isHeadingBlock,
   isTextRunBlock,
 } from './document-editor-state.types';
 export type {
   AtomBlock,
+  BulletItem,
+  BulletRunBlock,
   DocumentEditorBlock,
   DocumentEditorChildrenOrigin,
   DocumentEditorGroup,

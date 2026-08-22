@@ -32,7 +32,6 @@ import {
   buildPocCanonicalModel,
 } from '../adapter/fixtures/poc-canonical.fixture';
 import { isAtomBlock, isHeadingBlock, isTextRunBlock } from '../adapter';
-import { UnsupportedTipTapStructureError } from '../domain/unsupported-tiptap.error';
 import { findTipTapParagraph } from './find-tiptap-nodes';
 import {
   buildLargeDefinitionsRunModel,
@@ -378,21 +377,33 @@ run('run grande (~100 PARAGRAPHs) é lossless e continua um TextRun', () => {
   assertLossless(model);
 });
 
-run('paragraph TipTap sem id é unsupported', () => {
-  const model = modelWithChildren([paragraph('el-p-1', 'Texto')]);
-  const tipTap = serializeTipTapDoc(
-    toTipTapState(toDocumentEditorState(model)),
-  );
-  const target = findTipTapParagraph(tipTap, 'el-p-1');
-  assert.ok(target);
-  const orphan: JSONContent = {
-    type: 'docParagraph',
-    attrs: { id: null, source: null },
-    content: [{ type: 'text', text: 'novo via Enter' }],
-  };
-  tipTap.content?.[0].content?.[0].content?.push(orphan);
+run(
+  'paragraph TipTap sem id recebe UUID novo e não reutiliza ids existentes',
+  () => {
+    const model = modelWithChildren([paragraph('el-p-1', 'Texto')]);
+    const tipTap = serializeTipTapDoc(
+      toTipTapState(toDocumentEditorState(model)),
+    );
+    const target = findTipTapParagraph(tipTap, 'el-p-1');
+    assert.ok(target);
+    const orphan: JSONContent = {
+      type: 'docParagraph',
+      attrs: { id: null, source: null },
+      content: [{ type: 'text', text: 'novo via Enter' }],
+    };
+    tipTap.content?.[0].content?.[0].content?.push(orphan);
 
-  assert.throws(() => fromTipTapState(tipTap), UnsupportedTipTapStructureError);
-});
+    const restored = fromDocumentEditorState(
+      fromTipTapState(tipTap, { createId: () => 'generated-1' }),
+    );
+    const children = restored.sections[0].children?.['section-body'] || [];
+    assert.deepStrictEqual(
+      children.map((element) => element.id),
+      ['el-p-1', 'generated-1'],
+    );
+    assert.strictEqual(children[1].type, 'PARAGRAPH');
+    assert.strictEqual(children[1].text, 'novo via Enter');
+  },
+);
 
 console.log('\nAll document-editor-tiptap roundtrip tests passed.');

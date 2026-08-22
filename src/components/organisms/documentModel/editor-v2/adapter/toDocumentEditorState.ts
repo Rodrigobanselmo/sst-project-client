@@ -6,6 +6,8 @@ import {
 } from 'core/interfaces/api/IDocumentModel';
 import {
   AtomBlock,
+  BulletItem,
+  BulletRunBlock,
   DocumentEditorBlock,
   DocumentEditorChildrenOrigin,
   DocumentEditorGroup,
@@ -15,6 +17,7 @@ import {
   HeadingBlock,
   TextRunBlock,
   TextRunParagraph,
+  DOCUMENT_EDITOR_BULLET_TYPE,
   DOCUMENT_EDITOR_TEXT_RUN_TYPE,
   isDocumentEditorHeadingType,
 } from './document-editor-state.types';
@@ -79,11 +82,19 @@ function toAtomBlock(element: IDocumentModelElement): AtomBlock {
   };
 }
 
+function toBulletItem(element: IDocumentModelElement): BulletItem {
+  return {
+    ...toTextRunParagraph(element),
+    ...(element.level != null && { level: element.level }),
+  };
+}
+
 function groupElementsToBlocks(
   elements: IDocumentModelElement[],
 ): DocumentEditorBlock[] {
   const blocks: DocumentEditorBlock[] = [];
   let paragraphBuffer: TextRunParagraph[] = [];
+  let bulletBuffer: BulletItem[] = [];
 
   const flushTextRun = () => {
     if (!paragraphBuffer.length) return;
@@ -95,13 +106,31 @@ function groupElementsToBlocks(
     paragraphBuffer = [];
   };
 
+  const flushBulletRun = () => {
+    if (!bulletBuffer.length) return;
+    const block: BulletRunBlock = {
+      kind: 'bullet-run',
+      bullets: bulletBuffer,
+    };
+    blocks.push(block);
+    bulletBuffer = [];
+  };
+
   elements.forEach((element) => {
     if (element.type === DOCUMENT_EDITOR_TEXT_RUN_TYPE) {
+      flushBulletRun();
       paragraphBuffer.push(toTextRunParagraph(element));
       return;
     }
 
+    if (element.type === DOCUMENT_EDITOR_BULLET_TYPE) {
+      flushTextRun();
+      bulletBuffer.push(toBulletItem(element));
+      return;
+    }
+
     flushTextRun();
+    flushBulletRun();
 
     if (isDocumentEditorHeadingType(element.type)) {
       blocks.push(toHeadingBlock(element));
@@ -112,6 +141,7 @@ function groupElementsToBlocks(
   });
 
   flushTextRun();
+  flushBulletRun();
   return blocks;
 }
 

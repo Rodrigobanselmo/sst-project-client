@@ -13,6 +13,7 @@ import {
   collectEditorIds,
   fromDocumentEditorState,
   isAtomBlock,
+  isBulletRunBlock,
   isHeadingBlock,
   isTextRunBlock,
   persistJson,
@@ -92,8 +93,11 @@ run(
       body.blocks[1].paragraphs.map((paragraph) => paragraph.id),
       ['el-p-a', 'el-p-b', 'el-p-c'],
     );
-    assert.ok(isAtomBlock(body.blocks[2]));
-    assert.strictEqual(body.blocks[2].type, 'BULLET');
+    assert.ok(isBulletRunBlock(body.blocks[2]));
+    assert.deepStrictEqual(
+      body.blocks[2].bullets.map((bullet) => bullet.id),
+      ['el-bullet'],
+    );
     assert.ok(isTextRunBlock(body.blocks[3]));
     assert.deepStrictEqual(
       body.blocks[3].paragraphs.map((paragraph) => paragraph.id),

@@ -21,11 +21,15 @@ export type DocumentEditorHeadingType =
   (typeof DOCUMENT_EDITOR_HEADING_TYPES)[number];
 
 /**
- * Fase 1A: só PARAGRAPH entra na superfície textual.
- * BULLET / BULLET_SPACE / captions continuam átomos até a POC 2.
+ * Fase 1A: PARAGRAPH entra na superfície textual.
+ * Fase 3: BULLET também é conteúdo textual (não vira PARAGRAPH no canonical).
+ * BULLET_SPACE / captions / IMAGE / BREAK continuam átomos.
  */
 export const DOCUMENT_EDITOR_TEXT_RUN_TYPE =
   DocumentSectionChildrenTypeEnum.PARAGRAPH;
+
+export const DOCUMENT_EDITOR_BULLET_TYPE =
+  DocumentSectionChildrenTypeEnum.BULLET;
 
 export type DocumentEditorChildrenOrigin = 'map' | 'inline' | 'none';
 
@@ -52,6 +56,15 @@ export type TextRunBlock = {
   paragraphs: TextRunParagraph[];
 };
 
+export type BulletItem = TextRunParagraph & {
+  level?: number;
+};
+
+export type BulletRunBlock = {
+  kind: 'bullet-run';
+  bullets: BulletItem[];
+};
+
 export type HeadingBlock = {
   kind: 'heading';
   id: string;
@@ -67,7 +80,11 @@ export type AtomBlock = {
   source: IDocumentModelElement;
 };
 
-export type DocumentEditorBlock = TextRunBlock | HeadingBlock | AtomBlock;
+export type DocumentEditorBlock =
+  | TextRunBlock
+  | BulletRunBlock
+  | HeadingBlock
+  | AtomBlock;
 
 export type DocumentEditorSection = {
   id: string;
@@ -106,6 +123,12 @@ export function isHeadingBlock(
 
 export function isAtomBlock(block: DocumentEditorBlock): block is AtomBlock {
   return block.kind === 'atom';
+}
+
+export function isBulletRunBlock(
+  block: DocumentEditorBlock,
+): block is BulletRunBlock {
+  return block.kind === 'bullet-run';
 }
 
 export function isDocumentEditorHeadingType(

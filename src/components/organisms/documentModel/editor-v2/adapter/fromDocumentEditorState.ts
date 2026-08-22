@@ -8,6 +8,7 @@ import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enu
 
 import {
   AtomBlock,
+  BulletItem,
   DocumentEditorBlock,
   DocumentEditorGroup,
   DocumentEditorSection,
@@ -15,6 +16,7 @@ import {
   HeadingBlock,
   TextRunParagraph,
   isAtomBlock,
+  isBulletRunBlock,
   isHeadingBlock,
   isTextRunBlock,
 } from './document-editor-state.types';
@@ -52,11 +54,30 @@ function atomFromEditor(block: AtomBlock): IDocumentModelElement {
   });
 }
 
+function bulletFromEditor(bullet: BulletItem): IDocumentModelElement {
+  return overlayDefined(bullet.source, {
+    id: bullet.id,
+    type: DocumentSectionChildrenTypeEnum.BULLET,
+    text: bullet.text,
+    level: bullet.level,
+    align: bullet.align,
+    size: bullet.size,
+    color: bullet.color,
+    lineHeight: bullet.lineHeight,
+    lineHeightBlock: bullet.lineHeightBlock,
+    inlineStyleRangeBlock: bullet.inlineStyleRangeBlock,
+    entityRangeBlock: bullet.entityRangeBlock,
+  });
+}
+
 function elementsFromBlock(
   block: DocumentEditorBlock,
 ): IDocumentModelElement[] {
   if (isTextRunBlock(block)) {
     return block.paragraphs.map(paragraphFromEditor);
+  }
+  if (isBulletRunBlock(block)) {
+    return block.bullets.map(bulletFromEditor);
   }
   if (isHeadingBlock(block)) {
     return [headingFromEditor(block)];

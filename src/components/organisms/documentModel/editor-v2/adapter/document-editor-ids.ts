@@ -3,6 +3,7 @@ import { IDocumentModelData } from 'core/interfaces/api/IDocumentModel';
 import {
   DocumentEditorBlock,
   DocumentEditorState,
+  isBulletRunBlock,
   isTextRunBlock,
 } from './document-editor-state.types';
 
@@ -13,6 +14,13 @@ export function flattenBlockElements(
     return block.paragraphs.map((paragraph) => ({
       id: paragraph.id,
       type: paragraph.source.type,
+    }));
+  }
+
+  if (isBulletRunBlock(block)) {
+    return block.bullets.map((bullet) => ({
+      id: bullet.id,
+      type: bullet.source.type,
     }));
   }
 

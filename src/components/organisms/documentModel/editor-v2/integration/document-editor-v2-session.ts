@@ -72,3 +72,21 @@ export function sectionSwitchProtectionNotice(
 ): string | null {
   return blockedSectionSwitch ? DOCUMENT_EDITOR_V2_BLOCK_SECTION_REASON : null;
 }
+
+export function shouldIgnoreModalEscapeClose(args: {
+  v2LocalDirty: boolean;
+  reason?: string;
+}): boolean {
+  return Boolean(args.v2LocalDirty && args.reason === 'escapeKeyDown');
+}
+
+export function consumeEditorEscapeEvent(event: {
+  key: string;
+  stopPropagation: () => void;
+  preventDefault?: () => void;
+}): boolean {
+  if (event.key !== 'Escape') return false;
+  event.stopPropagation();
+  event.preventDefault?.();
+  return true;
+}

@@ -28,3 +28,13 @@ export function findTipTapParagraph(
     (node) => node.type === 'docParagraph' && node.attrs?.id === id,
   );
 }
+
+export function findTipTapBullet(
+  doc: JSONContent,
+  id: string,
+): JSONContent | undefined {
+  return findTipTapNode(
+    doc,
+    (node) => node.type === 'docBullet' && node.attrs?.id === id,
+  );
+}

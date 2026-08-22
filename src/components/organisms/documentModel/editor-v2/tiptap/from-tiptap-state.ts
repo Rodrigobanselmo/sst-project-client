@@ -4,6 +4,7 @@ import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enu
 
 import {
   AtomBlock,
+  BulletItem,
   DocumentEditorChildrenOrigin,
   DocumentEditorGroup,
   DocumentEditorHeadingType,
@@ -15,6 +16,10 @@ import {
 } from '../adapter/document-editor-state.types';
 import { cloneJson, overlayDefined } from '../adapter/json-clone';
 import {
+  createDocumentEditorId,
+  DocumentEditorIdFactory,
+} from '../domain/document-editor-id';
+import {
   FlatEditorNode,
   groupFlatNodesToBlocks,
 } from '../domain/group-editor-blocks';
@@ -24,23 +29,67 @@ import {
   semanticallyEqualRangeBlocks,
 } from './inline-ranges';
 
+export type FromTipTapStateOptions = {
+  createId?: DocumentEditorIdFactory;
+};
+
 function requireId(node: JSONContent, label: string): string {
   const id = node.attrs?.id;
   if (typeof id !== 'string' || !id) {
-    throw new UnsupportedTipTapStructureError(
-      `${label} sem id canônico. Enter/split ainda não é suportado na Fase 1B.`,
-    );
+    throw new UnsupportedTipTapStructureError(`${label} sem id canônico.`);
   }
   return id;
 }
 
 function requireSource<T>(node: JSONContent, label: string): T {
   if (node.attrs?.source == null) {
-    throw new UnsupportedTipTapStructureError(
-      `${label} sem source canônico. O adapter TipTap não inventa elementos novos.`,
-    );
+    throw new UnsupportedTipTapStructureError(`${label} sem source canônico.`);
   }
   return cloneJson(node.attrs.source) as T;
+}
+
+function resolveEditableId(
+  node: JSONContent,
+  createId: DocumentEditorIdFactory,
+): string {
+  const id = node.attrs?.id;
+  if (typeof id === 'string' && id) return id;
+  return createId();
+}
+
+function resolveEditableSource(
+  node: JSONContent,
+  id: string,
+  type: string,
+): IDocumentModelElement {
+  if (node.attrs?.source != null) {
+    return overlayDefined(cloneJson(node.attrs.source), { id, type });
+  }
+  return { id, type, text: '' };
+}
+
+function applyExtractedRanges(
+  overlay: Partial<IDocumentModelElement>,
+  source: IDocumentModelElement,
+  extracted: ReturnType<typeof extractParagraphContent>,
+) {
+  if (
+    !semanticallyEqualRangeBlocks(
+      extracted.inlineStyleRangeBlock,
+      source.inlineStyleRangeBlock,
+    )
+  ) {
+    overlay.inlineStyleRangeBlock = extracted.inlineStyleRangeBlock;
+  }
+
+  if (
+    !semanticallyEqualRangeBlocks(
+      extracted.entityRangeBlock,
+      source.entityRangeBlock,
+    )
+  ) {
+    overlay.entityRangeBlock = extracted.entityRangeBlock;
+  }
 }
 
 function headingFromNode(node: JSONContent): HeadingBlock {
@@ -68,9 +117,16 @@ function headingFromNode(node: JSONContent): HeadingBlock {
   };
 }
 
-function paragraphFromNode(node: JSONContent): TextRunParagraph {
-  const id = requireId(node, 'Paragraph');
-  const source = requireSource<IDocumentModelElement>(node, `Paragraph ${id}`);
+function paragraphFromNode(
+  node: JSONContent,
+  createId: DocumentEditorIdFactory,
+): TextRunParagraph {
+  const id = resolveEditableId(node, createId);
+  const source = resolveEditableSource(
+    node,
+    id,
+    DocumentSectionChildrenTypeEnum.PARAGRAPH,
+  );
   const extracted = extractParagraphContent(node.content);
 
   const overlay: Partial<IDocumentModelElement> = {
@@ -79,23 +135,7 @@ function paragraphFromNode(node: JSONContent): TextRunParagraph {
     text: extracted.text,
   };
 
-  if (
-    !semanticallyEqualRangeBlocks(
-      extracted.inlineStyleRangeBlock,
-      source.inlineStyleRangeBlock,
-    )
-  ) {
-    overlay.inlineStyleRangeBlock = extracted.inlineStyleRangeBlock;
-  }
-
-  if (
-    !semanticallyEqualRangeBlocks(
-      extracted.entityRangeBlock,
-      source.entityRangeBlock,
-    )
-  ) {
-    overlay.entityRangeBlock = extracted.entityRangeBlock;
-  }
+  applyExtractedRanges(overlay, source, extracted);
 
   const align = node.attrs?.align ?? undefined;
   if (align != null && align !== source.align) overlay.align = align;
@@ -135,6 +175,52 @@ function paragraphFromNode(node: JSONContent): TextRunParagraph {
   };
 }
 
+function bulletFromNode(
+  node: JSONContent,
+  createId: DocumentEditorIdFactory,
+): BulletItem {
+  const id = resolveEditableId(node, createId);
+  const source = resolveEditableSource(
+    node,
+    id,
+    DocumentSectionChildrenTypeEnum.BULLET,
+  );
+  const extracted = extractParagraphContent(node.content);
+  const level =
+    node.attrs?.level != null ? Number(node.attrs.level) : source.level;
+
+  const overlay: Partial<IDocumentModelElement> = {
+    id,
+    type: DocumentSectionChildrenTypeEnum.BULLET,
+    text: extracted.text,
+    ...(level != null && { level }),
+  };
+
+  applyExtractedRanges(overlay, source, extracted);
+
+  const nextSource = overlayDefined(source, overlay);
+
+  return {
+    id,
+    text: extracted.text,
+    ...(nextSource.level != null && { level: nextSource.level }),
+    ...(nextSource.align != null && { align: nextSource.align }),
+    ...(nextSource.size != null && { size: nextSource.size }),
+    ...(nextSource.color != null && { color: nextSource.color }),
+    ...(nextSource.lineHeight != null && { lineHeight: nextSource.lineHeight }),
+    ...(nextSource.lineHeightBlock != null && {
+      lineHeightBlock: nextSource.lineHeightBlock,
+    }),
+    ...(nextSource.inlineStyleRangeBlock != null && {
+      inlineStyleRangeBlock: nextSource.inlineStyleRangeBlock,
+    }),
+    ...(nextSource.entityRangeBlock != null && {
+      entityRangeBlock: nextSource.entityRangeBlock,
+    }),
+    source: nextSource,
+  };
+}
+
 function atomFromNode(node: JSONContent): AtomBlock {
   const id = requireId(node, 'Atom');
   const source = requireSource<IDocumentModelElement>(node, `Atom ${id}`);
@@ -151,25 +237,37 @@ function atomFromNode(node: JSONContent): AtomBlock {
   };
 }
 
-function nodesToFlat(content?: JSONContent[]): FlatEditorNode[] {
+function nodesToFlat(
+  content: JSONContent[] | undefined,
+  createId: DocumentEditorIdFactory,
+): FlatEditorNode[] {
   return (content || []).map((node) => {
     if (node.type === 'docHeading') {
       return { kind: 'heading', block: headingFromNode(node) };
     }
     if (node.type === 'docParagraph') {
-      return { kind: 'paragraph', paragraph: paragraphFromNode(node) };
+      return {
+        kind: 'paragraph',
+        paragraph: paragraphFromNode(node, createId),
+      };
+    }
+    if (node.type === 'docBullet') {
+      return { kind: 'bullet', bullet: bulletFromNode(node, createId) };
     }
     if (node.type === 'docAtom') {
       return { kind: 'atom', block: atomFromNode(node) };
     }
 
     throw new UnsupportedTipTapStructureError(
-      `Nó TipTap não suportado na Fase 1B: ${node.type || 'unknown'}`,
+      `Nó TipTap não suportado: ${node.type || 'unknown'}`,
     );
   });
 }
 
-function sectionFromNode(node: JSONContent): DocumentEditorSection {
+function sectionFromNode(
+  node: JSONContent,
+  createId: DocumentEditorIdFactory,
+): DocumentEditorSection {
   const id = requireId(node, 'Section');
   const source = requireSource<DocumentEditorSection['source']>(
     node,
@@ -185,11 +283,14 @@ function sectionFromNode(node: JSONContent): DocumentEditorSection {
       id,
       type: String(node.attrs?.type || source.type),
     }),
-    blocks: groupFlatNodesToBlocks(nodesToFlat(node.content)),
+    blocks: groupFlatNodesToBlocks(nodesToFlat(node.content, createId)),
   };
 }
 
-function groupFromNode(node: JSONContent): DocumentEditorGroup {
+function groupFromNode(
+  node: JSONContent,
+  createId: DocumentEditorIdFactory,
+): DocumentEditorGroup {
   const label = node.attrs?.label;
   return {
     ...(typeof label === 'string' && label ? { label } : {}),
@@ -200,17 +301,22 @@ function groupFromNode(node: JSONContent): DocumentEditorGroup {
           `Grupo TipTap contém nó inesperado: ${section.type}`,
         );
       }
-      return sectionFromNode(section);
+      return sectionFromNode(section, createId);
     }),
   };
 }
 
-export function fromTipTapState(doc: JSONContent): DocumentEditorState {
+export function fromTipTapState(
+  doc: JSONContent,
+  options: FromTipTapStateOptions = {},
+): DocumentEditorState {
   if (doc.type !== 'doc') {
     throw new UnsupportedTipTapStructureError(
       `Documento TipTap inválido: ${doc.type}`,
     );
   }
+
+  const createId = options.createId || createDocumentEditorId;
 
   return {
     variables: cloneJson(doc.attrs?.variables || []),
@@ -220,7 +326,7 @@ export function fromTipTapState(doc: JSONContent): DocumentEditorState {
           `Documento TipTap contém nó inesperado: ${group.type}`,
         );
       }
-      return groupFromNode(group);
+      return groupFromNode(group, createId);
     }),
   };
 }

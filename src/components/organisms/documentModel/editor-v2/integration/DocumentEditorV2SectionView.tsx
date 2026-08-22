@@ -14,6 +14,7 @@ import { toTipTapState } from '../tiptap/to-tiptap-state';
 import { decorateTipTapProjection } from './decorate-tiptap-projection';
 import { DocumentEditorV2Toolbar } from './DocumentEditorV2Toolbar';
 import { useDocumentEditorV2Session } from './DocumentEditorV2Session';
+import { consumeEditorEscapeEvent } from './document-editor-v2-session';
 import { ProtectV2Boundaries } from './protect-v2-boundaries.extension';
 
 export function DocumentEditorV2SectionView({
@@ -51,6 +52,9 @@ export function DocumentEditorV2SectionView({
       editorProps: {
         attributes: {
           class: 'document-editor-v2-integration',
+        },
+        handleDOMEvents: {
+          keydown: (_view, event) => consumeEditorEscapeEvent(event),
         },
       },
       onUpdate: ({ transaction }) => {
@@ -106,6 +110,15 @@ export function DocumentEditorV2SectionView({
         },
         '& [data-doc-paragraph]': {
           my: 0.75,
+        },
+        '& [data-doc-bullet]': {
+          position: 'relative',
+          my: 0.35,
+          '&::before': {
+            content: '"•"',
+            position: 'absolute',
+            left: 'calc(var(--doc-bullet-level, 0) * 24px)',
+          },
         },
       }}
     >
