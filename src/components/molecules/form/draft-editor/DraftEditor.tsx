@@ -17,7 +17,10 @@ import dynamic from 'next/dynamic';
 
 import { useNewDebounce } from 'core/hooks/useNewDebounce';
 
+import { fingerprintDraftDefaultValue } from './draft-default-value.util';
+import { FontSizeControl } from './FontSizeControl';
 import { LineHeightControl } from './LineHeightControl';
+import { FONT_SIZE_OPTIONS } from './font-size.util';
 import {
   DEFAULT_LINE_HEIGHT,
   lineHeightToClass,
@@ -223,6 +226,57 @@ const STDraftBox = styled(Box)<{ document1?: number; document2?: number }>`
         overflow: visible;
       }
 
+      .rdw-inline-wrapper {
+        order: 1;
+      }
+      .rdw-text-align-wrapper {
+        order: 3;
+      }
+      .rdw-colorpicker-wrapper {
+        order: 4;
+      }
+      .rdw-link-wrapper {
+        order: 5;
+      }
+      .draft-line-height-control {
+        order: 6;
+      }
+
+      .rdw-fontsize-wrapper {
+        display: none;
+      }
+
+      .draft-font-size-control {
+        order: 2;
+        display: inline-flex !important;
+        align-items: center;
+        max-height: none !important;
+        min-width: 52px !important;
+        max-width: none !important;
+        height: 28px !important;
+        margin: 0 4px;
+        padding: 0 6px;
+        border: 1px solid ${props.theme.palette.grey[400]};
+        border-radius: 4px;
+        background-color: ${props.theme.palette.common.white};
+        box-sizing: border-box;
+        vertical-align: middle;
+      }
+
+      .draft-font-size-control button {
+        border: none;
+        background: transparent;
+        min-width: 44px;
+        min-height: 0;
+        padding: 0;
+        font-size: 12px;
+        line-height: 1;
+        color: ${props.theme.palette.grey[900]};
+        text-transform: none;
+        position: relative;
+        z-index: 2;
+      }
+
       .rdw-option-wrapper {
         max-height: 0px;
         min-width: 0px;
@@ -283,6 +337,7 @@ export const DraftEditor = ({
   );
 
   const startOnEnd = useRef(true);
+  const appliedDefaultFingerprintRef = useRef<string | null>(null);
 
   function moveFocusToEnd(editorState: EditorState) {
     editorState = EditorState.moveSelectionToEnd(editorState);
@@ -302,29 +357,37 @@ export const DraftEditor = ({
   };
 
   useEffect(() => {
-    if (!defaultValue) setEditorState(EditorState.createEmpty());
-    if (defaultValue) {
-      const isString = typeof defaultValue == 'string';
-      if (isJson) {
-        if (isString && defaultValue.includes('<p>')) return;
+    const fingerprint = fingerprintDraftDefaultValue(defaultValue);
+    if (appliedDefaultFingerprintRef.current === fingerprint) return;
 
-        return setEditorState(
-          EditorState.createWithContent(
-            convertFromRaw(isString ? JSON.parse(defaultValue) : defaultValue),
-          ),
-        );
-      }
-
-      if (!isString) return;
-      const blocksFromHtml = htmlToDraft(defaultValue);
-      const { contentBlocks, entityMap } = blocksFromHtml;
-      const contentState = ContentState.createFromBlockArray(
-        contentBlocks,
-        entityMap,
-      );
-      const editorState = EditorState.createWithContent(contentState);
-      setEditorState(editorState);
+    if (!defaultValue) {
+      appliedDefaultFingerprintRef.current = fingerprint;
+      setEditorState(EditorState.createEmpty());
+      return;
     }
+
+    const isString = typeof defaultValue == 'string';
+    if (isJson) {
+      if (isString && defaultValue.includes('<p>')) return;
+
+      appliedDefaultFingerprintRef.current = fingerprint;
+      setEditorState(
+        EditorState.createWithContent(
+          convertFromRaw(isString ? JSON.parse(defaultValue) : defaultValue),
+        ),
+      );
+      return;
+    }
+
+    if (!isString) return;
+    appliedDefaultFingerprintRef.current = fingerprint;
+    const blocksFromHtml = htmlToDraft(defaultValue);
+    const { contentBlocks, entityMap } = blocksFromHtml;
+    const contentState = ContentState.createFromBlockArray(
+      contentBlocks,
+      entityMap,
+    );
+    setEditorState(EditorState.createWithContent(contentState));
   }, [defaultValue, isJson]);
 
   // const handleDebounceChange = useDebouncedCallback((value: any) => {
@@ -402,7 +465,17 @@ export const DraftEditor = ({
         editorClassName={`editor_content maxHeight_${size} ${
           allVisible ? 'full' : ''
         }`}
-        onBlur={() => {
+        onBlur={(event?: { relatedTarget?: EventTarget | null }) => {
+          const related = event?.relatedTarget;
+          if (
+            related instanceof Element &&
+            related.closest(
+              '.draft-font-size-control, [data-draft-font-size-menu]',
+            )
+          ) {
+            return;
+          }
+
           handleClickAway();
           const contentState = convertToRaw(editorState.getCurrentContent());
           startOnEnd.current = true;
@@ -436,7 +509,7 @@ export const DraftEditor = ({
           //   'emoji',
           // ],
           fontSize: {
-            options: [6, 7, 7.5, 8, 9, 10, 11, 12, 14, 16, 18, 24, 30, 36],
+            options: [...FONT_SIZE_OPTIONS],
           },
           textAlign: { inDropdown: true },
           link: { inDropdown: true },
@@ -455,6 +528,11 @@ export const DraftEditor = ({
         toolbarCustomButtons={
           document_model
             ? [
+                <FontSizeControl
+                  key="font-size"
+                  onChange={function (editorState: EditorState): void {}}
+                  editorState={new EditorState()}
+                />,
                 <LineHeightControl
                   key="line-height"
                   onChange={function (editorState: EditorState): void {}}

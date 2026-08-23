@@ -44,6 +44,7 @@ import {
 import { replaceMultiple } from '../../utils/replaceMultiple';
 import { transformArrayToObjectFunction } from '../../utils/transformArrayToObjectFunction';
 import { ITypeDocumentModel } from '../types/types';
+import { DRAFT_FONT_SIZE_MENU_ATTR } from 'components/molecules/form/draft-editor/font-size.util';
 import { parseLineHeightData } from 'components/molecules/form/draft-editor/line-height.util';
 import {
   filterInsertableContentElements,
@@ -371,10 +372,21 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
     if ('section' in data) onDeleteSection(data.id);
   };
 
-  const handleClickAway = () => {
+  const closeEditor = () => {
     setTimeout(() => {
       setOpen(false);
     }, 100);
+  };
+
+  const handleClickAway = (event: MouseEvent | TouchEvent) => {
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest(`[${DRAFT_FONT_SIZE_MENU_ATTR}]`)
+    ) {
+      return;
+    }
+    closeEditor();
   };
 
   const handleReturn = (
@@ -677,7 +689,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                 <STagButton
                   maxWidth={'300px'}
                   mr={10}
-                  onClick={handleClickAway}
+                  onClick={closeEditor}
                   icon={SSaveIcon}
                   iconProps={{ sx: { color: 'primary.main' } }}
                   borderActive="primary"
@@ -794,7 +806,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                 />
                 <STagButton
                   maxWidth={'300px'}
-                  onClick={handleClickAway}
+                  onClick={closeEditor}
                   icon={SSaveIcon}
                   text={'Salvar'}
                   iconProps={{ sx: { color: 'primary.main' } }}
