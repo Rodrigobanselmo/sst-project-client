@@ -116,7 +116,7 @@ run('7. Descartar experimento limpa dirty e permite Clássico', () => {
   assert.equal(canClearExperimentalDirty('discard'), true);
 });
 
-run('8. Nenhum PATCH / Redux write-back V2 no persist', () => {
+run('8. persist oficial não importa adapters TipTap', () => {
   const persist = fs.readFileSync(
     path.join(
       __dirname,
@@ -147,6 +147,11 @@ run('8. Nenhum PATCH / Redux write-back V2 no persist', () => {
   assert.equal(
     persistFn.indexOf('resolveOfficialSaveAttempt') <
       persistFn.indexOf('mutateAsync'),
+    true,
+  );
+  assert.equal(persistFn.includes('planPersist'), true);
+  assert.equal(
+    persistFn.indexOf('mutateAsync') < persistFn.indexOf('setDocumentModel'),
     true,
   );
 });

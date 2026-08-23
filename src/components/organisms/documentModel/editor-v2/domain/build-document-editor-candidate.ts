@@ -91,6 +91,8 @@ export function buildDocumentEditorCandidate(
     editedProjected,
     baselineProjection,
     diff: canonicalDiff(input.originalModel, candidate),
-    validation: validateDocumentModelCandidate(candidate),
+    validation: validateDocumentModelCandidate(candidate, {
+      original: input.originalModel,
+    }),
   };
 }

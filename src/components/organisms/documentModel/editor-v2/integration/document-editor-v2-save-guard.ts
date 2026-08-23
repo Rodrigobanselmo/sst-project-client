@@ -17,6 +17,7 @@ export type V2SaveGuardSession = {
   experimentNotice: string | null;
   remountKey: number;
   baselineRevision: number;
+  saveEnabled?: boolean;
 };
 
 export type OfficialSaveIntent = 'stay' | 'exit';
@@ -33,8 +34,13 @@ export type DirtyClearReason =
   | 'official-v2-persist'
   | 'official-v1-save';
 
-export function canClearExperimentalDirty(reason: DirtyClearReason): boolean {
-  return reason === 'discard' || reason === 'explicit-reset';
+export function canClearExperimentalDirty(
+  reason: DirtyClearReason,
+  options: { saveEnabled?: boolean } = {},
+): boolean {
+  if (reason === 'discard' || reason === 'explicit-reset') return true;
+  if (reason === 'official-v2-persist') return Boolean(options.saveEnabled);
+  return false;
 }
 
 export function shouldRebaseOfficialDocument(args: {
@@ -52,6 +58,7 @@ export function createV2SaveGuardSession(
     experimentNotice: null,
     remountKey: 0,
     baselineRevision: 0,
+    saveEnabled: false,
     ...partial,
   };
 }
@@ -70,7 +77,13 @@ export function resolveOfficialSaveAttempt(
   session: V2SaveGuardSession,
   intent: OfficialSaveIntent = 'stay',
 ): OfficialSaveDecision {
-  if (shouldBlockOfficialSave(session)) {
+  if (
+    shouldBlockOfficialSave({
+      surface: session.surface,
+      v2LocalDirty: session.v2LocalDirty,
+      saveEnabled: session.saveEnabled,
+    })
+  ) {
     return {
       persist: false,
       close: false,

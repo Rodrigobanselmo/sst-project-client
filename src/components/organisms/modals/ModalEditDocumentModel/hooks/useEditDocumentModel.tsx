@@ -4,6 +4,8 @@ import { useStore } from 'react-redux';
 import { Box } from '@mui/material';
 import clone from 'clone';
 import SText from 'components/atoms/SText';
+import { rememberCanonicalBackup } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-backup';
+import { logV2PersistDiff } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-controlled-save';
 import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
 import { DOCUMENT_EDITOR_V2_DISCARD_MODAL } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-notices';
 import {
@@ -11,6 +13,7 @@ import {
   resolveOfficialSaveAttempt,
   shouldRebaseOfficialDocument,
 } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-save-guard';
+import { useSnackbar } from 'notistack';
 import { parseInlineStyleText } from 'components/organisms/documentModel/utils/parseInlineStyleText';
 import {
   DocumentModelClassificationEnum,
@@ -33,7 +36,10 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
+import {
+  IDocumentModel,
+  IDocumentModelData,
+} from 'core/interfaces/api/IDocumentModel';
 import { useMutCreateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutCreateDocumentModel/useMutCreateDocumentModel';
 import { useMutUpdateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutUpdateDocumentModel/useMutUpdateDocumentModel';
 import { useMutDeleteDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutDeleteDocumentModel/useMutDeleteDocumentModel';
@@ -99,6 +105,7 @@ export const useEditDocumentModel = () => {
   const metadataBaselineRef = useRef<DocumentModelDirtySnapshot | null>(null);
   const { onStackOpenModal } = useModal();
   const { preventDelete, preventDiscardIf } = usePreventAction();
+  const { enqueueSnackbar } = useSnackbar();
   const v2Session = useDocumentEditorV2Session();
 
   const [data, setData] = useState({
@@ -325,13 +332,16 @@ export const useEditDocumentModel = () => {
     );
   };
 
-  const persistDocumentModel = async (): Promise<boolean> => {
+  const persistDocumentModel = async (
+    dataOverride?: IDocumentModelData,
+  ): Promise<boolean> => {
     const saveAttempt = resolveOfficialSaveAttempt(
       createV2SaveGuardSession({
         surface: v2Session.visibleSurface,
         v2LocalDirty: v2Session.v2LocalDirty,
         experimentNotice: v2Session.experimentNotice,
         remountKey: v2Session.remountKey,
+        saveEnabled: v2Session.canPersistV2,
       }),
       'stay',
     );
@@ -350,18 +360,56 @@ export const useEditDocumentModel = () => {
       companyId: data.companyId,
     };
 
+    let payload = dataOverride || modelDocument;
+    let persistBuilt: ReturnType<typeof v2Session.planPersist> | null = null;
+
+    if (!dataOverride && v2Session.canPersistV2) {
+      const plan = v2Session.planPersist(modelDocument);
+      if (plan.type === 'block') {
+        v2Session.reportBlockedSave();
+        return false;
+      }
+      if (plan.type === 'abort') {
+        v2Session.reportPersistError(plan.message);
+        enqueueSnackbar(plan.message, { variant: 'error' });
+        return false;
+      }
+      if (plan.type === 'no-op') {
+        v2Session.markPersisted(plan.built);
+        return true;
+      }
+      if (plan.type === 'patch') {
+        payload = plan.candidate;
+        persistBuilt = plan;
+        if (typeof sessionStorage !== 'undefined' && data.companyId) {
+          rememberCanonicalBackup(sessionStorage, {
+            companyId: data.companyId,
+            modelId: data.id,
+            original: modelDocument,
+          });
+        }
+        logV2PersistDiff(plan.diff);
+      }
+    }
+
     try {
       await updateMutation.mutateAsync({
         ...getDocumentModelMetadataPatch(data),
-        data: modelDocument,
+        data: payload,
       });
+      if (persistBuilt?.type === 'patch' || dataOverride) {
+        dispatch(setDocumentModel(payload));
+      }
       dispatch(setSaveDocument());
       queryClient.setQueryData(
         [QueryEnum.DOCUMENT_MODEL_DATA, query],
         (oldData: any) => {
-          return { ...oldData, document: modelDocument };
+          return { ...oldData, document: payload };
         },
       );
+      if (persistBuilt?.type === 'patch') {
+        v2Session.markPersisted(persistBuilt.built);
+      }
       markPersisted({
         status: data.status,
         classifications: data.classifications,

@@ -4,6 +4,7 @@ import { STableButton } from 'components/atoms/STable/components/STableButton';
 import { RemoveDoubleClickButton } from 'components/organisms/documentModel/DocumentModelContent/TypeSectionItem/RemoveDoubleClickButton';
 import { DocumentEditorV2HeaderControls } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2HeaderControls';
 import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
+import { resolveOfficialSaveButtonsDisabled } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-session';
 import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice';
 
 import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
@@ -27,7 +28,17 @@ export const TopButtons = ({
   const selectItem = useAppSelector(selectDocumentSelectItem);
   const v2Session = useDocumentEditorV2Session();
   const officialSaveBlocked = v2Session.shouldBlockOfficialSave;
-  const saveActionColor = isDirty ? 'error.main' : 'primary.main';
+  const officialSaveDisabled = resolveOfficialSaveButtonsDisabled({
+    hasSelection: Boolean(selectItem),
+    saveBusy,
+    surface: v2Session.visibleSurface,
+    v2LocalDirty: v2Session.v2LocalDirty,
+    saveEnabled: v2Session.canPersistV2,
+  });
+  const saveActionColor =
+    isDirty || (v2Session.canPersistV2 && v2Session.v2LocalDirty)
+      ? 'error.main'
+      : 'primary.main';
   const v2ChromeVisible =
     v2Session.flagEnabled && v2Session.visibleSurface === 'v2';
   return (
@@ -68,7 +79,7 @@ export const TopButtons = ({
         <STableButton
           text="Salvar"
           icon={SSaveIcon}
-          disabled={!selectItem || saveBusy || officialSaveBlocked}
+          disabled={officialSaveDisabled}
           color={saveActionColor}
           onClick={() => {
             if (officialSaveBlocked) {
@@ -83,7 +94,7 @@ export const TopButtons = ({
         <STableButton
           text="Salvar e sair"
           icon={SSaveIcon}
-          disabled={!selectItem || saveBusy || officialSaveBlocked}
+          disabled={officialSaveDisabled}
           color={saveActionColor}
           onClick={() => {
             if (officialSaveBlocked) {

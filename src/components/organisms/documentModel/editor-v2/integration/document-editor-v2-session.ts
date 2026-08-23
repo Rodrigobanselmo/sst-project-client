@@ -24,8 +24,28 @@ export function canLeaveV2WithoutProtection(v2LocalDirty: boolean): boolean {
 export function shouldBlockOfficialSave(args: {
   surface: DocumentEditorSurface;
   v2LocalDirty: boolean;
+  saveEnabled?: boolean;
 }): boolean {
-  return args.surface === 'v2' && args.v2LocalDirty;
+  return args.surface === 'v2' && args.v2LocalDirty && !args.saveEnabled;
+}
+
+/** Expressão final de disabled de Salvar / Salvar e sair. */
+export function resolveOfficialSaveButtonsDisabled(args: {
+  hasSelection: boolean;
+  saveBusy: boolean;
+  surface: DocumentEditorSurface;
+  v2LocalDirty: boolean;
+  saveEnabled: boolean;
+}): boolean {
+  return (
+    !args.hasSelection ||
+    args.saveBusy ||
+    shouldBlockOfficialSave({
+      surface: args.surface,
+      v2LocalDirty: args.v2LocalDirty,
+      saveEnabled: args.saveEnabled,
+    })
+  );
 }
 
 export function requestSurfaceChange(args: {

@@ -68,6 +68,7 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
         v2LocalDirty: v2Session.v2LocalDirty,
         experimentNotice: v2Session.experimentNotice,
         remountKey: v2Session.remountKey,
+        saveEnabled: v2Session.canPersistV2,
       }),
       intent,
     );

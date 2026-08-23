@@ -36,6 +36,7 @@ export function DocumentModelEditorBoundary({
     v2LocalDirty,
     pinSelectedItem,
     remountKey,
+    syncBaseline,
   } = session;
 
   useEffect(() => {
@@ -66,6 +67,11 @@ export function DocumentModelEditorBoundary({
       ),
     [documentModel, model?.sections, pinned.renderItem],
   );
+
+  useEffect(() => {
+    if (!flagEnabled || visibleSurface !== 'v2') return;
+    syncBaseline(projected);
+  }, [flagEnabled, projected, syncBaseline, visibleSurface]);
 
   if (!isEditorSwitchVisible(flagEnabled)) {
     return <>{v1}</>;

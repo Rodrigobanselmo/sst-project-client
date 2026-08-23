@@ -63,4 +63,9 @@ export const featureFlags = {
   documentEditorV2: isDocumentEditorV2Enabled(
     process.env.NEXT_PUBLIC_FEATURE_DOCUMENT_EDITOR_V2,
   ),
+  // Editor V2 — persistência controlada. CLIENT-ONLY, default OFF.
+  // Só tem efeito com documentEditorV2=true. Não vai para a API nem para o modelo.
+  documentEditorV2Save: isDocumentEditorV2Enabled(
+    process.env.NEXT_PUBLIC_FEATURE_DOCUMENT_EDITOR_V2_SAVE,
+  ),
 } as const;

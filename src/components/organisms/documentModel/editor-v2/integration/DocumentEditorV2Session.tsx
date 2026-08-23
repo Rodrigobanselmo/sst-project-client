@@ -8,12 +8,25 @@ import React, {
 
 import { featureFlags } from '@v2/constants/feature-flags';
 import { NodeDocumentModel } from 'components/organisms/documentModel/DocumentModelTree/types/types';
+import { IDocumentModelData } from 'core/interfaces/api/IDocumentModel';
 
-import { DocumentEditorV2HostProvider } from './DocumentEditorV2Host';
+import {
+  buildDocumentEditorCandidate,
+  DocumentEditorCandidate,
+} from '../domain/build-document-editor-candidate';
+import {
+  DocumentEditorV2HostProvider,
+  useDocumentEditorV2Host,
+} from './DocumentEditorV2Host';
+import {
+  planDocumentEditorV2Persist,
+  V2PersistPlan,
+} from './document-editor-v2-controlled-save';
 import {
   DOCUMENT_EDITOR_V2_BLOCK_SAVE_REASON,
   DOCUMENT_EDITOR_V2_BLOCK_SWITCH_REASON,
 } from './document-editor-v2-notices';
+import { toDocumentEditorSelection } from './document-editor-v2-selection';
 import {
   DocumentEditorSurface,
   requestSurfaceChange,
@@ -24,39 +37,61 @@ import {
 
 export type DocumentEditorV2SessionValue = {
   flagEnabled: boolean;
+  saveEnabled: boolean;
+  isV2Active: boolean;
+  canPersistV2: boolean;
   surface: DocumentEditorSurface;
   visibleSurface: DocumentEditorSurface;
   v2LocalDirty: boolean;
   remountKey: number;
   pinnedSelectedItem: NodeDocumentModel | null;
+  baselineProjection: IDocumentModelData | null;
   experimentNotice: string | null;
   requestSurface: (next: DocumentEditorSurface) => boolean;
   markLocalDirty: () => void;
   discardLocalEdits: () => void;
+  discardExperiment: () => void;
   pinSelectedItem: (item: NodeDocumentModel | null) => void;
   resolveRenderItem: (
     selectedItem: NodeDocumentModel | null,
   ) => NodeDocumentModel | null;
+  syncBaseline: (projection: IDocumentModelData | null) => void;
+  buildCandidate: (originalModel: IDocumentModelData) => DocumentEditorCandidate;
+  planPersist: (originalModel: IDocumentModelData) => V2PersistPlan;
+  markPersisted: (built: DocumentEditorCandidate) => void;
   shouldBlockOfficialSave: boolean;
   reportBlockedSave: () => void;
+  reportPersistError: (message: string) => void;
   clearNotice: () => void;
 };
 
 const defaultSession: DocumentEditorV2SessionValue = {
   flagEnabled: featureFlags.documentEditorV2,
+  saveEnabled: featureFlags.documentEditorV2Save,
+  isV2Active: false,
+  canPersistV2: false,
   surface: 'v1',
   visibleSurface: 'v1',
   v2LocalDirty: false,
   remountKey: 0,
   pinnedSelectedItem: null,
+  baselineProjection: null,
   experimentNotice: null,
   requestSurface: () => false,
   markLocalDirty: () => undefined,
   discardLocalEdits: () => undefined,
+  discardExperiment: () => undefined,
   pinSelectedItem: () => undefined,
   resolveRenderItem: (selectedItem) => selectedItem,
+  syncBaseline: () => undefined,
+  buildCandidate: () => {
+    throw new Error('DocumentEditorV2Session indisponível.');
+  },
+  planPersist: () => ({ type: 'v1-redux' }),
+  markPersisted: () => undefined,
   shouldBlockOfficialSave: false,
   reportBlockedSave: () => undefined,
+  reportPersistError: () => undefined,
   clearNotice: () => undefined,
 };
 
@@ -72,15 +107,33 @@ export function DocumentEditorV2SessionProvider({
 }: {
   children: React.ReactNode;
 }) {
+  return (
+    <DocumentEditorV2HostProvider>
+      <DocumentEditorV2SessionInner>{children}</DocumentEditorV2SessionInner>
+    </DocumentEditorV2HostProvider>
+  );
+}
+
+function DocumentEditorV2SessionInner({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const host = useDocumentEditorV2Host();
   const flagEnabled = featureFlags.documentEditorV2;
+  const saveEnabled = featureFlags.documentEditorV2Save;
   const [surface, setSurface] = useState<DocumentEditorSurface>('v1');
   const [v2LocalDirty, setV2LocalDirty] = useState(false);
   const [remountKey, setRemountKey] = useState(0);
   const [pinnedSelectedItem, setPinnedSelectedItem] =
     useState<NodeDocumentModel | null>(null);
+  const [baselineProjection, setBaselineProjection] =
+    useState<IDocumentModelData | null>(null);
   const [experimentNotice, setExperimentNotice] = useState<string | null>(null);
 
   const visibleSurface = resolveVisibleSurface({ flagEnabled, surface });
+  const isV2Active = flagEnabled && visibleSurface === 'v2';
+  const canPersistV2 = isV2Active && saveEnabled;
 
   const requestSurface = useCallback(
     (next: DocumentEditorSurface) => {
@@ -134,13 +187,70 @@ export function DocumentEditorV2SessionProvider({
     [pinnedSelectedItem, v2LocalDirty, visibleSurface],
   );
 
+  const syncBaseline = useCallback(
+    (projection: IDocumentModelData | null) => {
+      if (v2LocalDirty) return;
+      setBaselineProjection(projection);
+    },
+    [v2LocalDirty],
+  );
+
+  const buildCandidate = useCallback(
+    (originalModel: IDocumentModelData) => {
+      const selected = toDocumentEditorSelection(pinnedSelectedItem);
+      if (!selected) {
+        throw new Error(DOCUMENT_EDITOR_V2_BLOCK_SAVE_REASON);
+      }
+      return buildDocumentEditorCandidate({
+        originalModel,
+        selectedItem: selected,
+        baselineProjection: baselineProjection || undefined,
+        tipTapDoc: host.editor?.getJSON(),
+      });
+    },
+    [baselineProjection, host.editor, pinnedSelectedItem],
+  );
+
+  const planPersist = useCallback(
+    (originalModel: IDocumentModelData) => {
+      return planDocumentEditorV2Persist({
+        surface: visibleSurface,
+        saveEnabled: canPersistV2,
+        v2LocalDirty,
+        originalModel,
+        selectedItem: toDocumentEditorSelection(pinnedSelectedItem),
+        baselineProjection,
+        tipTapDoc: host.editor?.getJSON() ?? null,
+      });
+    },
+    [
+      baselineProjection,
+      canPersistV2,
+      host.editor,
+      pinnedSelectedItem,
+      v2LocalDirty,
+      visibleSurface,
+    ],
+  );
+
+  const markPersisted = useCallback((built: DocumentEditorCandidate) => {
+    setV2LocalDirty(false);
+    setExperimentNotice(null);
+    setBaselineProjection(built.editedProjected);
+  }, []);
+
   const shouldBlockOfficialSave = resolveShouldBlockOfficialSave({
     surface: visibleSurface,
     v2LocalDirty,
+    saveEnabled: canPersistV2,
   });
 
   const reportBlockedSave = useCallback(() => {
     setExperimentNotice(DOCUMENT_EDITOR_V2_BLOCK_SAVE_REASON);
+  }, []);
+
+  const reportPersistError = useCallback((message: string) => {
+    setExperimentNotice(message);
   }, []);
 
   const clearNotice = useCallback(() => {
@@ -150,43 +260,61 @@ export function DocumentEditorV2SessionProvider({
   const value = useMemo<DocumentEditorV2SessionValue>(
     () => ({
       flagEnabled,
+      saveEnabled,
+      isV2Active,
+      canPersistV2,
       surface,
       visibleSurface,
       v2LocalDirty,
       remountKey,
       pinnedSelectedItem,
+      baselineProjection,
       experimentNotice,
       requestSurface,
       markLocalDirty,
       discardLocalEdits,
+      discardExperiment: discardLocalEdits,
       pinSelectedItem,
       resolveRenderItem,
+      syncBaseline,
+      buildCandidate,
+      planPersist,
+      markPersisted,
       shouldBlockOfficialSave,
       reportBlockedSave,
+      reportPersistError,
       clearNotice,
     }),
     [
-      flagEnabled,
-      surface,
-      visibleSurface,
-      v2LocalDirty,
-      remountKey,
-      pinnedSelectedItem,
-      experimentNotice,
-      requestSurface,
-      markLocalDirty,
+      baselineProjection,
+      buildCandidate,
+      canPersistV2,
       discardLocalEdits,
+      experimentNotice,
+      flagEnabled,
+      isV2Active,
+      markLocalDirty,
+      markPersisted,
       pinSelectedItem,
-      resolveRenderItem,
-      shouldBlockOfficialSave,
+      pinnedSelectedItem,
+      planPersist,
+      remountKey,
       reportBlockedSave,
-      clearNotice,
+      reportPersistError,
+      requestSurface,
+      resolveRenderItem,
+      saveEnabled,
+      shouldBlockOfficialSave,
+      surface,
+      syncBaseline,
+      v2LocalDirty,
+      visibleSurface,
     ],
   );
 
   return (
     <DocumentEditorV2SessionContext.Provider value={value}>
-      <DocumentEditorV2HostProvider>{children}</DocumentEditorV2HostProvider>
+      {children}
     </DocumentEditorV2SessionContext.Provider>
   );
 }
