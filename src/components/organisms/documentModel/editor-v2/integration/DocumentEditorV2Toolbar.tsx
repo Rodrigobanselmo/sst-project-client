@@ -1,12 +1,16 @@
 import React from 'react';
 
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import {
   Button,
   FormControl,
   IconButton,
+  ListItemText,
+  Menu,
   MenuItem,
   Select,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { Editor } from '@tiptap/react';
@@ -19,10 +23,20 @@ import {
   isBlockFormatType,
 } from '../domain/block-format';
 import {
+  CHANGE_CASE_CYCLE_TOOLTIP,
+  CHANGE_CASE_MENU_ITEMS,
+  TextCaseMode,
+} from '../domain/text-case';
+import {
   createBlockFormatTransaction,
   createBulletLevelTransaction,
   resolveActiveBlock,
 } from '../tiptap/apply-block-format';
+import {
+  createChangeCaseTransaction,
+  createCycledChangeCaseTransaction,
+  isChangeCaseEnabled,
+} from '../tiptap/apply-text-case';
 import { DocumentEditorV2TextFormatControls } from './DocumentEditorV2TextFormatControls';
 
 function promptExternalLink(editor: Editor) {
@@ -51,6 +65,80 @@ function selectLabel(active: ReturnType<typeof resolveActiveBlock>): string {
     );
   }
   return 'Parágrafo';
+}
+
+function DocumentEditorV2ChangeCaseMenu({ editor }: { editor: Editor }) {
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const enabled = isChangeCaseEnabled(editor.state);
+
+  const applyMode = (mode: TextCaseMode) => {
+    const transaction = createChangeCaseTransaction(editor.state, mode);
+    if (transaction) editor.view.dispatch(transaction);
+    setAnchorEl(null);
+  };
+
+  return (
+    <>
+      <Button
+        size="small"
+        variant="outlined"
+        disabled={!enabled}
+        onClick={(event) => setAnchorEl(event.currentTarget)}
+        aria-label="Alterar capitalização"
+        aria-haspopup="true"
+        aria-expanded={Boolean(anchorEl)}
+        sx={{ minWidth: 36, textTransform: 'none', fontWeight: 700 }}
+      >
+        Aa
+      </Button>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+      >
+        {CHANGE_CASE_MENU_ITEMS.map((item) => (
+          <MenuItem
+            key={item.mode}
+            dense
+            onClick={() => applyMode(item.mode)}
+          >
+            <ListItemText
+              primary={item.label}
+              secondary={'shortcut' in item ? item.shortcut : undefined}
+              primaryTypographyProps={{ fontSize: 13 }}
+              secondaryTypographyProps={{ fontSize: 11 }}
+            />
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+}
+
+function DocumentEditorV2ChangeCaseCycleButton({
+  editor,
+}: {
+  editor: Editor;
+}) {
+  const enabled = isChangeCaseEnabled(editor.state);
+
+  return (
+    <Tooltip title={CHANGE_CASE_CYCLE_TOOLTIP}>
+      <span>
+        <IconButton
+          size="small"
+          disabled={!enabled}
+          onClick={() => {
+            const transaction = createCycledChangeCaseTransaction(editor.state);
+            if (transaction) editor.view.dispatch(transaction);
+          }}
+          aria-label={CHANGE_CASE_CYCLE_TOOLTIP}
+        >
+          <SwapHorizIcon fontSize="small" />
+        </IconButton>
+      </span>
+    </Tooltip>
+  );
 }
 
 export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
@@ -123,6 +211,8 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
         </Stack>
       ) : null}
       <DocumentEditorV2TextFormatControls editor={editor} />
+      <DocumentEditorV2ChangeCaseMenu editor={editor} />
+      <DocumentEditorV2ChangeCaseCycleButton editor={editor} />
       <Button
         size="small"
         variant={editor.isActive('bold') ? 'contained' : 'outlined'}

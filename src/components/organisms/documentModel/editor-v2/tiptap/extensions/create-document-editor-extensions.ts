@@ -15,6 +15,7 @@ import {
   DocumentSection,
 } from './document-structure';
 import { DocumentPageLayout } from './document-page-layout.extension';
+import { DocumentTextCase } from './document-text-case.extension';
 import { createStructuralEditingExtension } from './structural-editing.extension';
 
 const DocumentLink = Link.extend({
@@ -62,6 +63,7 @@ export function createDocumentEditorExtensions() {
       linkOnPaste: false,
     }),
     createStructuralEditingExtension(),
+    DocumentTextCase,
     DocumentPageLayout,
   ];
 }
