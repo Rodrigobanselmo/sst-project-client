@@ -64,6 +64,20 @@ export function DocumentEditorV2HeaderControls() {
           <ToggleButton value="v2">V2 experimental</ToggleButton>
         </ToggleButtonGroup>
         {session.visibleSurface === 'v2' ? (
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={session.viewMode}
+            onChange={(_event, value: 'web' | 'page' | null) => {
+              if (!value) return;
+              session.requestViewMode(value);
+            }}
+          >
+            <ToggleButton value="web">Web</ToggleButton>
+            <ToggleButton value="page">Página</ToggleButton>
+          </ToggleButtonGroup>
+        ) : null}
+        {session.visibleSurface === 'v2' ? (
           <DocumentEditorV2Toolbar key={revision} editor={editor} />
         ) : null}
       </Stack>

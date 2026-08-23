@@ -5,6 +5,8 @@ import {
 
 export type DocumentEditorSurface = 'v1' | 'v2';
 
+export type { DocumentEditorV2ViewMode } from './document-editor-v2-page-layout';
+
 export function resolveVisibleSurface(args: {
   flagEnabled: boolean;
   surface: DocumentEditorSurface;

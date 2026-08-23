@@ -1,5 +1,6 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 
+import { documentEditorV2BulletStyleVars } from './document-bullet-indent';
 import { blockVisualStyle } from './document-visual-css';
 
 export const DocumentBullet = Node.create({
@@ -34,11 +35,7 @@ export const DocumentBullet = Node.create({
         'data-doc-bullet': '',
         'data-doc-id': HTMLAttributes.id,
         'data-bullet-level': level,
-        style: [
-          visual,
-          `padding-left:${16 + level * 24}px`,
-          `--doc-bullet-level:${level}`,
-        ]
+        style: [visual, documentEditorV2BulletStyleVars(level)]
           .filter(Boolean)
           .join(';'),
       }),

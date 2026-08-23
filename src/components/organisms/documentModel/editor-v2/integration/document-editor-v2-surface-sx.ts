@@ -127,10 +127,11 @@ export const documentEditorV2SurfaceSx: SxProps<Theme> = {
   '& [data-doc-bullet]': {
     position: 'relative',
     my: 0.35,
+    paddingLeft: 'var(--doc-bullet-text-indent, 40px)',
     '&::before': {
       content: '"•"',
       position: 'absolute',
-      left: 'calc(var(--doc-bullet-level, 0) * 24px)',
+      left: 'var(--doc-bullet-marker-left, 24px)',
     },
   },
 };
