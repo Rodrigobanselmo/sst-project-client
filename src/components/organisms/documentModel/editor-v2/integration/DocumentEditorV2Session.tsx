@@ -14,6 +14,7 @@ import {
   buildDocumentEditorCandidate,
   DocumentEditorCandidate,
 } from '../domain/build-document-editor-candidate';
+import { useDocumentEditorV2Access } from './document-editor-v2-access';
 import {
   DocumentEditorV2HostProvider,
   useDocumentEditorV2Host,
@@ -120,8 +121,9 @@ function DocumentEditorV2SessionInner({
   children: React.ReactNode;
 }) {
   const host = useDocumentEditorV2Host();
-  const flagEnabled = featureFlags.documentEditorV2;
-  const saveEnabled = featureFlags.documentEditorV2Save;
+  const { canUseV2, canPersistV2: persistAccess } = useDocumentEditorV2Access();
+  const flagEnabled = canUseV2;
+  const saveEnabled = persistAccess;
   const [surface, setSurface] = useState<DocumentEditorSurface>('v1');
   const [v2LocalDirty, setV2LocalDirty] = useState(false);
   const [remountKey, setRemountKey] = useState(0);
