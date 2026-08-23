@@ -21,6 +21,8 @@ import { IVariableDocument } from 'components/organisms/tables/VariablesDocTable
 export interface IDocumentSlice {
   model: IDocumentModelData | null;
   needSynchronization: boolean;
+  /** Official DocumentModel.updated_at ISO string. Not part of canonical data. */
+  documentModelUpdatedAt: string | null;
   modalEditData: Partial<typeof initialEditDocumentModelState>;
   dragItem: {
     index?: number;
@@ -32,6 +34,7 @@ export interface IDocumentSlice {
 const initialState: IDocumentSlice = {
   model: null,
   needSynchronization: false,
+  documentModelUpdatedAt: null,
   dragItem: {},
   selectItem: null,
   modalEditData: {},
@@ -163,6 +166,12 @@ export const documentSlice = createSlice({
   reducers: {
     setSaveDocument: (state) => {
       state.needSynchronization = false;
+    },
+    setDocumentModelUpdatedAt: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.documentModelUpdatedAt = action.payload;
     },
     setDocumentModalEditData: (
       state,
@@ -450,6 +459,7 @@ export const TreeName = name;
 export const {
   setDocumentDragItem,
   setDocumentModel,
+  setDocumentModelUpdatedAt,
   setDocumentSelectItem,
   setSaveDocument,
   setDocumentModalEditData,

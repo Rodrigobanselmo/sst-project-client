@@ -15,6 +15,8 @@ import {
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
+import { isDocumentModelConflict } from 'components/organisms/modals/ModalEditDocumentModel/helpers/document-model-optimistic-lock';
+
 import { IErrorResp } from '../../../../../errors/types';
 
 export interface IUpdateDocumentModel {
@@ -26,6 +28,7 @@ export interface IUpdateDocumentModel {
   status?: StatusEnum;
   classifications?: DocumentModelClassificationEnum[];
   data?: IDocumentModelData;
+  expectedUpdatedAt?: string;
 }
 
 export async function upsertDocumentModel(
@@ -64,6 +67,7 @@ export function useMutUpdateDocumentModel() {
         return resp;
       },
       onError: (error: IErrorResp) => {
+        if (isDocumentModelConflict(error)) return;
         if (error.response?.data)
           enqueueSnackbar(error.response.data.message, { variant: 'error' });
       },

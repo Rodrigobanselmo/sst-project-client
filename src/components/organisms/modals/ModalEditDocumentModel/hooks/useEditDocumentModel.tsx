@@ -26,6 +26,7 @@ import {
   IDocumentSlice,
   setDocumentModalEditData,
   setDocumentModel,
+  setDocumentModelUpdatedAt,
   setSaveDocument,
 } from 'store/reducers/document/documentSlice';
 
@@ -39,13 +40,18 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import {
   IDocumentModel,
   IDocumentModelData,
+  IDocumentModelFull,
 } from 'core/interfaces/api/IDocumentModel';
 import { useMutCreateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutCreateDocumentModel/useMutCreateDocumentModel';
 import { useMutUpdateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutUpdateDocumentModel/useMutUpdateDocumentModel';
 import { useMutDeleteDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutDeleteDocumentModel/useMutDeleteDocumentModel';
-import { useQueryDocumentModel } from 'core/services/hooks/queries/useQueryDocumentModel/useQueryDocumentModel';
+import {
+  queryDocumentModel as fetchDocumentModelMeta,
+  useQueryDocumentModel,
+} from 'core/services/hooks/queries/useQueryDocumentModel/useQueryDocumentModel';
 import {
   IQueryDocumentModelData,
+  queryDocumentModel as fetchDocumentModelData,
   useQueryDocumentModelData,
 } from 'core/services/hooks/queries/useQueryDocumentModelData/useQueryDocumentModelData';
 import { queryClient } from 'core/services/queryClient';
@@ -58,8 +64,71 @@ import {
   isDocumentModelEditorDirty,
   mergeDocumentModelDirtySnapshot,
 } from '../helpers/document-model-dirty';
+import { DocumentModelConflictContent } from '../helpers/DocumentModelConflictContent';
+import {
+  DOCUMENT_MODEL_CONFLICT_TITLE,
+  getExpectedUpdatedAtFromDocumentState,
+  isDocumentModelConflict,
+  toOpaqueDocumentModelUpdatedAt,
+} from '../helpers/document-model-optimistic-lock';
 
 import { initialBlankState } from '../../ModalBlank/ModalBlank';
+
+const hydrateOfficialDocument = (modelData: IDocumentModelFull) => {
+  const modelDataClone = clone(modelData);
+  modelDataClone.document.sections = modelDataClone.document.sections.map(
+    (_section) => {
+      const section = clone(_section);
+      if (section.children) {
+        Object.keys(section.children).forEach((key) => {
+          if (!section?.children?.[key]) return;
+
+          section.children[key] = section.children[key].map((_child) => {
+            const child = clone(_child);
+            if (child?.text) {
+              child.text = child.text
+                .split('\n')
+                .map((text, index) => {
+                  const out = parseInlineStyleText(text);
+
+                  if (out.inlineEntity.length) {
+                    if (!child.entityRangeBlock) child.entityRangeBlock = [];
+                    if (!child.entityRangeBlock?.[index])
+                      child.entityRangeBlock[index] = [];
+
+                    child.entityRangeBlock[index] = [
+                      ...out.inlineEntity,
+                      ...child.entityRangeBlock[index],
+                    ];
+                  }
+
+                  if (out.inlineStyle.length) {
+                    if (!child.inlineStyleRangeBlock)
+                      child.inlineStyleRangeBlock = [];
+                    if (!child.inlineStyleRangeBlock?.[index])
+                      child.inlineStyleRangeBlock[index] = [];
+
+                    child.inlineStyleRangeBlock[index] = [
+                      ...out.inlineStyle,
+                      ...child.inlineStyleRangeBlock[index],
+                    ];
+                  }
+
+                  return out.text;
+                })
+                .join('\n');
+            }
+            return child;
+          });
+        });
+      }
+
+      return section;
+    },
+  );
+
+  return modelDataClone.document || null;
+};
 
 export const initialEditDocumentModelState = {
   id: 0,
@@ -130,6 +199,18 @@ export const useEditDocumentModel = () => {
     companyId: data.companyId,
   });
 
+  const officialUpdatedAtRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const incoming = toOpaqueDocumentModelUpdatedAt(model?.updated_at);
+    officialUpdatedAtRef.current = incoming;
+    const existing = (store.getState().document as IDocumentSlice)
+      .documentModelUpdatedAt;
+    if (!existing && incoming) {
+      dispatch(setDocumentModelUpdatedAt(incoming));
+    }
+  }, [dispatch, model?.updated_at, store]);
+
   useEffect(() => {
     if (modelData) {
       const needSynchronization = (store.getState().document as IDocumentSlice)
@@ -138,62 +219,10 @@ export const useEditDocumentModel = () => {
         .modalEditData;
 
       const setDocument = () => {
-        //! edit document **
-        const modelDataClone = clone(modelData);
-        modelDataClone.document.sections = modelDataClone.document.sections.map(
-          (_section) => {
-            const section = clone(_section);
-            if (section.children) {
-              Object.keys(section.children).forEach((key) => {
-                if (!section?.children?.[key]) return;
-
-                section.children[key] = section.children[key].map((_child) => {
-                  const child = clone(_child);
-                  if (child?.text) {
-                    child.text = child.text
-                      .split('\n')
-                      .map((text, index) => {
-                        const out = parseInlineStyleText(text);
-
-                        if (out.inlineEntity.length) {
-                          if (!child.entityRangeBlock)
-                            child.entityRangeBlock = [];
-                          if (!child.entityRangeBlock?.[index])
-                            child.entityRangeBlock[index] = [];
-
-                          child.entityRangeBlock[index] = [
-                            ...out.inlineEntity,
-                            ...child.entityRangeBlock[index],
-                          ];
-                        }
-
-                        if (out.inlineStyle.length) {
-                          if (!child.inlineStyleRangeBlock)
-                            child.inlineStyleRangeBlock = [];
-                          if (!child.inlineStyleRangeBlock?.[index])
-                            child.inlineStyleRangeBlock[index] = [];
-
-                          child.inlineStyleRangeBlock[index] = [
-                            ...out.inlineStyle,
-                            ...child.inlineStyleRangeBlock[index],
-                          ];
-                        }
-
-                        return out.text;
-                      })
-                      .join('\n');
-                  }
-                  return child;
-                });
-              });
-            }
-
-            return section;
-          },
-        );
-        //! edit document **
-        dispatch(setDocumentModel(modelDataClone.document || null));
+        dispatch(setDocumentModel(hydrateOfficialDocument(modelData)));
         dispatch(setDocumentModalEditData(initialDataRef.current));
+        const token = officialUpdatedAtRef.current;
+        if (token) dispatch(setDocumentModelUpdatedAt(token));
       };
 
       const onContinueOldDocument = () => {
@@ -323,6 +352,8 @@ export const useEditDocumentModel = () => {
     onCloseModal(modalName, closeData);
     setData(initialEditDocumentModelState);
     metadataBaselineRef.current = null;
+    officialUpdatedAtRef.current = null;
+    dispatch(setDocumentModelUpdatedAt(null));
   };
 
   const markPersisted = (partial: Partial<DocumentModelDirtySource>) => {
@@ -330,6 +361,83 @@ export const useEditDocumentModel = () => {
       metadataBaselineRef.current,
       partial,
     );
+  };
+
+  const reloadOfficialDocument = async () => {
+    if (!data.id || !data.companyId) return;
+
+    try {
+      const meta = await fetchDocumentModelMeta(data.id, {
+        companyId: data.companyId,
+      });
+      const full = await fetchDocumentModelData({
+        id: data.id,
+        companyId: data.companyId,
+      });
+      if (!meta || !full) {
+        enqueueSnackbar('Não foi possível carregar a versão mais recente.', {
+          variant: 'error',
+        });
+        return;
+      }
+
+      const nextToken = toOpaqueDocumentModelUpdatedAt(meta.updated_at);
+      officialUpdatedAtRef.current = nextToken;
+      queryClient.setQueryData(
+        [QueryEnum.DOCUMENT_MODEL, data.id, { companyId: data.companyId }],
+        meta,
+      );
+      queryClient.setQueryData(
+        [QueryEnum.DOCUMENT_MODEL_DATA, { id: data.id, companyId: data.companyId }],
+        full,
+      );
+      dispatch(setDocumentModel(hydrateOfficialDocument(full)));
+      dispatch(setDocumentModelUpdatedAt(nextToken));
+      dispatch(setSaveDocument());
+      v2Session.discardLocalEdits();
+      markPersisted({
+        name: meta.name,
+        description: meta.description,
+        type: meta.type,
+        status: meta.status,
+        classifications: meta.classifications,
+      });
+      setData((old) => ({
+        ...old,
+        name: meta.name,
+        description: meta.description,
+        type: meta.type,
+        status: meta.status,
+        classifications: filterClassificationsForDocumentType(
+          normalizeDocumentModelClassifications(meta.classifications),
+          meta.type,
+        ),
+      }));
+    } catch {
+      enqueueSnackbar('Não foi possível carregar a versão mais recente.', {
+        variant: 'error',
+      });
+    }
+  };
+
+  const closeConflictAlert = () => {
+    onCloseModal(ModalEnum.MODAL_BLANK);
+  };
+
+  const showDocumentModelConflict = () => {
+    onStackOpenModal(ModalEnum.MODAL_BLANK, {
+      title: DOCUMENT_MODEL_CONFLICT_TITLE,
+      hideButton: true,
+      content: () => (
+        <DocumentModelConflictContent
+          onLoadLatest={() => {
+            closeConflictAlert();
+            void reloadOfficialDocument();
+          }}
+          onKeepOpenToCopy={closeConflictAlert}
+        />
+      ),
+    } as Partial<typeof initialBlankState>);
   };
 
   const persistDocumentModel = async (
@@ -393,10 +501,19 @@ export const useEditDocumentModel = () => {
     }
 
     try {
-      await updateMutation.mutateAsync({
+      const expectedUpdatedAt = getExpectedUpdatedAtFromDocumentState(
+        store.getState().document as IDocumentSlice,
+      );
+      const resp = await updateMutation.mutateAsync({
         ...getDocumentModelMetadataPatch(data),
         data: payload,
+        ...(expectedUpdatedAt ? { expectedUpdatedAt } : {}),
       });
+      const nextToken = toOpaqueDocumentModelUpdatedAt(resp?.updated_at);
+      if (nextToken) {
+        officialUpdatedAtRef.current = nextToken;
+        dispatch(setDocumentModelUpdatedAt(nextToken));
+      }
       if (persistBuilt?.type === 'patch' || dataOverride) {
         dispatch(setDocumentModel(payload));
       }
@@ -404,9 +521,20 @@ export const useEditDocumentModel = () => {
       queryClient.setQueryData(
         [QueryEnum.DOCUMENT_MODEL_DATA, query],
         (oldData: any) => {
-          return { ...oldData, document: payload };
+          return {
+            ...oldData,
+            document: payload,
+            ...(nextToken ? { updated_at: nextToken } : {}),
+          };
         },
       );
+      if (nextToken) {
+        queryClient.setQueryData(
+          [QueryEnum.DOCUMENT_MODEL, data.id, { companyId: data.companyId }],
+          (oldData: any) =>
+            oldData ? { ...oldData, updated_at: nextToken } : oldData,
+        );
+      }
       if (persistBuilt?.type === 'patch') {
         v2Session.markPersisted(persistBuilt.built);
       }
@@ -416,7 +544,10 @@ export const useEditDocumentModel = () => {
         type: data.type,
       });
       return true;
-    } catch {
+    } catch (error) {
+      if (isDocumentModelConflict(error)) {
+        showDocumentModelConflict();
+      }
       return false;
     }
   };
