@@ -82,6 +82,20 @@ run('1. Classic flush registry sends the current editor, not blur order', () => 
   unregister();
   assert.equal(hasActiveClassicDocumentModelFlush(), false);
   assert.equal(persistFn.includes('flushActiveClassicDocumentModelEditor'), true);
+  assert.equal(
+    persistFn.includes('syncDocumentEditorExternalMutationsBeforeSave'),
+    true,
+  );
+  assert.equal(
+    persistFn.indexOf('syncDocumentEditorExternalMutationsBeforeSave') <
+      persistFn.indexOf('flushActiveClassicDocumentModelEditor'),
+    true,
+  );
+  assert.equal(
+    persistFn.indexOf('flushActiveClassicDocumentModelEditor') <
+      persistFn.indexOf('freezeDocumentModelSaveSnapshot'),
+    true,
+  );
   assert.equal(draftSource.includes('registerClassicDocumentModelFlush'), true);
   assert.equal(draftSource.includes('onEditorStateChange={handleChange}'), true);
   assert.equal(draftSource.includes('emitCurrentEditorToParent()'), true);

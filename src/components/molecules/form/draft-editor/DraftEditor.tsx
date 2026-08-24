@@ -4,13 +4,7 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Box } from '@mui/material';
 import SText from 'components/atoms/SText';
-import {
-  ContentState,
-  convertFromRaw,
-  convertToRaw,
-  EditorState,
-  Modifier,
-} from 'draft-js';
+import { ContentState, convertToRaw, EditorState, Modifier } from 'draft-js';
 import draftToHtml from 'draftjs-to-html';
 import htmlToDraft from 'html-to-draftjs';
 import dynamic from 'next/dynamic';
@@ -18,8 +12,17 @@ import dynamic from 'next/dynamic';
 import { useNewDebounce } from 'core/hooks/useNewDebounce';
 
 import { registerClassicDocumentModelFlush } from 'components/organisms/modals/ModalEditDocumentModel/helpers/classic-document-model-flush';
+import { registerClassicExternalEditSync } from 'components/organisms/modals/ModalEditDocumentModel/helpers/document-model-external-sync';
 
-import { fingerprintDraftDefaultValue } from './draft-default-value.util';
+import {
+  attachClassicExternalEditObserver,
+  ClassicExternalEditObserverHandle,
+} from './external-edit/classic-external-edit-observer';
+
+import {
+  applyDraftDefaultValueChange,
+  fingerprintDraftDefaultValue,
+} from './draft-default-value.util';
 import { FontSizeControl } from './FontSizeControl';
 import { LineHeightControl } from './LineHeightControl';
 import { FONT_SIZE_OPTIONS } from './font-size.util';
@@ -343,13 +346,18 @@ export const DraftEditor = ({
   const appliedDefaultFingerprintRef = useRef<string | null>(null);
   const editorStateRef = useRef(editorState);
   const onChangeRef = useRef(onChange);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const observerHandleRef = useRef<ClassicExternalEditObserverHandle | null>(
+    null,
+  );
+  const applyingExternalRef = useRef(false);
+  const isJsonRef = useRef(isJson);
   editorStateRef.current = editorState;
   onChangeRef.current = onChange;
+  isJsonRef.current = isJson;
 
-  const emitCurrentEditorToParent = () => {
-    const contentState = convertToRaw(
-      editorStateRef.current.getCurrentContent(),
-    );
+  const emitEditorStateToParent = (state: EditorState) => {
+    const contentState = convertToRaw(state.getCurrentContent());
     const isEmpty =
       contentState?.blocks?.length === 1 &&
       contentState?.blocks?.[0]?.text === '';
@@ -360,14 +368,71 @@ export const DraftEditor = ({
     }
 
     onChangeRef.current?.(
-      isJson ? JSON.stringify(contentState) : draftToHtml(contentState),
+      isJsonRef.current
+        ? JSON.stringify(contentState)
+        : draftToHtml(contentState),
     );
+  };
+
+  const emitCurrentEditorToParent = () => {
+    emitEditorStateToParent(editorStateRef.current);
   };
 
   useEffect(() => {
     if (!document_model) return undefined;
-    return registerClassicDocumentModelFlush(emitCurrentEditorToParent);
-  }, [document_model, isJson]);
+    return registerClassicDocumentModelFlush(() => {
+      observerHandleRef.current?.syncNow();
+      emitCurrentEditorToParent();
+    });
+  }, [document_model]);
+
+  useEffect(() => {
+    if (!document_model || readOnly) return undefined;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return undefined;
+
+    let handle: ClassicExternalEditObserverHandle | null = null;
+    let unregisterSync: (() => void) | undefined;
+
+    const tryAttach = () => {
+      if (handle) return;
+      const content = wrapper.querySelector(
+        '.public-DraftEditor-content',
+      ) as HTMLElement | null;
+      if (!content) return;
+      handle = attachClassicExternalEditObserver({
+        root: content,
+        getEditorState: () => editorStateRef.current,
+        applyEditorState: (next) => {
+          applyingExternalRef.current = true;
+          editorStateRef.current = next;
+          setEditorState(next);
+          emitEditorStateToParent(next);
+          const release = () => {
+            applyingExternalRef.current = false;
+          };
+          if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(() => requestAnimationFrame(release));
+          } else {
+            release();
+          }
+        },
+      });
+      observerHandleRef.current = handle;
+      unregisterSync = registerClassicExternalEditSync(() => handle!.syncNow());
+    };
+
+    tryAttach();
+    const wait = new MutationObserver(tryAttach);
+    wait.observe(wrapper, { childList: true, subtree: true });
+
+    return () => {
+      wait.disconnect();
+      unregisterSync?.();
+      handle?.destroy();
+      observerHandleRef.current = null;
+    };
+  }, [document_model, readOnly]);
 
   function moveFocusToEnd(editorState: EditorState) {
     editorState = EditorState.moveSelectionToEnd(editorState);
@@ -387,6 +452,18 @@ export const DraftEditor = ({
   };
 
   useEffect(() => {
+    if (isJson) {
+      const applied = applyDraftDefaultValueChange({
+        defaultValue,
+        isJson: true,
+        appliedFingerprint: appliedDefaultFingerprintRef.current,
+      });
+      if (applied.skipped) return;
+      appliedDefaultFingerprintRef.current = applied.fingerprint;
+      setEditorState(applied.editorState);
+      return;
+    }
+
     const fingerprint = fingerprintDraftDefaultValue(defaultValue);
     if (appliedDefaultFingerprintRef.current === fingerprint) return;
 
@@ -396,20 +473,7 @@ export const DraftEditor = ({
       return;
     }
 
-    const isString = typeof defaultValue == 'string';
-    if (isJson) {
-      if (isString && defaultValue.includes('<p>')) return;
-
-      appliedDefaultFingerprintRef.current = fingerprint;
-      setEditorState(
-        EditorState.createWithContent(
-          convertFromRaw(isString ? JSON.parse(defaultValue) : defaultValue),
-        ),
-      );
-      return;
-    }
-
-    if (!isString) return;
+    if (typeof defaultValue !== 'string') return;
     appliedDefaultFingerprintRef.current = fingerprint;
     const blocksFromHtml = htmlToDraft(defaultValue);
     const { contentBlocks, entityMap } = blocksFromHtml;
@@ -427,9 +491,14 @@ export const DraftEditor = ({
   const { onDebounce, onClearDebounce } = useNewDebounce();
 
   const handleChange = (value: EditorState): void => {
+    if (applyingExternalRef.current) {
+      const absorbed = editorStateRef.current.getCurrentContent().getPlainText();
+      const incoming = value.getCurrentContent().getPlainText();
+      if (incoming !== absorbed) return;
+    }
+    editorStateRef.current = value;
     setEditorState(value);
     onClearDebounce();
-    // handleDebounceChange(value);
   };
 
   const handleClickAway = (): void => {
@@ -480,6 +549,7 @@ export const DraftEditor = ({
 
   return (
     <STDraftBox
+      ref={wrapperRef}
       document1={document1 ? 1 : 0}
       document2={document_model ? 1 : 0}
       {...props}

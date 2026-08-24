@@ -19,6 +19,7 @@ import { useDocumentEditorV2Session } from './DocumentEditorV2Session';
 import { documentEditorV2PageModeSx } from './document-editor-v2-page-layout-sx';
 import { consumeEditorEscapeEvent } from './document-editor-v2-session';
 import { documentEditorV2SurfaceSx } from './document-editor-v2-surface-sx';
+import { AbsorbExternalMutations } from './external-edit/v2-external-edit-extension';
 import { ProtectV2Boundaries } from './protect-v2-boundaries.extension';
 
 export function DocumentEditorV2SectionView({
@@ -52,7 +53,11 @@ export function DocumentEditorV2SectionView({
 
   const editor = useEditor(
     {
-      extensions: [...createDocumentEditorExtensions(), ProtectV2Boundaries],
+      extensions: [
+        ...createDocumentEditorExtensions(),
+        ProtectV2Boundaries,
+        AbsorbExternalMutations,
+      ],
       content: content || undefined,
       editable: !contentSavePending,
       immediatelyRender: false,
@@ -66,6 +71,11 @@ export function DocumentEditorV2SectionView({
       },
       onUpdate: ({ transaction }) => {
         if (!transaction.docChanged) return;
+        if (transaction.getMeta('externalEdit')) {
+          skipFirstUpdateRef.current = false;
+          markLocalDirty();
+          return;
+        }
         if (skipFirstUpdateRef.current) {
           skipFirstUpdateRef.current = false;
           return;

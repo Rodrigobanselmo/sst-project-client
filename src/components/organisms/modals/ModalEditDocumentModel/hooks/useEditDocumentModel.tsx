@@ -14,6 +14,10 @@ import {
 } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-save-guard';
 import { flushActiveClassicDocumentModelEditor } from '../helpers/classic-document-model-flush';
 import {
+  DOCUMENT_MODEL_EXTERNAL_SYNC_PENDING_MESSAGE,
+  syncDocumentEditorExternalMutationsBeforeSave,
+} from '../helpers/document-model-external-sync';
+import {
   freezeDocumentModelSaveSnapshot,
   hashDocumentModelData,
 } from '../helpers/document-model-data-hash';
@@ -484,6 +488,14 @@ export const useEditDocumentModel = () => {
     }
 
     if (saveMutation.isLoading || v2Session.contentSavePending) return false;
+
+    const externalSync = syncDocumentEditorExternalMutationsBeforeSave();
+    if (!externalSync.ok) {
+      enqueueSnackbar(DOCUMENT_MODEL_EXTERNAL_SYNC_PENDING_MESSAGE, {
+        variant: 'warning',
+      });
+      return false;
+    }
 
     flushActiveClassicDocumentModelEditor();
 
