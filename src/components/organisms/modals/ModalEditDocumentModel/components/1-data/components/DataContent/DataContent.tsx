@@ -33,6 +33,7 @@ export const DataContent = (props: IUseData) => {
     data,
     isEdit,
     updateMutation,
+    applyConfirmedMetadataUpdatedAt,
     markPersisted,
   } = props;
 
@@ -243,7 +244,8 @@ export const DataContent = (props: IUseData) => {
                       classifications: normalized,
                     }),
                   })
-                  .then(() => {
+                  .then((resp) => {
+                    applyConfirmedMetadataUpdatedAt(resp);
                     markPersisted({ classifications: normalized });
                   })
                   .catch(() => null);
@@ -341,7 +343,8 @@ export const DataContent = (props: IUseData) => {
                       status: option.value,
                     }),
                   })
-                  .then(() => {
+                  .then((resp) => {
+                    applyConfirmedMetadataUpdatedAt(resp);
                     markPersisted({ status: option.value });
                   })
                   .catch(() => null);

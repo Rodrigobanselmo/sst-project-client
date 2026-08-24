@@ -31,6 +31,7 @@ export type DraftEditorProps = {
     editorState: EditorState,
   ) => boolean;
   document_model?: boolean;
+  readOnly?: boolean;
   textProps?: STextProps;
   onChange?: (value: any) => void;
   editorProps?: EditorProps;

@@ -133,13 +133,13 @@ run('8. persist oficial não importa adapters TipTap', () => {
   );
 
   assert.equal(persist.includes('resolveOfficialSaveAttempt'), true);
-  assert.equal(persist.includes('shouldRebaseOfficialDocument'), true);
+  assert.equal(persist.includes('shouldApplyOfficialDocumentRebase'), true);
   assert.equal(persist.includes('fromTipTapState'), false);
   assert.equal(view.includes('fromTipTapState'), false);
   assert.equal(persist.includes('discardLocalEdits()'), true);
   const persistFn = persist.slice(
+    persist.indexOf('const saveDocumentModel'),
     persist.indexOf('const persistDocumentModel'),
-    persist.indexOf('const onCloseUnsaved'),
   );
   assert.equal(persistFn.includes('discardLocalEdits'), false);
   assert.equal(persistFn.includes('fromTipTapState'), false);

@@ -324,12 +324,12 @@ run('15. validator error continua causando ZERO PATCH', () => {
     'utf8',
   );
   const persistFn = persist.slice(
+    persist.indexOf('const saveDocumentModel'),
     persist.indexOf('const persistDocumentModel'),
-    persist.indexOf('const onCloseUnsaved'),
   );
   assert.ok(persistFn.indexOf("plan.type === 'abort'") < persistFn.indexOf('mutateAsync'));
   assert.ok(persistFn.indexOf('return false') < persistFn.indexOf('mutateAsync'));
-  assert.equal(persistFn.includes('setDocumentModel(payload)'), true);
+  assert.equal(persistFn.includes('setDocumentModel(snapshot)'), true);
 });
 
 run('erro estruturado carrega path/element/offset/fragmento', () => {

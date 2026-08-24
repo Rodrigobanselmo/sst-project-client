@@ -48,6 +48,7 @@ export type DocumentEditorV2SessionValue = {
   surface: DocumentEditorSurface;
   visibleSurface: DocumentEditorSurface;
   v2LocalDirty: boolean;
+  contentSavePending: boolean;
   remountKey: number;
   pinnedSelectedItem: NodeDocumentModel | null;
   baselineProjection: IDocumentModelData | null;
@@ -55,6 +56,7 @@ export type DocumentEditorV2SessionValue = {
   viewMode: DocumentEditorV2ViewMode;
   requestSurface: (next: DocumentEditorSurface) => boolean;
   requestViewMode: (next: DocumentEditorV2ViewMode) => boolean;
+  setContentSavePending: (pending: boolean) => void;
   markLocalDirty: () => void;
   discardLocalEdits: () => void;
   discardExperiment: () => void;
@@ -80,6 +82,7 @@ const defaultSession: DocumentEditorV2SessionValue = {
   surface: 'v1',
   visibleSurface: 'v1',
   v2LocalDirty: false,
+  contentSavePending: false,
   remountKey: 0,
   pinnedSelectedItem: null,
   baselineProjection: null,
@@ -87,6 +90,7 @@ const defaultSession: DocumentEditorV2SessionValue = {
   viewMode: 'web',
   requestSurface: () => false,
   requestViewMode: () => false,
+  setContentSavePending: () => undefined,
   markLocalDirty: () => undefined,
   discardLocalEdits: () => undefined,
   discardExperiment: () => undefined,
@@ -135,6 +139,7 @@ function DocumentEditorV2SessionInner({
   const [surface, setSurface] = useState<DocumentEditorSurface>('v1');
   const [viewMode, setViewMode] = useState<DocumentEditorV2ViewMode>('web');
   const [v2LocalDirty, setV2LocalDirty] = useState(false);
+  const [contentSavePending, setContentSavePending] = useState(false);
   const [remountKey, setRemountKey] = useState(0);
   const [pinnedSelectedItem, setPinnedSelectedItem] =
     useState<NodeDocumentModel | null>(null);
@@ -283,6 +288,7 @@ function DocumentEditorV2SessionInner({
       surface,
       visibleSurface,
       v2LocalDirty,
+      contentSavePending,
       remountKey,
       pinnedSelectedItem,
       baselineProjection,
@@ -290,6 +296,7 @@ function DocumentEditorV2SessionInner({
       viewMode,
       requestSurface,
       requestViewMode,
+      setContentSavePending,
       markLocalDirty,
       discardLocalEdits,
       discardExperiment: discardLocalEdits,
@@ -308,12 +315,14 @@ function DocumentEditorV2SessionInner({
       baselineProjection,
       buildCandidate,
       canPersistV2,
+      contentSavePending,
       discardLocalEdits,
       experimentNotice,
       flagEnabled,
       isV2Active,
       markLocalDirty,
       markPersisted,
+      setContentSavePending,
       pinSelectedItem,
       pinnedSelectedItem,
       planPersist,

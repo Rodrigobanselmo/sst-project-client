@@ -14,7 +14,7 @@ import { useMutPreviewDocumentModel } from 'core/services/hooks/mutations/checkl
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 
 export const useViewDocumentModel = (props: IUseDocumentModel) => {
-  const { onClose, data, persistDocumentModel, closeEditor, model } = props;
+  const { onClose, data, saveDocumentModel, closeEditor, model } = props;
   const v2Session = useDocumentEditorV2Session();
   const store = useStore<any>();
   const downloadPreview = useMutPreviewDocumentModel();
@@ -53,7 +53,9 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
 
   const runPersist = async (intent: 'stay' | 'exit') => {
     setSaveIntent(intent);
-    const ok = await persistDocumentModel();
+    const ok = await saveDocumentModel({
+      exitAfterSuccess: intent === 'exit',
+    });
     if (ok && intent === 'exit') {
       closeEditor();
       return;
@@ -91,7 +93,10 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
     await runPersist('exit');
   };
 
-  const saveBusy = props.updateMutation.isLoading || saveIntent !== null;
+  const saveBusy =
+    props.saveMutation.isLoading ||
+    props.updateMutation.isLoading ||
+    saveIntent !== null;
 
   return {
     ...props,

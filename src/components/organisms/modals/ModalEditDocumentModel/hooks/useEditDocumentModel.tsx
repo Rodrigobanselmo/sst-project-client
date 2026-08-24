@@ -11,8 +11,19 @@ import { DOCUMENT_EDITOR_V2_DISCARD_MODAL } from 'components/organisms/documentM
 import {
   createV2SaveGuardSession,
   resolveOfficialSaveAttempt,
-  shouldRebaseOfficialDocument,
 } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-save-guard';
+import { flushActiveClassicDocumentModelEditor } from '../helpers/classic-document-model-flush';
+import {
+  freezeDocumentModelSaveSnapshot,
+  hashDocumentModelData,
+} from '../helpers/document-model-data-hash';
+import {
+  confirmDocumentModelSave,
+  DOCUMENT_MODEL_HASH_MISMATCH_MESSAGE,
+  DOCUMENT_MODEL_INVALID_SAVE_RESPONSE,
+  DOCUMENT_MODEL_SAVE_SUCCESS_MESSAGE,
+  shouldApplyOfficialDocumentRebase,
+} from '../helpers/document-model-strong-save';
 import { useSnackbar } from 'notistack';
 import { parseInlineStyleText } from 'components/organisms/documentModel/utils/parseInlineStyleText';
 import {
@@ -43,6 +54,7 @@ import {
   IDocumentModelFull,
 } from 'core/interfaces/api/IDocumentModel';
 import { useMutCreateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutCreateDocumentModel/useMutCreateDocumentModel';
+import { useMutSaveDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutSaveDocumentModel/useMutSaveDocumentModel';
 import { useMutUpdateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutUpdateDocumentModel/useMutUpdateDocumentModel';
 import { useMutDeleteDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutDeleteDocumentModel/useMutDeleteDocumentModel';
 import {
@@ -185,6 +197,7 @@ export const useEditDocumentModel = () => {
 
   const createMutation = useMutCreateDocumentModel();
   const updateMutation = useMutUpdateDocumentModel();
+  const saveMutation = useMutSaveDocumentModel();
   const deleteMutation = useMutDeleteDocumentModel();
 
   const { data: model, isLoading: isLoadingModel } = useQueryDocumentModel(
@@ -231,8 +244,15 @@ export const useEditDocumentModel = () => {
 
       if (!needSynchronization) {
         if (
-          shouldRebaseOfficialDocument({
+          shouldApplyOfficialDocumentRebase({
+            documentDirty: needSynchronization,
             v2LocalDirty: v2Session.v2LocalDirty,
+            contentSavePending: v2Session.contentSavePending,
+            confirmedUpdatedAt:
+              officialUpdatedAtRef.current ||
+              (store.getState().document as IDocumentSlice)
+                .documentModelUpdatedAt,
+            incomingUpdatedAt: officialUpdatedAtRef.current,
           })
         ) {
           setDocument();
@@ -281,6 +301,7 @@ export const useEditDocumentModel = () => {
     preventDelete,
     store,
     v2Session.v2LocalDirty,
+    v2Session.contentSavePending,
   ]);
 
   useEffect(() => {
@@ -340,6 +361,7 @@ export const useEditDocumentModel = () => {
   const isPersisting =
     createMutation.isLoading ||
     updateMutation.isLoading ||
+    saveMutation.isLoading ||
     deleteMutation.isLoading;
 
   const isDirty = isDocumentModelEditorDirty({
@@ -440,8 +462,11 @@ export const useEditDocumentModel = () => {
     } as Partial<typeof initialBlankState>);
   };
 
-  const persistDocumentModel = async (
-    dataOverride?: IDocumentModelData,
+  const saveDocumentModel = async (
+    options: {
+      exitAfterSuccess?: boolean;
+      dataOverride?: IDocumentModelData;
+    } = {},
   ): Promise<boolean> => {
     const saveAttempt = resolveOfficialSaveAttempt(
       createV2SaveGuardSession({
@@ -451,14 +476,16 @@ export const useEditDocumentModel = () => {
         remountKey: v2Session.remountKey,
         saveEnabled: v2Session.canPersistV2,
       }),
-      'stay',
+      options.exitAfterSuccess ? 'exit' : 'stay',
     );
     if (!saveAttempt.persist) {
       v2Session.reportBlockedSave();
       return false;
     }
 
-    if (updateMutation.isLoading) return false;
+    if (saveMutation.isLoading || v2Session.contentSavePending) return false;
+
+    flushActiveClassicDocumentModelEditor();
 
     const modelDocument = (store.getState().document as IDocumentSlice).model;
     if (!modelDocument || !data.id) return false;
@@ -468,10 +495,11 @@ export const useEditDocumentModel = () => {
       companyId: data.companyId,
     };
 
-    let payload = dataOverride || modelDocument;
+    let payload = options.dataOverride || modelDocument;
     let persistBuilt: ReturnType<typeof v2Session.planPersist> | null = null;
+    let source: 'classic' | 'v2' = 'classic';
 
-    if (!dataOverride && v2Session.canPersistV2) {
+    if (!options.dataOverride && v2Session.canPersistV2) {
       const plan = v2Session.planPersist(modelDocument);
       if (plan.type === 'block') {
         v2Session.reportBlockedSave();
@@ -482,13 +510,10 @@ export const useEditDocumentModel = () => {
         enqueueSnackbar(plan.message, { variant: 'error' });
         return false;
       }
-      if (plan.type === 'no-op') {
-        v2Session.markPersisted(plan.built);
-        return true;
-      }
-      if (plan.type === 'patch') {
+      if (plan.type === 'patch' || plan.type === 'no-op') {
         payload = plan.candidate;
         persistBuilt = plan;
+        source = 'v2';
         if (typeof sessionStorage !== 'undefined' && data.companyId) {
           rememberCanonicalBackup(sessionStorage, {
             companyId: data.companyId,
@@ -496,46 +521,70 @@ export const useEditDocumentModel = () => {
             original: modelDocument,
           });
         }
-        logV2PersistDiff(plan.diff);
+        if (plan.type === 'patch') logV2PersistDiff(plan.diff);
       }
     }
 
-    try {
-      const expectedUpdatedAt = getExpectedUpdatedAtFromDocumentState(
-        store.getState().document as IDocumentSlice,
+    const snapshot = freezeDocumentModelSaveSnapshot(payload);
+    const clientHash = await hashDocumentModelData(snapshot);
+    const expectedUpdatedAt = getExpectedUpdatedAtFromDocumentState(
+      store.getState().document as IDocumentSlice,
+    );
+
+    if (!expectedUpdatedAt) {
+      enqueueSnackbar(
+        'Não foi possível confirmar a versão do modelo para salvar.',
+        { variant: 'error' },
       );
-      const resp = await updateMutation.mutateAsync({
-        ...getDocumentModelMetadataPatch(data),
-        data: payload,
-        ...(expectedUpdatedAt ? { expectedUpdatedAt } : {}),
+      return false;
+    }
+
+    try {
+      v2Session.setContentSavePending(true);
+      const resp = await saveMutation.mutateAsync({
+        id: data.id,
+        companyId: data.companyId,
+        data: snapshot,
+        expectedUpdatedAt,
+        clientHash,
+        source,
       });
-      const nextToken = toOpaqueDocumentModelUpdatedAt(resp?.updated_at);
-      if (nextToken) {
-        officialUpdatedAtRef.current = nextToken;
-        dispatch(setDocumentModelUpdatedAt(nextToken));
+      const confirmation = confirmDocumentModelSave({
+        clientHash,
+        response: resp,
+      });
+      if (!confirmation.ok) {
+        enqueueSnackbar(
+          confirmation.reason === 'hash-mismatch'
+            ? DOCUMENT_MODEL_HASH_MISMATCH_MESSAGE
+            : DOCUMENT_MODEL_INVALID_SAVE_RESPONSE,
+          { variant: 'error' },
+        );
+        return false;
       }
-      if (persistBuilt?.type === 'patch' || dataOverride) {
-        dispatch(setDocumentModel(payload));
-      }
+
+      officialUpdatedAtRef.current = confirmation.updatedAt;
+      dispatch(setDocumentModelUpdatedAt(confirmation.updatedAt));
+      dispatch(setDocumentModel(snapshot));
       dispatch(setSaveDocument());
       queryClient.setQueryData(
         [QueryEnum.DOCUMENT_MODEL_DATA, query],
         (oldData: any) => {
           return {
             ...oldData,
-            document: payload,
-            ...(nextToken ? { updated_at: nextToken } : {}),
+            document: snapshot,
+            updated_at: confirmation.updatedAt,
           };
         },
       );
-      if (nextToken) {
-        queryClient.setQueryData(
-          [QueryEnum.DOCUMENT_MODEL, data.id, { companyId: data.companyId }],
-          (oldData: any) =>
-            oldData ? { ...oldData, updated_at: nextToken } : oldData,
-        );
-      }
-      if (persistBuilt?.type === 'patch') {
+      queryClient.setQueryData(
+        [QueryEnum.DOCUMENT_MODEL, data.id, { companyId: data.companyId }],
+        (oldData: any) =>
+          oldData
+            ? { ...oldData, updated_at: confirmation.updatedAt }
+            : oldData,
+      );
+      if (persistBuilt?.type === 'patch' || persistBuilt?.type === 'no-op') {
         v2Session.markPersisted(persistBuilt.built);
       }
       markPersisted({
@@ -543,13 +592,31 @@ export const useEditDocumentModel = () => {
         classifications: data.classifications,
         type: data.type,
       });
+      enqueueSnackbar(DOCUMENT_MODEL_SAVE_SUCCESS_MESSAGE, {
+        variant: 'success',
+      });
       return true;
     } catch (error) {
       if (isDocumentModelConflict(error)) {
         showDocumentModelConflict();
       }
       return false;
+    } finally {
+      v2Session.setContentSavePending(false);
     }
+  };
+
+  const persistDocumentModel = async (
+    dataOverride?: IDocumentModelData,
+  ): Promise<boolean> => saveDocumentModel({ dataOverride });
+
+  const applyConfirmedMetadataUpdatedAt = (
+    resp?: { updated_at?: unknown } | null,
+  ) => {
+    const nextToken = toOpaqueDocumentModelUpdatedAt(resp?.updated_at);
+    if (!nextToken) return;
+    officialUpdatedAtRef.current = nextToken;
+    dispatch(setDocumentModelUpdatedAt(nextToken));
   };
 
   const onCloseUnsaved = (action?: () => void) => {
@@ -608,6 +675,8 @@ export const useEditDocumentModel = () => {
     onClose: onCloseUnsaved,
     closeEditor,
     persistDocumentModel,
+    saveDocumentModel,
+    applyConfirmedMetadataUpdatedAt,
     markPersisted,
     isPersisting,
     isDirty,
@@ -618,11 +687,13 @@ export const useEditDocumentModel = () => {
       isLoadingModel ||
       createMutation.isLoading ||
       updateMutation.isLoading ||
+      saveMutation.isLoading ||
       deleteMutation.isLoading,
     modalName,
     model: modelData,
     isEdit,
     updateMutation,
+    saveMutation,
     createMutation,
     dispatch,
     handleDelete,

@@ -838,10 +838,10 @@ run('49. loading bloqueia ações', () => {
     'utf8',
   );
   const persistFn = persist.slice(
+    persist.indexOf('const saveDocumentModel'),
     persist.indexOf('const persistDocumentModel'),
-    persist.indexOf('const onCloseUnsaved'),
   );
-  assert.equal(persistFn.includes('updateMutation.isLoading'), true);
+  assert.equal(persistFn.includes('saveMutation.isLoading'), true);
   const top = fs.readFileSync(
     path.join(
       __dirname,
@@ -937,8 +937,8 @@ run('32. backup sessionStorage', () => {
     'utf8',
   );
   const persistFn = persist.slice(
+    persist.indexOf('const saveDocumentModel'),
     persist.indexOf('const persistDocumentModel'),
-    persist.indexOf('const onCloseUnsaved'),
   );
   assert.equal(persistFn.includes('rememberCanonicalBackup'), true);
   assert.equal(persistFn.includes("plan.type === 'patch'"), true);
@@ -977,8 +977,8 @@ run('hooks: PATCH antes do Redux; sem adapter no persist', () => {
     'utf8',
   );
   const persistFn = persist.slice(
+    persist.indexOf('const saveDocumentModel'),
     persist.indexOf('const persistDocumentModel'),
-    persist.indexOf('const onCloseUnsaved'),
   );
   assert.equal(persistFn.includes('fromTipTapState'), false);
   assert.equal(persistFn.includes('fromDocumentEditorState'), false);

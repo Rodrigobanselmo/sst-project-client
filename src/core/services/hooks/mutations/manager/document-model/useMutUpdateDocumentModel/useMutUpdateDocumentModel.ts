@@ -8,10 +8,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import {
-  IDocumentModel,
-  IDocumentModelData,
-} from 'core/interfaces/api/IDocumentModel';
+import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -27,15 +24,19 @@ export interface IUpdateDocumentModel {
   type?: DocumentTypeEnum;
   status?: StatusEnum;
   classifications?: DocumentModelClassificationEnum[];
-  data?: IDocumentModelData;
   expectedUpdatedAt?: string;
 }
 
 export async function upsertDocumentModel(
-  data: IUpdateDocumentModel,
+  data: IUpdateDocumentModel & { data?: unknown },
   companyId?: string,
 ) {
   if (!companyId) return null;
+  if (data.data !== undefined && data.data !== null) {
+    throw new Error(
+      'Document content must be saved via PATCH /document-model/:companyId/:id/save',
+    );
+  }
 
   const response = await api.patch<IDocumentModel>(
     ApiRoutesEnum.DOCUMENT_MODEL.replace(':companyId', companyId) +

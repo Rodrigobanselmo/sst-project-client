@@ -30,7 +30,8 @@ export function DocumentEditorV2SectionView({
   headingNumbering: HeadingNumberingMap;
   elements?: IDocumentModelFull['elements'];
 }) {
-  const { remountKey, markLocalDirty, viewMode } = useDocumentEditorV2Session();
+  const { remountKey, markLocalDirty, viewMode, contentSavePending } =
+    useDocumentEditorV2Session();
   const { registerEditor, notifyEditorActivity } = useDocumentEditorV2Host();
   const skipFirstUpdateRef = useRef(true);
 
@@ -53,6 +54,7 @@ export function DocumentEditorV2SectionView({
     {
       extensions: [...createDocumentEditorExtensions(), ProtectV2Boundaries],
       content: content || undefined,
+      editable: !contentSavePending,
       immediatelyRender: false,
       editorProps: {
         attributes: {
@@ -93,6 +95,10 @@ export function DocumentEditorV2SectionView({
   useEffect(() => {
     applyDocumentEditorV2ViewMode(editor, viewMode);
   }, [editor, viewMode]);
+
+  useEffect(() => {
+    editor?.setEditable(!contentSavePending);
+  }, [contentSavePending, editor]);
 
   if (!documentData || !content) {
     return (

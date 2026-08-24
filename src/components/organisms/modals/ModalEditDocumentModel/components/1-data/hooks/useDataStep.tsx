@@ -19,6 +19,7 @@ export const useDataStep = (props: IUseDocumentModel) => {
     onClose,
     closeEditor,
     updateMutation,
+    applyConfirmedMetadataUpdatedAt,
     createMutation,
     data,
     setData,
@@ -118,12 +119,13 @@ export const useDataStep = (props: IUseDocumentModel) => {
         return await create();
       }
 
-      await updateMutation.mutateAsync({
+      const metadataResp = await updateMutation.mutateAsync({
         name: submitData.name,
         description: submitData.description,
         type: submitData.type,
         ...getDocumentModelMetadataPatch(data),
       });
+      applyConfirmedMetadataUpdatedAt(metadataResp);
       setData((d) => ({
         ...d,
         name: submitData.name,

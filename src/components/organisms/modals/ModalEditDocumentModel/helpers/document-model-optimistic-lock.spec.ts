@@ -47,12 +47,12 @@ function readRel(...parts: string[]) {
 
 const persistSource = readRel('../hooks/useEditDocumentModel.tsx');
 const persistFn = persistSource.slice(
+  persistSource.indexOf('const saveDocumentModel'),
   persistSource.indexOf('const persistDocumentModel'),
-  persistSource.indexOf('const onCloseUnsaved'),
 );
 const conflictFn = persistSource.slice(
   persistSource.indexOf('const showDocumentModelConflict'),
-  persistSource.indexOf('const persistDocumentModel'),
+  persistSource.indexOf('const saveDocumentModel'),
 );
 const conflictContentSource = readRel('./DocumentModelConflictContent.tsx');
 const mutationSource = readRel(
@@ -170,14 +170,15 @@ run('3. Redux Persist mantém a string ISO', () => {
 run('4. V1 envia token no persist comum', () => {
   assert.equal(persistFn.includes('expectedUpdatedAt'), true);
   assert.equal(persistFn.includes('getExpectedUpdatedAtFromDocumentState'), true);
-  assert.equal(persistFn.includes('data: payload'), true);
+  assert.equal(persistFn.includes('data: snapshot'), true);
   assert.equal(mutationSource.includes('expectedUpdatedAt?: string'), true);
 });
 
 run('5. V2 envia token no mesmo persistDocumentModel', () => {
   assert.equal(persistFn.includes('planPersist'), true);
   assert.equal(persistFn.includes('expectedUpdatedAt'), true);
-  assert.equal(persistSource.split('const persistDocumentModel').length, 2);
+  assert.equal(persistSource.split('const saveDocumentModel').length, 2);
+  assert.equal(persistSource.includes('const persistDocumentModel'), true);
 });
 
 run('6. 200 atualiza token para T2 da response', () => {
@@ -189,7 +190,7 @@ run('6. 200 atualiza token para T2 da response', () => {
   assert.equal(saved.state.token, T2);
   assert.equal(saved.state.cacheUpdatedAt, T2);
   assert.equal(saved.state.dirty, false);
-  assert.equal(persistFn.includes('resp?.updated_at'), true);
+  assert.equal(persistFn.includes('confirmation.updatedAt'), true);
   assert.equal(persistFn.includes('Date.now'), false);
   assert.equal(persistFn.includes('new Date'), false);
 });

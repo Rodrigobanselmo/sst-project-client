@@ -26,6 +26,8 @@ import { v4 } from 'uuid';
 
 import { SSaveIcon } from 'assets/icons/SSaveIcon';
 
+import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
+
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import {
   DocModelPageOrientation,
@@ -185,6 +187,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const dispatch = useAppDispatch();
+  const { contentSavePending } = useDocumentEditorV2Session();
 
   const isElement = 'element' in item;
   const isSection = 'section' in item;
@@ -854,6 +857,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                       },
                     })}
                     defaultValue={parseToEditor(item) as any}
+                    readOnly={contentSavePending}
                     onChange={(value) =>
                       handleEdit(
                         parseFromEditorToElement(

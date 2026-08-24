@@ -17,6 +17,8 @@ import dynamic from 'next/dynamic';
 
 import { useNewDebounce } from 'core/hooks/useNewDebounce';
 
+import { registerClassicDocumentModelFlush } from 'components/organisms/modals/ModalEditDocumentModel/helpers/classic-document-model-flush';
+
 import { fingerprintDraftDefaultValue } from './draft-default-value.util';
 import { FontSizeControl } from './FontSizeControl';
 import { LineHeightControl } from './LineHeightControl';
@@ -323,6 +325,7 @@ export const DraftEditor = ({
   toolbarOpen,
   editorProps,
   document_model,
+  readOnly,
   handleReturn,
   toolbarProps,
   toolbarCustomButtons,
@@ -338,6 +341,33 @@ export const DraftEditor = ({
 
   const startOnEnd = useRef(true);
   const appliedDefaultFingerprintRef = useRef<string | null>(null);
+  const editorStateRef = useRef(editorState);
+  const onChangeRef = useRef(onChange);
+  editorStateRef.current = editorState;
+  onChangeRef.current = onChange;
+
+  const emitCurrentEditorToParent = () => {
+    const contentState = convertToRaw(
+      editorStateRef.current.getCurrentContent(),
+    );
+    const isEmpty =
+      contentState?.blocks?.length === 1 &&
+      contentState?.blocks?.[0]?.text === '';
+
+    if (isEmpty) {
+      onChangeRef.current?.('');
+      return;
+    }
+
+    onChangeRef.current?.(
+      isJson ? JSON.stringify(contentState) : draftToHtml(contentState),
+    );
+  };
+
+  useEffect(() => {
+    if (!document_model) return undefined;
+    return registerClassicDocumentModelFlush(emitCurrentEditorToParent);
+  }, [document_model, isJson]);
 
   function moveFocusToEnd(editorState: EditorState) {
     editorState = EditorState.moveSelectionToEnd(editorState);
@@ -465,6 +495,7 @@ export const DraftEditor = ({
         editorClassName={`editor_content maxHeight_${size} ${
           allVisible ? 'full' : ''
         }`}
+        readOnly={Boolean(readOnly)}
         onBlur={(event?: { relatedTarget?: EventTarget | null }) => {
           const related = event?.relatedTarget;
           if (
@@ -477,17 +508,8 @@ export const DraftEditor = ({
           }
 
           handleClickAway();
-          const contentState = convertToRaw(editorState.getCurrentContent());
           startOnEnd.current = true;
-          const isEmpty =
-            contentState?.blocks?.length === 1 &&
-            contentState?.blocks?.[0]?.text === '';
-
-          if (isEmpty) return onChange?.('');
-
-          onChange?.(
-            isJson ? JSON.stringify(contentState) : draftToHtml(contentState),
-          );
+          emitCurrentEditorToParent();
         }}
         placeholder={placeholder}
         editorState={editorState}
