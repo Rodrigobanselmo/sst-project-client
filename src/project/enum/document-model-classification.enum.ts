@@ -13,6 +13,8 @@ export enum DocumentModelClassificationEnum {
   BACKUP = 'BACKUP',
   COMPLETO = 'COMPLETO',
   ESTABELECIMENTO_PROPRIO = 'ESTABELECIMENTO_PROPRIO',
+  COM_VISITA_DE_CAMPO = 'COM_VISITA_DE_CAMPO',
+  DADOS_FORNECIDOS = 'DADOS_FORNECIDOS',
 }
 
 const ALL_DOCUMENT_TYPES = Object.values(DocumentTypeEnum);
@@ -101,6 +103,18 @@ export const documentModelClassificationMap: Record<
     shortLabel: 'Estab. Próprio',
     documentTypes: ALL_DOCUMENT_TYPES,
   },
+  [DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO]: {
+    value: DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
+    label: 'Com Visita de Campo',
+    shortLabel: 'Com Visita de Campo',
+    documentTypes: ALL_DOCUMENT_TYPES,
+  },
+  [DocumentModelClassificationEnum.DADOS_FORNECIDOS]: {
+    value: DocumentModelClassificationEnum.DADOS_FORNECIDOS,
+    label: 'Dados Fornecidos',
+    shortLabel: 'Dados Fornecidos',
+    documentTypes: ALL_DOCUMENT_TYPES,
+  },
 };
 
 export const documentModelClassificationList = Object.values(
@@ -151,6 +165,10 @@ const MUTUALLY_EXCLUSIVE: Partial<
     DocumentModelClassificationEnum.TERCEIROS,
   [DocumentModelClassificationEnum.TERCEIROS]:
     DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO,
+  [DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO]:
+    DocumentModelClassificationEnum.DADOS_FORNECIDOS,
+  [DocumentModelClassificationEnum.DADOS_FORNECIDOS]:
+    DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
 };
 
 /** Modelo contém todas as classificações ativas (interseção / AND). */
@@ -197,6 +215,10 @@ const MUTUALLY_EXCLUSIVE_PAIRS: [
   [
     DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO,
     DocumentModelClassificationEnum.TERCEIROS,
+  ],
+  [
+    DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
+    DocumentModelClassificationEnum.DADOS_FORNECIDOS,
   ],
 ];
 
