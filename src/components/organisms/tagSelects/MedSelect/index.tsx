@@ -55,7 +55,12 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
 
   const { onStackOpenModal } = useModal();
 
-  const handleSelectRecMed = (options: IRecMed) => {
+  const handleSelectRecMed = (options: IRecMed | string[]) => {
+    if (Array.isArray(options)) {
+      if (handleSelect) handleSelect(options);
+      return;
+    }
+
     if (
       onlyEpi ||
       isNaRecMed(options?.medName) ||

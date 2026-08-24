@@ -27,6 +27,7 @@ export const STagSearchSelect: FC<
   renderFilter,
   listMaxHeight,
   additionalButton,
+  confirmSelectionOnClose,
   tooltipTitle,
   endAdornment,
   error,
@@ -113,6 +114,7 @@ export const STagSearchSelect: FC<
         selected={selected}
         keys={keys}
         additionalButton={additionalButton}
+        confirmSelectionOnClose={confirmSelectionOnClose}
         renderFilter={renderFilter}
         listMaxHeight={listMaxHeight}
         onEnter={onEnter}

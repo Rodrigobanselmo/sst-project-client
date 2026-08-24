@@ -32,6 +32,7 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
   multiple,
   selected,
   additionalButton,
+  confirmSelectionOnClose = true,
   renderFilter,
   listMaxHeight = 350,
   onEnter,
@@ -61,13 +62,27 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
     if (!multiple) handleSelect(option, e);
   };
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const onClose = (e: any) => {
-    e.stopPropagation();
-    handleSelect(localSelected.current, e);
+  const resetAndClose = () => {
     setSearch('');
     close();
     localSelected.current = [] as any;
+  };
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const commitSelection = (e: any) => {
+    e?.stopPropagation?.();
+    handleSelect(localSelected.current, e);
+    resetAndClose();
+  };
+
+  const onClose = (e: any) => {
+    e?.stopPropagation?.();
+    if (multiple && confirmSelectionOnClose === false) {
+      resetAndClose();
+      return;
+    }
+    handleSelect(localSelected.current, e);
+    resetAndClose();
   };
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -275,7 +290,9 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
           </SIconButton>
         )}
       </Box>
-      {multiple && <STagButton large text={'CONFIRMAR'} onClick={onClose} />}
+      {multiple && (
+        <STagButton large text={'CONFIRMAR'} onClick={commitSelection} />
+      )}
     </STMenu>
   );
 };

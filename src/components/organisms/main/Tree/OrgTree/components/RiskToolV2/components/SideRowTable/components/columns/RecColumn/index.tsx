@@ -29,6 +29,11 @@ import {
   isRecommendationDeletionAllowed,
   recommendationHasDerivedMeasureLink,
 } from '../../../../../utils/characterization-action-plan-visual';
+import { RiskCatalogBulkAddButton } from '../../../../../risk-catalog-bulk-add/RiskCatalogBulkAddButton';
+import {
+  buildRecsAttachPayload,
+  resolveRecsSelectedForAdd,
+} from '../../../../../risk-catalog-bulk-add/with-residual-probability-after-rec-change.util';
 import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/RiskCatalogBatchCopyButton';
 import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
@@ -67,21 +72,13 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
       }));
   }, [data?.recs, risk?.id]);
 
-  const buildAddPayload = (rec: IRecMed): Partial<IUpsertRiskData> => {
-    const nextRecs = [...validRecs, rec];
-    const probabilityAfter = resolveResidualProbabilityAfterRecChange({
+  const buildAddPayload = (rec: IRecMed): Partial<IUpsertRiskData> =>
+    buildRecsAttachPayload({
+      recsToAdd: [rec],
+      currentRecs: validRecs,
       realProbability: data?.probability,
       currentResidual: data?.probabilityAfter,
-      previousRecommendations: validRecs,
-      nextRecommendations: nextRecs,
     });
-
-    const payload: Partial<IUpsertRiskData> = { recs: [rec.id] };
-    if (probabilityAfter !== undefined) {
-      payload.probabilityAfter = probabilityAfter;
-    }
-    return payload;
-  };
 
   const buildRemovePayload = (recId: string): Partial<IUpsertRiskData> => {
     const nextRecs = validRecs.filter((rec) => rec.id !== recId);
@@ -150,7 +147,9 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             text={'adicionar'}
             onlyFromActualRisks
             tooltipTitle=""
-            multiple={false}
+            multiple
+            confirmSelectionOnClose={false}
+            resolveMultipleAsItems
             enableRecTypeQuickClassify
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
@@ -161,9 +160,26 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
               document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
             }}
             handleSelect={(options) => {
-              const op = options as IRecMed;
-              if (op?.id) handleSelect(buildAddPayload(op), op);
+              const recsToAdd = resolveRecsSelectedForAdd(
+                options,
+                validRecs.map((rec) => rec.id),
+              );
+              if (!recsToAdd.length) return;
+              handleSelect(
+                buildRecsAttachPayload({
+                  recsToAdd,
+                  currentRecs: validRecs,
+                  realProbability: data?.probability,
+                  currentResidual: data?.probabilityAfter,
+                }),
+              );
             }}
+          />
+          <RiskCatalogBulkAddButton
+            kind="rec"
+            risk={risk}
+            riskData={data as IRiskData}
+            handleSelect={handleSelect}
           />
           <RiskCatalogBatchCopyButton
             kind="rec"

@@ -9,6 +9,8 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 
+import { RiskCatalogBulkAddButton } from '../../../../../risk-catalog-bulk-add/RiskCatalogBulkAddButton';
+import { resolveNewCatalogIds } from '../../../../../risk-catalog-bulk-add/resolve-risk-catalog-multi-select.util';
 import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/RiskCatalogBatchCopyButton';
 import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
@@ -59,7 +61,8 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
             onlyInput="eng"
             onlyFromActualRisks
             tooltipTitle=""
-            multiple={false}
+            multiple
+            confirmSelectionOnClose={false}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             type={MedTypeEnum.ENG}
@@ -74,15 +77,22 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
 
               document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
             }}
-            handleSelect={(options: IRecMed) => {
-              if (options.id)
-                handleSelect(
-                  {
-                    engs: [{ ...options?.engsRiskData, recMedId: options.id }],
-                  },
-                  options,
-                );
+            handleSelect={(options) => {
+              const ids = resolveNewCatalogIds(
+                options,
+                (data?.engs ?? []).map((eng) => eng?.id),
+              );
+              if (!ids.length) return;
+              handleSelect({
+                engs: ids.map((recMedId) => ({ recMedId })),
+              });
             }}
+          />
+          <RiskCatalogBulkAddButton
+            kind="eng"
+            risk={risk}
+            riskData={data as IRiskData}
+            handleSelect={handleSelect}
           />
           <RiskCatalogBatchCopyButton
             kind="eng"

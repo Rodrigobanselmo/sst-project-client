@@ -8,6 +8,8 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 
+import { RiskCatalogBulkAddButton } from '../../../../../risk-catalog-bulk-add/RiskCatalogBulkAddButton';
+import { resolveNewCatalogIds } from '../../../../../risk-catalog-bulk-add/resolve-risk-catalog-multi-select.util';
 import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/RiskCatalogBatchCopyButton';
 import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
@@ -56,7 +58,8 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
             onlyFromActualRisks
             text={'adicionar'}
             tooltipTitle=""
-            multiple={false}
+            multiple
+            confirmSelectionOnClose={false}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             type={MedTypeEnum.ADM}
@@ -73,15 +76,19 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
               document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
             }}
             handleSelect={(options) => {
-              const op = options as IRecMed;
-              if (op.id)
-                handleSelect(
-                  {
-                    adms: [op.id],
-                  },
-                  op,
-                );
+              const ids = resolveNewCatalogIds(
+                options,
+                (data?.adms ?? []).map((adm) => adm?.id),
+              );
+              if (!ids.length) return;
+              handleSelect({ adms: ids });
             }}
+          />
+          <RiskCatalogBulkAddButton
+            kind="adm"
+            risk={risk}
+            riskData={data as IRiskData}
+            handleSelect={handleSelect}
           />
           <RiskCatalogBatchCopyButton
             kind="adm"

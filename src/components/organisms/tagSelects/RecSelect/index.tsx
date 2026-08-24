@@ -41,6 +41,7 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   onlyInput,
   type,
   enableRecTypeQuickClassify = false,
+  resolveMultipleAsItems = false,
   ...props
 }) => {
   const riskIdsArray = [...(riskIds.map((rId) => String(rId)) || [])];
@@ -65,8 +66,18 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
 
   const { onStackOpenModal } = useModal();
 
-  const handleSelectRecMed = (options: string[]) => {
-    if (handleSelect) handleSelect(options);
+  const handleSelectRecMed = (options: string[] | IRecMed) => {
+    if (!handleSelect) return;
+    if (resolveMultipleAsItems && Array.isArray(options)) {
+      const items = options.map((id) => {
+        const found = recMed.find((rec) => String(rec.id) === String(id));
+        if (found && typeof found.id === 'string' && found.id) return found;
+        return { id: String(id) } as IRecMed;
+      });
+      handleSelect(items);
+      return;
+    }
+    handleSelect(options);
   };
 
   const handleEditRecMed = (

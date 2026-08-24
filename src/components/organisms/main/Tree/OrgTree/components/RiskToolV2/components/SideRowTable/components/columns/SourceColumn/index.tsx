@@ -4,8 +4,9 @@ import { Box } from '@mui/material';
 import { GenerateSourceSelect } from 'components/organisms/tagSelects/GenerateSourceSelect';
 
 import { IdsEnum } from 'core/enums/ids.enums';
-import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
 
+import { RiskCatalogBulkAddButton } from '../../../../../risk-catalog-bulk-add/RiskCatalogBulkAddButton';
+import { resolveNewCatalogIds } from '../../../../../risk-catalog-bulk-add/resolve-risk-catalog-multi-select.util';
 import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/RiskCatalogBatchCopyButton';
 import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
@@ -44,7 +45,8 @@ export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
             onlyFromActualRisks
             text={'adicionar'}
             tooltipTitle=""
-            multiple={false}
+            multiple
+            confirmSelectionOnClose={false}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             onCreate={(generateSource) => {
@@ -59,15 +61,19 @@ export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
               document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
             }}
             handleSelect={(options) => {
-              const generateSource = options as IGenerateSource;
-              if (generateSource.id)
-                handleSelect(
-                  {
-                    generateSources: [generateSource.id],
-                  },
-                  generateSource,
-                );
+              const ids = resolveNewCatalogIds(
+                options,
+                (data?.generateSources ?? []).map((gs) => gs?.id),
+              );
+              if (!ids.length) return;
+              handleSelect({ generateSources: ids });
             }}
+          />
+          <RiskCatalogBulkAddButton
+            kind="generateSource"
+            risk={risk}
+            riskData={data}
+            handleSelect={handleSelect}
           />
           <RiskCatalogBatchCopyButton
             kind="generateSource"

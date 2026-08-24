@@ -156,10 +156,8 @@ const recSelectSource = readFileSync(
   resolve('src/components/organisms/tagSelects/RecSelect/index.tsx'),
   'utf8',
 );
-assert.equal(
-  recSelectSource.includes('enableRecTypeQuickClassify = false'),
-  true,
-);
+assert.equal(recSelectSource.includes('enableRecTypeQuickClassify = false'), true);
+assert.equal(recSelectSource.includes('resolveMultipleAsItems = false'), true);
 assert.equal(recSelectSource.includes('SMeasureControlIcon'), true);
 assert.equal(recSelectSource.includes('RecSelectRecTypeAdornment'), true);
 assert.equal(recSelectSource.includes('RecSelectTypeFilterBar'), true);
@@ -218,6 +216,8 @@ const recColumnV2 = readFileSync(
   'utf8',
 );
 assert.equal(recColumnV2.includes('enableRecTypeQuickClassify'), true);
+assert.equal(recColumnV2.includes('resolveMultipleAsItems'), true);
+assert.equal(recColumnV1.includes('resolveMultipleAsItems'), false);
 
 const checklistNode = readFileSync(
   resolve(
@@ -226,6 +226,7 @@ const checklistNode = readFileSync(
   'utf8',
 );
 assert.equal(checklistNode.includes('enableRecTypeQuickClassify'), false);
+assert.equal(checklistNode.includes('resolveMultipleAsItems'), false);
 
 const checklistModal = readFileSync(
   resolve(
@@ -234,6 +235,7 @@ const checklistModal = readFileSync(
   'utf8',
 );
 assert.equal(checklistModal.includes('enableRecTypeQuickClassify'), false);
+assert.equal(checklistModal.includes('resolveMultipleAsItems'), false);
 assert.equal(checklistNode.includes('RecSelectTypeFilterBar'), false);
 assert.equal(checklistModal.includes('RecSelectTypeFilterBar'), false);
 

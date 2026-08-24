@@ -6,7 +6,6 @@ import { MedTypeEnum } from 'project/enum/medType.enum';
 import { isNaRecMed } from 'project/utils/isNa';
 
 import { IdsEnum } from 'core/enums/ids.enums';
-import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { EngColumnProps } from './types';
@@ -41,14 +40,14 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
 
           document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
         }}
-        handleSelect={(options: IRecMed) => {
-          if (options.id)
-            handleSelect(
-              {
-                engs: [{ ...options?.engsRiskData, recMedId: options.id }],
-              },
-              options,
-            );
+        handleSelect={(options) => {
+          if (Array.isArray(options) || !options.id) return;
+          handleSelect(
+            {
+              engs: [{ ...options?.engsRiskData, recMedId: options.id }],
+            },
+            options,
+          );
         }}
       />
       {data &&

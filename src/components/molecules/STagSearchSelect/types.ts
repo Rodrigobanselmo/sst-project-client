@@ -36,6 +36,11 @@ export interface ISTagSearchSelectProps
   icon?: ElementType<any> | null;
   iconItem?: ElementType<any>;
   multiple?: boolean;
+  /**
+   * Encaminhado ao SMenuSearch. Só altera o fluxo que passar o valor.
+   * Padrão do menu: confirmar ao fechar quando `multiple`.
+   */
+  confirmSelectionOnClose?: boolean;
   onEnter?: (value: string) => void;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;

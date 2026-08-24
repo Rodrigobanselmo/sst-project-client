@@ -13,7 +13,7 @@ export interface IRecMedSelectProps
   large?: boolean;
   multiple?: boolean;
   risk?: IRiskFactors;
-  handleSelect?: (selected: IRecMed) => void;
+  handleSelect?: (selected: IRecMed | string[]) => void;
   type?: MedTypeEnum;
   onEnter?: (value: string) => void;
   onlyFromActualRisks?: boolean;
