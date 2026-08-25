@@ -5,6 +5,7 @@ import SText from 'components/atoms/SText';
 import {
   documentModelClassificationMap,
   DocumentModelClassificationEnum,
+  sortClassificationsForDisplay,
 } from 'project/enum/document-model-classification.enum';
 
 type Props = {
@@ -22,9 +23,11 @@ export const DocumentModelClassificationChips: FC<Props> = ({
     );
   }
 
+  const ordered = sortClassificationsForDisplay(classifications);
+
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-      {classifications.map((value) => (
+      {ordered.map((value) => (
         <Box
           key={value}
           sx={{

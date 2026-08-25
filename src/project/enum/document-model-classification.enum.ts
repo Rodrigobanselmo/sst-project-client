@@ -117,9 +117,29 @@ export const documentModelClassificationMap: Record<
   },
 };
 
-export const documentModelClassificationList = Object.values(
-  documentModelClassificationMap,
-);
+/** Ordem visual dos chips (pares excludentes lado a lado). */
+export const DOCUMENT_MODEL_CLASSIFICATION_DISPLAY_ORDER: DocumentModelClassificationEnum[] =
+  [
+    DocumentModelClassificationEnum.GRO_PGR,
+    DocumentModelClassificationEnum.SOMENTE_PGR,
+    DocumentModelClassificationEnum.COM_FRPS,
+    DocumentModelClassificationEnum.SEM_FRPS,
+    DocumentModelClassificationEnum.COPSOQ_III,
+    DocumentModelClassificationEnum.NAO_COPSOQ_III,
+    DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO,
+    DocumentModelClassificationEnum.TERCEIROS,
+    DocumentModelClassificationEnum.SIMPLIFICADO,
+    DocumentModelClassificationEnum.COMPLETO,
+    DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
+    DocumentModelClassificationEnum.DADOS_FORNECIDOS,
+    DocumentModelClassificationEnum.NR18,
+    DocumentModelClassificationEnum.BACKUP,
+  ];
+
+export const documentModelClassificationList =
+  DOCUMENT_MODEL_CLASSIFICATION_DISPLAY_ORDER.map(
+    (value) => documentModelClassificationMap[value],
+  );
 
 export function isClassificationApplicableToDocumentType(
   classification: DocumentModelClassificationEnum,
@@ -181,15 +201,12 @@ export function documentModelMatchesClassificationFilters(
   return active.every((item) => classifications.includes(item));
 }
 
-/** Alterna um filtro na lista ativa (uso nos chips da listagem PGR). */
+/** Alterna um filtro na lista ativa com o mesmo toggle excludente da edição. */
 export function toggleDocumentModelClassificationFilter(
   active: DocumentModelClassificationEnum[],
   value: DocumentModelClassificationEnum,
 ): DocumentModelClassificationEnum[] {
-  if (active.includes(value)) {
-    return active.filter((item) => item !== value);
-  }
-  return [...active, value];
+  return toggleDocumentModelClassification(active, value);
 }
 
 const MUTUALLY_EXCLUSIVE_PAIRS: [
@@ -209,12 +226,12 @@ const MUTUALLY_EXCLUSIVE_PAIRS: [
     DocumentModelClassificationEnum.NAO_COPSOQ_III,
   ],
   [
-    DocumentModelClassificationEnum.COMPLETO,
-    DocumentModelClassificationEnum.SIMPLIFICADO,
-  ],
-  [
     DocumentModelClassificationEnum.ESTABELECIMENTO_PROPRIO,
     DocumentModelClassificationEnum.TERCEIROS,
+  ],
+  [
+    DocumentModelClassificationEnum.SIMPLIFICADO,
+    DocumentModelClassificationEnum.COMPLETO,
   ],
   [
     DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
@@ -291,4 +308,19 @@ export function getExclusivePairsHintForDocumentType(
   );
 
   return hints.length ? hints.join('; ') : '';
+}
+
+export function sortClassificationsForDisplay(
+  classifications: DocumentModelClassificationEnum[] | undefined | null,
+): DocumentModelClassificationEnum[] {
+  const order = new Map(
+    DOCUMENT_MODEL_CLASSIFICATION_DISPLAY_ORDER.map((value, index) => [
+      value,
+      index,
+    ]),
+  );
+
+  return normalizeDocumentModelClassifications(classifications).sort(
+    (a, b) => (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER),
+  );
 }
