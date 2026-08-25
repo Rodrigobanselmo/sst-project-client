@@ -22,6 +22,10 @@ import {
   hashDocumentModelData,
 } from '../helpers/document-model-data-hash';
 import {
+  DOCUMENT_MODEL_RECOVERY_CONTINUE_ACTION,
+  shouldPromptDocumentModelRecovery,
+} from '../helpers/document-model-recovery';
+import {
   confirmDocumentModelSave,
   DOCUMENT_MODEL_HASH_MISMATCH_MESSAGE,
   DOCUMENT_MODEL_INVALID_SAVE_RESPONSE,
@@ -217,6 +221,7 @@ export const useEditDocumentModel = () => {
   });
 
   const officialUpdatedAtRef = useRef<string | null>(null);
+  const leftoverUnsavedOnOpenRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     const incoming = toOpaqueDocumentModelUpdatedAt(model?.updated_at);
@@ -235,6 +240,10 @@ export const useEditDocumentModel = () => {
       const modalEditData = (store.getState().document as IDocumentSlice)
         .modalEditData;
 
+      if (leftoverUnsavedOnOpenRef.current === null) {
+        leftoverUnsavedOnOpenRef.current = Boolean(needSynchronization);
+      }
+
       const setDocument = () => {
         dispatch(setDocumentModel(hydrateOfficialDocument(modelData)));
         dispatch(setDocumentModalEditData(initialDataRef.current));
@@ -245,6 +254,51 @@ export const useEditDocumentModel = () => {
       const onContinueOldDocument = () => {
         setData((data) => ({ ...data, sync: true, ...modalEditData }));
       };
+
+      const saveInProgress =
+        saveMutation.isLoading || Boolean(v2Session.contentSavePending);
+
+      if (
+        shouldPromptDocumentModelRecovery({
+          leftoverUnsavedOnOpen: leftoverUnsavedOnOpenRef.current,
+          recoveryAlreadyResolved: data.sync,
+          saveInProgress,
+        })
+      ) {
+        onStackOpenModal(ModalEnum.MODAL_BLANK, {
+          handleOnCloseWithoutSelect: true,
+          title: 'Atenção',
+          closeButtonText: 'Não salvar',
+          submitButtonText: DOCUMENT_MODEL_RECOVERY_CONTINUE_ACTION,
+          onSelect: onContinueOldDocument,
+          onCloseWithoutSelect: (onClose) => {
+            preventDelete(
+              () => {
+                setDocument();
+                onClose?.();
+              },
+              'Essa ação é permanente, caso continue os dados não salvos seram perdidos para sempre',
+              {
+                confirmCancel: 'Voltar',
+                confirmText: 'Confirmar sem salvar',
+              },
+            );
+          },
+          content: (data: any) => (
+            <Box>
+              <SText>
+                Você possui mudanças no documento{' '}
+                <span style={{ fontWeight: 'bold' }}>
+                  {modalEditData.name} ({modalEditData.type})
+                </span>{' '}
+                que não foram salvas.
+              </SText>
+              <SText>Deseja continuar de onde parou?</SText>
+            </Box>
+          ),
+        } as Partial<typeof initialBlankState>);
+        return;
+      }
 
       if (!needSynchronization) {
         if (
@@ -261,40 +315,6 @@ export const useEditDocumentModel = () => {
         ) {
           setDocument();
         }
-      } else {
-        if (!data.sync)
-          onStackOpenModal(ModalEnum.MODAL_BLANK, {
-            handleOnCloseWithoutSelect: true,
-            title: 'Atenção',
-            closeButtonText: 'Não salvar',
-            submitButtonText: 'Continuar editando',
-            onSelect: onContinueOldDocument,
-            onCloseWithoutSelect: (onClose) => {
-              preventDelete(
-                () => {
-                  setDocument();
-                  onClose?.();
-                },
-                'Essa ação é permanente, caso continue os dados não salvos seram perdidos para sempre',
-                {
-                  confirmCancel: 'Voltar',
-                  confirmText: 'Confirmar sem salvar',
-                },
-              );
-            },
-            content: (data: any) => (
-              <Box>
-                <SText>
-                  Você possui mudanças no documento{' '}
-                  <span style={{ fontWeight: 'bold' }}>
-                    {modalEditData.name} ({modalEditData.type})
-                  </span>{' '}
-                  que não foram salvas.
-                </SText>
-                <SText>Deseja continuar de onde parou?</SText>
-              </Box>
-            ),
-          } as Partial<typeof initialBlankState>);
       }
     }
   }, [
@@ -303,6 +323,7 @@ export const useEditDocumentModel = () => {
     modelData,
     onStackOpenModal,
     preventDelete,
+    saveMutation.isLoading,
     store,
     v2Session.v2LocalDirty,
     v2Session.contentSavePending,
@@ -379,6 +400,7 @@ export const useEditDocumentModel = () => {
     setData(initialEditDocumentModelState);
     metadataBaselineRef.current = null;
     officialUpdatedAtRef.current = null;
+    leftoverUnsavedOnOpenRef.current = null;
     dispatch(setDocumentModelUpdatedAt(null));
   };
 
