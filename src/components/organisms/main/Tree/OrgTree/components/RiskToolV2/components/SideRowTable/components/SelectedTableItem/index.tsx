@@ -13,6 +13,8 @@ import { SInfoIcon } from 'assets/icons/SInfoIcon';
 import palette from 'configs/theme/palette';
 
 import { MissingRecTypeClassifyPopover } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/components/MissingRecTypeClassifyPopover';
+import { RecTypeCategoryIcon } from 'components/organisms/tagSelects/RecSelect/RecSelectRecTypeAdornment';
+import { resolveRecTypeVisualState } from 'components/organisms/tagSelects/RecSelect/resolve-rec-type-visual-state.util';
 
 import { getPlanStatusTooltipDetails } from '../../../../utils/characterization-action-plan-visual';
 
@@ -40,8 +42,12 @@ export const SelectedTableItem: FC<
   missingTypeTooltip,
   onQuickClassifyRecType,
   quickClassifyLoading,
+  recType,
 }) => {
   const [classifyPopoverOpen, setClassifyPopoverOpen] = useState(false);
+  const recTypeVisual =
+    recType !== undefined ? resolveRecTypeVisualState(recType) : null;
+  const stackActionsOnEnd = recTypeVisual !== null;
 
   const { tooltipTitle, tooltipSurfaceSx } = useMemo(() => {
     const tooltipSurfaceSxBase = {
@@ -208,7 +214,7 @@ export const SelectedTableItem: FC<
           backgroundColor: 'background.paper',
           borderRadius: 1,
           ...(handleEdit ? { cursor: 'pointer' } : {}),
-          ...(!handleRemove ? { pl: 5 } : {}),
+          ...(!handleRemove && !stackActionsOnEnd ? { pl: 5 } : {}),
           ...itemTintSx,
           ...(isExpired ? { borderColor: 'error.main' } : {}),
           ...(showMissingTypeWarning ? { borderColor: 'warning.main' } : {}),
@@ -217,7 +223,7 @@ export const SelectedTableItem: FC<
         align="center"
         onClick={() => handleEdit?.()}
       >
-        {handleRemove && (
+        {handleRemove && !stackActionsOnEnd && (
           <SIconButton
             sx={{ maxWidth: 10, maxHeight: 10 }}
             onClick={(e) => {
@@ -272,11 +278,44 @@ export const SelectedTableItem: FC<
           lineNumber={2}
           variant="body2"
           sx={{
+            ...(stackActionsOnEnd ? { flex: 1, minWidth: 0 } : {}),
             ...(isExpired ? { color: 'error.main' } : {}),
           }}
         >
           {name}
         </SText>
+        {stackActionsOnEnd && recTypeVisual && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              gap: 0,
+              ml: 0.25,
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {recTypeVisual.kind === 'classified' && (
+              <Box title={recTypeVisual.tooltip} sx={{ lineHeight: 0 }}>
+                <RecTypeCategoryIcon recType={recTypeVisual.recType} fontSize={14} />
+              </Box>
+            )}
+            {handleRemove && (
+              <SIconButton
+                sx={{ maxWidth: 10, maxHeight: 10, p: 0 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemove();
+                }}
+              >
+                <Icon component={SDeleteIcon} sx={{ fontSize: 12 }} />
+              </SIconButton>
+            )}
+          </Box>
+        )}
       </SFlex>
     </STooltip>
   );

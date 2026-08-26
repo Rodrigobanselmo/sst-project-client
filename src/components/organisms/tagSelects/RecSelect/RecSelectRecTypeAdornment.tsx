@@ -26,6 +26,26 @@ export const REC_TYPE_COLOR = {
   [RecTypeEnum.EPI]: 'text.secondary',
 } as const;
 
+type RecTypeCategoryIconProps = {
+  recType?: RecTypeEnum | string | null;
+  fontSize?: number;
+};
+
+/** Ícone ADM/ENG/EPI do seletor; não renderiza se o tipo estiver ausente. */
+export const RecTypeCategoryIcon: FC<RecTypeCategoryIconProps> = ({
+  recType,
+  fontSize = 15,
+}) => {
+  const visual = resolveRecTypeVisualState(recType);
+  if (visual.kind !== 'classified') return null;
+  return (
+    <Icon
+      component={REC_TYPE_ICON[visual.recType]}
+      sx={{ fontSize, color: REC_TYPE_COLOR[visual.recType] }}
+    />
+  );
+};
+
 type RecSelectRecTypeAdornmentProps = {
   rec: IRecMed;
   loading?: boolean;
@@ -40,10 +60,7 @@ export const RecSelectRecTypeAdornment: FC<RecSelectRecTypeAdornmentProps> = ({
   const visual = resolveRecTypeVisualState(rec.recType);
   const trigger =
     visual.kind === 'classified' ? (
-      <Icon
-        component={REC_TYPE_ICON[visual.recType]}
-        sx={{ fontSize: 15, color: REC_TYPE_COLOR[visual.recType] }}
-      />
+      <RecTypeCategoryIcon recType={visual.recType} />
     ) : undefined;
 
   return (

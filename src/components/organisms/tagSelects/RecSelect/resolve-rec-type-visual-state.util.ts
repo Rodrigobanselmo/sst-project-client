@@ -68,6 +68,39 @@ export const REC_TYPE_LIST_FILTERS: RecTypeListFilter[] = [
   RecTypeEnum.EPI,
 ];
 
+/** Hierarquia de controle na lista vinculada: Engenharia → Administrativa → EPI. */
+export const REC_TYPE_HIERARCHY_ORDER: Record<RecTypeEnum, number> = {
+  [RecTypeEnum.ENG]: 0,
+  [RecTypeEnum.ADM]: 1,
+  [RecTypeEnum.EPI]: 2,
+};
+
+const UNCLASSIFIED_HIERARCHY_RANK = 3;
+
+export function getRecTypeHierarchyRank(
+  recType?: RecTypeEnum | string | null,
+): number {
+  const visual = resolveRecTypeVisualState(recType);
+  if (visual.kind !== 'classified') return UNCLASSIFIED_HIERARCHY_RANK;
+  return REC_TYPE_HIERARCHY_ORDER[visual.recType];
+}
+
+/** Ordena por hierarquia sem mutar o array original; preserva a ordem relativa na mesma categoria. */
+export function sortRecsByTypeHierarchy<
+  T extends { recType?: RecTypeEnum | string | null },
+>(recs: T[]): T[] {
+  return recs
+    .map((rec, index) => ({ rec, index }))
+    .sort((a, b) => {
+      const rankDiff =
+        getRecTypeHierarchyRank(a.rec.recType) -
+        getRecTypeHierarchyRank(b.rec.recType);
+      if (rankDiff !== 0) return rankDiff;
+      return a.index - b.index;
+    })
+    .map(({ rec }) => rec);
+}
+
 export function matchesRecTypeListFilter(
   recType: RecTypeEnum | string | null | undefined,
   filter: RecTypeListFilter,

@@ -2,6 +2,7 @@ import React, { FC, useMemo, useState } from 'react';
 
 import { Box } from '@mui/material';
 import { RecSelect } from 'components/organisms/tagSelects/RecSelect';
+import { sortRecsByTypeHierarchy } from 'components/organisms/tagSelects/RecSelect/resolve-rec-type-visual-state.util';
 import { resolveResidualProbabilityAfterRecChange } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import {
   isRecommendationRecTypeMissing,
@@ -56,6 +57,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   const validRecs = (data?.recs ?? []).filter(
     (rec): rec is IRecMed => !!rec && typeof rec.id === 'string' && !!rec.id,
   );
+  const displayedRecs = sortRecsByTypeHierarchy(validRecs);
 
   const batchItems = useMemo((): RiskCatalogDndDragItem[] => {
     return (data?.recs ?? [])
@@ -187,7 +189,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             items={batchItems}
           />
         </Box>
-        {validRecs.map((rec) => {
+        {displayedRecs.map((rec) => {
           const planStatus = getRecommendationPlanStatus(
             data as IRiskData,
             rec.id,
@@ -225,6 +227,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             >
               <SelectedTableItem
                 name={rec.recName || 'Recomendação'}
+                recType={rec.recType ?? null}
                 planStatus={planStatus}
                 planTooltipStatus={planTooltipStatus}
                 showPlanDerivedTransformedNote={showDerivedNote}

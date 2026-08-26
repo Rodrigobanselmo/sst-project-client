@@ -14,10 +14,13 @@ import { MISSING_REC_TYPE_TOOLTIP } from 'components/organisms/main/Tree/OrgTree
 import {
   buildRecMedQuickClassifyPayload,
   filterRecsByType,
+  getRecTypeHierarchyRank,
   intersectRecTypeAndTextFilter,
   matchesRecTypeListFilter,
+  REC_TYPE_HIERARCHY_ORDER,
   resolveRecTypeVisualState,
   shouldSelectRecOnListClick,
+  sortRecsByTypeHierarchy,
   stopRecSelectAdornmentEvent,
 } from './resolve-rec-type-visual-state.util';
 
@@ -140,6 +143,25 @@ assert.deepEqual(
   ['adm-2'],
 );
 
+assert.equal(REC_TYPE_HIERARCHY_ORDER[RecTypeEnum.ENG], 0);
+assert.equal(REC_TYPE_HIERARCHY_ORDER[RecTypeEnum.ADM], 1);
+assert.equal(REC_TYPE_HIERARCHY_ORDER[RecTypeEnum.EPI], 2);
+assert.equal(getRecTypeHierarchyRank(RecTypeEnum.ENG), 0);
+assert.equal(getRecTypeHierarchyRank(RecTypeEnum.ADM), 1);
+assert.equal(getRecTypeHierarchyRank(RecTypeEnum.EPI), 2);
+assert.equal(getRecTypeHierarchyRank(null), 3);
+assert.equal(getRecTypeHierarchyRank('  '), 3);
+
+const recIdsBeforeSort = recs.map((rec) => rec.id);
+assert.deepEqual(sortRecsByTypeHierarchy(recs).map((rec) => rec.id), [
+  'eng-1',
+  'adm-1',
+  'adm-2',
+  'epi-1',
+  'miss-1',
+]);
+assert.deepEqual(recs.map((rec) => rec.id), recIdsBeforeSort);
+
 let handleSelectCalls = 0;
 const handleSelect = () => {
   handleSelectCalls += 1;
@@ -191,6 +213,8 @@ const adornmentSource = readFileSync(
 );
 assert.equal(adornmentSource.includes('stopRecSelectAdornmentEvent'), true);
 assert.equal(adornmentSource.includes('MissingRecTypeClassifyPopover'), true);
+assert.equal(adornmentSource.includes('RecTypeCategoryIcon'), true);
+assert.equal(adornmentSource.includes('REC_TYPE_ICON'), true);
 
 const popoverSource = readFileSync(
   resolve(
@@ -217,7 +241,21 @@ const recColumnV2 = readFileSync(
 );
 assert.equal(recColumnV2.includes('enableRecTypeQuickClassify'), true);
 assert.equal(recColumnV2.includes('resolveMultipleAsItems'), true);
+assert.equal(recColumnV2.includes('sortRecsByTypeHierarchy'), true);
+assert.equal(recColumnV2.includes('displayedRecs'), true);
+assert.equal(recColumnV2.includes('recType={rec.recType ?? null}'), true);
 assert.equal(recColumnV1.includes('resolveMultipleAsItems'), false);
+assert.equal(recColumnV1.includes('sortRecsByTypeHierarchy'), false);
+
+const selectedTableItemV2 = readFileSync(
+  resolve(
+    'src/components/organisms/main/Tree/OrgTree/components/RiskToolV2/components/SideRowTable/components/SelectedTableItem/index.tsx',
+  ),
+  'utf8',
+);
+assert.equal(selectedTableItemV2.includes('RecTypeCategoryIcon'), true);
+assert.equal(selectedTableItemV2.includes('stackActionsOnEnd'), true);
+assert.equal(selectedTableItemV2.includes("flexDirection: 'column'"), true);
 
 const checklistNode = readFileSync(
   resolve(
