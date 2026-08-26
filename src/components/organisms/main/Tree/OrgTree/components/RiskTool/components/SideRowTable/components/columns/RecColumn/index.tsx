@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 
 import { Box } from '@mui/material';
 import { RecSelect } from 'components/organisms/tagSelects/RecSelect';
+import { sortRecsByTypeHierarchy } from 'components/organisms/tagSelects/RecSelect/resolve-rec-type-visual-state.util';
 import { resolveResidualProbabilityAfterRecChange } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import {
   isRecommendationRecTypeMissing,
@@ -33,6 +34,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   const validRecs = (data?.recs ?? []).filter(
     (rec): rec is IRecMed => !!rec && typeof rec.id === 'string' && !!rec.id,
   );
+  const displayedRecs = sortRecsByTypeHierarchy(validRecs);
 
   const buildAddPayload = (rec: IRecMed): Partial<IUpsertRiskData> => {
     const nextRecs = [...validRecs, rec];
@@ -124,12 +126,13 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
           if (op.id) handleSelect(buildAddPayload(op), op);
         }}
       />
-      {validRecs.map((rec) => {
+      {displayedRecs.map((rec) => {
         const missingType = isRecommendationRecTypeMissing(rec.recType);
         return (
           <SelectedTableItem
             key={rec.id}
             name={rec.recName}
+            recType={rec.recType ?? null}
             showMissingTypeWarning={missingType}
             missingTypeTooltip={MISSING_REC_TYPE_TOOLTIP}
             onQuickClassifyRecType={

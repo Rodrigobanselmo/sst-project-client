@@ -232,6 +232,9 @@ const recColumnV1 = readFileSync(
   'utf8',
 );
 assert.equal(recColumnV1.includes('enableRecTypeQuickClassify'), true);
+assert.equal(recColumnV1.includes('sortRecsByTypeHierarchy'), true);
+assert.equal(recColumnV1.includes('displayedRecs'), true);
+assert.equal(recColumnV1.includes('recType={rec.recType ?? null}'), true);
 
 const recColumnV2 = readFileSync(
   resolve(
@@ -245,7 +248,16 @@ assert.equal(recColumnV2.includes('sortRecsByTypeHierarchy'), true);
 assert.equal(recColumnV2.includes('displayedRecs'), true);
 assert.equal(recColumnV2.includes('recType={rec.recType ?? null}'), true);
 assert.equal(recColumnV1.includes('resolveMultipleAsItems'), false);
-assert.equal(recColumnV1.includes('sortRecsByTypeHierarchy'), false);
+
+const selectedTableItemV1 = readFileSync(
+  resolve(
+    'src/components/organisms/main/Tree/OrgTree/components/RiskTool/components/SideRowTable/components/SelectedTableItem/index.tsx',
+  ),
+  'utf8',
+);
+assert.equal(selectedTableItemV1.includes('RecTypeCategoryIcon'), true);
+assert.equal(selectedTableItemV1.includes('stackActionsOnEnd'), true);
+assert.equal(selectedTableItemV1.includes("flexDirection: 'column'"), true);
 
 const selectedTableItemV2 = readFileSync(
   resolve(
