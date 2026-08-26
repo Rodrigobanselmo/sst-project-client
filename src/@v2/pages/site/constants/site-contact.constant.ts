@@ -2,11 +2,13 @@
 const SITE_WHATSAPP_MESSAGE =
   'Olá, vi o SimpleSST no site e tenho interesse em conhecer melhor a plataforma. Vocês podem me passar mais informações?';
 
+const SITE_WHATSAPP_NUMBER = '5571996243776';
+
 export const SITE_CONTACT = {
   email: 'comercial@simplesst.com.br',
-  whatsappNumber: '5551983485050',
-  whatsappDisplay: '+55 (51) 98348-5050',
-  whatsappHref: `https://wa.me/5551983485050?text=${encodeURIComponent(SITE_WHATSAPP_MESSAGE)}`,
+  whatsappNumber: SITE_WHATSAPP_NUMBER,
+  whatsappDisplay: '(71) 9 9624-3776',
+  whatsappHref: `https://wa.me/${SITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(SITE_WHATSAPP_MESSAGE)}`,
 } as const;
 
 export function getSiteWhatsAppHref(): string {

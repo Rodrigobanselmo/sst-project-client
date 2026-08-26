@@ -75,6 +75,7 @@
     "firebase": "^9.9.0",
     "framer-motion": "^11.0.0",
     "fuse.js": "^6.5.3",
+    "html-to-image": "^1.11.13",
     "imask": "^6.6.1",
     "jsonwebtoken": "^8.5.1",
     "jwt-decode": "^3.1.2",

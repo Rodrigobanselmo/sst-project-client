@@ -1,8 +1,10 @@
+import Link from 'next/link';
 import {
   SITE_CONTACT,
   getSiteMailtoHref,
   getSiteWhatsAppHref,
 } from '../../constants/site-contact.constant';
+import { PRESENTATION_PATH } from '../../presentation/constants/presentation.constant';
 
 export function SiteContactSection() {
   const whatsAppHref = getSiteWhatsAppHref();
@@ -44,6 +46,9 @@ export function SiteContactSection() {
           <a href={mailtoHref} className="lp-btn lp-btn--ghost-light">
             Enviar e-mail
           </a>
+          <Link href={PRESENTATION_PATH} className="lp-btn lp-btn--ghost-light">
+            Ver apresentação
+          </Link>
         </div>
       </div>
     </section>
