@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 
 import { BoxProps } from '@mui/material';
 import {
@@ -13,11 +13,14 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { useAuthShow } from 'components/molecules/SAuthShow';
 import { initialEditDocumentModelState } from 'components/organisms/modals/ModalEditDocumentModel/hooks/useEditDocumentModel';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { SCopyIcon } from 'assets/icons/SCopyIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 
 import { documentTypeMap } from 'core/constants/maps/document-type.map';
@@ -32,6 +35,7 @@ import {
 import { dateToString } from 'core/utils/date/date-format';
 
 import { DocumentModelClassificationChips } from './DocumentModelClassificationChips';
+import { DocumentModelDuplicateDialog } from './DocumentModelDuplicateDialog';
 
 export const DocumentModelTable: FC<
   { children?: any } & BoxProps & {
@@ -69,6 +73,14 @@ export const DocumentModelTable: FC<
   );
 
   const isSelect = !!onSelectData;
+  const { isAuthSuccess } = useAuthShow();
+  const canCreateDocumentModel = isAuthSuccess({
+    permissions: [PermissionEnum.DOCUMENT_MODEL],
+    cruds: 'c',
+  });
+  const [duplicateSource, setDuplicateSource] = useState<IDocumentModel | null>(
+    null,
+  );
 
   const { onStackOpenModal } = useModal();
 
@@ -95,6 +107,10 @@ export const DocumentModelTable: FC<
     } as typeof initialEditDocumentModelState);
   };
 
+  const onDuplicateModel = (documentModel: IDocumentModel) => {
+    setDuplicateSource(documentModel);
+  };
+
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Nome', column: 'minmax(220px, 1fr)' },
     { text: 'Descrição', column: 'minmax(240px, 1.6fr)' },
@@ -103,6 +119,9 @@ export const DocumentModelTable: FC<
     { text: 'Criação', column: 'minmax(100px, 130px)' },
     { text: 'Status', column: '150px' },
     { text: 'Editar', column: '50px' },
+    ...(canCreateDocumentModel && !isSelect
+      ? [{ text: 'Duplicar', column: '50px' }]
+      : []),
   ];
 
   return (
@@ -170,8 +189,19 @@ export const DocumentModelTable: FC<
                     e.stopPropagation();
                     onEditModel(row);
                   }}
+                  tooltipTitle="Editar"
                   icon={<EditIcon />}
                 />
+                {canCreateDocumentModel && !isSelect && (
+                  <IconButtonRow
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDuplicateModel(row);
+                    }}
+                    tooltipTitle="Duplicar modelo"
+                    icon={<SCopyIcon />}
+                  />
+                )}
               </STableRow>
             );
           }}
@@ -183,6 +213,10 @@ export const DocumentModelTable: FC<
         totalCountOfRegisters={loadGroup ? undefined : count}
         currentPage={page}
         onPageChange={setPage}
+      />
+      <DocumentModelDuplicateDialog
+        source={duplicateSource}
+        onClose={() => setDuplicateSource(null)}
       />
     </>
   );

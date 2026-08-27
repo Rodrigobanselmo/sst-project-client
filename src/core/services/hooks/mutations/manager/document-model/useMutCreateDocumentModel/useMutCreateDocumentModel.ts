@@ -39,7 +39,9 @@ export async function upsertDocumentModel(
   return response.data;
 }
 
-export function useMutCreateDocumentModel() {
+export function useMutCreateDocumentModel(options?: {
+  successMessage?: string;
+}) {
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -50,9 +52,12 @@ export function useMutCreateDocumentModel() {
       onSuccess: async (resp) => {
         if (resp) queryClient.invalidateQueries([QueryEnum.DOCUMENT_MODEL]);
 
-        enqueueSnackbar('Modelo criado com sucesso', {
-          variant: 'success',
-        });
+        enqueueSnackbar(
+          options?.successMessage || 'Modelo criado com sucesso',
+          {
+            variant: 'success',
+          },
+        );
         return resp;
       },
       onError: (error: IErrorResp) => {
