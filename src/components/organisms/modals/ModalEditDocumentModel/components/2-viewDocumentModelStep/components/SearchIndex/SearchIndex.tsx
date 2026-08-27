@@ -2,8 +2,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
-import { AddButton } from 'components/organisms/inputSelect/components/AddButton';
 import { SectionTypeModelSelect } from 'components/organisms/tagSelects/SectionTypeModelSelect/SectionTypeModelSelect';
+import { DocumentModelSectionPropagationAction } from 'components/organisms/documentModel/section-propagation/DocumentModelSectionPropagationAction';
 import { setDocumentAddSection } from 'store/reducers/document/documentSlice';
 import { v4 } from 'uuid';
 
@@ -46,6 +46,12 @@ export const SearchIndex = (props: IUseViewDocumentModel) => {
         placeholder={'Pesquisar...'}
         autoFocus
         fullWidth
+      />
+      <DocumentModelSectionPropagationAction
+        companyId={props.data?.companyId}
+        modelId={props.data?.id}
+        isDirty={props.isDirty}
+        saveBusy={props.saveBusy}
       />
     </Box>
   );
