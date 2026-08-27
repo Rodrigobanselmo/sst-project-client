@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import { getModelSectionsBySelectedItem } from 'components/organisms/documentModel/DocumentModelContent/utils/getModelBySelectedItem';
@@ -7,11 +7,19 @@ import {
   createV2SaveGuardSession,
   resolveOfficialSaveAttempt,
 } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-save-guard';
+import {
+  diffChangedHeadingWindows,
+  listHeadingWindowFingerprints,
+  ChangedLinkedSection,
+  LinkedSaveEvent,
+} from 'components/organisms/documentModel/section-propagation/section-link-save-diff';
 import { IDocumentSlice } from 'store/reducers/document/documentSlice';
 
 import { useMutPreviewDocumentModel } from 'core/services/hooks/mutations/checklist/documentData/useMutPreviewDocumentModel/useMutPreviewDocumentModel';
 
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
+
+export type { LinkedSaveEvent } from 'components/organisms/documentModel/section-propagation/section-link-save-diff';
 
 export const useViewDocumentModel = (props: IUseDocumentModel) => {
   const { onClose, data, saveDocumentModel, closeEditor, model } = props;
@@ -19,6 +27,18 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
   const store = useStore<any>();
   const downloadPreview = useMutPreviewDocumentModel();
   const [saveIntent, setSaveIntent] = useState<'stay' | 'exit' | null>(null);
+  const [linkedSaveEvent, setLinkedSaveEvent] = useState<LinkedSaveEvent | null>(
+    null,
+  );
+  const baselineRef = useRef<ChangedLinkedSection[] | null>(null);
+  const pendingExitRef = useRef(false);
+
+  useEffect(() => {
+    baselineRef.current = listHeadingWindowFingerprints(
+      (store.getState().document as IDocumentSlice).model,
+    );
+    pendingExitRef.current = false;
+  }, [data?.id, store]);
 
   const onCloseUnsaved = async () => {
     onClose();
@@ -51,14 +71,41 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
     }
   };
 
+  const onLinkedSaveSettled = () => {
+    if (pendingExitRef.current) {
+      pendingExitRef.current = false;
+      closeEditor();
+    }
+  };
+
   const runPersist = async (intent: 'stay' | 'exit') => {
     setSaveIntent(intent);
     const ok = await saveDocumentModel({
       exitAfterSuccess: intent === 'exit',
     });
-    if (ok && intent === 'exit') {
-      closeEditor();
+    if (!ok) {
+      setSaveIntent(null);
       return;
+    }
+    const saved = listHeadingWindowFingerprints(
+      (store.getState().document as IDocumentSlice).model,
+    );
+    const previous = baselineRef.current;
+    const changed =
+      previous == null ? [] : diffChangedHeadingWindows(previous, saved);
+    baselineRef.current = saved;
+    setLinkedSaveEvent((current) => ({
+      seq: (current?.seq || 0) + 1,
+      intent,
+      changed,
+    }));
+    if (ok && intent === 'exit') {
+      if (!changed.length) {
+        closeEditor();
+        setSaveIntent(null);
+        return;
+      }
+      pendingExitRef.current = true;
     }
     setSaveIntent(null);
   };
@@ -108,6 +155,8 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
     saveLoading: saveIntent === 'stay',
     saveAndExitLoading: saveIntent === 'exit',
     saveBusy,
+    linkedSaveEvent,
+    onLinkedSaveSettled,
   };
 };
 

@@ -52,6 +52,8 @@ export const SearchIndex = (props: IUseViewDocumentModel) => {
         modelId={props.data?.id}
         isDirty={props.isDirty}
         saveBusy={props.saveBusy}
+        linkedSaveEvent={props.linkedSaveEvent}
+        onLinkedSaveSettled={props.onLinkedSaveSettled}
       />
     </Box>
   );

@@ -1,3 +1,12 @@
+/**
+ * Heading types that can open the tree action. The *link unit* is still the
+ * structural section (anchor heading + window), not a V2 visual area and not
+ * an elementary node (paragraph/bullet/break).
+ *
+ * Auto-created groups on duplication only include H1/H2/H3. Apply/Gerenciar
+ * still work for any selected heading, including H4, if the user chose it.
+ */
+
 import { itemLevelMap } from 'components/organisms/documentModel/DocumentModelContent/constants/item-types.map';
 
 import { NodeDocumentModel } from '../DocumentModelTree/types/types';

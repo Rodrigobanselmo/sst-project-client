@@ -9,10 +9,20 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { DocumentModelPgrClassificationFilters } from 'components/organisms/tables/DocumentModelTable/DocumentModelPgrClassificationFilters';
 import { DocumentModelClassificationChips } from 'components/organisms/tables/DocumentModelTable/DocumentModelClassificationChips';
 import { useMutAnalyzeSectionPropagation } from 'core/services/hooks/mutations/manager/document-model/useMutAnalyzeSectionPropagation/useMutAnalyzeSectionPropagation';
 import { useMutApplySectionPropagation } from 'core/services/hooks/mutations/manager/document-model/useMutApplySectionPropagation/useMutApplySectionPropagation';
+import { useMutCreateDocumentModelSectionLink } from 'core/services/hooks/mutations/manager/document-model/useMutDocumentModelSectionLinks/useMutDocumentModelSectionLinks';
+import { DocumentModelClassificationEnum } from 'project/enum/document-model-classification.enum';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
+import {
+  filterSectionPropagationCandidates,
+  groupSectionPropagationCandidates,
+  sectionPropagationNameColor,
+  sectionPropagationStatusColor,
+} from './section-propagation-list';
 import {
   SectionPropagationAnalyzeResponse,
   SectionPropagationApplyResponse,
@@ -77,6 +87,7 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
 }) => {
   const analyzeMutation = useMutAnalyzeSectionPropagation();
   const applyMutation = useMutApplySectionPropagation();
+  const createLinkMutation = useMutCreateDocumentModelSectionLink();
   const [analysis, setAnalysis] = useState<SectionPropagationAnalyzeResponse | null>(
     null,
   );
@@ -85,6 +96,11 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
   const [applyResult, setApplyResult] = useState<SectionPropagationApplyResponse | null>(
     null,
   );
+  const [linkPrompt, setLinkPrompt] = useState(false);
+  const [linkDone, setLinkDone] = useState(false);
+  const [classificationFilters, setClassificationFilters] = useState<
+    DocumentModelClassificationEnum[]
+  >([]);
 
   useEffect(() => {
     if (!open || !modelId || !headingId) return;
@@ -92,6 +108,9 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
     setSelectedIds([]);
     setPreviewId(null);
     setApplyResult(null);
+    setLinkPrompt(false);
+    setLinkDone(false);
+    setClassificationFilters([]);
     void analyzeMutation
       .mutateAsync({ id: modelId, headingId, companyId })
       .then((result) => {
@@ -103,13 +122,23 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
   }, [open, modelId, headingId, companyId]);
 
   const candidates = analysis?.candidates || [];
-  const selectableIds = useMemo(
-    () => candidates.filter((row) => row.selectable).map((row) => row.id),
-    [candidates],
+  const visibleCandidates = useMemo(
+    () => filterSectionPropagationCandidates(candidates, classificationFilters),
+    [candidates, classificationFilters],
   );
+  const groups = useMemo(
+    () => groupSectionPropagationCandidates(visibleCandidates),
+    [visibleCandidates],
+  );
+  const selectableIds = useMemo(
+    () => visibleCandidates.filter((row) => row.selectable).map((row) => row.id),
+    [visibleCandidates],
+  );
+  const documentType = analysis?.source.type as DocumentTypeEnum | undefined;
 
   const toggle = (candidate: SectionPropagationCandidate) => {
-    if (!candidate.selectable || applyResult) return;
+    if (applyResult) return;
+    if (!candidate.selectable && !candidate.alreadyUpToDate) return;
     setSelectedIds((current) =>
       current.includes(candidate.id)
         ? current.filter((id) => id !== candidate.id)
@@ -120,7 +149,10 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
   const handleApply = async () => {
     if (!modelId || !headingId || !selectedIds.length || !analysis?.source) return;
     const targets = candidates
-      .filter((row) => selectedIds.includes(row.id) && row.selectable)
+      .filter(
+        (row) =>
+          selectedIds.includes(row.id) && (row.selectable || row.alreadyUpToDate),
+      )
       .map((row) => ({ id: row.id, expectedUpdatedAt: row.updated_at }));
     if (!targets.length) return;
     try {
@@ -132,15 +164,61 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
         expectedSourceHash: analysis.source.dataHash,
         targets,
       });
-      if (result) setApplyResult(result);
+      if (result) {
+        setApplyResult(result);
+        const linkable = result.results.some(
+          (row) =>
+            selectedIds.includes(row.id) &&
+            (row.outcome === 'updated' || row.outcome === 'already_up_to_date'),
+        );
+        setLinkPrompt(linkable);
+      }
     } catch {
       // snackbar from mutation
     }
   };
 
   const handleClose = () => {
-    if (analyzeMutation.isLoading || applyMutation.isLoading) return;
+    if (
+      analyzeMutation.isLoading ||
+      applyMutation.isLoading ||
+      createLinkMutation.isLoading
+    )
+      return;
     onClose();
+  };
+
+  const handleKeepLinked = async () => {
+    if (!modelId || !headingId || !applyResult) return;
+    const memberModelIds = applyResult.results
+      .filter(
+        (row) =>
+          selectedIds.includes(row.id) &&
+          (row.outcome === 'updated' || row.outcome === 'already_up_to_date'),
+      )
+      .map((row) => row.id);
+    if (!memberModelIds.length) {
+      setLinkPrompt(false);
+      setLinkDone(true);
+      return;
+    }
+    try {
+      await createLinkMutation.mutateAsync({
+        id: modelId,
+        headingId,
+        memberModelIds,
+        companyId,
+      });
+      setLinkPrompt(false);
+      setLinkDone(true);
+    } catch {
+      // snackbar from mutation
+    }
+  };
+
+  const handleSkipLink = () => {
+    setLinkPrompt(false);
+    setLinkDone(true);
   };
 
   const buttons = (
@@ -182,14 +260,18 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
       <SModalPaper
         center
         p={8}
-        width={['100%', 760]}
-        loading={analyzeMutation.isLoading || applyMutation.isLoading}
+        width={['100%', 840]}
+        loading={
+          analyzeMutation.isLoading ||
+          applyMutation.isLoading ||
+          createLinkMutation.isLoading
+        }
       >
         <SModalHeader onClose={handleClose} title="Aplicar seção em outros modelos" />
         <SText color="text.light" mb={2}>
           Seção: {headingLabel || analysis?.source.headingText || '—'}
         </SText>
-        <SText mb={6} maxWidth={700}>
+        <SText mb={6} maxWidth={760}>
           Selecione os modelos nos quais esta versão da seção deverá ser
           aplicada.
         </SText>
@@ -229,85 +311,175 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
                 {row.wrote ? ' (atualizado)' : ''}
               </SText>
             ))}
-          </Box>
-        ) : (
-          <Box sx={{ maxHeight: 420, overflow: 'auto', mb: 4 }}>
-            {candidates.map((candidate) => {
-              const checked = selectedIds.includes(candidate.id);
-              const disabled = !candidate.selectable;
-              return (
-                <Box
-                  key={candidate.id}
-                  sx={{
-                    borderBottom: '1px solid',
-                    borderColor: 'grey.200',
-                    py: 4,
-                  }}
-                >
-                  <SFlex align="flex-start" gap={2}>
-                    <Checkbox
-                      checked={checked}
-                      disabled={disabled}
-                      onChange={() => toggle(candidate)}
-                      size="small"
-                    />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <SText fontSize={14} fontWeight={600}>
-                        {candidate.name}
-                      </SText>
-                      <Box mt={2} mb={2}>
-                        <DocumentModelClassificationChips
-                          classifications={candidate.classifications}
-                        />
-                      </Box>
-                      <SText
-                        fontSize={12}
-                        color={candidate.selectable ? 'success.main' : 'text.light'}
-                      >
-                        {candidate.uiLabel}
-                      </SText>
-                      {candidate.selectable || candidate.alreadyUpToDate ? (
-                        <Button
-                          size="small"
-                          onClick={() =>
-                            setPreviewId((current) =>
-                              current === candidate.id ? null : candidate.id,
-                            )
-                          }
-                          sx={{ mt: 2, px: 0, minWidth: 0, textTransform: 'none' }}
-                        >
-                          Visualizar alteração
-                        </Button>
-                      ) : null}
-                      <Collapse in={previewId === candidate.id}>
-                        <SFlex gap={4} mt={3}>
-                          <PreviewBlock
-                            title="Conteúdo atual"
-                            lines={candidate.preview.current}
-                          />
-                          <PreviewBlock
-                            title="Nova versão"
-                            lines={candidate.preview.next}
-                          />
-                        </SFlex>
-                      </Collapse>
-                    </Box>
-                  </SFlex>
-                </Box>
-              );
-            })}
-            {!analyzeMutation.isLoading && analysis && !candidates.length ? (
-              <SText color="text.light">
-                Nenhum outro modelo ativo do mesmo tipo foi encontrado.
+            {linkPrompt && !linkDone ? (
+              <Box mt={6}>
+                <SText fontWeight={600} mb={2}>
+                  Deseja manter estas seções vinculadas para futuras atualizações?
+                </SText>
+                <SFlex gap={3}>
+                  <Button
+                    variant="contained"
+                    disabled={createLinkMutation.isLoading}
+                    onClick={() => {
+                      void handleKeepLinked();
+                    }}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Manter vinculadas
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    disabled={createLinkMutation.isLoading}
+                    onClick={handleSkipLink}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Agora não
+                  </Button>
+                </SFlex>
+              </Box>
+            ) : null}
+            {linkDone ? (
+              <SText fontSize={13} mt={4} color="text.secondary">
+                {createLinkMutation.isSuccess
+                  ? 'Seções mantidas vinculadas.'
+                  : 'Nenhum vínculo foi criado nesta atualização.'}
               </SText>
             ) : null}
           </Box>
+        ) : (
+          <>
+            {analysis && documentType ? (
+              <Box mb={4}>
+                <DocumentModelPgrClassificationFilters
+                  documentType={documentType}
+                  active={classificationFilters}
+                  onChange={setClassificationFilters}
+                />
+                {classificationFilters.length ? (
+                  <Button
+                    size="small"
+                    onClick={() => setClassificationFilters([])}
+                    sx={{ ml: 2, mt: -2, mb: 2, px: 0, minWidth: 0, textTransform: 'none' }}
+                  >
+                    Limpar filtros
+                  </Button>
+                ) : null}
+              </Box>
+            ) : null}
+            <Box sx={{ maxHeight: 420, overflow: 'auto', mb: 4 }}>
+              {groups.map((group) =>
+                group.count ? (
+                  <Box key={group.id} mb={4}>
+                    <SText fontSize={13} fontWeight={700} mb={2}>
+                      {group.title} ({group.count})
+                    </SText>
+                    {group.candidates.map((candidate) => {
+                      const checked = selectedIds.includes(candidate.id);
+                      const disabled = !candidate.selectable && !candidate.alreadyUpToDate;
+                      const oldVersion =
+                        candidate.oldVersionCompatible ||
+                        candidate.uiStatus === 'old_version_compatible';
+                      const currentCount =
+                        candidate.preview.currentCount ?? candidate.preview.current.length;
+                      const nextCount =
+                        candidate.preview.nextCount ?? candidate.preview.next.length;
+                      return (
+                        <Box
+                          key={candidate.id}
+                          sx={{
+                            borderBottom: '1px solid',
+                            borderColor: 'grey.200',
+                            py: 4,
+                          }}
+                        >
+                          <SFlex align="flex-start" gap={2}>
+                            <Checkbox
+                              checked={checked}
+                              disabled={disabled}
+                              onChange={() => toggle(candidate)}
+                              size="small"
+                            />
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <SText
+                                fontSize={14}
+                                fontWeight={600}
+                                color={sectionPropagationNameColor(group.id)}
+                              >
+                                {candidate.name}
+                              </SText>
+                              <Box mt={2} mb={2}>
+                                <DocumentModelClassificationChips
+                                  classifications={candidate.classifications}
+                                />
+                              </Box>
+                              <SText
+                                fontSize={12}
+                                color={sectionPropagationStatusColor(candidate.uiStatus)}
+                              >
+                                {candidate.linked ? 'Vinculado · ' : ''}
+                                {candidate.uiLabel}
+                              </SText>
+                              {candidate.selectable || candidate.alreadyUpToDate ? (
+                                <Button
+                                  size="small"
+                                  onClick={() =>
+                                    setPreviewId((current) =>
+                                      current === candidate.id ? null : candidate.id,
+                                    )
+                                  }
+                                  sx={{ mt: 2, px: 0, minWidth: 0, textTransform: 'none' }}
+                                >
+                                  Visualizar alteração
+                                </Button>
+                              ) : null}
+                              <Collapse in={previewId === candidate.id}>
+                                {oldVersion && currentCount !== nextCount ? (
+                                  <SText fontSize={12} color="text.secondary" mt={3}>
+                                    Estrutura: {currentCount} elementos → {nextCount} elementos
+                                  </SText>
+                                ) : null}
+                                <SFlex gap={4} mt={3}>
+                                  <PreviewBlock
+                                    title={oldVersion ? 'Modelo atual' : 'Conteúdo atual'}
+                                    lines={candidate.preview.current}
+                                  />
+                                  <PreviewBlock
+                                    title={
+                                      oldVersion ? 'Nova versão da seção' : 'Nova versão'
+                                    }
+                                    lines={candidate.preview.next}
+                                  />
+                                </SFlex>
+                              </Collapse>
+                            </Box>
+                          </SFlex>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                ) : null,
+              )}
+              {!analyzeMutation.isLoading && analysis && !candidates.length ? (
+                <SText color="text.light">
+                  Nenhum outro modelo ativo do mesmo tipo foi encontrado.
+                </SText>
+              ) : null}
+              {!analyzeMutation.isLoading &&
+              analysis &&
+              candidates.length &&
+              !visibleCandidates.length ? (
+                <SText color="text.light">
+                  Nenhum modelo corresponde aos filtros selecionados.
+                </SText>
+              ) : null}
+            </Box>
+          </>
         )}
 
         <SText fontSize={11} color="text.light" mb={2}>
           {selectableIds.length
             ? `${selectableIds.length} modelo(s) compatível(is).`
-            : 'Nenhum modelo compatível para seleção nesta V1.'}
+            : 'Nenhum modelo compatível para seleção nesta análise.'}
         </SText>
         <SModalButtons
           onClose={handleClose}
