@@ -20,6 +20,9 @@ export const DocumentHeading = Node.create({
   addAttributes() {
     return {
       id: { default: null },
+      // Default for a real heading node. Unmatched paste/wrap must NOT
+      // use this: `docSection` defaultType is `docParagraph`, and paste
+      // remaps to the destination block type.
       headingType: { default: 'H1' },
       headingNumber: { default: null },
       align: { default: null },

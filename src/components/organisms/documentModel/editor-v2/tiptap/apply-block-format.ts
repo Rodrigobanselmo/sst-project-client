@@ -12,6 +12,7 @@ import { cloneJson } from '../adapter/json-clone';
 import {
   attrsForConvertedNode,
   BLOCK_FORMAT_META,
+  BLOCK_FORMAT_OPTIONS,
   BlockFormatType,
   clampBulletLevel,
   isHeadingFormatType,
@@ -27,6 +28,11 @@ const FORMAT_NODE_NAMES = new Set([
   'docAtom',
 ]);
 
+export type SelectedFormatBlock = {
+  pos: number;
+  node: ProseMirrorNode;
+};
+
 export type ActiveBlockResolution =
   | {
       kind: 'convertible';
@@ -36,6 +42,7 @@ export type ActiveBlockResolution =
       pos: number;
       node: ProseMirrorNode;
       level?: number;
+      blockCount: number;
     }
   | {
       kind: 'caption';
@@ -45,6 +52,7 @@ export type ActiveBlockResolution =
       pos: number;
       node: ProseMirrorNode;
       captionType?: string;
+      blockCount: number;
     }
   | {
       kind: 'atom';
@@ -64,7 +72,7 @@ function findBlockAround($pos: {
   depth: number;
   node: (depth: number) => ProseMirrorNode;
   before: (depth: number) => number;
-}): { pos: number; node: ProseMirrorNode } | null {
+}): SelectedFormatBlock | null {
   for (let depth = $pos.depth; depth > 0; depth -= 1) {
     const node = $pos.node(depth);
     if (isFormatNodeName(node.type.name)) {
@@ -77,6 +85,7 @@ function findBlockAround($pos: {
 function describeNode(
   pos: number,
   node: ProseMirrorNode,
+  blockCount = 1,
 ): ActiveBlockResolution {
   const id = typeof node.attrs.id === 'string' ? node.attrs.id : undefined;
 
@@ -101,6 +110,7 @@ function describeNode(
       captionType: node.attrs.captionType
         ? String(node.attrs.captionType)
         : undefined,
+      blockCount,
     };
   }
 
@@ -112,6 +122,7 @@ function describeNode(
       id: id || '',
       pos,
       node,
+      blockCount,
     };
   }
 
@@ -124,6 +135,7 @@ function describeNode(
       pos,
       node,
       level: clampBulletLevel(Number(node.attrs.level ?? 0)),
+      blockCount,
     };
   }
 
@@ -139,31 +151,82 @@ function describeNode(
       id: id || '',
       pos,
       node,
+      blockCount,
     };
   }
 
   return { kind: 'none', convertible: false };
 }
 
-export function resolveActiveBlock(state: EditorState): ActiveBlockResolution {
+export function collectSelectedFormatBlocks(
+  state: EditorState,
+): SelectedFormatBlock[] {
   const { selection } = state;
 
   if (selection instanceof NodeSelection) {
-    if (!isFormatNodeName(selection.node.type.name)) {
-      return { kind: 'none', convertible: false };
-    }
-    return describeNode(selection.from, selection.node);
+    if (!isFormatNodeName(selection.node.type.name)) return [];
+    return [{ pos: selection.from, node: selection.node }];
   }
 
-  const fromBlock = findBlockAround(selection.$from);
-  const toBlock = findBlockAround(selection.$to);
+  if (selection.empty) {
+    const around = findBlockAround(selection.$from);
+    return around ? [around] : [];
+  }
 
-  if (!fromBlock) return { kind: 'none', convertible: false };
-  if (toBlock && fromBlock.pos !== toBlock.pos) {
+  const blocks: SelectedFormatBlock[] = [];
+  state.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+    if (isFormatNodeName(node.type.name)) {
+      blocks.push({ pos, node });
+      return false;
+    }
+    return true;
+  });
+  return blocks;
+}
+
+function compatibleStructuralKey(resolution: ActiveBlockResolution): string {
+  if (resolution.kind === 'convertible') return `convertible:${resolution.format}`;
+  if (resolution.kind === 'caption') return 'caption';
+  if (resolution.kind === 'atom') return 'atom';
+  return resolution.kind;
+}
+
+export function resolveActiveBlock(state: EditorState): ActiveBlockResolution {
+  const blocks = collectSelectedFormatBlocks(state);
+  if (blocks.length === 0) return { kind: 'none', convertible: false };
+
+  const descriptions = blocks.map((block) =>
+    describeNode(block.pos, block.node, blocks.length),
+  );
+
+  if (descriptions.some((item) => item.kind === 'atom')) {
+    if (descriptions.length === 1) return descriptions[0];
     return { kind: 'multi', convertible: false };
   }
 
-  return describeNode(fromBlock.pos, fromBlock.node);
+  const keys = new Set(descriptions.map(compatibleStructuralKey));
+  if (keys.size !== 1) {
+    return { kind: 'multi', convertible: false };
+  }
+
+  return descriptions[0];
+}
+
+export function labelForActiveBlock(active: ActiveBlockResolution): string {
+  if (active.kind === 'atom') return 'Elemento estrutural';
+  if (active.kind === 'caption') {
+    if (active.captionType === 'PARAGRAPH_TABLE') return 'Título de tabela';
+    if (active.captionType === 'PARAGRAPH_FIGURE') return 'Título de figura';
+    return 'Legenda';
+  }
+  if (active.kind === 'multi') return 'Vários blocos';
+  if (active.kind === 'convertible') {
+    return (
+      BLOCK_FORMAT_OPTIONS.find((option) => option.value === active.format)
+        ?.label || active.format
+    );
+  }
+  return 'Parágrafo';
 }
 
 function sourceFromNode(node: ProseMirrorNode, id: string): IDocumentModelElement {
@@ -177,35 +240,84 @@ function markFormatTransaction(tr: Transaction): Transaction {
   return tr.setMeta(BLOCK_FORMAT_META, true);
 }
 
+function convertibleBlocksForFormat(
+  state: EditorState,
+): Array<SelectedFormatBlock & { id: string; format: BlockFormatType }> | null {
+  const blocks = collectSelectedFormatBlocks(state);
+  if (blocks.length === 0) return null;
+
+  const described = blocks.map((block) => ({
+    ...block,
+    resolution: describeNode(block.pos, block.node, blocks.length),
+  }));
+
+  if (described.some((item) => item.resolution.kind !== 'convertible')) {
+    return null;
+  }
+
+  const formats = new Set(
+    described.map((item) =>
+      item.resolution.kind === 'convertible' ? item.resolution.format : '',
+    ),
+  );
+  if (formats.size !== 1) return null;
+
+  const next: Array<
+    SelectedFormatBlock & { id: string; format: BlockFormatType }
+  > = [];
+  for (const item of described) {
+    if (item.resolution.kind !== 'convertible' || !item.resolution.id) {
+      return null;
+    }
+    next.push({
+      pos: item.pos,
+      node: item.node,
+      id: item.resolution.id,
+      format: item.resolution.format,
+    });
+  }
+  return next;
+}
+
 export function createBlockFormatTransaction(
   state: EditorState,
   target: BlockFormatType,
 ): Transaction | null {
-  const active = resolveActiveBlock(state);
-  if (!active.convertible) return null;
-  if (active.format === target) return null;
-  if (!active.id) return null;
+  const blocks = convertibleBlocksForFormat(state);
+  if (!blocks) return null;
+  if (blocks[0].format === target) return null;
 
   const nextName = tipTapNodeNameForFormat(target);
   const nextType = state.schema.nodes[nextName];
   if (!nextType) return null;
 
-  const attrs = attrsForConvertedNode({
-    id: active.id,
-    target,
-    source: sourceFromNode(active.node, active.id),
-    headingNumber: active.node.attrs.headingNumber ?? null,
-  });
+  let tr = state.tr;
+  for (const block of blocks) {
+    const attrs = attrsForConvertedNode({
+      id: block.id,
+      target,
+      source: sourceFromNode(block.node, block.id),
+      headingNumber: block.node.attrs.headingNumber ?? null,
+    });
+    tr = tr.setNodeMarkup(block.pos, nextType, attrs);
+  }
 
-  let tr = markFormatTransaction(
-    state.tr.setNodeMarkup(active.pos, nextType, attrs),
-  );
+  tr = markFormatTransaction(tr);
 
-  const offset = Math.min(
-    state.selection.$from.parentOffset,
-    tr.doc.nodeAt(active.pos)?.content.size ?? 0,
-  );
-  tr = tr.setSelection(TextSelection.create(tr.doc, active.pos + 1 + offset));
+  if (blocks.length === 1) {
+    const offset = Math.min(
+      state.selection.$from.parentOffset,
+      tr.doc.nodeAt(blocks[0].pos)?.content.size ?? 0,
+    );
+    tr = tr.setSelection(
+      TextSelection.create(tr.doc, blocks[0].pos + 1 + offset),
+    );
+  } else {
+    const from = tr.mapping.map(state.selection.from);
+    const to = tr.mapping.map(state.selection.to);
+    tr = tr.setSelection(TextSelection.create(tr.doc, from, to));
+  }
+
   return tr.scrollIntoView();
 }
 
@@ -222,28 +334,37 @@ export function createBulletLevelTransaction(
   state: EditorState,
   nextLevel: number,
 ): Transaction | null {
-  const active = resolveActiveBlock(state);
-  if (!active.convertible || active.format !== 'BULLET') return null;
+  const blocks = convertibleBlocksForFormat(state);
+  if (!blocks) return null;
+  if (blocks[0].format !== 'BULLET') return null;
 
   const level = clampBulletLevel(nextLevel);
-  if (level === active.level) return null;
+  let changed = false;
+  let tr = state.tr;
 
-  const source = sourceFromNode(active.node, active.id);
-  const attrs = isLegacyBulletSpaceType(source.type)
-    ? {
-        ...active.node.attrs,
-        level,
-        source,
-      }
-    : attrsForConvertedNode({
-        id: active.id,
-        target: 'BULLET',
-        source: { ...source, level },
-      });
+  for (const block of blocks) {
+    const current = clampBulletLevel(Number(block.node.attrs.level ?? 0));
+    if (current === level) continue;
 
-  return markFormatTransaction(
-    state.tr.setNodeMarkup(active.pos, undefined, attrs),
-  ).scrollIntoView();
+    const source = sourceFromNode(block.node, block.id);
+    const attrs = isLegacyBulletSpaceType(source.type)
+      ? {
+          ...block.node.attrs,
+          level,
+          source,
+        }
+      : attrsForConvertedNode({
+          id: block.id,
+          target: 'BULLET',
+          source: { ...source, level },
+        });
+
+    tr = tr.setNodeMarkup(block.pos, undefined, attrs);
+    changed = true;
+  }
+
+  if (!changed) return null;
+  return markFormatTransaction(tr).scrollIntoView();
 }
 
 export function applyBulletLevelChange(

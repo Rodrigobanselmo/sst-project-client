@@ -163,8 +163,12 @@ export function resolveTextFormatToolbarState(
 ): TextFormatToolbarState {
   const active = resolveActiveBlock(state);
   const atom = active.kind === 'atom';
-  const multi = active.kind === 'multi';
-  const visual = isVisualBlock(active);
+  const blockCount =
+    active.kind === 'convertible' || active.kind === 'caption'
+      ? active.blockCount
+      : 1;
+  const multi = active.kind === 'multi' || blockCount > 1;
+  const visual = isVisualBlock(active) && blockCount === 1;
   const hasSelection = hasPartialTextSelection(state);
   const { from, to } = expandSelectionAroundVariables(state);
 
@@ -259,6 +263,7 @@ export function createBlockVisualTransaction(
 ): Transaction | null {
   const active = resolveActiveBlock(state);
   if (!isVisualBlock(active)) return null;
+  if (active.blockCount > 1) return null;
   if (!active.id) return null;
 
   const source = nextSourceForVisual(active.node, active.id, patch);

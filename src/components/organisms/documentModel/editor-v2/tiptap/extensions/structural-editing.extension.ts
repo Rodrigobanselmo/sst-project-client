@@ -9,6 +9,7 @@ import {
   applyStableEditableIds,
   assignStableIds,
 } from '../assign-stable-ids';
+import { createDestinationBlockPastePlugin } from '../destination-block-paste';
 import {
   applyStructuralJoin,
   createStructuralSplitTransaction,
@@ -68,6 +69,7 @@ export function createStructuralEditingExtension(
 
     addProseMirrorPlugins() {
       return [
+        createDestinationBlockPastePlugin(),
         new Plugin({
           key: new PluginKey('documentEditorStableIds'),
           appendTransaction(transactions, _oldState, newState) {

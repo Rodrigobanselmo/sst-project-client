@@ -49,10 +49,12 @@ export function createDocumentEditorExtensions() {
     DocumentDoc,
     DocumentGroup,
     DocumentSection,
-    DocumentHeading,
+    // Paragraph first: `docSection` `block*` defaultType. Heading used to
+    // be first, so unmatched paste/wrap became H1 (`headingType` default).
     DocumentParagraph,
     DocumentBullet,
     DocumentCaption,
+    DocumentHeading,
     DocumentAtom,
     DocumentVariable,
     DocumentStyle,

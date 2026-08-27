@@ -30,6 +30,7 @@ import {
 import {
   createBlockFormatTransaction,
   createBulletLevelTransaction,
+  labelForActiveBlock,
   resolveActiveBlock,
 } from '../tiptap/apply-block-format';
 import {
@@ -48,23 +49,6 @@ function promptExternalLink(editor: Editor) {
     return;
   }
   editor.chain().focus().setLink({ href: href.trim(), target: '_blank' }).run();
-}
-
-function selectLabel(active: ReturnType<typeof resolveActiveBlock>): string {
-  if (active.kind === 'atom') return 'Elemento estrutural';
-  if (active.kind === 'caption') {
-    if (active.captionType === 'PARAGRAPH_TABLE') return 'Título de tabela';
-    if (active.captionType === 'PARAGRAPH_FIGURE') return 'Título de figura';
-    return 'Legenda';
-  }
-  if (active.kind === 'multi') return 'Vários blocos';
-  if (active.kind === 'convertible') {
-    return (
-      BLOCK_FORMAT_OPTIONS.find((option) => option.value === active.format)
-        ?.label || active.format
-    );
-  }
-  return 'Parágrafo';
 }
 
 function DocumentEditorV2ChangeCaseMenu({ editor }: { editor: Editor }) {
@@ -156,7 +140,7 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
           displayEmpty
           disabled={!active.convertible}
           value={selectValue}
-          renderValue={() => selectLabel(active)}
+          renderValue={() => labelForActiveBlock(active)}
           onChange={(event) => {
             const next = String(event.target.value);
             if (!isBlockFormatType(next)) return;

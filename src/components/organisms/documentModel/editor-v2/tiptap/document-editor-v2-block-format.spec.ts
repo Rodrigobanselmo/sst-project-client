@@ -9,6 +9,7 @@ import assert from 'assert';
 
 import { getSchema } from '@tiptap/core';
 import { Node } from '@tiptap/pm/model';
+import { history, undo } from '@tiptap/pm/history';
 import { EditorState, NodeSelection, TextSelection } from '@tiptap/pm/state';
 import {
   DocModelAlignmentType,
@@ -41,6 +42,7 @@ import {
   applyBulletLevelChange,
   applyBulletLevelSet,
   createBlockFormatTransaction,
+  labelForActiveBlock,
   resolveActiveBlock,
 } from './apply-block-format';
 import { createDocumentEditorExtensions } from './extensions/create-document-editor-extensions';
@@ -132,6 +134,19 @@ function stateFromChildren(children: IDocumentModelElement[]): EditorState {
   });
 }
 
+function stateFromChildrenWithHistory(
+  children: IDocumentModelElement[],
+): EditorState {
+  const json = serializeTipTapDoc(
+    toTipTapState(toDocumentEditorState(modelWithChildren(children))),
+  );
+  return EditorState.create({
+    schema,
+    doc: Node.fromJSON(schema, json),
+    plugins: [history()],
+  });
+}
+
 function findBlockPos(doc: Node, id: string): { pos: number; node: Node } {
   let pos = -1;
   let found: Node | undefined;
@@ -140,6 +155,7 @@ function findBlockPos(doc: Node, id: string): { pos: number; node: Node } {
       (node.type.name === 'docParagraph' ||
         node.type.name === 'docBullet' ||
         node.type.name === 'docHeading' ||
+        node.type.name === 'docCaption' ||
         node.type.name === 'docAtom') &&
       node.attrs.id === id
     ) {
@@ -160,6 +176,7 @@ function dumpBlocks(doc: Node) {
       node.type.name === 'docParagraph' ||
       node.type.name === 'docBullet' ||
       node.type.name === 'docHeading' ||
+      node.type.name === 'docCaption' ||
       node.type.name === 'docAtom'
     ) {
       blocks.push({
@@ -460,21 +477,38 @@ run('22. atom não convertível', () => {
   assert.equal(canonicalChild(result.state, 'el-image').type, 'IMAGE');
 });
 
-run('23. seleção multibloco protegida', () => {
-  let state = stateFromChildren([
-    paragraph('p-a', 'AAA'),
-    paragraph('p-b', 'BBB'),
-  ]);
-  const first = findBlockPos(state.doc, 'p-a');
-  const second = findBlockPos(state.doc, 'p-b');
-  state = state.apply(
+function selectAcross(
+  state: EditorState,
+  fromId: string,
+  toId: string,
+): EditorState {
+  const first = findBlockPos(state.doc, fromId);
+  const last = findBlockPos(state.doc, toId);
+  return state.apply(
     state.tr.setSelection(
-      TextSelection.create(state.doc, first.pos + 1, second.pos + 2),
+      TextSelection.create(
+        state.doc,
+        first.pos + 1,
+        last.pos + 1 + last.node.content.size,
+      ),
     ),
   );
-  assert.equal(resolveActiveBlock(state).kind, 'multi');
+}
+
+run('23. tipos mistos → Vários blocos; conversão bloqueada', () => {
+  let state = selectAcross(
+    stateFromChildren([
+      heading('p-a', DocumentSectionChildrenTypeEnum.H1, 'AAA'),
+      paragraph('p-b', 'BBB'),
+    ]),
+    'p-a',
+    'p-b',
+  );
+  const active = resolveActiveBlock(state);
+  assert.equal(active.kind, 'multi');
+  assert.equal(labelForActiveBlock(active), 'Vários blocos');
   assert.equal(applyBlockFormatConversion(state, 'H2').ok, false);
-  assert.equal(canonicalChild(state, 'p-a').type, 'PARAGRAPH');
+  assert.equal(canonicalChild(state, 'p-a').type, 'H1');
   assert.equal(canonicalChild(state, 'p-b').type, 'PARAGRAPH');
 });
 
@@ -802,6 +836,356 @@ run('BULLET_SPACE não quebra boundaries da Fase 3', () => {
   const joined = applyStructuralJoinBackward(state);
   assert.equal(joined.decision.type, 'join');
   assert.equal(canonicalChild(joined.state, 'p-b').text, 'UmDois');
+});
+
+run('vários H1 → toolbar mostra H1', () => {
+  const state = selectAcross(
+    stateFromChildren([
+      heading('h-a', DocumentSectionChildrenTypeEnum.H1, 'Um'),
+      heading('h-b', DocumentSectionChildrenTypeEnum.H1, 'Dois'),
+      heading('h-c', DocumentSectionChildrenTypeEnum.H1, 'Tres'),
+    ]),
+    'h-a',
+    'h-c',
+  );
+  const active = resolveActiveBlock(state);
+  assert.equal(active.kind, 'convertible');
+  assert.equal(active.convertible, true);
+  if (active.kind !== 'convertible') throw new Error('expected convertible');
+  assert.equal(active.format, 'H1');
+  assert.equal(active.blockCount, 3);
+  assert.equal(labelForActiveBlock(active), 'H1');
+});
+
+run('vários Parágrafos → toolbar mostra Parágrafo', () => {
+  const state = selectAcross(
+    stateFromChildren([
+      paragraph('p-a', 'Um'),
+      paragraph('p-b', 'Dois'),
+    ]),
+    'p-a',
+    'p-b',
+  );
+  const active = resolveActiveBlock(state);
+  assert.equal(active.kind, 'convertible');
+  if (active.kind !== 'convertible') throw new Error('expected convertible');
+  assert.equal(active.format, 'PARAGRAPH');
+  assert.equal(labelForActiveBlock(active), 'Parágrafo');
+});
+
+run('H2 + Bullet → Vários blocos', () => {
+  const state = selectAcross(
+    stateFromChildren([
+      heading('h-a', DocumentSectionChildrenTypeEnum.H2, 'Titulo'),
+      bullet('b-a', 'Item'),
+    ]),
+    'h-a',
+    'b-a',
+  );
+  assert.equal(labelForActiveBlock(resolveActiveBlock(state)), 'Vários blocos');
+});
+
+run('Parágrafo + Caption → Vários blocos', () => {
+  const state = selectAcross(
+    stateFromChildren([
+      paragraph('p-a', 'Texto'),
+      {
+        id: 'c-a',
+        type: DocumentSectionChildrenTypeEnum.LEGEND,
+        text: 'Legenda',
+      },
+    ]),
+    'p-a',
+    'c-a',
+  );
+  assert.equal(labelForActiveBlock(resolveActiveBlock(state)), 'Vários blocos');
+});
+
+run('vários H1 → Parágrafo em uma transaction', () => {
+  const state = selectAcross(
+    stateFromChildren([
+      heading('h-a', DocumentSectionChildrenTypeEnum.H1, 'Um'),
+      heading('h-b', DocumentSectionChildrenTypeEnum.H1, 'Dois'),
+      heading('h-c', DocumentSectionChildrenTypeEnum.H1, 'Tres'),
+      heading('h-d', DocumentSectionChildrenTypeEnum.H1, 'Quatro'),
+      heading('h-e', DocumentSectionChildrenTypeEnum.H1, 'Cinco'),
+    ]),
+    'h-a',
+    'h-e',
+  );
+  const transaction = createBlockFormatTransaction(state, 'PARAGRAPH');
+  assert.ok(transaction);
+  assert.equal(transaction.docChanged, true);
+  assert.ok(transaction.steps.length >= 5);
+  const result = applyBlockFormatConversion(state, 'PARAGRAPH');
+  assert.equal(result.ok, true);
+  const types = childrenOf(restore(result.state)).map((child) => child.type);
+  assert.deepStrictEqual(types, [
+    'PARAGRAPH',
+    'PARAGRAPH',
+    'PARAGRAPH',
+    'PARAGRAPH',
+    'PARAGRAPH',
+  ]);
+  assert.deepStrictEqual(
+    dumpBlocks(result.state.doc).map((block) => block.id),
+    ['h-a', 'h-b', 'h-c', 'h-d', 'h-e'],
+  );
+});
+
+run('vários Parágrafos → H2', () => {
+  const state = selectAcross(
+    stateFromChildren([
+      paragraph('p-a', 'Um'),
+      paragraph('p-b', 'Dois'),
+      paragraph('p-c', 'Tres'),
+    ]),
+    'p-a',
+    'p-c',
+  );
+  const result = applyBlockFormatConversion(state, 'H2');
+  assert.equal(result.ok, true);
+  assert.deepStrictEqual(
+    childrenOf(restore(result.state)).map((child) => child.type),
+    ['H2', 'H2', 'H2'],
+  );
+});
+
+run('batch: marks, link, variável e ids preservados', () => {
+  const marked = (id: string, text: string): IDocumentModelElement =>
+    paragraph(id, text, {
+      inlineStyleRangeBlock: [
+        [
+          { offset: 0, length: 4, style: InlineStyleTypeEnum.BOLD },
+          { offset: 0, length: 4, style: InlineStyleTypeEnum.ITALIC },
+          { offset: 0, length: 4, style: InlineStyleTypeEnum.UNDERLINE },
+          {
+            offset: 5,
+            length: 4,
+            style: InlineStyleTypeEnum.COLOR,
+            value: '#FF0000',
+          },
+          {
+            offset: 5,
+            length: 4,
+            style: InlineStyleTypeEnum.FONTSIZE,
+            value: '18',
+          },
+          { offset: 10, length: 3, style: InlineStyleTypeEnum.SUPERSCRIPT },
+        ],
+      ],
+      entityRangeBlock: [
+        [
+          {
+            offset: 14,
+            length: 4,
+            data: {
+              type: 'LINK',
+              mutability: 'MUTABLE',
+              data: { url: 'https://simplesst.com', targetOption: '_blank' },
+            },
+          },
+        ],
+      ],
+    });
+
+  const state = selectAcross(
+    stateFromChildren([
+      marked('p-a', 'Bold texto sup link ??NOME_DA_EMPRESA??'),
+      marked('p-b', 'Bold texto sup link ??NOME_DA_EMPRESA??'),
+    ]),
+    'p-a',
+    'p-b',
+  );
+  const result = applyBlockFormatConversion(state, 'H3');
+  assert.equal(result.ok, true);
+
+  for (const id of ['p-a', 'p-b']) {
+    const child = canonicalChild(result.state, id);
+    assert.equal(child.type, 'H3');
+    assert.equal(child.id, id);
+    assert.equal(child.text, 'Bold texto sup link ??NOME_DA_EMPRESA??');
+    const styles = child.inlineStyleRangeBlock?.[0] || [];
+    assert.ok(styles.some((range) => range.style === InlineStyleTypeEnum.BOLD));
+    assert.ok(styles.some((range) => range.style === InlineStyleTypeEnum.ITALIC));
+    assert.ok(
+      styles.some((range) => range.style === InlineStyleTypeEnum.UNDERLINE),
+    );
+    assert.ok(
+      styles.some(
+        (range) =>
+          range.style === InlineStyleTypeEnum.COLOR && range.value === '#FF0000',
+      ),
+    );
+    assert.ok(
+      styles.some(
+        (range) =>
+          range.style === InlineStyleTypeEnum.FONTSIZE && range.value === '18',
+      ),
+    );
+    assert.ok(
+      styles.some((range) => range.style === InlineStyleTypeEnum.SUPERSCRIPT),
+    );
+    assert.equal(
+      child.entityRangeBlock?.[0]?.[0]?.data?.data?.url,
+      'https://simplesst.com',
+    );
+  }
+});
+
+run('atom no range bloqueia a conversão inteira', () => {
+  let state = stateFromChildren([
+    paragraph('p-a', 'Antes'),
+    {
+      id: 'el-image',
+      type: DocumentSectionChildrenTypeEnum.IMAGE,
+      text: '',
+      url: '/x.png',
+    },
+    paragraph('p-b', 'Depois'),
+  ]);
+  const first = findBlockPos(state.doc, 'p-a');
+  const last = findBlockPos(state.doc, 'p-b');
+  state = state.apply(
+    state.tr.setSelection(
+      TextSelection.create(
+        state.doc,
+        first.pos + 1,
+        last.pos + 1 + last.node.content.size,
+      ),
+    ),
+  );
+  assert.equal(resolveActiveBlock(state).kind, 'multi');
+  assert.equal(applyBlockFormatConversion(state, 'H2').ok, false);
+  assert.equal(canonicalChild(state, 'p-a').type, 'PARAGRAPH');
+  assert.equal(canonicalChild(state, 'p-b').type, 'PARAGRAPH');
+  assert.equal(canonicalChild(state, 'el-image').type, 'IMAGE');
+});
+
+run('Undo desfaz a conversão inteira', () => {
+  const selected = selectAcross(
+    stateFromChildrenWithHistory([
+      heading('h-a', DocumentSectionChildrenTypeEnum.H1, 'Um'),
+      heading('h-b', DocumentSectionChildrenTypeEnum.H1, 'Dois'),
+    ]),
+    'h-a',
+    'h-b',
+  );
+  const converted = applyBlockFormatConversion(selected, 'PARAGRAPH');
+  assert.equal(converted.ok, true);
+  assert.equal(canonicalChild(converted.state, 'h-a').type, 'PARAGRAPH');
+  let undone = converted.state;
+  const ok = undo(converted.state, (tr) => {
+    undone = converted.state.apply(tr);
+  });
+  assert.equal(ok, true);
+  assert.equal(canonicalChild(undone, 'h-a').type, 'H1');
+  assert.equal(canonicalChild(undone, 'h-b').type, 'H1');
+});
+
+run('dirty só quando há mudança real', () => {
+  const same = selectAcross(
+    stateFromChildren([
+      paragraph('p-a', 'Um'),
+      paragraph('p-b', 'Dois'),
+    ]),
+    'p-a',
+    'p-b',
+  );
+  assert.equal(createBlockFormatTransaction(same, 'PARAGRAPH'), null);
+
+  const changed = createBlockFormatTransaction(same, 'H2');
+  assert.ok(changed);
+  assert.equal(changed.docChanged, true);
+});
+
+run('seleção parcial em um bloco converte só aquele bloco', () => {
+  let state = stateFromChildren([
+    paragraph('p-a', 'ABCDEF'),
+    paragraph('p-b', 'XYZ'),
+  ]);
+  const first = findBlockPos(state.doc, 'p-a');
+  state = state.apply(
+    state.tr.setSelection(
+      TextSelection.create(state.doc, first.pos + 1, first.pos + 4),
+    ),
+  );
+  const result = applyBlockFormatConversion(state, 'H2');
+  assert.equal(result.ok, true);
+  assert.equal(canonicalChild(result.state, 'p-a').type, 'H2');
+  assert.equal(canonicalChild(result.state, 'p-b').type, 'PARAGRAPH');
+});
+
+run('seleção do meio de um bloco ao outro converte os dois', () => {
+  let state = stateFromChildren([
+    paragraph('p-a', 'ABCDEF'),
+    paragraph('p-b', 'XYZ'),
+  ]);
+  const first = findBlockPos(state.doc, 'p-a');
+  const second = findBlockPos(state.doc, 'p-b');
+  state = state.apply(
+    state.tr.setSelection(
+      TextSelection.create(state.doc, first.pos + 3, second.pos + 2),
+    ),
+  );
+  const result = applyBlockFormatConversion(state, 'H2');
+  assert.equal(result.ok, true);
+  assert.equal(canonicalChild(result.state, 'p-a').type, 'H2');
+  assert.equal(canonicalChild(result.state, 'p-b').type, 'H2');
+});
+
+run('bullets iguais → Bullet; captions iguais → Legenda', () => {
+  const bullets = selectAcross(
+    stateFromChildren([
+      bullet('b-a', 'Um', { level: 1 }),
+      bullet('b-b', 'Dois', { level: 2 }),
+    ]),
+    'b-a',
+    'b-b',
+  );
+  const bulletActive = resolveActiveBlock(bullets);
+  assert.equal(bulletActive.kind, 'convertible');
+  if (bulletActive.kind !== 'convertible') throw new Error('expected bullet');
+  assert.equal(bulletActive.format, 'BULLET');
+  assert.equal(labelForActiveBlock(bulletActive), 'Marcador');
+
+  const captions = selectAcross(
+    stateFromChildren([
+      {
+        id: 'c-a',
+        type: DocumentSectionChildrenTypeEnum.LEGEND,
+        text: 'Um',
+      },
+      {
+        id: 'c-b',
+        type: DocumentSectionChildrenTypeEnum.LEGEND,
+        text: 'Dois',
+      },
+    ]),
+    'c-a',
+    'c-b',
+  );
+  const captionActive = resolveActiveBlock(captions);
+  assert.equal(captionActive.kind, 'caption');
+  assert.equal(captionActive.convertible, false);
+  assert.equal(labelForActiveBlock(captionActive), 'Legenda');
+  assert.equal(applyBlockFormatConversion(captions, 'PARAGRAPH').ok, false);
+});
+
+run('heading + heading iguais', () => {
+  const state = selectAcross(
+    stateFromChildren([
+      heading('h-a', DocumentSectionChildrenTypeEnum.H3, 'Um'),
+      heading('h-b', DocumentSectionChildrenTypeEnum.H3, 'Dois'),
+    ]),
+    'h-a',
+    'h-b',
+  );
+  const active = resolveActiveBlock(state);
+  assert.equal(active.kind, 'convertible');
+  if (active.kind !== 'convertible') throw new Error('expected H3');
+  assert.equal(active.format, 'H3');
+  assert.equal(labelForActiveBlock(active), 'H3');
 });
 
 console.log('\nFase 4A block-format specs: ok');
