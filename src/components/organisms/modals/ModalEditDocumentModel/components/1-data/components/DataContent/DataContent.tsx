@@ -22,6 +22,10 @@ import { documentTypeList } from 'core/constants/maps/document-type.map';
 import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 
 import { DocumentModelClassificationEditor } from '../DocumentModelClassificationEditor';
+import {
+  getSameTypeCopyQuery,
+  shouldClearSameTypeCopyFrom,
+} from '../../helpers/document-model-same-type-copy.util';
 import { getDocumentModelMetadataPatch } from '../../../../hooks/useEditDocumentModel';
 import { IUseData } from '../../hooks/useDataStep';
 
@@ -43,6 +47,15 @@ export const DataContent = (props: IUseData) => {
   const otherTypeOptions = useMemo(
     () => documentTypeList.filter((o) => o.value !== data?.type),
     [data?.type],
+  );
+
+  const sameTypeCopyQuery = useMemo(
+    () =>
+      getSameTypeCopyQuery({
+        type: data?.type,
+        classifications: data?.classifications,
+      }),
+    [data?.classifications, data?.type],
   );
 
   const sameTypeCopyValue =
@@ -231,10 +244,23 @@ export const DataContent = (props: IUseData) => {
                 return;
               }
 
+              const shouldClearCopy = shouldClearSameTypeCopyFrom({
+                copyFrom: data.copyFrom,
+                documentType: data.type,
+                selectedClassifications: normalized,
+              });
+
               setData((d) => ({
                 ...d,
                 classifications: normalized,
+                ...(shouldClearCopy
+                  ? { copyFromId: undefined, copyFrom: undefined }
+                  : {}),
               }));
+
+              if (shouldClearCopy) {
+                setValue('copyFromSameTypeId', null);
+              }
 
               if (isEdit && data.id) {
                 updateMutation
@@ -258,9 +284,9 @@ export const DataContent = (props: IUseData) => {
       {!isEdit && data?.type && (
         <SFlex direction="column" gap={4} mb={5} mt={3} maxWidth={['100%']}>
           <DocumentModelSelect
-            key={`same-${data.type}`}
+            key={`same-${data.type}-${(data.classifications || []).join(',')}`}
             fullWidth
-            query={{ type: data.type }}
+            query={sameTypeCopyQuery}
             onChange={handleSameTypeCopy}
             inputProps={{
               labelPosition: 'top',
