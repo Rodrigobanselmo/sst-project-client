@@ -25,6 +25,7 @@ import {
   buildRecMedQuickClassifyPayload,
   filterRecsByType,
   RecTypeListFilter,
+  sortRecsBySelectorHierarchy,
 } from './resolve-rec-type-visual-state.util';
 import { IRecMedSelectProps } from './types';
 
@@ -152,8 +153,11 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
     });
 
     if (!enableRecTypeQuickClassify) return sorted;
-    return filterRecsByType(sorted, recTypeFilter);
-  }, [enableRecTypeQuickClassify, recMed, recTypeFilter]);
+    return sortRecsBySelectorHierarchy(
+      filterRecsByType(sorted, recTypeFilter),
+      selectedRec || [],
+    );
+  }, [enableRecTypeQuickClassify, recMed, recTypeFilter, selectedRec]);
 
   const recMedLength = String(selectedRec ? selectedRec.length : 0);
 
@@ -210,6 +214,7 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       optionsFieldName={{ valueField: 'id', contentField: 'recName' }}
       {...props}
       options={options}
+      preserveOptionOrder={enableRecTypeQuickClassify}
       renderFilter={
         enableRecTypeQuickClassify
           ? () => (

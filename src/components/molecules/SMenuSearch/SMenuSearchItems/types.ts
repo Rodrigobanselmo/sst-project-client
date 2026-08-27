@@ -26,6 +26,8 @@ export interface SMenuItemsSearchProps extends Omit<MenuItemProps, 'selected'> {
   ) => void;
   icon?: ElementType<any>;
   selected?: (string | number)[];
+  lockSelected?: boolean;
+  preserveOptionOrder?: boolean;
   startAdornment?: (option: IMenuSearchOption) => ReactNode;
   endAdornment?: (option: IMenuSearchOption) => ReactNode;
   optionsFieldName?: { valueField?: string; contentField?: string };

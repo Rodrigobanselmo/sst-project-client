@@ -23,6 +23,8 @@ export const STagSearchSelect: FC<
   placeholder,
   multiple,
   selected,
+  lockSelected,
+  preserveOptionOrder,
   keys = ['name'],
   renderFilter,
   listMaxHeight,
@@ -112,6 +114,8 @@ export const STagSearchSelect: FC<
         placeholder={placeholder}
         multiple={multiple}
         selected={selected}
+        lockSelected={lockSelected}
+        preserveOptionOrder={preserveOptionOrder}
         keys={keys}
         additionalButton={additionalButton}
         confirmSelectionOnClose={confirmSelectionOnClose}

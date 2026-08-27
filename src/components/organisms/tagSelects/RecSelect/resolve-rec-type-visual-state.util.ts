@@ -101,6 +101,29 @@ export function sortRecsByTypeHierarchy<
     .map(({ rec }) => rec);
 }
 
+/**
+ * Seletor de recomendações: ENG → ADM → EPI → sem tipo.
+ * Dentro de cada grupo, já vinculados primeiro; ordem relativa preservada.
+ */
+export function sortRecsBySelectorHierarchy<
+  T extends { recType?: RecTypeEnum | string | null; id?: string | number },
+>(recs: T[], selectedIds: Array<string | number> = []): T[] {
+  const selected = new Set(selectedIds.map((id) => String(id)));
+  return recs
+    .map((rec, index) => ({ rec, index }))
+    .sort((a, b) => {
+      const rankDiff =
+        getRecTypeHierarchyRank(a.rec.recType) -
+        getRecTypeHierarchyRank(b.rec.recType);
+      if (rankDiff !== 0) return rankDiff;
+      const aSelected = selected.has(String(a.rec.id ?? '')) ? 0 : 1;
+      const bSelected = selected.has(String(b.rec.id ?? '')) ? 0 : 1;
+      if (aSelected !== bSelected) return aSelected - bSelected;
+      return a.index - b.index;
+    })
+    .map(({ rec }) => rec);
+}
+
 export function matchesRecTypeListFilter(
   recType: RecTypeEnum | string | null | undefined,
   filter: RecTypeListFilter,

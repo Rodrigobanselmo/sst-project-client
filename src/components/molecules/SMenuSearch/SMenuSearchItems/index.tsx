@@ -26,6 +26,7 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
   listRef,
   handleMultiSelectMenu,
   renderContent,
+  preserveOptionOrder,
 }) => {
   const valueField =
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
@@ -46,6 +47,16 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
             key={value}
             id={IdsEnum.MENU_ITEM_ID.replace(':id', String(index))}
             className="checkbox-menu-item"
+            aria-disabled={option.locked ? true : undefined}
+            sx={
+              option.locked
+                ? {
+                    opacity: 0.72,
+                    cursor: 'default',
+                    pointerEvents: 'auto',
+                  }
+                : undefined
+            }
             onKeyDown={(e) => {
               if (e.key === 'ArrowUp' && index === 0) {
                 const input = document.getElementById(
@@ -71,6 +82,11 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
               }
             }}
             onClick={(e) => {
+              if (option.locked) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+              }
               if (!multiple) handleMenuSelect(option, e);
               if (multiple) {
                 const elementCheck = document.getElementById(
@@ -78,6 +94,7 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
                 ) as HTMLInputElement;
 
                 if (
+                  !preserveOptionOrder &&
                   listRef &&
                   listRef.current &&
                   elementCheck &&
@@ -90,34 +107,60 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
           >
             {multiple && (
               <Box onClick={(e) => e.stopPropagation()}>
-                <Checkbox
-                  id={IdsEnum.MENU_ITEM_CHECKBOX_ID.replace(
-                    ':id',
-                    String(value),
-                  )}
-                  color={'secondary'}
-                  defaultChecked={!!checked}
-                  className="checkbox-menu-item"
-                  sx={{ ml: -2 }}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      const element = document.getElementById(
-                        IdsEnum.MENU_ITEM_ID.replace(':id', String(index)),
-                      ) as HTMLElement;
+                {option.locked ? (
+                  <Checkbox
+                    id={IdsEnum.MENU_ITEM_CHECKBOX_ID.replace(
+                      ':id',
+                      String(value),
+                    )}
+                    color={'secondary'}
+                    checked
+                    disabled
+                    className="checkbox-menu-item"
+                    sx={{ ml: -2 }}
+                  />
+                ) : (
+                  <Checkbox
+                    id={IdsEnum.MENU_ITEM_CHECKBOX_ID.replace(
+                      ':id',
+                      String(value),
+                    )}
+                    color={'secondary'}
+                    defaultChecked={!!checked}
+                    className="checkbox-menu-item"
+                    sx={{ ml: -2 }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        const element = document.getElementById(
+                          IdsEnum.MENU_ITEM_ID.replace(':id', String(index)),
+                        ) as HTMLElement;
 
-                      if (listRef && listRef.current && element)
-                        listRef.current.prepend(element);
+                        if (
+                          !preserveOptionOrder &&
+                          listRef &&
+                          listRef.current &&
+                          element
+                        )
+                          listRef.current.prepend(element);
 
-                      localSelected.current = [...localSelected.current, value];
-                    }
-                    if (!e.target.checked)
-                      localSelected.current = [
-                        ...localSelected.current.filter((id) => id !== value),
-                      ];
+                        localSelected.current = [
+                          ...localSelected.current,
+                          value,
+                        ];
+                      }
+                      if (!e.target.checked)
+                        localSelected.current = [
+                          ...localSelected.current.filter((id) => id !== value),
+                        ];
 
-                    handleMultiSelectMenu?.(option, localSelected.current, e);
-                  }}
-                />
+                      handleMultiSelectMenu?.(
+                        option,
+                        localSelected.current,
+                        e,
+                      );
+                    }}
+                  />
+                )}
               </Box>
             )}
             {optionIcon && (
@@ -139,6 +182,14 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
                 ) : (
                   <SText fontSize={13} lineNumber={2}>
                     {content}
+                  </SText>
+                )}
+                {option.locked && (
+                  <SText
+                    fontSize={11}
+                    sx={{ color: 'text.light', mt: 0.25, display: 'block' }}
+                  >
+                    já adicionado
                   </SText>
                 )}
               </Box>

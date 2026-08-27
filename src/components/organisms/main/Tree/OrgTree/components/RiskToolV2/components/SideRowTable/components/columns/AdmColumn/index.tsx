@@ -60,6 +60,10 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
             tooltipTitle=""
             multiple
             confirmSelectionOnClose={false}
+            lockSelected
+            selectedMed={(data?.adms ?? [])
+              .map((adm) => adm?.id)
+              .filter((id): id is string => typeof id === 'string' && !!id)}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             type={MedTypeEnum.ADM}

@@ -20,6 +20,8 @@ export interface ISTagSearchSelectProps
   large?: boolean;
   asyncLoad?: boolean;
   selected?: (string | number)[];
+  lockSelected?: boolean;
+  preserveOptionOrder?: boolean;
   keys?: Fuse.FuseOptionKey<any>[];
   preventOpen?: boolean;
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;

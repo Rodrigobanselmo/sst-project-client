@@ -26,6 +26,7 @@ export const EpiSelect: FC<{ children?: any } & IEpiSelectProps> = ({
   text,
   multiple = true,
   selected,
+  selectedItems,
   onlyEpi = false,
   ...props
 }) => {
@@ -79,12 +80,33 @@ export const EpiSelect: FC<{ children?: any } & IEpiSelectProps> = ({
   };
 
   const options = useMemo(() => {
-    return data.map((epi) => ({
+    const mapEpi = (epi: IEpi) => ({
       name: (!isNaEpi(epi.ca) ? epi.ca + ' ' : '') + epi.equipment,
       value: epi.id,
       ...epi,
-    }));
-  }, [data]);
+    });
+    const query = search.trim().toLowerCase();
+    const queried = data.map(mapEpi);
+    const pinned = (selectedItems ?? [])
+      .filter((epi) => !!epi?.id)
+      .filter((epi) => {
+        if (!query) return true;
+        const ca = String(epi.ca || '').toLowerCase();
+        const equipment = String(epi.equipment || '').toLowerCase();
+        return ca.includes(query) || equipment.includes(query);
+      })
+      .map(mapEpi);
+    if (!pinned.length) return queried;
+    const seen = new Set<string>();
+    const merged: typeof queried = [];
+    for (const item of [...pinned, ...queried]) {
+      const id = String(item.id ?? item.value ?? '');
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      merged.push(item);
+    }
+    return merged;
+  }, [data, search, selectedItems]);
 
   const epiLength = String(selected ? selected.length : 0);
 

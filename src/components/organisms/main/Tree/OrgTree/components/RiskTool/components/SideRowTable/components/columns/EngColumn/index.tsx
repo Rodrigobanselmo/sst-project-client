@@ -26,6 +26,10 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
         onlyFromActualRisks
         tooltipTitle=""
         multiple={false}
+        lockSelected
+        selectedMed={(data?.engs ?? [])
+          .map((eng) => eng?.id)
+          .filter((id): id is string => typeof id === 'string' && !!id)}
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
         type={MedTypeEnum.ENG}

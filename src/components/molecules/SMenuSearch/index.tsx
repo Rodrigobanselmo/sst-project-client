@@ -12,6 +12,10 @@ import { useDebouncedCallback } from 'use-debounce';
 import { IdsEnum } from 'core/enums/ids.enums';
 
 import { resolveFuseSearchQuery } from './resolve-fuse-search-query';
+import {
+  applyLockedSelectedState,
+  sortByOptionOrder,
+} from './apply-locked-selected-state.util';
 import { SMenuSearchItems } from './SMenuSearchItems';
 import { STMenu, STSInput } from './styles';
 import { IMenuSearchOption, SMenuSearchProps } from './types';
@@ -31,6 +35,8 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
   width = 500,
   multiple,
   selected,
+  lockSelected,
+  preserveOptionOrder,
   additionalButton,
   confirmSelectionOnClose = true,
   renderFilter,
@@ -103,19 +109,12 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
 
   const optionsMemoized = useMemo(() => {
-    if (!selected) return options;
-
-    const selectedResult = options
-      .filter((option) => selected.includes(option[valueField]))
-      .map((select) => ({ ...select, checked: true }));
-
-    const optionsResult =
-      options?.filter((option) => !selected.includes(option[valueField])) ||
-      options;
-
-    return [...selectedResult, ...optionsResult];
+    return applyLockedSelectedState(options, selected, valueField, {
+      lockSelected,
+      preserveOptionOrder,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, selected]);
+  }, [options, selected, lockSelected, preserveOptionOrder, valueField]);
 
   function removeAccents(obj: any) {
     if (typeof obj === 'string' || obj instanceof String) {
@@ -146,13 +145,20 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
   const fuseResults = asyncLoad
     ? null
     : fuse.search(diacritics.remove(fuseQuery), { limit: 20 + 40 * scroll });
-  const results = asyncLoad
+  const searched = asyncLoad
     ? optionsMemoized
     : search
       ? fuseResults.map((result: any) => result.item)
       : optionsMemoized
           .filter((option) => !(option?.hideWithoutSearch && !option?.checked))
           .slice(0, 20 + 200 * scroll);
+  const results = search
+    ? preserveOptionOrder
+      ? sortByOptionOrder(searched, optionsMemoized, valueField)
+      : applyLockedSelectedState(searched, selected, valueField, {
+          lockSelected,
+        })
+    : searched;
 
   return (
     <STMenu
@@ -257,6 +263,7 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
           icon={icon}
           localSelected={localSelected}
           multiple={multiple}
+          preserveOptionOrder={preserveOptionOrder}
           defaultChecked
           listRef={listWrapperRef}
           handleMultiSelectMenu={handleMultiSelectMenu}

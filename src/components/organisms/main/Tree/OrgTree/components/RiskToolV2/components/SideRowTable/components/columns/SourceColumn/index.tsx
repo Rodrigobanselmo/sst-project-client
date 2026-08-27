@@ -47,6 +47,10 @@ export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
             tooltipTitle=""
             multiple
             confirmSelectionOnClose={false}
+            lockSelected
+            selectedGS={(data?.generateSources ?? [])
+              .map((gs) => gs?.id)
+              .filter((id): id is string => typeof id === 'string' && !!id)}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             onCreate={(generateSource) => {

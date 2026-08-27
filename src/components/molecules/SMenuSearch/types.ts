@@ -9,6 +9,8 @@ export interface IMenuSearchOption extends Record<string, any> {
   value?: string | number;
   name?: string;
   checked?: boolean;
+  /** Já vinculado: visível, mas não pode ser selecionado de novo. */
+  locked?: boolean;
   hideWithoutSearch?: boolean;
   icon?: ElementType<any>;
 }
@@ -31,6 +33,13 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   placeholder?: string;
   options: IMenuSearchOption[];
   selected?: (string | number)[];
+  /**
+   * Quando true, itens em `selected` ficam visíveis/marcados e não podem
+   * ser clicados de novo (já vinculados no RiskTool).
+   */
+  lockSelected?: boolean;
+  /** Mantém a ordem recebida em `options` (RecSelect já ordena por recType). */
+  preserveOptionOrder?: boolean;
   optionsFieldName?: { valueField?: string; contentField?: string };
   multiple?: boolean;
   /**

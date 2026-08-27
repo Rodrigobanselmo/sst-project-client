@@ -153,6 +153,8 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             confirmSelectionOnClose={false}
             resolveMultipleAsItems
             enableRecTypeQuickClassify
+            lockSelected
+            selectedRec={validRecs.map((rec) => rec.id)}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             onCreate={(rec) => {

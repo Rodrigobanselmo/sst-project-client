@@ -20,6 +20,7 @@ import {
   REC_TYPE_HIERARCHY_ORDER,
   resolveRecTypeVisualState,
   shouldSelectRecOnListClick,
+  sortRecsBySelectorHierarchy,
   sortRecsByTypeHierarchy,
   stopRecSelectAdornmentEvent,
 } from './resolve-rec-type-visual-state.util';
@@ -162,6 +163,15 @@ assert.deepEqual(sortRecsByTypeHierarchy(recs).map((rec) => rec.id), [
 ]);
 assert.deepEqual(recs.map((rec) => rec.id), recIdsBeforeSort);
 
+assert.deepEqual(
+  sortRecsBySelectorHierarchy(recs, ['adm-2', 'epi-1']).map((rec) => rec.id),
+  ['eng-1', 'adm-2', 'adm-1', 'epi-1', 'miss-1'],
+);
+assert.deepEqual(
+  sortRecsBySelectorHierarchy(recs, []).map((rec) => rec.id),
+  ['eng-1', 'adm-1', 'adm-2', 'epi-1', 'miss-1'],
+);
+
 let handleSelectCalls = 0;
 const handleSelect = () => {
   handleSelectCalls += 1;
@@ -184,6 +194,8 @@ assert.equal(recSelectSource.includes('SMeasureControlIcon'), true);
 assert.equal(recSelectSource.includes('RecSelectRecTypeAdornment'), true);
 assert.equal(recSelectSource.includes('RecSelectTypeFilterBar'), true);
 assert.equal(recSelectSource.includes('filterRecsByType'), true);
+assert.equal(recSelectSource.includes('sortRecsBySelectorHierarchy'), true);
+assert.equal(recSelectSource.includes('preserveOptionOrder={enableRecTypeQuickClassify}'), true);
 assert.equal(recSelectSource.includes("useState<RecTypeListFilter>('all')"), true);
 assert.equal(recSelectSource.includes("setRecTypeFilter('all')"), true);
 assert.equal(recSelectSource.includes('onChange={setRecTypeFilter}'), true);
@@ -235,6 +247,8 @@ assert.equal(recColumnV1.includes('enableRecTypeQuickClassify'), true);
 assert.equal(recColumnV1.includes('sortRecsByTypeHierarchy'), true);
 assert.equal(recColumnV1.includes('displayedRecs'), true);
 assert.equal(recColumnV1.includes('recType={rec.recType ?? null}'), true);
+assert.equal(recColumnV1.includes('lockSelected'), true);
+assert.equal(recColumnV1.includes('selectedRec={validRecs.map((rec) => rec.id)}'), true);
 
 const recColumnV2 = readFileSync(
   resolve(
@@ -247,6 +261,8 @@ assert.equal(recColumnV2.includes('resolveMultipleAsItems'), true);
 assert.equal(recColumnV2.includes('sortRecsByTypeHierarchy'), true);
 assert.equal(recColumnV2.includes('displayedRecs'), true);
 assert.equal(recColumnV2.includes('recType={rec.recType ?? null}'), true);
+assert.equal(recColumnV2.includes('lockSelected'), true);
+assert.equal(recColumnV2.includes('selectedRec={validRecs.map((rec) => rec.id)}'), true);
 assert.equal(recColumnV1.includes('resolveMultipleAsItems'), false);
 
 const selectedTableItemV1 = readFileSync(
@@ -277,6 +293,7 @@ const checklistNode = readFileSync(
 );
 assert.equal(checklistNode.includes('enableRecTypeQuickClassify'), false);
 assert.equal(checklistNode.includes('resolveMultipleAsItems'), false);
+assert.equal(checklistNode.includes('lockSelected'), false);
 
 const checklistModal = readFileSync(
   resolve(
@@ -286,6 +303,7 @@ const checklistModal = readFileSync(
 );
 assert.equal(checklistModal.includes('enableRecTypeQuickClassify'), false);
 assert.equal(checklistModal.includes('resolveMultipleAsItems'), false);
+assert.equal(checklistModal.includes('lockSelected'), false);
 assert.equal(checklistNode.includes('RecSelectTypeFilterBar'), false);
 assert.equal(checklistModal.includes('RecSelectTypeFilterBar'), false);
 

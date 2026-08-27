@@ -51,6 +51,14 @@ export const EpiColumn: FC<{ children?: any } & EpiColumnProps> = ({
             text={'adicionar'}
             tooltipTitle=""
             multiple={false}
+            lockSelected
+            selected={(data?.epis ?? [])
+              .map((epi) => epi?.id)
+              .filter((id): id is number => typeof id === 'number')}
+            selectedItems={(data?.epis ?? []).filter(
+              (epi): epi is IEpi =>
+                !!epi && typeof epi.id === 'string' && !!epi.id,
+            )}
             handleSelect={(options: IEpi) => {
               if (options.id)
                 handleSelect(

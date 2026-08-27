@@ -24,6 +24,10 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
         text={'adicionar'}
         tooltipTitle=""
         multiple={false}
+        lockSelected
+        selectedMed={(data?.adms ?? [])
+          .map((adm) => adm?.id)
+          .filter((id): id is string => typeof id === 'string' && !!id)}
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
         type={MedTypeEnum.ADM}
