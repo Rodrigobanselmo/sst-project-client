@@ -251,8 +251,8 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           </SText>
           {item.text.split('\n').map((text, index) => (
             <StyledText
-              entityRange={[]}
-              inlineStyleRange={[]}
+              entityRange={item.entityRangeBlock?.[index] || []}
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               lineHeight={item.lineHeightBlock?.[index]}
@@ -269,8 +269,8 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
-              entityRange={[]}
-              inlineStyleRange={[]}
+              entityRange={item.entityRangeBlock?.[index] || []}
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               lineHeight={item.lineHeightBlock?.[index]}
@@ -287,8 +287,8 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
-              entityRange={[]}
-              inlineStyleRange={[]}
+              entityRange={item.entityRangeBlock?.[index] || []}
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               lineHeight={item.lineHeightBlock?.[index]}
@@ -305,8 +305,8 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
-              entityRange={[]}
-              inlineStyleRange={[]}
+              entityRange={item.entityRangeBlock?.[index] || []}
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               lineHeight={item.lineHeightBlock?.[index]}
@@ -323,8 +323,8 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
-              entityRange={[]}
-              inlineStyleRange={[]}
+              entityRange={item.entityRangeBlock?.[index] || []}
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               lineHeight={item.lineHeightBlock?.[index]}
@@ -341,8 +341,8 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
-              entityRange={[]}
-              inlineStyleRange={[]}
+              entityRange={item.entityRangeBlock?.[index] || []}
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               lineHeight={item.lineHeightBlock?.[index]}
@@ -359,8 +359,8 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           <HeadingNumberBadge number={headingNumbering[item.id]?.number} />
           {item.text.split('\n').map((text, index) => (
             <StyledText
-              entityRange={[]}
-              inlineStyleRange={[]}
+              entityRange={item.entityRangeBlock?.[index] || []}
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               lineHeight={item.lineHeightBlock?.[index]}

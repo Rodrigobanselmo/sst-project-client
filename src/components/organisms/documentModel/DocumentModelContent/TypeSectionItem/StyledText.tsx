@@ -110,6 +110,7 @@ export const StyledText: FC<
                   beforeWrapper: '{{',
                   afterWrapper: '}}',
                   addSpan: true,
+                  segmentStyle: currentStyle,
                 }).text
               }
             </span>,
@@ -135,6 +136,7 @@ export const StyledText: FC<
               beforeWrapper: '{{',
               afterWrapper: '}}',
               addSpan: true,
+              segmentStyle: currentStyle,
             }).text
           }
         </span>,

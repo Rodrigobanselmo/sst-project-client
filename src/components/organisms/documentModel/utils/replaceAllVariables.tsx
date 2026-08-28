@@ -1,5 +1,6 @@
 import { IDocVariables } from 'core/interfaces/api/IDocumentModel';
 import { isOdd } from 'core/utils/helpers/isOdd';
+import React from 'react';
 
 export interface IReplaceAllVarItem {
   data: IDocVariables['string'];
@@ -18,6 +19,7 @@ export const replaceAllVariables = (
     beforeWrapper?: string;
     afterWrapper?: string;
     addSpan?: boolean;
+    segmentStyle?: React.CSSProperties;
   },
 ) => {
   if (text) {
@@ -60,7 +62,16 @@ export const replaceAllVariables = (
         actualLength = actualLength + transformedVariable.length;
         if (options?.addSpan)
           // eslint-disable-next-line react/jsx-key
-          return <span style={{ color: 'blue' }}>{transformedVariable}</span>;
+          return (
+            <span
+              style={{
+                ...(options.segmentStyle || {}),
+                color: 'blue',
+              }}
+            >
+              {transformedVariable}
+            </span>
+          );
 
         return transformedVariable;
       }
