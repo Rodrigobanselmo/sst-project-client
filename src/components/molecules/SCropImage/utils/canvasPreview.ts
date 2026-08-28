@@ -8,6 +8,7 @@ export async function canvasPreview(
   crop: PixelCrop,
   scale = 1,
   rotate = 0,
+  preserveAlpha = false,
 ) {
   const ctx = canvas.getContext('2d');
 
@@ -30,8 +31,12 @@ export async function canvasPreview(
   canvas.width = Math.floor(crop.width * scaleX * pixelRatio);
   canvas.height = Math.floor(crop.height * scaleY * pixelRatio);
 
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (preserveAlpha) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   ctx.scale(pixelRatio, pixelRatio);
   ctx.imageSmoothingQuality = 'high';

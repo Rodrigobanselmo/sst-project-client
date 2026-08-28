@@ -7,6 +7,7 @@ import { useAuth } from '../../../core/contexts/AuthContext';
 import { useAppSelector } from '../../../core/hooks/useAppSelector';
 import { selectRouteLoad } from '../../../store/reducers/routeLoad/routeLoadSlice';
 import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
+import { resolveSidebarLogo } from 'core/utils/company/resolve-visual-identity-logo';
 import {
   STBoxChildren,
   STLoadLogoSimpleIcon,
@@ -25,10 +26,7 @@ export const DashboardLoadingFeedback: FC<React.PropsWithChildren<any>> = ({
       companyId: user?.companyId || '',
     });
 
-  // Prioriza customLogoUrl, depois logoUrl
-  const companyLogo =
-    visualIdentity?.visualIdentityEnabled &&
-    (visualIdentity?.customLogoUrl || visualIdentity?.logoUrl);
+  const companyLogo = resolveSidebarLogo(visualIdentity);
 
   const renderLoadingLogo = () => {
     // Se ainda está carregando a identidade visual, mostra spinner
@@ -50,8 +48,8 @@ export const DashboardLoadingFeedback: FC<React.PropsWithChildren<any>> = ({
     if (companyLogo) {
       return (
         <STCompanyLogoLoading
-          src={visualIdentity.customLogoUrl || visualIdentity.logoUrl!}
-          alt={visualIdentity.shortName || 'Logo'}
+          src={companyLogo!}
+          alt={visualIdentity?.shortName || 'Logo'}
         />
       );
     }

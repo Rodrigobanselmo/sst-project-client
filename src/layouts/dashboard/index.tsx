@@ -1,13 +1,11 @@
 import React, { FC } from 'react';
 
-import { Global } from '@emotion/react';
 import { LoadingFeedback } from 'layouts/default/loading';
 import { useRouter } from 'next/router';
 
 import { Sidebar } from '../../components/organisms/main/Sidebar';
 import { SidebarDrawerProvider } from '../../core/contexts/SidebarContext';
 import { RoutesEnum } from '../../core/enums/routes.enums';
-import globalStylesDashboard from '../../core/styles/globalStylesDashboard';
 import { DashboardLoadingFeedback } from './loading';
 import { STBoxContent, STBoxSidebar, STGridBox, STBoxAIChat } from './styles';
 import { KBarRegisterDashboard } from 'layouts/default/KBar/KBarProvider';
@@ -24,10 +22,9 @@ const DashboardLayoutContent: FC<React.PropsWithChildren<any>> = ({
     return (
       <>
         <SidebarDrawerProvider>
-          <Global styles={globalStylesDashboard} />
-          <STGridBox p={2} pl={0}>
+          <STGridBox>
             <div />
-            <STBoxContent borderRadius={3}>
+            <STBoxContent>
               <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
             </STBoxContent>
           </STGridBox>
@@ -42,16 +39,13 @@ const DashboardLayoutContent: FC<React.PropsWithChildren<any>> = ({
     <>
       <KBarRegisterDashboard />
       <SidebarDrawerProvider>
-        <Global styles={globalStylesDashboard} />
         <STGridBox
-          p={2}
-          pl={0}
           ai_chat_width={isAIChatEnabled && isOpen ? panelWidth + 5 : 0}
         >
           <STBoxSidebar>
             <Sidebar />
           </STBoxSidebar>
-          <STBoxContent borderRadius={3}>
+          <STBoxContent>
             <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
           </STBoxContent>
           {isAIChatEnabled && (

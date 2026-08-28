@@ -11,7 +11,9 @@ export const STGridBox = styled(Box)<STGridBoxProps>`
   grid-template-columns: fit-content(0px) 1fr ${(props) =>
       props.ai_chat_width ? `${props.ai_chat_width}px` : '0px'};
   height: 100vh;
-  background-color: ${(props) => props.theme.palette.sidebar.background};
+  column-gap: 0;
+  row-gap: 0;
+  background-color: ${(props) => props.theme.palette.background.default};
   transition: grid-template-columns 0.3s ease;
 `;
 
@@ -25,8 +27,11 @@ export const STBoxContent = styled(Box)`
   flex-flow: column;
   display: flex;
   overflow: hidden;
-  box-shadow: inset 7px 0 9px -7px rgba(0, 0, 0, 0.9);
   background-color: ${(props) => props.theme.palette.background.default};
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  outline: none;
 `;
 
 export const STBoxAIChat = styled(Box)`

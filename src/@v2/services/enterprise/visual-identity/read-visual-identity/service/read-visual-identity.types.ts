@@ -9,6 +9,8 @@ export interface IVisualIdentityModel {
   shortName: string | null;
   logoUrl: string | null;
   customLogoUrl: string | null;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
   sidebarBackgroundColor: string | null;
   applicationBackgroundColor: string | null;
   visualIdentityEnabled: boolean;

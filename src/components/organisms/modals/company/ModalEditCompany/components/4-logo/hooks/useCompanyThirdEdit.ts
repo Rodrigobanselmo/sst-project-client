@@ -31,6 +31,8 @@ export const useCompanyEdit = ({
     'metadata.primaryColor',
     'metadata.visualIdentityEnabled',
     'metadata.customLogoUrl',
+    'metadata.logoLightUrl',
+    'metadata.logoDarkUrl',
     'metadata.sidebarBackgroundColor',
     'metadata.interfaceTheme',
   ];
@@ -69,7 +71,8 @@ export const useCompanyEdit = ({
       name: 'Logo da empresa',
       freeAspect: true,
       imageExtension: 'png',
-      accept: ['image/*', '.heic'],
+      saveAsIs: true,
+      accept: ['image/png', 'image/*', '.heic'],
       onConfirm: async (photo) => {
         const addLocalPhoto = (src: string) => {
           setCompanyData((oldData) => ({
@@ -89,12 +92,15 @@ export const useCompanyEdit = ({
     } as Partial<typeof initialPhotoState>);
   };
 
-  const handleAddCustomLogo = () => {
+  const handleAddMetadataLogo = (
+    key: 'customLogoUrl' | 'logoLightUrl' | 'logoDarkUrl',
+    name: string,
+  ) => {
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
-      name: 'Logo customizado da sidebar',
+      name,
       freeAspect: true,
       imageExtension: 'png',
-      saveAsIs: true, // Skip cropping/resizing to preserve PNG transparency
+      saveAsIs: true,
       accept: ['image/png'],
       onConfirm: async (photo) => {
         const addLocalPhoto = (src: string) => {
@@ -102,7 +108,7 @@ export const useCompanyEdit = ({
             ...oldData,
             metadata: {
               ...oldData.metadata,
-              customLogoUrl: src,
+              [key]: src,
             },
           }));
         };
@@ -118,6 +124,13 @@ export const useCompanyEdit = ({
     } as Partial<typeof initialPhotoState>);
   };
 
+  const handleAddCustomLogo = () =>
+    handleAddMetadataLogo('customLogoUrl', 'Logo padrão da interface');
+  const handleAddLightLogo = () =>
+    handleAddMetadataLogo('logoLightUrl', 'Logo para modo Claro');
+  const handleAddDarkLogo = () =>
+    handleAddMetadataLogo('logoDarkUrl', 'Logo para modo Escuro');
+
   const handleRemovePhoto = async () => {
     await updateCompany
       .mutateAsync({ logoUrl: '', id: companyData.id })
@@ -129,15 +142,21 @@ export const useCompanyEdit = ({
     }));
   };
 
-  const handleRemoveCustomLogo = () => {
+  const handleRemoveMetadataLogo = (
+    key: 'customLogoUrl' | 'logoLightUrl' | 'logoDarkUrl',
+  ) => {
     setCompanyData((oldData) => ({
       ...oldData,
       metadata: {
         ...oldData.metadata,
-        customLogoUrl: '',
+        [key]: '',
       },
     }));
   };
+
+  const handleRemoveCustomLogo = () => handleRemoveMetadataLogo('customLogoUrl');
+  const handleRemoveLightLogo = () => handleRemoveMetadataLogo('logoLightUrl');
+  const handleRemoveDarkLogo = () => handleRemoveMetadataLogo('logoDarkUrl');
 
   return {
     onSubmit,
@@ -148,7 +167,11 @@ export const useCompanyEdit = ({
     setValue,
     handleAddPhoto,
     handleAddCustomLogo,
+    handleAddLightLogo,
+    handleAddDarkLogo,
     handleRemovePhoto,
     handleRemoveCustomLogo,
+    handleRemoveLightLogo,
+    handleRemoveDarkLogo,
   };
 };

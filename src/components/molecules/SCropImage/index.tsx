@@ -32,6 +32,7 @@ interface SCropImageProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   onSelect?: (options: { dataUrl?: string; crop?: PixelCrop }) => void;
   maxHeight?: number;
+  preserveAlpha?: boolean;
 }
 
 export default function SCropImage({
@@ -42,6 +43,7 @@ export default function SCropImage({
   maxHeight = 520,
   canvasRef,
   canCancel,
+  preserveAlpha = false,
 }: SCropImageProps) {
   const [imgSrc, setImgSrc] = useState('');
   const imgRef = useRef<HTMLImageElement>(null);
@@ -134,7 +136,14 @@ export default function SCropImage({
     }
 
     if (crop?.width && crop?.height && imgRef.current && canvasRef.current) {
-      canvasPreview(imgRef.current, canvasRef.current, crop, scale, rotate);
+      canvasPreview(
+        imgRef.current,
+        canvasRef.current,
+        crop,
+        scale,
+        rotate,
+        preserveAlpha,
+      );
     }
 
     onSelect?.({ dataUrl: canvasRef.current?.toDataURL(), crop });
@@ -151,7 +160,14 @@ export default function SCropImage({
     }
 
     if (crop?.width && crop?.height && imgRef.current && canvasRef.current) {
-      canvasPreview(imgRef.current, canvasRef.current, crop, scale, rotate);
+      canvasPreview(
+        imgRef.current,
+        canvasRef.current,
+        crop,
+        scale,
+        rotate,
+        preserveAlpha,
+      );
     }
 
     onSelect?.({ crop });

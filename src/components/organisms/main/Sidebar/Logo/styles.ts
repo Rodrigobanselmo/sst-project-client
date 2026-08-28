@@ -21,6 +21,7 @@ export const STCompanyLogo = styled('img')`
   min-height: 2rem;
   max-height: 2rem;
   object-fit: contain;
+  background-color: transparent;
   border-radius: 4px;
   cursor: pointer;
 `;

@@ -19,7 +19,8 @@ import { useCompanyEdit } from './hooks/useCompanyThirdEdit';
 const StyledImage = styled('img')`
   height: 150px;
   max-width: 300px;
-  border: 2px solid ${({ theme }) => theme.palette.grey[300]};
+  border: 2px solid ${({ theme }) => theme.palette.divider};
+  background-color: transparent;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 8px;
   border-radius: 8px;
@@ -42,8 +43,12 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
     onCloseUnsaved,
     handleAddPhoto,
     handleAddCustomLogo,
+    handleAddLightLogo,
+    handleAddDarkLogo,
     handleRemovePhoto,
     handleRemoveCustomLogo,
+    handleRemoveLightLogo,
+    handleRemoveDarkLogo,
     previousStep,
     setValue,
   } = useCompanyEdit(props);
@@ -187,11 +192,11 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
           />
 
           <SText color="text.label" fontSize={14} mb={-2} mt={4}>
-            Logo customizado da sidebar
+            Logo padrão da interface
           </SText>
           <SFlex align="center" gap={4}>
             <StyledImage
-              alt="Logo customizado"
+              alt="Logo padrão da interface"
               src={
                 companyData.metadata?.customLogoUrl ||
                 '/images/placeholder-image.png'
@@ -200,8 +205,58 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             />
             {companyData.metadata?.customLogoUrl && (
               <SIconButton
-                tooltip="Remover logo customizado"
+                tooltip="Remover logo padrão"
                 onClick={handleRemoveCustomLogo}
+                size="small"
+              >
+                <SDeleteIcon />
+              </SIconButton>
+            )}
+          </SFlex>
+          <SText color="text.light" fontSize={12} mt={-2}>
+            Fallback quando o modo Claro ou Escuro não tiver logo própria.
+            PNG com transparência.
+          </SText>
+
+          <SText color="text.label" fontSize={14} mb={-2} mt={4}>
+            Logo para modo Claro
+          </SText>
+          <SFlex align="center" gap={4}>
+            <StyledImage
+              alt="Logo modo claro"
+              src={
+                companyData.metadata?.logoLightUrl ||
+                '/images/placeholder-image.png'
+              }
+              onClick={handleAddLightLogo}
+            />
+            {companyData.metadata?.logoLightUrl && (
+              <SIconButton
+                tooltip="Remover logo do modo claro"
+                onClick={handleRemoveLightLogo}
+                size="small"
+              >
+                <SDeleteIcon />
+              </SIconButton>
+            )}
+          </SFlex>
+
+          <SText color="text.label" fontSize={14} mb={-2} mt={4}>
+            Logo para modo Escuro
+          </SText>
+          <SFlex align="center" gap={4}>
+            <StyledImage
+              alt="Logo modo escuro"
+              src={
+                companyData.metadata?.logoDarkUrl ||
+                '/images/placeholder-image.png'
+              }
+              onClick={handleAddDarkLogo}
+            />
+            {companyData.metadata?.logoDarkUrl && (
+              <SIconButton
+                tooltip="Remover logo do modo escuro"
+                onClick={handleRemoveDarkLogo}
                 size="small"
               >
                 <SDeleteIcon />

@@ -7,6 +7,9 @@ import Text from '@mui/material/Typography';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
+import { resolveHeaderLogo } from 'core/utils/company/resolve-visual-identity-logo';
+import { useTheme } from '@mui/material/styles';
 
 import { useDisclosure } from '../../../../../core/hooks/useDisclosure';
 import { NavPopper } from './components/NavPopper';
@@ -14,13 +17,19 @@ import { IProfileProps } from './types';
 
 export function Profile({
   showProfileData = true,
+  compact = false,
 }: IProfileProps): JSX.Element {
   const anchorEl = useRef<null | HTMLDivElement>(null);
   const { user } = useAuth();
+  const theme = useTheme();
+  const { data: company } = useQueryCompany(user?.companyId);
+  const { visualIdentity } = useFetchVisualIdentity({
+    companyId: user?.companyId || '',
+  });
+  const logoSrc =
+    resolveHeaderLogo(visualIdentity, theme.palette.mode) || company?.logoUrl;
 
   const { isOpen, toggle, close } = useDisclosure();
-  const { data: company } = useQueryCompany(user?.companyId);
-
   const name = user?.name || 'Usuário não identificado';
   const email = user?.email || '';
 
@@ -43,26 +52,49 @@ export function Profile({
           </Text>
         </Box>
       )}
-      <Avatar
-        ref={anchorEl}
-        src={company?.logoUrl || undefined}
-        alt={name}
-        sx={{
-          // backgroundColor: stringToColor(name),
-          backgroundColor: 'gray.700',
-          width: ['32px', '48px'],
-          height: ['32px', '48px'],
-          ...(company?.logoUrl && { borderRadius: '0px' }),
-          '& .MuiAvatar-img': {
-            backgroundColor: 'background.default',
-            objectFit: 'contain',
-            p: 1,
-          },
-        }}
-      >
-        {name.split(' ')[0][0]}
-        {name.split(' ')[1]?.[0] || ''}
-      </Avatar>
+      {logoSrc ? (
+        <Box
+          ref={anchorEl}
+          sx={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: compact ? 40 : [44, 56, 72],
+            width: compact ? 104 : [112, 152, 200],
+            maxHeight: '100%',
+            backgroundColor: 'transparent',
+          }}
+        >
+          <Box
+            component="img"
+            src={logoSrc}
+            alt={name}
+            sx={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              objectPosition: 'right center',
+              backgroundColor: 'transparent',
+              p: 0,
+            }}
+          />
+        </Box>
+      ) : (
+        <Avatar
+          ref={anchorEl}
+          alt={name}
+          sx={{
+            backgroundColor: 'grey.700',
+            width: compact ? '36px' : ['40px', '48px', '56px'],
+            height: compact ? '36px' : ['40px', '48px', '56px'],
+            flexShrink: 0,
+          }}
+        >
+          {name.split(' ')[0][0]}
+          {name.split(' ')[1]?.[0] || ''}
+        </Avatar>
+      )}
 
       <NavPopper isOpen={isOpen} anchorEl={anchorEl} close={close} />
     </Box>

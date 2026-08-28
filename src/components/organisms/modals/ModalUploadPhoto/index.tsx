@@ -389,6 +389,7 @@ export const ModalUploadPhoto: FC<
             try {
               const { file, dataUrl } = await imageBlobCompress({
                 blob,
+                imageExtension: photoData.imageExtension,
                 ...photoData.compressProps,
               });
               await photoData.onConfirm({
@@ -660,6 +661,7 @@ export const ModalUploadPhoto: FC<
               onSelect={handleCrop}
               file={photoData.files?.[0]}
               imageUrl={!photoData.files?.[0] ? photoData.url : undefined}
+              preserveAlpha={photoData.imageExtension === 'png'}
             />
           </Box>
         )}

@@ -52,6 +52,7 @@ export const STCompanyLogoLoading = styled('img')`
   animation: ${SlideUp} 1.5s;
   animation-iteration-count: infinite;
   object-fit: contain;
+  background-color: transparent;
   border-radius: 8px;
 `;
 

@@ -1,9 +1,10 @@
 import { RiCloseFill, RiMenu3Fill } from 'react-icons/ri';
 
-import { Box, Icon, Typography, useTheme } from '@mui/material';
+import { Box, Icon, Typography } from '@mui/material';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
+import { resolveSidebarLogo } from 'core/utils/company/resolve-visual-identity-logo';
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import SIconButton from '../../../../atoms/SIconButton';
 import { STStack, STTypography, STLogoSimple, STCompanyLogo } from './styles';
@@ -18,17 +19,14 @@ export function LogoNavbar(): JSX.Element {
 
   const hasCustomIdentity =
     visualIdentity?.visualIdentityEnabled && visualIdentity?.shortName;
-  // Prioriza customLogoUrl, depois logoUrl
-  const customLogo =
-    visualIdentity?.visualIdentityEnabled &&
-    (visualIdentity?.customLogoUrl || visualIdentity?.logoUrl);
+  const sidebarLogo = resolveSidebarLogo(visualIdentity);
 
   return (
     <STStack direction="row">
-      {customLogo ? (
+      {sidebarLogo ? (
         <STCompanyLogo
-          src={visualIdentity.customLogoUrl || visualIdentity.logoUrl!}
-          alt={visualIdentity.shortName || 'Logo'}
+          src={sidebarLogo}
+          alt={visualIdentity?.shortName || 'Logo'}
           onClick={isOpen ? close : open}
         />
       ) : (
@@ -56,7 +54,7 @@ export function LogoNavbar(): JSX.Element {
               color: 'grey.100',
             }}
           >
-            {visualIdentity.shortName}
+            {visualIdentity?.shortName}
           </Typography>
         </Box>
       ) : (

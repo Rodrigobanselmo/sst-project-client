@@ -79,7 +79,7 @@ export function Header(): JSX.Element {
           </IconButton>
         </STooltip>
         <NotificationNav />
-        <Profile showProfileData={!isTablet} />
+        <Profile showProfileData={!isTablet} compact={isCompanyFlow} />
       </Stack>
     </Stack>
   );
