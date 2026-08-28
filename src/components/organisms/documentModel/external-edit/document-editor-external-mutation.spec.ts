@@ -556,12 +556,12 @@ run('21. Strong Save intacto — gate termina antes do snapshot', () => {
   );
   assert.equal(
     persistFn.indexOf('syncDocumentEditorExternalMutationsBeforeSave') <
-      persistFn.indexOf('freezeDocumentModelSaveSnapshot'),
+      persistFn.indexOf('prepareDocumentModelSaveSnapshot'),
     true,
   );
   assert.equal(
-    persistFn.indexOf('freezeDocumentModelSaveSnapshot') <
-      persistFn.indexOf('hashDocumentModelData'),
+    persistFn.indexOf('prepareDocumentModelSaveSnapshot') <
+      persistFn.indexOf('mutateAsync'),
     true,
   );
   assert.equal(persistFn.includes('/save'), false);
@@ -958,14 +958,171 @@ run('GATE sync-before-save reconcilia DOM pendente e só então hasheia', () => 
   );
   assert.equal(
     persistFn.indexOf('syncDocumentEditorExternalMutationsBeforeSave') <
-      persistFn.indexOf('freezeDocumentModelSaveSnapshot'),
+      persistFn.indexOf('prepareDocumentModelSaveSnapshot'),
     true,
   );
   assert.equal(
-    persistFn.indexOf('freezeDocumentModelSaveSnapshot') <
-      persistFn.indexOf('hashDocumentModelData'),
+    persistFn.indexOf('prepareDocumentModelSaveSnapshot') <
+      persistFn.indexOf('mutateAsync'),
     true,
   );
+});
+
+run('V2 sync-before-save lê DOM antes do flush do domObserver', () => {
+  const ext = readRel(
+    '../editor-v2/integration/external-edit/v2-external-edit-extension.ts',
+  );
+  const syncNowStart = ext.indexOf('const syncNow =');
+  const snapshotRead = ext.indexOf('const snapshot = readDomSnapshot()', syncNowStart);
+  const syncFrom = ext.indexOf('syncFromSnapshot(snapshot)', syncNowStart);
+  const flushAfter = ext.indexOf('flushDomObserver()', syncNowStart);
+  assert.ok(snapshotRead > syncNowStart);
+  assert.ok(syncFrom > snapshotRead);
+  assert.ok(flushAfter > syncFrom);
+});
+
+run('V2 residual: external mutation → Save → edição manual → segundo Save persiste', () => {
+  const original = buildModel([paragraph('el-a', 'texto antigo')]);
+  let pmState = stateFromModel(original);
+  const selection = createSectionSelection('section-body');
+  const baseline = projectEditorSlice(original, selection);
+
+  const unregister = registerV2ExternalEditSync(() => {
+    const tr = createProseMirrorExternalTextTransaction(pmState, [
+      { blockId: 'el-a', text: 'texto corrigido' },
+    ]);
+    if (!tr || !tr.docChanged) return { ok: true, changed: false };
+    pmState = pmState.apply(tr);
+    return { ok: true, changed: true };
+  });
+
+  const sync = syncDocumentEditorExternalMutationsBeforeSave();
+  assert.equal(sync.ok, true);
+  assert.equal(sync.changed, true);
+
+  const firstPlan = planDocumentEditorV2Persist({
+    surface: 'v2',
+    saveEnabled: true,
+    v2LocalDirty: true,
+    originalModel: original,
+    selectedItem: selection,
+    baselineProjection: baseline,
+    tipTapDoc: pmState.doc.toJSON(),
+  });
+  assert.equal(firstPlan.type, 'patch');
+  if (firstPlan.type !== 'patch') throw new Error('expected patch');
+  assert.equal(
+    firstPlan.candidate.sections[0].children!['section-body'][0].text,
+    'texto corrigido',
+  );
+
+  const savedOriginal = firstPlan.candidate;
+  const persistedBaseline = firstPlan.built.editedProjected;
+
+  const manualTr = createProseMirrorExternalTextTransaction(pmState, [
+    { blockId: 'el-a', text: 'texto manual novo' },
+  ]);
+  assert.ok(manualTr);
+  pmState = pmState.apply(manualTr!);
+
+  const secondPlan = planDocumentEditorV2Persist({
+    surface: 'v2',
+    saveEnabled: true,
+    v2LocalDirty: true,
+    originalModel: savedOriginal,
+    selectedItem: selection,
+    baselineProjection: persistedBaseline,
+    tipTapDoc: pmState.doc.toJSON(),
+  });
+  assert.equal(secondPlan.type, 'patch');
+  if (secondPlan.type !== 'patch') throw new Error('expected patch');
+  assert.equal(
+    secondPlan.candidate.sections[0].children!['section-body'][0].text,
+    'texto manual novo',
+  );
+  assert.equal(
+    secondPlan.candidate.sections[0].children!['section-body'][0].text.includes(
+      'antigo',
+    ),
+    false,
+  );
+
+  unregister();
+});
+
+run('V2 residual: external → Save → nova external → Save persiste', () => {
+  const original = buildModel([paragraph('el-a', 'um dois')]);
+  let pmState = stateFromModel(original);
+  const selection = createSectionSelection('section-body');
+  let baseline = projectEditorSlice(original, selection);
+  let savedOriginal = original;
+
+  const applyExternal = (text: string) => {
+    const tr = createProseMirrorExternalTextTransaction(pmState, [
+      { blockId: 'el-a', text },
+    ]);
+    if (!tr || !tr.docChanged) return { ok: true, changed: false };
+    pmState = pmState.apply(tr);
+    return { ok: true, changed: true };
+  };
+
+  const unregister = registerV2ExternalEditSync(() =>
+    applyExternal('um dois três'),
+  );
+  assert.equal(syncDocumentEditorExternalMutationsBeforeSave().changed, true);
+
+  const firstPlan = planDocumentEditorV2Persist({
+    surface: 'v2',
+    saveEnabled: true,
+    v2LocalDirty: true,
+    originalModel: savedOriginal,
+    selectedItem: selection,
+    baselineProjection: baseline,
+    tipTapDoc: pmState.doc.toJSON(),
+  });
+  assert.equal(firstPlan.type, 'patch');
+  if (firstPlan.type !== 'patch') throw new Error('expected patch');
+  savedOriginal = firstPlan.candidate;
+  baseline = firstPlan.built.editedProjected;
+
+  unregister();
+  const unregister2 = registerV2ExternalEditSync(() =>
+    applyExternal('um dois três quatro'),
+  );
+  assert.equal(syncDocumentEditorExternalMutationsBeforeSave().changed, true);
+
+  const secondPlan = planDocumentEditorV2Persist({
+    surface: 'v2',
+    saveEnabled: true,
+    v2LocalDirty: true,
+    originalModel: savedOriginal,
+    selectedItem: selection,
+    baselineProjection: baseline,
+    tipTapDoc: pmState.doc.toJSON(),
+  });
+  assert.equal(secondPlan.type, 'patch');
+  if (secondPlan.type !== 'patch') throw new Error('expected patch');
+  assert.equal(
+    secondPlan.candidate.sections[0].children!['section-body'][0].text,
+    'um dois três quatro',
+  );
+  unregister2();
+});
+
+run('V2 markPersisted remonta editor após persistência', () => {
+  const session = readRel('../editor-v2/integration/DocumentEditorV2Session.tsx');
+  const markPersisted = session.slice(
+    session.indexOf('const markPersisted'),
+    session.indexOf('const shouldBlockOfficialSave'),
+  );
+  assert.equal(markPersisted.includes('setRemountKey'), true);
+});
+
+run('V2 external reconcile marca dirty e beforeinput distingue digitação', () => {
+  const view = readRel('../editor-v2/integration/DocumentEditorV2SectionView.tsx');
+  assert.equal(view.includes('onExternalReconcile'), true);
+  assert.equal(view.includes('beforeinput'), true);
+  assert.equal(view.includes('userInputPendingRef'), true);
 });
 
 console.log('\nExternal mutation sync: ok');

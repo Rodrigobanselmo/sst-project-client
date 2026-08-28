@@ -35,6 +35,19 @@ export function DocumentEditorV2SectionView({
     useDocumentEditorV2Session();
   const { registerEditor, notifyEditorActivity } = useDocumentEditorV2Host();
   const skipFirstUpdateRef = useRef(true);
+  const userInputPendingRef = useRef(false);
+  const markLocalDirtyRef = useRef(markLocalDirty);
+  markLocalDirtyRef.current = markLocalDirty;
+
+  const absorbExternalMutations = useMemo(
+    () =>
+      AbsorbExternalMutations.configure({
+        onExternalReconcile: (result) => {
+          if (result.changed) markLocalDirtyRef.current();
+        },
+      }),
+    [],
+  );
 
   const content = useMemo(() => {
     if (!documentData) return null;
@@ -56,7 +69,7 @@ export function DocumentEditorV2SectionView({
       extensions: [
         ...createDocumentEditorExtensions(),
         ProtectV2Boundaries,
-        AbsorbExternalMutations,
+        absorbExternalMutations,
       ],
       content: content || undefined,
       editable: !contentSavePending,
@@ -76,15 +89,28 @@ export function DocumentEditorV2SectionView({
           markLocalDirty();
           return;
         }
-        if (skipFirstUpdateRef.current) {
+        if (skipFirstUpdateRef.current && !userInputPendingRef.current) {
           skipFirstUpdateRef.current = false;
           return;
         }
+        userInputPendingRef.current = false;
+        skipFirstUpdateRef.current = false;
         markLocalDirty();
       },
     },
-    [remountKey, content],
+    [remountKey, content, absorbExternalMutations],
   );
+
+  useEffect(() => {
+    if (!editor) return undefined;
+    const onBeforeInput = () => {
+      userInputPendingRef.current = true;
+    };
+    editor.view.dom.addEventListener('beforeinput', onBeforeInput);
+    return () => {
+      editor.view.dom.removeEventListener('beforeinput', onBeforeInput);
+    };
+  }, [editor]);
 
   useEffect(() => {
     registerEditor(editor);

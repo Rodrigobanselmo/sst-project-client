@@ -259,6 +259,7 @@ function DocumentEditorV2SessionInner({
     setV2LocalDirty(false);
     setExperimentNotice(null);
     setBaselineProjection(built.editedProjected);
+    setRemountKey((key) => key + 1);
   }, []);
 
   const shouldBlockOfficialSave = resolveShouldBlockOfficialSave({
