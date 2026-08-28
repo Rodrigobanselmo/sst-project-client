@@ -9,9 +9,9 @@ export const StyledSelect = styled(Select)<{
   legend?: number;
   ssx?: number;
 }>`
-  background-color: ${(props) => props.theme.palette.common.white} !important;
+  background-color: ${(props) => props.theme.palette.background.paper} !important;
   .menu-item {
-    background-color: #dcdcdc !important;
+    background-color: ${(props) => props.theme.palette.background.paper} !important;
   }
 
   -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
@@ -30,7 +30,7 @@ export const StyledSelect = styled(Select)<{
   }
 
   &&&.Mui-focused .MuiOutlinedInput-notchedOutline {
-    border-color: ${(props) => props.theme.palette.primary.main};
+    border-color: ${(props) => props.theme.palette.primary.border};
     border-width: 2px;
   }
 
@@ -40,7 +40,7 @@ export const StyledSelect = styled(Select)<{
       border-width: 2px;
     }
     &&&.Mui-focused .MuiOutlinedInput-notchedOutline {
-      border-color: ${(props) => props.theme.palette.primary.main};
+      border-color: ${(props) => props.theme.palette.primary.border};
       opacity: 1;
     }
   }

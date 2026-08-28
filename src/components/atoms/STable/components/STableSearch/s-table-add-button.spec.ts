@@ -28,7 +28,8 @@ const v2Source = readFileSync(
   'utf8',
 );
 assert.equal(v2Source.includes("text={text ?? 'Adicionar'}"), true);
-assert.equal(v2Source.includes('color="success"'), true);
+assert.equal(v2Source.includes('color="primary"'), true);
+assert.equal(v2Source.includes('color="success"'), false);
 
 const smallTitle = readFileSync(
   resolve(

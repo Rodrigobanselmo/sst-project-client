@@ -10,7 +10,9 @@ interface IProps {
 
 export const STBox = styled(Box)<IProps>`
   padding: ${(props) => props.theme.spacing(5)};
-  background-color: ${(props) => props.theme.palette.background.darkPaper};
+  background-color: ${(props) =>
+    props.theme.palette.primary.emphasisBackground};
+  border: 1px solid ${(props) => props.theme.palette.primary.emphasisBackground};
   border-radius: ${(props) => props.theme.spacing(4)};
   cursor: pointer;
   transition: all 0.2s ease;
@@ -19,41 +21,46 @@ export const STBox = styled(Box)<IProps>`
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    filter: brightness(0.9);
+    background-color: ${(props) =>
+      props.theme.palette.primary.emphasisBackgroundHover};
+    border-color: ${(props) =>
+      props.theme.palette.primary.emphasisBackgroundHover};
   }
 
   &:active {
-    filter: brightness(0.8);
+    filter: brightness(0.96);
   }
 
   svg {
-    color: ${(props) => props.theme.palette.text.secondary};
+    color: ${(props) => props.theme.palette.primary.onEmphasis};
   }
   p {
-    color: ${(props) => props.theme.palette.text.primary};
+    color: ${(props) => props.theme.palette.primary.onEmphasis};
   }
 
   ${(props) =>
     props.active &&
     css`
-      background-color: ${props.theme.palette.info.main};
+      background-color: ${props.theme.palette.primary.emphasisBackground};
+      border-color: ${props.theme.palette.primary.emphasisBackground};
       svg {
-        color: ${props.theme.palette.common.white};
+        color: ${props.theme.palette.primary.onEmphasis};
       }
       p {
-        color: ${props.theme.palette.common.white};
+        color: ${props.theme.palette.primary.onEmphasis};
       }
     `};
 
   ${(props) =>
     props.primary &&
     css`
-      background-color: ${props.theme.palette.primary.main};
+      background-color: ${props.theme.palette.primary.emphasisBackground};
+      border-color: ${props.theme.palette.primary.emphasisBackground};
       svg {
-        color: ${props.theme.palette.common.white};
+        color: ${props.theme.palette.primary.onEmphasis};
       }
       p {
-        color: ${props.theme.palette.common.white};
+        color: ${props.theme.palette.primary.onEmphasis};
       }
     `};
 

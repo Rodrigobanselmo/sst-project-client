@@ -2,6 +2,8 @@ import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
 
+import { QueryKeyCompanyEnum } from '@v2/constants/enums/company-query-key.enum';
+import { v2QueryClient } from '@v2/services/query-client';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -66,6 +68,12 @@ export function useMutUpdateCompany() {
           queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2240]);
           queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2220]);
           queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2210]);
+          await v2QueryClient.invalidateQueries({
+            queryKey: [QueryKeyCompanyEnum.VISUAL_IDENTITY],
+          });
+          await v2QueryClient.refetchQueries({
+            queryKey: [QueryKeyCompanyEnum.VISUAL_IDENTITY],
+          });
         }
 
         enqueueSnackbar('Empresa editada com sucesso', {

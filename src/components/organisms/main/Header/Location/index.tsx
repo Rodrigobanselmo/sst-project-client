@@ -88,7 +88,8 @@ export function Location(): JSX.Element {
                   <NavigateNextIcon
                     key={`breadcrumb-sep-${index}`}
                     sx={{
-                      color: 'gray.500',
+                      color: 'inherit',
+                      opacity: 0.72,
                       ml: -2,
                       mr: -4,
                       fontSize: '20px',
@@ -108,11 +109,12 @@ export function Location(): JSX.Element {
                 {separator}
                 {isClickable ? (
                   <NextLink href={'/' + getRoutePath(route, index)} passHref>
-                    <Link underline="hover">
+                    <Link underline="hover" sx={{ color: 'inherit' }}>
                       <SText
                         sx={{ textTransform: 'capitalize' }}
                         fontSize="0.825rem"
-                        color="gray.500"
+                        fontWeight={500}
+                        color="inherit"
                       >
                         {label}
                       </SText>
@@ -122,7 +124,8 @@ export function Location(): JSX.Element {
                   <SText
                     sx={{ textTransform: 'capitalize' }}
                     fontSize="0.825rem"
-                    color="gray.500"
+                    fontWeight={500}
+                    color="inherit"
                   >
                     {label}
                   </SText>

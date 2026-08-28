@@ -65,7 +65,7 @@ export const StyledGrid = styled(Grid)<IStyledGrid>`
   }
   input:checked + span {
     background-color: ${(props) => props.theme.palette.primary.main};
-    color: ${(props) => props.theme.palette.common.white};
+    color: ${(props) => props.theme.palette.primary.contrastText};
 
     ${(props) =>
       props.backgroundColorChecked &&

@@ -102,7 +102,7 @@ export function CompanyWorkspaceContextualNav({ companyId }: Props) {
             alignSelf: 'center',
             height: 28,
             mx: 2,
-            bgcolor: 'grey.400',
+            bgcolor: 'background.border',
             borderRadius: 1,
             flexShrink: 0,
             opacity: 0.9,

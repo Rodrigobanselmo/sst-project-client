@@ -29,15 +29,12 @@ export const companyFlowCompactShortcutButtonSx: SxProps<Theme> = {
   minWidth: 'unset',
   maxWidth: '100%',
   border: '1px solid',
-  borderColor: 'grey.400',
+  borderColor: 'primary.emphasisBackground',
   borderRadius: 1,
   cursor: 'pointer',
-  transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+  transition: 'background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
   '&&': {
-    backgroundColor: (theme) =>
-      theme.palette.mode === 'light'
-        ? theme.palette.common.white
-        : theme.palette.grey[800],
+    backgroundColor: 'primary.emphasisBackground',
     boxShadow: (theme) =>
       theme.palette.mode === 'light'
         ? '0 1px 2px rgba(0, 0, 0, 0.06)'
@@ -46,10 +43,8 @@ export const companyFlowCompactShortcutButtonSx: SxProps<Theme> = {
   '&:hover': {
     filter: 'none',
     '&&': {
-      backgroundColor: (theme) =>
-        theme.palette.mode === 'light'
-          ? theme.palette.grey[50]
-          : theme.palette.grey[700],
+      backgroundColor: 'primary.emphasisBackgroundHover',
+      borderColor: 'primary.emphasisBackgroundHover',
       boxShadow: (theme) =>
         theme.palette.mode === 'light'
           ? '0 1px 3px rgba(0, 0, 0, 0.1)'
@@ -62,14 +57,14 @@ export const companyFlowCompactShortcutButtonSx: SxProps<Theme> = {
   '& .MuiIcon-root': {
     fontSize: 20,
     flexShrink: 0,
-    color: 'text.secondary',
+    color: 'primary.onEmphasis',
   },
   '& p': {
     fontSize: 13,
     lineHeight: 1.3,
     textAlign: 'left',
     whiteSpace: 'normal',
-    color: 'text.primary',
+    color: 'primary.onEmphasis',
   },
 };
 
@@ -84,12 +79,9 @@ export const companyWorkspaceActionButtonSx: SxProps<Theme> = {
   px: 1.85,
   minHeight: 38,
   borderRadius: 1.25,
-  borderColor: 'grey.400',
+  borderColor: 'primary.emphasisBackground',
   '&&': {
-    backgroundColor: (theme) =>
-      theme.palette.mode === 'light'
-        ? theme.palette.common.white
-        : theme.palette.grey[800],
+    backgroundColor: 'primary.emphasisBackground',
     boxShadow: (theme) =>
       theme.palette.mode === 'light'
         ? '0 1px 3px rgba(0, 0, 0, 0.08)'
@@ -98,15 +90,12 @@ export const companyWorkspaceActionButtonSx: SxProps<Theme> = {
   '&:hover': {
     filter: 'none',
     '&&': {
-      backgroundColor: (theme) =>
-        theme.palette.mode === 'light'
-          ? theme.palette.grey[50]
-          : theme.palette.grey[700],
+      backgroundColor: 'primary.emphasisBackgroundHover',
       boxShadow: (theme) =>
         theme.palette.mode === 'light'
           ? '0 2px 6px rgba(0, 0, 0, 0.12)'
           : '0 2px 6px rgba(0, 0, 0, 0.3)',
-      borderColor: 'grey.500',
+      borderColor: 'primary.emphasisBackgroundHover',
     },
   },
   '&:focus-visible': {
@@ -117,7 +106,7 @@ export const companyWorkspaceActionButtonSx: SxProps<Theme> = {
   '& .MuiIcon-root': {
     fontSize: 22,
     flexShrink: 0,
-    color: 'text.secondary',
+    color: 'primary.onEmphasis',
   },
   '& p': {
     fontSize: 13.5,
@@ -125,6 +114,18 @@ export const companyWorkspaceActionButtonSx: SxProps<Theme> = {
     lineHeight: 1.35,
     textAlign: 'left',
     whiteSpace: 'normal',
-    color: 'text.primary',
+    color: 'primary.onEmphasis',
+  },
+};
+
+/** Ação relevante de header (Importar / Baixar) — mesma família das ações principais. */
+export const principalBrandButtonSx: SxProps<Theme> = {
+  backgroundColor: 'primary.emphasisBackground',
+  color: 'primary.onEmphasis',
+  borderColor: 'primary.emphasisBackground',
+  '&:hover': {
+    backgroundColor: 'primary.emphasisBackgroundHover',
+    borderColor: 'primary.emphasisBackgroundHover',
+    color: 'primary.onEmphasis',
   },
 };

@@ -31,7 +31,6 @@ export const SActionStepCheck = ({
           justify={'center'}
           border={'1px solid'}
           borderRadius={'50%'}
-          borderColor={'grey.600'}
           gap={1}
           height={12}
           width={12}

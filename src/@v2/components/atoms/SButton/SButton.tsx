@@ -25,6 +25,9 @@ export const SButton: FC<SButtonProps> = ({
   const colorMap = variantMap[variant].color;
   const sizeMap = variantMap[variant].size;
   const disabledButton = disabled || loading;
+  const contentColor = disabledButton
+    ? colorMap.disabled.textColor
+    : schema?.iconColor || colorMap[color].textColor;
   return (
     <STooltip title={tooltip || ''} withWrapper>
       <Button
@@ -46,7 +49,10 @@ export const SButton: FC<SButtonProps> = ({
             boxShadow: 'none',
             borderColor: schema?.borderColor || colorMap[color].borderColor,
             backgroundColor:
-              schema?.backgroundColor || colorMap[color].backgroundColor,
+              schema?.backgroundColor ||
+              ('hoverBackgroundColor' in colorMap[color]
+                ? colorMap[color].hoverBackgroundColor
+                : colorMap[color].backgroundColor),
             ...buttonProps?.sx?.['&:hover'],
           },
           '&:active': {
@@ -79,9 +85,7 @@ export const SButton: FC<SButtonProps> = ({
                         <CircularProgress
                           size={12}
                           sx={{
-                            color: disabledButton
-                              ? colorMap.disabled.textColor
-                              : colorMap[color].textColor,
+                            color: contentColor,
                           }}
                         />
                       </SFlex>
@@ -94,9 +98,7 @@ export const SButton: FC<SButtonProps> = ({
               }
               sx={{
                 fontSize: ['1rem', '1rem', '1.1rem'],
-                color: disabledButton
-                  ? colorMap.disabled.textColor
-                  : colorMap[color].textColor,
+                color: contentColor,
               }}
             />
           )}
@@ -123,9 +125,7 @@ export const SButton: FC<SButtonProps> = ({
                         <CircularProgress
                           size={9}
                           sx={{
-                            color: disabledButton
-                              ? colorMap.disabled.textColor
-                              : colorMap[color].textColor,
+                            color: contentColor,
                           }}
                         />
                       </Box>
@@ -134,9 +134,7 @@ export const SButton: FC<SButtonProps> = ({
               }
               sx={{
                 fontSize: ['1rem', '1rem', '1.1rem'],
-                color: disabledButton
-                  ? colorMap.disabled.textColor
-                  : colorMap[color].textColor,
+                color: contentColor,
               }}
             />
           )}

@@ -16,9 +16,9 @@ export type SButtonProps = {
   size?: 's' | 'm' | 'l';
   minWidth?: (string | number)[] | string | number;
   schema?: {
-    color: string;
-    borderColor: string;
-    iconColor: string;
-    backgroundColor: string;
+    color?: string;
+    borderColor?: string;
+    iconColor?: string;
+    backgroundColor?: string;
   };
 };

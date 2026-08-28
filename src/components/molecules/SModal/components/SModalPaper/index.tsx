@@ -46,7 +46,7 @@ export const SModalPaper = React.forwardRef<any, SModalPaperProps>(
                   borderRadius: 0,
                 }
               : {}),
-            backgroundColor: 'grey.50',
+            backgroundColor: 'background.paper',
             ...sx,
           }}
           {...props}

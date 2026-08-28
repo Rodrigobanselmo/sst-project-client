@@ -45,7 +45,7 @@ export const STTextField = styled(TextField)<{
   }
 
   &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-    border-color: ${(props) => props.theme.palette.primary.main};
+    border-color: ${(props) => props.theme.palette.primary.border};
   }
   &:hover {
     &&& .MuiOutlinedInput-notchedOutline {
@@ -53,7 +53,7 @@ export const STTextField = styled(TextField)<{
       border-width: 2px;
     }
     &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-      border-color: ${(props) => props.theme.palette.primary.main};
+      border-color: ${(props) => props.theme.palette.primary.border};
       opacity: 1;
     }
   }
@@ -157,12 +157,12 @@ export const STTextField = styled(TextField)<{
         &&&
           .MuiOutlinedInput-root.Mui-focused
           .MuiOutlinedInput-notchedOutline {
-          border: 1px solid ${props.theme.palette.primary.main};
+          border: 1px solid ${props.theme.palette.primary.border};
           opacity: 1;
         }
       }
       &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-        border: 1px solid ${props.theme.palette.primary.main};
+        border: 1px solid ${props.theme.palette.primary.border};
         opacity: 1;
       }
       &&& .MuiOutlinedInput-notchedOutline {

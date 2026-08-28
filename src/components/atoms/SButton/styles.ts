@@ -7,6 +7,7 @@ interface ButtonProps {
   _variant: string;
   _shadow: number;
   _small: number;
+  color?: string;
 }
 
 export const STButton = styled(ButtonLoad)<ButtonProps>`
@@ -20,6 +21,15 @@ export const STButton = styled(ButtonLoad)<ButtonProps>`
 
   ${(props) =>
     props._variant === 'contained' &&
+    (!props.color || props.color === 'primary') &&
+    css`
+      color: ${props.theme.palette.primary.contrastText};
+    `};
+
+  ${(props) =>
+    props._variant === 'contained' &&
+    props.color &&
+    props.color !== 'primary' &&
     css`
       color: ${props.theme.palette.common.white};
     `};

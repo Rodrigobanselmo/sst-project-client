@@ -1,12 +1,16 @@
 import React, { useMemo, ReactNode } from 'react';
 
 import { ThemeProvider as EmotionProvider } from '@emotion/react';
-import { ThemeProvider } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
 
-import { useAuth } from 'core/contexts/AuthContext';
 import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 import defaultTheme, { createCustomTheme } from '../../../configs/theme';
+import {
+  resolveInterfaceTheme,
+  useInterfaceThemeOverride,
+} from '../../../configs/theme/interface-theme-preference';
 
 interface DynamicThemeProviderProps {
   children: ReactNode;
@@ -14,41 +18,39 @@ interface DynamicThemeProviderProps {
 
 /**
  * Provider que aplica tema dinâmico baseado nas configurações de identidade visual da empresa
- * Se visualIdentityEnabled estiver ativo e primaryColor definida, aplica a cor customizada
- * Caso contrário, usa o tema padrão
+ * Se visualIdentityEnabled estiver ativo, aplica marca, superfícies e tema claro/escuro.
+ * Caso contrário, usa o tema padrão.
  *
  * A API retorna a identidade visual da empresa ou da consultora (fallback)
  */
 export const DynamicThemeProvider = ({
   children,
 }: DynamicThemeProviderProps) => {
-  const { user } = useAuth();
+  const { companyId, user } = useGetCompanyId();
+  const themeCompanyId = companyId || user?.companyId || '';
   const { visualIdentity } = useFetchVisualIdentity({
-    companyId: user?.companyId || '',
+    companyId: themeCompanyId,
   });
+  const themeOverride = useInterfaceThemeOverride();
 
   const theme = useMemo(() => {
-    // Verificar se a identidade visual está ativada
     const isVisualIdentityEnabled = visualIdentity?.visualIdentityEnabled;
+    const interfaceTheme = resolveInterfaceTheme(
+      visualIdentity?.interfaceTheme,
+      themeOverride,
+    );
 
     if (isVisualIdentityEnabled) {
-      const primaryColor = visualIdentity?.primaryColor;
-      const sidebarBackgroundColor = visualIdentity?.sidebarBackgroundColor;
-      const applicationBackgroundColor =
-        visualIdentity?.applicationBackgroundColor;
+      return createCustomTheme({
+        primaryColor: visualIdentity?.primaryColor || undefined,
+        sidebarBackgroundColor:
+          visualIdentity?.sidebarBackgroundColor || undefined,
+        interfaceTheme,
+      });
+    }
 
-      // Se alguma customização está definida, criar tema customizado
-      if (
-        primaryColor ||
-        sidebarBackgroundColor ||
-        applicationBackgroundColor
-      ) {
-        return createCustomTheme({
-          primaryColor: primaryColor || undefined,
-          sidebarBackgroundColor: sidebarBackgroundColor || undefined,
-          applicationBackgroundColor: applicationBackgroundColor || undefined,
-        });
-      }
+    if (themeOverride) {
+      return createCustomTheme({ interfaceTheme: themeOverride });
     }
 
     return defaultTheme;
@@ -56,12 +58,16 @@ export const DynamicThemeProvider = ({
     visualIdentity?.visualIdentityEnabled,
     visualIdentity?.primaryColor,
     visualIdentity?.sidebarBackgroundColor,
-    visualIdentity?.applicationBackgroundColor,
+    visualIdentity?.interfaceTheme,
+    themeOverride,
   ]);
 
   return (
     <EmotionProvider theme={theme}>
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
     </EmotionProvider>
   );
 };

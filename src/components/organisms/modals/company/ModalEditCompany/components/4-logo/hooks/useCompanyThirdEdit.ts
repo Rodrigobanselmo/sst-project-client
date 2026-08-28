@@ -32,7 +32,7 @@ export const useCompanyEdit = ({
     'metadata.visualIdentityEnabled',
     'metadata.customLogoUrl',
     'metadata.sidebarBackgroundColor',
-    'metadata.applicationBackgroundColor',
+    'metadata.interfaceTheme',
   ];
 
   const onCloseUnsaved = async () => {

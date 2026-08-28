@@ -12,4 +12,5 @@ export interface IVisualIdentityModel {
   sidebarBackgroundColor: string | null;
   applicationBackgroundColor: string | null;
   visualIdentityEnabled: boolean;
+  interfaceTheme: 'light' | 'dark';
 }

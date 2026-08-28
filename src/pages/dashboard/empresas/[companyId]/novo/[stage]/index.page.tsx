@@ -60,6 +60,7 @@ import { SActionButton } from '../../../../../../components/atoms/SActionButton'
 import { CharacterizationSummaryToggle } from 'components/organisms/main/CompanyFlow/CharacterizationSummaryToggle';
 import { CompanyHomeSummaryCards } from 'components/organisms/main/CompanyFlow/CompanyHomeSummaryCards';
 import { CompanyWorkspaceContextualNav } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceContextualNav';
+import { principalBrandButtonSx } from 'components/organisms/main/CompanyFlow/company-flow-compact-shortcuts.styles';
 import {
   CompanyWorkspaceCardsProvider,
   useCompanyWorkspaceCardsCollapsed,
@@ -174,16 +175,18 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
                 <SButton
                   variant="outlined"
                   size="small"
-                  color="secondary"
+                  color="primary"
                   onClick={handleUploadRisk}
+                  sx={principalBrandButtonSx}
                 >
                   Importar Planilha
                 </SButton>
                 <SButton
                   variant="outlined"
                   size="small"
-                  color="secondary"
+                  color="primary"
                   onClick={() => onStackOpenModal(ModalEnum.REPORT_SELECT)}
+                  sx={principalBrandButtonSx}
                 >
                   Baixar Relatorios
                 </SButton>

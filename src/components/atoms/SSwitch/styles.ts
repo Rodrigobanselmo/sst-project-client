@@ -16,12 +16,14 @@ export const STSwitch = styled(Switch)`
   }
   & .MuiSwitch-switchBase {
     padding: 2px;
+    color: ${({ theme }) => theme.palette.primary.main};
     &.Mui-checked {
       transform: translateX(12px);
-      color: ${({ theme }) => theme.palette.common.white};
+      color: ${({ theme }) => theme.palette.primary.contrastText};
       & + .MuiSwitch-track {
         opacity: 1;
         background-color: ${({ theme }) => theme.palette.primary.main};
+        border-color: ${({ theme }) => theme.palette.primary.main};
       }
     }
   }
@@ -31,12 +33,17 @@ export const STSwitch = styled(Switch)`
     width: 12px;
     height: 12px;
     border-radius: 6px;
+    background-color: currentColor;
     transition: width 0.2s;
   }
   & .MuiSwitch-track {
     border-radius: 8px;
     opacity: 1;
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: ${({ theme }) => theme.palette.background.disabled};
     box-sizing: border-box;
+    border: ${({ theme }) =>
+      theme.palette.mode === 'light'
+        ? `1px solid ${theme.palette.text.main}`
+        : '1px solid transparent'};
   }
 `;

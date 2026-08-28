@@ -18,16 +18,16 @@ export const STSBoxButton = styled(Box)<{
   flex-direction: column;
   border-radius: 5px;
   box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3);
-  background-color: ${(props) => props.theme.palette.grey[100]};
+  background-color: ${(props) => props.theme.palette.background.box};
   transition: background-color 0.2s ease-in-out;
   cursor: pointer;
 
   &:hover {
-    background-color: ${(props) => props.theme.palette.grey[300]};
+    background-color: ${(props) => props.theme.palette.background.lightGray};
   }
 
   &:active {
-    background-color: ${(props) => props.theme.palette.grey[400]};
+    background-color: ${(props) => props.theme.palette.background.border};
   }
 
   ${(props) => props.large && css``};
@@ -81,9 +81,9 @@ export const STSBoxButton = styled(Box)<{
     props.borderActive == 'primary' &&
     css`
       .text_main {
-        color: ${props.theme.palette.primary.dark};
+        color: ${props.theme.palette.primary.onSoftBackground};
       }
-      border: 1px solid ${props.theme.palette.primary.dark};
+      border: 1px solid ${props.theme.palette.primary.border};
     `};
 
   ${(props) =>

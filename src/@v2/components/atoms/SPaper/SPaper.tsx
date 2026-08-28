@@ -19,7 +19,7 @@ export const SPaper = React.forwardRef<any, SPaperProps>(
             }
           : {
               border: '1px solid',
-              borderColor: 'grey.300',
+              borderColor: 'background.border',
             }),
         ...props.sx,
       }}

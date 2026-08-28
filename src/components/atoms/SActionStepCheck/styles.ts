@@ -18,87 +18,55 @@ export const STBox = styled(Box)<IProps>`
   flex-wrap: nowrap;
   align-items: center;
 
-  &:hover {
-    // border: 1px solid ${(props) => props.theme.palette.info.main};
-    filter: brightness(0.9);
-
-    .check-icon {
-      border-color: ${(props) => props.theme.palette.info.main};
-    }
-    svg {
-      color: ${(props) => props.theme.palette.info.main};
-    }
-    p {
-      color: ${(props) => props.theme.palette.info.main};
-    }
+  p {
+    color: ${(props) => props.theme.palette.text.main};
   }
 
-  &:active {
-    filter: brightness(0.8);
-
-    svg {
-      color: ${(props) => props.theme.palette.common.white};
-    }
-    p {
-      color: ${(props) => props.theme.palette.info.light};
-    }
+  .check-icon {
+    border-color: ${(props) =>
+      props.theme.palette.mode === 'light'
+        ? props.theme.palette.grey[400]
+        : props.theme.palette.background.border};
+    background-color: ${(props) =>
+      props.theme.palette.mode === 'light'
+        ? props.theme.palette.grey[200]
+        : props.theme.palette.background.disabled};
   }
 
   svg {
-    color: ${(props) => props.theme.palette.common.white};
+    color: ${(props) =>
+      props.theme.palette.mode === 'light'
+        ? props.theme.palette.grey[600]
+        : props.theme.palette.text.light};
   }
-  p {
-    color: ${(props) => props.theme.palette.text.primary};
+
+  &:hover {
+    filter: brightness(0.96);
   }
 
   ${(props) =>
     props.active &&
     css`
-      border-color: ${props.theme.palette.info.main};
-
       .check-icon {
-        background-color: ${props.theme.palette.info.main};
+        border-color: ${props.theme.palette.mode === 'light'
+          ? props.theme.palette.background.dark
+          : props.theme.palette.primary.main};
+        background-color: ${props.theme.palette.mode === 'light'
+          ? props.theme.palette.background.dark
+          : props.theme.palette.primary.main};
       }
 
       svg {
-        color: ${props.theme.palette.common.white};
-      }
-      p {
-        color: ${props.theme.palette.info.dark};
+        color: ${props.theme.palette.mode === 'light'
+          ? props.theme.palette.primary.main
+          : props.theme.palette.primary.contrastText};
       }
     `};
 
   ${(props) =>
     props.disabled &&
     css`
-      background-color: ${props.theme.palette.grey[500]} !important;
-      svg {
-        color: ${props.theme.palette.common.white};
-      }
-      p {
-        color: ${props.theme.palette.common.white};
-      }
-
-      &:hover {
-        filter: brightness(0.9);
-
-        svg {
-          color: ${props.theme.palette.common.white};
-        }
-        p {
-          color: ${props.theme.palette.common.white};
-        }
-      }
-
-      &:active {
-        filter: brightness(0.8);
-
-        svg {
-          color: ${props.theme.palette.common.white};
-        }
-        p {
-          color: ${props.theme.palette.common.white};
-        }
-      }
+      opacity: 0.55;
+      cursor: default;
     `};
 `;

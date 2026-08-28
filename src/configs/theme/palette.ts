@@ -1,13 +1,23 @@
+import { getPrimaryInteractiveTokens } from './generatePaletteFromColor';
+
 // rgb(245, 247, 250)
+
+const defaultPrimaryMain = '#F27329';
+const defaultPrimaryInteractive = getPrimaryInteractiveTokens(
+  defaultPrimaryMain,
+  'light',
+  '#FFFFFF',
+);
 
 const palette = {
   primary: {
     extraLight: '#fca557',
     light: '#f28338',
-    main: '#F27329',
+    main: defaultPrimaryMain,
     dark: '#d9560b',
     extraDark: '#93421a',
     contrastText: '#fff',
+    ...defaultPrimaryInteractive,
   },
   secondary: {
     light: '#4071d6',

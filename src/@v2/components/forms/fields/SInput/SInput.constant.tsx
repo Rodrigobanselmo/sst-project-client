@@ -3,13 +3,13 @@ export const colorMap = {
     colorSchema: undefined,
     borderColor: 'grey.400',
     labelColor: 'text.light',
-    focusedBorderColor: 'primary.main',
+    focusedBorderColor: 'primary.border',
   },
   normal: {
     colorSchema: undefined,
     borderColor: 'grey.400',
     labelColor: 'text.light',
-    focusedBorderColor: 'primary.main',
+    focusedBorderColor: 'primary.border',
   },
   success: {
     colorSchema: 'success',
@@ -27,7 +27,7 @@ export const colorMap = {
     colorSchema: 'primary',
     borderColor: 'grey.400',
     labelColor: 'text.light',
-    focusedBorderColor: 'primary.main',
+    focusedBorderColor: 'primary.border',
   },
   danger: {
     colorSchema: 'error',

@@ -7,7 +7,7 @@ import { SButtonProps } from './SButton.types';
 export const colorMap = {
   paper: {
     colorSchema: undefined,
-    backgroundColor: 'white',
+    backgroundColor: 'background.paper',
     borderColor: 'grey.400',
     color: 'grey.600',
     textColor: 'grey.600',
@@ -43,10 +43,11 @@ export const colorMap = {
   },
   primary: {
     colorSchema: 'primary',
-    backgroundColor: '#F2732922',
-    borderColor: 'primary.dark',
-    color: 'primary.dark',
-    textColor: 'primary.dark',
+    backgroundColor: 'primary.softBackground',
+    hoverBackgroundColor: 'primary.softBackgroundHover',
+    borderColor: 'primary.border',
+    color: 'primary.onSoftBackground',
+    textColor: 'primary.onSoftBackground',
   },
   danger: {
     colorSchema: 'error',
@@ -108,6 +109,7 @@ export const colorTextMap = {
     ...colorMap.primary,
     backgroundColor: 'transparent',
     borderColor: 'transparent',
+    hoverBackgroundColor: 'transparent',
   },
   danger: {
     ...colorMap.danger,
@@ -140,7 +142,6 @@ export const colorOutlineMap = {
   },
   primary: {
     ...colorMap.primary,
-    backgroundColor: 'transparent',
   },
   danger: {
     ...colorMap.danger,
@@ -151,7 +152,7 @@ export const colorOutlineMap = {
 export const colorContainedMap = {
   paper: {
     ...colorMap.paper,
-    backgroundColor: '#ffffff',
+    backgroundColor: 'background.paper',
     borderColor: 'transparent',
     textColor: 'grey.700',
   },
@@ -178,10 +179,11 @@ export const colorContainedMap = {
   },
   primary: {
     ...colorMap.primary,
-    backgroundColor: '#F27329',
+    backgroundColor: 'primary.main',
+    hoverBackgroundColor: 'primary.main',
     borderColor: 'transparent',
-    color: 'white',
-    textColor: 'white',
+    color: 'primary.contrastText',
+    textColor: 'primary.contrastText',
   },
   danger: {
     ...colorMap.danger,

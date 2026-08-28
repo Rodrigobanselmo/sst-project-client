@@ -10,6 +10,7 @@ export const useFetchVisualIdentity = (params: ReadVisualIdentityParams) => {
     },
     queryKey: [QueryKeyCompanyEnum.VISUAL_IDENTITY, params.companyId],
     enabled: !!params.companyId,
+    refetchOnMount: true,
   });
 
   return {

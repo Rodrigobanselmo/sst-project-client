@@ -7,11 +7,13 @@ import SIconButton from 'components/atoms/SIconButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
 import { IUseAddCompany } from '../../hooks/useEditCompany';
+import { ColorHexInputForm } from './ColorHexInputForm';
 import { useCompanyEdit } from './hooks/useCompanyThirdEdit';
 
 const StyledImage = styled('img')`
@@ -136,6 +138,32 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             />
           </Box>
 
+          <RadioFormText
+            type="radio"
+            setValue={setValue}
+            control={control}
+            label="Tema da interface"
+            defaultValue={
+              companyData.metadata?.interfaceTheme === 'dark' ? 'dark' : 'light'
+            }
+            onChange={(e) =>
+              setCompanyData((oldData) => ({
+                ...oldData,
+                metadata: {
+                  ...oldData.metadata,
+                  interfaceTheme: (e as any).target.value,
+                },
+              }))
+            }
+            options={[
+              { content: 'Claro', value: 'light' },
+              { content: 'Escuro', value: 'dark' },
+            ]}
+            name="metadata.interfaceTheme"
+            columns={2}
+            sx={{ maxWidth: 600 }}
+          />
+
           <InputForm
             setValue={setValue}
             defaultValue={companyData.metadata?.shortName}
@@ -149,17 +177,13 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             size="small"
           />
 
-          <InputForm
+          <ColorHexInputForm
             setValue={setValue}
             defaultValue={companyData.metadata?.primaryColor}
             label="Cor Principal"
             control={control}
-            labelPosition="center"
-            sx={{ minWidth: ['100%', 600] }}
             name="metadata.primaryColor"
             helperText="Cor principal que será usada na identidade visual do sistema"
-            size="small"
-            type="color"
           />
 
           <SText color="text.label" fontSize={14} mb={-2} mt={4}>
@@ -185,34 +209,15 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             )}
           </SFlex>
 
-          <InputForm
+          <ColorHexInputForm
             setValue={setValue}
             defaultValue={
               companyData.metadata?.sidebarBackgroundColor || '#1A202C'
             }
             label="Cor de Fundo da Sidebar"
             control={control}
-            labelPosition="center"
-            sx={{ minWidth: ['100%', 600] }}
             name="metadata.sidebarBackgroundColor"
             helperText="Cor de fundo da sidebar"
-            size="small"
-            type="color"
-          />
-
-          <InputForm
-            setValue={setValue}
-            defaultValue={
-              companyData.metadata?.applicationBackgroundColor || '#dddee2'
-            }
-            label="Cor de Fundo da Aplicação"
-            control={control}
-            labelPosition="center"
-            sx={{ minWidth: ['100%', 600] }}
-            name="metadata.applicationBackgroundColor"
-            helperText="Cor de fundo principal da aplicação"
-            size="small"
-            type="color"
           />
         </SFlex>
       </AnimatedStep>

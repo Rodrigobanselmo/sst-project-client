@@ -6,15 +6,22 @@ import customMixins from './mixins';
 import colors from './palette';
 import shape from './shape';
 import typography from './typography';
-import { generatePaletteFromColor } from './generatePaletteFromColor';
+import {
+  generatePaletteFromColor,
+  getPrimaryInteractiveTokens,
+} from './generatePaletteFromColor';
+import {
+  getSurfaceTokens,
+  parseInterfaceTheme,
+  type InterfaceTheme,
+} from './semantic-surfaces';
 
-const palette = colors as PaletteOptions;
 const mixins = customMixins as MixinsOptions;
 
 interface CustomThemeOptions {
   primaryColor?: string;
   sidebarBackgroundColor?: string;
-  applicationBackgroundColor?: string;
+  interfaceTheme?: InterfaceTheme | string;
 }
 
 /**
@@ -29,23 +36,34 @@ export function createCustomTheme(
   const opts: CustomThemeOptions =
     typeof options === 'string' ? { primaryColor: options } : options || {};
 
-  const { primaryColor, sidebarBackgroundColor, applicationBackgroundColor } =
-    opts;
+  const { primaryColor, sidebarBackgroundColor, interfaceTheme } = opts;
 
-  let customPalette = { ...colors };
+  const mode = parseInterfaceTheme(interfaceTheme);
+  const surfaces = getSurfaceTokens(mode);
+
+  let customPalette = {
+    ...colors,
+    mode,
+    background: { ...surfaces.background },
+    text: { ...surfaces.text },
+    divider: surfaces.background.divider,
+  };
 
   if (primaryColor) {
     const generatedColors = generatePaletteFromColor(primaryColor);
     if (generatedColors) {
       customPalette = {
-        ...colors,
-        primary: generatedColors.primary,
+        ...customPalette,
+        primary: {
+          ...customPalette.primary,
+          ...generatedColors.primary,
+        },
         mainBlur: generatedColors.mainBlur,
       };
     }
   }
 
-  // Aplicar cor customizada da sidebar
+  // Sidebar permanece independente do modo claro/escuro
   if (sidebarBackgroundColor) {
     customPalette = {
       ...customPalette,
@@ -56,16 +74,26 @@ export function createCustomTheme(
     };
   }
 
-  // Aplicar cor customizada do fundo da aplicação
-  if (applicationBackgroundColor) {
-    customPalette = {
-      ...customPalette,
-      background: {
-        ...customPalette.background,
-        default: applicationBackgroundColor,
-      },
-    };
-  }
+  const brand = customPalette.primary.main;
+  const paper = customPalette.background.paper;
+  const textMain = customPalette.text.main;
+  const interactive = getPrimaryInteractiveTokens(brand, mode, paper);
+
+  customPalette = {
+    ...customPalette,
+    primary: {
+      ...customPalette.primary,
+      ...interactive,
+    },
+  };
+
+  const {
+    softBackground,
+    softBackgroundHover,
+    border: brandBorder,
+    onSoftBackground,
+  } = interactive;
+  const labelColor = customPalette.text.label;
 
   return createTheme({
     palette: customPalette as PaletteOptions,
@@ -79,20 +107,132 @@ export function createCustomTheme(
           ul: {
             listStyle: 'none',
           },
+          html: {
+            backgroundColor: customPalette.background.default,
+            colorScheme: mode,
+          },
+          body: {
+            backgroundColor: customPalette.background.default,
+            color: textMain,
+          },
+        },
+      },
+      MuiBreadcrumbs: {
+        styleOverrides: {
+          root: {
+            '& .MuiBreadcrumbs-li, & .MuiLink-root, & .MuiTypography-root': {
+              color: mode === 'dark' ? brand : textMain,
+              fontWeight: 500,
+            },
+            '& .MuiSvgIcon-root': {
+              color: mode === 'dark' ? brand : textMain,
+              opacity: 0.72,
+            },
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundColor: paper,
+            backgroundImage: 'none',
+            color: textMain,
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: paper,
+            backgroundImage: 'none',
+            color: textMain,
+          },
+        },
+      },
+      MuiPopover: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: paper,
+            backgroundImage: 'none',
+            color: textMain,
+          },
+        },
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: paper,
+            backgroundImage: 'none',
+            color: textMain,
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            backgroundColor: paper,
+            backgroundImage: 'none',
+            color: textMain,
+          },
+        },
+      },
+      MuiDivider: {
+        styleOverrides: {
+          root: {
+            borderColor: customPalette.background.divider,
+          },
+        },
+      },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: {
+            color: labelColor,
+          },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          root: {
+            color: labelColor,
+          },
+        },
+      },
+      MuiTable: {
+        styleOverrides: {
+          root: {
+            backgroundColor: paper,
+            color: textMain,
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderColor: customPalette.background.divider,
+            color: textMain,
+          },
         },
       },
       MuiChip: {
         styleOverrides: {
           root: {
             height: 24,
-            backgroundColor: 'transparent',
-            color: 'primary.main',
-            border: '1px solid',
-            borderColor: 'primary.main',
+          },
+          colorPrimary: {
+            backgroundColor: brand,
+            color: customPalette.primary.contrastText,
+          },
+          outlinedPrimary: {
+            backgroundColor: softBackground,
+            color: onSoftBackground,
+            borderColor: brandBorder,
           },
           deleteIcon: {
             width: 16,
             height: 16,
+          },
+          deleteIconColorPrimary: {
+            color: customPalette.primary.contrastText,
           },
         },
       },
@@ -101,14 +241,121 @@ export function createCustomTheme(
           root: { verticalAlign: 'middle' },
         },
       },
+      MuiLink: {
+        styleOverrides: {
+          root: {
+            color: brand,
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            color: customPalette.text.medium,
+            '&.Mui-selected': {
+              color: onSoftBackground,
+            },
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: {
+            backgroundColor: brand,
+          },
+        },
+      },
+      MuiSwitch: {
+        styleOverrides: {
+          switchBase: {
+            color: brand,
+            '&.Mui-checked': {
+              color: customPalette.primary.contrastText,
+              '& + .MuiSwitch-track': {
+                backgroundColor: brand,
+                opacity: 1,
+                borderColor: brand,
+              },
+            },
+          },
+          thumb: {
+            backgroundColor: 'currentColor',
+          },
+          track: {
+            backgroundColor: customPalette.background.disabled,
+            opacity: 1,
+            boxSizing: 'border-box',
+            ...(mode === 'light'
+              ? { border: `1px solid ${textMain}` }
+              : {}),
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          outlinedPrimary: {
+            color: onSoftBackground,
+            borderColor: brandBorder,
+            backgroundColor: softBackground,
+            '&:hover': {
+              color: onSoftBackground,
+              borderColor: brandBorder,
+              backgroundColor: softBackgroundHover,
+            },
+          },
+          textPrimary: {
+            color: onSoftBackground,
+          },
+        },
+      },
       MuiInputBase: {
         styleOverrides: {
           root: {
+            color: textMain,
+            backgroundColor: paper,
             '&:hover': {
               '& .MuiOutlinedInput-notchedOutline': {
                 border: '2px solid',
-                borderColor: customPalette.primary.main + ' !important',
+                borderColor: brandBorder + ' !important',
                 outline: 'none',
+              },
+            },
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            backgroundColor: paper,
+            color: textMain,
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            backgroundColor: paper,
+            color: textMain,
+          },
+        },
+      },
+      MuiAutocomplete: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: paper,
+            color: textMain,
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            color: textMain,
+            '&.Mui-selected': {
+              backgroundColor: softBackground,
+              color: onSoftBackground,
+              '&:hover': {
+                backgroundColor: softBackgroundHover,
               },
             },
           },
@@ -122,7 +369,8 @@ export function createCustomTheme(
             '&&.MuiPaginationItem-root': {
               fontSize: '13px',
               borderRadius: '5px',
-              backgroundColor: 'white',
+              backgroundColor: paper,
+              color: textMain,
               gap: '4px',
               boxShadow: '#0000004d 0px 1px 1px 0px',
             },
@@ -139,23 +387,9 @@ export function createCustomTheme(
               minWidth: '26px',
               borderRadius: '50%',
               '&:hover': {
-                backgroundColor: '#00000022',
+                backgroundColor: mode === 'dark' ? '#ffffff22' : '#00000022',
               },
             },
-          },
-        },
-      },
-      MuiMenuItem: {
-        styleOverrides: {
-          root: {
-            variants: [
-              {
-                props: { selected: true },
-                style: {
-                  color: customPalette.primary.main,
-                },
-              },
-            ],
           },
         },
       },
@@ -163,9 +397,10 @@ export function createCustomTheme(
         styleOverrides: {
           root: {
             padding: '8px 16px',
-            border: '2px solid var(--mui-palette-grey-200)',
+            border: `2px solid ${customPalette.background.border}`,
             borderRadius: '8px !important',
             boxShadow: 'unset !important',
+            backgroundColor: paper,
             '& .MuiAccordionSummary-root': {
               padding: ' 4px 0px !important',
             },

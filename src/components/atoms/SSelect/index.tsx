@@ -159,7 +159,7 @@ const SSelect: FC<{ children?: any } & SSelectProps> = ({
         MenuProps={{
           PaperProps: {
             sx: {
-              backgroundColor: 'common.white',
+              backgroundColor: 'background.paper',
               mt: '1px',
             },
             ...dropDownProps,

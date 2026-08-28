@@ -81,7 +81,7 @@ assert.equal(activeMarker.display, 'block');
 assert.equal(activeMarker.width, COMPANY_WORKSPACE_NAV_MARKER_WIDTH);
 assert.equal(activeMarker.height, COMPANY_WORKSPACE_NAV_MARKER_HEIGHT);
 assert.equal(activeMarker.flexShrink, 0);
-assert.equal(activeMarker.backgroundColor, 'primary.main');
+assert.equal(activeMarker.backgroundColor, 'primary.border');
 assert.equal(inactiveMarker.backgroundColor, 'transparent');
 assert.notEqual(activeMarker.position, 'absolute');
 
@@ -89,7 +89,8 @@ const activeItem = itemSx['&[data-nav-active="true"]'] as Record<
   string,
   unknown
 >;
-assert.equal(activeItem.color, 'primary.main');
+assert.equal(itemSx.color, 'text.main');
+assert.equal(activeItem.color, 'primary.onSoftBackground');
 assert.equal(activeItem.fontWeight, 700);
 
 console.log('CompanyWorkspaceContextualNav.spec.ts OK');

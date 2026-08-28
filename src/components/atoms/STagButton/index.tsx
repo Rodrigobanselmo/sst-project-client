@@ -103,7 +103,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                color: active ? 'common.white' : 'common.black',
+                color: active ? 'primary.contrastText' : 'text.main',
                 mb: '-1px',
               }}
               fontSize="10px"
@@ -119,7 +119,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
                 sx={{
                   fontSize: 14,
                   mr: 2,
-                  color: active ? 'common.white' : 'common.black',
+                  color: active ? 'primary.contrastText' : 'text.main',
                   ...iconSx,
                 }}
                 className="icon_main"
@@ -144,7 +144,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
                 noBreak
                 {...textProps}
                 sx={{
-                  color: active ? 'common.white' : 'common.black',
+                  color: active ? 'primary.contrastText' : 'text.main',
                   mb: -1,
                   ...textProps?.sx,
                 }}
@@ -159,7 +159,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                color: active ? 'common.white' : 'common.black',
+                color: active ? 'primary.contrastText' : 'text.main',
               }}
               fontSize="10px"
               color="text.light"

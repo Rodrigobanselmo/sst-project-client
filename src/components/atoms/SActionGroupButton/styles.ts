@@ -21,7 +21,7 @@ export const STBox = styled(Box)<IProps>`
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    border: 2px solid ${(props) => props.theme.palette.primary.light};
+    border: 2px solid ${(props) => props.theme.palette.primary.border};
   }
 
   &:active {
@@ -29,8 +29,8 @@ export const STBox = styled(Box)<IProps>`
   }
 
   svg {
-    color: ${(props) => props.theme.palette.common.white};
-    background-color: ${(props) => props.theme.palette.gray[500]};
+    color: ${(props) => props.theme.palette.text.main};
+    background-color: ${(props) => props.theme.palette.background.disabled};
     border-radius: 50%;
     padding: 6px;
   }
@@ -38,13 +38,16 @@ export const STBox = styled(Box)<IProps>`
   ${(props) =>
     props.active &&
     css`
-      border: 2px solid ${props.theme.palette.primary.light};
+      border: 2px solid ${props.theme.palette.primary.border};
       box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
 
       svg {
-        background-color: ${props?.color || props.theme.palette.primary.main};
+        background-color: ${props?.color ||
+        props.theme.palette.primary.emphasisBackground};
         border-radius: 50%;
-        color: ${props.theme.palette.common.white};
+        color: ${props?.color
+          ? props.theme.palette.common.white
+          : props.theme.palette.primary.onEmphasis};
         padding: 6px;
       }
     `};
