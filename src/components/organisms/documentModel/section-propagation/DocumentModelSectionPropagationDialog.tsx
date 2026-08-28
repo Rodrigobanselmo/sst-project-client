@@ -93,6 +93,7 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
   );
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [previewId, setPreviewId] = useState<number | null>(null);
+  const [confirmApplyOpen, setConfirmApplyOpen] = useState(false);
   const [applyResult, setApplyResult] = useState<SectionPropagationApplyResponse | null>(
     null,
   );
@@ -107,6 +108,7 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
     setAnalysis(null);
     setSelectedIds([]);
     setPreviewId(null);
+    setConfirmApplyOpen(false);
     setApplyResult(null);
     setLinkPrompt(false);
     setLinkDone(false);
@@ -146,15 +148,17 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
     );
   };
 
-  const handleApply = async () => {
-    if (!modelId || !headingId || !selectedIds.length || !analysis?.source) return;
+  const handleApply = async (idsOverride?: number[]) => {
+    const ids = idsOverride?.length ? idsOverride : selectedIds;
+    if (!modelId || !headingId || !ids.length || !analysis?.source) return;
     const targets = candidates
       .filter(
         (row) =>
-          selectedIds.includes(row.id) && (row.selectable || row.alreadyUpToDate),
+          ids.includes(row.id) && (row.selectable || row.alreadyUpToDate),
       )
       .map((row) => ({ id: row.id, expectedUpdatedAt: row.updated_at }));
     if (!targets.length) return;
+    setConfirmApplyOpen(false);
     try {
       const result = await applyMutation.mutateAsync({
         id: modelId,
@@ -168,7 +172,7 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
         setApplyResult(result);
         const linkable = result.results.some(
           (row) =>
-            selectedIds.includes(row.id) &&
+            ids.includes(row.id) &&
             (row.outcome === 'updated' || row.outcome === 'already_up_to_date'),
         );
         setLinkPrompt(linkable);
@@ -176,6 +180,19 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
     } catch {
       // snackbar from mutation
     }
+  };
+
+  const requestApply = (idsOverride?: number[]) => {
+    const ids = idsOverride?.length ? idsOverride : selectedIds;
+    const needsConfirm = candidates.some(
+      (row) => ids.includes(row.id) && row.selectable && !row.alreadyUpToDate,
+    );
+    if (needsConfirm) {
+      if (idsOverride?.length) setSelectedIds(idsOverride);
+      setConfirmApplyOpen(true);
+      return;
+    }
+    void handleApply(ids);
   };
 
   const handleClose = () => {
@@ -247,9 +264,10 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
             disabled:
               applyMutation.isLoading ||
               analyzeMutation.isLoading ||
-              !selectedIds.length,
+              !selectedIds.length ||
+              confirmApplyOpen,
             onClick: () => {
-              void handleApply();
+              requestApply();
             },
           },
         ]
@@ -346,6 +364,37 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
               </SText>
             ) : null}
           </Box>
+        ) : confirmApplyOpen ? (
+          <Box mb={6}>
+            <SText fontWeight={600} mb={4}>
+              Confirmar substituição
+            </SText>
+            <SText fontSize={14} mb={6} maxWidth={760}>
+              Os modelos selecionados possuem versões diferentes desta seção. A
+              versão atual da seção será substituída pela versão deste modelo de
+              origem. Deseja continuar?
+            </SText>
+            <SFlex gap={3} justifyContent="flex-end">
+              <Button
+                variant="outlined"
+                disabled={applyMutation.isLoading}
+                onClick={() => setConfirmApplyOpen(false)}
+                sx={{ textTransform: 'none' }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="contained"
+                disabled={applyMutation.isLoading}
+                onClick={() => {
+                  void handleApply();
+                }}
+                sx={{ textTransform: 'none' }}
+              >
+                Aplicar
+              </Button>
+            </SFlex>
+          </Box>
         ) : (
           <>
             {analysis && documentType ? (
@@ -376,9 +425,6 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
                     {group.candidates.map((candidate) => {
                       const checked = selectedIds.includes(candidate.id);
                       const disabled = !candidate.selectable && !candidate.alreadyUpToDate;
-                      const oldVersion =
-                        candidate.oldVersionCompatible ||
-                        candidate.uiStatus === 'old_version_compatible';
                       const currentCount =
                         candidate.preview.currentCount ?? candidate.preview.current.length;
                       const nextCount =
@@ -420,36 +466,55 @@ export const DocumentModelSectionPropagationDialog: FC<Props> = ({
                                 {candidate.uiLabel}
                               </SText>
                               {candidate.selectable || candidate.alreadyUpToDate ? (
-                                <Button
-                                  size="small"
-                                  onClick={() =>
-                                    setPreviewId((current) =>
-                                      current === candidate.id ? null : candidate.id,
-                                    )
-                                  }
-                                  sx={{ mt: 2, px: 0, minWidth: 0, textTransform: 'none' }}
-                                >
-                                  Visualizar alteração
-                                </Button>
+                                <SFlex gap={3} mt={2} align="center">
+                                  <Button
+                                    size="small"
+                                    onClick={() =>
+                                      setPreviewId((current) =>
+                                        current === candidate.id ? null : candidate.id,
+                                      )
+                                    }
+                                    sx={{ px: 0, minWidth: 0, textTransform: 'none' }}
+                                  >
+                                    Visualizar
+                                  </Button>
+                                </SFlex>
                               ) : null}
                               <Collapse in={previewId === candidate.id}>
-                                {oldVersion && currentCount !== nextCount ? (
-                                  <SText fontSize={12} color="text.secondary" mt={3}>
+                                <SText fontSize={12} color="text.secondary" mt={3}>
+                                  Modelo: {candidate.name}
+                                </SText>
+                                {currentCount !== nextCount ? (
+                                  <SText fontSize={12} color="text.secondary" mt={1}>
                                     Estrutura: {currentCount} elementos → {nextCount} elementos
+                                  </SText>
+                                ) : null}
+                                {candidate.selectable && !candidate.alreadyUpToDate ? (
+                                  <SText fontSize={12} color="warning.dark" mt={1} mb={2}>
+                                    A seção inteira será substituída.
                                   </SText>
                                 ) : null}
                                 <SFlex gap={4} mt={3}>
                                   <PreviewBlock
-                                    title={oldVersion ? 'Modelo atual' : 'Conteúdo atual'}
+                                    title="Conteúdo atual"
                                     lines={candidate.preview.current}
                                   />
                                   <PreviewBlock
-                                    title={
-                                      oldVersion ? 'Nova versão da seção' : 'Nova versão'
-                                    }
+                                    title="Nova versão"
                                     lines={candidate.preview.next}
                                   />
                                 </SFlex>
+                                {candidate.selectable && !candidate.alreadyUpToDate ? (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    disabled={applyMutation.isLoading}
+                                    onClick={() => requestApply([candidate.id])}
+                                    sx={{ mt: 4, textTransform: 'none' }}
+                                  >
+                                    Aplicar neste modelo
+                                  </Button>
+                                ) : null}
                               </Collapse>
                             </Box>
                           </SFlex>

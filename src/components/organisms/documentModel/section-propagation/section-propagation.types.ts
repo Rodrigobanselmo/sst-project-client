@@ -3,6 +3,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 export type SectionPropagationUiStatus =
   | 'compatible'
+  | 'different_content'
   | 'old_version_compatible'
   | 'already_up_to_date'
   | 'page_break'

@@ -86,9 +86,9 @@ const all: SectionPropagationCandidate[] = [
   }),
   candidate({
     id: 5,
-    name: 'Gama exclusivo',
+    name: 'Gama hierarquia inválida',
     classifications: [DocumentModelClassificationEnum.COMPLETO],
-    uiStatus: 'extra_content',
+    uiStatus: 'hierarchy',
     matchClass: 'B',
   }),
   candidate({
@@ -216,7 +216,7 @@ run('11. filtros não alteram selectable nem o status da API', () => {
     DocumentModelClassificationEnum.COMPLETO,
   ]);
   assert.equal(filtered.find((item) => item.id === 5)?.selectable, false);
-  assert.equal(filtered.find((item) => item.id === 5)?.uiStatus, 'extra_content');
+  assert.equal(filtered.find((item) => item.id === 5)?.uiStatus, 'hierarchy');
   assert.equal(filtered.find((item) => item.id === 3)?.selectable, true);
 });
 
@@ -229,7 +229,7 @@ run('12. modelo bloqueado continua bloqueado mesmo filtrado e depois de limpar',
   assert.equal(blocked.selectable, false);
   const restored = filterSectionPropagationCandidates(all, []);
   const unsafeAgain = restored.find((item) => item.id === 5)!;
-  assert.equal(unsafeAgain.uiStatus, 'extra_content');
+  assert.equal(unsafeAgain.uiStatus, 'hierarchy');
   assert.equal(unsafeAgain.selectable, false);
   assert.equal(sectionPropagationGroup(unsafeAgain), 'manual_review');
 });
@@ -287,6 +287,7 @@ run('Seção não encontrada: status vermelho e nome disabled/cinza', () => {
   assert.equal(sectionPropagationStatusColor('not_found'), 'error.main');
   assert.equal(sectionPropagationNameColor('not_found'), 'grey.400');
   assert.equal(sectionPropagationStatusColor('old_version_compatible'), 'success.main');
+  assert.equal(sectionPropagationStatusColor('different_content'), 'success.main');
   assert.equal(sectionPropagationStatusColor('extra_content'), 'warning.dark');
   assert.equal(sectionPropagationStatusColor('hierarchy'), 'warning.dark');
   assert.equal(sectionPropagationStatusColor('ambiguous'), 'error.main');

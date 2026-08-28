@@ -225,11 +225,13 @@ run('not found status is red and checkbox stays disabled', () => {
   assert.equal(listSource.includes("if (group === 'not_found') return 'grey.400'"), true);
 });
 
-run('old version preview names the structural update', () => {
-  assert.equal(dialogSource.includes('Modelo atual'), true);
-  assert.equal(dialogSource.includes('Nova versão da seção'), true);
+run('preview shows current vs next and optional apply per model', () => {
+  assert.equal(dialogSource.includes('Conteúdo atual'), true);
+  assert.equal(dialogSource.includes('Nova versão'), true);
   assert.equal(dialogSource.includes('Estrutura:'), true);
-  assert.equal(dialogSource.includes('old_version_compatible'), true);
+  assert.equal(dialogSource.includes('Visualizar'), true);
+  assert.equal(dialogSource.includes('Aplicar neste modelo'), true);
+  assert.equal(dialogSource.includes('Confirmar substituição'), true);
 });
 
 run('modal reuses published classification exclusive pairs and hides empty groups', () => {

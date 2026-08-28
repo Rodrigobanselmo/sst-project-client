@@ -84,7 +84,7 @@ export function groupSectionPropagationCandidates(
 export function sectionPropagationStatusColor(
   uiStatus: SectionPropagationUiStatus,
 ): string {
-  if (uiStatus === 'compatible' || uiStatus === 'old_version_compatible') {
+  if (uiStatus === 'compatible' || uiStatus === 'different_content' || uiStatus === 'old_version_compatible') {
     return 'success.main';
   }
   if (uiStatus === 'already_up_to_date') return 'text.secondary';
