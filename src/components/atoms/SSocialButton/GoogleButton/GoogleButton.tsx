@@ -1,5 +1,6 @@
 import { FC } from 'react';
 
+import { useTheme } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import { SButtonProps } from 'components/atoms/SButton/types';
 import SFlex from 'components/atoms/SFlex';
@@ -10,18 +11,24 @@ import SGoogleIcon from 'assets/icons/SGoogleIcon';
 export const GoogleButton: FC<
   { children?: any } & SButtonProps & { text: string }
 > = ({ text, ...props }) => {
+  const isDark = useTheme().palette.mode === 'dark';
+
   return (
     <SButton
       {...props}
+      variant="outlined"
       sx={{
-        backgroundColor: 'white',
-        boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+        backgroundColor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'background.border',
+        boxShadow: 'none',
         maxWidth: 'fit-content',
         minWidth: 'fit-content',
         ':hover': {
-          backgroundColor: 'white',
-          boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
-          filter: 'brightness(0.97)',
+          backgroundColor: isDark ? 'background.box' : 'background.lightGray',
+          borderColor: 'background.border',
+          boxShadow: 'none',
+          filter: 'none',
         },
         ...props?.sx,
       }}
@@ -32,7 +39,7 @@ export const GoogleButton: FC<
           px={5}
           width="100%"
           textAlign="center"
-          color="common.black"
+          color="text.main"
           fontSize="0.9rem"
         >
           {text}
@@ -41,5 +48,3 @@ export const GoogleButton: FC<
     </SButton>
   );
 };
-
-// /* <SText>Entrar com Google</SText> */

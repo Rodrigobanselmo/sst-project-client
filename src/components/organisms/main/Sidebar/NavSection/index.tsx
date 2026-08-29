@@ -39,7 +39,7 @@ export function NavSection({
     <Box width="100%" minWidth={0} {...rest}>
       {showTitle && (
         <BoxStyledTitle
-          color={isOpen ? 'transparent' : 'gray.700'}
+          color={isOpen ? 'transparent' : 'background.divider'}
           /**
            * Não usar mx + width 100%: a soma estoura o pai com overflow-x
            * hidden e clipa o chevron / comprime o texto.
@@ -77,10 +77,10 @@ export function NavSection({
                 py: 2,
                 cursor: 'pointer',
                 borderRadius: 1,
-                color: 'gray.400',
+                color: 'text.medium',
                 '&:hover': {
                   bgcolor: 'action.hover',
-                  color: 'gray.500',
+                  color: 'text.main',
                 },
                 '&:focus-visible': {
                   outline: '2px solid',
@@ -120,7 +120,7 @@ export function NavSection({
           ) : (
             <TextStyled
               align="left"
-              color="gray.400"
+              color="text.medium"
               fontSize={13}
               lineHeight={1.25}
               px={8}

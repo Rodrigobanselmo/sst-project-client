@@ -9,13 +9,14 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 export const PrivacyAndTerms: FC = () => {
   return (
     <>
-      <SText mt={20} fontSize={12}>
+      <SText mt={20} fontSize={12} color="text.medium">
         <NextLink passHref href={RoutesEnum.PRIVACY_POLITICS}>
           <SLink target="_blank" unstyled>
             <SText
               sx={{ textDecoration: 'underline' }}
               component="span"
               fontSize={12}
+              color="text.main"
             >
               Política de Privacidade
             </SText>
@@ -28,13 +29,14 @@ export const PrivacyAndTerms: FC = () => {
               sx={{ textDecoration: 'underline' }}
               component="span"
               fontSize={12}
+              color="text.main"
             >
               Termos de uso
             </SText>
           </SLink>
         </NextLink>{' '}
       </SText>
-      <SText fontSize={12}>
+      <SText fontSize={12} color="text.medium">
         @ {new Date().getFullYear()} SimpleSSt – Todos os direitos reservados
       </SText>
     </>

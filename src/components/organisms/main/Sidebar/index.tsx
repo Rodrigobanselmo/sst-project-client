@@ -15,6 +15,14 @@ export function Sidebar(): JSX.Element {
           ModalProps={{
             keepMounted: false,
           }}
+          PaperProps={{
+            sx: {
+              backgroundColor: 'sidebar.background',
+              backgroundImage: 'none',
+              borderRight: '1px solid',
+              borderColor: 'background.divider',
+            },
+          }}
         >
           <FlexStyle is_close={!isOpen ? 1 : 0} as="aside">
             <SideBarNav />

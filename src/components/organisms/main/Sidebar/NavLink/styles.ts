@@ -71,35 +71,58 @@ export const LinkStyle = styled(Link)<LinkStyleProps>`
   text-decoration: none;
 
   &:hover {
-    background-color: #00000067;
+    background-color: ${({ theme }) => theme.palette.action.hover};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.palette.primary.main};
+    outline-offset: -2px;
   }
 
   p {
-    color: ${({ theme }) => theme.palette.grey?.[400]};
+    color: ${({ theme }) => theme.palette.text.medium};
   }
   svg {
-    color: ${({ theme }) => theme.palette.grey?.[500]};
+    color: ${({ theme }) => theme.palette.text.medium};
   }
   ${(props) =>
     props.is_active &&
+    props.theme.palette.mode === 'dark' &&
     css`
       box-sizing: border-box;
       border-left: 3px solid ${props.theme.palette.primary.main};
       background-color: ${props.theme.palette.mainBlur[5]};
-      background-image: linear-gradient(
-        -90deg,
-        ${props.theme.palette.mainBlur[5]},
-        ${props.theme.palette.mainBlur[20]}
-      );
+      background-image: none;
       p {
-        color: ${props.theme.palette.grey[300]};
+        color: ${props.theme.palette.primary.main};
       }
       svg {
-        color: ${props.theme.palette.grey[300]};
+        color: ${props.theme.palette.primary.main};
       }
 
       &:hover {
-        filter: drop-shadow();
+        background-color: ${props.theme.palette.action.hover};
+        filter: none;
+      }
+    `}
+  ${(props) =>
+    props.is_active &&
+    props.theme.palette.mode === 'light' &&
+    css`
+      box-sizing: border-box;
+      border-left: 3px solid ${props.theme.palette.primary.main};
+      background-color: ${props.theme.palette.primary.identityBackground};
+      background-image: none;
+      p {
+        color: ${props.theme.palette.primary.identityOn};
+      }
+      svg {
+        color: ${props.theme.palette.primary.identityOn};
+      }
+
+      &:hover {
+        background-color: ${props.theme.palette.primary.identityBackgroundHover};
+        filter: none;
       }
     `}
 `;

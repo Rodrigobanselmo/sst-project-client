@@ -15,8 +15,7 @@ import { useAuth } from 'core/contexts/AuthContext';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { withSSRGuest } from 'core/utils/auth/withSSRGuest';
 
-import { SLogo } from '../../components/atoms/SLogo';
-import { brandNameConstant } from '../../core/constants/brand.constant';
+import { SimpleSstWordmark, SLogo } from '../../components/atoms/SLogo';
 import { LoginForm } from './components/SignForm';
 import { STContainer, STSectionBox } from './index.styles';
 
@@ -51,14 +50,17 @@ const Home: NextPage = () => {
         <STSectionBox component="section">
           <SLogo />
           <Typography
-            color={'text.light'}
+            color="text.medium"
             variant="h5"
             fontSize={['1rem', '1.25rem']}
             fontWeight="500"
           >
             Bem vindo a <br />
             <Typography variant="h1" component="p" fontSize={['2rem', '3rem']}>
-              {brandNameConstant}
+              <SimpleSstWordmark
+                fontSize="inherit"
+                fontWeight="inherit"
+              />
             </Typography>
           </Typography>
 

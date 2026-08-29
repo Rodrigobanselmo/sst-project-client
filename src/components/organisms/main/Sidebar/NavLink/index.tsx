@@ -104,7 +104,7 @@ export function NavLink({
                         width: 8,
                         minWidth: 8,
                         ml: 0,
-                        color: 'grey.500',
+                        color: 'inherit',
                       }),
                     // Nível 3 recolhido: bullet pequeno (comportamento original).
                     ...(deep === 1 && {
@@ -120,7 +120,7 @@ export function NavLink({
                         width: 14,
                         minWidth: 14,
                         ml: 0,
-                        color: 'grey.500',
+                        color: 'inherit',
                       }),
                   }}
                   {...(isMenuPeer && isOpen && { component: CircleIcon })}

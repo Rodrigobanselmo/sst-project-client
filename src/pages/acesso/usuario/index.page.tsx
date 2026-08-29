@@ -32,7 +32,7 @@ const UserPage: NextPage = () => {
         <STSectionBox component="section">
           <SLogo mb={3} />
           <Typography
-            color={'text.light'}
+            color="text.medium"
             variant="h5"
             fontSize={['1rem', '1.25rem']}
             fontWeight="500"

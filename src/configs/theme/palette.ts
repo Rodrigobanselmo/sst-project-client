@@ -25,6 +25,7 @@ const palette = {
     dark: '#123e96',
     contrastText: '#fff',
   },
+  // Fallback; createCustomTheme sobrescreve com background.paper do modo.
   sidebar: {
     background: '#1A202C',
   },

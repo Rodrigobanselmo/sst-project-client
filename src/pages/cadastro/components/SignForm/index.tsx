@@ -4,7 +4,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
-import { Box, Link, Typography } from '@mui/material';
+import { Box, Link, Typography, useTheme } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
@@ -32,6 +32,7 @@ export const LoginForm: FC = () => {
 
   const { handleSubmit, control, setValue, watch, setError } = formProps;
 
+  const recaptchaTheme = useTheme().palette.mode === 'dark' ? 'dark' : 'light';
   const { isLocal } = useOnlineStatus();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(isLocal || false);
   const { mutate, isLoading } = useMutationSign();
@@ -97,6 +98,7 @@ export const LoginForm: FC = () => {
       <SFlex mt={10} center>
         <ReCAPTCHAComp
           sitekey="6Lc7Bu4pAAAAAKDIuEI3EWCamZ5p6GLEjihAMuPI"
+          theme={recaptchaTheme}
           onChange={onRecaptchaChange}
         />
       </SFlex>
@@ -108,10 +110,10 @@ export const LoginForm: FC = () => {
       >
         CRIAR
       </SButton>
-      <Typography color="text.light" variant="caption" align="center" mt={4}>
+      <Typography color="text.medium" variant="caption" align="center" mt={4}>
         Já possui conta?
         <NextLink href={RoutesEnum.LOGIN} passHref>
-          <Link pl={2} underline="hover">
+          <Link pl={2} underline="hover" color="text.main">
             Entrar
           </Link>
         </NextLink>

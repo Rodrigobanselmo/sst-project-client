@@ -21,6 +21,7 @@ export const STBoxSidebar = styled(Box)`
   grid-row: 1 / 3;
   grid-column: 1;
   background-color: ${(props) => props.theme.palette.sidebar.background};
+  border-right: 1px solid ${(props) => props.theme.palette.background.divider};
 `;
 
 export const STBoxContent = styled(Box)`
@@ -37,7 +38,7 @@ export const STBoxContent = styled(Box)`
 export const STBoxAIChat = styled(Box)`
   grid-row: 1 / 3;
   grid-column: 3;
-  background-color: ${(props) => props.theme.palette.sidebar.background};
+  background-color: ${(props) => props.theme.palette.background.dark};
   overflow: hidden;
   padding-left: 5px;
 `;

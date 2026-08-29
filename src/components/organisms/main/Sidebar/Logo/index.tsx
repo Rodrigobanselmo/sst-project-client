@@ -1,6 +1,6 @@
 import { RiCloseFill, RiMenu3Fill } from 'react-icons/ri';
 
-import { Box, Icon, Typography } from '@mui/material';
+import { Box, Icon, Typography, useTheme } from '@mui/material';
 
 import { useResolvedVisualIdentity } from 'core/hooks/useResolvedVisualIdentity';
 import { resolveSidebarLogo } from 'core/utils/company/resolve-visual-identity-logo';
@@ -13,6 +13,7 @@ export function LogoNavbar(): JSX.Element {
     useSidebarDrawer();
   const { visualIdentity } = useResolvedVisualIdentity();
 
+  const markColor = useTheme().palette.primary.main;
   const hasCustomIdentity =
     visualIdentity?.visualIdentityEnabled && visualIdentity?.shortName;
   const sidebarLogo = resolveSidebarLogo(visualIdentity);
@@ -26,7 +27,10 @@ export function LogoNavbar(): JSX.Element {
           onClick={isOpen ? close : open}
         />
       ) : (
-        <STLogoSimple onClick={isOpen ? close : open} />
+        <STLogoSimple
+          color={markColor}
+          onClick={isOpen ? close : open}
+        />
       )}
       {hasCustomIdentity ? (
         <Box
@@ -47,7 +51,7 @@ export function LogoNavbar(): JSX.Element {
               opacity: isOpen ? 1 : 0,
               transition: 'opacity 0.5s ease',
               transitionDelay: isOpen ? '0.5s' : '0',
-              color: 'grey.100',
+              color: 'text.main',
             }}
           >
             {visualIdentity?.shortName}
@@ -84,7 +88,7 @@ export function LogoNavbar(): JSX.Element {
             transitionDelay: isOpen ? '0.5s' : '0',
             alignSelf: 'center',
             fontSize: '20',
-            color: 'grey.400',
+            color: 'text.medium',
           }}
         />
       </SIconButton>

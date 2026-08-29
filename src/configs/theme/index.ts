@@ -21,6 +21,7 @@ const mixins = customMixins as MixinsOptions;
 
 interface CustomThemeOptions {
   primaryColor?: string;
+  /** Aceito pelo provider; ignorado na superfície do trilho (autoridade = modo). */
   sidebarBackgroundColor?: string;
   interfaceTheme?: InterfaceTheme | string;
 }
@@ -37,7 +38,7 @@ export function createCustomTheme(
   const opts: CustomThemeOptions =
     typeof options === 'string' ? { primaryColor: options } : options || {};
 
-  const { primaryColor, sidebarBackgroundColor, interfaceTheme } = opts;
+  const { primaryColor, interfaceTheme } = opts;
 
   const mode = parseInterfaceTheme(interfaceTheme);
   const surfaces = getSurfaceTokens(mode);
@@ -63,16 +64,15 @@ export function createCustomTheme(
     };
   }
 
-  // Sidebar permanece independente do modo claro/escuro
-  if (sidebarBackgroundColor) {
-    customPalette = {
-      ...customPalette,
-      sidebar: {
-        ...customPalette.sidebar,
-        background: sidebarBackgroundColor,
-      },
-    };
-  }
+  // Superfície do trilho segue o modo. sidebarBackgroundColor da empresa
+  // não pinta mais a Sidebar (legado; identidade fica em ativo/logo/hover).
+  customPalette = {
+    ...customPalette,
+    sidebar: {
+      ...customPalette.sidebar,
+      background: surfaces.background.paper,
+    },
+  };
 
   const brand = customPalette.primary.main;
   const paper = customPalette.background.paper;

@@ -5,9 +5,8 @@ import * as Yup from 'yup';
 import { withSSRGuest } from 'core/utils/auth/withSSRGuest';
 
 import { STContainer, STSectionBox } from './index.styles';
-import { SLogo } from 'components/atoms/SLogo';
+import { SimpleSstWordmark, SLogo } from 'components/atoms/SLogo';
 import { Typography } from '@mui/material';
-import { brandNameConstant } from 'core/constants/brand.constant';
 import { PasswordInputs } from 'pages/cadastro/components/PasswordInputs/PasswordInputs';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { signSchema } from 'core/utils/schemas/sign.schema';
@@ -49,7 +48,7 @@ const Home: NextPage = () => {
         <STSectionBox component="section">
           <SLogo />
           <Typography
-            color={'text.light'}
+            color="text.medium"
             mt={10}
             mb={20}
             variant="h5"
@@ -58,7 +57,10 @@ const Home: NextPage = () => {
           >
             Resetar senha <br />
             <Typography variant="h1" component="p" fontSize={['2rem', '3rem']}>
-              {brandNameConstant}
+              <SimpleSstWordmark
+                fontSize="inherit"
+                fontWeight="inherit"
+              />
             </Typography>
           </Typography>
           <PasswordInputs resetPass {...formProps} />

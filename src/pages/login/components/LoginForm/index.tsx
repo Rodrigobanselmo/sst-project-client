@@ -4,7 +4,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
-import { Box, Link, Typography } from '@mui/material';
+import { Box, Link, Typography, useTheme } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import NextLink from 'next/link';
@@ -58,6 +58,7 @@ export const LoginForm: FC = () => {
     setIsCaptchaVerified(!!value);
   }
   const { googleSignIn } = useAuth();
+  const recaptchaTheme = useTheme().palette.mode === 'dark' ? 'dark' : 'light';
 
   const handleGoogleSignIn = () => {
     googleSignIn();
@@ -126,6 +127,7 @@ export const LoginForm: FC = () => {
         <SFlex mt={10} center>
           <ReCAPTCHAComp
             sitekey="6Lc7Bu4pAAAAAKDIuEI3EWCamZ5p6GLEjihAMuPI"
+            theme={recaptchaTheme}
             onChange={onRecaptchaChange}
           />
         </SFlex>
@@ -133,14 +135,21 @@ export const LoginForm: FC = () => {
           disabled={!isCaptchaVerified}
           loading={isLoading}
           type="submit"
-          sx={{ width: '100%', mt: 12 }}
+          sx={{
+            width: '100%',
+            mt: 12,
+            '&.Mui-disabled': {
+              color: 'text.disabled',
+              backgroundColor: 'action.disabledBackground',
+            },
+          }}
         >
           ENTRAR
         </SButton>
-        <Typography color="text.light" variant="caption" align="center" mt={4}>
+        <Typography color="text.medium" variant="caption" align="center" mt={4}>
           Nào possui conta?
           <NextLink href="/cadastro" passHref>
-            <Link pl={2} underline="hover">
+            <Link pl={2} underline="hover" color="text.main">
               Cadastre-se
             </Link>
           </NextLink>

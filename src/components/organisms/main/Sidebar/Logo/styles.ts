@@ -30,5 +30,5 @@ export const STTypography = styled(Typography)`
   font-size: 24px;
   font-weight: 500;
   width: 100%;
-  color: ${({ theme }) => theme.palette.grey[100]};
+  color: ${({ theme }) => theme.palette.text.main};
 `;
