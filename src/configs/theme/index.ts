@@ -15,6 +15,7 @@ import {
   parseInterfaceTheme,
   type InterfaceTheme,
 } from './semantic-surfaces';
+import { NEUTRAL_PRIMARY_COLOR } from './neutral-primary';
 
 const mixins = customMixins as MixinsOptions;
 
@@ -49,18 +50,17 @@ export function createCustomTheme(
     divider: surfaces.background.divider,
   };
 
-  if (primaryColor) {
-    const generatedColors = generatePaletteFromColor(primaryColor);
-    if (generatedColors) {
-      customPalette = {
-        ...customPalette,
-        primary: {
-          ...customPalette.primary,
-          ...generatedColors.primary,
-        },
-        mainBlur: generatedColors.mainBlur,
-      };
-    }
+  const brandColor = primaryColor || NEUTRAL_PRIMARY_COLOR;
+  const generatedColors = generatePaletteFromColor(brandColor);
+  if (generatedColors) {
+    customPalette = {
+      ...customPalette,
+      primary: {
+        ...customPalette.primary,
+        ...generatedColors.primary,
+      },
+      mainBlur: generatedColors.mainBlur,
+    };
   }
 
   // Sidebar permanece independente do modo claro/escuro

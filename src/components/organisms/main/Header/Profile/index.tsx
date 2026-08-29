@@ -7,7 +7,7 @@ import Text from '@mui/material/Typography';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
+import { useResolvedVisualIdentity } from 'core/hooks/useResolvedVisualIdentity';
 import { resolveHeaderLogo } from 'core/utils/company/resolve-visual-identity-logo';
 import { useTheme } from '@mui/material/styles';
 
@@ -23,9 +23,7 @@ export function Profile({
   const { user } = useAuth();
   const theme = useTheme();
   const { data: company } = useQueryCompany(user?.companyId);
-  const { visualIdentity } = useFetchVisualIdentity({
-    companyId: user?.companyId || '',
-  });
+  const { visualIdentity } = useResolvedVisualIdentity();
   const logoSrc =
     resolveHeaderLogo(visualIdentity, theme.palette.mode) || company?.logoUrl;
 

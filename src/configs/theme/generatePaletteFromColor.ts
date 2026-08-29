@@ -1,5 +1,7 @@
 import chroma from 'chroma-js';
 
+import { NEUTRAL_PRIMARY_COLOR } from './neutral-primary';
+
 const CONTRAST_TEXT_LIGHT = '#ffffff';
 const CONTRAST_TEXT_DARK = '#1A202C';
 /**
@@ -104,7 +106,7 @@ export function getPrimaryInteractiveTokens(
   mode: 'light' | 'dark',
   surface: string,
 ): PrimaryInteractiveTokens {
-  const safeBrand = chroma.valid(brand) ? brand : '#F27329';
+  const safeBrand = chroma.valid(brand) ? brand : NEUTRAL_PRIMARY_COLOR;
   const safeSurface = chroma.valid(surface)
     ? surface
     : mode === 'dark'

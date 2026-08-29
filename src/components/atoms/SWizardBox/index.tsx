@@ -12,7 +12,7 @@ const SWizardBox = React.forwardRef<any, SFlexProps>(
       {...props}
       ref={ref}
       sx={{
-        backgroundColor: 'grey.100',
+        backgroundColor: 'background.paper',
         borderRadius: '10px 10px 10px 10px',
         boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
         ...sx,

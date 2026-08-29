@@ -115,7 +115,7 @@ export const STSTableRow = styled(Box)<{
   ${(props) =>
     props.status == 'fade' &&
     css`
-      background-color: ${props.theme.palette.grey[200]};
+      background-color: ${props.theme.palette.background.disabled};
       opacity: 0.8;
     `};
 `;

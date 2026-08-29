@@ -3,10 +3,9 @@ import React, { useMemo, ReactNode } from 'react';
 import { ThemeProvider as EmotionProvider } from '@emotion/react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 
-import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
-import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useResolvedVisualIdentity } from 'core/hooks/useResolvedVisualIdentity';
 
-import defaultTheme, { createCustomTheme } from '../../../configs/theme';
+import { createCustomTheme } from '../../../configs/theme';
 import {
   resolveInterfaceTheme,
   useInterfaceThemeOverride,
@@ -17,45 +16,33 @@ interface DynamicThemeProviderProps {
 }
 
 /**
- * Provider que aplica tema dinâmico baseado nas configurações de identidade visual da empresa
- * Se visualIdentityEnabled estiver ativo, aplica marca, superfícies e tema claro/escuro.
- * Caso contrário, usa o tema padrão.
- *
- * A API retorna a identidade visual da empresa ou da consultora (fallback)
+ * Tema já resolvido pela API para o usuário no contexto operacional atual.
+ * Identidade ativa → aplicar. Sem identidade → neutro (#4A5568).
  */
 export const DynamicThemeProvider = ({
   children,
 }: DynamicThemeProviderProps) => {
-  const { companyId, user } = useGetCompanyId();
-  const themeCompanyId = companyId || user?.companyId || '';
-  const { visualIdentity } = useFetchVisualIdentity({
-    companyId: themeCompanyId,
-  });
+  const { visualIdentity } = useResolvedVisualIdentity();
   const themeOverride = useInterfaceThemeOverride();
 
   const theme = useMemo(() => {
-    const isVisualIdentityEnabled = visualIdentity?.visualIdentityEnabled;
     const interfaceTheme = resolveInterfaceTheme(
       visualIdentity?.interfaceTheme,
       themeOverride,
     );
 
-    if (isVisualIdentityEnabled) {
+    if (visualIdentity) {
       return createCustomTheme({
-        primaryColor: visualIdentity?.primaryColor || undefined,
+        primaryColor: visualIdentity.primaryColor || undefined,
         sidebarBackgroundColor:
-          visualIdentity?.sidebarBackgroundColor || undefined,
+          visualIdentity.sidebarBackgroundColor || undefined,
         interfaceTheme,
       });
     }
 
-    if (themeOverride) {
-      return createCustomTheme({ interfaceTheme: themeOverride });
-    }
-
-    return defaultTheme;
+    return createCustomTheme({ interfaceTheme });
   }, [
-    visualIdentity?.visualIdentityEnabled,
+    visualIdentity,
     visualIdentity?.primaryColor,
     visualIdentity?.sidebarBackgroundColor,
     visualIdentity?.interfaceTheme,

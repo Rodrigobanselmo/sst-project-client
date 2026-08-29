@@ -1,62 +1,18 @@
 import React, { FC } from 'react';
 
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
 import { Header } from 'components/organisms/main/Header';
+import { AppLoading } from 'components/organisms/feedback/AppLoading';
 
-import { useAuth } from '../../../core/contexts/AuthContext';
 import { useAppSelector } from '../../../core/hooks/useAppSelector';
 import { selectRouteLoad } from '../../../store/reducers/routeLoad/routeLoadSlice';
-import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
-import { resolveSidebarLogo } from 'core/utils/company/resolve-visual-identity-logo';
-import {
-  STBoxChildren,
-  STLoadLogoSimpleIcon,
-  STCompanyLogoLoading,
-  STBoxLoading,
-  SlideUp,
-} from './styles';
+import { STBoxChildren } from './styles';
 
 export const DashboardLoadingFeedback: FC<React.PropsWithChildren<any>> = ({
   children,
 }) => {
   const { isLoadingRoute, isFetchingData } = useAppSelector(selectRouteLoad);
-  const { user } = useAuth();
-  const { visualIdentity, isLoading: isLoadingVisualIdentity } =
-    useFetchVisualIdentity({
-      companyId: user?.companyId || '',
-    });
-
-  const companyLogo = resolveSidebarLogo(visualIdentity);
-
-  const renderLoadingLogo = () => {
-    // Se ainda está carregando a identidade visual, mostra spinner
-    if (isLoadingVisualIdentity) {
-      return (
-        <CircularProgress
-          size={60}
-          sx={{
-            position: 'fixed',
-            right: 'calc(50% - 30px)',
-            top: 'calc(50% - 50px)',
-            color: 'primary.main',
-          }}
-        />
-      );
-    }
-
-    // Se tem logo da empresa, mostra o logo
-    if (companyLogo) {
-      return (
-        <STCompanyLogoLoading
-          src={companyLogo!}
-          alt={visualIdentity?.shortName || 'Logo'}
-        />
-      );
-    }
-
-    // Fallback para o logo padrão
-    return <STLoadLogoSimpleIcon />;
-  };
+  const showOverlay = isLoadingRoute || isFetchingData;
 
   return (
     <Box
@@ -70,9 +26,7 @@ export const DashboardLoadingFeedback: FC<React.PropsWithChildren<any>> = ({
     >
       <Header />
       <STBoxChildren>
-        {(isLoadingRoute || isFetchingData) && (
-          <STBoxLoading>{renderLoadingLogo()}</STBoxLoading>
-        )}
+        <AppLoading open={showOverlay} variant="contained" />
         {children}
       </STBoxChildren>
     </Box>

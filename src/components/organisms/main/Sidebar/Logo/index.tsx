@@ -2,8 +2,7 @@ import { RiCloseFill, RiMenu3Fill } from 'react-icons/ri';
 
 import { Box, Icon, Typography } from '@mui/material';
 
-import { useAuth } from 'core/contexts/AuthContext';
-import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
+import { useResolvedVisualIdentity } from 'core/hooks/useResolvedVisualIdentity';
 import { resolveSidebarLogo } from 'core/utils/company/resolve-visual-identity-logo';
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import SIconButton from '../../../../atoms/SIconButton';
@@ -12,10 +11,7 @@ import { STStack, STTypography, STLogoSimple, STCompanyLogo } from './styles';
 export function LogoNavbar(): JSX.Element {
   const { isOpen, open, close, setAlwaysOpen, alwaysOpen, isTablet } =
     useSidebarDrawer();
-  const { user } = useAuth();
-  const { visualIdentity } = useFetchVisualIdentity({
-    companyId: user?.companyId || '',
-  });
+  const { visualIdentity } = useResolvedVisualIdentity();
 
   const hasCustomIdentity =
     visualIdentity?.visualIdentityEnabled && visualIdentity?.shortName;

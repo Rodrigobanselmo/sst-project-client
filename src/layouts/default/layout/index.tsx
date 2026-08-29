@@ -72,6 +72,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       router.events.off('routeChangeStart', handleStart);
       router.events.off('routeChangeComplete', handleStop);
       router.events.off('routeChangeError', handleStop);
+      dispatch(setIsRouteLoading(false));
     };
   }, [router, dispatch, user, isMarketingSite]);
 

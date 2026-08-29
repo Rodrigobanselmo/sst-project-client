@@ -79,15 +79,15 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
                   style={{ maxWidth: '28rem', paddingRight: 40 }}
                 >
                   <AuthProvider>
-                    <GlobalLoadingScreen>
-                      <DynamicThemeProvider>
+                    <DynamicThemeProvider>
+                      <GlobalLoadingScreen>
                         {/* <ReactQueryDevtools initialIsOpen={false} /> */}
                         <AIChatProvider>
                           <KBarProvider>{children}</KBarProvider>
                         </AIChatProvider>
                         <OldReactQueryDevtools />
-                      </DynamicThemeProvider>
-                    </GlobalLoadingScreen>
+                      </GlobalLoadingScreen>
+                    </DynamicThemeProvider>
                   </AuthProvider>
                 </SnackbarProvider>
               </QueryClientProviderComponent>

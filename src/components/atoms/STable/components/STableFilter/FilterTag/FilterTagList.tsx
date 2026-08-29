@@ -37,7 +37,7 @@ export const FilterTagList: FC<{ children?: any } & IFilterTagProps> = ({
         <FilterTag
           sx={{
             cursor: 'pointer',
-            backgroundColor: 'white',
+            backgroundColor: 'background.paper',
             borderColor: 'info.main',
           }}
           onClick={() => filterProps.clearFilter()}

@@ -21,7 +21,7 @@ export const STBoxChildren = styled(Box)`
   }
 `;
 
-export const SlideUp = keyframes`
+const SlideUp = keyframes`
     0% {
         transform: translateY(0px);
     }
@@ -33,6 +33,7 @@ export const SlideUp = keyframes`
     }
 `;
 
+/** Mantido para o formulário público; não é mais fallback do dashboard. */
 export const STLoadLogoSimpleIcon = styled(LogoSimpleIcon)`
   height: 80px;
   width: 80px;
@@ -41,19 +42,6 @@ export const STLoadLogoSimpleIcon = styled(LogoSimpleIcon)`
   top: calc(50% - 70px);
   animation: ${SlideUp} 1.5s;
   animation-iteration-count: infinite;
-`;
-
-export const STCompanyLogoLoading = styled('img')`
-  height: 80px;
-  width: 80px;
-  position: absolute;
-  right: calc(50% - 40px);
-  top: calc(50% - 70px);
-  animation: ${SlideUp} 1.5s;
-  animation-iteration-count: infinite;
-  object-fit: contain;
-  background-color: transparent;
-  border-radius: 8px;
 `;
 
 export const STBoxLoading = styled(Box)`

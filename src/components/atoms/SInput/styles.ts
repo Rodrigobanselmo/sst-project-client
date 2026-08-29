@@ -196,30 +196,30 @@ export const STTextField = styled(TextField)<{
   ${(props) =>
     props.sub_variant == 'search' &&
     css`
-      border-color: ${props.theme.palette.grey[200]};
+      border-color: ${props.theme.palette.background.border};
       border-width: 2px;
       /* box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.1); */
       border-radius: 8px;
       &&& .MuiOutlinedInput-notchedOutline {
-        border-color: ${props.theme.palette.grey[200]};
+        border-color: ${props.theme.palette.background.border};
         border-width: 2px;
       }
 
       &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
         border-width: 2px;
-        border-color: ${props.theme.palette.grey[300]};
+        border-color: ${props.theme.palette.background.border};
       }
 
       &:hover {
         &&& .MuiOutlinedInput-notchedOutline {
-          border-color: ${props.theme.palette.grey[300]};
+          border-color: ${props.theme.palette.background.border};
           border-width: 2px;
         }
         &&&
           .MuiOutlinedInput-root.Mui-focused
           .MuiOutlinedInput-notchedOutline {
           border-width: 2px;
-          border-color: ${props.theme.palette.grey[300]};
+          border-color: ${props.theme.palette.background.border};
           opacity: 1;
         }
       }

@@ -33,7 +33,7 @@ export const FilterTag: FC<{ children?: any } & IFilterTagProps> = ({
       borderRadius={2}
       py={1}
       center
-      sx={{ backgroundColor: 'grey.100' }}
+      sx={{ backgroundColor: 'background.paper' }}
       minWidth={80}
       {...props}
     >
