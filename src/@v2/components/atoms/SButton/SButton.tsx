@@ -27,7 +27,7 @@ export const SButton: FC<SButtonProps> = ({
   const disabledButton = disabled || loading;
   const contentColor = disabledButton
     ? colorMap.disabled.textColor
-    : schema?.iconColor || colorMap[color].textColor;
+    : schema?.iconColor || schema?.color || colorMap[color].textColor;
   return (
     <STooltip title={tooltip || ''} withWrapper>
       <Button
@@ -106,11 +106,7 @@ export const SButton: FC<SButtonProps> = ({
             <Box
               mr={icon ? 2 : 0}
               fontSize={sizeMap[size].fontSize}
-              color={
-                disabledButton
-                  ? colorMap.disabled.textColor
-                  : colorMap[color].textColor
-              }
+              color={contentColor}
               {...textProps}
             >
               {text}

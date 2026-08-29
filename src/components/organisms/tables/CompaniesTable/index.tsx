@@ -15,7 +15,6 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { companyFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/companyFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
-import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -38,6 +37,10 @@ import {
   useQueryCompanies,
 } from 'core/services/hooks/queries/useQueryCompanies';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
+import {
+  tableUtilityPillButtonProps,
+  tableUtilityPillSx,
+} from 'configs/theme/brand-identity-fill';
 
 import { CompanyActionsRow } from './CompanyActionsRow';
 import {
@@ -288,41 +291,42 @@ export const CompaniesTable: FC<
       <STableSearch
         key={searchInputKey}
         autoFocus={false}
+        filterProps={{ filters: companyFilterList, ...filterProps }}
+        filterButtonSx={tableUtilityPillSx}
         {...(!isSelect && {
+          identitySquareActions: true,
+          pinToolbarWithFilter: true,
           onAddClick: () => onStackOpenModal(ModalEnum.COMPANY_EDIT),
-          toolbarBeforeFilter: (
-            <>
-              {isMaster && (
-                <FormControlLabel
-                  sx={{ mr: 1, ml: 0, whiteSpace: 'nowrap' }}
-                  control={
-                    <Switch
-                      size="small"
-                      checked={includeInactive}
-                      onChange={(e) => {
-                        setIncludeInactive(e.target.checked);
-                        setPage(1);
-                      }}
-                    />
-                  }
-                  label="Incluir inativas"
+          toolbarAfterAdd: isMaster ? (
+            <FormControlLabel
+              sx={{ mr: 0, ml: 2, whiteSpace: 'nowrap' }}
+              control={
+                <Switch
+                  size="small"
+                  checked={includeInactive}
+                  onChange={(e) => {
+                    setIncludeInactive(e.target.checked);
+                    setPage(1);
+                  }}
                 />
-              )}
-              <STableColumnsButton<CompaniesTableColumnId>
-                showLabel
-                columns={columnPickerItems}
-                hiddenColumns={
-                  hiddenColumns as Record<CompaniesTableColumnId, boolean>
-                }
-                setHiddenColumns={setHiddenColumnsFromPicker}
-              />
-            </>
+              }
+              label="Incluir inativas"
+            />
+          ) : undefined,
+          toolbarBeforeFilter: (
+            <STableColumnsButton<CompaniesTableColumnId>
+              showLabel
+              columns={columnPickerItems}
+              hiddenColumns={
+                hiddenColumns as Record<CompaniesTableColumnId, boolean>
+              }
+              setHiddenColumns={setHiddenColumnsFromPicker}
+              tableButtonProps={tableUtilityPillButtonProps}
+            />
           ),
         })}
         onChange={(e) => handleSearchChange(e.target.value)}
-      >
-        <STableFilterIcon filters={companyFilterList} {...filterProps} />
-      </STableSearch>
+      />
       <FilterTagList filterProps={filterProps} />
       <STable
         loading={isLoading}

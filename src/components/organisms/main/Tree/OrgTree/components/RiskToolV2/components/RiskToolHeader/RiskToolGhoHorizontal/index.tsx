@@ -20,6 +20,7 @@ import {
 } from 'store/reducers/hierarchy/ghoSlice';
 
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
+import { tableUtilityPillSx } from 'configs/theme/brand-identity-fill';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { originRiskMap } from 'core/constants/maps/origin-risk';
@@ -340,7 +341,7 @@ export const RiskToolGhoHorizontal: FC<
           {showSyncPlanButton && (
             <SButton
               variant="outlined"
-              sx={{ height: 30 }}
+              sx={{ ...tableUtilityPillSx, minWidth: 'auto', height: 30 }}
               disabled={
                 syncPlanMutation.isLoading ||
                 !planWorkspaceId ||
@@ -381,7 +382,7 @@ export const RiskToolGhoHorizontal: FC<
             >
               <SButton
                 variant="outlined"
-                sx={{ height: 30 }}
+                sx={{ ...tableUtilityPillSx, minWidth: 'auto', height: 30 }}
                 onClick={() => wideCtx.toggleWideView()}
               >
                 <SText sx={{ mr: 5 }}>
@@ -399,7 +400,7 @@ export const RiskToolGhoHorizontal: FC<
             loading={loadingCopy}
             disabled={!selected}
             variant="outlined"
-            sx={{ height: 30 }}
+            sx={{ ...tableUtilityPillSx, minWidth: 'auto', height: 30 }}
           >
             <SText sx={{ mr: 5 }}>Importar riscos</SText>
             <Icon component={SCopyIcon} sx={{ fontSize: '1.2rem' }} />

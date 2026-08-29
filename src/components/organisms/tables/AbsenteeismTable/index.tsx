@@ -16,9 +16,12 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { absenteeismFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/absenteeismFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
-import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import {
+  tableUtilityPillButtonProps,
+  tableUtilityPillSx,
+} from 'configs/theme/brand-identity-fill';
 import { initialAbsenteeismState } from 'components/organisms/modals/ModalAddAbsenteeism/hooks/useAddAbsenteeism';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 import dayjs from 'dayjs';
@@ -298,6 +301,10 @@ export const AbsenteeismsTable: FC<
         key={searchInputKey}
         autoFocus={false}
         onAddClick={onAddAbsenteeism}
+        identitySquareActions
+        pinToolbarWithFilter
+        filterButtonSx={tableUtilityPillSx}
+        filterProps={{ filters: absenteeismFilterList, ...filterProps }}
         toolbarBeforeFilter={
           <STableColumnsButton<AbsenteeismTableColumnId>
             showLabel
@@ -306,12 +313,11 @@ export const AbsenteeismsTable: FC<
               hiddenColumns as Record<AbsenteeismTableColumnId, boolean>
             }
             setHiddenColumns={setHiddenColumnsFromPicker}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
         }
         onChange={(e) => handleSearchChange(e.target.value)}
-      >
-        <STableFilterIcon filters={absenteeismFilterList} {...filterProps} />
-      </STableSearch>
+      />
       <FilterTagList filterProps={filterProps} />
       <STable
         loading={loadGroup}

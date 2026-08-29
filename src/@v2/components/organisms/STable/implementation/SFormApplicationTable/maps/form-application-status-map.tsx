@@ -3,7 +3,6 @@ import DonutLargeIcon from '@mui/icons-material/DonutLarge';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { FormApplicationStatusTranslate } from '@v2/models/form/translations/form-application-status.translation';
-import palette from 'configs/theme/palette';
 import { ReactNode } from 'react';
 import { SStartAddonIcon } from '../../../addons/addons-rows/SSelectButtonRow/addons/start-addons/SStartAddonIcon';
 import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
@@ -31,14 +30,14 @@ export const FormApplicationStatusMap: Record<
     label: FormApplicationStatusTranslate[FormApplicationStatusEnum.PENDING],
     startAddon: (
       <SStartAddonIcon
-        item={<DataUsageIcon sx={{ fontSize: 15, color: palette.grey[500] }} />}
+        item={<DataUsageIcon sx={{ fontSize: 15, color: 'text.light' }} />}
       />
     ),
     schema: {
-      color: palette.schema.gray,
-      borderColor: palette.schema.gray,
-      iconColor: palette.schema.gray,
-      backgroundColor: palette.schema.grayFade,
+      color: 'text.medium',
+      borderColor: 'background.border',
+      iconColor: 'text.medium',
+      backgroundColor: 'background.box',
     },
   },
   [FormApplicationStatusEnum.PROGRESS]: {
@@ -48,16 +47,16 @@ export const FormApplicationStatusMap: Record<
       <SStartAddonIcon
         item={
           <SecurityUpdateGoodOutlinedIcon
-            sx={{ fontSize: 15, color: palette.schema.blue }}
+            sx={{ fontSize: 15, color: 'info.main' }}
           />
         }
       />
     ),
     schema: {
-      color: palette.schema.blue,
-      borderColor: palette.schema.blue,
-      iconColor: palette.schema.blue,
-      backgroundColor: palette.schema.blueFade,
+      color: 'info.main',
+      borderColor: 'info.main',
+      iconColor: 'info.main',
+      backgroundColor: 'background.box',
     },
   },
   [FormApplicationStatusEnum.DONE]: {
@@ -65,16 +64,14 @@ export const FormApplicationStatusMap: Record<
     label: FormApplicationStatusTranslate[FormApplicationStatusEnum.DONE],
     startAddon: (
       <SStartAddonIcon
-        item={
-          <DonutLargeIcon sx={{ fontSize: 15, color: palette.schema.green }} />
-        }
+        item={<DonutLargeIcon sx={{ fontSize: 15, color: 'success.main' }} />}
       />
     ),
     schema: {
-      color: palette.schema.green,
-      borderColor: palette.schema.green,
-      iconColor: palette.schema.green,
-      backgroundColor: palette.schema.greenFade,
+      color: 'success.main',
+      borderColor: 'success.main',
+      iconColor: 'success.main',
+      backgroundColor: 'background.box',
     },
   },
   [FormApplicationStatusEnum.CANCELED]: {
@@ -83,15 +80,15 @@ export const FormApplicationStatusMap: Record<
     startAddon: (
       <SStartAddonIcon
         item={
-          <NotInterestedIcon sx={{ fontSize: 15, color: palette.schema.red }} />
+          <NotInterestedIcon sx={{ fontSize: 15, color: 'error.main' }} />
         }
       />
     ),
     schema: {
-      color: palette.schema.red,
-      borderColor: palette.schema.red,
-      iconColor: palette.schema.red,
-      backgroundColor: palette.schema.redFade,
+      color: 'error.main',
+      borderColor: 'error.main',
+      iconColor: 'error.main',
+      backgroundColor: 'background.box',
     },
   },
   [FormApplicationStatusEnum.INACTIVE]: {
@@ -101,16 +98,16 @@ export const FormApplicationStatusMap: Record<
       <SStartAddonIcon
         item={
           <PanToolOutlinedIcon
-            sx={{ fontSize: 15, color: palette.schema.red }}
+            sx={{ fontSize: 15, color: 'warning.main' }}
           />
         }
       />
     ),
     schema: {
-      color: palette.schema.yellow,
-      borderColor: palette.schema.yellow,
-      iconColor: palette.schema.yellow,
-      backgroundColor: palette.schema.yellowFade,
+      color: 'warning.main',
+      borderColor: 'warning.main',
+      iconColor: 'warning.main',
+      backgroundColor: 'background.box',
     },
   },
   [FormApplicationStatusEnum.TESTING]: {
@@ -120,16 +117,16 @@ export const FormApplicationStatusMap: Record<
       <SStartAddonIcon
         item={
           <ScienceOutlinedIcon
-            sx={{ fontSize: 15, color: palette.schema.yellow }}
+            sx={{ fontSize: 15, color: 'warning.main' }}
           />
         }
       />
     ),
     schema: {
-      color: palette.schema.yellow,
-      borderColor: palette.schema.yellow,
-      iconColor: palette.schema.yellow,
-      backgroundColor: palette.schema.yellowFade,
+      color: 'warning.main',
+      borderColor: 'warning.main',
+      iconColor: 'warning.main',
+      backgroundColor: 'background.box',
     },
   },
 };

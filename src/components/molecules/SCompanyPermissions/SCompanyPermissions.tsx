@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Box, BoxProps } from '@mui/material';
+import { Box, BoxProps, useTheme } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
+import { brandIdentitySwitchLightSx } from 'configs/theme/brand-identity-fill';
 import SText from 'components/atoms/SText';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
@@ -43,6 +44,7 @@ export const CompanyPermissions = ({
   setPermissions: (p: string[]) => void;
 }) => {
   const { isValidRoles, isMaster } = useAccess();
+  const isLight = useTheme().palette.mode === 'light';
 
   return (
     <SFlex display={'grid'} gridTemplateColumns={'1fr 1fr 1fr'} {...props}>
@@ -88,7 +90,10 @@ export const CompanyPermissions = ({
                 }}
                 checked={includesPermission}
                 label={label}
-                sx={{ mr: 4 }}
+                sx={{
+                  mr: 4,
+                  ...(isLight ? brandIdentitySwitchLightSx : {}),
+                }}
                 color="text.light"
               />
             );

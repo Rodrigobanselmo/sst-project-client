@@ -1,6 +1,6 @@
 import { FC, useCallback, useState } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { BoxProps, useTheme } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
@@ -18,6 +18,10 @@ import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-t
 import { STableButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/STableButton';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch as STableSearchV2 } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import {
+  brandIdentityGlyphDarkSx,
+  tableOperationalButtonProps,
+} from 'configs/theme/brand-identity-fill';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import {
   GhoAddLayout,
@@ -76,6 +80,7 @@ export const GhosTable: FC<
   );
 
   const isSelect = !!onSelectData;
+  const isDark = useTheme().palette.mode === 'dark';
 
   const {
     data: risks,
@@ -160,14 +165,14 @@ export const GhosTable: FC<
         {!isSelect && (
           <STableSearchContent>
             <>
-              <STableAddButton onClick={onAddGHO} />
+              <STableAddButton identityFill onClick={onAddGHO} />
               <STableButton
                 onClick={handleImportGse}
                 text="Importar GSE"
                 tooltip="Importe um GSE existente, copiando nome, descrição e riscos diretos para este estabelecimento."
                 icon={<ContentCopyOutlinedIcon sx={{ fontSize: 16 }} />}
-                color="success"
                 disabled={!workspaceId}
+                {...tableOperationalButtonProps}
               />
             </>
           </STableSearchContent>
@@ -228,6 +233,7 @@ export const GhosTable: FC<
           />
           <IconButtonRow
             icon={<EditIcon />}
+            sx={isDark ? brandIdentityGlyphDarkSx : undefined}
             onClick={(e) => {
               e.stopPropagation();
               onEditGHO(row, 'edit');

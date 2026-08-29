@@ -3,6 +3,7 @@ import { MouseEvent } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
+import { brandIdentityQuantityColor } from 'configs/theme/brand-identity-fill';
 
 type CharacterizationQuickCountCellProps = {
   count: number;
@@ -126,7 +127,7 @@ export function CharacterizationQuickCountCell({
               border: 0,
               background: 'none',
               cursor: disabled ? 'not-allowed' : 'pointer',
-              color: disabled ? 'text.disabled' : 'primary.main',
+              color: disabled ? 'text.disabled' : brandIdentityQuantityColor,
               fontSize: 13,
               fontWeight: 600,
               textDecoration: disabled ? 'none' : 'underline',
@@ -162,7 +163,12 @@ export function CharacterizationQuickCountCell({
             aria-label={addTooltip}
             sx={{ p: 0.25 }}
           >
-            <AddIcon sx={{ fontSize: 16 }} />
+            <AddIcon
+              sx={{
+                fontSize: 16,
+                color: disabled ? 'text.disabled' : brandIdentityQuantityColor,
+              }}
+            />
           </IconButton>
         </span>
       </Tooltip>

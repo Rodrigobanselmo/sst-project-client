@@ -2,6 +2,7 @@ import { MouseEvent } from 'react';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
+import { brandIdentityQuantityColor } from 'configs/theme/brand-identity-fill';
 
 type CharacterizationRisksQuickCellProps = {
   count: number;
@@ -57,7 +58,7 @@ export function CharacterizationRisksQuickCell({
               border: 0,
               background: 'none',
               cursor: 'pointer',
-              color: 'primary.main',
+              color: brandIdentityQuantityColor,
               fontSize: 13,
               fontWeight: 600,
               textDecoration: 'underline',
@@ -81,7 +82,9 @@ export function CharacterizationRisksQuickCell({
             <AutoFixHighOutlinedIcon
               sx={{
                 fontSize: 16,
-                color: aiDisabled ? 'text.disabled' : 'primary.main',
+                color: aiDisabled
+                  ? 'text.disabled'
+                  : brandIdentityQuantityColor,
               }}
             />
           </IconButton>

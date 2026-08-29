@@ -17,6 +17,7 @@ export const STableFilterButton: FC<STableFilterButtonProps> = ({
   text,
   children,
   popperTile = 'Aplicar filtros',
+  tableButtonProps,
 }) => {
   const anchorEl = useRef<null | HTMLDivElement>(null);
   const { isOpen, toggle, close } = useDisclosure();
@@ -33,6 +34,7 @@ export const STableFilterButton: FC<STableFilterButtonProps> = ({
           onClick={handleSelect}
           text={text ?? 'Fitros'}
           icon={<SIconFilter fontSize={16} />}
+          {...tableButtonProps}
         />
       </Box>
       <SPopperArrow

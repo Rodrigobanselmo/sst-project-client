@@ -1,7 +1,7 @@
 import { FC, useCallback, useMemo, useState } from 'react';
 
 import BadgeIcon from '@mui/icons-material/Badge';
-import { Box, BoxProps } from '@mui/material';
+import { Box, BoxProps, useTheme } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SFlex from 'components/atoms/SFlex';
 import {
@@ -70,6 +70,11 @@ import {
 import { EmployeeEstablishmentsCell } from './components/EmployeeEstablishmentsCell';
 import { SDropIconEmployee } from './components/SDropIconEmployee/SDropIconEmployee';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
+import {
+  brandIdentityOutlinedHoverDarkSx,
+  brandIdentityOutlinedHoverLightSx,
+  BRAND_IDENTITY_TABLE_CONFIG_PILL,
+} from 'configs/theme/brand-identity-fill';
 
 type ColumnDef = {
   id: EmployeeTableColumnId;
@@ -87,6 +92,14 @@ export const EmployeesTable: FC<
       query?: IQueryEmployee;
     }
 > = ({ rowsPerPage: rowsPerPageProp, hideModal, query, ...props }) => {
+  const isDark = useTheme().palette.mode === 'dark';
+  const outlinedHoverSx = isDark
+    ? brandIdentityOutlinedHoverDarkSx
+    : brandIdentityOutlinedHoverLightSx;
+  const tableConfigControlSx = {
+    ...BRAND_IDENTITY_TABLE_CONFIG_PILL,
+    ...outlinedHoverSx,
+  };
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { data: company, isLoading: loadCompany } = useQueryCompany();
   const filterProps = useFilterTable(undefined, {
@@ -444,6 +457,9 @@ export const EmployeesTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
         loadingReload={loadEmployees || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
+        identitySquareActions
+        pinToolbarWithFilter
+        filterButtonSx={tableConfigControlSx}
         toolbarBeforeFilter={
           <STableColumnsButton<EmployeeTableColumnId>
             showLabel
@@ -452,6 +468,18 @@ export const EmployeesTable: FC<
               hiddenColumns as Record<EmployeeTableColumnId, boolean>
             }
             setHiddenColumns={setHiddenColumnsFromPicker}
+            tableButtonProps={{
+              variant: 'outlined',
+              color: 'paper',
+              schema: {
+                backgroundColor: 'transparent',
+                borderColor: 'grey.600',
+                color: 'text.primary',
+                iconColor: 'grey.600',
+              },
+              textProps: { color: 'text.primary' },
+              buttonProps: { sx: tableConfigControlSx },
+            }}
           />
         }
         filterProps={{ filters: employeeFilterList, ...filterProps }}

@@ -1,11 +1,17 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
+import ReplayOutlined from '@mui/icons-material/ReplayOutlined';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { Box, BoxProps, FormControl, MenuItem, Select } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { alpha } from '@mui/material/styles';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import {
+  brandIdentityToolbarAddSx,
+  BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+  tableUtilityPillButtonProps,
+} from 'configs/theme/brand-identity-fill';
 import SFlex from 'components/atoms/SFlex';
 import {
   STable,
@@ -891,68 +897,75 @@ export const DocTable: FC<
         key={searchInputKey}
         onAddClick={() => onGenerateVersion()}
         onChange={(e) => handleSearchChange(e.target.value)}
-        toolbarBeforeFilter={
-          <SFlex align="center" gap={2}>
-            <STableColumnsButton<DocTableColumnId>
-              showLabel
-              columns={columnPickerItems}
-              hiddenColumns={
-                hiddenColumns as Record<DocTableColumnId, boolean>
-              }
-              setHiddenColumns={setHiddenColumnsFromPicker}
-            />
-            <FormControl size="small" sx={{ minWidth: 130 }}>
-              <Select
-                value={familyFilter}
-                onChange={onFamilyFilterChange}
-                displayEmpty
-                sx={{
-                  height: 32,
-                  fontSize: 13,
-                  '& .MuiSelect-select': { py: 0.5 },
-                }}
-              >
-                <MenuItem value="all">Tipo: {FAMILY_FILTER_LABELS.all}</MenuItem>
-                <MenuItem value="test">Tipo: {FAMILY_FILTER_LABELS.test}</MenuItem>
-                <MenuItem value="official">
-                  Tipo: {FAMILY_FILTER_LABELS.official}
-                </MenuItem>
-              </Select>
-            </FormControl>
-          </SFlex>
+        identitySquareActions
+        pinToolbarWithFilter
+        onReloadClick={() => {
+          refetch();
+          queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
+        }}
+        loadingReload={isLoading || isFetching || isRefetching}
+        toolbarAfterAdd={
+          <FormControl size="small" sx={{ minWidth: 130, ml: 2 }}>
+            <Select
+              value={familyFilter}
+              onChange={onFamilyFilterChange}
+              displayEmpty
+              sx={{
+                height: BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+                fontSize: 13,
+                '& .MuiSelect-select': { py: 0.5 },
+              }}
+            >
+              <MenuItem value="all">Tipo: {FAMILY_FILTER_LABELS.all}</MenuItem>
+              <MenuItem value="test">Tipo: {FAMILY_FILTER_LABELS.test}</MenuItem>
+              <MenuItem value="official">
+                Tipo: {FAMILY_FILTER_LABELS.official}
+              </MenuItem>
+            </Select>
+          </FormControl>
         }
-      >
-        <STableButton
-          tooltip="autualizar"
-          onClick={() => {
-            refetch();
-            queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
-          }}
-          loading={isLoading || isFetching || isRefetching}
-          icon={SReloadIcon}
-          color="grey.500"
-        />
-        {workspaceId && documentData?.id && (
-          <>
-            <STableButton
-              tooltip="Reiniciar versões de teste"
-              text="Reset teste"
-              onClick={handleResetUnofficialVersions}
-              loading={resetUnofficialVersions.isLoading}
-              disabled={unofficialVersions.length === 0}
-              color="grey.600"
-            />
-            <STableButton
-              tooltip="Iniciar nova série oficial"
-              text="Reset oficial"
-              onClick={handleResetOfficialSeries}
-              loading={resetOfficialSeries.isLoading}
-              disabled={activeOfficialVersions.length === 0}
-              color="grey.600"
-            />
-          </>
-        )}
-      </STableSearch>
+        toolbarBeforeFilter={
+          <STableColumnsButton<DocTableColumnId>
+            showLabel
+            columns={columnPickerItems}
+            hiddenColumns={
+              hiddenColumns as Record<DocTableColumnId, boolean>
+            }
+            setHiddenColumns={setHiddenColumnsFromPicker}
+            tableButtonProps={tableUtilityPillButtonProps}
+          />
+        }
+        toolbarAfterReload={
+          workspaceId && documentData?.id ? (
+            <>
+              <STableButton
+                tooltip="Reiniciar versões de teste"
+                text="Reset teste"
+                icon={ReplayOutlined}
+                onClick={handleResetUnofficialVersions}
+                loading={resetUnofficialVersions.isLoading}
+                disabled={unofficialVersions.length === 0}
+                variant="outlined"
+                color="transparent"
+                iconColor="grey.600"
+                sx={brandIdentityToolbarAddSx}
+              />
+              <STableButton
+                tooltip="Iniciar nova série oficial"
+                text="Reset oficial"
+                icon={ReplayOutlined}
+                onClick={handleResetOfficialSeries}
+                loading={resetOfficialSeries.isLoading}
+                disabled={activeOfficialVersions.length === 0}
+                variant="outlined"
+                color="transparent"
+                iconColor="grey.600"
+                sx={brandIdentityToolbarAddSx}
+              />
+            </>
+          ) : undefined
+        }
+      />
     </>
   );
 

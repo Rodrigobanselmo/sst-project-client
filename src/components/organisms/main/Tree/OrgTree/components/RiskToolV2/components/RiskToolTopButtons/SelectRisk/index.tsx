@@ -2,7 +2,11 @@
 import React, { FC } from 'react';
 import { useStore } from 'react-redux';
 
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import { Box } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 import { RiskSelect } from 'components/organisms/tagSelects/RiskSelect';
 import { useRouter } from 'next/router';
 import {
@@ -107,6 +111,27 @@ export const RiskToolTopButtonsSelectRisk: FC<
         .join(' - ')
     : selectedRisk?.name;
 
+  const isRiskAddUnavailable = isViewTypeGroup && !selectedGho;
+
+  if (isRiskAddUnavailable) {
+    return (
+      <STooltip
+        withWrapper
+        title="Selecione uma entidade para adicionar riscos."
+      >
+        <SFlex align="center" gap={0.75} sx={{ mr: 5, cursor: 'default' }}>
+          <InfoOutlined
+            sx={{ fontSize: 18, color: 'text.secondary' }}
+            aria-hidden
+          />
+          <SText fontSize={13} color="text.secondary" lineNumber={1}>
+            Adicionar riscos
+          </SText>
+        </SFlex>
+      </STooltip>
+    );
+  }
+
   return (
     <RiskSelect
       onClick={() =>
@@ -119,7 +144,7 @@ export const RiskToolTopButtonsSelectRisk: FC<
       id={IdsEnum.RISK_SELECT}
       sx={{ minWidth: 230, mr: 5, overflow: 'hidden' }}
       large
-      disabled={isViewTypeGroup && !selectedGho}
+      disabled={false}
       active={!!selectedRisk?.type || !!(isViewTypeGroup && selectedGho)}
       tooltipTitle={
         isViewTypeSelect &&

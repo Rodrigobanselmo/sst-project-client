@@ -6,6 +6,7 @@ import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addo
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { DocumentControlColumnsEnum } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/enums/document-control-columns.enum';
 import { commentColumns } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/maps/document-control-column-map';
@@ -116,14 +117,15 @@ export const DocumentControlTable = ({
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
-          <STableAddButton onClick={onDocumentControlAdd} />
+          <STableAddButton identityFill onClick={onDocumentControlAdd} />
           <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
             columns={commentColumns}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
-          <STableFilterButton>
+          <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
             <DocumentControlTableFilter
               data={documentControl?.filters}
               onFilterData={onFilterData}

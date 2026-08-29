@@ -1,22 +1,21 @@
-import { useEffect, useRef } from 'react';
-import { RiNotificationLine } from 'react-icons/ri';
+import { useRef } from 'react';
 
-import { Badge } from '@mui/material';
-import Icon from '@mui/material/Icon';
-import IconButton from '@mui/material/IconButton';
+import { BoxProps, SxProps, Theme } from '@mui/material';
 
 import SFilterIcon from 'assets/icons/SFilterIcon';
 
 import { useDisclosure } from 'core/hooks/useDisclosure';
-import { useQueryNotifications } from 'core/services/hooks/queries/useQueryNotifications/useQueryNotifications';
 
 import { STableButton } from '../../STableButton';
 import { STableFilterPopper } from '../STableFilterPopper/STableFilterPopper';
 import { IFilterIconProps } from './types';
 
 export const STableFilterIcon: React.FC<
-  { children?: any } & IFilterIconProps
-> = (filterProps) => {
+  { children?: any } & IFilterIconProps & {
+    boxProps?: BoxProps;
+    buttonSx?: SxProps<Theme>;
+  }
+> = ({ boxProps, buttonSx, ...filterProps }) => {
   const { isOpen, toggle, close } = useDisclosure();
 
   const anchorEl = useRef<null | HTMLButtonElement>(null);
@@ -28,7 +27,7 @@ export const STableFilterIcon: React.FC<
   return (
     <>
       <STableButton
-        boxProps={{ ml: 'auto' }}
+        boxProps={{ ml: 'auto', ...boxProps }}
         variant="outlined"
         iconColor="gray.600"
         sx={{
@@ -42,6 +41,7 @@ export const STableFilterIcon: React.FC<
             borderColor: 'gray.600',
             filter: 'brightness(0.8)',
           },
+          ...buttonSx,
         }}
         sm
         tooltip="Filtro"

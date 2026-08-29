@@ -9,6 +9,7 @@ export const STableExportButton: FC<STableExportButtonProps> = ({
   onClick,
   text,
   disabled,
+  tableButtonProps,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,6 +26,7 @@ export const STableExportButton: FC<STableExportButtonProps> = ({
       color="info"
       text={text ?? 'Exportar'}
       icon={<FileDownloadOutlinedIcon sx={{ fontSize: 16 }} />}
+      {...tableButtonProps}
     />
   );
 };

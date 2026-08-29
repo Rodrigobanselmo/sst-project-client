@@ -20,6 +20,8 @@ assert.equal(searchSource.includes("text={text}"), true);
 assert.equal(searchSource.includes("'Adicionar'"), true);
 assert.equal(searchSource.includes('color: \'common.white\''), false);
 assert.equal(searchSource.includes('minWidth: sm ? 30'), false);
+assert.equal(searchSource.includes('toolbarAfterReload'), true);
+assert.equal(searchSource.includes('mb = 10'), true);
 
 const v2Source = readFileSync(
   resolve(

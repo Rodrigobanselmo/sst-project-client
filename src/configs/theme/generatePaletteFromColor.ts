@@ -27,6 +27,10 @@ export type PrimaryInteractiveTokens = {
   emphasisBackground: string;
   emphasisBackgroundHover: string;
   onEmphasis: string;
+  identityBackground: string;
+  identityBackgroundHover: string;
+  identityOn: string;
+  identityIdleOn: string;
 };
 
 const LIGHT_BORDER_CONTRAST = 3;
@@ -124,6 +128,8 @@ export function getPrimaryInteractiveTokens(
   const { emphasisBackground, emphasisBackgroundHover, onEmphasis } =
     getEmphasisTokens(safeBrand, mode);
 
+  const isDark = mode === 'dark';
+
   return {
     softBackground: fill.hex(),
     softBackgroundHover: hover.hex(),
@@ -132,6 +138,10 @@ export function getPrimaryInteractiveTokens(
     emphasisBackground,
     emphasisBackgroundHover,
     onEmphasis,
+    identityBackground: isDark ? emphasisBackground : fill.hex(),
+    identityBackgroundHover: isDark ? emphasisBackgroundHover : hover.hex(),
+    identityOn: isDark ? onEmphasis : onSoft,
+    identityIdleOn: isDark ? safeBrand : onSoft,
   };
 }
 

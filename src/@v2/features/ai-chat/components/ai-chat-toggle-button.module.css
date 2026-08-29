@@ -6,7 +6,7 @@
   height: 56px;
   border-radius: 50%;
   background: var(--color-surface);
-  color: white;
+  color: inherit;
   border: none;
   cursor: pointer;
   font-size: 1.5rem;

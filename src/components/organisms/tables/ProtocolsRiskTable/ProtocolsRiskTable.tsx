@@ -156,6 +156,7 @@ export const ProtocolsRiskTable: FC<
         onReloadClick={onRefetchThrottle}
         loadingReload={loadProtocols || isFetching || isRefetching}
         onChange={(e) => handleSearchChange(e.target.value)}
+        identitySquareActions
       />
     </>
   );

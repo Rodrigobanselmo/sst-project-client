@@ -19,6 +19,8 @@ import { STableExportProps } from './types';
 export const STableExport: FC<{ children?: any } & STableExportProps> = ({
   onExportClick,
   onInportClick,
+  sx,
+  iconColor,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = useState<IAnchorEvent>(null);
@@ -64,13 +66,14 @@ export const STableExport: FC<{ children?: any } & STableExportProps> = ({
                 backgroundColor: 'grey.800',
               },
               ml: 1,
+              ...sx,
             }}
           >
             <Icon
               component={SUploadIcon}
               sx={{
                 fontSize: ['1.2rem'],
-                color: 'common.white',
+                color: iconColor || 'common.white',
               }}
             />
           </SButton>

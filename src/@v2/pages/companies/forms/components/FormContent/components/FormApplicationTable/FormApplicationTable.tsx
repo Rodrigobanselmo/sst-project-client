@@ -6,6 +6,7 @@ import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addo
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { FormApplicationColumnsEnum } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/enums/form-application-columns.enum';
 import { commentColumns } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/maps/fomr-application-column-map';
@@ -112,14 +113,15 @@ export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
-          <STableAddButton onClick={onFormApplicationAdd} />
+          <STableAddButton identityFill onClick={onFormApplicationAdd} />
           <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
             columns={commentColumns}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
-          <STableFilterButton>
+          <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
             <FormApplicationTableFilter
               data={formApplication?.filters}
               onFilterData={onFilterData}

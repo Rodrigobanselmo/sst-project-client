@@ -13,6 +13,10 @@ import { STableFilterButton } from '@v2/components/organisms/STable/addons/addon
 import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import {
+  tableOperationalButtonProps,
+  tableUtilityPillButtonProps,
+} from 'configs/theme/brand-identity-fill';
 import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { CharacterizationColumnsEnum } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/enums/characterization-columns.enum';
@@ -402,22 +406,24 @@ export const CharacterizationTable = ({
         <STableSearchContent>
           {hasWorkspaceSelected && (
             <>
-              <STableAddButton onClick={handleCharacterizationAdd} />
+              <STableAddButton identityFill onClick={handleCharacterizationAdd} />
               <STableButton
                 onClick={handleCharacterizationCopy}
                 text="Importar caracterização"
                 tooltip="Importe uma caracterização existente, trazendo seus dados, fotos e riscos para este estabelecimento."
                 icon={<ContentCopyOutlinedIcon sx={{ fontSize: 16 }} />}
-                color="success"
+                {...tableOperationalButtonProps}
               />
             </>
           )}
           <STableColumnsButton
+            showLabel
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
             columns={characterizationColumns}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
-          <STableFilterButton>
+          <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
             <CharacterizationTableFilter
               onFilterData={onFilterData}
               selectedStages={selectedStages}
@@ -441,7 +447,10 @@ export const CharacterizationTable = ({
           {hasWorkspaceSelected && (
             <>
               <STableButtonDivider />
-              <STableExportButton onClick={handleCharacterizationExport} />
+              <STableExportButton
+                onClick={handleCharacterizationExport}
+                tableButtonProps={tableUtilityPillButtonProps}
+              />
             </>
           )}
         </STableSearchContent>

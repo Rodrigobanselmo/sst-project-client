@@ -1,4 +1,12 @@
 import { SxProps, Theme } from '@mui/material';
+import {
+  brandIdentityFillHoverSx,
+  brandIdentityFillSx,
+  brandIdentityOutlinedHoverDarkSx,
+  brandIdentityOutlinedHoverLightSx,
+  brandIdentityOutlinedInteractPaint,
+  BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+} from 'configs/theme/brand-identity-fill';
 
 /** Espaçamento horizontal entre atalhos (theme spacing). */
 export const COMPANY_FLOW_COMPACT_SHORTCUTS_FLEX_GAP = 2.5;
@@ -29,12 +37,12 @@ export const companyFlowCompactShortcutButtonSx: SxProps<Theme> = {
   minWidth: 'unset',
   maxWidth: '100%',
   border: '1px solid',
-  borderColor: 'primary.emphasisBackground',
+  ...brandIdentityFillSx,
   borderRadius: 1,
   cursor: 'pointer',
   transition: 'background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
   '&&': {
-    backgroundColor: 'primary.emphasisBackground',
+    ...brandIdentityFillSx,
     boxShadow: (theme) =>
       theme.palette.mode === 'light'
         ? '0 1px 2px rgba(0, 0, 0, 0.06)'
@@ -43,8 +51,7 @@ export const companyFlowCompactShortcutButtonSx: SxProps<Theme> = {
   '&:hover': {
     filter: 'none',
     '&&': {
-      backgroundColor: 'primary.emphasisBackgroundHover',
-      borderColor: 'primary.emphasisBackgroundHover',
+      ...brandIdentityFillHoverSx,
       boxShadow: (theme) =>
         theme.palette.mode === 'light'
           ? '0 1px 3px rgba(0, 0, 0, 0.1)'
@@ -54,78 +61,113 @@ export const companyFlowCompactShortcutButtonSx: SxProps<Theme> = {
   '&:active': {
     filter: 'none',
   },
-  '& .MuiIcon-root': {
+  '&& .MuiIcon-root, && svg': {
     fontSize: 20,
     flexShrink: 0,
-    color: 'primary.onEmphasis',
+    color: 'primary.identityOn',
   },
-  '& p': {
+  '&& p': {
     fontSize: 13,
     lineHeight: 1.3,
     textAlign: 'left',
     whiteSpace: 'normal',
-    color: 'primary.onEmphasis',
+    color: 'primary.identityOn',
   },
 };
 
 /**
- * Ação secundária do workspace (~36–40px de altura útil).
- * Mais presente que o compacto original; sem retornar a cards grandes.
+ * Ação secundária do workspace (Dados da Empresa / Programas e Laudos).
+ * Repouso neutro em pílula; identidade só em hover / focus-visible / pressed.
  */
+const workspaceIdentityOn = {
+  color: (theme: { palette: { mode: string } }) =>
+    theme.palette.mode === 'dark' ? 'primary.main' : 'primary.identityOn',
+} as const;
+
+const workspaceActionInteractPaint = {
+  filter: 'none',
+  boxShadow: 'none',
+  ...brandIdentityOutlinedInteractPaint,
+  '& p': workspaceIdentityOn,
+} as const;
+
 export const companyWorkspaceActionButtonSx: SxProps<Theme> = {
-  ...companyFlowCompactShortcutButtonSx,
+  display: 'inline-flex',
+  flexDirection: 'row',
+  alignItems: 'center',
   gap: 2,
-  py: 1.35,
+  py: 0.75,
   px: 1.85,
-  minHeight: 38,
-  borderRadius: 1.25,
-  borderColor: 'primary.emphasisBackground',
+  minHeight: BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+  minWidth: 'unset',
+  maxWidth: '100%',
+  border: '1px solid',
+  borderRadius: 3,
+  cursor: 'pointer',
+  boxShadow: 'none',
+  transition:
+    'background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, color 0.15s ease',
   '&&': {
-    backgroundColor: 'primary.emphasisBackground',
-    boxShadow: (theme) =>
-      theme.palette.mode === 'light'
-        ? '0 1px 3px rgba(0, 0, 0, 0.08)'
-        : '0 1px 3px rgba(0, 0, 0, 0.25)',
+    backgroundColor: 'transparent',
+    color: 'text.primary',
+    borderColor: 'grey.600',
+    boxShadow: 'none',
+    py: 0.75,
+    px: 1.85,
+    minHeight: BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+    borderRadius: 3,
   },
-  '&:hover': {
-    filter: 'none',
-    '&&': {
-      backgroundColor: 'primary.emphasisBackgroundHover',
-      boxShadow: (theme) =>
-        theme.palette.mode === 'light'
-          ? '0 2px 6px rgba(0, 0, 0, 0.12)'
-          : '0 2px 6px rgba(0, 0, 0, 0.3)',
-      borderColor: 'primary.emphasisBackgroundHover',
-    },
-  },
-  '&:focus-visible': {
-    outline: '2px solid',
-    outlineColor: 'primary.main',
-    outlineOffset: 2,
-  },
-  '& .MuiIcon-root': {
+  '&&:hover': workspaceActionInteractPaint,
+  '&&:focus-visible': workspaceActionInteractPaint,
+  '&&:active': workspaceActionInteractPaint,
+  '&& .MuiIcon-root, && svg': {
     fontSize: 22,
     flexShrink: 0,
-    color: 'primary.onEmphasis',
+    color: 'grey.600',
   },
-  '& p': {
+  '&& p': {
     fontSize: 13.5,
     fontWeight: 500,
     lineHeight: 1.35,
     textAlign: 'left',
     whiteSpace: 'normal',
-    color: 'primary.onEmphasis',
+    color: 'text.primary',
   },
 };
 
-/** Ação relevante de header (Importar / Baixar) — mesma família das ações principais. */
-export const principalBrandButtonSx: SxProps<Theme> = {
-  backgroundColor: 'primary.emphasisBackground',
-  color: 'primary.onEmphasis',
-  borderColor: 'primary.emphasisBackground',
-  '&:hover': {
-    backgroundColor: 'primary.emphasisBackgroundHover',
-    borderColor: 'primary.emphasisBackgroundHover',
-    color: 'primary.onEmphasis',
-  },
+/**
+ * Importar Planilha / Baixar Relatórios: utilitários persistentes.
+ * Repouso outlined/discreto (família Colunas/Filtrar); identidade só no hover.
+ */
+export const principalBrandButtonSx: SxProps<Theme> = (theme) => {
+  const hover = (theme.palette.mode === 'dark'
+    ? brandIdentityOutlinedHoverDarkSx
+    : brandIdentityOutlinedHoverLightSx)['&:hover'];
+
+  return {
+    height: BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+    minHeight: BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+    borderRadius: 3,
+    px: 4,
+    minWidth: 'auto',
+    textTransform: 'none',
+    boxShadow: 'none',
+    '&&': {
+      backgroundColor: 'transparent',
+      color: 'text.primary',
+      borderColor: 'grey.600',
+    },
+    '&&:hover': {
+      ...hover,
+      boxShadow: 'none',
+    },
+    '&&:focus-visible': {
+      ...hover,
+      boxShadow: 'none',
+    },
+    '&&:active': {
+      ...hover,
+      boxShadow: 'none',
+    },
+  };
 };

@@ -1,3 +1,5 @@
+import { SButtonProps } from '@v2/components/atoms/SButton/SButton.types';
+
 export type STableColumnsProps = {
   label: string;
   value: string;
@@ -12,4 +14,5 @@ export type STableColumnsButtonProps<T extends string> = {
   setHiddenColumns: (hiddenColumns: Record<T, boolean>) => void;
   hiddenColumns: Record<T, boolean>;
   showLabel?: boolean;
+  tableButtonProps?: Partial<SButtonProps>;
 };

@@ -132,15 +132,23 @@ export const STSBoxButton = styled(Box)<{
   ${(props) =>
     props.disabled &&
     css`
-      background-color: ${props.theme.palette.grey[400]};
-      opacity: 0.7;
+      background-color: ${props.theme.palette.action.disabledBackground};
+      border-color: ${props.theme.palette.divider};
+      opacity: 1;
+      cursor: default;
+
+      .text_main,
+      .icon_main,
+      svg {
+        color: ${props.theme.palette.text.disabled};
+      }
 
       &:hover {
-        background-color: ${props.theme.palette.grey[400]};
+        background-color: ${props.theme.palette.action.disabledBackground};
       }
 
       &:active {
-        background-color: ${props.theme.palette.grey[400]};
+        background-color: ${props.theme.palette.action.disabledBackground};
       }
     `};
 `;

@@ -6,4 +6,5 @@ export type STableExportProps = SButtonProps & {
   text?: ReactNode;
   onExportClick?: () => void;
   onInportClick?: () => void;
+  iconColor?: string;
 };

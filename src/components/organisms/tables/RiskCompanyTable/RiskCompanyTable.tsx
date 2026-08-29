@@ -2,6 +2,7 @@ import { FC, useCallback, useMemo, useState } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
@@ -312,6 +313,9 @@ export const RiskCompanyTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
         loadingReload={loadRisks || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
+        identitySquareActions
+        pinToolbarWithFilter
+        mb={2}
         toolbarBeforeFilter={
           !isSelect ? (
             <STableColumnsButton<RiskIdentifiedColumnId>
@@ -321,22 +325,22 @@ export const RiskCompanyTable: FC<
                 hiddenColumns as Record<RiskIdentifiedColumnId, boolean>
               }
               setHiddenColumns={setHiddenColumnsFromPicker}
+              tableButtonProps={tableUtilityPillButtonProps}
             />
           ) : undefined
         }
-      >
-        <SFlex justify="end" flex={1}>
-          <SSwitch
-            onChange={() => {
-              setShowRiskExam(!showOrigins);
-            }}
-            label="Expandir Todos"
-            checked={showOrigins}
-            sx={{ mr: 4 }}
-            color="text.light"
-          />
-        </SFlex>
-      </STableSearch>
+      />
+      <SFlex justify="flex-end" align="center" mb={8}>
+        <SSwitch
+          onChange={() => {
+            setShowRiskExam(!showOrigins);
+          }}
+          label="Expandir Todos"
+          checked={showOrigins}
+          sx={{ mr: 0 }}
+          color="text.light"
+        />
+      </SFlex>
     </>
   );
 

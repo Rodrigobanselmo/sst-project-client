@@ -1,6 +1,10 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { BoxProps, useTheme } from '@mui/material';
+import {
+  brandIdentityGlyphDarkSx,
+  tableUtilityPillButtonProps,
+} from 'configs/theme/brand-identity-fill';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SFlex from 'components/atoms/SFlex';
 import {
@@ -104,6 +108,7 @@ export const WorkspaceTable: FC<
       rowsPerPage?: number;
     }
 > = ({ hideModal, rowsPerPage: rowsPerPageProp }) => {
+  const isDark = useTheme().palette.mode === 'dark';
   const { data, isLoading } = useQueryCompany();
   const { onOpenModal } = useModal();
   const { handleAddWorkspace } = usePushRoute();
@@ -311,6 +316,7 @@ export const WorkspaceTable: FC<
             key="edit"
             onClick={() => handleEdit(row)}
             icon={<EditIcon />}
+            sx={isDark ? brandIdentityGlyphDarkSx : undefined}
           />
         );
       default:
@@ -330,6 +336,7 @@ export const WorkspaceTable: FC<
           sm
           onAddClick={handleAddWorkspace}
           addText={'Adicionar'}
+          identitySquareActions
         />
       </SFlex>
       <STableSearch
@@ -337,6 +344,7 @@ export const WorkspaceTable: FC<
         placeholder="Buscar por nome do estabelecimento..."
         autoFocus={false}
         onChange={(e) => handleSearchChange(e.target.value)}
+        pinToolbarWithFilter
         toolbarBeforeFilter={
           <STableColumnsButton<WorkspaceCompanyColumnId>
             showLabel
@@ -345,6 +353,7 @@ export const WorkspaceTable: FC<
               hiddenColumns as Record<WorkspaceCompanyColumnId, boolean>
             }
             setHiddenColumns={setHiddenColumnsFromPicker}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
         }
       />

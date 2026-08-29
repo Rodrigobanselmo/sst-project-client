@@ -22,6 +22,7 @@ export function STableColumnsButton<T extends string>({
   setHiddenColumns,
   hiddenColumns,
   showLabel,
+  tableButtonProps,
 }: STableColumnsButtonProps<T>) {
   const anchorEl = useRef<null | HTMLDivElement>(null);
   const { isOpen, toggle, close } = useDisclosure();
@@ -46,6 +47,7 @@ export function STableColumnsButton<T extends string>({
           tooltip={text ?? 'Colunas'}
           icon={<SIconColumn fontSize={16} />}
           text={showLabel ? 'Colunas' : undefined}
+          {...tableButtonProps}
         />
       </Box>
       <SPopperArrow
@@ -58,8 +60,8 @@ export function STableColumnsButton<T extends string>({
       >
         {popperTile && (
           <SFlex align="center" mb={3} px={5} pt={5}>
-            <SIconColumn color="text.light" fontSize="18px" />
-            <SText color={'text.light'}>{popperTile}</SText>
+            <SIconColumn color="text.main" fontSize="18px" />
+            <SText color="text.main">{popperTile}</SText>
           </SFlex>
         )}
         <SDivider sx={{ mb: 6 }} />
@@ -81,6 +83,14 @@ export function STableColumnsButton<T extends string>({
                 checked={checked}
                 key={column.value}
                 onChange={() => handleSelect(column, checked)}
+                sx={{
+                  color: 'text.main',
+                  '.MuiFormControlLabel-label': { color: 'text.main' },
+                  '.MuiCheckbox-root': {
+                    color: 'text.secondary',
+                    '&.Mui-checked': { color: 'primary.identityOn' },
+                  },
+                }}
               />
             );
           })}

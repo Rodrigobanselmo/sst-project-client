@@ -1,7 +1,8 @@
 import { FC, MouseEvent } from 'react';
 
 import EditIcon from 'assets/icons/SEditIcon';
-import { Box, IconButton, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip, useTheme } from '@mui/material';
+import { brandIdentityGlyphDarkSx } from 'configs/theme/brand-identity-fill';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { CharacterizationQuickCountCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationQuickCountCell';
 import { CharacterizationRisksQuickCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationRisksQuickCell';
@@ -67,6 +68,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   onPageSizeChange,
   part = 'full',
 }) => {
+  const isDark = useTheme().palette.mode === 'dark';
   const orderByMap = mapOrderByTable(filters.orderBy);
 
   const tableRows: ITableData<CharacterizationBrowseResultModel>[] = [
@@ -495,7 +497,12 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         <STableHRow justify="center">{columnMap[columnsEnum.EDIT].label}</STableHRow>
       ),
       row: (row) => (
-        <SIconButtonRow onClick={() => (onEditRow ?? onSelectRow)(row)}>
+        <SIconButtonRow
+          onClick={() => (onEditRow ?? onSelectRow)(row)}
+          iconButtonProps={{
+            sx: isDark ? brandIdentityGlyphDarkSx : undefined,
+          }}
+        >
           <EditIcon />
         </SIconButtonRow>
       ),

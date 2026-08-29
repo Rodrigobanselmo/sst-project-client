@@ -9,6 +9,7 @@ import { STableFilterButton } from '@v2/components/organisms/STable/addons/addon
 import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { ActionPlanColumnsEnum } from '@v2/components/organisms/STable/implementation/SActionPlanTable/enums/action-plan-columns.enum';
@@ -282,8 +283,9 @@ export const ActionPlanTable = ({
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
             columns={actionPlanColumns}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
-          <STableFilterButton>
+          <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
             <ActionPlanTableFilter
               modelFilters={data?.filters}
               onFilterData={onFilterData}
@@ -293,7 +295,10 @@ export const ActionPlanTable = ({
             />
           </STableFilterButton>
           <STableButtonDivider />
-          <STableExportButton onClick={handleExport} />
+          <STableExportButton
+            onClick={handleExport}
+            tableButtonProps={tableUtilityPillButtonProps}
+          />
         </STableSearchContent>
       </STableSearch>
       <STableInfoSection>

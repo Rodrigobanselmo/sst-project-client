@@ -19,6 +19,10 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import {
+  brandIdentityToolbarAddSx,
+  tableUtilityPillButtonProps,
+} from 'configs/theme/brand-identity-fill';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
@@ -780,63 +784,81 @@ export const ExamsRiskTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
         loadingReload={loadExams || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
-      >
-        <Box ml={2}>
+        identitySquareActions
+        pinToolbarWithFilter
+        toolbarBeforeFilter={
           <STableColumnsButton
+            showLabel
             columns={columnsConfig}
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
-        </Box>
-        {showPcmsoStatus && !isSelect && (
-          <Box ml={2} display="flex" gap={2} flexWrap="wrap" alignItems="center">
-            <FormControlLabel
-              control={
-                <Switch
-                  size="small"
-                  checked={showPendingOnly}
-                  onChange={(event) => setShowPendingOnly(event.target.checked)}
-                />
-              }
-              label={
-                <SText fontSize={12} whiteSpace="nowrap">
-                  Mostrar só pendências do vínculo
-                </SText>
-              }
-              sx={{ mr: 0 }}
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  size="small"
-                  checked={showCoveragePendingOnly}
-                  onChange={(event) =>
-                    setShowCoveragePendingOnly(event.target.checked)
+        }
+        toolbarAfterReload={
+          <>
+            {!isSelect && (
+              <Box ml={2}>
+                <SButton
+                  variant="outlined"
+                  onClick={() => setPcmsoDefaultsOpen(true)}
+                  sx={{
+                    ...brandIdentityToolbarAddSx,
+                    width: 'auto',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Padrões de PCMSO
+                </SButton>
+              </Box>
+            )}
+            {showPcmsoStatus && !isSelect && (
+              <Box
+                ml={2}
+                display="flex"
+                gap={2}
+                flexWrap="wrap"
+                alignItems="center"
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={showPendingOnly}
+                      onChange={(event) =>
+                        setShowPendingOnly(event.target.checked)
+                      }
+                    />
                   }
+                  label={
+                    <SText fontSize={12} whiteSpace="nowrap">
+                      Mostrar só pendências do vínculo
+                    </SText>
+                  }
+                  sx={{ mr: 0 }}
                 />
-              }
-              label={
-                <SText fontSize={12} whiteSpace="nowrap">
-                  Mostrar somente pendências de cobertura
-                </SText>
-              }
-              sx={{ mr: 0 }}
-            />
-          </Box>
-        )}
-        {!isSelect && (
-          <Box ml={2}>
-            <SButton
-              xsmall
-              variant="outlined"
-              onClick={() => setPcmsoDefaultsOpen(true)}
-              sx={{ width: 'auto', whiteSpace: 'nowrap' }}
-            >
-              Padrões de PCMSO
-            </SButton>
-          </Box>
-        )}
-      </STableSearch>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={showCoveragePendingOnly}
+                      onChange={(event) =>
+                        setShowCoveragePendingOnly(event.target.checked)
+                      }
+                    />
+                  }
+                  label={
+                    <SText fontSize={12} whiteSpace="nowrap">
+                      Mostrar somente pendências de cobertura
+                    </SText>
+                  }
+                  sx={{ mr: 0 }}
+                />
+              </Box>
+            )}
+          </>
+        }
+      />
       {showPcmsoStatus && !isSelect && (
         <ExamRiskWorkspaceContextBanner
           workspaceLabel={workspaceContextLabel}
