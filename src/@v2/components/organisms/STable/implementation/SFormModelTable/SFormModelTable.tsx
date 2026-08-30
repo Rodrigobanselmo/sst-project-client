@@ -1,5 +1,6 @@
 import { FC } from 'react';
 
+import { useTheme } from '@mui/material';
 import { FormBrowseResultModel } from '@v2/models/form/models/form/form-browse-result.model';
 import { FormModelOrderByEnum } from '@v2/services/forms/form/browse-form-model/service/browse-form-model.types';
 import { FormModelTypesMap } from '../../../../../models/form/maps/form-model-type-map';
@@ -19,6 +20,22 @@ import { getHiddenColumn } from './helpers/get-hidden-column';
 import { FormModelColumnMap as columnMap } from './maps/fomr-model-column-map';
 import { IFormModelTableTableProps } from './SFormModelTable.types';
 
+function getFormModelTypeTagPresentation(isDark: boolean) {
+  if (isDark) {
+    return {
+      backgroundColor: 'grey.700',
+      color: 'common.white',
+      borderColor: 'grey.500',
+    } as const;
+  }
+
+  return {
+    backgroundColor: 'grey.100',
+    color: 'text.label',
+    borderColor: 'grey.400',
+  } as const;
+}
+
 export const SFormModelTable: FC<IFormModelTableTableProps> = ({
   data = [],
   filters,
@@ -34,6 +51,9 @@ export const SFormModelTable: FC<IFormModelTableTableProps> = ({
   onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
+  const typeTagPresentation = getFormModelTypeTagPresentation(
+    useTheme().palette.mode === 'dark',
+  );
 
   const tableRows: ITableData<FormBrowseResultModel>[] = [
     // NAME
@@ -125,6 +145,9 @@ export const SFormModelTable: FC<IFormModelTableTableProps> = ({
           justify="center"
           lineNumber={1}
           text={FormModelTypesMap[row.type].label}
+          backgroundColor={typeTagPresentation.backgroundColor}
+          color={typeTagPresentation.color}
+          borderColor={typeTagPresentation.borderColor}
         />
       ),
     },

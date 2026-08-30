@@ -14,8 +14,9 @@ export const STableFilterIcon: React.FC<
   { children?: any } & IFilterIconProps & {
     boxProps?: BoxProps;
     buttonSx?: SxProps<Theme>;
+    showApplyClearActions?: boolean;
   }
-> = ({ boxProps, buttonSx, ...filterProps }) => {
+> = ({ boxProps, buttonSx, showApplyClearActions, ...filterProps }) => {
   const { isOpen, toggle, close } = useDisclosure();
 
   const anchorEl = useRef<null | HTMLButtonElement>(null);
@@ -57,6 +58,7 @@ export const STableFilterIcon: React.FC<
         anchorEl={anchorEl}
         close={close}
         filterProps={filterProps}
+        showApplyClearActions={showApplyClearActions}
       />
     </>
   );

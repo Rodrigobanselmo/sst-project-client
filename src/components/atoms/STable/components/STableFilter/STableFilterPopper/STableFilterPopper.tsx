@@ -1,18 +1,15 @@
-import { FC, useMemo } from 'react';
+import { FC } from 'react';
 
-import { Box } from '@mui/material';
+import { Button } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import { STagButton } from 'components/atoms/STagButton';
-import SText from 'components/atoms/SText';
 
 import { SPopperArrow } from '../../../../../molecules/SPopperArrow';
-import { FilterFieldEnum } from '../constants/filter.map';
 import { STableFilterBox } from '../STableFilterBox/STableFilterBox';
 import { IFilterPopperProps } from './types';
 
 export const STableFilterPopper: FC<
   { children?: any } & IFilterPopperProps
-> = ({ anchorEl, isOpen, close, filterProps }) => {
+> = ({ anchorEl, isOpen, close, filterProps, showApplyClearActions }) => {
   return (
     <SPopperArrow
       anchorEl={anchorEl}
@@ -30,10 +27,35 @@ export const STableFilterPopper: FC<
         color: 'text.main',
       }}
     >
-      {/* <SText color="text.light" fontWeight={'600'} fontSize={13}>
-        Filtrar por:
-      </SText> */}
       <STableFilterBox closePopper={close} filterProps={filterProps} />
+      {showApplyClearActions && (
+        <SFlex
+          justify="flex-end"
+          gap={2}
+          mt={6}
+          pt={4}
+          sx={{ borderTop: '1px solid', borderColor: 'divider' }}
+        >
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            onClick={() => filterProps.clearFilter()}
+            sx={{ textTransform: 'none' }}
+          >
+            Limpar filtro
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            onClick={() => close()}
+            sx={{ textTransform: 'none' }}
+          >
+            Aplicar filtro
+          </Button>
+        </SFlex>
+      )}
     </SPopperArrow>
   );
 };

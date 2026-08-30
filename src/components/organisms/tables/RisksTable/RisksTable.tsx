@@ -9,6 +9,10 @@ import {
   Select,
 } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import {
+  tableUtilityPillButtonProps,
+  tableUtilityPillSx,
+} from 'configs/theme/brand-identity-fill';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
@@ -20,7 +24,6 @@ import {
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
-import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -32,7 +35,6 @@ import { TableSortColumnHeader } from 'components/organisms/tables/common/TableS
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import SReloadIcon from 'assets/icons/SReloadIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -548,53 +550,53 @@ export const RisksTable: FC<
         onAddClick={onAddRisk}
         defaultValue={initialList.search}
         onChange={(e) => handleSearchChange(e.target.value)}
+        identitySquareActions
+        pinToolbarWithFilter
+        filterButtonSx={tableUtilityPillSx}
+        onReloadClick={() => {
+          refetch();
+          queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+        }}
+        loadingReload={loadRisks || isFetching || isRefetching}
         filterProps={
           !isSelect
             ? { filters: registeredRisksFilterList, ...filterProps }
             : undefined
         }
-        toolbarBeforeFilter={
+        toolbarAfterAdd={
           !isSelect ? (
-            <>
-              <FormControl size="small" sx={{ minWidth: 140, mr: 1 }}>
-                <InputLabel id="risk-status-filter-label">Status</InputLabel>
-                <Select
-                  labelId="risk-status-filter-label"
-                  label="Status"
-                  value={statusFilter}
-                  onChange={(e) => {
-                    setStatusFilter(e.target.value as RiskStatusFilter);
-                    setPage(1);
-                  }}
-                >
-                  <MenuItem value="ACTIVE">Ativos</MenuItem>
-                  <MenuItem value="INACTIVE">Inativos</MenuItem>
-                  <MenuItem value="ALL">Todos</MenuItem>
-                </Select>
-              </FormControl>
-              <STableColumnsButton<RiskRegisteredColumnId>
-                showLabel
-                columns={columnPickerItems}
-                hiddenColumns={
-                  hiddenColumns as Record<RiskRegisteredColumnId, boolean>
-                }
-                setHiddenColumns={setHiddenColumnsFromPicker}
-              />
-            </>
+            <FormControl size="small" sx={{ minWidth: 140, mr: 1 }}>
+              <InputLabel id="risk-status-filter-label">Status</InputLabel>
+              <Select
+                labelId="risk-status-filter-label"
+                label="Status"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value as RiskStatusFilter);
+                  setPage(1);
+                }}
+              >
+                <MenuItem value="ACTIVE">Ativos</MenuItem>
+                <MenuItem value="INACTIVE">Inativos</MenuItem>
+                <MenuItem value="ALL">Todos</MenuItem>
+              </Select>
+            </FormControl>
           ) : undefined
         }
-      >
-        <STableButton
-          tooltip="autualizar"
-          onClick={() => {
-            refetch();
-            queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
-          }}
-          loading={loadRisks || isFetching || isRefetching}
-          icon={SReloadIcon}
-          color="grey.500"
-        />
-      </STableSearch>
+        toolbarBeforeFilter={
+          !isSelect ? (
+            <STableColumnsButton<RiskRegisteredColumnId>
+              showLabel
+              columns={columnPickerItems}
+              hiddenColumns={
+                hiddenColumns as Record<RiskRegisteredColumnId, boolean>
+              }
+              setHiddenColumns={setHiddenColumnsFromPicker}
+              tableButtonProps={tableUtilityPillButtonProps}
+            />
+          ) : undefined
+        }
+      />
       {!isSelect && <FilterTagList filterProps={filterProps} />}
       <STable
         loading={loadRisks}

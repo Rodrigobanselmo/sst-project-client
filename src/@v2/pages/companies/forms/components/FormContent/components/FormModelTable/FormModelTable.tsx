@@ -19,6 +19,7 @@ import { useFetchBrowseFormModel } from '@v2/services/forms/form/browse-form-mod
 import { FormModelOrderByEnum } from '@v2/services/forms/form/browse-form-model/service/browse-form-model.types';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { orderByFormModelTranslation } from '@v2/models/form/translations/orden-by-form-model.translation';
+import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import { FormModelTableFilter } from './components/FormApplicationTableFilter/FormApplicationTableFilter';
 import { SFormModelTable } from '@v2/components/organisms/STable/implementation/SFormModelTable/SFormModelTable';
 import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined';
@@ -120,6 +121,7 @@ export const FormModelTable = ({ companyId }: { companyId: string }) => {
         <STableSearchContent>
           <div ref={addMenuAnchorRef}>
             <STableAddButton
+              identityFill
               onClick={() =>
                 setAddMenuAnchor(addMenuAnchorRef.current)
               }
@@ -165,8 +167,9 @@ export const FormModelTable = ({ companyId }: { companyId: string }) => {
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
             columns={commentColumns}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
-          <STableFilterButton>
+          <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
             <FormModelTableFilter
               data={formModel?.filters}
               onFilterData={onFilterData}

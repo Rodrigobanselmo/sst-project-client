@@ -27,6 +27,8 @@ export type STableSearchProps = SInputProps & {
   /** Atualizar / Upload usam fill de identidade. Default: cinza legado. */
   identitySquareActions?: boolean;
   filterButtonSx?: SxProps<Theme>;
+  /** Opt-in: Aplicar / Limpar no rodapé do painel de filtro. Default: false. */
+  showFilterPanelActions?: boolean;
   filterProps?: IFilterIconProps;
   onExportClick?: () => void;
   onImportClick?: () => void;

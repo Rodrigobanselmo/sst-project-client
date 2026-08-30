@@ -50,6 +50,7 @@ const STableSearch: FC<{ children?: any } & STableSearchProps> = ({
   pinToolbarWithFilter,
   identitySquareActions,
   filterButtonSx,
+  showFilterPanelActions,
   filterProps,
   mb = 10,
   ...props
@@ -57,6 +58,7 @@ const STableSearch: FC<{ children?: any } & STableSearchProps> = ({
   const filterControl = filterProps ? (
     <STableFilterIcon
       {...filterProps}
+      showApplyClearActions={showFilterPanelActions}
       boxProps={pinToolbarWithFilter ? { ml: 0 } : { ml: 'auto' }}
       buttonSx={
         {

@@ -8,10 +8,15 @@ import { FilterFieldEnum } from '../constants/filter.map';
 import { IUseFilterTableData } from '../hooks/useFilterTable';
 import { FilterTag } from './FilterTag';
 
-export type IFilterTagProps = { filterProps: IUseFilterTableData } & SFlexProps;
+export type IFilterTagProps = {
+  filterProps: IUseFilterTableData;
+  /** Opt-in: omite o chip “Limpar Filtro” (ação fica no painel). Default: false. */
+  hideClearAction?: boolean;
+} & SFlexProps;
 
 export const FilterTagList: FC<{ children?: any } & IFilterTagProps> = ({
   filterProps,
+  hideClearAction,
   ...props
 }) => {
   const tagsMemo = React.useMemo(() => {
@@ -33,7 +38,7 @@ export const FilterTagList: FC<{ children?: any } & IFilterTagProps> = ({
           />
         );
       })}
-      {!!tagsMemo.length && (
+      {!!tagsMemo.length && !hideClearAction && (
         <FilterTag
           sx={{
             cursor: 'pointer',

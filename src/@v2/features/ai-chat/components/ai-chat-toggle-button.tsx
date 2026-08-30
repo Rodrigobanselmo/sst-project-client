@@ -27,7 +27,11 @@ export function AIChatToggleButton() {
       onClick={toggle}
       title="AI Assistant"
       aria-label="Toggle AI Assistant"
-      style={{ color: theme.palette.primary.main }}
+      style={{
+        color: theme.palette.common.black,
+        backgroundColor: theme.palette.common.white,
+        border: `1px solid ${theme.palette.grey[400]}`,
+      }}
     >
       <AISparklesIcon />
     </button>

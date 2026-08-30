@@ -219,6 +219,7 @@ export const ProfessionalsTable: FC<
       )}
       <STableSearch
         onAddClick={onAddProfessional}
+        identitySquareActions
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       {children}

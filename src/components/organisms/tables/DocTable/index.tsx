@@ -8,6 +8,7 @@ import type { SelectChangeEvent } from '@mui/material/Select';
 import { alpha } from '@mui/material/styles';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import {
+  brandIdentityFillSx,
   brandIdentityToolbarAddSx,
   BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
   tableUtilityPillButtonProps,
@@ -119,6 +120,33 @@ const FAMILY_FILTER_LABELS: Record<DocTableFamilyFilter, string> = {
   test: 'Teste',
   official: 'Oficial',
 };
+
+const pgrResetInteractPaint = {
+  filter: 'none',
+  ...brandIdentityFillSx,
+  '& .MuiSvgIcon-root, & .MuiIcon-root, & svg, & .MuiBox-root': {
+    color: 'primary.identityOn',
+  },
+} as const;
+
+/**
+ * STableButton outlined cai em MuiButton-outlinedPrimary.
+ * O hover global de outlinedPrimary empata/vence `&&:hover` e mantém o
+ * fill soft — por isso o reset parecia neutro no mouse.
+ */
+const pgrResetOperationalSx = {
+  ...brandIdentityToolbarAddSx,
+  '& .MuiSvgIcon-root, & .MuiIcon-root, & svg': {
+    fontSize: 16,
+    color: 'inherit',
+  },
+  '&&&:hover': pgrResetInteractPaint,
+  '&&&:focus-visible': pgrResetInteractPaint,
+  '&&&:active': pgrResetInteractPaint,
+  '&&.MuiButton-outlinedPrimary:hover': pgrResetInteractPaint,
+  '&&.MuiButton-outlinedPrimary:focus-visible': pgrResetInteractPaint,
+  '&&.MuiButton-outlinedPrimary:active': pgrResetInteractPaint,
+} as const;
 
 const EXPIRED_DOWNLOAD_TOOLTIP =
   'Arquivo expirado. Use Editar revisão para regerar com base nos dados atuais do sistema.';
@@ -947,8 +975,8 @@ export const DocTable: FC<
                 disabled={unofficialVersions.length === 0}
                 variant="outlined"
                 color="transparent"
-                iconColor="grey.600"
-                sx={brandIdentityToolbarAddSx}
+                iconColor="inherit"
+                sx={pgrResetOperationalSx}
               />
               <STableButton
                 tooltip="Iniciar nova série oficial"
@@ -959,8 +987,8 @@ export const DocTable: FC<
                 disabled={activeOfficialVersions.length === 0}
                 variant="outlined"
                 color="transparent"
-                iconColor="grey.600"
-                sx={brandIdentityToolbarAddSx}
+                iconColor="inherit"
+                sx={pgrResetOperationalSx}
               />
             </>
           ) : undefined

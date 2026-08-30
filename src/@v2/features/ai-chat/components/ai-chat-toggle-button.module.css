@@ -23,7 +23,11 @@
 
 .button:hover {
   transform: scale(1.05);
-  background: var(--color-paper);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
 }
 
 .buttonActive {

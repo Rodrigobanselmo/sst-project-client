@@ -25,6 +25,7 @@ import {
 } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import { tableUtilityPillSx } from 'configs/theme/brand-identity-fill';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { initialEditEmployeeHistoryExamState } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
@@ -222,11 +223,15 @@ export const HistoryScheduleExamCompanyTable: FC<
             onChange={(e) => handleSearchChange(e.target.value)}
             loadingReload={loadQuery || isFetching || isRefetching}
             onReloadClick={onRefetchThrottle}
+            identitySquareActions
+            pinToolbarWithFilter
+            showFilterPanelActions
+            filterButtonSx={tableUtilityPillSx}
             filterProps={{ filters: doneExamsFilterList, ...filterProps }}
           />
         </>
       )}
-      <FilterTagList filterProps={filterProps} />
+      <FilterTagList hideClearAction filterProps={filterProps} />
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}

@@ -15,9 +15,12 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { clinicFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/clinicFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
-import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import {
+  tableUtilityPillButtonProps,
+  tableUtilityPillSx,
+} from 'configs/theme/brand-identity-fill';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import STooltip from 'components/atoms/STooltip';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
@@ -328,8 +331,13 @@ export const ClinicsTable: FC<
       <STableSearch
         key={searchInputKey}
         autoFocus={false}
+        filterProps={{ filters: clinicFilterList, ...filterProps }}
+        filterButtonSx={tableUtilityPillSx}
+        pinToolbarWithFilter
         {...(!isSelect &&
           !simpleShow && {
+            identitySquareActions: true,
+            onAddClick: () => onStackOpenModal(ModalEnum.CLINIC_EDIT),
             toolbarBeforeFilter: (
               <STableColumnsButton<ClinicsTableColumnId>
                 showLabel
@@ -338,17 +346,12 @@ export const ClinicsTable: FC<
                   hiddenColumns as Record<ClinicsTableColumnId, boolean>
                 }
                 setHiddenColumns={setHiddenColumnsFromPicker}
+                tableButtonProps={tableUtilityPillButtonProps}
               />
             ),
           })}
-        {...(!isSelect &&
-          !simpleShow && {
-            onAddClick: () => onStackOpenModal(ModalEnum.CLINIC_EDIT),
-          })}
         onChange={(e) => handleSearchChange(e.target.value)}
-      >
-        <STableFilterIcon filters={clinicFilterList} {...filterProps} />
-      </STableSearch>
+      />
       <FilterTagList filterProps={filterProps} />
       <STable
         loading={isLoading}

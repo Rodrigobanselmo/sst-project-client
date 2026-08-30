@@ -87,6 +87,7 @@ export const CatsTable: FC<
         {!hideTitle && <STableTitle>CAT</STableTitle>}
         <STableSearch
           onAddClick={onAddCat}
+          identitySquareActions
           onChange={(e) => handleSearchChange(e.target.value)}
         />
       </>

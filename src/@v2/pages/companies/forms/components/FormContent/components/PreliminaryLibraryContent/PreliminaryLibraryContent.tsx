@@ -232,7 +232,10 @@ export const PreliminaryLibraryContent = ({
               </Select>
             </FormControl>
             <Box flex={1} sx={{ minWidth: 8 }} />
-            <STableAddButton onClick={() => setCreateQuestionOpen(true)} />
+            <STableAddButton
+              identityFill
+              onClick={() => setCreateQuestionOpen(true)}
+            />
           </SFlex>
 
           <Table size="small">
@@ -355,7 +358,10 @@ export const PreliminaryLibraryContent = ({
               sx={{ minWidth: 260 }}
             />
             <Box flex={1} sx={{ minWidth: 8 }} />
-            <STableAddButton onClick={() => setCreateBlockOpen(true)} />
+            <STableAddButton
+              identityFill
+              onClick={() => setCreateBlockOpen(true)}
+            />
           </SFlex>
 
           <Table size="small">

@@ -210,6 +210,7 @@ export const HistoryScheduleExamTable: FC<
               onChange={(e) => handleSearchChange(e.target.value)}
               loadingReload={loadQuery || isFetching || isRefetching}
               onReloadClick={onRefetchThrottle}
+              identitySquareActions
             />
           )}
         </>

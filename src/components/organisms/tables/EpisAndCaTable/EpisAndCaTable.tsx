@@ -22,6 +22,7 @@ import { STableFilterChipList } from '@v2/components/organisms/STable/addons/add
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
+import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import { TABLE_PAGE_SIZE_OPTIONS } from '@v2/constants/table-pagination.constants';
 import dayjs from 'dayjs';
 import {
@@ -530,6 +531,7 @@ export const EpisAndCaTable: FC<{ children?: any } & BoxProps> = () => {
       <STableSearch
         onChange={(e) => handleSearchChange(e.target.value)}
         placeholder="Pesquisar por CA ou equipamento"
+        pinToolbarWithFilter
         toolbarBeforeFilter={
           <Box display="flex" alignItems="center" gap={1}>
             <STableColumnsButton<EpiCaColumnId>
@@ -539,8 +541,12 @@ export const EpisAndCaTable: FC<{ children?: any } & BoxProps> = () => {
                 hiddenColumns as Record<EpiCaColumnId, boolean>
               }
               setHiddenColumns={setHiddenColumnsFromPicker}
+              tableButtonProps={tableUtilityPillButtonProps}
             />
-            <STableFilterButton text="Filtrar">
+            <STableFilterButton
+              text="Filtrar"
+              tableButtonProps={tableUtilityPillButtonProps}
+            >
               <Box
                 display="flex"
                 flexDirection="column"

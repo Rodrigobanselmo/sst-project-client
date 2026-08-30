@@ -139,6 +139,7 @@ export const ScheduleAskExamTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
         loadingReload={loadQuery || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
+        identitySquareActions
       />
       <STable
         loading={loadQuery}

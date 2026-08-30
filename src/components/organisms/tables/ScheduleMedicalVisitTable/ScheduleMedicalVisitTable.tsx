@@ -18,6 +18,7 @@ import { FilterTagList } from 'components/atoms/STable/components/STableFilter/F
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import { tableUtilityPillSx } from 'configs/theme/brand-identity-fill';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
@@ -118,6 +119,9 @@ export const ScheduleMedicalVisitTable: FC<
             onChange={(e) => handleSearchChange(e.target.value)}
             loadingReload={loadQuery || isFetching || isRefetching}
             onReloadClick={onRefetchThrottle}
+            identitySquareActions
+            pinToolbarWithFilter
+            filterButtonSx={tableUtilityPillSx}
             filterProps={{ filters: medicalVisitFilterList, ...filterProps }}
           />
         </>

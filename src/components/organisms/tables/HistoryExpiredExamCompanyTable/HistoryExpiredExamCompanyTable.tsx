@@ -21,6 +21,7 @@ import { useFilterTable } from 'components/atoms/STable/components/STableFilter/
 import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import { tableUtilityPillSx } from 'configs/theme/brand-identity-fill';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
 import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
@@ -299,6 +300,9 @@ export const HistoryExpiredExamCompanyTable: FC<
             onChange={(e) => handleSearchChange(e.target.value)}
             loadingReload={loadQuery || isFetching || isRefetching}
             onReloadClick={onRefetchThrottle}
+            identitySquareActions
+            pinToolbarWithFilter
+            filterButtonSx={tableUtilityPillSx}
             filterProps={{ filters: expiredExamFilterList, ...filterProps }}
           />
         </>

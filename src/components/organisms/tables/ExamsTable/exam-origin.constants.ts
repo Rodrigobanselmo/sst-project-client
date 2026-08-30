@@ -46,6 +46,26 @@ export function getExamOriginLabel(value?: string | null): string {
   return EXAM_ORIGIN_LABELS[normalizeExamOrigin(value)];
 }
 
+/** Tag Sistema: neutra, sem identidade de marca; contraste por modo. */
+function getSystemChipPresentationSx(base: SxProps<Theme>): SxProps<Theme> {
+  return {
+    ...base,
+    backgroundColor: (theme) =>
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[700]
+        : theme.palette.grey[100],
+    color: (theme) =>
+      theme.palette.mode === 'dark'
+        ? theme.palette.common.white
+        : theme.palette.text.primary,
+    border: '1px solid',
+    borderColor: (theme) =>
+      theme.palette.mode === 'dark'
+        ? theme.palette.grey[500]
+        : theme.palette.grey[400],
+  };
+}
+
 /**
  * Explicit chip styles — overrides the global MuiChip transparent theme so
  * NR-07 (secondary/blue) is always visible, unlike color="info" which renders blank.
@@ -63,13 +83,7 @@ export function getExamOriginChipSx(origin: ExamOriginEnum): SxProps<Theme> {
         borderColor: 'secondary.main',
       };
     case ExamOriginEnum.SYSTEM:
-      return {
-        ...base,
-        backgroundColor: 'grey.100',
-        color: 'text.primary',
-        border: '1px solid',
-        borderColor: 'grey.400',
-      };
+      return getSystemChipPresentationSx(base);
     case ExamOriginEnum.CLIENT:
       return {
         ...base,
@@ -160,13 +174,7 @@ export function getExamOriginSourceChipSx(
         borderColor: 'info.main',
       };
     case ExamOriginSourceEnum.SYSTEM:
-      return {
-        ...base,
-        backgroundColor: 'grey.100',
-        color: 'text.primary',
-        border: '1px solid',
-        borderColor: 'grey.400',
-      };
+      return getSystemChipPresentationSx(base);
     case ExamOriginSourceEnum.CLIENT:
       return {
         ...base,

@@ -1,10 +1,8 @@
 import { FC, useMemo, useState } from 'react';
 
-import AddIcon from '@mui/icons-material/Add';
 import {
   Box,
   BoxProps,
-  Button,
   FormControl,
   InputLabel,
   MenuItem,
@@ -14,10 +12,12 @@ import {
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
+import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
@@ -170,14 +170,6 @@ export const ExamsTable: FC<
           <SExamIcon />
           <Typography variant="h6">Exames</Typography>
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={onAddExam}
-        >
-          Adicionar exame
-        </Button>
       </Box>
 
       <STableSearch
@@ -185,13 +177,22 @@ export const ExamsTable: FC<
         onSearch={(search) => patchFilters({ search })}
       >
         <STableSearchContent>
+          <STableAddButton
+            text="Adicionar exame"
+            identityFill
+            onClick={onAddExam}
+          />
           <STableColumnsButton
             showLabel
             columns={examColumns}
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
+            tableButtonProps={tableUtilityPillButtonProps}
           />
-          <STableFilterButton text="Filtros">
+          <STableFilterButton
+            text="Filtrar"
+            tableButtonProps={tableUtilityPillButtonProps}
+          >
             <Box display="flex" flexDirection="column" gap={2} width={260}>
               <FormControl size="small" fullWidth>
                 <InputLabel>Origem</InputLabel>
