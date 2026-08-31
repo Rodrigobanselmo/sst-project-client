@@ -16,7 +16,10 @@ import {
   getCompanyPrimaryNavItems,
 } from 'core/constants/company-primary-navigation.constants';
 
-/** Espelha a ordem/rotas esperadas da seção Gestão da Empresa (sem Acervo). */
+/**
+ * Navegação contextual (topbar) permanece plana.
+ * Na sidebar, estes hrefs são filhos do Home agrupador + Acervo Técnico.
+ */
 const expectedSidebarHrefs = (companyId: string) => [
   RoutesEnum.COMPANY_EDIT.replace(':companyId', companyId),
   RoutesEnum.COMPANY_EMPLOYEE.replace(':companyId', companyId),
@@ -48,6 +51,19 @@ assert.ok(
 assert.ok(RoutesEnum.ACTION_PLAN.includes('plano-de-acao'));
 assert.ok(RoutesEnum.ABSENTEEISM.includes('absenteismo'));
 assert.ok(RoutesEnum.CAT.includes('/cat'));
+// Sidebar: os quatro stages canônicos + Acervo Técnico ficam sob Home
+const expectedHomeChildrenHrefs = (id: string) => [
+  ...expectedSidebarHrefs(id),
+  RoutesEnum.DOCUMENTS.replace(':companyId', id),
+];
+assert.deepEqual(expectedHomeChildrenHrefs(companyId), [
+  `/dashboard/empresas/${companyId}/novo/empresa`,
+  `/dashboard/empresas/${companyId}/novo/empregados`,
+  `/dashboard/empresas/${companyId}/novo/sst`,
+  `/dashboard/empresas/${companyId}/novo/documentos`,
+  `/dashboard/empresas/${companyId}/documentos`,
+]);
+
 assert.ok(RoutesEnum.DOCUMENTS.includes('/documentos'));
 
 console.log('company-management-drawer.spec.ts OK');

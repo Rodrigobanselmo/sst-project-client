@@ -15,11 +15,15 @@ import { LogoNavbar } from '../Logo';
 import { NavLink } from '../NavLink';
 import { NavSection } from '../NavSection';
 import { SearchBox } from '../SearchBox';
+import {
+  collectSidebarChildMatchers,
+  isSidebarAnyMatcherActive,
+} from './hooks/sidebar-home-active-matchers';
 import { IDrawerItems, useDrawerItems } from './hooks/useDrawerItems';
 import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
-  const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
+  const { isTablet, open, close, isAlwaysClose, isOpen } = useSidebarDrawer();
   const { companyId, userCompanyId } = useGetCompanyId();
   const { sections } = useDrawerItems();
   const {
@@ -72,6 +76,21 @@ export function SideBarNav(): JSX.Element {
 
   const shouldExpandSubItems = (items?: IDrawerItems[]) =>
     items?.some(isItemOrDescendantActive) ?? false;
+
+  const isGroupingParent = (item: IDrawerItems) =>
+    Boolean(item.alwaysShowSubItems && item.href && item.items?.length);
+
+  const getGroupingParentForceActive = (item: IDrawerItems) => {
+    if (!isGroupingParent(item)) return false;
+
+    return isSidebarAnyMatcherActive(
+      currentPath,
+      collectSidebarChildMatchers(item.items, (child) => ({
+        href: resolveHref(child.href),
+        activePrefix: resolveActivePrefix(child.activePrefix),
+      })),
+    );
+  };
 
   /**
    * Seções que contêm a rota ativa. Dependência estável por ids — permite
@@ -174,6 +193,8 @@ export function SideBarNav(): JSX.Element {
                 {category.items.map((item) => {
                   if (item.items && item.items.length === 0) return null;
 
+                  const groupingParent = isGroupingParent(item);
+
                   return (
                     <NavLink
                       isAlwaysClose={isAlwaysClose}
@@ -182,11 +203,16 @@ export function SideBarNav(): JSX.Element {
                       key={item.text}
                       onClick={item.onClick}
                       activePrefix={resolveActivePrefix(item.activePrefix)}
+                      forceActive={getGroupingParentForceActive(item)}
                       href={resolveHref(item.href)}
                       icon={item.Icon}
                       text={item.text}
-                      canOpen={Boolean(item.items?.length)}
-                      forceShowSubItems={shouldExpandSubItems(item.items)}
+                      canOpen={groupingParent ? false : Boolean(item.items?.length)}
+                      forceShowSubItems={
+                        groupingParent
+                          ? isOpen
+                          : shouldExpandSubItems(item.items)
+                      }
                       expandToggleOffset={false}
                       description={item.description}
                       shouldMatchExactHref={item.shouldMatchExactHref}

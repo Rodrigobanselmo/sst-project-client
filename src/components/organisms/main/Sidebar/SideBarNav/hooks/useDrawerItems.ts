@@ -118,16 +118,10 @@ export const useDrawerItems = () => {
 
   const items: IDrawerItemsMap = {
     [DrawerItemsEnum.dashboard]: {
-      text: isMasterAdmin || company.isConsulting ? 'Empresas' : 'Home',
-      description:
-        isMasterAdmin || company.isConsulting
-          ? 'Listagem/seleção de empresas'
-          : 'Home operacional da empresa',
+      text: 'Empresas',
+      description: 'Listagem/seleção de empresas',
       Icon: MdDashboard,
-      href:
-        isMasterAdmin || company.isConsulting
-          ? RoutesEnum.COMPANIES
-          : RoutesEnum.COMPANY,
+      href: RoutesEnum.COMPANIES,
       shouldMatchExactHref: true,
     },
     [DrawerItemsEnum.documents]: {
@@ -347,19 +341,17 @@ export const useDrawerItems = () => {
     },
     [DrawerItemsEnum.companyHome]: {
       /**
-       * Home extra (MASTER/consultoria + empresa na rota).
-       * Funcionalmente aponta para a mesma rota de Dados da Empresa
-       * (`COMPANY_EDIT`). Mantido nesta fase para evitar regressão de
-       * descoberta; candidato a remoção futura quando a IA estiver estável.
+       * Pai-link da Gestão da Empresa. Navega para `/novo/empresa`.
+       * O ativo do grupo é calculado pelos matchers específicos dos filhos
+       * (sem prefixo largo `/novo`). Sempre visível na sidebar expandida.
        */
       text: 'Home',
-      description:
-        'Atalho operacional da empresa selecionada (sobreposição com Dados da Empresa — remoção futura)',
-      Icon: SCompanyIcon,
+      description: 'Home operacional da empresa',
+      Icon: MdDashboard,
       href: RoutesEnum.COMPANY_EDIT,
-      activePrefix: RoutesEnum.COMPANY.replace('/:stage', ''),
-      roles: [RoleEnum.CONTRACTS],
+      roles: [],
       shouldMatchExactHref: false,
+      alwaysShowSubItems: true,
     },
     [DrawerItemsEnum.companyManagementCompanyData]: {
       text: 'Dados da Empresa',
@@ -682,12 +674,9 @@ export const useDrawerItems = () => {
       roles: [],
     },
     items: [
-      items[DrawerItemsEnum.dashboard],
-      // Home extra: só MASTER/consultoria com empresa na rota (ver comment no item).
+      // Empresas permanece em Geral só onde já se aplica (MASTER/consultoria).
       ...(isMasterAdmin || company.isConsulting
-        ? hasActiveCompanyInRoute
-          ? [items[DrawerItemsEnum.companyHome]]
-          : []
+        ? [items[DrawerItemsEnum.dashboard]]
         : []),
       items[DrawerItemsEnum.schedule],
       items[DrawerItemsEnum.oneClinicsData],
@@ -712,12 +701,16 @@ export const useDrawerItems = () => {
       (isMasterAdmin || company.isConsulting) && !hasActiveCompanyInRoute
         ? []
         : [
-            items[DrawerItemsEnum.companyManagementCompanyData],
-            items[DrawerItemsEnum.companyManagementEmployees],
-            items[DrawerItemsEnum.companyManagementCharacterization],
-            items[DrawerItemsEnum.companyManagementDocuments],
-            // Duplicidade intencional com a navegação contextual do workspace.
-            items[DrawerItemsEnum.documents],
+            {
+              ...items[DrawerItemsEnum.companyHome],
+              items: [
+                items[DrawerItemsEnum.companyManagementCompanyData],
+                items[DrawerItemsEnum.companyManagementEmployees],
+                items[DrawerItemsEnum.companyManagementCharacterization],
+                items[DrawerItemsEnum.companyManagementDocuments],
+                items[DrawerItemsEnum.documents],
+              ],
+            },
           ],
   };
 

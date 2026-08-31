@@ -15,6 +15,7 @@ const SText = styled(Typography)``;
 export function NavLink({
   href,
   activePrefix,
+  forceActive,
   image,
   icon,
   text,
@@ -56,6 +57,7 @@ export function NavLink({
             shouldMatchExactHref={shouldMatchExactHref}
             href={href}
             activePrefix={activePrefix}
+            forceActive={forceActive}
             passHref
             onClick={onClick}
             canOpen={canOpen}

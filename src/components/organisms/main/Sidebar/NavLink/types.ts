@@ -9,6 +9,11 @@ export interface INavLinkProps extends LinkProps {
   href?: string;
   /** Prefixo opcional para matcher de item ativo. */
   activePrefix?: string;
+  /**
+   * Força o estado ativo sem prefixo largo.
+   * Uso restrito ao pai-link Home da Gestão da Empresa.
+   */
+  forceActive?: boolean;
   modalName?: ModalEnum;
   text: string;
   description: string;

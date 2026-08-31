@@ -56,13 +56,29 @@ export const STabs: FC<{ children?: any } & STabsProps> = ({
         scrollButtons="auto"
         aria-label="scrollable auto tabs example"
         {...props}
-        {...(!!props.height && {
-          sx: {
+        sx={{
+          ...(!!props.height && {
             '& .MuiTabs-scroller': { maxHeight: props.height },
             svg: { fontSize: 22, pr: 3 },
-            ...props.sx,
+          }),
+          '& .MuiTab-root': {
+            color: (theme) =>
+              theme.palette.mode === 'light' ? 'text.light' : 'text.medium',
+            '&.Mui-selected': {
+              color: (theme) =>
+                theme.palette.mode === 'light'
+                  ? 'text.primary'
+                  : 'primary.onSoftBackground',
+              fontWeight: 700,
+            },
           },
-        })}
+          '& .MuiTabs-indicator': {
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'light' ? 'text.primary' : 'primary.main',
+            height: 4,
+          },
+          ...props.sx,
+        }}
       >
         {options.map((options) => (
           <Tab

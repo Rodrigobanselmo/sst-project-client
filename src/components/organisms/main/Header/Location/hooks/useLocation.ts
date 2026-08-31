@@ -587,8 +587,8 @@ export const useLocation = () => {
   ]);
 
   const routes = useMemo(
-    () => normalizeCompanyFlowBreadcrumbs(rawRoutes, pathname),
-    [rawRoutes, pathname],
+    () => normalizeCompanyFlowBreadcrumbs(rawRoutes, pathname, companyId),
+    [rawRoutes, pathname, companyId],
   );
 
   const getRoutePath = (routeValue: IRouteMapValue, index: number) => {

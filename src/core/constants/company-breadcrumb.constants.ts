@@ -12,6 +12,15 @@ export const COMPANIES_LIST_PATHNAME = '/dashboard/empresas';
 export const isCompanyFlowPathname = (pathname: string) =>
   pathname.startsWith('/dashboard/empresas');
 
+export const isCompaniesListPathname = (pathname: string) =>
+  pathname === COMPANIES_LIST_PATHNAME ||
+  pathname === `${COMPANIES_LIST_PATHNAME}/`;
+
+/** Home do workspace da empresa — não a listagem global. */
+export function getCompanyWorkspaceHomePath(companyId: string) {
+  return RoutesEnum.COMPANY_EDIT.replace(':companyId', companyId);
+}
+
 type BreadcrumbSegment = {
   name: string;
   value: string;
@@ -19,10 +28,15 @@ type BreadcrumbSegment = {
   action?: () => string | void;
 };
 
-/** Remove "Dashboard" do path e ancora o fluxo em Empresas. */
+/**
+ * Remove "Dashboard" do path.
+ * Na listagem, o primeiro item continua Empresas → /dashboard/empresas.
+ * Dentro do workspace, o primeiro item vira Home → /novo/empresa.
+ */
 export function normalizeCompanyFlowBreadcrumbs(
   segments: BreadcrumbSegment[],
   pathname: string,
+  companyId?: string,
 ): BreadcrumbSegment[] {
   if (!isCompanyFlowPathname(pathname)) return segments;
 
@@ -32,21 +46,24 @@ export function normalizeCompanyFlowBreadcrumbs(
       segment.name?.toLowerCase() !== 'dashboard',
   );
 
+  const useWorkspaceHome =
+    !isCompaniesListPathname(pathname) && Boolean(companyId);
+
   const normalized = withoutDashboard.map((segment) =>
     segment.value === 'empresas'
       ? {
           ...segment,
-          name: 'Empresas',
+          name: useWorkspaceHome ? 'Home' : 'Empresas',
           action: () =>
-            COMPANIES_LIST_PATHNAME.replace(/^\//, ''),
+            (useWorkspaceHome && companyId
+              ? getCompanyWorkspaceHomePath(companyId)
+              : COMPANIES_LIST_PATHNAME
+            ).replace(/^\//, ''),
         }
       : segment,
   );
 
-  if (
-    pathname === COMPANIES_LIST_PATHNAME ||
-    pathname === `${COMPANIES_LIST_PATHNAME}/`
-  ) {
+  if (isCompaniesListPathname(pathname)) {
     return normalized.filter((segment) => segment.value === 'empresas');
   }
 

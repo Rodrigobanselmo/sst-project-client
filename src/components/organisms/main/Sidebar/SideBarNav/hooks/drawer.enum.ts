@@ -42,8 +42,7 @@ export enum DrawerItemsEnum {
   /** Órfão — substituído por companyManagementCompanyData. */
   companiesData = 'companiesData',
   /**
-   * Home operacional extra (MASTER/consultoria com empresa na rota).
-   * Candidato a remoção futura se coincidir funcionalmente com Dados da Empresa.
+   * Home agrupador da Gestão da Empresa (pai-link das cinco áreas).
    */
   companyHome = 'companyHome',
   /** Órfão — tela legada. */

@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 
+import { resolveSidebarActiveLinkHref } from './resolve-active-link-href';
 import { IActiveLinkProps } from './types';
 
 export function SActiveLink({
@@ -14,12 +15,13 @@ export function SActiveLink({
   canOpen,
   isOpen,
   activePrefix,
+  forceActive,
   expandToggleOffset = true,
   ...rest
 }: IActiveLinkProps): JSX.Element {
   const { asPath } = useRouter();
 
-  let isActive = false;
+  let isActive = Boolean(forceActive);
 
   if (canOpen)
     return (
@@ -76,7 +78,15 @@ export function SActiveLink({
   }
 
   return (
-    <Link {...rest} href={isActive ? asPath : rest.href}>
+    <Link
+      {...rest}
+      href={resolveSidebarActiveLinkHref({
+        href: rest.href,
+        asPath,
+        isActive,
+        forceActive,
+      })}
+    >
       {cloneElement<any>(children, {
         is_active: isActive ? 1 : 0,
       })}

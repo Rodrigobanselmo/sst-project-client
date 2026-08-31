@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 
 import { CompanyActionEnum } from 'core/enums/company-action.enum';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { RoleEnum } from 'project/enum/roles.enums';
 import {
   COMPANY_MANAGEMENT_SIDEBAR_SECTION_LABEL,
   COMPANY_PRIMARY_STAGES,
@@ -39,14 +40,15 @@ const EXPECTED_COLLAPSIBLE_IDS = [
   'administration',
 ] as const;
 
-const EXPECTED_GERAL = ['Empresas|Home', 'Home?', 'Agenda', 'Clínicas'];
-const EXPECTED_GESTAO = [
+const EXPECTED_GERAL = ['Empresas?', 'Agenda', 'Clínicas'];
+const EXPECTED_GESTAO_HOME_CHILDREN = [
   'Dados da Empresa',
   'Funcionários',
   'Caracterização',
   'Programas e Laudos',
   'Acervo Técnico',
 ];
+const EXPECTED_GESTAO = ['Home', ...EXPECTED_GESTAO_HOME_CHILDREN];
 const EXPECTED_OPERACOES = [
   'Formulários',
   'Plano de Ação',
@@ -79,7 +81,17 @@ assert.deepEqual([...EXPECTED_SECTION_ORDER], [
   'Perfil',
 ]);
 
-assert.equal(EXPECTED_GESTAO.length, 5);
+assert.equal(EXPECTED_GESTAO[0], 'Home');
+assert.deepEqual(EXPECTED_GESTAO_HOME_CHILDREN, [
+  'Dados da Empresa',
+  'Funcionários',
+  'Caracterização',
+  'Programas e Laudos',
+  'Acervo Técnico',
+]);
+assert.equal(EXPECTED_GESTAO_HOME_CHILDREN.length, 5);
+assert.ok(!EXPECTED_GERAL.includes('Home'));
+assert.ok(!EXPECTED_GERAL.includes('Empresas|Home'));
 assert.equal(EXPECTED_OPERACOES[1], 'Plano de Ação');
 assert.equal(EXPECTED_CADASTROS[3], 'EPI e CA');
 assert.equal(EXPECTED_ADMIN[0], 'Gerenciar Usuários');
@@ -186,9 +198,37 @@ assert.ok(!EXPECTED_SECTION_ORDER.includes('Banco de dados' as never));
 assert.deepEqual([...SIDEBAR_SECTION_IDS], [...EXPECTED_COLLAPSIBLE_IDS]);
 assert.equal(EXPECTED_COLLAPSIBLE_IDS.length, 6);
 
+// Gates dos cinco filhos — não mudam nesta fatia
+assert.deepEqual(
+  [
+    { text: 'Dados da Empresa', roles: [] as RoleEnum[] },
+    { text: 'Funcionários', roles: [] as RoleEnum[] },
+    { text: 'Caracterização', roles: [] as RoleEnum[] },
+    {
+      text: 'Programas e Laudos',
+      roles: [RoleEnum.DOCUMENTS],
+      showIf: { isDocuments: true },
+    },
+    { text: 'Acervo Técnico', roles: [RoleEnum.DOCUMENTS] },
+  ].map((item) => item.text),
+  EXPECTED_GESTAO_HOME_CHILDREN,
+);
+
+// Home agrupador: destino canônico /novo/empresa, sem prefixo largo /novo
+assert.equal(RoutesEnum.COMPANY_EDIT.endsWith('/novo/empresa'), true);
+assert.notEqual(
+  RoutesEnum.COMPANY.replace('/:stage', ''),
+  RoutesEnum.COMPANY_EDIT,
+);
+assert.ok(RoutesEnum.DOCUMENTS.includes('/documentos'));
+assert.ok(!RoutesEnum.DOCUMENTS.includes('/novo/documentos'));
+
 console.log('sidebar-information-architecture.spec.ts OK');
 console.log('Sections:', EXPECTED_SECTION_ORDER.join(' → '));
-console.log('Gestão:', EXPECTED_GESTAO.join(' | '));
+console.log(
+  'Gestão:',
+  `Home → ${EXPECTED_GESTAO_HOME_CHILDREN.join(' | ')}`,
+);
 console.log('Operações:', EXPECTED_OPERACOES.join(' | '));
 console.log('Cadastros:', EXPECTED_CADASTROS.join(' | '));
 console.log('Admin:', EXPECTED_ADMIN.join(' | '));
