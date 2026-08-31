@@ -2,10 +2,8 @@ import { FC, useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { Box, Link, Typography, useTheme } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import NextLink from 'next/link';
 import * as Yup from 'yup';
@@ -15,6 +13,7 @@ import { useOnlineStatus } from 'core/hooks/useOnlineStatus';
 
 import { SButton } from '../../../../components/atoms/SButton';
 import { InputForm } from '../../../../components/molecules/form/input';
+import { brandIdentityButtonSx } from '../../../../configs/theme/brand-identity-fill';
 import { useMutationLogin } from '../../../../core/services/hooks/mutations/auth/useMutationLogin';
 import {
   ILoginSchema,
@@ -44,11 +43,7 @@ export const LoginForm: FC = () => {
   const resetMutation = useMutResetEmailPass();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(isLocal || false);
 
-  const password = watch('password');
   const email = watch('email');
-
-  const successEmail = email && email.length > 3 && isValidEmail(email);
-  const successPass = password && password.length > 7;
 
   const onSubmit: SubmitHandler<ILoginSchema> = async (data) => {
     mutate(data);
@@ -89,22 +84,19 @@ export const LoginForm: FC = () => {
         }}
       >
         <InputForm
-          // defaultValue="admin@simple.com"
           sx={{ mb: [8, 12] }}
           setValue={setValue}
           label="E-mail"
-          placeholder="email@gmail.com"
+          placeholder="email@empresa.com.br"
           control={control}
           type="email"
           name="email"
           inputProps={{
             id: 'input_email',
           }}
-          success={successEmail}
         />
         <InputForm
           setValue={setValue}
-          // defaultValue="aaaa0123"
           inputProps={{
             id: 'input_password',
           }}
@@ -113,7 +105,6 @@ export const LoginForm: FC = () => {
           type="password"
           control={control}
           name="password"
-          success={successPass}
         />
         <STForgotButton
           type="button"
@@ -122,15 +113,29 @@ export const LoginForm: FC = () => {
           disableTouchRipple
           onClick={() => handleForgetPass()}
         >
-          Esqueceu sua senha ?
+          Esqueceu sua senha?
         </STForgotButton>
-        <SFlex mt={10} center>
+        <Box
+          sx={{
+            mt: 10,
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100%',
+            maxWidth: '100%',
+            transformOrigin: 'center center',
+            minHeight: 78,
+            '@media (max-width: 380px)': {
+              transform: 'scale(0.86)',
+              minHeight: 66,
+            },
+          }}
+        >
           <ReCAPTCHAComp
             sitekey="6Lc7Bu4pAAAAAKDIuEI3EWCamZ5p6GLEjihAMuPI"
             theme={recaptchaTheme}
             onChange={onRecaptchaChange}
           />
-        </SFlex>
+        </Box>
         <SButton
           disabled={!isCaptchaVerified}
           loading={isLoading}
@@ -138,6 +143,9 @@ export const LoginForm: FC = () => {
           sx={{
             width: '100%',
             mt: 12,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            ...brandIdentityButtonSx,
             '&.Mui-disabled': {
               color: 'text.disabled',
               backgroundColor: 'action.disabledBackground',
@@ -146,18 +154,51 @@ export const LoginForm: FC = () => {
         >
           ENTRAR
         </SButton>
-        <Typography color="text.medium" variant="caption" align="center" mt={4}>
-          Nào possui conta?
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            mt: 8,
+            mb: 2,
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              height: '1px',
+              bgcolor: 'background.divider',
+            }}
+          />
+          <Typography variant="caption" color="text.light">
+            ou
+          </Typography>
+          <Box
+            sx={{
+              flex: 1,
+              height: '1px',
+              bgcolor: 'background.divider',
+            }}
+          />
+        </Box>
+        <GoogleButton
+          onClick={handleGoogleSignIn}
+          text="Entrar com Google"
+          sx={{
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: '100%',
+            mt: 6,
+          }}
+        />
+        <Typography color="text.medium" variant="caption" align="center" mt={8}>
+          Não possui conta?
           <NextLink href="/cadastro" passHref>
-            <Link pl={2} underline="hover" color="text.main">
+            <Link pl={2} underline="hover" color="primary.main" fontWeight={600}>
               Cadastre-se
             </Link>
           </NextLink>
         </Typography>
-
-        <SFlex gap={5} mt={10} center width="100%">
-          <GoogleButton onClick={handleGoogleSignIn} text="Entrar com Google" />
-        </SFlex>
       </Box>
       <ModalSingleInput />
     </>

@@ -41,6 +41,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   const isMarketingSite = isPublicMarketingPath(router.pathname);
+  const isLoginPage = router.pathname === RoutesEnum.LOGIN;
 
   useEffect(() => {
     const handleStart = (nextPath: string) => {
@@ -100,7 +101,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <ModalReportSelect />
       <ModalReport />
       <ModalBlank />
-      {!isMarketingSite && <AIChatToggleButton />}
+      {!isMarketingSite && !isLoginPage && <AIChatToggleButton />}
     </main>
   );
 };

@@ -1,4 +1,5 @@
 export const CompanyRoutes = {
+  PUBLIC_LOGIN_STATS: 'v2/public/login-stats',
   WORKSPACE: {
     BROWSE_ALL: 'v2/companies/:companyId/workspaces/all',
     CONVERT_TO_COMPANY: {

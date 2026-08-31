@@ -33,6 +33,9 @@ assert.match(
   loginForm,
   /sitekey="6Lc7Bu4pAAAAAKDIuEI3EWCamZ5p6GLEjihAMuPI"/,
 );
+assert.match(loginForm, /googleSignIn\(\)/);
+assert.match(loginForm, /mutate\(data\)/);
+assert.match(loginForm, /brandIdentityButtonSx/);
 
 assert.match(googleButton, /background\.paper/);
 assert.match(googleButton, /text\.main/);
