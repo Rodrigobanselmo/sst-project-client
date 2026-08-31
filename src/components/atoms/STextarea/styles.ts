@@ -17,7 +17,7 @@ export const STTextareaAutosize = styled(TextareaAutosize)<{
   }
 
   &:hover {
-    border-color: ${(props) => props.theme.palette.background.default};
+    border-color: ${(props) => props.theme.palette.background.border};
     &:focus {
       outline-color: ${(props) => props.theme.palette.primary.main};
     }

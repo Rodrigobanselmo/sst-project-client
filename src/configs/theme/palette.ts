@@ -153,7 +153,7 @@ const palette = {
     light: '#899ed1',
   },
   background: {
-    default: '#dddee2',
+    default: '#F7F8FA',
     paper: '#FFFFFF',
     darkPaper: '#c4c4c4',
     dark: '#1A202C',

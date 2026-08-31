@@ -36,7 +36,7 @@ export const StyledSelect = styled(Select)<{
 
   &:hover {
     &&& .MuiOutlinedInput-notchedOutline {
-      border-color: ${(props) => props.theme.palette.background.default};
+      border-color: ${(props) => props.theme.palette.background.border};
       border-width: 2px;
     }
     &&&.Mui-focused .MuiOutlinedInput-notchedOutline {
