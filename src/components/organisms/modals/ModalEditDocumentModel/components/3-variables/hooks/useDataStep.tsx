@@ -4,7 +4,7 @@ import { useWizard } from 'react-use-wizard';
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 
 export const useDataStep = (props: IUseDocumentModel) => {
-  const { onClose } = props;
+  const { onClose, saveDocumentModel, documentDirty } = props;
 
   const { stepCount, goToStep, previousStep } = useWizard();
   const onCloseUnsaved = async () => {
@@ -17,7 +17,8 @@ export const useDataStep = (props: IUseDocumentModel) => {
   };
 
   const onSubmit = async () => {
-    return true;
+    if (!documentDirty) return true;
+    return saveDocumentModel({ exitAfterSuccess: false });
   };
 
   return {

@@ -25,6 +25,8 @@ export interface IUpdateDocumentModel {
   status?: StatusEnum;
   classifications?: DocumentModelClassificationEnum[];
   expectedUpdatedAt?: string;
+  /** Client-only: skip success snackbar when content save will confirm the action. */
+  suppressSuccessSnackbar?: boolean;
 }
 
 export async function upsertDocumentModel(
@@ -38,12 +40,14 @@ export async function upsertDocumentModel(
     );
   }
 
+  const { suppressSuccessSnackbar: _suppress, ...patchPayload } = data;
+
   const response = await api.patch<IDocumentModel>(
     ApiRoutesEnum.DOCUMENT_MODEL.replace(':companyId', companyId) +
       '/' +
       data.id,
     {
-      ...data,
+      ...patchPayload,
       companyId,
     },
   );
@@ -59,12 +63,14 @@ export function useMutUpdateDocumentModel() {
     async (data: IUpdateDocumentModel) =>
       upsertDocumentModel(data, getCompanyId(data)),
     {
-      onSuccess: async (resp) => {
+      onSuccess: async (resp, variables) => {
         if (resp) queryClient.invalidateQueries([QueryEnum.DOCUMENT_MODEL]);
 
-        enqueueSnackbar('Modelo editado com sucesso', {
-          variant: 'success',
-        });
+        if (!variables.suppressSuccessSnackbar) {
+          enqueueSnackbar('Modelo editado com sucesso', {
+            variant: 'success',
+          });
+        }
         return resp;
       },
       onError: (error: IErrorResp) => {

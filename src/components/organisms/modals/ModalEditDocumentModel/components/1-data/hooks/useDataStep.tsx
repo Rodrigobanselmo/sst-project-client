@@ -13,6 +13,7 @@ import {
 
 import { getDocumentModelMetadataPatch } from '../../../hooks/useEditDocumentModel';
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
+import { planDocumentModelPersistSteps, shouldSuppressMetadataPersistSuccessSnackbar } from '../../../helpers/document-model-persist-steps';
 
 export const useDataStep = (props: IUseDocumentModel) => {
   const {
@@ -24,6 +25,9 @@ export const useDataStep = (props: IUseDocumentModel) => {
     data,
     setData,
     markPersisted,
+    saveDocumentModel,
+    documentDirty,
+    isMetadataDirty,
   } = props;
   const [saveIntent, setSaveIntent] = useState<'stay' | 'exit' | null>(null);
   const saveIntentRef = useRef<'stay' | 'exit'>('stay');
@@ -119,25 +123,45 @@ export const useDataStep = (props: IUseDocumentModel) => {
         return await create();
       }
 
-      const metadataResp = await updateMutation.mutateAsync({
-        name: submitData.name,
-        description: submitData.description,
-        type: submitData.type,
-        ...getDocumentModelMetadataPatch(data),
+      const steps = planDocumentModelPersistSteps({
+        hasModelId: Boolean(data.id),
+        isMetadataDirty,
+        documentDirty,
       });
-      applyConfirmedMetadataUpdatedAt(metadataResp);
-      setData((d) => ({
-        ...d,
-        name: submitData.name,
-        description: submitData.description,
-      }));
-      markPersisted({
-        name: submitData.name,
-        description: submitData.description,
-        type: submitData.type,
-        status: data.status,
-        classifications: submitData.classifications,
-      });
+
+      if (!steps.length) return true;
+
+      if (steps.includes('metadata')) {
+        const metadataResp = await updateMutation.mutateAsync({
+          name: submitData.name,
+          description: submitData.description,
+          type: submitData.type,
+          ...getDocumentModelMetadataPatch(data),
+          suppressSuccessSnackbar:
+            shouldSuppressMetadataPersistSuccessSnackbar(steps),
+        });
+        applyConfirmedMetadataUpdatedAt(metadataResp);
+        setData((d) => ({
+          ...d,
+          name: submitData.name,
+          description: submitData.description,
+        }));
+        markPersisted({
+          name: submitData.name,
+          description: submitData.description,
+          type: submitData.type,
+          status: data.status,
+          classifications: submitData.classifications,
+        });
+      }
+
+      if (steps.includes('content')) {
+        const contentSaved = await saveDocumentModel({
+          exitAfterSuccess: false,
+        });
+        if (!contentSaved) return false;
+      }
+
       return true;
     } catch (error) {
       return false;

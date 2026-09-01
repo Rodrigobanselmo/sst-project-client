@@ -395,6 +395,12 @@ export const useEditDocumentModel = () => {
     documentDirty,
   });
 
+  const isMetadataDirty = isDocumentModelEditorDirty({
+    current: getDocumentModelDirtySnapshot(data),
+    baseline: metadataBaselineRef.current,
+    documentDirty: false,
+  });
+
   const closeEditor = (closeData?: any) => {
     onCloseModal(modalName, closeData);
     setData(initialEditDocumentModelState);
@@ -714,6 +720,8 @@ export const useEditDocumentModel = () => {
     markPersisted,
     isPersisting,
     isDirty,
+    isMetadataDirty,
+    documentDirty,
     data,
     setData,
     loading:

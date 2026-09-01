@@ -243,10 +243,10 @@ run('21-27. refetch/cache/preview/download/metadata/discard do not write data', 
   assert.equal(previewSource.includes('api.patch'), false);
   assert.equal(dataStepSource.includes('data: snapshot'), false);
   assert.equal(dataStepSource.includes('data: payload'), false);
-  assert.equal(dataStepSource.includes('saveDocumentModel'), false);
+  assert.equal(dataStepSource.includes('saveDocumentModel'), true);
   const variablesStep = readRel('../components/3-variables/hooks/useDataStep.tsx');
   const imagesStep = readRel('../components/4-images/hooks/useDataStep.tsx');
-  assert.equal(variablesStep.includes('saveDocumentModel'), false);
+  assert.equal(variablesStep.includes('saveDocumentModel'), true);
   assert.equal(imagesStep.includes('saveDocumentModel'), false);
   assert.equal(variablesStep.includes('persistDocumentModel'), false);
   assert.equal(imagesStep.includes('persistDocumentModel'), false);
