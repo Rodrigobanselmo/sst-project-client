@@ -47,6 +47,14 @@ const FRIENDLY_LABELS: Record<string, string> = {
   [DocumentSectionChildrenTypeEnum.BREAK]: 'Quebra de página',
   [DocumentSectionChildrenTypeEnum.TABLE_VERSION_CONTROL]:
     'Tabela — Controle de versões',
+  [DocumentSectionChildrenTypeEnum.FRPS_METHOD_SCALES_TABLE]:
+    'Tabela FRPS – Escalas do Método Aplicado',
+  [DocumentSectionChildrenTypeEnum.FRPS_COPSOQ_SCALES_TABLE]:
+    'Tabela FRPS – Escalas do Método Aplicado',
+  [DocumentSectionChildrenTypeEnum.FRPS_METHOD_SCALES_CHART]:
+    'Gráfico FRPS – Escalas do Método Aplicado',
+  [DocumentSectionChildrenTypeEnum.FRPS_COPSOQ_SCALES_CHART]:
+    'Gráfico FRPS – Escalas do Método Aplicado',
   [DocumentSectionChildrenTypeEnum.APR_TABLE]: 'Inventário de Riscos',
   APR: 'Inventário de Riscos',
   INVENTORY: 'Inventário de Riscos',

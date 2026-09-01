@@ -4,12 +4,14 @@ import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
 import { DocModelPageOrientation } from 'core/interfaces/api/IDocumentModel';
 import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enum';
 
-import { IElementTypeModelOption, IElementTypeModelSelectProps } from './types';
+import { atomVisualLabel } from 'components/organisms/documentModel/editor-v2/domain/atom-visual';
 import {
   DOCUMENT_MODEL_INSERT_VISUAL,
   withContentInsertOptionIcon,
 } from 'components/organisms/documentModel/utils/documentModelInsertVisuals';
 import { sortContentInsertOptions } from 'components/organisms/documentModel/utils/sortContentInsertOptions';
+
+import { IElementTypeModelOption, IElementTypeModelSelectProps } from './types';
 
 const SECTION_BREAK = DocumentSectionChildrenTypeEnum.SECTION_BREAK;
 
@@ -66,13 +68,20 @@ export const ElementTypeModelSelect: FC<
     <STagSearchSelect
       options={options}
       multiple={multiple}
-      text={text || elements[selected]?.label}
+      text={
+        text ||
+        elements[selected]?.label ||
+        atomVisualLabel(selected)
+      }
       keys={['label']}
       large={large}
       sx={{ alignItems: 'start' }}
       handleSelectMenu={handleSelect}
       selected={[selectedOptionValue || selected]}
-      tooltipTitle={elements[selected]?.label}
+      tooltipTitle={
+        elements[selected]?.label ||
+        (selected ? atomVisualLabel(selected) : undefined)
+      }
       optionsFieldName={{ valueField: 'optionValue', contentField: 'label' }}
       {...(insertVisual && {
         icon: insertVisual.buttonIcon,
