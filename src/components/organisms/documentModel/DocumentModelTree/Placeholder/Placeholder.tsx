@@ -1,20 +1,22 @@
 import React from 'react';
 
+import { Box } from '@mui/material';
+
 import { NodeDocumentModel } from '../types/types';
 
 const Placeholder: React.FC<
   { children?: any } & { node: NodeDocumentModel; depth: number }
-> = ({ node, depth }) => {
+> = ({ depth }) => {
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         position: 'absolute',
         top: 0,
         right: 0,
         height: 4,
         left: depth * 24,
         transform: 'translateY(-50%)',
-        backgroundColor: '#81a9e0',
+        backgroundColor: 'primary.main',
         zIndex: 100,
       }}
     />

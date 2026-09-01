@@ -4,6 +4,7 @@ export const documentEditorV2SurfaceSx: SxProps<Theme> = {
   '& .ProseMirror': {
     outline: 'none',
     minHeight: 240,
+    color: 'text.primary',
   },
   '& .doc-editor-v2-variable': {
     display: 'inline-flex',

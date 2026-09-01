@@ -8,6 +8,8 @@ import {
   sortClassificationsForDisplay,
 } from 'project/enum/document-model-classification.enum';
 
+import { documentModelNeutralChipSx } from './document-model-presentation-theme';
+
 type Props = {
   classifications?: DocumentModelClassificationEnum[];
 };
@@ -31,8 +33,7 @@ export const DocumentModelClassificationChips: FC<Props> = ({
         <Box
           key={value}
           sx={{
-            backgroundColor: 'grey.300',
-            color: 'text.main',
+            ...documentModelNeutralChipSx,
             borderRadius: 1,
             fontSize: 10,
             fontWeight: 600,

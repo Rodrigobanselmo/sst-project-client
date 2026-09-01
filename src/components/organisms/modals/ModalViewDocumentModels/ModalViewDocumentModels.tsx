@@ -120,7 +120,7 @@ export const ModalViewDocumentModels: FC = () => {
       onClose={onCloseNoSelect}
     >
       <SModalPaper
-        sx={{ backgroundColor: 'grey.200' }}
+        sx={{ backgroundColor: 'background.default' }}
         semiFullScreen
         center
         p={8}

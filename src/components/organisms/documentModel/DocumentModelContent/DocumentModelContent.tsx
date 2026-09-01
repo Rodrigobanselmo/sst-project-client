@@ -1,6 +1,7 @@
 import React, { cloneElement, useMemo } from 'react';
 
-import { LinearProgress } from '@mui/material';
+import { Box, LinearProgress } from '@mui/material';
+import { documentModelClassicSheetSx } from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
 import { selectAllDocumentModel } from 'store/reducers/document/documentSlice';
 
 import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
@@ -8,9 +9,23 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { DocumentModelEditorBoundary } from '../editor-v2/integration/DocumentModelEditorBoundary';
 import { buildDocumentHeadingNumbering } from '../utils/buildDocumentHeadingNumbering';
+import { DocumentModelPrintTheme } from './DocumentModelPrintTheme';
 import { useContentDocumentModel } from './hooks/useContentDocumentModel';
 import { STStructContainer } from './styles';
 import { TypeSectionItem } from './TypeSectionItem/TypeSectionItem';
+
+function ClassicDocumentSheet({ children }: { children: React.ReactNode }) {
+  return (
+    <DocumentModelPrintTheme>
+      <Box
+        className="document-model-classic-sheet"
+        sx={documentModelClassicSheetSx}
+      >
+        {children}
+      </Box>
+    </DocumentModelPrintTheme>
+  );
+}
 
 export const DocumentModelContent: React.FC<
   { children?: any } & {
@@ -43,14 +58,16 @@ export const DocumentModelContent: React.FC<
             model={props.model}
             headingNumbering={headingNumbering}
             v1={
-              <TypeSectionItem
-                data={data}
-                variables={variables}
-                elements={elements}
-                sections={sections}
-                companyId={companyId}
-                headingNumbering={headingNumbering}
-              />
+              <ClassicDocumentSheet>
+                <TypeSectionItem
+                  data={data}
+                  variables={variables}
+                  elements={elements}
+                  sections={sections}
+                  companyId={companyId}
+                  headingNumbering={headingNumbering}
+                />
+              </ClassicDocumentSheet>
             }
           />
         )}

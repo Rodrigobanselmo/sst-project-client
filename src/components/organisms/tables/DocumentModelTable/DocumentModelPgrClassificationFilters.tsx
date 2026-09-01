@@ -8,6 +8,11 @@ import {
   toggleDocumentModelClassificationFilter,
 } from 'project/enum/document-model-classification.enum';
 
+import {
+  documentModelFilterPillBaseSx,
+  getDocumentModelFilterPillSx,
+} from './document-model-presentation-theme';
+
 type Props = {
   documentType: DocumentTypeEnum;
   active: DocumentModelClassificationEnum[];
@@ -52,17 +57,8 @@ const FilterPill: FC<{
     type="button"
     onClick={onClick}
     sx={{
-      appearance: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      backgroundColor: isActive ? 'primary.main' : 'grey.400',
-      color: 'common.white',
-      borderRadius: 1,
-      fontSize: 11,
-      fontWeight: 600,
-      px: 6,
-      py: '4px',
-      whiteSpace: 'nowrap',
+      ...documentModelFilterPillBaseSx,
+      ...getDocumentModelFilterPillSx(isActive),
     }}
   >
     {label}

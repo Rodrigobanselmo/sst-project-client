@@ -9,6 +9,10 @@ import {
   getExclusivePairsHintForDocumentType,
   toggleDocumentModelClassification,
 } from 'project/enum/document-model-classification.enum';
+import {
+  documentModelFilterPillBaseSx,
+  getDocumentModelFilterPillSx,
+} from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
 
 type Props = {
   documentType: DocumentTypeEnum;
@@ -41,17 +45,8 @@ export const DocumentModelClassificationEditor: FC<Props> = ({
                 onChange(toggleDocumentModelClassification(value, item))
               }
               sx={{
-                appearance: 'none',
-                border: '1px solid',
-                borderColor: selected ? 'primary.main' : 'grey.400',
-                cursor: 'pointer',
-                backgroundColor: selected ? 'primary.light' : 'grey.100',
-                color: selected ? 'primary.dark' : 'text.main',
-                borderRadius: 1,
-                fontSize: 11,
-                fontWeight: 600,
-                px: 6,
-                py: '4px',
+                ...documentModelFilterPillBaseSx,
+                ...getDocumentModelFilterPillSx(selected),
               }}
             >
               {shortLabel}

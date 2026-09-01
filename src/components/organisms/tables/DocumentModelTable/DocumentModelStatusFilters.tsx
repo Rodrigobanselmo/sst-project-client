@@ -5,6 +5,10 @@ import { Box } from '@mui/material';
 import {
   DocumentModelStatusFilter,
 } from './document-model-status-filter.util';
+import {
+  documentModelFilterPillBaseSx,
+  getDocumentModelFilterPillSx,
+} from './document-model-presentation-theme';
 
 type Props = {
   active: DocumentModelStatusFilter;
@@ -28,17 +32,8 @@ export const DocumentModelStatusFilters: FC<Props> = ({ active, onChange }) => {
           onClick={() => onChange(value)}
           aria-pressed={active === value}
           sx={{
-            appearance: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            backgroundColor: active === value ? 'primary.main' : 'grey.400',
-            color: 'common.white',
-            borderRadius: 1,
-            fontSize: 11,
-            fontWeight: 600,
-            px: 6,
-            py: '4px',
-            whiteSpace: 'nowrap',
+            ...documentModelFilterPillBaseSx,
+            ...getDocumentModelFilterPillSx(active === value),
           }}
         >
           {label}

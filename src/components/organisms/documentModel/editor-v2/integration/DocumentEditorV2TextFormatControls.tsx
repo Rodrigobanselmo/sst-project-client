@@ -31,6 +31,13 @@ import {
 import { InlineStyleTypeEnum } from 'project/enum/document-model.enum';
 
 import {
+  documentModelV2ToolbarButtonSx,
+  documentModelV2ToolbarControlColor,
+  documentModelV2ToolbarIconButtonSx,
+  documentModelV2ToolbarSelectSx,
+} from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
+
+import {
   createBlockVisualTransaction,
   createColorTransaction,
   createInlineStyleTransaction,
@@ -153,9 +160,11 @@ export function DocumentEditorV2TextFormatControls({
         <span>
           <IconButton
             size="small"
+            color={documentModelV2ToolbarControlColor}
             disabled={!ui.blockEnabled}
             onClick={(event) => setAlignEl(event.currentTarget)}
             aria-label="Alinhamento"
+            sx={documentModelV2ToolbarIconButtonSx}
           >
             <AlignIcon fontSize="small" />
           </IconButton>
@@ -206,7 +215,7 @@ export function DocumentEditorV2TextFormatControls({
             if (raw === 'mixed') return;
             applySize(raw === 'default' ? null : Number(raw));
           }}
-          sx={{ fontSize: 12, height: 32 }}
+          sx={[documentModelV2ToolbarSelectSx, { fontSize: 12, height: 32 }]}
         >
           <MenuItem value="default" dense>
             Padrão
@@ -232,15 +241,20 @@ export function DocumentEditorV2TextFormatControls({
         <span>
           <IconButton
             size="small"
+            color={documentModelV2ToolbarControlColor}
             disabled={ui.atom || (ui.multi && !ui.hasSelection)}
             onClick={(event) => setColorEl(event.currentTarget)}
             aria-label="Cor do texto"
-            sx={{
-              color:
-                colorValue && colorValue !== 'mixed' ? colorValue : 'inherit',
-            }}
+            sx={documentModelV2ToolbarIconButtonSx}
           >
-            <FormatColorTextIcon fontSize="small" />
+            <FormatColorTextIcon
+              fontSize="small"
+              sx={
+                colorValue && colorValue !== 'mixed'
+                  ? { color: colorValue }
+                  : undefined
+              }
+            />
           </IconButton>
         </span>
       </Tooltip>
@@ -261,9 +275,11 @@ export function DocumentEditorV2TextFormatControls({
         <span>
           <IconButton
             size="small"
+            color={documentModelV2ToolbarControlColor}
             disabled={!ui.inlineEnabled}
             onClick={(event) => setHighlightEl(event.currentTarget)}
             aria-label="Destaque"
+            sx={documentModelV2ToolbarIconButtonSx}
           >
             <FormatColorFillIcon fontSize="small" />
           </IconButton>
@@ -300,7 +316,7 @@ export function DocumentEditorV2TextFormatControls({
             if (raw === 'mixed') return;
             applyLineHeight(raw === 'default' ? null : Number(raw));
           }}
-          sx={{ fontSize: 12, height: 32 }}
+          sx={[documentModelV2ToolbarSelectSx, { fontSize: 12, height: 32 }]}
         >
           <MenuItem value="default" dense>
             1,46
@@ -322,6 +338,7 @@ export function DocumentEditorV2TextFormatControls({
         <span>
           <Button
             size="small"
+            color={documentModelV2ToolbarControlColor}
             disabled={!ui.inlineEnabled}
             variant={ui.superscript === true ? 'contained' : 'outlined'}
             onClick={() => {
@@ -333,7 +350,10 @@ export function DocumentEditorV2TextFormatControls({
               );
               if (transaction) editor.view.dispatch(transaction);
             }}
-            sx={{ minWidth: 32, px: 0.5, fontSize: 12 }}
+            sx={[
+              documentModelV2ToolbarButtonSx,
+              { minWidth: 32, px: 0.5, fontSize: 12 },
+            ]}
           >
             x²
           </Button>
@@ -343,6 +363,7 @@ export function DocumentEditorV2TextFormatControls({
         <span>
           <Button
             size="small"
+            color={documentModelV2ToolbarControlColor}
             disabled={!ui.inlineEnabled}
             variant={ui.subscript === true ? 'contained' : 'outlined'}
             onClick={() => {
@@ -354,7 +375,10 @@ export function DocumentEditorV2TextFormatControls({
               );
               if (transaction) editor.view.dispatch(transaction);
             }}
-            sx={{ minWidth: 32, px: 0.5, fontSize: 12 }}
+            sx={[
+              documentModelV2ToolbarButtonSx,
+              { minWidth: 32, px: 0.5, fontSize: 12 },
+            ]}
           >
             x₂
           </Button>

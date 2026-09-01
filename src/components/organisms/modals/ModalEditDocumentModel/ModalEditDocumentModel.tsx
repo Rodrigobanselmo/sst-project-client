@@ -11,10 +11,11 @@ import {
 } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
 import { shouldIgnoreModalEscapeClose } from 'components/organisms/documentModel/editor-v2/integration/document-editor-v2-session';
 
+import { documentModelWizardTabsSx } from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
+
 import { DataStep } from './components/1-data/DataStep';
 import { ViewDocumentModelStep } from './components/2-viewDocumentModelStep/ViewDocumentModelStep';
 import { useEditDocumentModel } from './hooks/useEditDocumentModel';
-import { VariablesDocTable } from 'components/organisms/tables/VariablesDocTable/VariablesDocTable';
 import { VariablesStep } from './components/3-variables/VariablesStep';
 import { ImagesStep } from './components/4-images/ImagesStep';
 
@@ -67,6 +68,7 @@ const ModalEditDocumentModelInner = () => {
           header={
             <WizardTabs
               height={45}
+              sx={documentModelWizardTabsSx}
               options={[
                 { label: 'Dados', sx: { fontSize: 12 } },
                 ...(isEdit

@@ -97,7 +97,8 @@ export const ModalBlank: FC = () => {
     >
       <SModalPaper
         sx={{
-          backgroundColor: 'grey.200',
+          backgroundColor: 'background.paper',
+          color: 'text.primary',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',

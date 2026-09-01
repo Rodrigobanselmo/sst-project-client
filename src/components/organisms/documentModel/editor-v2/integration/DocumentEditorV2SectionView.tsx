@@ -16,6 +16,7 @@ import { decorateTipTapProjection } from './decorate-tiptap-projection';
 import { DocumentEditorV2PageDesk } from './DocumentEditorV2PageDesk';
 import { useDocumentEditorV2Host } from './DocumentEditorV2Host';
 import { useDocumentEditorV2Session } from './DocumentEditorV2Session';
+import { DocumentModelPrintTheme } from '../../DocumentModelContent/DocumentModelPrintTheme';
 import { documentEditorV2PageModeSx } from './document-editor-v2-page-layout-sx';
 import { consumeEditorEscapeEvent } from './document-editor-v2-session';
 import { documentEditorV2SurfaceSx } from './document-editor-v2-surface-sx';
@@ -145,22 +146,26 @@ export function DocumentEditorV2SectionView({
   }
 
   return (
-    <Box
-      sx={
-        {
-          border: '1px dashed',
-          borderColor: 'warning.main',
-          borderRadius: 1,
-          p: viewMode === 'page' ? 0 : 2,
-          bgcolor: viewMode === 'page' ? 'transparent' : 'common.white',
-          ...(documentEditorV2SurfaceSx as object),
-          ...(viewMode === 'page' ? documentEditorV2PageModeSx : {}),
-        } as const
-      }
-    >
-      <DocumentEditorV2PageDesk viewMode={viewMode}>
-        <EditorContent editor={editor} />
-      </DocumentEditorV2PageDesk>
-    </Box>
+    <DocumentModelPrintTheme>
+      <Box
+        className="document-model-v2-sheet"
+        sx={
+          {
+            border: '1px dashed',
+            borderColor: 'warning.main',
+            borderRadius: 1,
+            p: viewMode === 'page' ? 0 : 2,
+            bgcolor: viewMode === 'page' ? 'transparent' : 'common.white',
+            color: 'text.primary',
+            ...(documentEditorV2SurfaceSx as object),
+            ...(viewMode === 'page' ? documentEditorV2PageModeSx : {}),
+          } as const
+        }
+      >
+        <DocumentEditorV2PageDesk viewMode={viewMode}>
+          <EditorContent editor={editor} />
+        </DocumentEditorV2PageDesk>
+      </Box>
+    </DocumentModelPrintTheme>
   );
 }

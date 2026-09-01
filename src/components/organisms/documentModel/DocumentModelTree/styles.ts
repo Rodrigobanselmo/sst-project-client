@@ -13,10 +13,11 @@ export const STStructContainer = styled(Box)`
     white-space: nowrap;
     position: relative;
     z-index: 3;
+    color: ${({ theme }) => theme.palette.text.primary};
   }
 
   .nodeWrapper:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: ${({ theme }) => theme.palette.background.box};
   }
 
   .nodeWrapperSection {
@@ -34,18 +35,19 @@ export const STStructContainer = styled(Box)`
     justify-content: center;
     width: 24px;
     transform: rotate(0deg);
+    color: ${({ theme }) => theme.palette.text.secondary};
   }
 
   .nodeWrapper .expandIconWrapper.isOpen {
     transform: rotate(180deg);
   }
 
-  .nodeWrapper .expandIconWrapper.isOpen svg path {
-    fill: #4f5272;
+  .nodeWrapper .expandIconWrapper svg path {
+    fill: currentColor;
   }
 
   .nodeWrapperSelected {
-    color: blue;
+    color: ${({ theme }) => theme.palette.primary.main};
   }
 
   .nodeWrapper .labelGridItem {
@@ -60,7 +62,8 @@ export const STStructContainer = styled(Box)`
   }
 
   .nodeWrapperChildren .labelGridItem {
-    background-color: #e7e7e7;
+    background-color: ${({ theme }) => theme.palette.background.box};
+    color: ${({ theme }) => theme.palette.text.primary};
     padding-inline-start: 8px;
     margin-left: 8px;
     border-radius: 8px;
@@ -69,7 +72,7 @@ export const STStructContainer = styled(Box)`
 
   .pipeY {
     position: absolute;
-    border-left: 2px solid #e7e7e7;
+    border-left: 2px solid ${({ theme }) => theme.palette.divider};
     left: -7px;
     top: -7px;
   }
@@ -79,7 +82,7 @@ export const STStructContainer = styled(Box)`
     left: -7px;
     top: 15px;
     height: 2px;
-    background-color: #e7e7e7;
+    background-color: ${({ theme }) => theme.palette.divider};
     z-index: -1;
   }
 
@@ -117,7 +120,7 @@ export const STStructContainer = styled(Box)`
   }
 
   .wrapper li:has(> .dropTarget) {
-    outline: 3px solid #e8f0fe;
+    outline: 2px solid ${({ theme }) => theme.palette.primary.main};
     border-radius: 4px;
   }
 `;

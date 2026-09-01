@@ -4,7 +4,8 @@ import { Box, styled } from '@mui/material';
 export const STRelativeBox = styled(Box)<{ nav?: number }>`
   position: relative;
   border: 1px solid;
-  border-color: ${(props) => props.theme.palette.grey[400]};
+  border-color: ${(props) => props.theme.palette.divider};
+  background-color: ${(props) => props.theme.palette.background.default};
   border-radius: 8px;
   max-height: 100%;
   overflow-y: auto;
@@ -15,6 +16,6 @@ export const STRelativeBox = styled(Box)<{ nav?: number }>`
     css`
       min-width: ${props.theme.spacing(150)};
       max-width: ${props.theme.spacing(150)};
-      background-color: ${props.theme.palette.grey[200]};
+      background-color: ${props.theme.palette.background.paper};
     `};
 `;

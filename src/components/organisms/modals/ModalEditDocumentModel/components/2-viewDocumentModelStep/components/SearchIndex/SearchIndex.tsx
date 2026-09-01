@@ -4,6 +4,7 @@ import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
 import { SectionTypeModelSelect } from 'components/organisms/tagSelects/SectionTypeModelSelect/SectionTypeModelSelect';
 import { DocumentModelSectionPropagationAction } from 'components/organisms/documentModel/section-propagation/DocumentModelSectionPropagationAction';
+import { documentModelAddSectionButtonSx } from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
 import { setDocumentAddSection } from 'store/reducers/document/documentSlice';
 import { v4 } from 'uuid';
 
@@ -20,7 +21,7 @@ export const SearchIndex = (props: IUseViewDocumentModel) => {
     );
   };
   return (
-    <Box zIndex={100} position="sticky" top={0} p={5}>
+    <Box zIndex={100} position="sticky" top={0} p={5} sx={{ backgroundColor: 'background.paper' }}>
       <SInput
         unstyled
         endAdornment={
@@ -32,8 +33,9 @@ export const SearchIndex = (props: IUseViewDocumentModel) => {
                 text="+"
                 minWidth={20}
                 active
-                bg="success.main"
+                bg="primary.identityBackground"
                 marginRight="10px"
+                sx={documentModelAddSectionButtonSx}
                 handleSelect={(value) => value && handleAddSection(value)}
               />
             )}

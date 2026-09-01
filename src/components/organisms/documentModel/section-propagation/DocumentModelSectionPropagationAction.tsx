@@ -3,6 +3,10 @@ import { FC, useEffect, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { STableButton } from 'components/atoms/STable/components/STableButton';
 import SFlex from 'components/atoms/SFlex';
+import {
+  documentModelSidebarActionBoxSx,
+  documentModelSidebarActionButtonSx,
+} from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { useDocumentEditorV2Session } from 'components/organisms/documentModel/editor-v2/integration/DocumentEditorV2Session';
 import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice';
@@ -173,15 +177,15 @@ export const DocumentModelSectionPropagationAction: FC<Props> = ({
   return (
     <>
       <Box pt={4}>
-        <SFlex gap={2} flexWrap="wrap">
+        <SFlex gap={4} flexDirection="column">
         <STableButton
           text="Aplicar seção em outros modelos"
           icon={SCopyIcon}
-          variant="outlined"
-          color="white"
-          iconColor="primary.main"
+          color="primary.identityBackground"
+          iconColor="primary.identityOn"
           disabled={!isHeadingSelected || saveBusy}
-          sm
+          boxProps={{ sx: documentModelSidebarActionBoxSx }}
+          sx={documentModelSidebarActionButtonSx}
           onClick={() => {
             if (!gate.ok) {
               enqueueSnackbar(gate.reason || '', { variant: 'warning' });
@@ -194,11 +198,11 @@ export const DocumentModelSectionPropagationAction: FC<Props> = ({
         <STableButton
           text="Gerenciar vínculos da seção"
           icon={SLinkIcon}
-          variant="outlined"
-          color="white"
-          iconColor="primary.main"
+          color="primary.identityBackground"
+          iconColor="primary.identityOn"
           disabled={!isHeadingSelected || saveBusy}
-          sm
+          boxProps={{ sx: documentModelSidebarActionBoxSx }}
+          sx={documentModelSidebarActionButtonSx}
           onClick={() => {
             if (!canEdit) {
               enqueueSnackbar(DOCUMENT_MODEL_SECTION_PROPAGATION_PERMISSION_MESSAGE, {

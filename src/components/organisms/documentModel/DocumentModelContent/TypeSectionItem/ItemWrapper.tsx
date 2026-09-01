@@ -57,6 +57,16 @@ import {
 } from '../../utils/filterStructuralInsertCatalog';
 import { EMPTY_PARAGRAPH_PLACEHOLDER } from '../../utils/emptyParagraphPlaceholder';
 
+import {
+  documentModelClassicEditorInfoChipSx,
+  documentModelClassicEditorInheritIconProps,
+  documentModelClassicEditorInheritTextProps,
+  documentModelClassicEditorPrimaryChipSx,
+  documentModelClassicEditorSuccessChipSx,
+  documentModelDestructiveButtonSx,
+  documentModelIdentityActionButtonSx,
+} from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
+
 import { RemoveDoubleClickButton } from './RemoveDoubleClickButton';
 import { STContainerItem } from './styles';
 import { ImageGalleryTable } from 'components/organisms/tables/ImageGalleryTable/ImageGalleryTable';
@@ -694,8 +704,10 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                   mr={10}
                   onClick={closeEditor}
                   icon={SSaveIcon}
-                  iconProps={{ sx: { color: 'primary.main' } }}
+                  iconProps={documentModelClassicEditorInheritIconProps}
+                  textProps={documentModelClassicEditorInheritTextProps}
                   borderActive="primary"
+                  sx={documentModelIdentityActionButtonSx}
                 />
                 {isElement && (
                   <ElementTypeModelSelect
@@ -725,6 +737,9 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     active
                     bg="common.white"
                     marginRight="5px"
+                    iconProps={documentModelClassicEditorInheritIconProps}
+                    textProps={documentModelClassicEditorInheritTextProps}
+                    sx={documentModelClassicEditorInfoChipSx}
                     handleSelect={(value) =>
                       value.type &&
                       onEditChild({
@@ -751,6 +766,9 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     active
                     bg="common.white"
                     marginRight="5px"
+                    iconProps={documentModelClassicEditorInheritIconProps}
+                    textProps={documentModelClassicEditorInheritTextProps}
+                    sx={documentModelClassicEditorInfoChipSx}
                     handleSelect={(value) =>
                       value.type &&
                       onEditChild({ id: item.id, type: value.type })
@@ -764,10 +782,11 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     tooltipTitle="Adicionar item abaixo"
                     text={'Duplicar +'}
                     active
-                    // bg="success.main"
                     bg="common.white"
-                    iconProps={{ sx: { color: 'success.main' } }}
+                    iconProps={documentModelClassicEditorInheritIconProps}
+                    textProps={documentModelClassicEditorInheritTextProps}
                     borderActive="success"
+                    sx={documentModelClassicEditorSuccessChipSx}
                   />
                 )}
                 {showContentInsert &&
@@ -781,6 +800,9 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                       active
                       bg="common.white"
                       marginRight="5px"
+                      iconProps={documentModelClassicEditorInheritIconProps}
+                      textProps={documentModelClassicEditorInheritTextProps}
+                      sx={documentModelClassicEditorInfoChipSx}
                       tooltipTitle="Inserir conteúdo interno"
                       handleSelect={(value) =>
                         value?.type && handleAddContentElement(value)
@@ -798,6 +820,9 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                       active
                       bg="common.white"
                       marginRight="5px"
+                      iconProps={documentModelClassicEditorInheritIconProps}
+                      textProps={documentModelClassicEditorInheritTextProps}
+                      sx={documentModelClassicEditorPrimaryChipSx}
                       tooltipTitle="Inserir bloco estrutural abaixo"
                       handleSelect={(value) =>
                         value && handleAddStructuralSection(value)
@@ -806,15 +831,23 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                   )}
                 <RemoveDoubleClickButton
                   onHandleDeletion={() => handleDelete(item)}
+                  outline
+                  active={false}
+                  borderActive="error"
+                  iconProps={documentModelClassicEditorInheritIconProps}
+                  textProps={documentModelClassicEditorInheritTextProps}
+                  sx={documentModelDestructiveButtonSx}
                 />
                 <STagButton
                   maxWidth={'300px'}
                   onClick={closeEditor}
                   icon={SSaveIcon}
                   text={'Salvar'}
-                  iconProps={{ sx: { color: 'primary.main' } }}
+                  iconProps={documentModelClassicEditorInheritIconProps}
+                  textProps={documentModelClassicEditorInheritTextProps}
                   borderActive="primary"
                   ml="8px"
+                  sx={documentModelIdentityActionButtonSx}
                 />
               </SFlex>
               {mapProps[item.type]?.draft && (

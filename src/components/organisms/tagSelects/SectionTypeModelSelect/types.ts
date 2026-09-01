@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 
 import { BoxProps } from '@mui/material';
+import { ISTagButtonProps } from 'components/atoms/STagButton/types';
 
 import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
 
@@ -19,4 +20,6 @@ export interface ISectionTypeModelSelectProps extends BoxProps {
   tooltipTitle?: ReactNode;
   representAll?: boolean;
   insertVisualFamily?: 'structure';
+  iconProps?: ISTagButtonProps['iconProps'];
+  textProps?: ISTagButtonProps['textProps'];
 }

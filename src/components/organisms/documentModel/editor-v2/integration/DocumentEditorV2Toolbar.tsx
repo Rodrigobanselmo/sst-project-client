@@ -38,6 +38,13 @@ import {
   createCycledChangeCaseTransaction,
   isChangeCaseEnabled,
 } from '../tiptap/apply-text-case';
+import {
+  documentModelV2ToolbarButtonSx,
+  documentModelV2ToolbarControlColor,
+  documentModelV2ToolbarIconButtonSx,
+  documentModelV2ToolbarSelectSx,
+} from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
+
 import { DocumentEditorV2TextFormatControls } from './DocumentEditorV2TextFormatControls';
 
 function promptExternalLink(editor: Editor) {
@@ -66,12 +73,16 @@ function DocumentEditorV2ChangeCaseMenu({ editor }: { editor: Editor }) {
       <Button
         size="small"
         variant="outlined"
+        color={documentModelV2ToolbarControlColor}
         disabled={!enabled}
         onClick={(event) => setAnchorEl(event.currentTarget)}
         aria-label="Alterar capitalização"
         aria-haspopup="true"
         aria-expanded={Boolean(anchorEl)}
-        sx={{ minWidth: 36, textTransform: 'none', fontWeight: 700 }}
+        sx={[
+          documentModelV2ToolbarButtonSx,
+          { minWidth: 36, textTransform: 'none', fontWeight: 700 },
+        ]}
       >
         Aa
       </Button>
@@ -111,12 +122,14 @@ function DocumentEditorV2ChangeCaseCycleButton({
       <span>
         <IconButton
           size="small"
+          color={documentModelV2ToolbarControlColor}
           disabled={!enabled}
           onClick={() => {
             const transaction = createCycledChangeCaseTransaction(editor.state);
             if (transaction) editor.view.dispatch(transaction);
           }}
           aria-label={CHANGE_CASE_CYCLE_TOOLTIP}
+          sx={documentModelV2ToolbarIconButtonSx}
         >
           <SwapHorizIcon fontSize="small" />
         </IconButton>
@@ -150,7 +163,7 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
             );
             if (transaction) editor.view.dispatch(transaction);
           }}
-          sx={{ fontSize: 13, height: 32 }}
+          sx={[documentModelV2ToolbarSelectSx, { fontSize: 13, height: 32 }]}
         >
           {BLOCK_FORMAT_OPTIONS.map((option) => (
             <MenuItem key={option.value} value={option.value} dense>
@@ -163,6 +176,7 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
         <Stack direction="row" spacing={0.25} alignItems="center">
           <IconButton
             size="small"
+            color={documentModelV2ToolbarControlColor}
             disabled={bulletLevel <= BULLET_LEVEL_MIN}
             onClick={() => {
               const transaction = createBulletLevelTransaction(
@@ -172,14 +186,19 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
               if (transaction) editor.view.dispatch(transaction);
             }}
             aria-label="Diminuir nível do marcador"
+            sx={documentModelV2ToolbarIconButtonSx}
           >
             −
           </IconButton>
-          <Typography variant="caption" sx={{ minWidth: 52, textAlign: 'center' }}>
+          <Typography
+            variant="caption"
+            sx={{ minWidth: 52, textAlign: 'center', color: 'text.secondary' }}
+          >
             Nível {bulletLevel}
           </Typography>
           <IconButton
             size="small"
+            color={documentModelV2ToolbarControlColor}
             disabled={bulletLevel >= BULLET_LEVEL_MAX}
             onClick={() => {
               const transaction = createBulletLevelTransaction(
@@ -189,6 +208,7 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
               if (transaction) editor.view.dispatch(transaction);
             }}
             aria-label="Aumentar nível do marcador"
+            sx={documentModelV2ToolbarIconButtonSx}
           >
             +
           </IconButton>
@@ -199,36 +219,44 @@ export function DocumentEditorV2Toolbar({ editor }: { editor: Editor | null }) {
       <DocumentEditorV2ChangeCaseCycleButton editor={editor} />
       <Button
         size="small"
+        color={documentModelV2ToolbarControlColor}
         variant={editor.isActive('bold') ? 'contained' : 'outlined'}
         disabled={active.kind === 'atom'}
         onClick={() => editor.chain().focus().toggleBold().run()}
-        sx={{ minWidth: 36, fontWeight: 700 }}
+        sx={[documentModelV2ToolbarButtonSx, { minWidth: 36, fontWeight: 700 }]}
       >
         B
       </Button>
       <Button
         size="small"
+        color={documentModelV2ToolbarControlColor}
         variant={editor.isActive('italic') ? 'contained' : 'outlined'}
         disabled={active.kind === 'atom'}
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        sx={{ minWidth: 36, fontStyle: 'italic' }}
+        sx={[documentModelV2ToolbarButtonSx, { minWidth: 36, fontStyle: 'italic' }]}
       >
         I
       </Button>
       <Button
         size="small"
+        color={documentModelV2ToolbarControlColor}
         variant={editor.isActive('underline') ? 'contained' : 'outlined'}
         disabled={active.kind === 'atom'}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
-        sx={{ minWidth: 36, textDecoration: 'underline' }}
+        sx={[
+          documentModelV2ToolbarButtonSx,
+          { minWidth: 36, textDecoration: 'underline' },
+        ]}
       >
         U
       </Button>
       <Button
         size="small"
+        color={documentModelV2ToolbarControlColor}
         variant={editor.isActive('link') ? 'contained' : 'outlined'}
         disabled={active.kind === 'atom'}
         onClick={() => promptExternalLink(editor)}
+        sx={documentModelV2ToolbarButtonSx}
       >
         Link
       </Button>

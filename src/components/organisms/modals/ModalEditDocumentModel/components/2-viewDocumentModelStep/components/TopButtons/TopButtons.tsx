@@ -9,6 +9,11 @@ import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice'
 
 import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
 import { SSaveIcon } from 'assets/icons/SSaveIcon';
+import {
+  documentModelDestructiveButtonSx,
+  documentModelIdentityActionButtonSx,
+  getDocumentModelSaveActionButtonSx,
+} from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
@@ -49,7 +54,11 @@ export const TopButtons = ({
       p={8}
       px={20}
       mb={v2ChromeVisible ? 0 : -20}
-      sx={{ backgroundColor: 'grey.50' }}
+      sx={{
+        backgroundColor: 'background.paper',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+      }}
     >
       <SFlex
         justifyContent={'space-between'}
@@ -63,15 +72,21 @@ export const TopButtons = ({
           <RemoveDoubleClickButton
             onHandleDeletion={() => handleDeleteActualItems?.()}
             disabled={!selectItem || saveBusy}
+            outline
+            active={false}
+            borderActive="error"
+            iconProps={{ sx: { color: 'inherit' } }}
+            textProps={{ sx: { color: 'inherit' } }}
+            sx={documentModelDestructiveButtonSx}
           />
         </SFlex>
         <STableButton
           text="Baixar"
           icon={SDownloadIcon}
-          variant="outlined"
           loading={downlandLoading}
-          color="white"
-          iconColor="primary.main"
+          color="primary.identityBackground"
+          iconColor="primary.identityOn"
+          sx={documentModelIdentityActionButtonSx}
           disabled={!selectItem || saveBusy}
           onClick={() => onDownloadPreview()}
           sm
@@ -81,6 +96,8 @@ export const TopButtons = ({
           icon={SSaveIcon}
           disabled={officialSaveDisabled}
           color={saveActionColor}
+          iconColor="inherit"
+          sx={getDocumentModelSaveActionButtonSx(saveActionColor)}
           onClick={() => {
             if (officialSaveBlocked) {
               v2Session.reportBlockedSave();
@@ -96,6 +113,8 @@ export const TopButtons = ({
           icon={SSaveIcon}
           disabled={officialSaveDisabled}
           color={saveActionColor}
+          iconColor="inherit"
+          sx={getDocumentModelSaveActionButtonSx(saveActionColor)}
           onClick={() => {
             if (officialSaveBlocked) {
               v2Session.reportBlockedSave();

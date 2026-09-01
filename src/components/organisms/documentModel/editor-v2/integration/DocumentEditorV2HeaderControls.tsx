@@ -11,6 +11,8 @@ import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice'
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
+import { documentModelEditorToggleGroupSx } from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
+
 import { DocumentEditorV2Toolbar } from './DocumentEditorV2Toolbar';
 import { useDocumentEditorV2Host } from './DocumentEditorV2Host';
 import { useDocumentEditorV2Session } from './DocumentEditorV2Session';
@@ -59,6 +61,7 @@ export function DocumentEditorV2HeaderControls() {
             if (!value) return;
             session.requestSurface(value);
           }}
+          sx={documentModelEditorToggleGroupSx}
         >
           <ToggleButton value="v1">Clássico</ToggleButton>
           <ToggleButton value="v2">V2 experimental</ToggleButton>
@@ -72,6 +75,7 @@ export function DocumentEditorV2HeaderControls() {
               if (!value) return;
               session.requestViewMode(value);
             }}
+            sx={documentModelEditorToggleGroupSx}
           >
             <ToggleButton value="web">Web</ToggleButton>
             <ToggleButton value="page">Página</ToggleButton>

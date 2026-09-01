@@ -59,7 +59,7 @@ const DefaultModal: FC = () => {
           onClose={onCloseGlobalModal}
           title={modalData.title}
         />
-        <SText color="text.light" maxWidth="450px" whiteSpace="pre-line">
+        <SText color="text.primary" maxWidth="450px" whiteSpace="pre-line">
           {modalData.text}
         </SText>
 

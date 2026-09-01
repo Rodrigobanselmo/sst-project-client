@@ -7,6 +7,11 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
+import {
+  documentModelDestructiveButtonSx,
+  getDocumentModelSaveActionButtonSx,
+} from 'components/organisms/tables/DocumentModelTable/document-model-presentation-theme';
+
 import { IUseDocumentModel } from '../../hooks/useEditDocumentModel';
 import { DataContent } from './components/DataContent/DataContent';
 import { useDataStep } from './hooks/useDataStep';
@@ -34,6 +39,7 @@ export const DataStep = (data: IUseDocumentModel) => {
       text: 'Salvar',
       variant: 'contained',
       color: saveActionColor,
+      sx: getDocumentModelSaveActionButtonSx(saveActionColor),
       onClick: () => onSubmit(),
       disabled: saveBusy,
       loading: saveLoading,
@@ -42,6 +48,7 @@ export const DataStep = (data: IUseDocumentModel) => {
       text: 'Salvar e sair',
       variant: 'contained',
       color: saveActionColor,
+      sx: getDocumentModelSaveActionButtonSx(saveActionColor),
       onClick: () => onSubmitAndExit(),
       disabled: saveBusy,
       loading: saveAndExitLoading,
@@ -52,6 +59,7 @@ export const DataStep = (data: IUseDocumentModel) => {
             text: 'Excluir',
             variant: 'outlined' as const,
             color: 'error' as const,
+            sx: documentModelDestructiveButtonSx,
             onClick: data.handleDelete,
             disabled: saveBusy,
           },
