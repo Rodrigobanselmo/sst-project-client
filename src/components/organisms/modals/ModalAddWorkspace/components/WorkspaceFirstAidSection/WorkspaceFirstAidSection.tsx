@@ -34,7 +34,7 @@ export const WorkspaceFirstAidSection: FC<IUseEditWorkspace> = ({
   if (!companyData.id) return null;
 
   return (
-    <SFlex direction="column" gap={6} mt={8}>
+    <SFlex direction="column" gap={6}>
       <SText color="text.label" fontSize={14}>
         Atendimento a Emergências Médicas
       </SText>
@@ -42,7 +42,6 @@ export const WorkspaceFirstAidSection: FC<IUseEditWorkspace> = ({
       <SSelect
         label="Existe posto/estrutura de atendimento ou primeiros socorros?"
         labelPosition="top"
-        width={600}
         value={mapFirstAidValue(companyData.hasFirstAidService)}
         options={FIRST_AID_OPTIONS}
         optionsFieldName={{ valueField: 'value', contentField: 'content' }}
@@ -57,8 +56,7 @@ export const WorkspaceFirstAidSection: FC<IUseEditWorkspace> = ({
 
       <InputForm
         multiline
-        minRows={3}
-        maxRows={8}
+        minRows={5}
         label="Observações sobre a estrutura de atendimento"
         labelPosition="top"
         placeholder="Ex.: O estabelecimento está localizado em shopping/condomínio/unidade que dispõe de estrutura de apoio para atendimento inicial de ocorrências."
@@ -66,7 +64,7 @@ export const WorkspaceFirstAidSection: FC<IUseEditWorkspace> = ({
         setValue={setValue}
         control={control}
         name="firstAidServiceDescription"
-        sx={{ minWidth: ['100%', 600] }}
+        sx={{ width: '100%' }}
         onChange={(event) => {
           setCompanyData((oldData) => ({
             ...oldData,

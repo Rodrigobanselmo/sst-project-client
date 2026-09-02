@@ -32,6 +32,7 @@ export enum QueryEnum {
   PCMSO_ATTENDANCE_SERVICES = 'pcmso-attendance-services',
   PCMSO_EXAMINING_PHYSICIANS = 'pcmso-examining-physicians',
   PCMSO_EXAMINING_PHYSICIANS_RESOLVED = 'pcmso-examining-physicians-resolved',
+  WORKSPACE_EMERGENCY_PLAN = 'workspace-emergency-plan',
   DASHBOARD_COMPANY = 'dashboard-company',
   DATABASE_TABLE = 'database-table',
   DOCUMENT_PCMSO = 'document-pcmso',
