@@ -43,6 +43,8 @@ export const initialHierarchySelectState = {
   selectByGHO: false,
   keepOpen: false,
   selectionHierarchy: Object.values(HierarchyEnum),
+  title: '' as string,
+  gseCargoSelect: false,
 };
 
 const modalName = ModalEnum.HIERARCHY_SELECT;
@@ -153,7 +155,11 @@ export const ModalSelectHierarchy: FC = () => {
       onClose={onCloseNoSelect}
     >
       <SModalPaper semiFullScreen={hasWorkspace && hasHierarchy} center p={8}>
-        <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
+        <SModalHeader
+          tag={'select'}
+          onClose={onCloseNoSelect}
+          title={selectData.title || ' '}
+        />
         <Box mt={8}>
           {hasWorkspace && hasHierarchy && !isLoading && workspaceSlected && (
             <ModalSelectHierarchyData

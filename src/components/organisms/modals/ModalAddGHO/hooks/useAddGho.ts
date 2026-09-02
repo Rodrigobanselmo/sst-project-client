@@ -21,14 +21,17 @@ import { useQueryGho } from 'core/services/hooks/queries/useQueryGho/useQueryGho
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { ghoSchema } from 'core/utils/schemas/gho.schema';
 
+import { useRouter } from 'next/router';
+
 import { useStartEndDate } from '../../ModalAddCharacterization/hooks/useStartEndDate';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { IWorkspace } from './../../../../../core/interfaces/api/ICompany';
+import { getGseLinkedWorkspaceIds } from '../get-gse-linked-workspace-ids.util';
+import { mapModalSelectIdsToGhoLinks } from './ghoHierarchyLinks';
 import {
-  mapGhoHierarchiesToActiveLinks,
-  mapModalSelectIdsToGhoLinks,
-  mergeGhoHierarchyLinks,
-} from './ghoHierarchyLinks';
+  buildGseCargoModalTitle,
+  mapGhoHierarchiesToModalSelectIds,
+} from './map-gho-hierarchies-to-modal-ids.util';
 import {
   buildGhoStaySnapshot,
   getGhoEditorSnapshot,
@@ -59,6 +62,7 @@ export const initialAddGhoState = {
 export const useAddGho = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onStackOpenModal } = useModal();
+  const router = useRouter();
   const { selectStartEndDate } = useStartEndDate();
   const store = useStore<any>();
   const initialDataRef = useRef(
@@ -439,10 +443,6 @@ export const useAddGho = () => {
   };
 
   const onAddHierarchy = () => {
-    const existingLinksAtOpen = mapGhoHierarchiesToActiveLinks(
-      hierarchies as IHierarchy[],
-    );
-
     const handleSelect = (
       hierarchiesSelected: IHierarchy[],
       startDate: Date,
@@ -452,7 +452,7 @@ export const useAddGho = () => {
       const modalSelectIds = store.getState().hierarchy
         .modalSelectIds as string[];
       const fallbackWorkspaceId = ghoQuery.workspaceIds?.[0];
-      const newlySelectedLinks = mapModalSelectIdsToGhoLinks(
+      const selectedLinks = mapModalSelectIdsToGhoLinks(
         modalSelectIds,
         fallbackWorkspaceId,
       );
@@ -463,10 +463,7 @@ export const useAddGho = () => {
           id: ghoData.id,
           startDate,
           endDate,
-          hierarchies: mergeGhoHierarchyLinks(
-            existingLinksAtOpen,
-            newlySelectedLinks,
-          ),
+          hierarchies: selectedLinks,
         };
 
         updateGhoMut
@@ -493,6 +490,18 @@ export const useAddGho = () => {
       }
     };
 
+    const linkedWorkspaceIds = getGseLinkedWorkspaceIds(ghoData, ghoQuery);
+    const persistedModalIds = mapGhoHierarchiesToModalSelectIds(
+      hierarchies as IHierarchy[],
+    );
+    const headerWorkspaceId = String(
+      router.query.tabWorkspaceId || router.query.workspaceId || '',
+    );
+    const initialWorkspaceId = linkedWorkspaceIds.includes(headerWorkspaceId)
+      ? headerWorkspaceId
+      : linkedWorkspaceIds[0] || ghoQuery.workspaceIds?.[0];
+    const gseName = String(ghoData.name || ghoQuery?.name || '').trim();
+
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       keepOpen: true,
       onSelect: (hIds, onClose) =>
@@ -501,23 +510,12 @@ export const useAddGho = () => {
         }),
       addSubOffice: true,
       lockWorkspace: false,
-      workspaceIdsFilter: ghoQuery.workspaceIds,
-      workspaceId: ghoQuery.workspaceIds?.[0],
-
-      allHierarchiesIds: hierarchies
-        .filter((h) =>
-          (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
-        )
-        .reduce((acc, hierarchy) => {
-          acc = [
-            ...acc,
-            ...(hierarchy?.workspaces || []).map(
-              (workspace) => String(hierarchy.id) + '//' + workspace.id,
-            ),
-          ];
-
-          return acc;
-        }, [] as string[]),
+      workspaceIdsFilter: linkedWorkspaceIds,
+      workspaceId: initialWorkspaceId,
+      gseCargoSelect: true,
+      title: buildGseCargoModalTitle(gseName),
+      hierarchiesIds: persistedModalIds,
+      allHierarchiesIds: persistedModalIds,
     } as typeof initialHierarchySelectState);
   };
 

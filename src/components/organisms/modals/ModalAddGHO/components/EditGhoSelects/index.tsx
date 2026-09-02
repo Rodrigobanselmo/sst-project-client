@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useEffect, useMemo, useRef } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
@@ -27,7 +27,12 @@ export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
   ghoQuery,
 }) => {
   const { data: company, isLoading } = useQueryCompany();
+  const theme = useTheme();
   const hasChangedWorkspaceSelectionRef = useRef(false);
+  const lightChipColor =
+    theme.palette.primary.border ||
+    theme.palette.primary.extraDark ||
+    theme.palette.primary.dark;
 
   useEffect(() => {
     hasChangedWorkspaceSelectionRef.current = false;
@@ -76,6 +81,9 @@ export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => option.id}
           onChange={(option) => handleWorkspaceChange(option)}
+          {...(theme.palette.mode === 'light' && {
+            chipColor: lightChipColor,
+          })}
         />
       </Box>
       <StatusSelect

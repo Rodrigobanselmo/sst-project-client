@@ -275,6 +275,9 @@ export const selectWorkplaceId = (state: AppState) => state[name].workspaceId;
 export const selectModalIdIsSelected = (id: string) => (state: AppState) =>
   state[name].modalSelectIds.includes(id);
 
+export const selectModalSelectIds = (state: AppState) =>
+  state[name].modalSelectIds;
+
 export const selectHierarchySearch = (state: AppState) => state[name].search;
 
 export const selectHierarchySelectionMode = (state: AppState) =>

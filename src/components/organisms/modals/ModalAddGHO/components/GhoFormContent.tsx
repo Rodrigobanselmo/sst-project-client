@@ -17,6 +17,7 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { getSaveActionColor } from 'core/utils/save-action-color';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   Control,
   SubmitHandler,
@@ -38,6 +39,7 @@ import {
   resolveGseWizardStepFromQuery,
 } from '../gse-wizard-steps';
 import { GhoSaveIntent } from '../gho-save-intent.util';
+import { getGseLinkedWorkspaceIds } from '../get-gse-linked-workspace-ids.util';
 
 export type GhoAddLayout = 'modal' | 'page';
 
@@ -79,7 +81,19 @@ export const GhoFormContent = ({
   setSaveIntent,
 }: GhoFormContentProps) => {
   const router = useRouter();
+  const { data: company } = useQueryCompany();
   const companyId = router.query.companyId as string;
+  const preferredWorkspaceId = String(
+    router.query.tabWorkspaceId || router.query.workspaceId || '',
+  );
+  const gseWorkspaceIds = getGseLinkedWorkspaceIds(ghoData, ghoQuery);
+  const workspaceNamesById = (company?.workspace || []).reduce(
+    (acc, workspace) => {
+      acc[workspace.id] = workspace.name;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
   const title = ghoData.id ? 'Editar GSE' : 'Grupo similar de exposição';
   const gseName = (ghoData.name || ghoQuery?.name || '').trim();
   const headerContextName = ghoData.id && gseName ? gseName : undefined;
@@ -181,6 +195,10 @@ export const GhoFormContent = ({
           onAdd={onAddHierarchy}
           loading={loadingQuery}
           hierarchies={hierarchies as any}
+          groupByWorkspace
+          preferredWorkspaceId={preferredWorkspaceId || undefined}
+          gseWorkspaceIds={gseWorkspaceIds}
+          workspaceNamesById={workspaceNamesById}
         />
       </Box>
 

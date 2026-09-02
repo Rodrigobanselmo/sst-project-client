@@ -15,17 +15,23 @@ export const SSelectList: FC<{ children?: any } & SSelectButtonProps> = ({
   label,
   active,
   tooltipText,
+  tooltipMinLength = 15,
   hideCheckbox,
   activeRemove,
+  endIcon,
+  startContent,
+  textNoBreak,
+  labelSx,
   ...props
 }) => {
   return (
-    <STooltip withWrapper minLength={15} title={tooltipText}>
+    <STooltip withWrapper minLength={tooltipMinLength} title={tooltipText}>
       <STBoxContainer disabled={disabled ? 1 : 0} overflow="hidden" {...props}>
         <STBoxItem>
           {!hideCheckbox && (
             <Checkbox
               checked={active}
+              disabled={disabled}
               size="small"
               {...(activeRemove && {
                 checkedIcon: <SCloseIcon />,
@@ -41,21 +47,29 @@ export const SSelectList: FC<{ children?: any } & SSelectButtonProps> = ({
               }}
             />
           )}
+          {startContent}
           {label && (
             <SText
               sx={{
                 backgroundColor: disabled ? 'grey.400' : 'gray.200',
                 borderRadius: '4px',
                 px: 2,
+                flexShrink: 0,
+                ...labelSx,
               }}
               fontSize={11}
             >
               {label}
             </SText>
           )}
-          <SText sx={{ width: '100%' }} lineNumber={2}>
+          <SText
+            sx={{ flex: 1, minWidth: 0 }}
+            lineNumber={textNoBreak ? undefined : 2}
+            noBreak={textNoBreak}
+          >
             {text}
           </SText>
+          {endIcon}
         </STBoxItem>
       </STBoxContainer>
     </STooltip>

@@ -36,6 +36,8 @@ export interface SSearchSelectMultipleProps<Value> {
     label: string;
     isSelected: boolean;
   }) => React.ReactNode;
+  /** Cor de texto/borda/ícone dos chips. Default: `primary.main`. */
+  chipColor?: string;
 }
 
 export function SSearchSelectMultiple<T>({
@@ -57,6 +59,7 @@ export function SSearchSelectMultiple<T>({
   popperItemProps,
   popperStartCompoent,
   onScrollEnd,
+  chipColor = 'primary.main',
 }: SSearchSelectMultipleProps<T>) {
   const [shrink, setShrink] = React.useState(false);
 
@@ -136,12 +139,12 @@ export function SSearchSelectMultiple<T>({
                     py={1}
                     px={4}
                     border="1px solid"
-                    borderColor={'primary.main'}
+                    borderColor={chipColor}
                     borderRadius={'4px'}
                     maxWidth={350}
                   >
                     <SText
-                      color="primary.main"
+                      color={chipColor}
                       fontSize={12}
                       sx={{
                         overflow: 'hidden',
@@ -162,7 +165,7 @@ export function SSearchSelectMultiple<T>({
                       }}
                     >
                       <CancelOutlinedIcon
-                        sx={{ fontSize: 16, color: 'primary.main' }}
+                        sx={{ fontSize: 16, color: chipColor }}
                       />
                     </IconButton>
                   </SFlex>

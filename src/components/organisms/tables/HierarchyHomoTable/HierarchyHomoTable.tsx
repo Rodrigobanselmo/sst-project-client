@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -25,6 +25,25 @@ import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 import { CHARACTERIZATION_LINK_CLEANUP_TEXTS } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.util';
 
+import {
+  formatHierarchyFullContextLabel,
+  formatHierarchySectorCargoLabel,
+} from './format-hierarchy-cargo-path.util';
+import {
+  insertWorkspaceGroupHeaders,
+  sortHierarchyHomoRowsByWorkspaceGroup,
+} from './group-hierarchy-homo-rows.util';
+import { paginateHierarchyHomoRows } from './paginate-hierarchy-homo-rows.util';
+import {
+  canUnlinkGseHierarchyRow,
+  formatGseUnlinkOtherWorkspaceTooltip,
+} from './can-unlink-gse-hierarchy-row.util';
+import {
+  resolveHierarchyWorkspaceGroupId,
+  UNGROUPED_WORKSPACE_ID,
+  UNGROUPED_WORKSPACE_NAME,
+} from './resolve-hierarchy-workspace-group.util';
+
 const HIERARCHY_HOMO_PAGE_SIZES = [15, 25, 50, 100] as const;
 const DEFAULT_HIERARCHY_HOMO_PAGE_SIZE = 15;
 
@@ -45,6 +64,11 @@ export const HierarchyHomoTable: FC<
         removedLinkId: number;
         remainingActiveCount: number;
       }) => void;
+      /** Opt-in do editor GSE: agrupa por estabelecimento. */
+      groupByWorkspace?: boolean;
+      preferredWorkspaceId?: string;
+      gseWorkspaceIds?: string[];
+      workspaceNamesById?: Record<string, string>;
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
@@ -56,6 +80,10 @@ export const HierarchyHomoTable: FC<
   hierarchies,
   isCreate,
   onUnlinkSuccess,
+  groupByWorkspace = false,
+  preferredWorkspaceId,
+  gseWorkspaceIds,
+  workspaceNamesById,
 }) => {
   const [pageSize, setPageSize] = useState(() =>
     typeof fixedRowsPerPage === 'number'
@@ -102,14 +130,58 @@ export const HierarchyHomoTable: FC<
     );
   };
 
-  const data = hierarchies.reduce((acc, curr) => {
-    const newData = curr.hierarchyOnHomogeneous?.map((h) => ({
-      ...curr,
-      ...h,
-    })) || [curr];
+  const data = useMemo(() => {
+    const rows = hierarchies.reduce((acc, curr) => {
+      const newData = curr.hierarchyOnHomogeneous?.map((h) => ({
+        ...curr,
+        ...h,
+      })) || [curr];
 
-    return [...acc, ...(newData || [])];
-  }, [] as any[]);
+      return [...acc, ...(newData || [])];
+    }, [] as any[]);
+
+    if (!groupByWorkspace) return rows;
+
+    const linkedWorkspaceIds = gseWorkspaceIds || [];
+
+    return rows.map((row) => {
+      const path = formatHierarchySectorCargoLabel(row);
+      const workspaceGroupId = resolveHierarchyWorkspaceGroupId({
+        hierarchyWorkspaceIds: [
+          ...((row.workspaceIds || []) as string[]),
+          ...((row.workspaces || []).map((workspace: { id: string }) => workspace.id) ||
+            []),
+        ],
+        gseWorkspaceIds: linkedWorkspaceIds,
+        preferredWorkspaceId,
+      });
+      const workspaceGroupName =
+        workspaceNamesById?.[workspaceGroupId] ||
+        (workspaceGroupId === UNGROUPED_WORKSPACE_ID
+          ? UNGROUPED_WORKSPACE_NAME
+          : workspaceGroupId);
+
+      return {
+        ...row,
+        ...path,
+        fullPath: [row, ...(row.parents || [])].reverse(),
+        workspaceGroupId,
+        workspaceGroupName,
+        searchText: `${workspaceGroupName} ${path.displayName} ${row.name || ''}`,
+      };
+    });
+  }, [
+    groupByWorkspace,
+    gseWorkspaceIds,
+    hierarchies,
+    preferredWorkspaceId,
+    workspaceNamesById,
+  ]);
+
+  const searchableData = useMemo(() => {
+    if (!groupByWorkspace) return data;
+    return sortHierarchyHomoRowsByWorkspaceGroup(data, preferredWorkspaceId);
+  }, [data, groupByWorkspace, preferredWorkspaceId]);
 
   const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
     if (isCreate) {
@@ -144,9 +216,12 @@ export const HierarchyHomoTable: FC<
   };
 
   const { handleSearchChange, results, page, setPage } = useTableSearch({
-    rowsPerPage: pageSize,
-    data,
-    keys: ['name', 'label'],
+    rowsPerPage: groupByWorkspace ? 0 : pageSize,
+    data: searchableData,
+    keys: groupByWorkspace
+      ? ['name', 'label', 'displayName', 'workspaceGroupName', 'searchText']
+      : ['name', 'label'],
+    shouldSort: !groupByWorkspace,
   });
 
   const showPageSizeSelector =
@@ -184,6 +259,19 @@ export const HierarchyHomoTable: FC<
     return { fullPath, name };
   };
 
+  const rowsData = useMemo(() => {
+    if (!groupByWorkspace) {
+      return results
+        .map((r) => ({ ...r, ...getName(r) }))
+        .sort((a, b) => sortDate(b?.endDate, a?.endDate))
+        .sort((a, b) => sortString(a?.name, b?.name));
+    }
+
+    return insertWorkspaceGroupHeaders(
+      paginateHierarchyHomoRows(results, page, pageSize),
+    );
+  }, [groupByWorkspace, page, pageSize, results]);
+
   return (
     <>
       <STableSearch
@@ -198,37 +286,78 @@ export const HierarchyHomoTable: FC<
           selectedData ? '15px ' : ''
         }minmax(250px, 5fr) 120px 120px 50px`}
       >
-        <STableBody<
-          IHierarchy & IHierarchyOnHomogeneous & { fullPath: IHierarchy[] }
-        >
-          rowsData={results
-            .map((r) => ({ ...r, ...getName(r) }))
-            .sort((a, b) => sortDate(b?.endDate, a?.endDate))
-            .sort((a, b) => sortString(a?.name, b?.name))}
-          // hideLoadMore
-          rowsInitialNumber={pageSize}
+        <STableBody<any>
+          key={
+            groupByWorkspace
+              ? `gse-cargos-${page}-${pageSize}-${rowsData.length}`
+              : undefined
+          }
+          rowsData={rowsData}
+          rowsInitialNumber={
+            groupByWorkspace ? rowsData.length || pageSize : pageSize
+          }
           hideLoadMore
           renderRow={(row) => {
+            if (row.kind === 'group') {
+              return (
+                <STableRow key={row.id} clickable={false}>
+                  <Box sx={{ gridColumn: '1 / -1', py: 1 }}>
+                    <SText fontWeight="600" fontSize={13}>
+                      {row.workspaceGroupName}
+                    </SText>
+                  </Box>
+                </STableRow>
+              );
+            }
+
+            const cargoRow = groupByWorkspace
+              ? row
+              : { ...row, ...getName(row) };
+            const displayName = groupByWorkspace
+              ? cargoRow.displayName || cargoRow.name
+              : cargoRow.name;
+            const fullPath = cargoRow.fullPath || [
+              cargoRow,
+              ...(cargoRow.parents || []),
+            ].reverse();
+            const contextLabel = groupByWorkspace
+              ? formatHierarchyFullContextLabel({
+                  workspaceName: cargoRow.workspaceGroupName,
+                  sectorName: cargoRow.sectorName,
+                  cargoName: cargoRow.cargoName,
+                })
+              : '';
+            const canUnlink = canUnlinkGseHierarchyRow({
+              groupByWorkspace,
+              preferredWorkspaceId,
+              rowWorkspaceGroupId: cargoRow.workspaceGroupId,
+            });
+
             return (
               <STableRow
-                onClick={() => onSelectRow(row)}
+                onClick={() => onSelectRow(cargoRow)}
                 clickable
-                key={row.id}
-                status={row.endDate ? 'inactive' : 'none'}
+                key={cargoRow.id}
+                status={cargoRow.endDate ? 'inactive' : 'none'}
               >
                 {selectedData && (
                   <SCheckBox
                     label=""
-                    checked={!!selectedData.find((exam) => exam.id === row.id)}
+                    checked={!!selectedData.find((exam) => exam.id === cargoRow.id)}
                   />
                 )}
                 <TextIconRow
                   clickable
                   tooltipTitle={
                     <Box>
-                      {row.fullPath.map((p) => (
+                      {groupByWorkspace && contextLabel && (
+                        <SText fontSize={12} color="white" mb={1}>
+                          {contextLabel}
+                        </SText>
+                      )}
+                      {fullPath.map((p: IHierarchy) => (
                         <SText fontSize={10} color="white" key={p.name}>
-                          {originRiskMap[p.type].name}:{' '}
+                          {originRiskMap[p.type]?.name || p.type}:{' '}
                           <SText color="white" component="span" fontSize={12}>
                             {p.name}
                           </SText>
@@ -236,31 +365,38 @@ export const HierarchyHomoTable: FC<
                       ))}
                     </Box>
                   }
-                  text={row.name || '-'}
+                  text={displayName || '-'}
                   tooltipProps={{
                     minLength: 10,
                   }}
                 />
                 <TextIconRow
                   clickable
-                  text={`inicio: ${dateToString(row.startDate)}`}
+                  text={`inicio: ${dateToString(cargoRow.startDate)}`}
                 />
                 <TextIconRow
                   clickable
-                  text={`fim: ${dateToString(row.endDate)}`}
+                  text={`fim: ${dateToString(cargoRow.endDate)}`}
                 />
                 {!isCreate && (
                   <IconButtonRow
                     icon={<SDeleteIcon />}
-                    tooltipTitle="deletar"
+                    disabled={!canUnlink}
+                    tooltipTitle={
+                      canUnlink
+                        ? 'deletar'
+                        : formatGseUnlinkOtherWorkspaceTooltip(
+                            cargoRow.workspaceGroupName,
+                          )
+                    }
                     sx={{ svg: { fontSize: 18 }, height: 20 }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (isCreate) return onDelete(row);
+                      if (!canUnlink || isCreate) return;
                       const texts = CHARACTERIZATION_LINK_CLEANUP_TEXTS.quickUnlink;
                       preventDelete(
-                        () => onDelete(row),
-                        `${texts.body}\n\nCargo: ${row.name || '-'}`,
+                        () => onDelete(cargoRow),
+                        `${texts.body}\n\nCargo: ${cargoRow.name || '-'}`,
                         {
                           title: texts.title,
                           confirmText: texts.confirm,
