@@ -32,14 +32,20 @@ import { useModal } from 'core/hooks/useModal';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
-import { stringNormalize } from 'core/utils/strings/stringNormalize';
 import { sortString } from 'core/utils/sorts/string.sort';
 
 import { initialHierarchySelectState } from '..';
 
 import { initialAutomateSubOfficeState } from '../../ModalAutomateSubOffice/hooks/useHandleActions';
+import { buildCharacterizationMembershipByHierarchyId } from '../characterization-cargo-membership.util';
+import {
+  hierarchyMatchesSectorGroupedSearch,
+  toCharacterizationCargoModalRow,
+  toSectorGroupedCargoModalRow,
+} from '../characterization-cargo-modal-row.util';
 import { getGseCargoRowPresentation } from '../gse-cargo-row-presentation.util';
 import { buildGseMembershipByHierarchyId } from '../gse-cargo-membership.util';
+import { groupModalHierarchyItemsBySector } from '../group-modal-hierarchy-by-sector.util';
 import {
   filterModalIdsByWorkspace,
   keepModalIdsOutsideWorkspace,
@@ -48,6 +54,7 @@ import {
 } from '../gse-workspace-modal-selection.util';
 import { GseCargoMembershipIcons } from './GseCargoMembershipIcons';
 import { GseCargoRowContextIcons } from './GseCargoRowContextIcons';
+import { CharacterizationCargoMembershipIcons } from './CharacterizationCargoMembershipIcons';
 import { ModalInputHierarchy } from './ModalInputHierarchy';
 import { ModalItemHierarchy } from './ModalItemHierarchy';
 import { ModalListGHO } from './ModalListGHO';
@@ -94,28 +101,43 @@ export const ModalSelectHierarchyData: FC<
       }));
   }, [ghoQueryRaw, workspaceSelected]);
 
-  const showGho = selectedData.selectByGHO && ghoQuery.length;
+  const showGho =
+    selectedData.selectByGHO && ghoQuery.length && !selectedData.forceCargoFilter;
+  const forceCargoFilter = !!selectedData.forceCargoFilter;
+  const isCharacterizationCargoSelect = !!selectedData.characterizationCargoSelect;
+  const isGseCargoSelect = !!selectedData.gseCargoSelect;
 
   const [filter, setFilter] = useState<HierarchyEnum | 'GHO'>(
-    showGho ? 'GHO' : HierarchyEnum.OFFICE,
+    forceCargoFilter ? HierarchyEnum.OFFICE : showGho ? 'GHO' : HierarchyEnum.OFFICE,
   );
   const [allTypes, setAllTypes] = useState<Record<HierarchyEnum, boolean>>(
     {} as Record<HierarchyEnum, boolean>,
   );
 
   useEffect(() => {
-    if (showGho) setFilter('GHO');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ghoQuery]);
+    if (showGho && !forceCargoFilter) setFilter('GHO');
+  }, [showGho, forceCargoFilter]);
+
+  useEffect(() => {
+    if (!forceCargoFilter) return;
+    setFilter(HierarchyEnum.OFFICE);
+    dispatch(setHierarchySearch(''));
+  }, [dispatch, forceCargoFilter, isCharacterizationCargoSelect]);
 
   useEffect(() => {
     dispatch(setModalIds(selectedData.hierarchiesIds));
   }, [dispatch, selectedData.hierarchiesIds]);
 
   useEffect(() => {
-    if (selectedData.gseCargoSelect) return;
+    if (selectedData.gseCargoSelect || selectedData.characterizationCargoSelect) return;
     dispatch(setModalIds(selectedData.hierarchiesIds));
-  }, [workspaceSelected?.name, dispatch, selectedData.gseCargoSelect, selectedData.hierarchiesIds]);
+  }, [
+    workspaceSelected?.name,
+    dispatch,
+    selectedData.gseCargoSelect,
+    selectedData.characterizationCargoSelect,
+    selectedData.hierarchiesIds,
+  ]);
 
   const { hierarchyListData } = useListHierarchyQuery();
 
@@ -135,7 +157,9 @@ export const ModalSelectHierarchyData: FC<
         // eslint-disable-next-line prettier/prettier
         const isToFilter =
           search &&
-          !stringNormalize(hierarchy.name).includes(stringNormalize(search));
+          !hierarchyMatchesSectorGroupedSearch(hierarchy, search, {
+            includeSectorPath: isGseCargoSelect,
+          });
 
         if (filter === 'GHO') return !isToFilter && isWorkspace;
         return (hierarchy as any).type === filter && !isToFilter && isWorkspace;
@@ -148,7 +172,7 @@ export const ModalSelectHierarchyData: FC<
     setAllTypes(typesSelected);
 
     return list;
-  }, [filter, hierarchyListData, search, workspaceSelected]);
+  }, [filter, hierarchyListData, isGseCargoSelect, search, workspaceSelected]);
 
   const hierarchyListSelected = useMemo(() => {
     return hierarchyListData().map((hierarchy) => ({
@@ -166,14 +190,31 @@ export const ModalSelectHierarchyData: FC<
   }, [hierarchyListData]);
 
   const gseMembershipByHierarchyId = useMemo(() => {
-    if (!selectedData.gseCargoSelect || !workspaceSelected?.id) {
+    if (!isGseCargoSelect || !workspaceSelected?.id) {
       return new Map();
     }
     return buildGseMembershipByHierarchyId(ghoQueryRaw, workspaceSelected.id);
-  }, [ghoQueryRaw, selectedData.gseCargoSelect, workspaceSelected?.id]);
+  }, [ghoQueryRaw, isGseCargoSelect, workspaceSelected?.id]);
+
+  const characterizationMembershipByHierarchyId = useMemo(() => {
+    if (!isCharacterizationCargoSelect || !workspaceSelected?.id) {
+      return new Map();
+    }
+    return buildCharacterizationMembershipByHierarchyId(
+      ghoQueryRaw,
+      workspaceSelected.id,
+    );
+  }, [ghoQueryRaw, isCharacterizationCargoSelect, workspaceSelected?.id]);
+
+  const currentWorkspaceSelectedIds = useMemo(() => {
+    if (!workspaceSelected?.id) return new Set<string>();
+    return new Set(
+      filterModalIdsByWorkspace(modalSelectIds, workspaceSelected.id),
+    );
+  }, [modalSelectIds, workspaceSelected?.id]);
 
   const gseSelectedList = useMemo(() => {
-    if (!selectedData.gseCargoSelect || !workspaceSelected?.id) return [];
+    if (!isGseCargoSelect || !workspaceSelected?.id) return [];
 
     return filterModalIdsByWorkspace(
       modalSelectIds,
@@ -186,33 +227,86 @@ export const ModalSelectHierarchyData: FC<
       const workspaceName =
         company?.workspace?.find((workspace) => workspace.id === workspaceId)
           ?.name || workspaceSelected.name;
-      const presentation = getGseCargoRowPresentation({
-        workspaceName,
-        cargoName: hierarchy.name,
-        parents: hierarchy.parents,
-      });
 
       return [
         {
-          ...hierarchy,
+          ...toSectorGroupedCargoModalRow(hierarchy, { workspaceName }),
           id: modalId,
-          cargoName: presentation.cargoName,
-          workspaceTooltip: presentation.workspaceTooltip,
-          sectorTooltip: presentation.sectorTooltip,
         },
       ];
     });
   }, [
     company?.workspace,
     hierarchyById,
+    isGseCargoSelect,
     modalSelectIds,
-    selectedData.gseCargoSelect,
     workspaceSelected?.id,
     workspaceSelected?.name,
   ]);
 
+  const gseAvailableGrouped = useMemo(() => {
+    if (!isGseCargoSelect || filter !== HierarchyEnum.OFFICE) return [];
+    return groupModalHierarchyItemsBySector(
+      hierarchyList
+        .filter((hierarchy) => !currentWorkspaceSelectedIds.has(hierarchy.id))
+        .map((hierarchy) =>
+          toSectorGroupedCargoModalRow(hierarchy, {
+            workspaceName: workspaceSelected?.name,
+          }),
+        ),
+    );
+  }, [
+    currentWorkspaceSelectedIds,
+    filter,
+    hierarchyList,
+    isGseCargoSelect,
+    workspaceSelected?.name,
+  ]);
+
+  const gseSelectedGrouped = useMemo(() => {
+    if (!isGseCargoSelect) return [];
+    return groupModalHierarchyItemsBySector(gseSelectedList);
+  }, [gseSelectedList, isGseCargoSelect]);
+
+  const characterizationSelectedList = useMemo(() => {
+    if (!isCharacterizationCargoSelect || !workspaceSelected?.id) return [];
+
+    return filterModalIdsByWorkspace(
+      modalSelectIds,
+      workspaceSelected.id,
+    ).flatMap((modalId) => {
+      const { hierarchyId } = splitHierarchyModalId(modalId);
+      const hierarchy = hierarchyById.get(hierarchyId);
+      if (!hierarchy) return [];
+
+      return [
+        {
+          ...toCharacterizationCargoModalRow(hierarchy),
+          id: modalId,
+        },
+      ];
+    });
+  }, [
+    hierarchyById,
+    isCharacterizationCargoSelect,
+    modalSelectIds,
+    workspaceSelected?.id,
+  ]);
+
+  const characterizationAvailableGrouped = useMemo(() => {
+    if (!isCharacterizationCargoSelect) return [];
+    return groupModalHierarchyItemsBySector(
+      hierarchyList.map((hierarchy) => toCharacterizationCargoModalRow(hierarchy)),
+    );
+  }, [hierarchyList, isCharacterizationCargoSelect]);
+
+  const characterizationSelectedGrouped = useMemo(() => {
+    if (!isCharacterizationCargoSelect) return [];
+    return groupModalHierarchyItemsBySector(characterizationSelectedList);
+  }, [characterizationSelectedList, isCharacterizationCargoSelect]);
+
   const onSelectAll = () => {
-    if (selectedData.gseCargoSelect) {
+    if (isGseCargoSelect || isCharacterizationCargoSelect) {
       return dispatch(
         setModalIds(
           uniqueModalIds([
@@ -321,13 +415,15 @@ export const ModalSelectHierarchyData: FC<
                 icon={SAddIcon}
                 onClick={() => onSelectAll?.()}
               />
-              <STagButton
-                width="150px"
-                text={'editar ativos'}
-                iconProps={{ sx: { color: 'info.main' } }}
-                icon={SEditIcon}
-                onClick={() => onSelectEditALl?.()}
-              />
+              {!isCharacterizationCargoSelect && (
+                <STagButton
+                  width="150px"
+                  text={'editar ativos'}
+                  iconProps={{ sx: { color: 'info.main' } }}
+                  icon={SEditIcon}
+                  onClick={() => onSelectEditALl?.()}
+                />
+              )}
             </SFlex>
             <Divider sx={{ mb: 10, mt: 7 }} />
             <ModalInputHierarchy
@@ -346,35 +442,88 @@ export const ModalSelectHierarchyData: FC<
             />
             <SFlex direction="column" gap={5} mb={10}>
               {filter !== 'GHO' &&
-                hierarchyList.map((hierarchy) => {
-                  if (selectedData.gseCargoSelect) {
-                    const presentation = getGseCargoRowPresentation({
-                      workspaceName: workspaceSelected.name,
-                      cargoName: hierarchy.name,
-                      parents: hierarchy.parents,
-                    });
-
+                isCharacterizationCargoSelect &&
+                characterizationAvailableGrouped.map((row) => {
+                  if (row.kind === 'group') {
                     return (
+                      <Box key={row.id} sx={{ pt: 1 }}>
+                        <SText fontWeight="600" fontSize={13}>
+                          {row.sectorGroupName}
+                        </SText>
+                      </Box>
+                    );
+                  }
+
+                  const hierarchy = row.item;
+
+                  return (
+                    <Box key={hierarchy.id} sx={{ pl: 3 }}>
                       <ModalItemHierarchy
                         onClick={() =>
                           selectedData.singleSelect
                             ? handleSingleSelect(hierarchy)
                             : dispatch(setAddModalId(hierarchy.id))
                         }
-                        key={hierarchy.id}
                         id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
                           ':id',
                           hierarchy.id.split('//')[0],
                         )}
                         data={hierarchy}
-                        text={presentation.cargoName}
+                        text={hierarchy.displayName}
+                        tooltipText=""
+                        textNoBreak
+                        startContent={
+                          <GseCargoRowContextIcons
+                            sectorTooltip={hierarchy.sectorTooltip}
+                          />
+                        }
+                        endIcon={
+                          <CharacterizationCargoMembershipIcons
+                            memberships={characterizationMembershipByHierarchyId.get(
+                              hierarchy.id.split('//')[0],
+                            )}
+                          />
+                        }
+                      />
+                    </Box>
+                  );
+                })}
+              {filter === HierarchyEnum.OFFICE &&
+                isGseCargoSelect &&
+                gseAvailableGrouped.map((row) => {
+                  if (row.kind === 'group') {
+                    return (
+                      <Box key={row.id} sx={{ pt: 1 }}>
+                        <SText fontWeight="600" fontSize={13}>
+                          {row.sectorGroupName}
+                        </SText>
+                      </Box>
+                    );
+                  }
+
+                  const hierarchy = row.item;
+
+                  return (
+                    <Box key={hierarchy.id} sx={{ pl: 3 }}>
+                      <ModalItemHierarchy
+                        onClick={() =>
+                          selectedData.singleSelect
+                            ? handleSingleSelect(hierarchy)
+                            : dispatch(setAddModalId(hierarchy.id))
+                        }
+                        id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
+                          ':id',
+                          hierarchy.id.split('//')[0],
+                        )}
+                        data={hierarchy}
+                        text={hierarchy.displayName}
                         tooltipText=""
                         textNoBreak
                         gseLabelContrast
                         startContent={
                           <GseCargoRowContextIcons
-                            workspaceTooltip={presentation.workspaceTooltip}
-                            sectorTooltip={presentation.sectorTooltip}
+                            workspaceTooltip={hierarchy.workspaceTooltip}
+                            sectorTooltip={hierarchy.sectorTooltip}
                           />
                         }
                         endIcon={
@@ -385,9 +534,56 @@ export const ModalSelectHierarchyData: FC<
                           />
                         }
                       />
-                    );
-                  }
+                    </Box>
+                  );
+                })}
+              {filter !== 'GHO' &&
+                filter !== HierarchyEnum.OFFICE &&
+                isGseCargoSelect &&
+                hierarchyList.map((hierarchy) => {
+                  const presentation = getGseCargoRowPresentation({
+                    workspaceName: workspaceSelected.name,
+                    cargoName: hierarchy.name,
+                    parents: hierarchy.parents,
+                  });
 
+                  return (
+                    <ModalItemHierarchy
+                      onClick={() =>
+                        selectedData.singleSelect
+                          ? handleSingleSelect(hierarchy)
+                          : dispatch(setAddModalId(hierarchy.id))
+                      }
+                      key={hierarchy.id}
+                      id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
+                        ':id',
+                        hierarchy.id.split('//')[0],
+                      )}
+                      data={hierarchy}
+                      text={presentation.cargoName}
+                      tooltipText=""
+                      textNoBreak
+                      gseLabelContrast
+                      startContent={
+                        <GseCargoRowContextIcons
+                          workspaceTooltip={presentation.workspaceTooltip}
+                          sectorTooltip={presentation.sectorTooltip}
+                        />
+                      }
+                      endIcon={
+                        <GseCargoMembershipIcons
+                          memberships={gseMembershipByHierarchyId.get(
+                            hierarchy.id.split('//')[0],
+                          )}
+                        />
+                      }
+                    />
+                  );
+                })}
+              {filter !== 'GHO' &&
+                !isCharacterizationCargoSelect &&
+                !isGseCargoSelect &&
+                hierarchyList.map((hierarchy) => {
                   return (
                     <ModalItemHierarchy
                       onClick={() =>
@@ -418,7 +614,7 @@ export const ModalSelectHierarchyData: FC<
                 onClick={() =>
                   dispatch(
                     setModalIds(
-                      selectedData.gseCargoSelect
+                      isGseCargoSelect || isCharacterizationCargoSelect
                         ? keepModalIdsOutsideWorkspace(
                             modalSelectIds,
                             workspaceSelected?.id,
@@ -431,46 +627,103 @@ export const ModalSelectHierarchyData: FC<
             </SFlex>
             <Divider sx={{ mb: 10, mt: 7 }} />
             <SFlex direction="column" gap={5} mb={10}>
-              {selectedData.gseCargoSelect
-                ? gseSelectedList.map((hierarchy) => (
-                    <ModalItemHierarchy
-                      onClick={() =>
-                        dispatch(setRemoveModalId(hierarchy.id))
-                      }
-                      active
-                      key={hierarchy.id}
-                      data={hierarchy}
-                      activeRemove={true}
-                      text={hierarchy.cargoName}
-                      tooltipText=""
-                      textNoBreak
-                      gseLabelContrast
-                      startContent={
-                        <GseCargoRowContextIcons
-                          workspaceTooltip={hierarchy.workspaceTooltip}
-                          sectorTooltip={hierarchy.sectorTooltip}
-                        />
-                      }
-                      endIcon={
-                        <GseCargoMembershipIcons
-                          memberships={gseMembershipByHierarchyId.get(
-                            splitHierarchyModalId(hierarchy.id).hierarchyId,
-                          )}
-                        />
-                      }
-                    />
-                  ))
-                : hierarchyListSelected.map((hierarchy) => {
+              {isGseCargoSelect
+                ? gseSelectedGrouped.map((row) => {
+                    if (row.kind === 'group') {
+                      return (
+                        <Box key={row.id} sx={{ pt: 1 }}>
+                          <SText fontWeight="600" fontSize={13}>
+                            {row.sectorGroupName}
+                          </SText>
+                        </Box>
+                      );
+                    }
+
+                    const hierarchy = row.item;
+
                     return (
-                      <ModalItemHierarchy
-                        onClick={() => dispatch(setRemoveModalId(hierarchy.id))}
-                        active
-                        key={hierarchy.id}
-                        data={hierarchy}
-                        activeRemove={true}
-                      />
+                      <Box key={hierarchy.id} sx={{ pl: 3 }}>
+                        <ModalItemHierarchy
+                          onClick={() =>
+                            dispatch(setRemoveModalId(hierarchy.id))
+                          }
+                          active
+                          data={hierarchy}
+                          activeRemove={true}
+                          text={hierarchy.displayName}
+                          tooltipText=""
+                          textNoBreak
+                          gseLabelContrast
+                          startContent={
+                            <GseCargoRowContextIcons
+                              workspaceTooltip={hierarchy.workspaceTooltip}
+                              sectorTooltip={hierarchy.sectorTooltip}
+                            />
+                          }
+                          endIcon={
+                            <GseCargoMembershipIcons
+                              memberships={gseMembershipByHierarchyId.get(
+                                splitHierarchyModalId(hierarchy.id).hierarchyId,
+                              )}
+                            />
+                          }
+                        />
+                      </Box>
                     );
-                  })}
+                  })
+                : isCharacterizationCargoSelect
+                  ? characterizationSelectedGrouped.map((row) => {
+                      if (row.kind === 'group') {
+                        return (
+                          <Box key={row.id} sx={{ pt: 1 }}>
+                            <SText fontWeight="600" fontSize={13}>
+                              {row.sectorGroupName}
+                            </SText>
+                          </Box>
+                        );
+                      }
+
+                      const hierarchy = row.item;
+
+                      return (
+                        <Box key={hierarchy.id} sx={{ pl: 3 }}>
+                          <ModalItemHierarchy
+                            onClick={() =>
+                              dispatch(setRemoveModalId(hierarchy.id))
+                            }
+                            active
+                            data={hierarchy}
+                            activeRemove={true}
+                            text={hierarchy.displayName}
+                            tooltipText=""
+                            textNoBreak
+                            startContent={
+                              <GseCargoRowContextIcons
+                                sectorTooltip={hierarchy.sectorTooltip}
+                              />
+                            }
+                            endIcon={
+                              <CharacterizationCargoMembershipIcons
+                                memberships={characterizationMembershipByHierarchyId.get(
+                                  splitHierarchyModalId(hierarchy.id).hierarchyId,
+                                )}
+                              />
+                            }
+                          />
+                        </Box>
+                      );
+                    })
+                  : hierarchyListSelected.map((hierarchy) => {
+                      return (
+                        <ModalItemHierarchy
+                          onClick={() => dispatch(setRemoveModalId(hierarchy.id))}
+                          active
+                          key={hierarchy.id}
+                          data={hierarchy}
+                          activeRemove={true}
+                        />
+                      );
+                    })}
             </SFlex>
           </Box>
         </SFlex>

@@ -77,7 +77,7 @@ export const ModalInputHierarchy = React.forwardRef<
                 }}
               />
             ))}
-          {selectedData.selectByGHO && (
+          {selectedData.selectByGHO && !selectedData.forceCargoFilter && (
             <STagButton
               active={filter === 'GHO'}
               tooltipTitle={'filtar por GSE'}

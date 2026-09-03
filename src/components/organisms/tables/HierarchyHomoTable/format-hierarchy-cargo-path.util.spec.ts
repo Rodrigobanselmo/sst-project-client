@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict';
 
 import {
+  formatCharacterizationSectorGroupedRow,
   formatHierarchyFullContextLabel,
   formatHierarchySectorCargoLabel,
 } from './format-hierarchy-cargo-path.util';
@@ -30,6 +31,37 @@ assert.equal(
 assert.equal(
   formatHierarchySectorCargoLabel({ name: 'Ajudante' }).displayName,
   'Ajudante',
+);
+
+const homonym = formatCharacterizationSectorGroupedRow({
+  name: 'MECÂNICO DE MANUTENÇÃO',
+  type: 'OFFICE',
+  parents: [
+    { type: 'SECTOR', id: 'sec-1', name: 'MANUTENÇÃO MECÂNICA' },
+    { type: 'SUB_SECTOR', id: 'sub-1', name: 'MANUTENÇÃO MECÂNICA' },
+  ],
+});
+assert.equal(homonym.sectorGroupName, 'MANUTENÇÃO MECÂNICA');
+assert.equal(homonym.displayName, 'MECÂNICO DE MANUTENÇÃO');
+
+const distinct = formatCharacterizationSectorGroupedRow({
+  name: 'MECÂNICO',
+  type: 'OFFICE',
+  parents: [
+    { type: 'SECTOR', id: 'sec-2', name: 'MANUTENÇÃO' },
+    { type: 'SUB_SECTOR', id: 'sub-2', name: 'MECÂNICA' },
+  ],
+});
+assert.equal(distinct.sectorGroupName, 'MANUTENÇÃO');
+assert.equal(distinct.displayName, 'MECÂNICA > MECÂNICO');
+
+assert.equal(
+  formatCharacterizationSectorGroupedRow({
+    name: 'SOLDADOR',
+    type: 'OFFICE',
+    parents: [{ type: 'SECTOR', name: 'SOLDAGEM' }],
+  }).displayName,
+  'SOLDADOR',
 );
 
 console.log('format-hierarchy-cargo-path.util.spec.ts ok');

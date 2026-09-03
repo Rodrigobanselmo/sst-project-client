@@ -21,25 +21,27 @@ export function GseCargoRowContextIcons({
   workspaceTooltip,
   sectorTooltip,
 }: {
-  workspaceTooltip: string;
+  workspaceTooltip?: string;
   sectorTooltip: string;
 }) {
   return (
     <Box
       sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, flexShrink: 0 }}
     >
-      <STooltip
-        withWrapper
-        minLength={0}
-        title={workspaceTooltip}
-        componentsProps={{
-          tooltip: { sx: { whiteSpace: 'pre-line' } },
-        }}
-      >
-        <Box sx={iconBoxSx} aria-label={workspaceTooltip}>
-          <SWorkspaceIcon sx={{ fontSize: 16 }} />
-        </Box>
-      </STooltip>
+      {!!workspaceTooltip && (
+        <STooltip
+          withWrapper
+          minLength={0}
+          title={workspaceTooltip}
+          componentsProps={{
+            tooltip: { sx: { whiteSpace: 'pre-line' } },
+          }}
+        >
+          <Box sx={iconBoxSx} aria-label={workspaceTooltip}>
+            <SWorkspaceIcon sx={{ fontSize: 16 }} />
+          </Box>
+        </STooltip>
+      )}
       <STooltip
         withWrapper
         minLength={0}

@@ -45,6 +45,10 @@ export const initialHierarchySelectState = {
   selectionHierarchy: Object.values(HierarchyEnum),
   title: '' as string,
   gseCargoSelect: false,
+  /** Força abertura sempre no filtro Cargo (ex.: Elemento Caracterizável). */
+  forceCargoFilter: false,
+  /** Aplica metadados visuais de Setor (sem Estabelecimento) no modo de Elemento Caracterizável. */
+  characterizationCargoSelect: false,
 };
 
 const modalName = ModalEnum.HIERARCHY_SELECT;

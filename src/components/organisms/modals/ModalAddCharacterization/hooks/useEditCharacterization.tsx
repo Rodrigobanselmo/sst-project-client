@@ -1095,6 +1095,16 @@ export const useEditCharacterization = (
       }
     };
 
+    const activeHierarchyModalIds = hierarchies
+      .filter((h) =>
+        (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
+      )
+      .map((hierarchy) =>
+        String(hierarchy.id).split('//').length == 1
+          ? String(hierarchy.id) + '//' + characterizationData.workspaceId
+          : String(hierarchy.id),
+      );
+
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       keepOpen: true,
       onSelect: (hIds, onClose) =>
@@ -1104,15 +1114,10 @@ export const useEditCharacterization = (
       selectByGHO: ghoQuery.some((gho) => !gho.type),
       workspaceId: characterizationData.workspaceId,
       addSubOffice: true,
-      allHierarchiesIds: hierarchies
-        .filter((h) =>
-          (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
-        )
-        .map((hierarchy) =>
-          String(hierarchy.id).split('//').length == 1
-            ? String(hierarchy.id) + '//' + characterizationData.workspaceId
-            : String(hierarchy.id),
-        ),
+      forceCargoFilter: true,
+      characterizationCargoSelect: true,
+      hierarchiesIds: activeHierarchyModalIds,
+      allHierarchiesIds: activeHierarchyModalIds,
     } as typeof initialHierarchySelectState);
   };
 

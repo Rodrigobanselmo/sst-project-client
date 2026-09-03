@@ -135,6 +135,17 @@ export function CharacterizationCargoManagerDialog({
       selectByGHO: ghoQuery.some((gho) => !gho.type),
       workspaceId,
       addSubOffice: true,
+      forceCargoFilter: true,
+      characterizationCargoSelect: true,
+      hierarchiesIds: hierarchies
+        .filter((h) =>
+          (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
+        )
+        .map((hierarchy) =>
+          String(hierarchy.id).split('//').length === 1
+            ? `${String(hierarchy.id)}//${workspaceId}`
+            : String(hierarchy.id),
+        ),
       allHierarchiesIds: hierarchies
         .filter((h) =>
           (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
@@ -202,6 +213,7 @@ export function CharacterizationCargoManagerDialog({
             hierarchies={hierarchies as any}
             isCreate={false}
             fixedRowsPerPage={15}
+            groupBySector
             onUnlinkSuccess={onUnlinkSuccess}
           />
         )}

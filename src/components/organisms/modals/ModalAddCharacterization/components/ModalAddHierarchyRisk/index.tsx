@@ -251,6 +251,7 @@ export const ModalAddHierarchyRisk = (
             loading={characterizationLoading}
             hierarchies={hierarchies as any}
             isCreate={!isEdit}
+            groupBySector
           />
         </Box>
         <Box sx={{ px: 5, pb: 10 }}>

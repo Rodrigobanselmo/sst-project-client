@@ -26,6 +26,7 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { CHARACTERIZATION_LINK_CLEANUP_TEXTS } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.util';
 
 import {
+  formatCharacterizationSectorGroupedRow,
   formatHierarchyFullContextLabel,
   formatHierarchySectorCargoLabel,
 } from './format-hierarchy-cargo-path.util';
@@ -66,6 +67,8 @@ export const HierarchyHomoTable: FC<
       }) => void;
       /** Opt-in do editor GSE: agrupa por estabelecimento. */
       groupByWorkspace?: boolean;
+      /** Opt-in (Elemento Caracterizável): agrupa por setor. */
+      groupBySector?: boolean;
       preferredWorkspaceId?: string;
       gseWorkspaceIds?: string[];
       workspaceNamesById?: Record<string, string>;
@@ -81,6 +84,7 @@ export const HierarchyHomoTable: FC<
   isCreate,
   onUnlinkSuccess,
   groupByWorkspace = false,
+  groupBySector = false,
   preferredWorkspaceId,
   gseWorkspaceIds,
   workspaceNamesById,
@@ -140,37 +144,59 @@ export const HierarchyHomoTable: FC<
       return [...acc, ...(newData || [])];
     }, [] as any[]);
 
-    if (!groupByWorkspace) return rows;
+    if (!groupByWorkspace && !groupBySector) return rows;
 
     const linkedWorkspaceIds = gseWorkspaceIds || [];
 
     return rows.map((row) => {
-      const path = formatHierarchySectorCargoLabel(row);
-      const workspaceGroupId = resolveHierarchyWorkspaceGroupId({
-        hierarchyWorkspaceIds: [
-          ...((row.workspaceIds || []) as string[]),
-          ...((row.workspaces || []).map((workspace: { id: string }) => workspace.id) ||
-            []),
-        ],
-        gseWorkspaceIds: linkedWorkspaceIds,
-        preferredWorkspaceId,
-      });
-      const workspaceGroupName =
-        workspaceNamesById?.[workspaceGroupId] ||
-        (workspaceGroupId === UNGROUPED_WORKSPACE_ID
-          ? UNGROUPED_WORKSPACE_NAME
-          : workspaceGroupId);
+      const fullPath = [row, ...(row.parents || [])].reverse();
+
+      if (groupByWorkspace) {
+        const path = formatHierarchySectorCargoLabel(row);
+        const workspaceGroupId = resolveHierarchyWorkspaceGroupId({
+          hierarchyWorkspaceIds: [
+            ...((row.workspaceIds || []) as string[]),
+            ...(
+              (row.workspaces || []).map(
+                (workspace: { id: string }) => workspace.id,
+              ) || []
+            ),
+          ],
+          gseWorkspaceIds: linkedWorkspaceIds,
+          preferredWorkspaceId,
+        });
+
+        const workspaceGroupName =
+          workspaceNamesById?.[workspaceGroupId] ||
+          (workspaceGroupId === UNGROUPED_WORKSPACE_ID
+            ? UNGROUPED_WORKSPACE_NAME
+            : workspaceGroupId);
+
+        return {
+          ...row,
+          ...path,
+          fullPath,
+          workspaceGroupId,
+          workspaceGroupName,
+          searchText: `${workspaceGroupName} ${path.displayName} ${row.name || ''}`,
+        };
+      }
+
+      const grouped = formatCharacterizationSectorGroupedRow(row);
 
       return {
         ...row,
-        ...path,
-        fullPath: [row, ...(row.parents || [])].reverse(),
-        workspaceGroupId,
-        workspaceGroupName,
-        searchText: `${workspaceGroupName} ${path.displayName} ${row.name || ''}`,
+        sectorName: grouped.sectorName,
+        cargoName: grouped.cargoName,
+        displayName: grouped.displayName,
+        fullPath,
+        workspaceGroupId: grouped.sectorGroupId || UNGROUPED_WORKSPACE_ID,
+        workspaceGroupName: grouped.sectorGroupName,
+        searchText: `${grouped.sectorGroupName} ${grouped.subSectorName} ${grouped.displayName} ${row.name || ''}`,
       };
     });
   }, [
+    groupBySector,
     groupByWorkspace,
     gseWorkspaceIds,
     hierarchies,
@@ -179,9 +205,13 @@ export const HierarchyHomoTable: FC<
   ]);
 
   const searchableData = useMemo(() => {
-    if (!groupByWorkspace) return data;
-    return sortHierarchyHomoRowsByWorkspaceGroup(data, preferredWorkspaceId);
-  }, [data, groupByWorkspace, preferredWorkspaceId]);
+    if (!groupByWorkspace && !groupBySector) return data;
+
+    return sortHierarchyHomoRowsByWorkspaceGroup(
+      data,
+      groupByWorkspace ? preferredWorkspaceId : undefined,
+    );
+  }, [data, groupBySector, groupByWorkspace, preferredWorkspaceId]);
 
   const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
     if (isCreate) {
@@ -216,12 +246,12 @@ export const HierarchyHomoTable: FC<
   };
 
   const { handleSearchChange, results, page, setPage } = useTableSearch({
-    rowsPerPage: groupByWorkspace ? 0 : pageSize,
+    rowsPerPage: groupByWorkspace || groupBySector ? 0 : pageSize,
     data: searchableData,
-    keys: groupByWorkspace
+    keys: groupByWorkspace || groupBySector
       ? ['name', 'label', 'displayName', 'workspaceGroupName', 'searchText']
       : ['name', 'label'],
-    shouldSort: !groupByWorkspace,
+    shouldSort: !(groupByWorkspace || groupBySector),
   });
 
   const showPageSizeSelector =
@@ -260,7 +290,7 @@ export const HierarchyHomoTable: FC<
   };
 
   const rowsData = useMemo(() => {
-    if (!groupByWorkspace) {
+    if (!groupByWorkspace && !groupBySector) {
       return results
         .map((r) => ({ ...r, ...getName(r) }))
         .sort((a, b) => sortDate(b?.endDate, a?.endDate))
@@ -270,7 +300,7 @@ export const HierarchyHomoTable: FC<
     return insertWorkspaceGroupHeaders(
       paginateHierarchyHomoRows(results, page, pageSize),
     );
-  }, [groupByWorkspace, page, pageSize, results]);
+  }, [groupBySector, groupByWorkspace, page, pageSize, results]);
 
   return (
     <>
@@ -288,13 +318,15 @@ export const HierarchyHomoTable: FC<
       >
         <STableBody<any>
           key={
-            groupByWorkspace
-              ? `gse-cargos-${page}-${pageSize}-${rowsData.length}`
+            groupByWorkspace || groupBySector
+              ? `gse-cargos-${page}-${pageSize}-${rowsData.length}-${groupBySector ? 'sector' : 'ws'}`
               : undefined
           }
           rowsData={rowsData}
           rowsInitialNumber={
-            groupByWorkspace ? rowsData.length || pageSize : pageSize
+            groupByWorkspace || groupBySector
+              ? rowsData.length || pageSize
+              : pageSize
           }
           hideLoadMore
           renderRow={(row) => {
@@ -310,11 +342,11 @@ export const HierarchyHomoTable: FC<
               );
             }
 
-            const cargoRow = groupByWorkspace
+            const cargoRow = groupByWorkspace || groupBySector
               ? row
               : { ...row, ...getName(row) };
-            const displayName = groupByWorkspace
-              ? cargoRow.displayName || cargoRow.name
+            const displayName = groupByWorkspace || groupBySector
+              ? cargoRow.displayName || cargoRow.cargoName || cargoRow.name
               : cargoRow.name;
             const fullPath = cargoRow.fullPath || [
               cargoRow,
@@ -332,6 +364,8 @@ export const HierarchyHomoTable: FC<
               preferredWorkspaceId,
               rowWorkspaceGroupId: cargoRow.workspaceGroupId,
             });
+
+            const indentSx = groupByWorkspace || groupBySector ? { pl: 3 } : undefined;
 
             return (
               <STableRow
@@ -369,6 +403,7 @@ export const HierarchyHomoTable: FC<
                   tooltipProps={{
                     minLength: 10,
                   }}
+                  sx={indentSx}
                 />
                 <TextIconRow
                   clickable
