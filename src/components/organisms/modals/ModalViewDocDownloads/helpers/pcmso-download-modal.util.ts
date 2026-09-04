@@ -1,16 +1,8 @@
-import { formatPgrAttachmentDisplayName } from './pgr-download-labels.util';
+import { getPcmsoRecommendedDownloadLabel } from './pcmso-download-composition.util';
 import {
   buildPcmsoConsolidatedDownloadUrl,
-  buildPcmsoExamsByGseDownloadUrl,
   getPcmsoEssentialDownloadDescription,
-  getPcmsoEssentialDownloadLabel,
   getPcmsoEssentialRecommendedBadge,
-  getPcmsoExamsByGseDownloadDescription,
-  getPcmsoExamsByGseDownloadLabel,
-  getPcmsoFullDownloadDescription,
-  getPcmsoFullDownloadLabel,
-  getPcmsoMainDocumentDownloadDescription,
-  getPcmsoMainDocumentDownloadLabel,
   PCMSO_DOWNLOAD_SECTION_ANNEXES,
   PCMSO_DOWNLOAD_SECTION_DOCUMENT,
 } from './pcmso-download-labels.util';
@@ -46,73 +38,25 @@ export type BuildPcmsoDownloadModalOptionsParams = {
 export function buildPcmsoDownloadModalOptions(
   params: BuildPcmsoDownloadModalOptionsParams,
 ): PcmsoDownloadOption[] {
-  const {
-    docId,
-    companyId,
-    workspaceId,
-    mainDocumentUrl,
-    downloadAttRoute,
-    attachments = [],
-  } = params;
+  const { docId, companyId } = params;
 
   const essentialUrl = buildPcmsoConsolidatedDownloadUrl({
     docId,
     companyId,
     profile: 'essential',
   });
-  const fullUrl = buildPcmsoConsolidatedDownloadUrl({
-    docId,
-    companyId,
-    profile: 'full',
-  });
-  const gseUrl = buildPcmsoExamsByGseDownloadUrl({ companyId, workspaceId });
 
-  const documentOptions: PcmsoDownloadOption[] = [
-    {
-      id: 'pcmso-main',
-      section: PCMSO_DOWNLOAD_SECTION_DOCUMENT,
-      url: mainDocumentUrl,
-      label: getPcmsoMainDocumentDownloadLabel(),
-      description: getPcmsoMainDocumentDownloadDescription(),
-    },
+  return [
     {
       id: 'pcmso-essential',
       section: PCMSO_DOWNLOAD_SECTION_DOCUMENT,
       url: essentialUrl,
-      label: getPcmsoEssentialDownloadLabel(),
+      label: getPcmsoRecommendedDownloadLabel(),
       description: getPcmsoEssentialDownloadDescription(),
       badge: getPcmsoEssentialRecommendedBadge(),
       recommended: true,
     },
-    {
-      id: 'pcmso-full',
-      section: PCMSO_DOWNLOAD_SECTION_DOCUMENT,
-      url: fullUrl,
-      label: getPcmsoFullDownloadLabel(),
-      description: getPcmsoFullDownloadDescription(),
-    },
   ];
-
-  const annexOptions: PcmsoDownloadOption[] = [
-    {
-      id: 'pcmso-annex-gse',
-      section: PCMSO_DOWNLOAD_SECTION_ANNEXES,
-      url: gseUrl,
-      label: getPcmsoExamsByGseDownloadLabel(),
-      description: getPcmsoExamsByGseDownloadDescription(),
-    },
-    ...attachments.map((attachment) => {
-      const attachmentUrl = `${downloadAttRoute.replace(':docId', docId)}/${attachment.id}/${companyId}`;
-      return {
-        id: `pcmso-attachment-${attachment.id}`,
-        section: PCMSO_DOWNLOAD_SECTION_ANNEXES,
-        url: attachmentUrl,
-        label: `Baixar ${formatPgrAttachmentDisplayName(attachment.name)}`,
-      } satisfies PcmsoDownloadOption;
-    }),
-  ];
-
-  return [...documentOptions, ...annexOptions];
 }
 
 export function groupPcmsoDownloadOptionsBySection(options: PcmsoDownloadOption[]) {

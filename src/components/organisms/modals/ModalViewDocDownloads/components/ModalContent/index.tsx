@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Checkbox, FormControlLabel } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
 import { STagButton } from 'components/atoms/STagButton';
@@ -12,22 +12,33 @@ import SDownloadIcon from 'assets/icons/SDownloadIcon';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
+import { PCMSO_DOWNLOAD_SECTION_DOCUMENT } from '../../helpers/pcmso-download-labels.util';
 import {
-  PCMSO_DOWNLOAD_SECTION_ANNEXES,
-  PCMSO_DOWNLOAD_SECTION_DOCUMENT,
-} from '../../helpers/pcmso-download-labels.util';
+  buildPcmsoCustomCompositionDownloadUrl,
+  getPcmsoCompositionCheckboxes,
+  getPcmsoCustomCompositionToggleLabel,
+  getPcmsoCustomDownloadButtonLabel,
+  PCMSO_COMPOSITION_GROUP_TITLES,
+  sortPcmsoCompositionParts,
+  type PcmsoCompositionPart,
+} from '../../helpers/pcmso-download-composition.util';
 import {
   buildPcmsoDownloadModalOptions,
   groupPcmsoDownloadOptionsBySection,
   isPcmsoDownloadUrlLoading,
 } from '../../helpers/pcmso-download-modal.util';
+import { PGR_DOWNLOAD_SECTION_DOCUMENT } from '../../helpers/pgr-download-labels.util';
 import {
-  PGR_DOWNLOAD_SECTION_ANNEXES,
-  PGR_DOWNLOAD_SECTION_DOCUMENT,
-} from '../../helpers/pgr-download-labels.util';
+  buildPgrCustomCompositionDownloadUrl,
+  getPgrCompositionCheckboxes,
+  getPgrCustomCompositionToggleLabel,
+  getPgrCustomDownloadButtonLabel,
+  PGR_COMPOSITION_GROUP_TITLES,
+  sortPgrCompositionParts,
+  type PgrCompositionPart,
+} from '../../helpers/pgr-download-composition.util';
 import {
   buildPgrDownloadModalOptions,
-  groupPgrDownloadAnnexesByCategory,
   groupPgrDownloadOptionsBySection,
 } from '../../helpers/pgr-download-modal.util';
 import { IUseDocs } from '../../hooks/useModalViewDocDownload';
@@ -39,6 +50,13 @@ type DownloadOptionView = {
   description?: string;
   badge?: string;
   recommended?: boolean;
+};
+
+type CompositionCheckboxView = {
+  id: string;
+  group: string;
+  label: string;
+  description?: string;
 };
 
 export const ModalContentDoc = ({
@@ -79,7 +97,35 @@ export const ModalContentDoc = ({
         })
       : [];
   const pgrGrouped = groupPgrDownloadOptionsBySection(pgrOptions);
-  const pgrAnnexGroups = groupPgrDownloadAnnexesByCategory(pgrGrouped.annexes);
+  const [customExpanded, setCustomExpanded] = useState(false);
+  const [selectedPgrParts, setSelectedPgrParts] = useState<PgrCompositionPart[]>(
+    [],
+  );
+  const [selectedPcmsoParts, setSelectedPcmsoParts] = useState<
+    PcmsoCompositionPart[]
+  >([]);
+
+  useEffect(() => {
+    setCustomExpanded(false);
+    setSelectedPgrParts([]);
+    setSelectedPcmsoParts([]);
+  }, [doc.id]);
+
+  const pgrCheckboxes = useMemo(
+    () => (doc.documentType ? getPgrCompositionCheckboxes(doc.documentType) : []),
+    [doc.documentType],
+  );
+  const pcmsoCheckboxes = useMemo(() => getPcmsoCompositionCheckboxes(), []);
+  const pgrCustomDownloadUrl = buildPgrCustomCompositionDownloadUrl({
+    docId: doc.id,
+    companyId: resolvedCompanyId,
+    parts: selectedPgrParts,
+  });
+  const pcmsoCustomDownloadUrl = buildPcmsoCustomCompositionDownloadUrl({
+    docId: doc.id,
+    companyId: resolvedCompanyId,
+    parts: selectedPcmsoParts,
+  });
 
   const isDownloading = (url: string) =>
     isPcmsoDownloadUrlLoading(url, downloadMutation);
@@ -101,36 +147,81 @@ export const ModalContentDoc = ({
       />
     ));
 
-  const renderAnnexButtons = (
-    options: DownloadOptionView[],
-    opts?: { disableGseWithoutWorkspace?: boolean },
-  ) =>
-    options.map((option) => (
+  const renderCustomComposition = (params: {
+    checkboxes: CompositionCheckboxView[];
+    groupOrder: string[];
+    groupTitles: Record<string, string>;
+    selectedIds: string[];
+    toggleLabel: string;
+    downloadLabel: string;
+    downloadUrl: string | null;
+    onToggleExpand: () => void;
+    onTogglePart: (id: string) => void;
+  }) => (
+    <>
       <STagButton
-        key={option.id}
-        mb={2}
-        text={option.label}
-        subText={option.description}
-        loading={isDownloading(option.url)}
-        onClick={() => {
-          if (
-            !opts?.disableGseWithoutWorkspace ||
-            !option.url.includes('/pcmso-exams-by-gse/') ||
-            resolvedWorkspaceId
-          ) {
-            downloadMutation.mutate(option.url);
-          }
-        }}
-        disabled={
-          !!opts?.disableGseWithoutWorkspace &&
-          option.id === 'pcmso-annex-gse' &&
-          !resolvedWorkspaceId
-        }
+        text={params.toggleLabel}
+        onClick={params.onToggleExpand}
         width={'100%'}
         large
-        icon={SDownloadIcon}
+        outline
       />
-    ));
+      {customExpanded && (
+        <Box>
+          {params.groupOrder.map((groupId) => {
+            const groupOptions = params.checkboxes.filter(
+              (item) => item.group === groupId,
+            );
+            if (groupOptions.length === 0) return null;
+            return (
+              <Box key={groupId} mt={groupId === params.groupOrder[0] ? 0 : 4}>
+                <SText mb={1} fontSize={13} color="text.light">
+                  {params.groupTitles[groupId]}
+                </SText>
+                {groupOptions.map((item) => (
+                  <Box key={item.id} mb={1}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={params.selectedIds.includes(item.id)}
+                          onChange={() => params.onTogglePart(item.id)}
+                        />
+                      }
+                      label={item.label}
+                    />
+                    {item.description && (
+                      <SText ml={4} mb={0} fontSize={12} color="text.light">
+                        {item.description}
+                      </SText>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            );
+          })}
+          <Box mt={4}>
+            <STagButton
+              text={params.downloadLabel}
+              loading={
+                !!params.downloadUrl && isDownloading(params.downloadUrl)
+              }
+              disabled={!params.downloadUrl || downloadMutation.isLoading}
+              onClick={() => {
+                if (!params.downloadUrl || downloadMutation.isLoading) {
+                  return;
+                }
+                downloadMutation.mutate(params.downloadUrl);
+              }}
+              width={'100%'}
+              large
+              icon={SDownloadIcon}
+            />
+          </Box>
+        </Box>
+      )}
+    </>
+  );
 
   return (
     <Box>
@@ -164,15 +255,26 @@ export const ModalContentDoc = ({
           <SText mt={8} color="text.light">
             {PCMSO_DOWNLOAD_SECTION_DOCUMENT}
           </SText>
-          <SFlex direction="column" gap={5} mt={5} mb={5}>
-            {renderDocumentButtons(pcmsoGrouped.document)}
-          </SFlex>
-          <SText mt={4} mb={0} color="text.light">
-            {PCMSO_DOWNLOAD_SECTION_ANNEXES}
-          </SText>
           <SFlex direction="column" gap={5} mt={5} mb={10}>
-            {renderAnnexButtons(pcmsoGrouped.annexes, {
-              disableGseWithoutWorkspace: true,
+            {renderDocumentButtons(pcmsoGrouped.document)}
+            {renderCustomComposition({
+              checkboxes: pcmsoCheckboxes,
+              groupOrder: ['main', 'annexes'],
+              groupTitles: PCMSO_COMPOSITION_GROUP_TITLES,
+              selectedIds: selectedPcmsoParts,
+              toggleLabel: getPcmsoCustomCompositionToggleLabel(),
+              downloadLabel: getPcmsoCustomDownloadButtonLabel(),
+              downloadUrl: pcmsoCustomDownloadUrl,
+              onToggleExpand: () => setCustomExpanded((open) => !open),
+              onTogglePart: (id) => {
+                setSelectedPcmsoParts((current) => {
+                  const next = new Set(current);
+                  const part = id as PcmsoCompositionPart;
+                  if (next.has(part)) next.delete(part);
+                  else next.add(part);
+                  return sortPcmsoCompositionParts(next);
+                });
+              },
             })}
           </SFlex>
         </>
@@ -183,29 +285,28 @@ export const ModalContentDoc = ({
           <SText mt={8} color="text.light">
             {PGR_DOWNLOAD_SECTION_DOCUMENT}
           </SText>
-          <SFlex direction="column" gap={5} mt={5} mb={5}>
+          <SFlex direction="column" gap={5} mt={5} mb={10}>
             {renderDocumentButtons(pgrGrouped.document)}
+            {renderCustomComposition({
+              checkboxes: pgrCheckboxes,
+              groupOrder: ['main', 'inventory', 'action_plan'],
+              groupTitles: PGR_COMPOSITION_GROUP_TITLES,
+              selectedIds: selectedPgrParts,
+              toggleLabel: getPgrCustomCompositionToggleLabel(),
+              downloadLabel: getPgrCustomDownloadButtonLabel(),
+              downloadUrl: pgrCustomDownloadUrl,
+              onToggleExpand: () => setCustomExpanded((open) => !open),
+              onTogglePart: (id) => {
+                setSelectedPgrParts((current) => {
+                  const next = new Set(current);
+                  const part = id as PgrCompositionPart;
+                  if (next.has(part)) next.delete(part);
+                  else next.add(part);
+                  return sortPgrCompositionParts(next);
+                });
+              },
+            })}
           </SFlex>
-          <SText mt={4} mb={0} color="text.light">
-            {PGR_DOWNLOAD_SECTION_ANNEXES}
-          </SText>
-          <Box mb={10}>
-            {pgrAnnexGroups.categories.map((group) => (
-              <Box key={group.id}>
-                <SText mt={5} mb={0} fontSize={13} color="text.light">
-                  {group.title}
-                </SText>
-                <SFlex direction="column" gap={5} mt={5} mb={2}>
-                  {renderAnnexButtons(group.options)}
-                </SFlex>
-              </Box>
-            ))}
-            {pgrAnnexGroups.uncategorized.length > 0 && (
-              <SFlex direction="column" gap={5} mt={5}>
-                {renderAnnexButtons(pgrAnnexGroups.uncategorized)}
-              </SFlex>
-            )}
-          </Box>
         </>
       )}
 

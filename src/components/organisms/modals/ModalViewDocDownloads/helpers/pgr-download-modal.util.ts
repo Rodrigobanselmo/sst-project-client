@@ -12,15 +12,11 @@ import {
   buildPgrConsolidatedDownloadUrl,
   formatPgrAttachmentDisplayName,
   getPgrEssentialDownloadDescription,
-  getPgrEssentialDownloadLabel,
   getPgrEssentialRecommendedBadge,
-  getPgrFullDownloadDescription,
-  getPgrFullDownloadLabel,
-  getPgrMainDocumentDownloadDescription,
-  getPgrMainDocumentDownloadLabel,
   PGR_DOWNLOAD_SECTION_ANNEXES,
   PGR_DOWNLOAD_SECTION_DOCUMENT,
 } from './pgr-download-labels.util';
+import { getPgrRecommendedDownloadLabel } from './pgr-download-composition.util';
 
 export type PgrDownloadAttachmentInput = {
   id: string;
@@ -77,7 +73,6 @@ export function buildPgrDownloadModalOptions(
     documentType,
     docId,
     companyId,
-    mainDocumentUrl,
     downloadAttRoute,
     attachments = [],
   } = params;
@@ -87,35 +82,16 @@ export function buildPgrDownloadModalOptions(
     companyId,
     profile: 'essential',
   });
-  const fullUrl = buildPgrConsolidatedDownloadUrl({
-    docId,
-    companyId,
-    profile: 'full',
-  });
 
   const documentOptions: PgrDownloadOption[] = [
-    {
-      id: 'pgr-main',
-      section: PGR_DOWNLOAD_SECTION_DOCUMENT,
-      url: mainDocumentUrl,
-      label: getPgrMainDocumentDownloadLabel(documentType),
-      description: getPgrMainDocumentDownloadDescription(documentType),
-    },
     {
       id: 'pgr-essential',
       section: PGR_DOWNLOAD_SECTION_DOCUMENT,
       url: essentialUrl,
-      label: getPgrEssentialDownloadLabel(documentType),
+      label: getPgrRecommendedDownloadLabel(),
       description: getPgrEssentialDownloadDescription(documentType),
       badge: getPgrEssentialRecommendedBadge(),
       recommended: true,
-    },
-    {
-      id: 'pgr-full',
-      section: PGR_DOWNLOAD_SECTION_DOCUMENT,
-      url: fullUrl,
-      label: getPgrFullDownloadLabel(documentType),
-      description: getPgrFullDownloadDescription(documentType),
     },
   ];
 

@@ -29,30 +29,28 @@ describe('pgr-download-modal.util', () => {
     ],
   };
 
-  it('builds three document options with recommended essencial', () => {
+  it('builds the recommended document option from essential', () => {
     const { document } = groupPgrDownloadOptionsBySection(
       buildPgrDownloadModalOptions(baseParams),
     );
-    expect(document.map((o) => o.id)).toEqual([
-      'pgr-main',
-      'pgr-essential',
-      'pgr-full',
-    ]);
-    expect(document[0].label).toBe('Baixar documento sem anexos');
-    expect(document[1].label).toBe('Baixar PGR com anexos essenciais');
-    expect(document[1].badge).toBe('Recomendado');
-    expect(document[1].recommended).toBe(true);
-    expect(document[2].label).toBe('Baixar PGR completo');
+    expect(document.map((o) => o.id)).toEqual(['pgr-essential']);
+    expect(document[0].label).toBe('Baixar documento recomendado');
+    expect(document[0].badge).toBe('Recomendado');
+    expect(document[0].recommended).toBe(true);
+    expect(document[0].url).toBe(
+      '/documents/base/pgr-consolidated/docx/doc-pgr-1/company-1?profile=essential',
+    );
+    expect(document.some((o) => o.id === 'pgr-main' || o.id === 'pgr-full')).toBe(
+      false,
+    );
   });
 
-  it('keeps routes unchanged (essential/full query profiles)', () => {
+  it('keeps the recommended route on profile=essential', () => {
     const options = buildPgrDownloadModalOptions(baseParams);
     expect(options.find((o) => o.id === 'pgr-essential')?.url).toBe(
       '/documents/base/pgr-consolidated/docx/doc-pgr-1/company-1?profile=essential',
     );
-    expect(options.find((o) => o.id === 'pgr-full')?.url).toBe(
-      '/documents/base/pgr-consolidated/docx/doc-pgr-1/company-1?profile=full',
-    );
+    expect(options.find((o) => o.id === 'pgr-full')).toBeUndefined();
     expect(
       buildPgrConsolidatedDownloadUrl({
         docId: 'doc-pgr-1',
@@ -139,7 +137,7 @@ describe('pgr-download-modal.util', () => {
     ).toContain('format=managerial');
   });
 
-  it('keeps Documento labels unchanged for PGR and FRPS', () => {
+  it('keeps recommended descriptions distinct for PGR and FRPS', () => {
     const pgr = groupPgrDownloadOptionsBySection(
       buildPgrDownloadModalOptions(baseParams),
     ).document;
@@ -150,11 +148,15 @@ describe('pgr-download-modal.util', () => {
       }),
     ).document;
 
-    expect(pgr.map((o) => o.id)).toEqual(['pgr-main', 'pgr-essential', 'pgr-full']);
-    expect(pgr[1].label).toBe('Baixar PGR com anexos essenciais');
-    expect(frps[1].label).toBe('Baixar FRPS com anexos essenciais');
-    expect(pgr[2].label).toBe('Baixar PGR completo');
-    expect(frps[2].label).toBe('Baixar FRPS completo');
+    expect(pgr.map((o) => o.id)).toEqual(['pgr-essential']);
+    expect(pgr[0].label).toBe('Baixar documento recomendado');
+    expect(frps[0].label).toBe('Baixar documento recomendado');
+    expect(pgr[0].description).toBe(
+      'Inclui o corpo principal e os anexos essenciais do PGR.',
+    );
+    expect(frps[0].description).toBe(
+      'Inclui o corpo principal e os anexos essenciais do FRPS.',
+    );
   });
 
   it('tracks loading independently per URL', () => {
