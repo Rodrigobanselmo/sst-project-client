@@ -57,9 +57,12 @@ const ANNEX_CATEGORY_ORDER: PgrDownloadAnnexCategoryId[] = ['inventory', 'action
 
 const optionOrder = (option: PgrDownloadOption): number => {
   if (option.id === 'pgr-action-plan-grouped') return 1;
+  if (option.id === 'pgr-action-plan-managerial') return 2;
   if (option.label.includes('Função')) return 0;
   if (option.label.includes('GSE')) return 1;
   if (option.label.includes('Detalhado')) return 0;
+  if (option.label.includes('Agrupado')) return 1;
+  if (option.label.includes('Gerencial')) return 2;
   return 50;
 };
 
@@ -141,6 +144,18 @@ export function buildPgrDownloadModalOptions(
       format: 'grouped',
     }),
     label: getPgrDownloadAnnexLabel('action_plan_grouped'),
+    annexCategory: 'action_plan',
+  });
+
+  annexOptions.push({
+    id: 'pgr-action-plan-managerial',
+    section: PGR_DOWNLOAD_SECTION_ANNEXES,
+    url: buildPgrActionPlanAnnexDownloadUrl({
+      docId,
+      companyId,
+      format: 'managerial',
+    }),
+    label: getPgrDownloadAnnexLabel('action_plan_managerial'),
     annexCategory: 'action_plan',
   });
 

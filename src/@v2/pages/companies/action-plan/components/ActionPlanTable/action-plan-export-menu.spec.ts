@@ -23,6 +23,12 @@ const wordService = readFileSync(
   ),
   'utf8',
 );
+const wordTypes = readFileSync(
+  resolve(
+    'src/@v2/services/export/action-plan/service/download-action-plan-document.types.ts',
+  ),
+  'utf8',
+);
 const exportButton = readFileSync(
   resolve(
     'src/@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableExportButton/STableExportButton.tsx',
@@ -33,9 +39,10 @@ const exportButton = readFileSync(
 assert.match(table, /label: 'Excel'/);
 assert.match(table, /Word · Plano de Ação Detalhado/);
 assert.match(table, /Word · Plano de Ação Agrupado/);
+assert.match(table, /Word · Plano de Ação Gerencial/);
 assert.match(table, /handleWordExport\('detailed'\)/);
 assert.match(table, /handleWordExport\('grouped'\)/);
-assert.doesNotMatch(table, /Plano de Ação Gerencial/);
+assert.match(table, /handleWordExport\('managerial'\)/);
 assert.match(table, /exportMutation\.mutateAsync/);
 assert.match(table, /buildActionPlanWordDownloadPayload/);
 assert.match(table, /disabled=\{isExporting\}/);
@@ -51,6 +58,7 @@ assert.match(payload, /generateSourceIds/);
 assert.match(payload, /occupationalRisks/);
 assert.match(payload, /isExpired/);
 
+assert.match(wordTypes, /'detailed' \| 'grouped' \| 'managerial'/);
 assert.match(wordService, /DOCUMENTS_PGR_PLAN/);
 assert.match(wordService, /responseType: 'blob'/);
 assert.match(wordService, /downloadFile\(response\)/);

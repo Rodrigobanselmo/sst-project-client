@@ -352,6 +352,11 @@ export const ActionPlanTable = ({
                 label: 'Word · Plano de Ação Agrupado',
                 onClick: () => handleWordExport('grouped'),
               },
+              {
+                id: 'word-managerial',
+                label: 'Word · Plano de Ação Gerencial',
+                onClick: () => handleWordExport('managerial'),
+              },
             ]}
           />
         </STableSearchContent>

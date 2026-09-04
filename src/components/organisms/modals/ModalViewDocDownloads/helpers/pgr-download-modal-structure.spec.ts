@@ -27,12 +27,13 @@ assert.match(modalContent, /DocumentTypeEnum\.FRPS/);
 assert.match(modalContent, /DocumentTypeEnum\.PGR/);
 assert.match(modalUtil, /buildPgrActionPlanAnnexDownloadUrl/);
 assert.match(modalUtil, /format: 'grouped'/);
+assert.match(modalUtil, /format: 'managerial'/);
 assert.match(modalUtil, /getPgrDownloadAnnexLabel\('action_plan_grouped'\)/);
-assert.doesNotMatch(modalUtil, /gerencial/);
+assert.match(modalUtil, /getPgrDownloadAnnexLabel\('action_plan_managerial'\)/);
 assert.match(labels, /pgr-action-plan\/docx/);
 assert.match(labels, /getPgrEssentialDownloadLabel/);
 assert.match(categories, /PGR_DOWNLOAD_ANNEX_CATEGORY_INVENTORY/);
 assert.match(categories, /PGR_DOWNLOAD_ANNEX_CATEGORY_ACTION_PLAN/);
-assert.match(categories, /PGR_ACTION_PLAN_FUTURE_VARIANT/);
+assert.match(categories, /action_plan_managerial/);
 
 console.log('pgr-download-modal-structure.spec.ts ok');

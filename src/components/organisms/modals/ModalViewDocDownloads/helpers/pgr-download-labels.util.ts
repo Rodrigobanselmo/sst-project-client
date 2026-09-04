@@ -14,7 +14,7 @@ export function buildPgrConsolidatedDownloadUrl(params: {
 export function buildPgrActionPlanAnnexDownloadUrl(params: {
   docId: string;
   companyId: string;
-  format: 'grouped';
+  format: 'grouped' | 'managerial';
 }): string {
   return `${ApiRoutesEnum.DOCUMENTS_BASE}/pgr-action-plan/docx/${params.docId}/${params.companyId}?format=${params.format}`;
 }

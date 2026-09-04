@@ -3,7 +3,7 @@ import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-stat
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 
-export type ActionPlanDocumentFormat = 'detailed' | 'grouped';
+export type ActionPlanDocumentFormat = 'detailed' | 'grouped' | 'managerial';
 
 export interface DownloadActionPlanDocumentParams {
   companyId: string;

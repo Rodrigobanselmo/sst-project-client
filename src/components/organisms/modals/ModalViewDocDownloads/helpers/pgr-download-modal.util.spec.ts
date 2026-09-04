@@ -73,6 +73,7 @@ describe('pgr-download-modal.util', () => {
       'Baixar Inventário de Risco por GSE',
       'Baixar Plano de Ação Detalhado',
       'Baixar Plano de Ação Agrupado',
+      'Baixar Plano de Ação Gerencial',
     ]);
   });
 
@@ -101,9 +102,13 @@ describe('pgr-download-modal.util', () => {
     expect(pgr.categories[1].options.map((o) => o.label)).toEqual([
       'Baixar Plano de Ação Detalhado',
       'Baixar Plano de Ação Agrupado',
+      'Baixar Plano de Ação Gerencial',
     ]);
     expect(pgr.categories.map((group) => group.title)).toEqual(
       frps.categories.map((group) => group.title),
+    );
+    expect(frps.categories[1].options.map((o) => o.label)).toEqual(
+      pgr.categories[1].options.map((o) => o.label),
     );
     expect(pgr.uncategorized).toEqual([]);
     expect(
@@ -113,12 +118,25 @@ describe('pgr-download-modal.util', () => {
       '/documents/base/pgr-action-plan/docx/doc-pgr-1/company-1?format=grouped',
     );
     expect(
+      pgr.categories[1].options.find((o) => o.id === 'pgr-action-plan-managerial')
+        ?.url,
+    ).toBe(
+      '/documents/base/pgr-action-plan/docx/doc-pgr-1/company-1?format=managerial',
+    );
+    expect(
       buildPgrActionPlanAnnexDownloadUrl({
         docId: 'doc-pgr-1',
         companyId: 'company-1',
         format: 'grouped',
       }),
     ).toContain('format=grouped');
+    expect(
+      buildPgrActionPlanAnnexDownloadUrl({
+        docId: 'doc-pgr-1',
+        companyId: 'company-1',
+        format: 'managerial',
+      }),
+    ).toContain('format=managerial');
   });
 
   it('keeps Documento labels unchanged for PGR and FRPS', () => {
