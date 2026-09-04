@@ -25,6 +25,7 @@ export const STablePagination = ({
   endSlot,
   pageSizeOptions,
   onPageSizeChange,
+  totalLabel,
 }: STableLoadMoreProps) => {
   const isMobile = !useMediaQuery('(min-width:600px)');
 
@@ -70,7 +71,7 @@ export const STablePagination = ({
     <StyledPaginationWrapper mt={mt}>
       {!isLoading && (
         <>
-          <PageCounter count={total} />
+          <PageCounter count={total} label={totalLabel} />
           {pageSizeSlot}
           <Pagination
             count={Math.ceil(total / limit)}

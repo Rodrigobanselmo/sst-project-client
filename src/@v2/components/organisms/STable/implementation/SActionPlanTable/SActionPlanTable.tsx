@@ -1,9 +1,11 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 
 import { SIconComments } from '@v2/assets/icons';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
 import { OccupationalRiskTag } from '@v2/components/organisms/STable/implementation/SActionPlanTable/components/OccupationalRiskTag/OccupationalRiskTag';
+import { ActionPlanBrowseGroupModel } from '@v2/models/security/models/action-plan/action-plan-browse-group.model';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
+import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectHRow';
 import { SSelectRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectRow';
@@ -25,6 +27,7 @@ import { ActionPlanValidDateSelect } from './components/ActionPlanValidDateSelec
 import { ActionPlanEffectivenessBadge } from './components/ActionPlanEffectivenessBadge/ActionPlanEffectivenessBadge';
 import { ActionPlanExposedWorkersBadge } from './components/ActionPlanExposedWorkersBadge/ActionPlanExposedWorkersBadge';
 import { ActionPlanRecommendationTypeBadge } from './components/ActionPlanRecommendationTypeBadge/ActionPlanRecommendationTypeBadge';
+import { ActionPlanGroupTableRow } from './components/ActionPlanGroupTableRow/ActionPlanGroupTableRow';
 import {
   computePopulationPriorityMap,
   PopulationPriorityEnum,
@@ -35,12 +38,14 @@ import { useActionPlanActions } from './hooks/useActionPlanActions';
 import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map';
 import { IActionPlanTableTableProps } from './SActionPlanTable.types';
 import { Box } from '@mui/material';
-import { TasksActionPlanTable } from '../STaskTable/implementation/TaskTable/TasksActionPlanTable';
 import { TasksSubActionPlanTable } from '../STaskTable/implementation/TaskTable/TasksSubActionPlanTable';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   companyId,
   data = [],
+  groups = [],
+  view = ActionPlanBrowseViewEnum.LINKS,
+  totals,
   table,
   filters,
   setFilters,
@@ -56,19 +61,32 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   pageSizeOptions,
   onPageSizeChange,
 }) => {
+  const isGrouped = view === ActionPlanBrowseViewEnum.GROUPED;
+  const [expandedGroupIds, setExpandedGroupIds] = useState<Record<string, boolean>>(
+    {},
+  );
   const orderByMap = mapOrderByTable(filters.orderBy);
   const { onViewComment } = useActionPlanActions();
-  const populationPriorityMap = useMemo(
-    () => computePopulationPriorityMap(data),
-    [data],
+  const applicationRows = useMemo(
+    () => (isGrouped ? groups.flatMap((group) => group.applications) : data),
+    [data, groups, isGrouped],
   );
+  const populationPriorityMap = useMemo(
+    () => computePopulationPriorityMap(applicationRows),
+    [applicationRows],
+  );
+  const selectIds = applicationRows.map((row) => row.id);
+  const groupedTotalLabel =
+    isGrouped && totals
+      ? `${totals.acoes} ações · ${totals.vinculos} aplicações`
+      : undefined;
 
   const tableRows: ITableData<ActionPlanBrowseResultModel>[] = [
     // CHECK_BOX
     {
       column: '20px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.CHECK_BOX),
-      header: <SSelectHRow table={table} ids={data.map((row) => row.id)} />,
+      header: <SSelectHRow table={table} ids={selectIds} />,
       row: (row) => <SSelectRow table={table} id={row.id} />,
     },
     // ID
@@ -354,18 +372,70 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         table={tableRows}
         data={data}
         renderHeader={(headers) => <STableHeader>{headers}</STableHeader>}
-        renderBody={({ data, rows }) => (
+        renderBody={({ data: bodyData, rows }) => (
           <STableBody
-            rows={data}
+            rows={isGrouped ? (groups as unknown as ActionPlanBrowseResultModel[]) : bodyData}
             renderRow={(row) => {
+              if (isGrouped) {
+                const group = row as unknown as ActionPlanBrowseGroupModel;
+                const expanded = !!expandedGroupIds[group.id];
+
+                return (
+                  <Box key={group.id}>
+                    <ActionPlanGroupTableRow
+                      group={group}
+                      expanded={expanded}
+                      hiddenColumns={hiddenColumns}
+                      onToggle={() =>
+                        setExpandedGroupIds((current) => ({
+                          ...current,
+                          [group.id]: !current[group.id],
+                        }))
+                      }
+                    />
+                    {expanded &&
+                      group.applications.map((application) => (
+                        <Box key={application.id} pl={1}>
+                          <STableRow
+                            clickable
+                            onClick={() => onSelectRow(application)}
+                            minHeight={35}
+                            sx={
+                              populationPriorityMap[application.id] ===
+                              PopulationPriorityEnum.HIGH
+                                ? {
+                                    boxShadow: (theme) =>
+                                      `inset 3px 0 0 ${theme.palette.error.main}`,
+                                  }
+                                : undefined
+                            }
+                          >
+                            {rows.map((render) => render(application))}
+                          </STableRow>
+                          {application.uuid.id && (
+                            <Box mx={-1}>
+                              <TasksSubActionPlanTable
+                                companyId={companyId}
+                                actionPlanId={application.uuid.id}
+                              />
+                            </Box>
+                          )}
+                        </Box>
+                      ))}
+                  </Box>
+                );
+              }
+
+              const linkRow = row as ActionPlanBrowseResultModel;
+
               return (
-                <Box key={row.id}>
+                <Box key={linkRow.id}>
                   <STableRow
                     clickable
-                    onClick={() => onSelectRow(row)}
+                    onClick={() => onSelectRow(linkRow)}
                     minHeight={35}
                     sx={
-                      populationPriorityMap[row.id] ===
+                      populationPriorityMap[linkRow.id] ===
                       PopulationPriorityEnum.HIGH
                         ? {
                             boxShadow: (theme) =>
@@ -374,13 +444,13 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
                         : undefined
                     }
                   >
-                    {rows.map((render) => render(row))}
+                    {rows.map((render) => render(linkRow))}
                   </STableRow>
-                  {row.uuid.id && (
+                  {linkRow.uuid.id && (
                     <Box mx={-1}>
                       <TasksSubActionPlanTable
                         companyId={companyId}
-                        actionPlanId={row.uuid.id}
+                        actionPlanId={linkRow.uuid.id}
                       />
                     </Box>
                   )}
@@ -398,6 +468,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         setPage={setPage}
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
+        totalLabel={groupedTotalLabel}
       />
     </>
   );

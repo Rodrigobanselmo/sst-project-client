@@ -24,8 +24,10 @@ import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.tra
 import { ordenByActionPlanTranslation } from '@v2/models/security/translations/orden-by-action-plan.translation';
 import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/hooks/useFetchBrowseActionPlan';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
+import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
 import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/ActionPlanTableFilter';
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
+import { ActionPlanViewToggle } from './components/ActionPlanViewToggle/ActionPlanViewToggle';
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 import { OccupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
 import { useMutateExportActionPlan } from '@v2/services/export/action-plan/hooks/useMutateExportActionPlan';
@@ -62,9 +64,15 @@ export const ActionPlanTable = ({
     defaultLimit,
   } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_ACTION_PLAN);
 
+  const view =
+    queryParams.view === ActionPlanBrowseViewEnum.GROUPED
+      ? ActionPlanBrowseViewEnum.GROUPED
+      : ActionPlanBrowseViewEnum.LINKS;
+
   const { data, isLoading } = useFetchBrowseActionPlan({
     companyId,
     workspaceId,
+    view: view === ActionPlanBrowseViewEnum.GROUPED ? view : undefined,
     filters: {
       search: queryParams.search,
       occupationalRisks: queryParams.occupationalRisks,
@@ -118,6 +126,7 @@ export const ActionPlanTable = ({
     setData: setQueryParams,
     chipMap: {
       search: null,
+      view: null,
       isExpired: (value) => ({
         label: value ? 'Expirado' : 'Não Expirado',
         onDelete: () =>
@@ -213,6 +222,7 @@ export const ActionPlanTable = ({
       generateSources: [],
       page: 1,
       limit: defaultLimit,
+      view: ActionPlanBrowseViewEnum.LINKS,
     },
     });
 
@@ -277,7 +287,15 @@ export const ActionPlanTable = ({
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
-          {null}
+          <ActionPlanViewToggle
+            value={view}
+            onChange={(nextView) =>
+              onFilterData({
+                view: nextView,
+                page: 1,
+              })
+            }
+          />
           <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
@@ -339,6 +357,9 @@ export const ActionPlanTable = ({
         hiddenColumns={hiddenColumns}
         onSelectRow={(row) => onSelectRow(row)}
         data={data?.results}
+        groups={data?.groups}
+        view={view}
+        totals={data?.totals}
         isLoading={isLoading}
         pagination={data?.pagination}
         setPage={(page) => onFilterData({ page })}

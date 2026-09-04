@@ -41,6 +41,7 @@ export type IActionPlanBrowseResultModel = {
     name: string;
     type: RiskTypeEnum;
     subTypes?: { id: number; name: string }[];
+    severity?: number | null;
   };
   origin: { id: string; name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
@@ -73,6 +74,7 @@ export class ActionPlanBrowseResultModel {
     name: string;
     type: RiskTypeEnum;
     subTypes?: { id: number; name: string }[];
+    severity: number | null;
   };
   origin: { id: string; name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
@@ -95,7 +97,10 @@ export class ActionPlanBrowseResultModel {
     this.validDate = params.validDate ? new Date(params.validDate) : null;
     this.generateSource = params.generateSources;
     this.recommendation = params.recommendation;
-    this.risk = params.risk;
+    this.risk = {
+      ...params.risk,
+      severity: params.risk.severity ?? null,
+    };
     this.responsible = params.responsible;
     this.origin = params.origin;
     this.comments = params.comments.map(

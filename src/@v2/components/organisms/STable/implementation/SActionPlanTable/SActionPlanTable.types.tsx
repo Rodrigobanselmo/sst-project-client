@@ -2,9 +2,11 @@ import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { SStatusButtonRowProps } from '../../addons/addons-rows/SStatusButtonRow/SStatusButtonRow';
 import { TablesSelectEnum } from '../../hooks/useTableSelect';
 import { ReactNode } from 'react';
+import { ActionPlanBrowseGroupModel } from '@v2/models/security/models/action-plan/action-plan-browse-group.model';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
 import { ActionPlanColumnsEnum } from './enums/action-plan-columns.enum';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
+import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { IRiskLevelValues } from '@v2/models/security/types/risk-level-values.type';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
@@ -34,11 +36,15 @@ export interface IActionPlanFilterProps {
   page?: number;
   limit?: number;
   orderBy?: IOrderByParams<ActionPlanOrderByEnum>[];
+  view?: ActionPlanBrowseViewEnum;
 }
 
 export interface IActionPlanTableTableProps {
   companyId: string;
   data?: ActionPlanBrowseResultModel[];
+  groups?: ActionPlanBrowseGroupModel[];
+  view?: ActionPlanBrowseViewEnum;
+  totals?: { acoes: number; vinculos: number };
   table: TablesSelectEnum;
   hiddenColumns: Record<ActionPlanColumnsEnum, boolean>;
   filterColumns: Partial<Record<ActionPlanColumnsEnum, ReactNode>>;

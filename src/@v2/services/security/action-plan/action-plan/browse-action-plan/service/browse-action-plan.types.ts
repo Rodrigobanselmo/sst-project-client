@@ -1,3 +1,4 @@
+import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
@@ -42,4 +43,5 @@ export interface BrowseActionPlanParams {
     isCanceled?: boolean;
     isExpired?: boolean;
   };
+  view?: ActionPlanBrowseViewEnum;
 }

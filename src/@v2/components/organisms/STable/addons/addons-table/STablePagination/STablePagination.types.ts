@@ -11,4 +11,5 @@ export interface STableLoadMoreProps {
   endSlot?: ReactNode;
   pageSizeOptions?: number[];
   onPageSizeChange?: (size: number) => void;
+  totalLabel?: string;
 }

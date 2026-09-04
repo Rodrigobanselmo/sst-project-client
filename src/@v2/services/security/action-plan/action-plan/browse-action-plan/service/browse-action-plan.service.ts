@@ -13,6 +13,7 @@ export async function browseActionPlan({
   companyId,
   workspaceId,
   filters = {},
+  view,
 }: BrowseActionPlanParams) {
   const response = await api.get<IActionPlanBrowseModel>(
     bindUrlParams({
@@ -22,6 +23,7 @@ export async function browseActionPlan({
         orderBy: orderBy?.filter(({ order }) => order != 'none'),
         ...pagination,
         ...filters,
+        view,
       },
     }),
   );
