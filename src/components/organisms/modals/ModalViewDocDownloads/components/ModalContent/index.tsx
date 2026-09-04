@@ -27,6 +27,7 @@ import {
 } from '../../helpers/pgr-download-labels.util';
 import {
   buildPgrDownloadModalOptions,
+  groupPgrDownloadAnnexesByCategory,
   groupPgrDownloadOptionsBySection,
 } from '../../helpers/pgr-download-modal.util';
 import { IUseDocs } from '../../hooks/useModalViewDocDownload';
@@ -78,6 +79,7 @@ export const ModalContentDoc = ({
         })
       : [];
   const pgrGrouped = groupPgrDownloadOptionsBySection(pgrOptions);
+  const pgrAnnexGroups = groupPgrDownloadAnnexesByCategory(pgrGrouped.annexes);
 
   const isDownloading = (url: string) =>
     isPcmsoDownloadUrlLoading(url, downloadMutation);
@@ -187,9 +189,23 @@ export const ModalContentDoc = ({
           <SText mt={4} mb={0} color="text.light">
             {PGR_DOWNLOAD_SECTION_ANNEXES}
           </SText>
-          <SFlex direction="column" gap={5} mt={5} mb={10}>
-            {renderAnnexButtons(pgrGrouped.annexes)}
-          </SFlex>
+          <Box mb={10}>
+            {pgrAnnexGroups.categories.map((group) => (
+              <Box key={group.id}>
+                <SText mt={5} mb={0} fontSize={13} color="text.light">
+                  {group.title}
+                </SText>
+                <SFlex direction="column" gap={5} mt={5} mb={2}>
+                  {renderAnnexButtons(group.options)}
+                </SFlex>
+              </Box>
+            ))}
+            {pgrAnnexGroups.uncategorized.length > 0 && (
+              <SFlex direction="column" gap={5} mt={5}>
+                {renderAnnexButtons(pgrAnnexGroups.uncategorized)}
+              </SFlex>
+            )}
+          </Box>
         </>
       )}
 

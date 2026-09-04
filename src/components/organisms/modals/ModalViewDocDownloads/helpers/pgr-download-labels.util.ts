@@ -11,6 +11,14 @@ export function buildPgrConsolidatedDownloadUrl(params: {
   return `${ApiRoutesEnum.DOCUMENTS_BASE}/pgr-consolidated/docx/${params.docId}/${params.companyId}?profile=${params.profile}`;
 }
 
+export function buildPgrActionPlanAnnexDownloadUrl(params: {
+  docId: string;
+  companyId: string;
+  format: 'grouped';
+}): string {
+  return `${ApiRoutesEnum.DOCUMENTS_BASE}/pgr-action-plan/docx/${params.docId}/${params.companyId}?format=${params.format}`;
+}
+
 /** Remove sufixo "(APR)" exibido nos nomes de anexos gerados pela API. */
 export function formatPgrAttachmentDisplayName(name: string): string {
   return name.replace(/ \(APR\)/gi, '').trim();

@@ -39,6 +39,8 @@ assert.equal(filter.includes('identityFill'), false);
 assert.equal(exp.includes('color="info"'), true);
 assert.equal(exp.includes('{...tableButtonProps}'), true);
 assert.equal(exp.includes('identityFill'), false);
+assert.equal(exp.includes('menuItems'), true);
+assert.equal(exp.includes('finally'), true);
 
 assert.equal(add.includes('identityFill = false'), true);
 

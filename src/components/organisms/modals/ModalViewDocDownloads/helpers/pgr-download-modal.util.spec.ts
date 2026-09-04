@@ -1,6 +1,7 @@
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import {
+  buildPgrActionPlanAnnexDownloadUrl,
   buildPgrConsolidatedDownloadUrl,
   getPgrEssentialDownloadLabel,
   getPgrEssentialRecommendedBadge,
@@ -9,6 +10,7 @@ import {
 } from './pgr-download-labels.util';
 import {
   buildPgrDownloadModalOptions,
+  groupPgrDownloadAnnexesByCategory,
   groupPgrDownloadOptionsBySection,
   isPgrDownloadUrlLoading,
 } from './pgr-download-modal.util';
@@ -67,10 +69,74 @@ describe('pgr-download-modal.util', () => {
     expect(grouped.document.every((o) => o.section === 'Documento')).toBe(true);
     expect(grouped.annexes.every((o) => o.section === 'Anexos')).toBe(true);
     expect(grouped.annexes.map((o) => o.label)).toEqual([
-      'Baixar Inventário por Função',
-      'Baixar Inventário por GSE',
-      'Baixar Plano de Ação',
+      'Baixar Inventário de Risco por Função',
+      'Baixar Inventário de Risco por GSE',
+      'Baixar Plano de Ação Detalhado',
+      'Baixar Plano de Ação Agrupado',
     ]);
+  });
+
+  it('groups annexes by visual category shared by PGR and FRPS', () => {
+    const pgr = groupPgrDownloadAnnexesByCategory(
+      groupPgrDownloadOptionsBySection(buildPgrDownloadModalOptions(baseParams))
+        .annexes,
+    );
+    const frps = groupPgrDownloadAnnexesByCategory(
+      groupPgrDownloadOptionsBySection(
+        buildPgrDownloadModalOptions({
+          ...baseParams,
+          documentType: DocumentTypeEnum.FRPS,
+        }),
+      ).annexes,
+    );
+
+    expect(pgr.categories.map((group) => group.title)).toEqual([
+      'Inventário de Riscos',
+      'Plano de Ação',
+    ]);
+    expect(pgr.categories[0].options.map((o) => o.label)).toEqual([
+      'Baixar Inventário de Risco por Função',
+      'Baixar Inventário de Risco por GSE',
+    ]);
+    expect(pgr.categories[1].options.map((o) => o.label)).toEqual([
+      'Baixar Plano de Ação Detalhado',
+      'Baixar Plano de Ação Agrupado',
+    ]);
+    expect(pgr.categories.map((group) => group.title)).toEqual(
+      frps.categories.map((group) => group.title),
+    );
+    expect(pgr.uncategorized).toEqual([]);
+    expect(
+      pgr.categories[1].options.find((o) => o.id === 'pgr-action-plan-grouped')
+        ?.url,
+    ).toBe(
+      '/documents/base/pgr-action-plan/docx/doc-pgr-1/company-1?format=grouped',
+    );
+    expect(
+      buildPgrActionPlanAnnexDownloadUrl({
+        docId: 'doc-pgr-1',
+        companyId: 'company-1',
+        format: 'grouped',
+      }),
+    ).toContain('format=grouped');
+  });
+
+  it('keeps Documento labels unchanged for PGR and FRPS', () => {
+    const pgr = groupPgrDownloadOptionsBySection(
+      buildPgrDownloadModalOptions(baseParams),
+    ).document;
+    const frps = groupPgrDownloadOptionsBySection(
+      buildPgrDownloadModalOptions({
+        ...baseParams,
+        documentType: DocumentTypeEnum.FRPS,
+      }),
+    ).document;
+
+    expect(pgr.map((o) => o.id)).toEqual(['pgr-main', 'pgr-essential', 'pgr-full']);
+    expect(pgr[1].label).toBe('Baixar PGR com anexos essenciais');
+    expect(frps[1].label).toBe('Baixar FRPS com anexos essenciais');
+    expect(pgr[2].label).toBe('Baixar PGR completo');
+    expect(frps[2].label).toBe('Baixar FRPS completo');
   });
 
   it('tracks loading independently per URL', () => {

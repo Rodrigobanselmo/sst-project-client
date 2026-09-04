@@ -31,6 +31,9 @@ import { ActionPlanViewToggle } from './components/ActionPlanViewToggle/ActionPl
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 import { OccupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
 import { useMutateExportActionPlan } from '@v2/services/export/action-plan/hooks/useMutateExportActionPlan';
+import { useMutateDownloadActionPlanDocument } from '@v2/services/export/action-plan/hooks/useMutateDownloadActionPlanDocument';
+import { ActionPlanDocumentFormat } from '@v2/services/export/action-plan/service/download-action-plan-document.types';
+import { buildActionPlanWordDownloadPayload } from './utils/build-action-plan-screen-export-filters';
 import { useActionPlanTableActions } from './hooks/useActionPlanActions';
 import { useCallback } from 'react';
 
@@ -235,6 +238,8 @@ export const ActionPlanTable = ({
 
   const { onSelectRow } = useActionPlanTableActions({ companyId });
   const exportMutation = useMutateExportActionPlan();
+  const wordMutation = useMutateDownloadActionPlanDocument();
+  const isExporting = exportMutation.isPending || wordMutation.isPending;
 
   const handleExport = useCallback(async () => {
     await exportMutation.mutateAsync({
@@ -280,6 +285,21 @@ export const ActionPlanTable = ({
     exportMutation,
   ]);
 
+  const handleWordExport = useCallback(
+    async (format: ActionPlanDocumentFormat) => {
+      await wordMutation.mutateAsync(
+        buildActionPlanWordDownloadPayload({
+          companyId,
+          workspaceId,
+          format,
+          queryParams,
+          userId,
+        }),
+      );
+    },
+    [companyId, workspaceId, queryParams, userId, wordMutation],
+  );
+
   return (
     <>
       <STableSearch
@@ -314,8 +334,25 @@ export const ActionPlanTable = ({
           </STableFilterButton>
           <STableButtonDivider />
           <STableExportButton
-            onClick={handleExport}
+            disabled={isExporting}
             tableButtonProps={tableUtilityPillButtonProps}
+            menuItems={[
+              {
+                id: 'excel',
+                label: 'Excel',
+                onClick: handleExport,
+              },
+              {
+                id: 'word-detailed',
+                label: 'Word · Plano de Ação Detalhado',
+                onClick: () => handleWordExport('detailed'),
+              },
+              {
+                id: 'word-grouped',
+                label: 'Word · Plano de Ação Agrupado',
+                onClick: () => handleWordExport('grouped'),
+              },
+            ]}
           />
         </STableSearchContent>
       </STableSearch>

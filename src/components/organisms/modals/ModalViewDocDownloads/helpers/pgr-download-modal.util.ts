@@ -1,6 +1,14 @@
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import {
+  classifyPgrDownloadAnnex,
+  getPgrDownloadAnnexCategoryId,
+  getPgrDownloadAnnexCategoryTitle,
+  getPgrDownloadAnnexLabel,
+  type PgrDownloadAnnexCategoryId,
+} from './pgr-download-annex-categories.util';
+import {
+  buildPgrActionPlanAnnexDownloadUrl,
   buildPgrConsolidatedDownloadUrl,
   formatPgrAttachmentDisplayName,
   getPgrEssentialDownloadDescription,
@@ -27,6 +35,7 @@ export type PgrDownloadOption = {
   description?: string;
   badge?: string;
   recommended?: boolean;
+  annexCategory?: PgrDownloadAnnexCategoryId;
 };
 
 export type BuildPgrDownloadModalOptionsParams = {
@@ -38,8 +47,25 @@ export type BuildPgrDownloadModalOptionsParams = {
   attachments?: PgrDownloadAttachmentInput[];
 };
 
+export type PgrDownloadAnnexCategoryGroup = {
+  id: PgrDownloadAnnexCategoryId;
+  title: string;
+  options: PgrDownloadOption[];
+};
+
+const ANNEX_CATEGORY_ORDER: PgrDownloadAnnexCategoryId[] = ['inventory', 'action_plan'];
+
+const optionOrder = (option: PgrDownloadOption): number => {
+  if (option.id === 'pgr-action-plan-grouped') return 1;
+  if (option.label.includes('Função')) return 0;
+  if (option.label.includes('GSE')) return 1;
+  if (option.label.includes('Detalhado')) return 0;
+  return 50;
+};
+
 /**
  * Pure builder for PGR/FRPS download modal options — same UX concept as PCMSO.
+ * Documento stays unchanged. Anexos are classified for visual categories.
  */
 export function buildPgrDownloadModalOptions(
   params: BuildPgrDownloadModalOptionsParams,
@@ -90,14 +116,32 @@ export function buildPgrDownloadModalOptions(
     },
   ];
 
-  const annexOptions: PgrDownloadOption[] = attachments.map((attachment) => {
+  const annexOptions: PgrDownloadOption[] = [];
+
+  attachments.forEach((attachment) => {
+    const kind = classifyPgrDownloadAnnex(attachment.name);
     const attachmentUrl = `${downloadAttRoute.replace(':docId', docId)}/${attachment.id}/${companyId}`;
-    return {
+    annexOptions.push({
       id: `pgr-attachment-${attachment.id}`,
       section: PGR_DOWNLOAD_SECTION_ANNEXES,
       url: attachmentUrl,
-      label: `Baixar ${formatPgrAttachmentDisplayName(attachment.name)}`,
-    } satisfies PgrDownloadOption;
+      label: kind
+        ? getPgrDownloadAnnexLabel(kind)
+        : `Baixar ${formatPgrAttachmentDisplayName(attachment.name)}`,
+      annexCategory: kind ? getPgrDownloadAnnexCategoryId(kind) : undefined,
+    });
+  });
+
+  annexOptions.push({
+    id: 'pgr-action-plan-grouped',
+    section: PGR_DOWNLOAD_SECTION_ANNEXES,
+    url: buildPgrActionPlanAnnexDownloadUrl({
+      docId,
+      companyId,
+      format: 'grouped',
+    }),
+    label: getPgrDownloadAnnexLabel('action_plan_grouped'),
+    annexCategory: 'action_plan',
   });
 
   return [...documentOptions, ...annexOptions];
@@ -108,6 +152,26 @@ export function groupPgrDownloadOptionsBySection(options: PgrDownloadOption[]) {
     document: options.filter((o) => o.section === PGR_DOWNLOAD_SECTION_DOCUMENT),
     annexes: options.filter((o) => o.section === PGR_DOWNLOAD_SECTION_ANNEXES),
   };
+}
+
+export function groupPgrDownloadAnnexesByCategory(
+  annexes: PgrDownloadOption[],
+): {
+  categories: PgrDownloadAnnexCategoryGroup[];
+  uncategorized: PgrDownloadOption[];
+} {
+  const categories = ANNEX_CATEGORY_ORDER.map((id) => ({
+    id,
+    title: getPgrDownloadAnnexCategoryTitle(id),
+    options: annexes
+      .filter((option) => option.annexCategory === id)
+      .slice()
+      .sort((left, right) => optionOrder(left) - optionOrder(right)),
+  })).filter((group) => group.options.length > 0);
+
+  const uncategorized = annexes.filter((option) => !option.annexCategory);
+
+  return { categories, uncategorized };
 }
 
 export function isPgrDownloadUrlLoading(
