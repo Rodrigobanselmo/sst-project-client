@@ -17,12 +17,18 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
+import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import { STagRisk } from 'components/atoms/STagRisk';
 import {
   brandIdentityToolbarAddSx,
   tableUtilityPillButtonProps,
+  tableUtilityPillSx,
 } from 'configs/theme/brand-identity-fill';
+import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
+import { examRiskFilterList } from 'components/organisms/tables/ExamsRiskTable/examRiskFilterList';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
@@ -162,6 +168,7 @@ type AiSuggestionsContext = {
 
 type ExamRiskColumnKey =
   | 'RISK'
+  | 'RISK_TYPE'
   | 'EXAM'
   | 'LIBRARY_STATUS'
   | 'COVERAGE_STATUS'
@@ -173,7 +180,7 @@ type ExamRiskColumnKey =
   | 'MIN_QUALITATIVE'
   | 'MIN_QUANTITATIVE';
 
-type SortField = 'risk' | 'exam' | 'validity';
+type SortField = 'risk' | 'exam' | 'validity' | 'type';
 
 type ColumnDef = {
   key: ExamRiskColumnKey;
@@ -184,7 +191,13 @@ type ColumnDef = {
 };
 
 const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'RISK', label: 'Risco', width: 'minmax(250px, 5fr)', sortField: 'risk' },
+  {
+    key: 'RISK_TYPE',
+    label: 'Tipo do fator de risco',
+    width: 'minmax(160px, 1.4fr)',
+    sortField: 'type',
+  },
+  { key: 'RISK', label: 'Fator de risco', width: 'minmax(250px, 5fr)', sortField: 'risk' },
   { key: 'EXAM', label: 'Exame', width: 'minmax(150px, 5fr)', sortField: 'exam' },
   { key: 'PERIODICITY', label: 'Periodicidade', width: '120px' },
   { key: 'SEX', label: 'Sexo', width: '55px' },
@@ -236,6 +249,9 @@ export const ExamsRiskTable: FC<
   isAllEstablishments = false,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const filterProps = useFilterTable(undefined, {
+    setPage,
+  });
   const [sort, setSort] = useState<{ field: SortField; order: 'asc' | 'desc' } | null>(
     null,
   );
@@ -253,6 +269,19 @@ export const ExamsRiskTable: FC<
 
   const isSelect = !!onSelectData;
   const effectiveLimit = rowsPerPage ?? pageLimit;
+  const examRiskFilters = useMemo(() => {
+    const asArray = (value: unknown): string[] | undefined =>
+      Array.isArray(value) && value.length ? value.map(String) : undefined;
+
+    return {
+      riskTypes: asArray(filterProps.filtersQuery.riskTypes),
+      riskNames: asArray(filterProps.filtersQuery.riskNames),
+      examNames: asArray(filterProps.filtersQuery.examNames),
+      periodicity: asArray(filterProps.filtersQuery.periodicity),
+      sex: asArray(filterProps.filtersQuery.sex),
+      ageRange: asArray(filterProps.filtersQuery.ageRange),
+    };
+  }, [filterProps.filtersQuery]);
 
   const {
     orderBy: _ignoredOrderBy,
@@ -275,6 +304,22 @@ export const ExamsRiskTable: FC<
       search,
       workspaceId,
       ...restQuery,
+      ...(examRiskFilters.riskTypes
+        ? { riskTypes: examRiskFilters.riskTypes }
+        : {}),
+      ...(examRiskFilters.riskNames
+        ? { riskNames: examRiskFilters.riskNames }
+        : {}),
+      ...(examRiskFilters.examNames
+        ? { examNames: examRiskFilters.examNames }
+        : {}),
+      ...(examRiskFilters.periodicity
+        ? { periodicity: examRiskFilters.periodicity }
+        : {}),
+      ...(examRiskFilters.sex ? { sex: examRiskFilters.sex } : {}),
+      ...(examRiskFilters.ageRange
+        ? { ageRange: examRiskFilters.ageRange }
+        : {}),
       ...(sort ? { orderBy: sort.field, orderByDirection: sort.order } : {}),
     },
     effectiveLimit,
@@ -543,13 +588,21 @@ export const ExamsRiskTable: FC<
     if (patch.page) setPage(patch.page);
   });
 
-  const onToggleSort = (field: SortField) => {
+  const onSort = (field: SortField, order: 'asc' | 'desc') => {
     setSeveritySort(null);
-    setSort((prev) => {
-      if (prev?.field !== field) return { field, order: 'asc' };
-      if (prev.order === 'asc') return { field, order: 'desc' };
-      return null;
-    });
+    setSort({ field, order });
+    setPage(1);
+  };
+
+  const onHideColumn = (key: ExamRiskColumnKey) => {
+    setHiddenColumns((prev) => ({ ...prev, [key]: true }));
+  };
+
+  const onClearTablePreferences = () => {
+    setSort(null);
+    setSeveritySort(null);
+    setHiddenColumns({});
+    filterProps.clearFilter();
     setPage(1);
   };
 
@@ -735,30 +788,6 @@ export const ExamsRiskTable: FC<
     .map((def) => def.width)
     .join(' ')} ${showPcmsoStatus ? '108px' : '80px'}`;
 
-  const renderSortableHeader = (def: ColumnDef): ReactElement => {
-    const active = sort?.field === def.sortField;
-    return (
-      <STableHRow
-        justifyContent={def.justify as any}
-        sx={{ cursor: 'pointer', userSelect: 'none' }}
-        onClick={() => def.sortField && onToggleSort(def.sortField)}
-      >
-        {def.label}
-        {!active && (
-          <UnfoldMoreIcon sx={{ fontSize: 14, ml: 0.5, color: 'grey.400' }} />
-        )}
-        {active && sort?.order === 'asc' && (
-          <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }} />
-        )}
-        {active && sort?.order === 'desc' && (
-          <ArrowDownwardIcon
-            sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }}
-          />
-        )}
-      </STableHRow>
-    );
-  };
-
   const tableChrome = (
     <>
       {!isSelect && (
@@ -786,6 +815,8 @@ export const ExamsRiskTable: FC<
         onReloadClick={onRefetchThrottle}
         identitySquareActions
         pinToolbarWithFilter
+        filterButtonSx={tableUtilityPillSx}
+        filterProps={{ filters: examRiskFilterList, ...filterProps }}
         toolbarBeforeFilter={
           <STableColumnsButton
             showLabel
@@ -859,6 +890,7 @@ export const ExamsRiskTable: FC<
           </>
         }
       />
+      <FilterTagList filterProps={filterProps} />
       {showPcmsoStatus && !isSelect && (
         <ExamRiskWorkspaceContextBanner
           workspaceLabel={workspaceContextLabel}
@@ -1005,12 +1037,17 @@ export const ExamsRiskTable: FC<
               />
             )}
           </STableHRow>
-        ) : def.sortField ? (
-          cloneElement(renderSortableHeader(def), { key: def.key })
         ) : (
-          <STableHRow key={def.key} justifyContent={def.justify as any}>
-            {def.label}
-          </STableHRow>
+          <TableSortColumnHeader<SortField>
+            key={def.key}
+            label={def.label}
+            sortField={def.sortField}
+            activeSort={sort}
+            justifyContent={def.justify as any}
+            onSort={onSort}
+            onHideColumn={() => onHideColumn(def.key)}
+            onClearTable={onClearTablePreferences}
+          />
         ),
       )}
       <STableHRow justifyContent="center">Ações</STableHRow>
@@ -1020,14 +1057,29 @@ export const ExamsRiskTable: FC<
   const renderCell = (def: ColumnDef, row: IExamToRisk): ReactElement | null => {
     switch (def.key) {
       case 'RISK': {
+        const riskName = row.risk?.name || '-';
+
         if (!showPcmsoStatus) {
-          return <TextIconRow clickable text={row.risk?.name || '-'} />;
+          return (
+            <TextIconRow
+              clickable
+              text={riskName}
+              lineNumber={2}
+              tooltipTitle={riskName}
+              tooltipProps={{ minLength: 0 }}
+            />
+          );
         }
 
         const statusItem = getStatusItemForRow(row);
 
         return (
-          <TextIconRow clickable sx={{ minWidth: 0, width: '100%' }}>
+          <TextIconRow
+            clickable
+            sx={{ minWidth: 0, width: '100%' }}
+            tooltipTitle={riskName}
+            tooltipProps={{ minLength: 0 }}
+          >
             <SFlex align="center" gap={1} sx={{ minWidth: 0, width: '100%' }}>
               <Box onClick={(event) => event.stopPropagation()}>
                 <CharacterizationStatusChip
@@ -1037,16 +1089,22 @@ export const ExamsRiskTable: FC<
               </Box>
               <SText
                 fontSize={12}
-                lineNumber={1}
+                lineNumber={2}
                 className="table-row-text"
                 sx={{ minWidth: 0, flex: 1 }}
               >
-                {row.risk?.name || '-'}
+                {riskName}
               </SText>
             </SFlex>
           </TextIconRow>
         );
       }
+      case 'RISK_TYPE':
+        return row.risk ? (
+          <STagRisk hideRiskName riskFactor={row.risk} />
+        ) : (
+          <TextIconRow clickable text="-" />
+        );
       case 'EXAM':
         return <TextIconRow clickable text={row.exam?.name || '-'} />;
       case 'LIBRARY_STATUS': {

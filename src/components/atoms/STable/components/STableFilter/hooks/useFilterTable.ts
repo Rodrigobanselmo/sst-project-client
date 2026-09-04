@@ -63,6 +63,11 @@ export type IFilterTableData = {
   [FilterFieldEnum.RISK_MUST_IS_PPP]?: IFilterTableType<{ filterValue: string }[]>;
   [FilterFieldEnum.RISK_MUST_IS_PCMSO]?: IFilterTableType<{ filterValue: string }[]>;
   [FilterFieldEnum.RISK_MUST_IS_ASO]?: IFilterTableType<{ filterValue: string }[]>;
+  [FilterFieldEnum.EXAM_RISK_NAMES]?: IFilterTableType<string[]>;
+  [FilterFieldEnum.EXAM_RISK_EXAM_NAMES]?: IFilterTableType<string[]>;
+  [FilterFieldEnum.EXAM_RISK_PERIODICITY]?: IFilterTableType<string[]>;
+  [FilterFieldEnum.EXAM_RISK_SEX]?: IFilterTableType<string[]>;
+  [FilterFieldEnum.EXAM_RISK_AGE_RANGE]?: IFilterTableType<string[]>;
   [FilterFieldEnum.ABSENTEEISM_EMPLOYEES]?: IFilterTableType<IEmployee[]>;
   [FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS]?: IFilterTableType<AbsenteeismMotive[]>;
   [FilterFieldEnum.ABSENTEEISM_OVERLAP_START]?: IFilterTableType<Date[]>;

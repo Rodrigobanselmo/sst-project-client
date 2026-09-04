@@ -15,8 +15,14 @@ export interface IQueryExamRisk {
   search?: string | null;
   companyId?: string;
   workspaceId?: string;
-  orderBy?: 'risk' | 'exam' | 'validity';
+  orderBy?: 'risk' | 'exam' | 'validity' | 'type';
   orderByDirection?: 'asc' | 'desc';
+  riskTypes?: string[];
+  riskNames?: string[];
+  examNames?: string[];
+  periodicity?: string[];
+  sex?: string[];
+  ageRange?: string[];
 }
 
 export const queryExams = async (

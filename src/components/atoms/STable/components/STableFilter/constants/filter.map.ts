@@ -32,6 +32,13 @@ export enum FilterFieldEnum {
   RISK_MUST_IS_PCMSO = 'mustIsPCMSO',
   RISK_MUST_IS_ASO = 'mustIsAso',
 
+  /** Listagem Caracterização → Exames (ExamToRisk) */
+  EXAM_RISK_NAMES = 'riskNames',
+  EXAM_RISK_EXAM_NAMES = 'examNames',
+  EXAM_RISK_PERIODICITY = 'periodicity',
+  EXAM_RISK_SEX = 'sex',
+  EXAM_RISK_AGE_RANGE = 'ageRange',
+
   /** Listagem de absenteísmo */
   ABSENTEEISM_EMPLOYEES = 'employeeIds',
   ABSENTEEISM_MOTIVE_IDS = 'motiveIds',
@@ -139,6 +146,26 @@ export const filterFieldMap: IMap = {
   [FilterFieldEnum.RISK_MUST_IS_ASO]: {
     value: FilterFieldEnum.RISK_MUST_IS_ASO,
     name: 'Com ASO',
+  },
+  [FilterFieldEnum.EXAM_RISK_NAMES]: {
+    value: FilterFieldEnum.EXAM_RISK_NAMES,
+    name: 'Fator de risco',
+  },
+  [FilterFieldEnum.EXAM_RISK_EXAM_NAMES]: {
+    value: FilterFieldEnum.EXAM_RISK_EXAM_NAMES,
+    name: 'Exame',
+  },
+  [FilterFieldEnum.EXAM_RISK_PERIODICITY]: {
+    value: FilterFieldEnum.EXAM_RISK_PERIODICITY,
+    name: 'Periodicidade',
+  },
+  [FilterFieldEnum.EXAM_RISK_SEX]: {
+    value: FilterFieldEnum.EXAM_RISK_SEX,
+    name: 'Sexo',
+  },
+  [FilterFieldEnum.EXAM_RISK_AGE_RANGE]: {
+    value: FilterFieldEnum.EXAM_RISK_AGE_RANGE,
+    name: 'Faixa etária',
   },
   [FilterFieldEnum.ABSENTEEISM_EMPLOYEES]: {
     value: FilterFieldEnum.ABSENTEEISM_EMPLOYEES,

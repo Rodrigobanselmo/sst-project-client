@@ -30,6 +30,11 @@ import { useQueryAbsenteeismMotives } from 'core/services/hooks/queries/useQuery
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { RiskEnum, RiskMap } from 'project/enum/risk.enums';
 import { SeverityEnum } from 'project/enum/severity.enums';
+import {
+  EXAM_RISK_AGE_RANGE_FILTER_OPTIONS,
+  EXAM_RISK_PERIODICITY_FILTER_OPTIONS,
+  EXAM_RISK_SEX_FILTER_OPTIONS,
+} from '../constants/exam-risk-filter.constants';
 import { FilterFieldEnum, filterFieldMap } from '../constants/filter.map';
 import {
   ReportDownloadtypeEnum,
@@ -120,6 +125,31 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
     FilterFieldEnum.RISK_MUST_IS_PCMSO,
     FilterFieldEnum.RISK_MUST_IS_ASO,
   ].some((field) => filters[field]);
+
+  const showExamRiskFilterBlock = [
+    FilterFieldEnum.EXAM_RISK_NAMES,
+    FilterFieldEnum.EXAM_RISK_EXAM_NAMES,
+    FilterFieldEnum.EXAM_RISK_PERIODICITY,
+    FilterFieldEnum.EXAM_RISK_SEX,
+    FilterFieldEnum.EXAM_RISK_AGE_RANGE,
+  ].some((field) => filters[field]);
+
+  const addExamRiskNameChip = (
+    field: FilterFieldEnum.EXAM_RISK_NAMES | FilterFieldEnum.EXAM_RISK_EXAM_NAMES,
+    raw: string,
+  ) => {
+    const name = raw.trim();
+    if (!name) return;
+    filterProps.addFilter(
+      field,
+      {
+        data: name,
+        getId: (value) => value,
+        getName: (value) => value,
+      },
+      { addOnly: true, removeIfEqual: true },
+    );
+  };
 
   return (
     <SFlex
@@ -777,6 +807,152 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
                             getName: () => label,
                           });
                         }
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
+        </>
+      )}
+
+      {showExamRiskFilterBlock && (
+        <>
+          <Divider sx={{ mb: 2, mt: 2 }} />
+          {filters[FilterFieldEnum.EXAM_RISK_NAMES] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Fator de risco
+              </SText>
+              <SInput
+                superSmall
+                fullWidth
+                placeholder="Nome do fator (Enter para adicionar)"
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter') return;
+                  event.preventDefault();
+                  const target = event.target as HTMLInputElement;
+                  addExamRiskNameChip(
+                    FilterFieldEnum.EXAM_RISK_NAMES,
+                    target.value,
+                  );
+                  target.value = '';
+                }}
+              />
+            </Box>
+          )}
+          {filters[FilterFieldEnum.EXAM_RISK_EXAM_NAMES] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Exame
+              </SText>
+              <SInput
+                superSmall
+                fullWidth
+                placeholder="Nome do exame (Enter para adicionar)"
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter') return;
+                  event.preventDefault();
+                  const target = event.target as HTMLInputElement;
+                  addExamRiskNameChip(
+                    FilterFieldEnum.EXAM_RISK_EXAM_NAMES,
+                    target.value,
+                  );
+                  target.value = '';
+                }}
+              />
+            </Box>
+          )}
+          {filters[FilterFieldEnum.EXAM_RISK_PERIODICITY] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Periodicidade
+              </SText>
+              <SFlex flexWrap="wrap">
+                {EXAM_RISK_PERIODICITY_FILTER_OPTIONS.map((option) => {
+                  const isChecked = !!filterProps.filter?.[
+                    FilterFieldEnum.EXAM_RISK_PERIODICITY
+                  ]?.filters?.some((f) => f.filterValue === option.value);
+                  return (
+                    <SCheckBox
+                      key={option.value}
+                      label={option.label}
+                      checked={isChecked}
+                      onChange={() => {
+                        filterProps.addFilter(
+                          FilterFieldEnum.EXAM_RISK_PERIODICITY,
+                          {
+                            data: option.value,
+                            getId: () => option.value,
+                            getName: () => option.label,
+                          },
+                          { removeIfEqual: true, addOnly: true },
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
+          {filters[FilterFieldEnum.EXAM_RISK_SEX] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Sexo
+              </SText>
+              <SFlex flexWrap="wrap">
+                {EXAM_RISK_SEX_FILTER_OPTIONS.map((option) => {
+                  const isChecked = !!filterProps.filter?.[
+                    FilterFieldEnum.EXAM_RISK_SEX
+                  ]?.filters?.some((f) => f.filterValue === option.value);
+                  return (
+                    <SCheckBox
+                      key={option.value}
+                      label={option.label}
+                      checked={isChecked}
+                      onChange={() => {
+                        filterProps.addFilter(
+                          FilterFieldEnum.EXAM_RISK_SEX,
+                          {
+                            data: option.value,
+                            getId: () => option.value,
+                            getName: () => option.label,
+                          },
+                          { removeIfEqual: true, addOnly: true },
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
+          {filters[FilterFieldEnum.EXAM_RISK_AGE_RANGE] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Faixa etária
+              </SText>
+              <SFlex flexWrap="wrap">
+                {EXAM_RISK_AGE_RANGE_FILTER_OPTIONS.map((option) => {
+                  const isChecked = !!filterProps.filter?.[
+                    FilterFieldEnum.EXAM_RISK_AGE_RANGE
+                  ]?.filters?.some((f) => f.filterValue === option.value);
+                  return (
+                    <SCheckBox
+                      key={option.value}
+                      label={option.label}
+                      checked={isChecked}
+                      onChange={() => {
+                        filterProps.addFilter(
+                          FilterFieldEnum.EXAM_RISK_AGE_RANGE,
+                          {
+                            data: option.value,
+                            getId: () => option.value,
+                            getName: () => option.label,
+                          },
+                          { removeIfEqual: true, addOnly: true },
+                        );
                       }}
                     />
                   );
