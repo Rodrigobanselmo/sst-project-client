@@ -26,8 +26,11 @@ import { ActionPlanStatusSelect } from './components/ActionPlanStatusSelect/Acti
 import { ActionPlanValidDateSelect } from './components/ActionPlanValidDateSelect/ActionPlanValidDateSelect';
 import { ActionPlanEffectivenessBadge } from './components/ActionPlanEffectivenessBadge/ActionPlanEffectivenessBadge';
 import { ActionPlanExposedWorkersBadge } from './components/ActionPlanExposedWorkersBadge/ActionPlanExposedWorkersBadge';
-import { ActionPlanRecommendationTypeBadge } from './components/ActionPlanRecommendationTypeBadge/ActionPlanRecommendationTypeBadge';
+import { ActionPlanOperationalGroupBadge } from './components/ActionPlanOperationalGroupBadge/ActionPlanOperationalGroupBadge';
+import { ActionPlanRecommendationNameCell } from './components/ActionPlanRecommendationNameCell/ActionPlanRecommendationNameCell';
 import { ActionPlanGroupTableRow } from './components/ActionPlanGroupTableRow/ActionPlanGroupTableRow';
+import { ActionPlanRecommendationRenameDialog } from '@v2/pages/companies/action-plan/components/ActionPlanTable/components/ActionPlanRecommendationRenameDialog/ActionPlanRecommendationRenameDialog';
+import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 import {
   computePopulationPriorityMap,
   PopulationPriorityEnum,
@@ -36,6 +39,10 @@ import { ActionPlanColumnsEnum as columnsEnum } from './enums/action-plan-column
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { useActionPlanActions } from './hooks/useActionPlanActions';
 import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map';
+import {
+  ACTION_PLAN_GROUPED_COLUMN_ORDER,
+  ACTION_PLAN_LINKS_COLUMN_ORDER,
+} from './maps/action-plan-column-order';
 import { IActionPlanTableTableProps } from './SActionPlanTable.types';
 import { Box } from '@mui/material';
 import { TasksSubActionPlanTable } from '../STaskTable/implementation/TaskTable/TasksSubActionPlanTable';
@@ -62,9 +69,14 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   onPageSizeChange,
 }) => {
   const isGrouped = view === ActionPlanBrowseViewEnum.GROUPED;
+  const { isMasterAdmin } = usePermissionsAccess();
+  const [renameRow, setRenameRow] = useState<ActionPlanBrowseResultModel | null>(
+    null,
+  );
   const [expandedGroupIds, setExpandedGroupIds] = useState<Record<string, boolean>>(
     {},
   );
+  const canRenameRecommendation = isMasterAdmin && !isGrouped;
   const orderByMap = mapOrderByTable(filters.orderBy);
   const { onViewComment } = useActionPlanActions();
   const applicationRows = useMemo(
@@ -81,16 +93,17 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ? `${totals.acoes} ações · ${totals.vinculos} aplicações`
       : undefined;
 
-  const tableRows: ITableData<ActionPlanBrowseResultModel>[] = [
-    // CHECK_BOX
-    {
+  const columnDefs: Record<
+    columnsEnum,
+    ITableData<ActionPlanBrowseResultModel>
+  > = {
+    [columnsEnum.CHECK_BOX]: {
       column: '20px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.CHECK_BOX),
       header: <SSelectHRow table={table} ids={selectIds} />,
       row: (row) => <SSelectRow table={table} id={row.id} />,
     },
-    // ID
-    {
+    [columnsEnum.ID]: {
       column: '35px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.ID),
       header: (
@@ -107,8 +120,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
     },
-    // ORIGIN
-    {
+    [columnsEnum.ORIGIN]: {
       column: 'minmax(200px, 1fr)',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.ORIGIN),
       header: (
@@ -129,8 +141,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
     },
-    // RISK
-    {
+    [columnsEnum.RISK]: {
       column: 'minmax(200px, 1fr)',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.RISK),
       header: (
@@ -152,8 +163,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
     },
-    // GENERATE_SOURCE
-    {
+    [columnsEnum.GENERATE_SOURCE]: {
       column: '200px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.GENERATE_SOURCE),
       header: (
@@ -168,8 +178,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <STextRow text={row.generateSourceNames} />,
     },
-    // LEVEL
-    {
+    [columnsEnum.LEVEL]: {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.LEVEL),
       header: (
@@ -184,8 +193,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <OccupationalRiskTag level={row.ocupationalRisk} />,
     },
-    // EXPOSED_WORKERS
-    {
+    [columnsEnum.EXPOSED_WORKERS]: {
       column: '90px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.EXPOSED_WORKERS),
       header: (
@@ -207,8 +215,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
     },
-    // RECOMMENDATION
-    {
+    [columnsEnum.RECOMMENDATION]: {
       column: 'minmax(230px, 1fr)',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.RECOMMENDATION),
       header: (
@@ -223,22 +230,38 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <STextRow
-          fontSize={13}
-          tooltipMinLength={30}
-          lineNumber={2}
-          text={row.recommendation.name}
-          startAddon={
-            <ActionPlanRecommendationTypeBadge
-              type={row.recommendation.type}
-              variant="dot"
-            />
-          }
+        <ActionPlanRecommendationNameCell
+          row={row}
+          canRename={canRenameRecommendation}
+          onRename={setRenameRow}
         />
       ),
     },
-    // STATUS
-    {
+    [columnsEnum.OPERATIONAL_GROUP]: {
+      column: '64px',
+      hidden:
+        isGrouped ||
+        getHiddenColumn(hiddenColumns, columnsEnum.OPERATIONAL_GROUP),
+      header: (
+        <ActionPlanHeaderRow
+          justify="center"
+          orderByMap={orderByMap}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.OPERATIONAL_GROUP]: true })
+          }
+          text={columnMap[columnsEnum.OPERATIONAL_GROUP].label}
+        />
+      ),
+      row: (row) => (
+        <Box display="flex" justifyContent="center" width="100%">
+          <ActionPlanOperationalGroupBadge
+            applicationsCount={row.actionApplicationsCount}
+            scope={row.operationalScope}
+          />
+        </Box>
+      ),
+    },
+    [columnsEnum.STATUS]: {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.STATUS),
       header: (
@@ -253,8 +276,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <ActionPlanStatusSelect companyId={companyId} row={row} />,
     },
-    // EFFECTIVENESS
-    {
+    [columnsEnum.EFFECTIVENESS]: {
       column: '130px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.EFFECTIVENESS),
       header: (
@@ -269,8 +291,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <ActionPlanEffectivenessBadge row={row} />,
     },
-    // RESPONSIBLE
-    {
+    [columnsEnum.RESPONSIBLE]: {
       column: '150px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.RESPONSIBLE),
       header: (
@@ -291,8 +312,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
     },
-    // CREATED_AT
-    {
+    [columnsEnum.CREATED_AT]: {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.CREATED_AT),
       header: (
@@ -307,8 +327,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <STextRow justify="center" text={row.formatedCreatedAt} />,
     },
-    // UPDATED_AT
-    {
+    [columnsEnum.UPDATED_AT]: {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.UPDATED_AT),
       header: (
@@ -323,8 +342,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <STextRow justify="center" text={row.formatedUpdatedAt} />,
     },
-    // VALID_DATE
-    {
+    [columnsEnum.VALID_DATE]: {
       column: '170px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.VALID_DATE),
       header: (
@@ -341,8 +359,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         <ActionPlanValidDateSelect row={row} companyId={companyId} />
       ),
     },
-    // COMMENT
-    {
+    [columnsEnum.COMMENT]: {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.COMMENT),
       header: (
@@ -363,7 +380,11 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         </SIconButtonRow>
       ),
     },
-  ];
+  };
+
+  const tableRows = (
+    isGrouped ? ACTION_PLAN_GROUPED_COLUMN_ORDER : ACTION_PLAN_LINKS_COLUMN_ORDER
+  ).map((column) => columnDefs[column]);
 
   return (
     <>
@@ -469,6 +490,11 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
         totalLabel={groupedTotalLabel}
+      />
+      <ActionPlanRecommendationRenameDialog
+        companyId={companyId}
+        row={renameRow}
+        onClose={() => setRenameRow(null)}
       />
     </>
   );

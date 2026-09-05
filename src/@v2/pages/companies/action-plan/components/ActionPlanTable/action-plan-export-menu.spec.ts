@@ -51,6 +51,8 @@ assert.match(payload, /applyScreenFilters: true/);
 assert.doesNotMatch(payload, /view:/);
 assert.doesNotMatch(payload, /page:/);
 assert.doesNotMatch(payload, /groups/);
+assert.doesNotMatch(payload, /operationalGrouping/);
+assert.doesNotMatch(payload, /operationalActionId/);
 assert.match(payload, /hierarchyIds/);
 assert.match(payload, /status:/);
 assert.match(payload, /responsibleIds/);

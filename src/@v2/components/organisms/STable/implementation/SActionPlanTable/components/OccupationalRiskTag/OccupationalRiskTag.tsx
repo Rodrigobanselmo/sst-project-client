@@ -19,8 +19,8 @@ const colorMap: Record<IRiskLevelValues, any> = {
     color: 'white',
   },
   [3]: {
-    bgcolor: 'scale.medium',
-    color: 'white',
+    bgcolor: 'primary.main',
+    color: 'text.dark',
   },
   [4]: {
     bgcolor: 'scale.mediumHigh',

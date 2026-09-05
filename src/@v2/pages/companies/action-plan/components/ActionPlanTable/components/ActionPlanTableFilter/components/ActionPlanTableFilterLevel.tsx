@@ -21,7 +21,7 @@ export const ActionPlanTableFilterLevel = ({
 
   return (
     <SSearchSelectMultiple
-      label="Risco Ocupacional"
+      label="Risco ocupacional"
       value={values}
       getOptionLabel={(option) => option.label}
       getOptionValue={(option) => option.value}

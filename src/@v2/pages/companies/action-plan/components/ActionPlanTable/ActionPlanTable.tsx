@@ -25,8 +25,10 @@ import { ordenByActionPlanTranslation } from '@v2/models/security/translations/o
 import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/hooks/useFetchBrowseActionPlan';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
+import { ActionPlanOperationalGroupingFilterEnum } from '@v2/models/security/enums/action-plan-operational-grouping-filter.enum';
 import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/ActionPlanTableFilter';
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
+import { ActionPlanEquivalentSuggestions } from './components/ActionPlanEquivalentSuggestions/ActionPlanEquivalentSuggestions';
 import { ActionPlanViewToggle } from './components/ActionPlanViewToggle/ActionPlanViewToggle';
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 import { OccupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
@@ -91,6 +93,10 @@ export const ActionPlanTable = ({
       generateSourceIds: queryParams.generateSources?.map(
         (source) => source.id,
       ),
+      operationalGrouping:
+        view === ActionPlanBrowseViewEnum.LINKS
+          ? queryParams.operationalGrouping || undefined
+          : undefined,
     },
     orderBy: queryParams.orderBy || [
       {
@@ -170,7 +176,7 @@ export const ActionPlanTable = ({
           }),
       }),
       occupationalRisks: (value) => ({
-        leftLabel: 'Nível',
+        leftLabel: 'Risco ocupacional',
         label: OccupationalRiskLevelTranslation[value],
         onDelete: () =>
           setQueryParams({
@@ -211,6 +217,18 @@ export const ActionPlanTable = ({
             ),
           }),
       }),
+      operationalGrouping: (value) => ({
+        leftLabel: 'Agrupamento',
+        label:
+          value === ActionPlanOperationalGroupingFilterEnum.GROUPED
+            ? 'Múltiplas aplicações'
+            : 'Aplicação única',
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            operationalGrouping: null,
+          }),
+      }),
     },
     cleanData: {
       search: '',
@@ -226,6 +244,7 @@ export const ActionPlanTable = ({
       page: 1,
       limit: defaultLimit,
       view: ActionPlanBrowseViewEnum.LINKS,
+      operationalGrouping: null,
     },
     });
 
@@ -313,6 +332,9 @@ export const ActionPlanTable = ({
               onFilterData({
                 view: nextView,
                 page: 1,
+                ...(nextView === ActionPlanBrowseViewEnum.GROUPED
+                  ? { operationalGrouping: null }
+                  : {}),
               })
             }
           />
@@ -320,14 +342,21 @@ export const ActionPlanTable = ({
             showLabel
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
-            columns={actionPlanColumns}
+            columns={
+              view === ActionPlanBrowseViewEnum.GROUPED
+                ? actionPlanColumns.filter(
+                    (column) =>
+                      column.value !== ActionPlanColumnsEnum.OPERATIONAL_GROUP,
+                  )
+                : actionPlanColumns
+            }
             tableButtonProps={tableUtilityPillButtonProps}
           />
           <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
             <ActionPlanTableFilter
               modelFilters={data?.filters}
               onFilterData={onFilterData}
-              filters={queryParams}
+              filters={{ ...queryParams, view }}
               companyId={companyId}
               workspaceId={workspaceId}
             />
@@ -361,6 +390,11 @@ export const ActionPlanTable = ({
           />
         </STableSearchContent>
       </STableSearch>
+      <ActionPlanEquivalentSuggestions
+        companyId={companyId}
+        workspaceId={workspaceId}
+        view={view}
+      />
       <STableInfoSection>
         <STableFilterChipList onClean={onCleanData}>
           {[...orderChipList, ...paramsChipList]?.map((chip) => (

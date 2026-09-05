@@ -7,7 +7,7 @@ export const OccupationalRiskLevelTranslation: OccupationalRiskLevelTranslationM
     [0]: '-',
     [1]: 'Muito Baixo',
     [2]: 'Baixo',
-    [3]: 'Médio',
+    [3]: 'Moderado',
     [4]: 'Alto',
     [5]: 'Muito Alto',
     [6]: 'Interromper',

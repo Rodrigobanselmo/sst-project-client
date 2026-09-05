@@ -2,11 +2,17 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Box, IconButton } from '@mui/material';
 
+import STooltip from '@v2/components/atoms/STooltip/STooltip';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
 import { STextRow } from '@v2/components/organisms/STable/addons/addons-rows/STextRow/STextRow';
 import { ActionPlanRecommendationTypeBadge } from '@v2/components/organisms/STable/implementation/SActionPlanTable/components/ActionPlanRecommendationTypeBadge/ActionPlanRecommendationTypeBadge';
 import { ActionPlanColumnsEnum } from '@v2/components/organisms/STable/implementation/SActionPlanTable/enums/action-plan-columns.enum';
 import { getHiddenColumn } from '@v2/components/organisms/STable/implementation/SActionPlanTable/helpers/get-hidden-column';
+import { ACTION_PLAN_GROUPED_COLUMN_ORDER } from '@v2/components/organisms/STable/implementation/SActionPlanTable/maps/action-plan-column-order';
+import {
+  formatActionPlanGroupRiskCount,
+  uniqueActionPlanGroupRisks,
+} from '@v2/components/organisms/STable/implementation/SActionPlanTable/helpers/unique-action-plan-group-risks';
 import { STableRow } from '@v2/components/organisms/STable/common/STableRow/STableRow';
 import { ActionPlanBrowseGroupModel } from '@v2/models/security/models/action-plan/action-plan-browse-group.model';
 import {
@@ -14,23 +20,7 @@ import {
   ActionPlanGroupSummaryText,
 } from '@v2/pages/companies/action-plan/components/ActionPlanTable/components/ActionPlanGroupSummary/ActionPlanGroupSummary';
 
-const COLUMN_ORDER = [
-  ActionPlanColumnsEnum.CHECK_BOX,
-  ActionPlanColumnsEnum.ID,
-  ActionPlanColumnsEnum.ORIGIN,
-  ActionPlanColumnsEnum.RISK,
-  ActionPlanColumnsEnum.GENERATE_SOURCE,
-  ActionPlanColumnsEnum.LEVEL,
-  ActionPlanColumnsEnum.EXPOSED_WORKERS,
-  ActionPlanColumnsEnum.RECOMMENDATION,
-  ActionPlanColumnsEnum.STATUS,
-  ActionPlanColumnsEnum.EFFECTIVENESS,
-  ActionPlanColumnsEnum.RESPONSIBLE,
-  ActionPlanColumnsEnum.CREATED_AT,
-  ActionPlanColumnsEnum.UPDATED_AT,
-  ActionPlanColumnsEnum.VALID_DATE,
-  ActionPlanColumnsEnum.COMMENT,
-] as const;
+const COLUMN_ORDER = ACTION_PLAN_GROUPED_COLUMN_ORDER;
 
 export function ActionPlanGroupTableRow({
   group,
@@ -74,18 +64,48 @@ export function ActionPlanGroupTableRow({
     }
 
     if (column === ActionPlanColumnsEnum.RISK) {
+      if (group.risksCount > 1) {
+        const distinctRisks = uniqueActionPlanGroupRisks(group.risks);
+        return (
+          <STooltip
+            key={column}
+            minLength={0}
+            placement="right"
+            withWrapper
+            title={
+              <Box component="ul" sx={{ m: 0, pl: 2, py: 0.5, maxWidth: 420 }}>
+                {distinctRisks.map((risk) => (
+                  <Box component="li" key={risk.id} sx={{ mb: 0.5 }}>
+                    {risk.name}
+                  </Box>
+                ))}
+              </Box>
+            }
+          >
+            <STextRow
+              text={formatActionPlanGroupRiskCount(distinctRisks.length)}
+              tooltipTitle=""
+              tooltipMinLength={Number.MAX_SAFE_INTEGER}
+            />
+          </STooltip>
+        );
+      }
+
+      const singleRisk = group.risks[0];
       return (
         <STextRow
           key={column}
-          text={group.risk.name}
+          text={singleRisk?.name || '—'}
           tooltipMinLength={20}
           bottomText={
-            group.risk.severity != null
-              ? `Severidade ${group.risk.severity}`
+            singleRisk?.severity != null
+              ? `Severidade ${singleRisk.severity}`
               : undefined
           }
           startAddon={
-            <SRiskChip type={group.risk.type} subTypes={group.risk.subTypes} />
+            singleRisk ? (
+              <SRiskChip type={singleRisk.type} subTypes={singleRisk.subTypes} />
+            ) : undefined
           }
         />
       );
@@ -98,12 +118,14 @@ export function ActionPlanGroupTableRow({
           fontSize={13}
           tooltipMinLength={30}
           lineNumber={2}
-          text={group.recommendation.name}
+          text={group.recommendation.name || 'Múltiplas recomendações'}
           startAddon={
-            <ActionPlanRecommendationTypeBadge
-              type={group.recommendation.type}
-              variant="dot"
-            />
+            group.recommendation.type && !group.recommendation.multiple ? (
+              <ActionPlanRecommendationTypeBadge
+                type={group.recommendation.type}
+                variant="dot"
+              />
+            ) : undefined
           }
         />
       );

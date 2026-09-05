@@ -6,16 +6,26 @@ import {
   IActionPlanBrowseResultModel,
 } from './action-plan-browse-result.model';
 
+export type IActionPlanBrowseGroupRisk = {
+  id: string;
+  name: string;
+  type: RiskTypeEnum;
+  subTypes?: { id: number; name: string }[];
+  severity?: number | null;
+};
+
 export type IActionPlanBrowseGroupModel = {
-  uuid: { recommendationId: string; workspaceId: string };
-  recommendation: { name: string; type: RecommendationTypeEnum };
-  risk: {
-    id: string;
-    name: string;
-    type: RiskTypeEnum;
-    subTypes?: { id: number; name: string }[];
-    severity: number | null;
+  operationalActionId: string;
+  workspaceId: string;
+  recommendationIds: string[];
+  recommendationLabels: string[];
+  recommendation: {
+    name: string | null;
+    type: RecommendationTypeEnum | null;
+    multiple: boolean;
   };
+  risksCount: number;
+  risks: IActionPlanBrowseGroupRisk[];
   applicationsCount: number;
   status: ActionPlanStatusEnum | null;
   statusMultiple: boolean;
@@ -27,15 +37,17 @@ export type IActionPlanBrowseGroupModel = {
 };
 
 export class ActionPlanBrowseGroupModel {
-  uuid: { recommendationId: string; workspaceId: string };
-  recommendation: { name: string; type: RecommendationTypeEnum };
-  risk: {
-    id: string;
-    name: string;
-    type: RiskTypeEnum;
-    subTypes?: { id: number; name: string }[];
-    severity: number | null;
+  operationalActionId: string;
+  workspaceId: string;
+  recommendationIds: string[];
+  recommendationLabels: string[];
+  recommendation: {
+    name: string | null;
+    type: RecommendationTypeEnum | null;
+    multiple: boolean;
   };
+  risksCount: number;
+  risks: IActionPlanBrowseGroupRisk[];
   applicationsCount: number;
   status: ActionPlanStatusEnum | null;
   statusMultiple: boolean;
@@ -46,13 +58,21 @@ export class ActionPlanBrowseGroupModel {
   applications: ActionPlanBrowseResultModel[];
 
   constructor(params: IActionPlanBrowseGroupModel) {
-    this.uuid = params.uuid;
-    this.recommendation = params.recommendation;
-    this.risk = {
-      ...params.risk,
-      severity: params.risk.severity ?? null,
-      subTypes: params.risk.subTypes ?? [],
+    this.operationalActionId = params.operationalActionId;
+    this.workspaceId = params.workspaceId;
+    this.recommendationIds = params.recommendationIds ?? [];
+    this.recommendationLabels = params.recommendationLabels ?? [];
+    this.recommendation = {
+      name: params.recommendation?.name ?? null,
+      type: params.recommendation?.type ?? null,
+      multiple: params.recommendation?.multiple ?? false,
     };
+    this.risks = (params.risks ?? []).map((risk) => ({
+      ...risk,
+      severity: risk.severity ?? null,
+      subTypes: risk.subTypes ?? [],
+    }));
+    this.risksCount = params.risksCount ?? this.risks.length;
     this.applicationsCount = params.applicationsCount;
     this.status = params.status;
     this.statusMultiple = params.statusMultiple;
@@ -66,6 +86,6 @@ export class ActionPlanBrowseGroupModel {
   }
 
   get id() {
-    return `${this.uuid.workspaceId}--${this.uuid.recommendationId}`;
+    return `${this.workspaceId}--${this.operationalActionId}`;
   }
 }

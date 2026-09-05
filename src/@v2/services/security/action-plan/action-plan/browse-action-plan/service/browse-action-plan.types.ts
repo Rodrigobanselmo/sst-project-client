@@ -1,4 +1,5 @@
 import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
+import { ActionPlanOperationalGroupingFilterEnum } from '@v2/models/security/enums/action-plan-operational-grouping-filter.enum';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
@@ -42,6 +43,7 @@ export interface BrowseActionPlanParams {
     isDone?: boolean;
     isCanceled?: boolean;
     isExpired?: boolean;
+    operationalGrouping?: ActionPlanOperationalGroupingFilterEnum;
   };
   view?: ActionPlanBrowseViewEnum;
 }

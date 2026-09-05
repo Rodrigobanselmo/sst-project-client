@@ -1,13 +1,15 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 import { IActionPlanFilterProps } from '@v2/components/organisms/STable/implementation/SActionPlanTable/SActionPlanTable.types';
+import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
+import { ActionPlanBrowseFilterModel } from '@v2/models/security/models/action-plan/action-plan-browse-filter.model';
 import { ActionPlanTableFilterHierarchy } from './components/ActionPlanTableFilterHierarchy';
 import { ActionPlanTableFilterLevel } from './components/ActionPlanTableFilterLevel';
 import { ActionPlanTableFilterResponsible } from './components/ActionPlanTableFilterResponsible';
 import { ActionPlanTableFilterStatus } from './components/ActionPlanTableFilterStatus';
-import { ActionPlanBrowseFilterModel } from '@v2/models/security/models/action-plan/action-plan-browse-filter.model';
 import { ActionPlanTableFilterRiskTypes } from './components/ActionPlanTableFilterRiskTypes';
 import { ActionPlanTableFilterGenerateSource } from './components/ActionPlanTableFilterGenerateSource';
+import { ActionPlanTableFilterOperationalGrouping } from './components/ActionPlanTableFilterOperationalGrouping';
 
 interface ActionPlanTableFilterProps {
   onFilterData: (props: IActionPlanFilterProps) => void;
@@ -57,6 +59,12 @@ export const ActionPlanTableFilter = ({
         workspaceId={workspaceId}
         companyId={companyId}
       />
+      {filters.view !== ActionPlanBrowseViewEnum.GROUPED && (
+        <ActionPlanTableFilterOperationalGrouping
+          filters={filters}
+          onFilterData={onFilterData}
+        />
+      )}
       <SSwitch
         label="Filtrar somente itens Expirados"
         value={!!filters.isExpired}

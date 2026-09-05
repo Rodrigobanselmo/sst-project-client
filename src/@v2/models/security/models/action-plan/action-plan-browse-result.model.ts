@@ -1,4 +1,5 @@
 import { dateUtils } from '@v2/utils/date-utils';
+import { ActionPlanOperationalScopeEnum } from '../../enums/action-plan-operational-grouping-filter.enum';
 import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
 import { EffectivenessStatusEnum } from '../../enums/effectiveness-status.enum';
 import { OriginTypeEnum } from '../../enums/origin-type.enum';
@@ -50,6 +51,10 @@ export type IActionPlanBrowseResultModel = {
   planning?: IActionPlanPlanningModel;
   effectiveness?: IActionPlanEffectivenessModel;
   exposedWorkersCount?: number;
+  operationalActionId?: string;
+  operationalGroupLabel?: string | null;
+  operationalScope?: ActionPlanOperationalScopeEnum | null;
+  actionApplicationsCount?: number;
 };
 
 export class ActionPlanBrowseResultModel {
@@ -83,6 +88,10 @@ export class ActionPlanBrowseResultModel {
   planning: ActionPlanPlanningModel;
   effectiveness: ActionPlanEffectivenessModel;
   exposedWorkersCount: number;
+  operationalActionId: string;
+  operationalGroupLabel: string | null;
+  operationalScope: ActionPlanOperationalScopeEnum | null;
+  actionApplicationsCount: number;
 
   constructor(params: IActionPlanBrowseResultModel) {
     this.uuid = params.uuid;
@@ -118,6 +127,15 @@ export class ActionPlanBrowseResultModel {
       },
     );
     this.exposedWorkersCount = params.exposedWorkersCount ?? 0;
+    this.operationalActionId =
+      params.operationalActionId ?? params.uuid.recommendationId;
+    this.operationalGroupLabel = params.operationalGroupLabel ?? null;
+    this.operationalScope = params.operationalScope ?? null;
+    this.actionApplicationsCount = Number(params.actionApplicationsCount ?? 1);
+  }
+
+  get hasMultipleApplications() {
+    return this.actionApplicationsCount > 1;
   }
 
   get formatedDoneAt() {

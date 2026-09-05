@@ -7,6 +7,7 @@ import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-p
 import { ActionPlanColumnsEnum } from './enums/action-plan-columns.enum';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { ActionPlanBrowseViewEnum } from '@v2/models/security/enums/action-plan-browse-view.enum';
+import { ActionPlanOperationalGroupingFilterEnum } from '@v2/models/security/enums/action-plan-operational-grouping-filter.enum';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { IRiskLevelValues } from '@v2/models/security/types/risk-level-values.type';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
@@ -37,6 +38,7 @@ export interface IActionPlanFilterProps {
   limit?: number;
   orderBy?: IOrderByParams<ActionPlanOrderByEnum>[];
   view?: ActionPlanBrowseViewEnum;
+  operationalGrouping?: ActionPlanOperationalGroupingFilterEnum | null;
 }
 
 export interface IActionPlanTableTableProps {

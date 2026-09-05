@@ -19,9 +19,10 @@ export const ActionPlanColumnMap: Record<
     label: 'Fonte de Geração',
     startHidden: true,
   },
-  [ActionPlanColumnsEnum.LEVEL]: { label: 'Nível' },
+  [ActionPlanColumnsEnum.LEVEL]: { label: 'Risco ocupacional' },
   [ActionPlanColumnsEnum.EXPOSED_WORKERS]: { label: 'Expostos' },
   [ActionPlanColumnsEnum.RECOMMENDATION]: { label: 'Recomendação' },
+  [ActionPlanColumnsEnum.OPERATIONAL_GROUP]: { label: 'Agrup.' },
   [ActionPlanColumnsEnum.STATUS]: { label: 'Status' },
   [ActionPlanColumnsEnum.RESPONSIBLE]: { label: 'Responsável' },
   [ActionPlanColumnsEnum.EFFECTIVENESS]: {
