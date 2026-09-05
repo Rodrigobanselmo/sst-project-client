@@ -75,6 +75,8 @@ export interface IDrawerBase {
 }
 
 export interface IDrawerItems extends IDrawerBase {
+  /** Chave estável do item no catálogo (não usar `text` para autorização). */
+  navId?: DrawerItemsEnum;
   description: string;
   Icon?: any;
   image?: string;
@@ -373,6 +375,8 @@ export const useDrawerItems = () => {
     },
     [DrawerItemsEnum.companyManagementCharacterization]: {
       text: 'Caracterização',
+      search:
+        'gse gho grupos similares exposicao homogeneos exames protocolos riscos ambientes elementos vinculo',
       description:
         'Riscos, elementos caracterizados, exames, protocolos e vínculos',
       Icon: SCharacterizationIcon,
@@ -383,6 +387,7 @@ export const useDrawerItems = () => {
     },
     [DrawerItemsEnum.companyManagementDocuments]: {
       text: 'Programas e Laudos',
+      search: 'pgr pcmso periculosidade insalubridade ltcat frps laudos programas',
       description: 'PGR, PCMSO, Periculosidade, Insalubridade, LTCAT e FRPS',
       Icon: SDocumentIcon,
       href: RoutesEnum.COMPANY_DOCUMENTS,
@@ -572,6 +577,10 @@ export const useDrawerItems = () => {
       },
     },
   };
+
+  (Object.keys(items) as DrawerItemsEnum[]).forEach((key) => {
+    items[key].navId = key;
+  });
 
   const onFilterBase = (item: IDrawerBase) => onAccessFilterBase(item, company);
 

@@ -21,6 +21,8 @@ interface SidebarDrawerContextData {
   isAlwaysClose: boolean;
   setAlwaysOpen: Dispatch<SetStateAction<boolean>>;
   setIsSearching: Dispatch<SetStateAction<boolean>>;
+  searchQuery: string;
+  setSearchQuery: Dispatch<SetStateAction<string>>;
   isOpen: boolean;
   open: () => void;
   close: () => void;
@@ -46,10 +48,12 @@ export function SidebarDrawerProvider({
   const [urlRouter, setUrlRouter] = useState(router.asPath);
   const [alwaysOpen, setAlwaysOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (urlRouter !== router.asPath && isTablet) {
       disclosure.close();
+      setSearchQuery('');
       setUrlRouter(router.asPath);
     }
   }, [disclosure, router.asPath, urlRouter, isTablet]);
@@ -66,8 +70,11 @@ export function SidebarDrawerProvider({
   }, [isMobile, isTablet, router.asPath]);
 
   const isOpen = useMemo(() => {
-    return (disclosure.isOpen || alwaysOpen || isSearching) && !isAlwaysClose;
-  }, [alwaysOpen, disclosure.isOpen, isAlwaysClose, isSearching]);
+    return (
+      (disclosure.isOpen || alwaysOpen || isSearching || !!searchQuery.trim()) &&
+      !isAlwaysClose
+    );
+  }, [alwaysOpen, disclosure.isOpen, isAlwaysClose, isSearching, searchQuery]);
 
   return (
     <SidebarDrawerContext.Provider
@@ -79,6 +86,8 @@ export function SidebarDrawerProvider({
         isOpen,
         setAlwaysOpen,
         setIsSearching,
+        searchQuery,
+        setSearchQuery,
         isAlwaysClose,
       }}
     >

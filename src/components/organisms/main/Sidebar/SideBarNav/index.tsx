@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import { Stack } from '@mui/material';
 import { useRouter } from 'next/router';
@@ -15,6 +15,8 @@ import { LogoNavbar } from '../Logo';
 import { NavLink } from '../NavLink';
 import { NavSection } from '../NavSection';
 import { SearchBox } from '../SearchBox';
+import { SidebarSearchResults } from '../SearchBox/SidebarSearchResults';
+import { useSidebarSearch } from '../SearchBox/useSidebarSearch';
 import {
   collectSidebarChildMatchers,
   isSidebarAnyMatcherActive,
@@ -23,7 +25,8 @@ import { IDrawerItems, useDrawerItems } from './hooks/useDrawerItems';
 import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
-  const { isTablet, open, close, isAlwaysClose, isOpen } = useSidebarDrawer();
+  const { isTablet, open, close, isAlwaysClose, isOpen, searchQuery } =
+    useSidebarDrawer();
   const { companyId, userCompanyId } = useGetCompanyId();
   const { sections } = useDrawerItems();
   const {
@@ -36,21 +39,40 @@ export function SideBarNav(): JSX.Element {
   const { query } = router;
   const effectiveCompanyId = companyId || userCompanyId || '';
 
-  const resolveHref = (href?: string) => {
-    if (!href) return undefined;
+  const resolveHref = useCallback(
+    (href?: string) => {
+      if (!href) return undefined;
 
-    // Sem empresa efetiva: não materializa rotas quebradas com companyId vazio.
-    if (!effectiveCompanyId && href.includes(':companyId')) {
-      return undefined;
-    }
+      // Sem empresa efetiva: não materializa rotas quebradas com companyId vazio.
+      if (!effectiveCompanyId && href.includes(':companyId')) {
+        return undefined;
+      }
 
-    return (
-      href
-        .replace(':companyId', effectiveCompanyId)
-        // Default canônico (Dados da Empresa) — evita stage inválido "0".
-        .replace(':stage', (query.stage as string) || 'empresa') || undefined
-    );
-  };
+      return (
+        href
+          .replace(':companyId', effectiveCompanyId)
+          // Default canônico (Dados da Empresa) — evita stage inválido "0".
+          .replace(':stage', (query.stage as string) || 'empresa') || undefined
+      );
+    },
+    [effectiveCompanyId, query.stage],
+  );
+
+  const {
+    features: searchFeatures,
+    companies: searchCompanies,
+    rows: searchRows,
+    activeIndex,
+    setActiveIndex,
+    activeOptionId,
+    isLoadingCompanies,
+    currentCompanyId,
+    selectFeature,
+    selectCompany,
+    onSearchKeyDown,
+  } = useSidebarSearch({ sections, resolveHref });
+
+  const isSearchingNav = Boolean(searchQuery.trim());
 
   const currentPath = router.asPath.split('?')[0];
 
@@ -164,12 +186,29 @@ export function SideBarNav(): JSX.Element {
     >
       <Stack mb={0} px={8} spacing={4}>
         <LogoNavbar />
-        <SearchBox />
+        <SearchBox
+          expanded={isSearchingNav}
+          activeOptionId={activeOptionId}
+          onSearchKeyDown={onSearchKeyDown}
+        />
       </Stack>
       <BoxSectionStyled pt={10}>
-        <Stack px={0} spacing={8}>
-          {sections.map((category) => {
-            if (category.items.length === 0) return null;
+        {isSearchingNav ? (
+          <SidebarSearchResults
+            features={searchFeatures}
+            companies={searchCompanies}
+            rows={searchRows}
+            activeIndex={activeIndex}
+            currentCompanyId={currentCompanyId}
+            isLoadingCompanies={isLoadingCompanies}
+            onHoverIndex={setActiveIndex}
+            onSelectFeature={selectFeature}
+            onSelectCompany={selectCompany}
+          />
+        ) : (
+          <Stack px={0} spacing={8}>
+            {sections.map((category) => {
+              if (category.items.length === 0) return null;
 
             const sectionId = category.data.id;
             const standalone = Boolean(category.data.standalone);
@@ -223,8 +262,9 @@ export function SideBarNav(): JSX.Element {
                 })}
               </NavSection>
             );
-          })}
-        </Stack>
+            })}
+          </Stack>
+        )}
       </BoxSectionStyled>
     </BoxContainerStyled>
   );

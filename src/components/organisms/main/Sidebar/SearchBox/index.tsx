@@ -1,27 +1,30 @@
-import { useRef, useState } from 'react';
+import { KeyboardEvent, useRef } from 'react';
 import { RiCloseCircleLine, RiSearchLine } from 'react-icons/ri';
 
 import { Icon } from '@mui/material';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { SInput } from '../../../../atoms/SInput';
+import { SIDEBAR_SEARCH_LISTBOX_ID } from './sidebar-search.util';
 
-/**
- * SearchBox da sidebar — código morto funcional (Fase B IA).
- *
- * O input mantém estado local (`text`) e apenas controla foco / `setIsSearching`
- * no SidebarContext. Nenhum consumidor filtra `sections`/`items` com esse valor.
- * A propriedade `search` nos itens do drawer também não é lida aqui.
- *
- * Não implementar busca nesta fase; remoção ou wiring fica para fase posterior.
- */
-export function SearchBox(): JSX.Element {
-  const { isOpen, open, setIsSearching } = useSidebarDrawer();
+type SearchBoxProps = {
+  expanded?: boolean;
+  activeOptionId?: string;
+  onSearchKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
+};
+
+export function SearchBox({
+  expanded = false,
+  activeOptionId,
+  onSearchKeyDown,
+}: SearchBoxProps): JSX.Element {
+  const { isOpen, open, setIsSearching, searchQuery, setSearchQuery } =
+    useSidebarDrawer();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [text, setText] = useState('');
 
   function onClean() {
-    setText('');
+    setSearchQuery('');
+    searchInputRef.current?.focus();
   }
 
   function onSearchButton() {
@@ -34,7 +37,15 @@ export function SearchBox(): JSX.Element {
   return (
     <SInput
       placeholder="Pesquisar..."
-      onChange={(e) => setText(e.target.value)}
+      inputProps={{
+        'aria-label': 'Pesquisar funcionalidades ou empresas',
+        role: 'combobox',
+        'aria-expanded': expanded,
+        'aria-controls': SIDEBAR_SEARCH_LISTBOX_ID,
+        'aria-autocomplete': 'list',
+        'aria-activedescendant': expanded ? activeOptionId : undefined,
+      }}
+      onChange={(e) => setSearchQuery(e.target.value)}
       inputRef={searchInputRef}
       sx={{
         fontSize: 10,
@@ -52,7 +63,16 @@ export function SearchBox(): JSX.Element {
       size="small"
       onFocus={() => setIsSearching(true)}
       onBlur={() => setIsSearching(false)}
-      value={text}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          setSearchQuery('');
+          return;
+        }
+        onSearchKeyDown?.(e);
+      }}
+      value={searchQuery}
       startAdornment={
         <Icon
           onClick={onSearchButton}
@@ -63,11 +83,12 @@ export function SearchBox(): JSX.Element {
             fontSize: '15px',
             color: 'text.medium',
             ml: isOpen ? 0 : '-5px',
+            cursor: 'pointer',
           }}
         />
       }
       endAdornment={
-        isOpen && text ? (
+        isOpen && searchQuery ? (
           <Icon
             onClick={onClean}
             component={RiCloseCircleLine}
