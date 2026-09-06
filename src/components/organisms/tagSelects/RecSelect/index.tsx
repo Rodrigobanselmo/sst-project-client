@@ -23,7 +23,7 @@ import { RecSelectRecTypeAdornment } from './RecSelectRecTypeAdornment';
 import { RecSelectTypeFilterBar } from './RecSelectTypeFilterBar';
 import {
   buildRecMedQuickClassifyPayload,
-  filterRecsByType,
+  intersectRecTypeAndTextFilter,
   RecTypeListFilter,
   sortRecsBySelectorHierarchy,
 } from './resolve-rec-type-visual-state.util';
@@ -51,6 +51,7 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   const [disabled, isDisabled] = useState(true);
   const [classifyingRecId, setClassifyingRecId] = useState<string | null>(null);
   const [recTypeFilter, setRecTypeFilter] = useState<RecTypeListFilter>('all');
+  const [recSearch, setRecSearch] = useState('');
   const updateRecMedMut = useMutUpdateRecMed();
 
   const { data: recMed } = useQueryRecMed(
@@ -154,10 +155,16 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
 
     if (!enableRecTypeQuickClassify) return sorted;
     return sortRecsBySelectorHierarchy(
-      filterRecsByType(sorted, recTypeFilter),
+      intersectRecTypeAndTextFilter(sorted, recTypeFilter, recSearch),
       selectedRec || [],
     );
-  }, [enableRecTypeQuickClassify, recMed, recTypeFilter, selectedRec]);
+  }, [
+    enableRecTypeQuickClassify,
+    recMed,
+    recSearch,
+    recTypeFilter,
+    selectedRec,
+  ]);
 
   const recMedLength = String(selectedRec ? selectedRec.length : 0);
 
@@ -215,6 +222,8 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       {...props}
       options={options}
       preserveOptionOrder={enableRecTypeQuickClassify}
+      asyncLoad={enableRecTypeQuickClassify && !!recSearch.trim()}
+      onSearch={enableRecTypeQuickClassify ? setRecSearch : props.onSearch}
       renderFilter={
         enableRecTypeQuickClassify
           ? () => (
@@ -227,6 +236,7 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       }
       onClose={() => {
         setRecTypeFilter('all');
+        setRecSearch('');
         props.onClose?.();
       }}
     />

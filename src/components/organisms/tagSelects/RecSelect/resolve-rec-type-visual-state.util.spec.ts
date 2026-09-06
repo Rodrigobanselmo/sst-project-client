@@ -17,6 +17,7 @@ import {
   getRecTypeHierarchyRank,
   intersectRecTypeAndTextFilter,
   matchesRecTypeListFilter,
+  normalizeRecSearchText,
   REC_TYPE_HIERARCHY_ORDER,
   resolveRecTypeVisualState,
   shouldSelectRecOnListClick,
@@ -143,6 +144,23 @@ assert.deepEqual(
   ),
   ['adm-2'],
 );
+assert.deepEqual(
+  intersectRecTypeAndTextFilter(recs, 'all', 'exaustao').map((rec) => rec.id),
+  ['eng-1'],
+);
+assert.deepEqual(
+  intersectRecTypeAndTextFilter(recs, RecTypeEnum.ENG, 'EXAUSTÃO').map(
+    (rec) => rec.id,
+  ),
+  ['eng-1'],
+);
+assert.deepEqual(
+  intersectRecTypeAndTextFilter(recs, RecTypeEnum.ADM, 'exaustao').map(
+    (rec) => rec.id,
+  ),
+  [],
+);
+assert.equal(normalizeRecSearchText('  Exaustão  '), 'exaustao');
 
 assert.equal(REC_TYPE_HIERARCHY_ORDER[RecTypeEnum.ENG], 0);
 assert.equal(REC_TYPE_HIERARCHY_ORDER[RecTypeEnum.ADM], 1);
@@ -193,15 +211,20 @@ assert.equal(recSelectSource.includes('resolveMultipleAsItems = false'), true);
 assert.equal(recSelectSource.includes('SMeasureControlIcon'), true);
 assert.equal(recSelectSource.includes('RecSelectRecTypeAdornment'), true);
 assert.equal(recSelectSource.includes('RecSelectTypeFilterBar'), true);
-assert.equal(recSelectSource.includes('filterRecsByType'), true);
+assert.equal(recSelectSource.includes('filterRecsByType'), false);
+assert.equal(recSelectSource.includes('intersectRecTypeAndTextFilter'), true);
 assert.equal(recSelectSource.includes('sortRecsBySelectorHierarchy'), true);
 assert.equal(recSelectSource.includes('preserveOptionOrder={enableRecTypeQuickClassify}'), true);
 assert.equal(recSelectSource.includes("useState<RecTypeListFilter>('all')"), true);
 assert.equal(recSelectSource.includes("setRecTypeFilter('all')"), true);
+assert.equal(recSelectSource.includes("setRecSearch('')"), true);
 assert.equal(recSelectSource.includes('onChange={setRecTypeFilter}'), true);
+assert.equal(recSelectSource.includes('onSearch={enableRecTypeQuickClassify ? setRecSearch : props.onSearch}'), true);
+assert.equal(recSelectSource.includes('asyncLoad={enableRecTypeQuickClassify && !!recSearch.trim()}'), true);
 assert.equal(recSelectSource.includes('mutateAsync(payload)'), true);
 assert.equal(recSelectSource.includes('probabilityAfter'), false);
 assert.equal(recSelectSource.includes('recType: [recTypeFilter]'), false);
+assert.equal(recSelectSource.includes('search:'), false);
 
 const filterBarSource = readFileSync(
   resolve(
