@@ -100,7 +100,7 @@ export const ChemicalUseScenarioFormDialog = ({
   return (
     <Dialog open={open} onClose={close} fullWidth maxWidth="md">
       <DialogTitle>Novo cenário de uso</DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ pt: 1.5 }}>
         <ChemicalUseScenarioForm
           mode="create"
           productLocked={false}

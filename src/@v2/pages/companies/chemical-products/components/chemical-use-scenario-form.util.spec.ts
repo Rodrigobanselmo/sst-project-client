@@ -5,11 +5,18 @@ import type { ChemicalProductListItem } from '@v2/services/security/characteriza
 
 import {
   buildCreateChemicalUseScenarioPayload,
+  CHEMICAL_USE_SCENARIO_DURATION_ERROR,
+  CHEMICAL_USE_SCENARIO_DURATION_HELPER,
   CHEMICAL_USE_SCENARIO_FREQUENCY_PERIODS,
+  CHEMICAL_USE_SCENARIO_NUMERIC_ERROR,
   CHEMICAL_USE_SCENARIO_QUANTITY_UNITS,
   chemicalUseScenarioManualCreateHasForbiddenKeys,
   emptyChemicalUseScenarioFormValues,
   formatChemicalUseScenarioProductOption,
+  formatManualChemicalUseScenarioQuantity,
+  getChemicalUseScenarioDurationFieldState,
+  getChemicalUseScenarioFrequencyFieldState,
+  getChemicalUseScenarioQuantityFieldState,
   isChemicalUseScenarioSubmitBlocked,
   submitCreateChemicalUseScenarioForm,
   type ChemicalUseScenarioFormValues,
@@ -89,14 +96,38 @@ const missingActivity = buildCreateChemicalUseScenarioPayload(
 );
 assert(!missingActivity.ok, 'tarefa obrigatória sem espaços');
 
-const quantityText = buildCreateChemicalUseScenarioPayload(
+const quantityNumeric = buildCreateChemicalUseScenarioPayload(
+  values({ quantity: '25', quantityUnit: 'L' }),
+);
+assert(quantityNumeric.ok, 'quantity numérica aceita');
+if (!quantityNumeric.ok) throw new Error(quantityNumeric.error);
+assert(quantityNumeric.body.quantity === '25', 'quantity 25 vira string');
+assert(quantityNumeric.body.quantityUnit === 'L', 'unidade textual');
+assert(
+  typeof quantityNumeric.body.quantity === 'string',
+  'quantity continua string no payload',
+);
+
+const quantityComma = buildCreateChemicalUseScenarioPayload(
+  values({ quantity: '10,5', quantityUnit: 'L' }),
+);
+assert(quantityComma.ok, 'quantity 10,5 aceita');
+if (!quantityComma.ok) throw new Error(quantityComma.error);
+assert(quantityComma.body.quantity === '10.5', 'quantity normaliza vírgula em string');
+assert(
+  typeof quantityComma.body.quantity === 'string',
+  'quantity 10,5 permanece string',
+);
+
+const quantityFreeText = buildCreateChemicalUseScenarioPayload(
   values({ quantity: 'até 10', quantityUnit: 'L' }),
 );
-assert(quantityText.ok, 'quantity string aceita');
-if (!quantityText.ok) throw new Error(quantityText.error);
-assert(quantityText.body.quantity === 'até 10', 'quantity preserva string');
-assert(quantityText.body.quantityUnit === 'L', 'unidade textual');
-assert(typeof quantityText.body.quantity === 'string', 'quantity não vira number');
+assert(!quantityFreeText.ok, 'quantity textual bloqueada no cadastro manual');
+
+const quantityWithUnit = buildCreateChemicalUseScenarioPayload(
+  values({ quantity: '25 litros', quantityUnit: 'L' }),
+);
+assert(!quantityWithUnit.ok, 'quantity com texto bloqueada no cadastro manual');
 
 assert(
   CHEMICAL_USE_SCENARIO_FREQUENCY_PERIODS.join() ===
@@ -192,6 +223,192 @@ assert(
   }),
   'submit bloqueado sem tarefa',
 );
+
+const durationWithUnit = values({ durationMinutes: '20 minutos' });
+const durationWithUnitPayload =
+  buildCreateChemicalUseScenarioPayload(durationWithUnit);
+assert(!durationWithUnitPayload.ok, '"20 minutos" continua inválido');
+assert(
+  isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: durationWithUnit,
+  }),
+  '"20 minutos" continua bloqueando SALVAR',
+);
+assert(
+  getChemicalUseScenarioDurationFieldState('20 minutos').error,
+  '"20 minutos" marca duração com erro',
+);
+assert(
+  getChemicalUseScenarioDurationFieldState('20 minutos').helperText ===
+    CHEMICAL_USE_SCENARIO_DURATION_ERROR,
+  '"20 minutos" mostra helper de erro',
+);
+
+const durationEmpty = getChemicalUseScenarioDurationFieldState('');
+assert(!durationEmpty.error, 'duração vazia sem erro visual');
+assert(
+  durationEmpty.helperText === CHEMICAL_USE_SCENARIO_DURATION_HELPER,
+  'duração vazia mostra orientação',
+);
+
+const durationNumber = getChemicalUseScenarioDurationFieldState('20');
+assert(!durationNumber.error, '"20" sem erro visual');
+assert(
+  durationNumber.helperText === CHEMICAL_USE_SCENARIO_DURATION_HELPER,
+  '"20" mostra orientação',
+);
+assert(
+  !isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ durationMinutes: '20' }),
+  }),
+  '"20" libera SALVAR',
+);
+
+const durationComma = getChemicalUseScenarioDurationFieldState('10,5');
+assert(!durationComma.error, '"10,5" sem erro visual');
+assert(
+  !isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ durationMinutes: '10,5' }),
+  }),
+  '"10,5" libera SALVAR',
+);
+
+const frequencyValid = getChemicalUseScenarioFrequencyFieldState('1');
+assert(!frequencyValid.error, 'freq 1 sem erro visual');
+assert(
+  !isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ frequencyCount: '1' }),
+  }),
+  'freq 1 libera SALVAR',
+);
+
+const frequencyComma = getChemicalUseScenarioFrequencyFieldState('1,5');
+assert(!frequencyComma.error, 'freq 1,5 sem erro visual');
+assert(
+  !isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ frequencyCount: '1,5' }),
+  }),
+  'freq 1,5 libera SALVAR',
+);
+const frequencyCommaPayload = buildCreateChemicalUseScenarioPayload(
+  values({ frequencyCount: '1,5' }),
+);
+assert(frequencyCommaPayload.ok, 'freq 1,5 no payload');
+if (!frequencyCommaPayload.ok) throw new Error(frequencyCommaPayload.error);
+assert(frequencyCommaPayload.body.frequencyCount === 1.5, 'freq 1,5 → 1.5');
+
+const frequencyEmpty = getChemicalUseScenarioFrequencyFieldState('');
+assert(!frequencyEmpty.error, 'freq vazia sem erro visual');
+assert(
+  !isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ frequencyCount: '' }),
+  }),
+  'freq vazia libera SALVAR',
+);
+
+const frequencyInvalid = getChemicalUseScenarioFrequencyFieldState('1 xxx');
+assert(frequencyInvalid.error, 'freq 1 xxx marca erro');
+assert(
+  frequencyInvalid.helperText === CHEMICAL_USE_SCENARIO_NUMERIC_ERROR,
+  'freq 1 xxx mostra helper numérico',
+);
+assert(
+  isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ frequencyCount: '1 xxx' }),
+  }),
+  'freq 1 xxx bloqueia SALVAR',
+);
+
+const quantityFieldValid = getChemicalUseScenarioQuantityFieldState('25');
+assert(!quantityFieldValid.error, 'qtd 25 sem erro visual');
+assert(
+  !isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ quantity: '25' }),
+  }),
+  'qtd 25 libera SALVAR',
+);
+
+const quantityFieldComma = getChemicalUseScenarioQuantityFieldState('10,5');
+assert(!quantityFieldComma.error, 'qtd 10,5 sem erro visual');
+
+const quantityFieldEmpty = getChemicalUseScenarioQuantityFieldState('');
+assert(!quantityFieldEmpty.error, 'qtd vazia sem erro visual');
+assert(
+  !isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ quantity: '' }),
+  }),
+  'qtd vazia libera SALVAR',
+);
+
+const quantityFieldLiters = getChemicalUseScenarioQuantityFieldState('25 litros');
+assert(quantityFieldLiters.error, 'qtd 25 litros marca erro');
+assert(
+  quantityFieldLiters.helperText === CHEMICAL_USE_SCENARIO_NUMERIC_ERROR,
+  'qtd 25 litros mostra helper numérico',
+);
+assert(
+  isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ quantity: '25 litros' }),
+  }),
+  'qtd 25 litros bloqueia SALVAR',
+);
+
+const quantityFieldUntil = getChemicalUseScenarioQuantityFieldState('até 10');
+assert(quantityFieldUntil.error, 'qtd até 10 marca erro');
+assert(
+  isChemicalUseScenarioSubmitBlocked({
+    saving: false,
+    values: values({ quantity: 'até 10' }),
+  }),
+  'qtd até 10 bloqueia SALVAR',
+);
+
+const combinedInvalid = values({
+  frequencyCount: '1 xxx',
+  durationMinutes: '20 minutos',
+  quantity: 'até 10',
+});
+assert(
+  isChemicalUseScenarioSubmitBlocked({ saving: false, values: combinedInvalid }),
+  'freq+duração+qtd inválidas bloqueiam SALVAR',
+);
+
+const combinedValid = values({
+  frequencyCount: '1',
+  frequencyPeriod: 'Semanal',
+  durationMinutes: '20',
+  quantity: '25',
+  quantityUnit: 'L',
+});
+const combinedValidPayload = buildCreateChemicalUseScenarioPayload(combinedValid);
+assert(combinedValidPayload.ok, 'caso do print com números puros é válido');
+if (!combinedValidPayload.ok) throw new Error(combinedValidPayload.error);
+assert(combinedValidPayload.body.frequencyCount === 1, 'payload freq 1');
+assert(combinedValidPayload.body.frequencyPeriod === 'Semanal', 'payload período');
+assert(combinedValidPayload.body.durationMinutes === 20, 'payload duração 20');
+assert(combinedValidPayload.body.quantity === '25', 'payload qtd string 25');
+assert(combinedValidPayload.body.quantityUnit === 'L', 'payload unidade L');
+assert(
+  !isChemicalUseScenarioSubmitBlocked({ saving: false, values: combinedValid }),
+  'caso numérico válido libera SALVAR',
+);
+
+const emptyQuantityFormat = formatManualChemicalUseScenarioQuantity('');
+assert(emptyQuantityFormat.ok, 'format qtd vazia ok');
+if (!emptyQuantityFormat.ok) throw new Error('format qtd vazia');
+assert(emptyQuantityFormat.value === null, 'format qtd vazia → null');
+const invalidQuantityFormat = formatManualChemicalUseScenarioQuantity('abc');
+assert(!invalidQuantityFormat.ok, 'format qtd abc inválido');
 
 let refreshCount = 0;
 let createCalls = 0;

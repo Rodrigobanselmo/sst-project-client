@@ -91,6 +91,22 @@ function trimToNull(value: string): string | null {
   return trimmed ? trimmed : null;
 }
 
+export const CHEMICAL_USE_SCENARIO_DURATION_HELPER =
+  'Informe somente o número de minutos. Ex.: 20';
+
+export const CHEMICAL_USE_SCENARIO_DURATION_ERROR =
+  'Informe apenas o número de minutos.';
+
+export const CHEMICAL_USE_SCENARIO_NUMERIC_ERROR =
+  'Informe apenas um valor numérico.';
+
+export const CHEMICAL_USE_SCENARIO_DURATION_UNIT_LABEL = 'Minutos';
+
+export type ChemicalUseScenarioOptionalNumberFieldState = {
+  error: boolean;
+  helperText: string;
+};
+
 function parseOptionalNumber(
   value: string,
 ): { ok: true; value: number | null } | { ok: false } {
@@ -99,6 +115,46 @@ function parseOptionalNumber(
   const parsed = Number(trimmed);
   if (!Number.isFinite(parsed)) return { ok: false };
   return { ok: true, value: parsed };
+}
+
+export function getChemicalUseScenarioOptionalNumberFieldState(
+  value: string,
+  messages?: { helperText?: string; errorText?: string },
+): ChemicalUseScenarioOptionalNumberFieldState {
+  if (!parseOptionalNumber(value).ok) {
+    return {
+      error: true,
+      helperText: messages?.errorText ?? CHEMICAL_USE_SCENARIO_NUMERIC_ERROR,
+    };
+  }
+  return {
+    error: false,
+    helperText: messages?.helperText ?? '',
+  };
+}
+
+export function getChemicalUseScenarioFrequencyFieldState(value: string) {
+  return getChemicalUseScenarioOptionalNumberFieldState(value);
+}
+
+export function getChemicalUseScenarioDurationFieldState(value: string) {
+  return getChemicalUseScenarioOptionalNumberFieldState(value, {
+    helperText: CHEMICAL_USE_SCENARIO_DURATION_HELPER,
+    errorText: CHEMICAL_USE_SCENARIO_DURATION_ERROR,
+  });
+}
+
+export function getChemicalUseScenarioQuantityFieldState(value: string) {
+  return getChemicalUseScenarioOptionalNumberFieldState(value);
+}
+
+export function formatManualChemicalUseScenarioQuantity(
+  value: string,
+): { ok: true; value: string | null } | { ok: false } {
+  const parsed = parseOptionalNumber(value);
+  if (!parsed.ok) return { ok: false };
+  if (parsed.value == null) return { ok: true, value: null };
+  return { ok: true, value: String(parsed.value) };
 }
 
 function isAllowedSelectValue(value: string, options: readonly string[]) {
@@ -133,6 +189,11 @@ export function buildCreateChemicalUseScenarioPayload(
     return { ok: false, error: 'Duração inválida.' };
   }
 
+  const quantity = formatManualChemicalUseScenarioQuantity(values.quantity);
+  if (!quantity.ok) {
+    return { ok: false, error: 'Quantidade inválida.' };
+  }
+
   if (
     !isAllowedSelectValue(
       values.frequencyPeriod,
@@ -163,7 +224,7 @@ export function buildCreateChemicalUseScenarioPayload(
       frequencyCount: frequencyCount.value,
       frequencyPeriod: trimToNull(values.frequencyPeriod),
       durationMinutes: durationMinutes.value,
-      quantity: trimToNull(values.quantity),
+      quantity: quantity.value,
       quantityUnit: trimToNull(values.quantityUnit),
       peakContactMoment: trimToNull(values.peakContactMoment),
       controlMeasures: trimToNull(values.controlMeasures),
