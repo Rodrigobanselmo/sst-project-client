@@ -14,7 +14,12 @@ import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { matchesWorkspaceFilter } from 'core/utils/matches-workspace-filter.util';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
-import { hierarchyFilter } from './constants/filters';
+import {
+  getHierarchySelectChipFilters,
+  getHierarchySelectEmptyMessage,
+  HIERARCHY_SELECT_EMPTY_OPTION_ID,
+  isHierarchySelectEmptyOptionId,
+} from './hierarchy-select-presentation.util';
 import { IHierarchyTypeSelectProps } from './types';
 
 export const HierarchySelect: FC<
@@ -38,11 +43,13 @@ export const HierarchySelect: FC<
     companyId ?? '-',
   );
   const [activeFilters, setActiveFilters] = useState<string[]>([defaultFilter]);
-  const [allFilterTypes, setAllFilterTypes] = useState<
-    Record<HierarchyEnum, boolean>
-  >({} as Record<HierarchyEnum, boolean>);
+  const chipFilters = useMemo(
+    () => getHierarchySelectChipFilters(filterOptions),
+    [filterOptions],
+  );
 
   const handleSelectRisk = (options: IHierarchy) => {
+    if (isHierarchySelectEmptyOptionId(options?.id)) return;
     if (multiple) {
       const ids = options as unknown as string[];
       const selected = ids.map((id) => hierarchyTree[id]).filter(Boolean);
@@ -84,24 +91,10 @@ export const HierarchySelect: FC<
   }, []);
 
   const options = useMemo(() => {
-    const typesSelected: Record<HierarchyEnum, boolean> = {} as Record<
-      HierarchyEnum,
-      boolean
-    >;
-
     const list = hierarchyListData()
-      .map((hierarchyTree) => {
-        if (
-          !filterOptions ||
-          (filterOptions && filterOptions.includes(hierarchyTree.type))
-        )
-          (typesSelected as any)[hierarchyTree.type] = true;
-
-        return {
-          ...hierarchyTree,
-          // name: getText(hierarchyTree.id),
-        };
-      })
+      .map((hierarchyTree) => ({
+        ...hierarchyTree,
+      }))
       .filter(
         (h) =>
           h.type === activeFilters[0] &&
@@ -112,18 +105,16 @@ export const HierarchySelect: FC<
           matchesWorkspaceFilter(workspaceId, h.workspaceIds),
       );
 
-    if (
-      !activeFilters ||
-      (filterOptions && filterOptions?.length > 1) ||
-      allFilters
-    ) {
-      if (
-        Object.keys(allFilterTypes).length !== Object.keys(typesSelected).length
-      )
-        setAllFilterTypes(typesSelected);
+    if (!list.length) {
+      return [
+        {
+          id: HIERARCHY_SELECT_EMPTY_OPTION_ID,
+          name: getHierarchySelectEmptyMessage(activeFilters[0]),
+          type: activeFilters[0],
+        },
+      ];
     }
 
-    if (!list) return [];
     if (selectedId)
       list.unshift({
         ...list[0],
@@ -132,15 +123,7 @@ export const HierarchySelect: FC<
       });
 
     return sortArray(list, { by: 'name', order: 'asc' });
-  }, [
-    hierarchyListData,
-    allFilters,
-    activeFilters,
-    filterOptions,
-    selectedId,
-    parentId,
-    workspaceId,
-  ]);
+  }, [hierarchyListData, activeFilters, selectedId, parentId, workspaceId]);
 
   const textField = getText(selectedId, text);
   const isNotSelected = !selectedId;
@@ -159,6 +142,13 @@ export const HierarchySelect: FC<
       tooltipTitle={tooltipText ? tooltipText(textField) : ''}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}
       renderContent={(option) => {
+        if (isHierarchySelectEmptyOptionId(option.id))
+          return (
+            <SText my={-2} sx={{ opacity: 0.7 }} fontSize={13}>
+              {option.name}
+            </SText>
+          );
+
         if (!option.id)
           return (
             <SText my={-2} sx={{ opacity: 0.7 }} fontSize={13}>
@@ -194,9 +184,7 @@ export const HierarchySelect: FC<
       }}
       renderFilter={() => (
         <SMenuSimpleFilter
-          options={hierarchyFilter.filter(
-            (filter) => !allFilterTypes || allFilterTypes?.[filter.filter],
-          )}
+          options={chipFilters}
           activeFilters={activeFilters}
           onClickFilter={handleActiveFilter}
         />

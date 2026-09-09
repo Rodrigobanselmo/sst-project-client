@@ -9,6 +9,8 @@ export interface IMenuFilterOptions {
   activeColor: string;
   /** Texto quando o filtro está ativo (ex.: amarelo psicossocial). */
   activeTextColor?: string;
+  /** Texto quando o filtro está inativo. */
+  inactiveTextColor?: string;
 }
 
 export interface SMenuSimpleFilterSearchProps extends BoxProps {

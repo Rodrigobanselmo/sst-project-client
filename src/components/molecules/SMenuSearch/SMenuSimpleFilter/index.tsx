@@ -43,7 +43,7 @@ const MenuFilter: FC<{ children?: any } & SMenuSimpleFilterSearchProps> = ({
                 transition: 'background-color 0.2s ease-in-out',
                 color: isActive
                   ? option.activeTextColor || 'common.white'
-                  : 'common.white',
+                  : option.inactiveTextColor || 'common.white',
               }}
             >
               {option.label}
