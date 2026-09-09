@@ -91,7 +91,24 @@ export interface ICompany {
 
   isGroup: boolean;
   isClinic: boolean;
-  metadata?: Record<string, any>;
+  metadata?: ICompanyMetadata;
+}
+
+export type HierarchyTypeLabelKey =
+  | 'DIRECTORY'
+  | 'MANAGEMENT'
+  | 'SECTOR'
+  | 'SUB_SECTOR'
+  | 'OFFICE'
+  | 'SUB_OFFICE';
+
+export type ICompanyHierarchyTypeLabels = {
+  [K in HierarchyTypeLabelKey]?: string;
+};
+
+export interface ICompanyMetadata {
+  hierarchyTypeLabels?: ICompanyHierarchyTypeLabels;
+  [key: string]: any;
 }
 
 export interface ICompanyContract {

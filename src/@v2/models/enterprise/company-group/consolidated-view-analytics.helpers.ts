@@ -1,6 +1,7 @@
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import {
   getStructuralIndicatorGroupingConfig,
+  getStructuralIndicatorGroupingLabel,
   STRUCTURAL_INDICATOR_GROUPING_CONFIGS,
   StructuralIndicatorGroupingKey,
 } from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
@@ -315,7 +316,9 @@ export function buildConsolidatedAnalyticsRecorteSnapshot(params: {
   };
 }
 
-export function getConsolidatedStructuralGroupingOptions() {
+export function getConsolidatedStructuralGroupingOptions(
+  companyLabels?: unknown,
+) {
   return [
     {
       id: 'overview' as const,
@@ -336,7 +339,7 @@ export function getConsolidatedStructuralGroupingOptions() {
       ).includes(config.key),
     ).map((config) => ({
       id: config.key,
-      label: config.selectLabel,
+      label: getStructuralIndicatorGroupingLabel(config.key, companyLabels),
     })),
   ];
 }

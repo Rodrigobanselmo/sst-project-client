@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 
 import { BoxProps } from '@mui/material';
 import { STagButton } from 'components/atoms/STagButton';
-import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
+import { resolveHierarchyNodeTypeLabel } from 'components/organisms/main/Tree/OrgTree/utils/resolve-hierarchy-node-type-label';
 import {
   selectGhoIsSelected,
   selectGhoSearch,
@@ -14,6 +14,7 @@ import { environmentMap } from 'core/constants/maps/environment.map';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { IGho } from 'core/interfaces/api/IGho';
 import { characterizationDisplayName } from 'core/utils/risk-linkage-guards.util';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
@@ -29,6 +30,7 @@ export const RiskToolGhoItem: FC<
 > = ({ gho, viewDataType, ...props }) => {
   const isSelected = useAppSelector(selectGhoIsSelected(gho.id));
   const searchSelected = useAppSelector(selectGhoSearch);
+  const typeLabels = useHierarchyTypeLabels();
   const isHierarchy = 'childrenIds' in gho;
 
   if (!gho) return null;
@@ -40,7 +42,7 @@ export const RiskToolGhoItem: FC<
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return '';
-    if (isHierarchy) return nodeTypesConstant[gho.type]?.name;
+    if (isHierarchy) return resolveHierarchyNodeTypeLabel(gho.type, typeLabels);
 
     if (gho.description) {
       const splitValues = gho.description.split('(//)');

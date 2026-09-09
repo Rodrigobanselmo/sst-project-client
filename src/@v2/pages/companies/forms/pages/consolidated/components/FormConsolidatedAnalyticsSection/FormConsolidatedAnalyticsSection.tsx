@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { useAccess } from 'core/hooks/useAccess';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
 import FilterListIcon from '@mui/icons-material/FilterList';
 import PersonIcon from '@mui/icons-material/Person';
@@ -74,6 +75,7 @@ export function FormConsolidatedAnalyticsSection({
   mode,
 }: Props) {
   const { isMaster } = useAccess();
+  const typeLabels = useHierarchyTypeLabels();
   const { enqueueSnackbar } = useSnackbar();
   const [groupingMode, setGroupingMode] =
     useState<ConsolidatedAnalyticsGroupingMode>('overview');
@@ -112,7 +114,7 @@ export function FormConsolidatedAnalyticsSection({
   );
 
   const groupingOptions = useMemo<GroupingSelectOption[]>(() => {
-    const structural = getConsolidatedStructuralGroupingOptions().map(
+    const structural = getConsolidatedStructuralGroupingOptions(typeLabels).map(
       (option) => ({
         id: option.id as ConsolidatedAnalyticsGroupingMode,
         label: option.label,
@@ -124,7 +126,7 @@ export function FormConsolidatedAnalyticsSection({
     }));
 
     return [...structural, ...demographic];
-  }, [demographicQuestions]);
+  }, [demographicQuestions, typeLabels]);
 
   const participantGroups = useMemo(() => {
     if (!formQuestionsAnswers) return [];

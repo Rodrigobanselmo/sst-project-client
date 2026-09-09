@@ -17,4 +17,6 @@ export interface SMenuSimpleFilterSearchProps extends BoxProps {
   options: IMenuFilterOptions[];
   activeFilters: string[];
   onClickFilter: (filter: string, e: MouseEvent<HTMLDivElement>) => void;
+  /** Chips compactos, sem quebra de linha — labels longos/customizados. */
+  compact?: boolean;
 }

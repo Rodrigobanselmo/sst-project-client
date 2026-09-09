@@ -17,7 +17,7 @@ import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { orderByFormParticipantsTranslation } from '@v2/models/form/translations/orden-by-form-participants.translation';
-import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
+import { resolveFormHierarchyTypeLabel } from '@v2/models/form/helpers/form-hierarchy-type-presentation.util';
 import { useFetchBrowseAllFormParticipantsForGrouping } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseAllFormParticipantsForGrouping';
 import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseFormParticipants';
 import { FORM_PARTICIPANTS_GROUPED_FETCH_CAP } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-all-filtered-form-participants';
@@ -67,6 +67,7 @@ import { resolveClientFormReminderLimit } from '@v2/models/form/helpers/resolve-
 import { GrantFormReminderLimitModal } from './components/GrantFormReminderLimitModal';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import { useAccess } from 'core/hooks/useAccess';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import {
   Alert,
   Box,
@@ -123,6 +124,7 @@ export const FormParticipantsTable = ({
   applicationId: string;
   formApplication?: FormApplicationReadModel;
 }) => {
+  const typeLabels = useHierarchyTypeLabels();
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<FormParticipantsColumnsEnum, boolean>
   >(persistKeys.COLUMNS_FORMS_PARTICIPANTS, {} as any);
@@ -326,7 +328,7 @@ export const FormParticipantsTable = ({
       }),
       hierarchies: (value) => ({
         leftLabel: value.type
-          ? `${hierarchyTypeTranslation[value.type]}`
+          ? resolveFormHierarchyTypeLabel(value.type, typeLabels)
           : 'Hierarquia',
         label: value.name,
         leftLabelBold: true,
@@ -496,10 +498,12 @@ export const FormParticipantsTable = ({
     if (!queryParams.hierarchies?.length) return '';
     return queryParams.hierarchies
       .map((h) =>
-        h.type ? `${hierarchyTypeTranslation[h.type]} ${h.name}` : h.name,
+        h.type
+          ? `${resolveFormHierarchyTypeLabel(h.type, typeLabels)} ${h.name}`
+          : h.name,
       )
       .join('; ');
-  }, [queryParams.hierarchies]);
+  }, [queryParams.hierarchies, typeLabels]);
 
   const orderByForExport = useMemo(
     () =>
@@ -802,7 +806,10 @@ export const FormParticipantsTable = ({
             onClose={() => setViewModeMenuOpen(false)}
             onChange={onViewModeChange}
             renderValue={(mode) =>
-              getParticipantsViewModeSelectLabel(mode as ParticipantsViewMode)
+              getParticipantsViewModeSelectLabel(
+                mode as ParticipantsViewMode,
+                typeLabels,
+              )
             }
             MenuProps={{
               autoFocus: false,
@@ -816,21 +823,23 @@ export const FormParticipantsTable = ({
             </ViewModeSelectCategory>
             {flatHierarchyBeforeSector.map((config) => (
               <MenuItem key={config.viewMode} value={config.viewMode}>
-                {config.selectLabel}
+                {getParticipantsViewModeSelectLabel(config.viewMode, typeLabels)}
               </MenuItem>
             ))}
-            <MenuItem value="grouped">Agrupado por setor</MenuItem>
+            <MenuItem value="grouped">
+              {getParticipantsViewModeSelectLabel('grouped', typeLabels)}
+            </MenuItem>
             <ViewModeSelectCategory withTopSpacing>
               Agrupamentos de setores
             </ViewModeSelectCategory>
             {HIERARCHY_GROUP_GROUPING_CONFIGS.map((config) => (
               <MenuItem key={config.viewMode} value={config.viewMode}>
-                {config.selectLabel}
+                {getParticipantsViewModeSelectLabel(config.viewMode, typeLabels)}
               </MenuItem>
             ))}
             {flatHierarchySubSector.map((config) => (
               <MenuItem key={config.viewMode} value={config.viewMode}>
-                {config.selectLabel}
+                {getParticipantsViewModeSelectLabel(config.viewMode, typeLabels)}
               </MenuItem>
             ))}
             <ViewModeSelectCategory withTopSpacing>
@@ -839,7 +848,7 @@ export const FormParticipantsTable = ({
             {COMBINED_HIERARCHY_GROUPING_CONFIGS_WITHOUT_ESTABLISHMENT.map(
               (config) => (
                 <MenuItem key={config.viewMode} value={config.viewMode}>
-                  {config.selectLabel}
+                  {getParticipantsViewModeSelectLabel(config.viewMode, typeLabels)}
                 </MenuItem>
               ),
             )}
@@ -865,7 +874,10 @@ export const FormParticipantsTable = ({
                     value={config.viewMode}
                     onMouseDown={handleEstablishmentViewModeSelect(config.viewMode)}
                   >
-                    {config.selectLabel}
+                    {getParticipantsViewModeSelectLabel(
+                      config.viewMode,
+                      typeLabels,
+                    )}
                   </MenuItem>
                 ))}
                 <MenuItem
@@ -874,7 +886,10 @@ export const FormParticipantsTable = ({
                     'grouped_establishment_sector',
                   )}
                 >
-                  Agrupado por estabelecimento e setor
+                  {getParticipantsViewModeSelectLabel(
+                    'grouped_establishment_sector',
+                    typeLabels,
+                  )}
                 </MenuItem>
                 {establishmentHierarchySubSector.map((config) => (
                   <MenuItem
@@ -882,7 +897,10 @@ export const FormParticipantsTable = ({
                     value={config.viewMode}
                     onMouseDown={handleEstablishmentViewModeSelect(config.viewMode)}
                   >
-                    {config.selectLabel}
+                    {getParticipantsViewModeSelectLabel(
+                      config.viewMode,
+                      typeLabels,
+                    )}
                   </MenuItem>
                 ))}
                 <ViewModeSelectCategory withTopSpacing>
@@ -897,7 +915,10 @@ export const FormParticipantsTable = ({
                         config.viewMode as ParticipantsViewMode,
                       )}
                     >
-                      {config.selectLabel}
+                      {getParticipantsViewModeSelectLabel(
+                        config.viewMode,
+                        typeLabels,
+                      )}
                     </MenuItem>
                   ),
                 )}

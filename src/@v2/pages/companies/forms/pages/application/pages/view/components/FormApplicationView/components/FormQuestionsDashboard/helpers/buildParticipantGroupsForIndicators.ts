@@ -47,12 +47,14 @@ export function buildParticipantGroupsForIndicators(params: {
   selectedGroupingQuestionId: string | null;
   hierarchyGroups: HierarchyGroupForIndicators[];
   groupingEnrichment?: ParticipantGroupingEnrichmentContext | null;
+  companyLabels?: unknown;
 }): ParticipantGroupForIndicators[] {
   const {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     hierarchyGroups = [],
     groupingEnrichment,
+    companyLabels,
   } = params;
 
   if (
@@ -212,6 +214,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
   selectedGroupingQuestionId: string | null;
   hierarchyGroups: HierarchyGroupForIndicators[];
   groupingEnrichment?: ParticipantGroupingEnrichmentContext | null;
+  companyLabels?: unknown;
 }): {
   grouping: ParticipantGroupingForPdf;
   participantGroups: ParticipantGroupForIndicators[];
@@ -221,6 +224,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
     selectedGroupingQuestionId,
     hierarchyGroups = [],
     groupingEnrichment,
+    companyLabels,
   } = params;
 
   const [identifierGroup] = formQuestionsAnswers.results;
@@ -290,6 +294,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
         questionId: selectedGroupingQuestionId,
         questionLabel: getStructuralIndicatorGroupingLabel(
           selectedGroupingQuestionId,
+          companyLabels,
         ),
       },
       participantGroups: expandedParticipantGroups,
@@ -326,6 +331,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
     selectedGroupingQuestionId,
     hierarchyGroups,
     groupingEnrichment: params.groupingEnrichment,
+    companyLabels,
   });
 
   if (participantGroups.length === 0) {

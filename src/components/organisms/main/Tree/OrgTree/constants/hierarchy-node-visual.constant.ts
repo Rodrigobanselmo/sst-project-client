@@ -94,7 +94,7 @@ export const hierarchyLegendItems: {
 }[] = [
   { type: TreeTypeEnum.COMPANY, label: 'Empresa' },
   { type: TreeTypeEnum.WORKSPACE, label: 'Estabelecimento' },
-  { type: TreeTypeEnum.DIRECTORY, label: 'Diretória' },
+  { type: TreeTypeEnum.DIRECTORY, label: 'Diretoria' },
   { type: TreeTypeEnum.MANAGEMENT, label: 'Gerência' },
   { type: TreeTypeEnum.SECTOR, label: 'Setor' },
   { type: TreeTypeEnum.SUB_SECTOR, label: 'Sub-setor' },

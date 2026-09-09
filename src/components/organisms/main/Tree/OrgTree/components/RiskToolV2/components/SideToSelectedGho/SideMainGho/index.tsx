@@ -4,7 +4,8 @@ import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefault
 import { Checkbox } from '@mui/material';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
-import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
+import { resolveHierarchyNodeTypeLabel } from 'components/organisms/main/Tree/OrgTree/utils/resolve-hierarchy-node-type-label';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 import { environmentMap } from 'core/constants/maps/environment.map';
@@ -26,11 +27,12 @@ export const SideMainGho: FC<{ children?: any } & SideItemsProps> = ({
     document.getElementById(id)?.click();
   };
 
+  const typeLabels = useHierarchyTypeLabels();
   const isHierarchy = 'childrenIds' in data;
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return;
-    if (isHierarchy) return nodeTypesConstant[data.type]?.name;
+    if (isHierarchy) return resolveHierarchyNodeTypeLabel(data.type, typeLabels);
 
     if (data.description) {
       const splitValues = data.description.split('(//)');

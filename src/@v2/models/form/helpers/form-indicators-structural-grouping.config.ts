@@ -4,6 +4,7 @@ import {
   FORM_PARTICIPANT_MISSING_MANAGEMENT_LABEL,
   FORM_PARTICIPANT_MISSING_SUB_SECTOR_LABEL,
 } from '@v2/models/form/helpers/form-participant-hierarchy-display';
+import { resolveFormHierarchyTypeLabel } from '@v2/models/form/helpers/form-hierarchy-type-presentation.util';
 import { FormParticipantStructureBrowseModel } from '@v2/models/form/models/form-questions-answers/form-participant-structure-browse.model';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 
@@ -47,9 +48,21 @@ export function getStructuralIndicatorGroupingConfig(
   return STRUCTURAL_INDICATOR_GROUPING_CONFIGS.find((c) => c.key === key);
 }
 
+const STRUCTURAL_GROUPING_HIERARCHY_TYPE: Partial<
+  Record<StructuralIndicatorGroupingKey, HierarchyTypeEnum>
+> = {
+  __participant_directory: HierarchyTypeEnum.DIRECTORY,
+  __participant_management: HierarchyTypeEnum.MANAGEMENT,
+  __participant_sector: HierarchyTypeEnum.SECTOR,
+  __participant_sub_sector: HierarchyTypeEnum.SUB_SECTOR,
+};
+
 export function getStructuralIndicatorGroupingLabel(
   key: StructuralIndicatorGroupingKey,
+  companyLabels?: unknown,
 ): string {
+  const type = STRUCTURAL_GROUPING_HIERARCHY_TYPE[key];
+  if (type) return resolveFormHierarchyTypeLabel(type, companyLabels);
   return getStructuralIndicatorGroupingConfig(key)?.selectLabel ?? key;
 }
 

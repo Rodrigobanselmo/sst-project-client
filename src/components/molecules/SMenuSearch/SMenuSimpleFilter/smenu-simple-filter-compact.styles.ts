@@ -1,0 +1,16 @@
+export const SMENU_SIMPLE_FILTER_COMPACT_CHIP_SX = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  whiteSpace: 'nowrap',
+  lineHeight: 1.2,
+  height: 22,
+  minHeight: 22,
+  maxHeight: 22,
+  py: 0,
+  px: 3,
+  mb: 0,
+  mt: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  maxWidth: 168,
+} as const;

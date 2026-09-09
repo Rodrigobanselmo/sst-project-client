@@ -1,5 +1,10 @@
 import { buildHierarchyTypeAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-type';
-import type { FlatHierarchyGroupingConfig } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
+import {
+  getFlatHierarchyGroupColumnLabel,
+  getFlatHierarchySelectLabel,
+  type FlatHierarchyGroupingConfig,
+} from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
@@ -31,6 +36,7 @@ export const FormParticipantsGroupedByHierarchyType = ({
   fetchCap,
   isPartialFetch,
 }: Props) => {
+  const typeLabels = useHierarchyTypeLabels();
   const aggregates = useMemo(
     () =>
       buildHierarchyTypeAggregates(
@@ -44,7 +50,7 @@ export const FormParticipantsGroupedByHierarchyType = ({
   if (isLoading) {
     return (
       <Typography color="text.secondary" sx={{ py: 3 }}>
-        {config.loadingMessage}
+        {`Carregando agrupamento ${getFlatHierarchySelectLabel(config, typeLabels).toLocaleLowerCase('pt-BR')}…`}
       </Typography>
     );
   }
@@ -62,7 +68,9 @@ export const FormParticipantsGroupedByHierarchyType = ({
       <Table component={Paper} size="small" variant="outlined">
         <TableHead>
           <TableRow>
-            <TableCell>{config.groupColumnLabel}</TableCell>
+            <TableCell>
+              {getFlatHierarchyGroupColumnLabel(config, typeLabels)}
+            </TableCell>
             <TableCell align="right">Participantes</TableCell>
             <TableCell align="right">Responderam</TableCell>
             <TableCell align="right">Não responderam</TableCell>

@@ -4,6 +4,11 @@ import {
   type CombinedHierarchyNestedGroup,
 } from '@v2/models/form/helpers/form-participants-aggregate-by-combined-hierarchy';
 import type { CombinedHierarchyGroupingConfig } from '@v2/models/form/helpers/form-participants-combined-hierarchy-grouping.config';
+import {
+  getCombinedHierarchyColumnLabel,
+  getParticipantsViewModeSelectLabel,
+} from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
@@ -138,6 +143,7 @@ export const FormParticipantsGroupedByCombinedHierarchy = ({
   fetchCap,
   isPartialFetch,
 }: Props) => {
+  const typeLabels = useHierarchyTypeLabels();
   const groups = useMemo(
     () => buildCombinedHierarchyNestedAggregates(rows, config.levels),
     [rows, config.levels],
@@ -146,7 +152,7 @@ export const FormParticipantsGroupedByCombinedHierarchy = ({
   if (isLoading) {
     return (
       <Typography color="text.secondary" sx={{ py: 3 }}>
-        {config.loadingMessage}
+        {`Carregando ${getParticipantsViewModeSelectLabel(config.viewMode, typeLabels).toLocaleLowerCase('pt-BR')}…`}
       </Typography>
     );
   }
@@ -164,7 +170,10 @@ export const FormParticipantsGroupedByCombinedHierarchy = ({
       <Table component={Paper} size="small" variant="outlined">
         <TableHead>
           <TableRow>
-            <TableCell>{config.columnLabel}</TableCell>
+            <TableCell>
+              {getCombinedHierarchyColumnLabel(config.viewMode, typeLabels) ??
+                config.columnLabel}
+            </TableCell>
             <TableCell align="right">Participantes</TableCell>
             <TableCell align="right">Responderam</TableCell>
             <TableCell align="right">Não responderam</TableCell>

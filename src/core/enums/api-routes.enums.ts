@@ -15,6 +15,7 @@ export enum ApiRoutesEnum {
   CNPJ = '/company/cnpj',
   COMPANIES = '/company',
   COMPANY = '/company/:companyId',
+  COMPANY_HIERARCHY_TYPE_LABELS = '/company/:companyId/hierarchy-type-labels',
   WORKSPACE = '/workspace',
   COMPANY_GROUP = '/company/:companyId/group',
   CONTACTS = '/company/:companyId/contact',

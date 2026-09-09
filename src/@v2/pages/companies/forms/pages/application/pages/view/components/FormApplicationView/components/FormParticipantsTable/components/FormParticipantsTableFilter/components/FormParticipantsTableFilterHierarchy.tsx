@@ -3,7 +3,8 @@ import { SText } from '@v2/components/atoms/SText/SText';
 import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import { ActionPlanHierarchyBrowseResultModel } from '@v2/models/security/models/action-plan-hierarchy/action-plan-hierarchy-browse-result.model';
-import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
+import { resolveFormHierarchyTypeLabel } from '@v2/models/form/helpers/form-hierarchy-type-presentation.util';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { useInfinityBrowseFormHierarchies } from '@v2/services/forms/hierarchy/browse-form-hierarchies/hooks/useInfinityBrowseFormHierarchies';
 import { useMemo, useState } from 'react';
 
@@ -30,6 +31,7 @@ export const FormParticipantsTableFilterHierarchy = ({
   value,
   onChange,
 }: FormParticipantsTableFilterHierarchyProps) => {
+  const typeLabels = useHierarchyTypeLabels();
   const [search, setSearch] = useState('');
 
   const { hierarchies, isFetching, fetchNextPage } =
@@ -77,7 +79,9 @@ export const FormParticipantsTableFilterHierarchy = ({
         return (
           <SFlex sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
             <SText fontSize={11} color="grey.700" sx={{ fontWeight: 600 }}>
-              {hierarchyTypeTranslation[type]}:
+              {type
+                ? `${resolveFormHierarchyTypeLabel(type, typeLabels)}:`
+                : ''}
             </SText>
             <SText fontSize={fontSize}>{option.name}</SText>
           </SFlex>

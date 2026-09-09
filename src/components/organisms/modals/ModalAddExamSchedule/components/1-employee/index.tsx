@@ -26,8 +26,8 @@ import { SAddIcon } from 'assets/icons/SAddIcon';
 import { SCompanyIcon } from 'assets/icons/SCompanyIcon';
 import { SDoctorIcon } from 'assets/icons/SDoctorIcon';
 
-import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { border_box } from 'core/styles/cssInJsStyles';
@@ -65,6 +65,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
     handleSelectEmployee,
     handleAddEmployee,
   } = useEmployeeStep(props);
+  const typeLabels = useHierarchyTypeLabels();
 
   const buttons = [
     {},
@@ -328,7 +329,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                         key={parent.id}
                         value={parent?.name || ''}
                         disabled
-                        label={hierarchyConstant[parent.type]?.name}
+                        label={typeLabels[parent.type]}
                         superSmall
                         InputLabelProps={{ shrink: true }}
                         labelPosition="center"

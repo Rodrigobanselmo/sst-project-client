@@ -2,6 +2,9 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { IFormParticipantsFilterProps } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/SFormParticipantsTable.types';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
+import { resolveFormHierarchyTypeLabel } from '@v2/models/form/helpers/form-hierarchy-type-presentation.util';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { useMemo } from 'react';
 import { FormParticipantsTableFilterEstablishment } from './components/FormParticipantsTableFilterEstablishment';
 import { FormParticipantsTableFilterHierarchy } from './components/FormParticipantsTableFilterHierarchy';
@@ -22,6 +25,14 @@ export const FormParticipantsTableFilter = ({
   companyId,
   formApplication,
 }: FormParticipantsTableFilterProps) => {
+  const typeLabels = useHierarchyTypeLabels();
+  const hierarchyFilterPlaceholder = `${resolveFormHierarchyTypeLabel(
+    HierarchyTypeEnum.DIRECTORY,
+    typeLabels,
+  )}, ${resolveFormHierarchyTypeLabel(
+    HierarchyTypeEnum.MANAGEMENT,
+    typeLabels,
+  )}, ${resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, typeLabels)}...`;
   const workspaces = useMemo(
     () =>
       (formApplication?.participants?.workspaces ?? []).map((w) => ({
@@ -65,7 +76,7 @@ export const FormParticipantsTableFilter = ({
         </SText>
         <FormParticipantsTableFilterHierarchy
           companyId={companyId}
-          label="Diretoria, superintendência, setor..."
+          label={hierarchyFilterPlaceholder}
           allowedTypes={FORM_PARTICIPANTS_HIERARCHY_STRUCTURE_TYPES}
           workspaceIds={workspaceIds}
           value={structureHierarchies}

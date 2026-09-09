@@ -12,7 +12,8 @@ import SEditIcon from 'assets/icons/SEditIcon';
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 import { environmentMap } from 'core/constants/maps/environment.map';
 
-import { nodeTypesConstant } from '../../../../constants/node-type.constant';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
+import { resolveHierarchyNodeTypeLabel } from '../../../../utils/resolve-hierarchy-node-type-label';
 import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 import { STBoxItemContainer } from './styles';
 import { SideItemsProps } from './types';
@@ -27,11 +28,12 @@ export const SideRowGho: FC<{ children?: any } & SideItemsProps> = ({
   viewDataType,
   riskData,
 }) => {
+  const typeLabels = useHierarchyTypeLabels();
   const isHierarchy = 'childrenIds' in data;
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return;
-    if (isHierarchy) return nodeTypesConstant[data.type].name;
+    if (isHierarchy) return resolveHierarchyNodeTypeLabel(data.type, typeLabels);
 
     if (data.description) {
       const splitValues = data.description.split('(//)');

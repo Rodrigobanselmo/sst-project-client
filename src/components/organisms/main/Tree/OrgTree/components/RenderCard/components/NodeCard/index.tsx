@@ -24,6 +24,7 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { useModal } from 'core/hooks/useModal';
 import { useObserverHide } from 'core/hooks/useObserverHide';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
@@ -35,10 +36,10 @@ import { STagButton } from '../../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../../atoms/SText';
 import { hierarchyNodeVisualIdentity } from '../../../../constants/hierarchy-node-visual.constant';
 import { isHierarchyNodeSelectable } from '../../../../constants/hierarchy-selection.constant';
-import { nodeTypesConstant } from '../../../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { usePreventNode } from '../../../../hooks/usePreventNode';
 import { ITreeMapObject } from '../../../../interfaces';
+import { resolveHierarchyNodeTypeLabel } from '../../../../utils/resolve-hierarchy-node-type-label';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { EmployeeSelectCard } from './Select/employeeSelect';
 import { GhoSelectCard } from './Select/ghoSelect';
@@ -46,8 +47,9 @@ import { STSelectBox } from './styles';
 import { INodeCardProps } from './types';
 
 const NodeTypeHeader: FC<{ type: TreeTypeEnum }> = ({ type }) => {
+  const typeLabels = useHierarchyTypeLabels();
   const visual = hierarchyNodeVisualIdentity[type];
-  const label = nodeTypesConstant[type]?.name;
+  const label = resolveHierarchyNodeTypeLabel(type, typeLabels);
   const isSector = type === TreeTypeEnum.SECTOR;
 
   if (!label || !visual) return null;

@@ -22,9 +22,13 @@ import {
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
 import { tableUtilityPillSx } from 'configs/theme/brand-identity-fill';
 
-import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
+import {
+  isSupportedHierarchyType,
+  resolveHierarchyTypeLabel,
+} from 'core/constants/maps/hierarchy-type-labels';
 import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -83,9 +87,11 @@ export const getFilter = ({
 export const getSelectedHierarchy = ({
   viewDataType,
   selected,
+  typeLabels,
 }: {
   viewDataType: ViewsDataEnum;
   selected: IGho | IHierarchy | IHierarchyTreeMapObject | null;
+  typeLabels?: Partial<Record<HierarchyEnum, string>> | null;
 }) => {
   if (selected && 'description' in selected && selected.description) {
     const splitValues = String(selected.description).split('(//)');
@@ -98,13 +104,16 @@ export const getSelectedHierarchy = ({
     }
   }
 
-  if (viewDataType == ViewsDataEnum.HIERARCHY)
+  if (viewDataType == ViewsDataEnum.HIERARCHY) {
+    const selectedType = (selected as any)?.type;
     return {
       name: selected?.name,
       id: selected?.id,
-      type:
-        hierarchyConstant[(selected as any)?.type as HierarchyEnum]?.name || '',
+      type: isSupportedHierarchyType(selectedType)
+        ? resolveHierarchyTypeLabel(selectedType, typeLabels)
+        : '',
     };
+  }
 
   return { name: selected?.name, id: selected?.id };
 };
@@ -141,6 +150,7 @@ export const RiskToolGhoHorizontal: FC<
 }) => {
   const dispatch = useAppDispatch();
   const selected = useAppSelector((state) => state.gho.selected);
+  const typeLabels = useHierarchyTypeLabels();
   const { query } = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const syncPlanMutation = useMutSyncDerivedMeasuresFromPlan();
@@ -239,7 +249,11 @@ export const RiskToolGhoHorizontal: FC<
     [inputRef, dispatch, handleSelectGHO, viewDataType],
   );
 
-  const { name, type } = getSelectedHierarchy({ selected, viewDataType });
+  const { name, type } = getSelectedHierarchy({
+    selected,
+    viewDataType,
+    typeLabels,
+  });
   const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
   const displayName = hideGhoPicker
     ? lockedGhoName || name || selected?.name || ''

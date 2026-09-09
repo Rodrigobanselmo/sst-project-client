@@ -7,18 +7,19 @@ import sortArray from 'sort-array';
 
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
-import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { useListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { matchesWorkspaceFilter } from 'core/utils/matches-workspace-filter.util';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import {
+  formatHierarchySelectItemLabel,
   getHierarchySelectChipFilters,
   getHierarchySelectEmptyMessage,
   HIERARCHY_SELECT_EMPTY_OPTION_ID,
   isHierarchySelectEmptyOptionId,
+  matchesHierarchySelectListItem,
 } from './hierarchy-select-presentation.util';
 import { IHierarchyTypeSelectProps } from './types';
 
@@ -42,10 +43,11 @@ export const HierarchySelect: FC<
   const { hierarchyListData, hierarchyTree } = useListHierarchyQuery(
     companyId ?? '-',
   );
+  const typeLabels = useHierarchyTypeLabels();
   const [activeFilters, setActiveFilters] = useState<string[]>([defaultFilter]);
   const chipFilters = useMemo(
-    () => getHierarchySelectChipFilters(filterOptions),
-    [filterOptions],
+    () => getHierarchySelectChipFilters(filterOptions, typeLabels),
+    [filterOptions, typeLabels],
   );
 
   const handleSelectRisk = (options: IHierarchy) => {
@@ -68,22 +70,17 @@ export const HierarchySelect: FC<
       if (!selectedId) return text || '';
 
       if (hierarchyTree[selectedId || '']) {
-        let name = '';
-
-        const hierarchyConstValue =
-          hierarchyConstant[hierarchyTree[selectedId || '']?.type || ''];
-
-        if (hierarchyConstValue) name = `(${hierarchyConstValue.name}) `;
-        if (hierarchyTree[selectedId || ''].name)
-          name = name + hierarchyTree[selectedId || ''].name;
-
-        return name;
+        return formatHierarchySelectItemLabel(
+          hierarchyTree[selectedId || ''].type,
+          hierarchyTree[selectedId || ''].name,
+          typeLabels,
+        );
       }
       if (text) return text;
 
       return '';
     },
-    [hierarchyTree],
+    [hierarchyTree, typeLabels],
   );
 
   const handleActiveFilter = useCallback((filterFilter: string) => {
@@ -95,21 +92,22 @@ export const HierarchySelect: FC<
       .map((hierarchyTree) => ({
         ...hierarchyTree,
       }))
-      .filter(
-        (h) =>
-          h.type === activeFilters[0] &&
-          (!parentId ||
-            (parentId &&
-              Array.isArray(h.parents) &&
-              h.parents.find((p) => p.id === parentId))) &&
-          matchesWorkspaceFilter(workspaceId, h.workspaceIds),
+      .filter((h) =>
+        matchesHierarchySelectListItem({
+          type: h.type,
+          activeType: activeFilters[0],
+          parentId,
+          parents: h.parents,
+          workspaceId,
+          workspaceIds: h.workspaceIds,
+        }),
       );
 
     if (!list.length) {
       return [
         {
           id: HIERARCHY_SELECT_EMPTY_OPTION_ID,
-          name: getHierarchySelectEmptyMessage(activeFilters[0]),
+          name: getHierarchySelectEmptyMessage(activeFilters[0], typeLabels),
           type: activeFilters[0],
         },
       ];
@@ -123,7 +121,7 @@ export const HierarchySelect: FC<
       });
 
     return sortArray(list, { by: 'name', order: 'asc' });
-  }, [hierarchyListData, activeFilters, selectedId, parentId, workspaceId]);
+  }, [hierarchyListData, activeFilters, selectedId, parentId, workspaceId, typeLabels]);
 
   const textField = getText(selectedId, text);
   const isNotSelected = !selectedId;
@@ -184,6 +182,7 @@ export const HierarchySelect: FC<
       }}
       renderFilter={() => (
         <SMenuSimpleFilter
+          compact
           options={chipFilters}
           activeFilters={activeFilters}
           onClickFilter={handleActiveFilter}

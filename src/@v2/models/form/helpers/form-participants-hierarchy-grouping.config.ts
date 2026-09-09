@@ -1,4 +1,12 @@
 import {
+  formatAgrupadoPor,
+  formatAgrupadoPorEstabelecimentoE,
+  resolveCombinedHierarchyColumnLabel,
+  resolveCombinedHierarchySelectLabel,
+  resolveFormHierarchyTypeLabel,
+  toFormHierarchySelectPart,
+} from '@v2/models/form/helpers/form-hierarchy-type-presentation.util';
+import {
   FORM_PARTICIPANT_MISSING_DIRECTORY_LABEL,
   FORM_PARTICIPANT_MISSING_MANAGEMENT_LABEL,
   FORM_PARTICIPANT_MISSING_SUB_SECTOR_LABEL,
@@ -257,25 +265,107 @@ export function getEstablishmentHierarchyGroupingConfig(
   );
 }
 
+export function getFlatHierarchySelectLabel(
+  config: FlatHierarchyGroupingConfig,
+  companyLabels?: unknown,
+): string {
+  return formatAgrupadoPor([
+    resolveFormHierarchyTypeLabel(config.hierarchyType, companyLabels),
+  ]);
+}
+
+export function getFlatHierarchyGroupColumnLabel(
+  config: FlatHierarchyGroupingConfig,
+  companyLabels?: unknown,
+): string {
+  return resolveFormHierarchyTypeLabel(config.hierarchyType, companyLabels);
+}
+
+export function getEstablishmentHierarchySelectLabel(
+  config: EstablishmentHierarchyGroupingConfig,
+  companyLabels?: unknown,
+): string {
+  return formatAgrupadoPorEstabelecimentoE(
+    resolveFormHierarchyTypeLabel(config.hierarchyType, companyLabels),
+  );
+}
+
+export function getEstablishmentHierarchyHeaderColumnLabel(
+  config: EstablishmentHierarchyGroupingConfig,
+  companyLabels?: unknown,
+): string {
+  return `Estabelecimento / ${resolveFormHierarchyTypeLabel(
+    config.hierarchyType,
+    companyLabels,
+  )}`;
+}
+
+export function getCombinedHierarchySelectLabel(
+  viewMode: ParticipantsViewMode,
+  companyLabels?: unknown,
+): string | undefined {
+  const combined = getCombinedHierarchyGroupingConfig(viewMode);
+  if (!combined) return undefined;
+  return resolveCombinedHierarchySelectLabel(
+    combined.levels.map((level) => level.kind),
+    companyLabels,
+  );
+}
+
+export function getCombinedHierarchyColumnLabel(
+  viewMode: ParticipantsViewMode,
+  companyLabels?: unknown,
+): string | undefined {
+  const combined = getCombinedHierarchyGroupingConfig(viewMode);
+  if (!combined) return undefined;
+  return resolveCombinedHierarchyColumnLabel(
+    combined.levels.map((level) => level.kind),
+    companyLabels,
+  );
+}
+
+export function getHierarchyGroupSelectLabel(
+  config: HierarchyGroupGroupingConfig,
+  companyLabels?: unknown,
+): string {
+  if (config.viewMode === 'grouped_hierarchy_group') {
+    return config.selectLabel;
+  }
+
+  const sector = toFormHierarchySelectPart(
+    resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, companyLabels),
+  );
+  return `Agrupado por ${sector} + agrupamento de setores`;
+}
+
 export function getParticipantsViewModeSelectLabel(
   viewMode: ParticipantsViewMode,
+  companyLabels?: unknown,
 ): string {
   if (viewMode === 'list') return 'Lista detalhada';
-  if (viewMode === 'grouped') return 'Agrupado por setor';
+  if (viewMode === 'grouped') {
+    return formatAgrupadoPor([
+      resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, companyLabels),
+    ]);
+  }
   const hierarchyGroup = getHierarchyGroupGroupingConfig(viewMode);
-  if (hierarchyGroup) return hierarchyGroup.selectLabel;
+  if (hierarchyGroup) {
+    return getHierarchyGroupSelectLabel(hierarchyGroup, companyLabels);
+  }
   if (viewMode === 'grouped_establishment') {
     return 'Agrupado por estabelecimento';
   }
   if (viewMode === 'grouped_establishment_sector') {
-    return 'Agrupado por estabelecimento e setor';
+    return formatAgrupadoPorEstabelecimentoE(
+      resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, companyLabels),
+    );
   }
   const flat = getFlatHierarchyGroupingConfig(viewMode);
-  if (flat) return flat.selectLabel;
-  const combined = getCombinedHierarchyGroupingConfig(viewMode);
-  if (combined) return combined.selectLabel;
+  if (flat) return getFlatHierarchySelectLabel(flat, companyLabels);
+  const combined = getCombinedHierarchySelectLabel(viewMode, companyLabels);
+  if (combined) return combined;
   const est = getEstablishmentHierarchyGroupingConfig(viewMode);
-  if (est) return est.selectLabel;
+  if (est) return getEstablishmentHierarchySelectLabel(est, companyLabels);
   return viewMode;
 }
 

@@ -47,6 +47,7 @@ import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-grou
 import { useFetchBrowseFormQuestionsAnswersRisks } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/hooks/useFetchBrowseFormQuestionsAnswersRisks';
 import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseFormParticipants';
 import {
+  getStructuralIndicatorGroupingLabel,
   STRUCTURAL_INDICATOR_GROUPING_CONFIGS,
 } from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
 import {
@@ -76,6 +77,7 @@ import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdf
 import { IndicatorsNarrativeDiagnosticSection } from './components/IndicatorsNarrativeDiagnosticSection/IndicatorsNarrativeDiagnosticSection';
 import { buildIndicatorsNarrativeDiagnosticScope } from './helpers/buildIndicatorsNarrativeDiagnosticScope';
 import { useAccess } from 'core/hooks/useAccess';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -424,6 +426,7 @@ export const FormQuestionsDashboard = ({
   accessCompanyId,
 }: FormQuestionsDashboardProps) => {
   const { isMaster } = useAccess();
+  const typeLabels = useHierarchyTypeLabels();
   const { enqueueSnackbar } = useSnackbar();
   const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
   const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
@@ -550,13 +553,13 @@ export const FormQuestionsDashboard = ({
         ...STRUCTURAL_INDICATOR_GROUPING_CONFIGS.map((config) => ({
           kind: 'structural' as const,
           id: config.key,
-          label: config.selectLabel,
+          label: getStructuralIndicatorGroupingLabel(config.key, typeLabels),
         })),
       );
     }
 
     return options;
-  }, [availableGroupingQuestions, showStructuralGroupingOptions]);
+  }, [availableGroupingQuestions, showStructuralGroupingOptions, typeLabels]);
 
   const selectableGroupingOptions = useMemo(
     () => groupingSelectOptions.filter(isIndicatorsGroupingSelectableOption),
@@ -605,12 +608,14 @@ export const FormQuestionsDashboard = ({
         selectedGroupingQuestionId: selectedGroupingQuestion,
         hierarchyGroups,
         groupingEnrichment,
+        companyLabels: typeLabels,
       }),
     [
       formQuestionsAnswers,
       selectedGroupingQuestion,
       hierarchyGroups,
       groupingEnrichment,
+      typeLabels,
     ],
   );
 

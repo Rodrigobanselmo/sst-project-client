@@ -3,13 +3,15 @@ import React, { FC } from 'react';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
-import {
-  hierarchyLegendItems,
-  hierarchyNodeVisualIdentity,
-} from '../../constants/hierarchy-node-visual.constant';
+import { hierarchyNodeVisualIdentity } from '../../constants/hierarchy-node-visual.constant';
+import { resolveHierarchyLegendItems } from '../../utils/resolve-hierarchy-node-type-label';
 
 export const HierarchyLegend: FC = () => {
+  const typeLabels = useHierarchyTypeLabels();
+  const legendItems = resolveHierarchyLegendItems(typeLabels);
+
   return (
     <SFlex
       sx={{
@@ -29,7 +31,7 @@ export const HierarchyLegend: FC = () => {
         pointerEvents: 'none',
       }}
     >
-      {hierarchyLegendItems.map((item) => {
+      {legendItems.map((item) => {
         const visual = hierarchyNodeVisualIdentity[item.type];
 
         return (

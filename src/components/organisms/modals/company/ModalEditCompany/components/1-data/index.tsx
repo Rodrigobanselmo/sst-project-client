@@ -25,6 +25,7 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { IUseAddCompany } from '../../hooks/useEditCompany';
+import { HierarchyTypeLabelsSettingsBlock } from './HierarchyTypeLabelsSettingsBlock';
 import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 import { CompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
@@ -322,6 +323,19 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
             }}
           />
         </SFlex>
+        {isEdit && companyData.id && (
+          <HierarchyTypeLabelsSettingsBlock
+            companyId={companyData.id}
+            storedLabels={companyData.metadata?.hierarchyTypeLabels}
+            metadata={companyData.metadata}
+            onSaved={(metadata) => {
+              setCompanyData((current) => ({
+                ...current,
+                metadata,
+              }));
+            }}
+          />
+        )}
       </AnimatedStep>
       <SModalButtons
         loading={loading}

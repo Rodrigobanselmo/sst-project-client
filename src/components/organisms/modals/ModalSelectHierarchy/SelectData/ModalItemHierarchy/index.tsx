@@ -2,7 +2,8 @@ import React, { FC, ReactNode } from 'react';
 
 import { BoxProps, useTheme } from '@mui/material';
 import { SSelectList } from 'components/molecules/SSelectList';
-import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
+import { resolveHierarchyNodeTypeLabel } from 'components/organisms/main/Tree/OrgTree/utils/resolve-hierarchy-node-type-label';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { selectModalIdIsSelected } from 'store/reducers/hierarchy/hierarchySlice';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -37,6 +38,7 @@ export const ModalItemHierarchy: FC<{ children?: any } & IItem> = ({
   ...rest
 }) => {
   const theme = useTheme();
+  const typeLabels = useHierarchyTypeLabels();
   const isSelectedFromStore = useAppSelector(selectModalIdIsSelected(data.id));
   const isSelected = selectedOverride ?? isSelectedFromStore;
 
@@ -51,7 +53,7 @@ export const ModalItemHierarchy: FC<{ children?: any } & IItem> = ({
       tooltipText={tooltipText ?? data.parentsName + ' > ' + data.name}
       tooltipMinLength={15}
       text={text || data.name}
-      label={nodeTypesConstant[data.type].name}
+      label={resolveHierarchyNodeTypeLabel(data.type, typeLabels)}
       startContent={startContent}
       endIcon={endIcon}
       textNoBreak={textNoBreak}

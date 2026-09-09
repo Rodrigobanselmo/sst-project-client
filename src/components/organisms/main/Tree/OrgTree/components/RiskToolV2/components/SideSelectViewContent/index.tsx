@@ -22,6 +22,7 @@ import { SCheckboxIcon } from 'assets/icons/SUncheckBoxIcon';
 
 import { hierarchyList } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IGho } from 'core/interfaces/api/IGho';
@@ -59,6 +60,7 @@ export const SideSelectViewContent: FC<
   const dispatch = useAppDispatch();
   const inputSelectedRef = useRef<HTMLInputElement>(null);
   const { hierarchyListData } = useListHierarchy();
+  const typeLabels = useHierarchyTypeLabels();
   const [filter, setFilter] = useState<HierarchyEnum>(HierarchyEnum.OFFICE);
   const store = useStore<any>();
 
@@ -221,8 +223,8 @@ export const SideSelectViewContent: FC<
             <STagButton
               active={filter === hierarchy.value}
               key={hierarchy.value}
-              tooltipTitle={`filtar por ${hierarchy.name}`}
-              text={hierarchy.name}
+              tooltipTitle={`filtar por ${typeLabels[hierarchy.value]}`}
+              text={typeLabels[hierarchy.value]}
               large
               onClick={() => {
                 setFilter(hierarchy.value);

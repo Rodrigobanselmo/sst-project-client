@@ -11,6 +11,7 @@ import SEmployeeIcon from 'assets/icons/SEmployeeIcon';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import {
   IQueryEmployee,
   useQueryEmployees,
@@ -32,6 +33,7 @@ export const EmployeeSelectCard: FC<
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const treeMap = useAppSelector(selectAllHierarchyTreeNodes);
   const { getPathById } = useHierarchyTreeActions();
+  const typeLabels = useHierarchyTypeLabels();
 
   const count = node.employeesCount ?? 0;
   const hierarchyId = String(node.id).split('//')[0] || '';
@@ -96,8 +98,9 @@ export const EmployeeSelectCard: FC<
         viewerNode: node,
         treeMap,
         getPathById,
+        typeLabels,
       }),
-    [employees, getPathById, node, treeMap],
+    [employees, getPathById, node, treeMap, typeLabels],
   );
 
   if (count <= 0) return null;

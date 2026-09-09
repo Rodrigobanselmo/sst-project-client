@@ -1,5 +1,10 @@
 import { buildEstablishmentHierarchyAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-hierarchy';
-import type { EstablishmentHierarchyGroupingConfig } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
+import {
+  getEstablishmentHierarchyHeaderColumnLabel,
+  getEstablishmentHierarchySelectLabel,
+  type EstablishmentHierarchyGroupingConfig,
+} from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
@@ -59,6 +64,7 @@ export const FormParticipantsGroupedByEstablishmentHierarchy = ({
   fetchCap,
   isPartialFetch,
 }: Props) => {
+  const typeLabels = useHierarchyTypeLabels();
   const groups = useMemo(
     () =>
       buildEstablishmentHierarchyAggregates(
@@ -72,7 +78,7 @@ export const FormParticipantsGroupedByEstablishmentHierarchy = ({
   if (isLoading) {
     return (
       <Typography color="text.secondary" sx={{ py: 3 }}>
-        {config.loadingMessage}
+        {`Carregando agrupamento ${getEstablishmentHierarchySelectLabel(config, typeLabels).toLocaleLowerCase('pt-BR')}…`}
       </Typography>
     );
   }
@@ -90,7 +96,9 @@ export const FormParticipantsGroupedByEstablishmentHierarchy = ({
       <Table component={Paper} size="small" variant="outlined">
         <TableHead>
           <TableRow>
-            <TableCell>{config.headerColumnLabel}</TableCell>
+            <TableCell>
+              {getEstablishmentHierarchyHeaderColumnLabel(config, typeLabels)}
+            </TableCell>
             <TableCell align="right">Participantes</TableCell>
             <TableCell align="right">Responderam</TableCell>
             <TableCell align="right">Não responderam</TableCell>

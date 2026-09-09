@@ -1,8 +1,9 @@
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 
-import { nodeTypesConstant } from '../constants/node-type.constant';
 import { TreeTypeEnum } from '../enums/tree-type.enums';
 import { ITreeMap, ITreeMapObject } from '../interfaces';
+import { resolveHierarchyNodeTypeLabel } from './resolve-hierarchy-node-type-label';
 
 export type EmployeeTooltipGroup = {
   key: string;
@@ -14,8 +15,12 @@ export type EmployeeTooltipGroup = {
 const UNKNOWN_GROUP_KEY = '__unknown__';
 const UNKNOWN_GROUP_TITLE = 'OUTROS / SEM GRUPO IDENTIFICADO';
 
-const typeLabel = (type?: TreeTypeEnum) =>
-  (type && nodeTypesConstant[type]?.name?.toUpperCase()) || 'GRUPO';
+const typeLabel = (
+  type?: TreeTypeEnum,
+  labels?: Partial<Record<HierarchyEnum, string>> | null,
+) =>
+  (type && resolveHierarchyNodeTypeLabel(type, labels)?.toUpperCase()) ||
+  'GRUPO';
 
 /**
  * Agrupa funcionários pelo descendente imediato do nó visualizado no caminho
@@ -26,8 +31,9 @@ export function groupEmployeesByHierarchy(params: {
   viewerNode: ITreeMapObject;
   treeMap: ITreeMap;
   getPathById: (id: string | number) => Array<string | number>;
+  typeLabels?: Partial<Record<HierarchyEnum, string>> | null;
 }): EmployeeTooltipGroup[] {
-  const { employees, viewerNode, treeMap, getPathById } = params;
+  const { employees, viewerNode, treeMap, getPathById, typeLabels } = params;
   const isLeafOffice =
     viewerNode.type === TreeTypeEnum.OFFICE ||
     viewerNode.type === TreeTypeEnum.SUB_OFFICE;
@@ -96,7 +102,7 @@ export function groupEmployeesByHierarchy(params: {
     }
 
     const order = getSiblingOrder(viewerNode, groupNodeId, treeMap);
-    const title = `${typeLabel(groupNode.type)} — ${groupNode.label}`;
+    const title = `${typeLabel(groupNode.type, typeLabels)} — ${groupNode.label}`;
     pushToGroup(groupsMap, String(groupNodeId), title, order, employee);
   });
 
