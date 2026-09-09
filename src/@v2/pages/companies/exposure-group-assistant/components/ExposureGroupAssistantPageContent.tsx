@@ -60,6 +60,7 @@ import {
 } from 'core/constants/characterization-navigation.constants';
 import { CharacterizationSummarySection } from 'components/organisms/main/CompanyFlow/CharacterizationSummarySection';
 import { useAccess } from 'core/hooks/useAccess';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   enrichPickableWorkspaces,
@@ -76,10 +77,11 @@ import {
   maturityLabel,
 } from './diagnosis-labels';
 import { RecommendationDetailDialog } from './FindingDetailDialog';
+import { InventoryPgrImportPanel } from './InventoryPgrImportPanel';
 import { SimilarityProposalsPanel } from './SimilarityProposalsPanel';
 
 type OperationalView = 'PENDING' | 'INFORMATIONAL';
-type AssistantMainView = 'DIAGNOSIS' | 'SIMILARITY';
+type AssistantMainView = 'DIAGNOSIS' | 'SIMILARITY' | 'INVENTORY_IMPORT';
 
 type Filters = {
   category: StructureFindingCategory | 'ALL';
@@ -149,8 +151,12 @@ export function ExposureGroupAssistantPageContent({
   );
   /** Session-only: intro summary starts expanded; not persisted. */
   const [summaryExpanded, setSummaryExpanded] = useState(true);
-  const { isMaster } = useAccess();
+  const { isMaster, isValidPermissions } = useAccess();
   const canReview = isMaster;
+  const canImportInventoryPgr =
+    isMaster ||
+    (isValidPermissions([PermissionEnum.EMPLOYEE]) &&
+      isValidPermissions([PermissionEnum.HOMO_GROUP]));
   const { enqueueSnackbar } = useSnackbar();
   const justifyMutation = useMutateJustifyIntegrityReview();
   const reopenMutation = useMutateReopenIntegrityReview();
@@ -510,7 +516,30 @@ export function ExposureGroupAssistantPageContent({
           >
             Propostas de GSE
           </Button>
+          {canImportInventoryPgr ? (
+            <Button
+              variant={mainView === 'INVENTORY_IMPORT' ? 'contained' : 'outlined'}
+              size="small"
+              onClick={() => setMainView('INVENTORY_IMPORT')}
+            >
+              Importar Inventário / PGR
+            </Button>
+          ) : null}
         </Stack>
+
+        {mainView === 'INVENTORY_IMPORT' ? (
+          !workspaceId ? (
+            <Alert severity="warning">
+              Selecione um estabelecimento no seletor do cabeçalho para importar
+              o Inventário / PGR.
+            </Alert>
+          ) : (
+            <InventoryPgrImportPanel
+              companyId={companyId}
+              workspaceId={workspaceId}
+            />
+          )
+        ) : null}
 
         {mainView === 'SIMILARITY' ? (
           !workspaceId ? (
