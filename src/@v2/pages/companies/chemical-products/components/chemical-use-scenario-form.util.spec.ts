@@ -5,6 +5,7 @@ import type { ChemicalProductListItem } from '@v2/services/security/characteriza
 
 import {
   buildCreateChemicalUseScenarioPayload,
+  buildUpdateChemicalUseScenarioPayload,
   CHEMICAL_USE_SCENARIO_DURATION_ERROR,
   CHEMICAL_USE_SCENARIO_DURATION_HELPER,
   CHEMICAL_USE_SCENARIO_FREQUENCY_PERIODS,
@@ -170,6 +171,46 @@ assert(emptyOptionals.body.quantity === null, 'quantidade vazia → null');
 assert(emptyOptionals.body.quantityUnit === null, 'unidade vazia → null');
 assert(emptyOptionals.body.peakContactMoment === null, 'contato vazio → null');
 assert(emptyOptionals.body.controlMeasures === null, 'controles vazio → null');
+assert(
+  !('homogeneousGroupId' in emptyOptionals.body),
+  'create sem GSE real omite o FK',
+);
+
+const withRealGse = buildCreateChemicalUseScenarioPayload(
+  values({
+    homogeneousGroup: {
+      id: 'gse-10009',
+      name: 'GSE 10009 — Caldeira',
+      deletedAt: null,
+    },
+    exposureGroupSnapshot: '10009',
+  }),
+);
+assert(withRealGse.ok, 'create com GSE real opcional');
+if (!withRealGse.ok) throw new Error(withRealGse.error);
+assert(withRealGse.body.homogeneousGroupId === 'gse-10009', 'create envia FK');
+assert(
+  withRealGse.body.exposureGroupSnapshot === '10009',
+  'GSE real não sobrescreve snapshot no create',
+);
+
+const unlinkUpdate = buildUpdateChemicalUseScenarioPayload(
+  values({
+    exposureGroupSnapshot: '10009',
+    homogeneousGroup: null,
+  }),
+);
+assert(unlinkUpdate.ok, 'update unlink válido');
+if (!unlinkUpdate.ok) throw new Error(unlinkUpdate.error);
+assert(unlinkUpdate.body.homogeneousGroupId === null, 'unlink envia null');
+assert(
+  unlinkUpdate.body.exposureGroupSnapshot === '10009',
+  'unlink preserva snapshot',
+);
+assert(
+  !('surveyStatus' in unlinkUpdate.body),
+  'update não mexe em surveyStatus',
+);
 
 const filled = buildCreateChemicalUseScenarioPayload(
   values({

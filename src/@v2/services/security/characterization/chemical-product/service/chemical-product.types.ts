@@ -886,6 +886,12 @@ export type ChemicalSurveyStatus =
   | 'LEVANTAMENTO_CONCLUIDO'
   | 'AGUARDANDO_ANALISE_TECNICA';
 
+export type ChemicalUseScenarioHomogeneousGroup = {
+  id: string;
+  name: string;
+  deletedAt: string | Date | null;
+};
+
 export type CreateChemicalUseScenarioPayload = {
   chemicalProductId: string;
   surveyStatus: 'LEVANTAMENTO_CONCLUIDO';
@@ -893,6 +899,7 @@ export type CreateChemicalUseScenarioPayload = {
   sectorSnapshot: string | null;
   exposureGroupSnapshot: string | null;
   exposedRolesSnapshot: string | null;
+  homogeneousGroupId?: string | null;
   frequencyCount: number | null;
   frequencyPeriod: string | null;
   durationMinutes: number | null;
@@ -901,6 +908,73 @@ export type CreateChemicalUseScenarioPayload = {
   peakContactMoment: string | null;
   controlMeasures: string | null;
 };
+
+export type UpdateChemicalUseScenarioPayload = {
+  activityName?: string;
+  sectorSnapshot?: string | null;
+  exposureGroupSnapshot?: string | null;
+  exposedRolesSnapshot?: string | null;
+  homogeneousGroupId?: string | null;
+  frequencyCount?: number | null;
+  frequencyPeriod?: string | null;
+  durationMinutes?: number | null;
+  quantity?: string | null;
+  quantityUnit?: string | null;
+  peakContactMoment?: string | null;
+  controlMeasures?: string | null;
+};
+
+export type ChemicalUseScenarioGseMatchStatus =
+  | 'ALREADY_LINKED'
+  | 'MATCH_UNIQUE'
+  | 'NO_MATCH'
+  | 'AMBIGUOUS';
+
+export type ChemicalUseScenarioGseProjection = {
+  id: string;
+  name: string;
+  deletedAt: string | Date | null;
+};
+
+export type ChemicalUseScenarioGseReconcilePreviewItem = {
+  scenarioId: string;
+  snapshot: string | null;
+  canonicalExposureCode: string | null;
+  status: ChemicalUseScenarioGseMatchStatus;
+  currentHomogeneousGroup: ChemicalUseScenarioGseProjection | null;
+  candidates: ChemicalUseScenarioGseProjection[];
+  suggestedHomogeneousGroupId: string | null;
+  reason: string;
+};
+
+export type ChemicalUseScenarioGseReconcilePreview = {
+  companyId: string;
+  workspaceId: string;
+  previewFingerprint: string;
+  items: ChemicalUseScenarioGseReconcilePreviewItem[];
+};
+
+export type ChemicalUseScenarioGseReconcileLink = {
+  scenarioId: string;
+  homogeneousGroupId: string;
+};
+
+export type ChemicalUseScenarioGseReconcileApplyPayload = {
+  previewFingerprint: string;
+  links: ChemicalUseScenarioGseReconcileLink[];
+};
+
+export type ChemicalUseScenarioGseReconcileApplyResult = {
+  appliedCount: number;
+  applied: Array<{
+    scenarioId: string;
+    homogeneousGroupId: string;
+    exposureGroupSnapshot: string | null;
+  }>;
+};
+
+export const CHEMICAL_USE_SCENARIO_RECONCILE_STALE_CODE =
+  'CHEMICAL_USE_SCENARIO_RECONCILE_STALE';
 
 export type ChemicalUseScenarioBoardKind = 'SCENARIO' | 'PENDING_SURVEY';
 
@@ -953,6 +1027,8 @@ export type ChemicalUseScenarioListItem = {
   sectorSnapshot: string | null;
   exposureGroupSnapshot: string | null;
   exposedRolesSnapshot: string | null;
+  homogeneousGroupId?: string | null;
+  homogeneousGroup?: ChemicalUseScenarioHomogeneousGroup | null;
   frequencyCount: number | null;
   frequencyPeriod: string | null;
   durationMinutes: number | null;

@@ -4,6 +4,13 @@ import { refreshToken } from 'core/contexts/AuthContext';
 import { api } from 'core/services/apiClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { StatusEnum } from 'project/enum/status.enum';
+import type { IGho } from 'core/interfaces/api/IGho';
+import type { IPaginationResult } from 'core/interfaces/IReactQuery';
+import queryString from 'query-string';
+
 import {
   ChemicalExcelImportPreview,
   ChemicalIngredientPayload,
@@ -923,6 +930,101 @@ export async function createChemicalUseScenario(
     body,
   );
   return response.data;
+}
+
+export async function updateChemicalUseScenario(
+  params: WorkspaceParams & {
+    scenarioId: string;
+  } & import('./chemical-product.types').UpdateChemicalUseScenarioPayload,
+) {
+  const { companyId, workspaceId, scenarioId, ...body } = params;
+  const response = await api.patch<
+    import('./chemical-product.types').ChemicalUseScenarioListItem
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIO_BY_ID,
+      pathParams: { companyId, workspaceId, scenarioId },
+    }),
+    body,
+  );
+  return response.data;
+}
+
+export async function previewChemicalUseScenarioGseReconcile(
+  params: WorkspaceParams,
+) {
+  const response = await api.post<
+    import('./chemical-product.types').ChemicalUseScenarioGseReconcilePreview
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIO_RECONCILE_PREVIEW,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+  );
+  return response.data;
+}
+
+export async function applyChemicalUseScenarioGseReconcile(
+  params: WorkspaceParams &
+    import('./chemical-product.types').ChemicalUseScenarioGseReconcileApplyPayload,
+) {
+  const { companyId, workspaceId, previewFingerprint, links } = params;
+  const response = await api.post<
+    import('./chemical-product.types').ChemicalUseScenarioGseReconcileApplyResult
+  >(
+    bindUrlParams({
+      path: ChemicalProductRoutes.USE_SCENARIO_RECONCILE_APPLY,
+      pathParams: { companyId, workspaceId },
+    }),
+    { previewFingerprint, links },
+  );
+  return response.data;
+}
+
+export type TechnicalWorkspaceGseOption = {
+  id: string;
+  name: string;
+};
+
+function isTechnicalWorkspaceGse(
+  group: IGho,
+  workspaceId: string,
+): boolean {
+  if (group.status && group.status !== StatusEnum.ACTIVE) return false;
+  if (group.type != null && group.type !== HomoTypeEnum.GSE) return false;
+  const workspaceIds =
+    group.workspaceIds?.length
+      ? group.workspaceIds
+      : (group.workspaces || []).map((workspace) => workspace.id);
+  if (workspaceIds.length && !workspaceIds.includes(workspaceId)) return false;
+  return true;
+}
+
+export async function browseTechnicalWorkspaceGses(params: {
+  companyId: string;
+  workspaceId: string;
+  search?: string;
+}): Promise<TechnicalWorkspaceGseOption[]> {
+  const queries = queryString.stringify({
+    companyId: params.companyId,
+    workspaceId: params.workspaceId,
+    search: params.search || undefined,
+  });
+  const response = await api.get<IPaginationResult<IGho[]>>(
+    `${ApiRoutesEnum.GHO}/${params.companyId}?take=500&skip=0&${queries}`,
+  );
+  return (response.data?.data || [])
+    .filter((group) => isTechnicalWorkspaceGse(group, params.workspaceId))
+    .map((group) => ({ id: group.id, name: group.name }))
+    .sort((left, right) =>
+      left.name.localeCompare(right.name, 'pt-BR', {
+        numeric: true,
+        sensitivity: 'base',
+      }),
+    );
 }
 
 export async function previewChemicalSurveyImport(

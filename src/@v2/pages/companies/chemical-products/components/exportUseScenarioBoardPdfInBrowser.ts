@@ -14,6 +14,7 @@ import {
   type UseScenarioBoardViewFilters,
   type UseScenarioBoardViewSort,
 } from './chemical-use-scenario-board-view.util';
+import { USE_SCENARIO_REAL_GSE_NONE_FILTER } from './chemical-use-scenario-gse.util';
 
 export const USE_SCENARIO_BOARD_PDF_FILENAME = 'cenarios-de-uso.pdf';
 
@@ -98,7 +99,16 @@ export function buildUseScenarioBoardPdfFilterSummary(
   if (filters?.activity.trim()) summary.push(`Tarefa: ${filters.activity.trim()}`);
   if (filters?.sector.trim()) summary.push(`Setor: ${filters.sector.trim()}`);
   if (filters?.exposureGroup.trim()) {
-    summary.push(`GSE: ${filters.exposureGroup.trim()}`);
+    summary.push(`GSE da coleta: ${filters.exposureGroup.trim()}`);
+  }
+  if (filters?.realGse.trim()) {
+    summary.push(
+      `GSE real: ${
+        filters.realGse === USE_SCENARIO_REAL_GSE_NONE_FILTER
+          ? 'Sem GSE real'
+          : filters.realGse.trim()
+      }`,
+    );
   }
   if (filters?.status.trim()) {
     summary.push(`Status: ${statusFilterLabel(filters.status.trim())}`);

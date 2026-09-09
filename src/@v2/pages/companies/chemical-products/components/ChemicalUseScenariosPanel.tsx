@@ -46,7 +46,6 @@ import {
 import {
   applyUseScenarioBoardView,
   EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
-  formatUseScenarioBoardExposureGroupCell,
   hasActiveUseScenarioBoardView,
   listUseScenarioBoardFilterChips,
   listUseScenarioBoardFilterOptions,
@@ -55,6 +54,8 @@ import {
   type UseScenarioBoardViewSort,
   type UseScenarioBoardViewSortField,
 } from './chemical-use-scenario-board-view.util';
+import { presentUseScenarioGse } from './chemical-use-scenario-gse.util';
+import { ChemicalUseScenarioGseReconcileDialog } from './ChemicalUseScenarioGseReconcileDialog';
 import {
   ChemicalUseScenarioColumnsEnum,
   chemicalUseScenarioColumns,
@@ -117,6 +118,9 @@ export const ChemicalUseScenariosPanel = ({
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewSaving, setReviewSaving] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [editTarget, setEditTarget] =
+    useState<ChemicalUseScenarioBoardRow | null>(null);
+  const [reconcileOpen, setReconcileOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -350,6 +354,13 @@ export const ChemicalUseScenariosPanel = ({
             Exportar PDF
           </Button>
           <Button
+            variant="outlined"
+            onClick={() => setReconcileOpen(true)}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            Reconciliar GSEs
+          </Button>
+          <Button
             variant="contained"
             onClick={() => setCreateOpen(true)}
             sx={{ whiteSpace: 'nowrap' }}
@@ -365,7 +376,7 @@ export const ChemicalUseScenariosPanel = ({
         onSearch={(search) => patchFilter('search', search)}
         inputProps={{
           placeholder:
-            'Buscar produto, fabricante, fator, tarefa, setor, GSE ou status',
+            'Buscar produto, fabricante, fator, tarefa, setor, evidência, GSE real ou status',
         }}
       >
         <STableSearchContent>
@@ -458,9 +469,18 @@ export const ChemicalUseScenariosPanel = ({
               </SText>
               <SText fontSize={13}>Tarefa: {selected.activityName || '—'}</SText>
               <SText fontSize={13}>
-                Setor: {selected.sectorSnapshot || '—'} · GHE/GSE:{' '}
-                {selected.exposureGroupSnapshot || '—'} · Cargos:{' '}
+                Setor: {selected.sectorSnapshot || '—'} · Cargos:{' '}
                 {selected.exposedRolesSnapshot || '—'}
+              </SText>
+              <SText fontSize={13}>
+                GSE da coleta / evidência:{' '}
+                {selected.exposureGroupSnapshot || '—'}
+              </SText>
+              <SText fontSize={13}>
+                GSE real:{' '}
+                {presentUseScenarioGse(selected).kind === 'REAL'
+                  ? presentUseScenarioGse(selected).primary
+                  : 'Sem GSE real'}
               </SText>
               <SText fontSize={13}>
                 Frequência: {selected.frequencyCount ?? '—'}{' '}
@@ -568,6 +588,18 @@ export const ChemicalUseScenariosPanel = ({
           ) : null}
         </DialogContent>
         <DialogActions>
+          {selected &&
+          !isPendingSurveyBoardRow(selected) &&
+          canOpenUseScenarioBoardRow(selected) ? (
+            <Button
+              onClick={() => {
+                setEditTarget(selected);
+                setSelected(null);
+              }}
+            >
+              Editar
+            </Button>
+          ) : null}
           <Button onClick={() => setSelected(null)}>Fechar</Button>
         </DialogActions>
       </Dialog>
@@ -633,10 +665,39 @@ export const ChemicalUseScenariosPanel = ({
         companyId={companyId}
         workspaceId={workspaceId}
         onClose={() => setCreateOpen(false)}
-        onCreated={() => {
+        onSaved={() => {
           enqueueSnackbar('Cenário de uso criado com sucesso.', {
             variant: 'success',
           });
+          setListRefresh((n) => n + 1);
+        }}
+      />
+      <ChemicalUseScenarioFormDialog
+        open={Boolean(editTarget)}
+        companyId={companyId}
+        workspaceId={workspaceId}
+        scenario={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaved={() => {
+          enqueueSnackbar('Cenário de uso atualizado.', {
+            variant: 'success',
+          });
+          setListRefresh((n) => n + 1);
+        }}
+      />
+      <ChemicalUseScenarioGseReconcileDialog
+        open={reconcileOpen}
+        companyId={companyId}
+        workspaceId={workspaceId}
+        rows={rows}
+        onClose={() => setReconcileOpen(false)}
+        onApplied={(appliedCount) => {
+          enqueueSnackbar(
+            appliedCount === 1
+              ? '1 vínculo de GSE aplicado.'
+              : `${appliedCount} vínculos de GSE aplicados.`,
+            { variant: 'success' },
+          );
           setListRefresh((n) => n + 1);
         }}
       />

@@ -1,6 +1,9 @@
 import type {
   ChemicalProductListItem,
+  ChemicalUseScenarioBoardRow,
+  ChemicalUseScenarioHomogeneousGroup,
   CreateChemicalUseScenarioPayload,
+  UpdateChemicalUseScenarioPayload,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 
 export type ChemicalUseScenarioFormMode = 'create' | 'edit';
@@ -11,6 +14,7 @@ export type ChemicalUseScenarioFormValues = {
   sectorSnapshot: string;
   exposureGroupSnapshot: string;
   exposedRolesSnapshot: string;
+  homogeneousGroup: ChemicalUseScenarioHomogeneousGroup | null;
   frequencyCount: string;
   frequencyPeriod: string;
   durationMinutes: string;
@@ -62,6 +66,7 @@ export function emptyChemicalUseScenarioFormValues(): ChemicalUseScenarioFormVal
     sectorSnapshot: '',
     exposureGroupSnapshot: '',
     exposedRolesSnapshot: '',
+    homogeneousGroup: null,
     frequencyCount: '',
     frequencyPeriod: '',
     durationMinutes: '',
@@ -221,6 +226,9 @@ export function buildCreateChemicalUseScenarioPayload(
       sectorSnapshot: trimToNull(values.sectorSnapshot),
       exposureGroupSnapshot: trimToNull(values.exposureGroupSnapshot),
       exposedRolesSnapshot: trimToNull(values.exposedRolesSnapshot),
+      ...(values.homogeneousGroup?.id
+        ? { homogeneousGroupId: values.homogeneousGroup.id }
+        : {}),
       frequencyCount: frequencyCount.value,
       frequencyPeriod: trimToNull(values.frequencyPeriod),
       durationMinutes: durationMinutes.value,
@@ -228,6 +236,80 @@ export function buildCreateChemicalUseScenarioPayload(
       quantityUnit: trimToNull(values.quantityUnit),
       peakContactMoment: trimToNull(values.peakContactMoment),
       controlMeasures: trimToNull(values.controlMeasures),
+    },
+  };
+}
+
+function numberOrEmpty(value: number | null | undefined) {
+  return value == null ? '' : String(value);
+}
+
+export function valuesFromChemicalUseScenario(
+  row: ChemicalUseScenarioBoardRow,
+  products: ChemicalProductListItem[],
+): ChemicalUseScenarioFormValues {
+  const product =
+    products.find((item) => item.id === row.chemicalProductId) ||
+    (row.product
+      ? ({
+          id: row.product.id,
+          companyId: '',
+          workspaceId: '',
+          tradeName: row.product.tradeName,
+          manufacturer: row.product.manufacturer,
+          isPureSubstance: row.product.isPureSubstance,
+          status: row.product.status === 'ARCHIVED' ? 'ARCHIVED' : 'ACTIVE',
+          ingredientCount: 0,
+          activeComposition: row.product.activeComposition
+            ? {
+                id: row.product.activeComposition.id,
+                versionNumber: 1,
+                sourceType: 'MANUAL',
+              }
+            : null,
+          activeFispq: null,
+        } satisfies ChemicalProductListItem)
+      : null);
+
+  return {
+    product,
+    activityName: row.activityName || '',
+    sectorSnapshot: row.sectorSnapshot || '',
+    exposureGroupSnapshot: row.exposureGroupSnapshot || '',
+    exposedRolesSnapshot: row.exposedRolesSnapshot || '',
+    homogeneousGroup: row.homogeneousGroup
+      ? {
+          id: row.homogeneousGroup.id,
+          name: row.homogeneousGroup.name,
+          deletedAt: row.homogeneousGroup.deletedAt,
+        }
+      : null,
+    frequencyCount: numberOrEmpty(row.frequencyCount),
+    frequencyPeriod: row.frequencyPeriod || '',
+    durationMinutes: numberOrEmpty(row.durationMinutes),
+    quantity: row.quantity || '',
+    quantityUnit: row.quantityUnit || '',
+    peakContactMoment: row.peakContactMoment || '',
+    controlMeasures: row.controlMeasures || '',
+  };
+}
+
+export type BuildUpdateChemicalUseScenarioResult =
+  | { ok: true; body: UpdateChemicalUseScenarioPayload }
+  | { ok: false; error: string };
+
+export function buildUpdateChemicalUseScenarioPayload(
+  values: ChemicalUseScenarioFormValues,
+): BuildUpdateChemicalUseScenarioResult {
+  const created = buildCreateChemicalUseScenarioPayload(values);
+  if (!created.ok) return created;
+  const { chemicalProductId: _productId, surveyStatus: _status, ...rest } =
+    created.body;
+  return {
+    ok: true,
+    body: {
+      ...rest,
+      homogeneousGroupId: values.homogeneousGroup?.id ?? null,
     },
   };
 }
@@ -251,6 +333,46 @@ export function isChemicalUseScenarioSubmitBlocked(params: {
 }) {
   if (params.saving) return true;
   return !buildCreateChemicalUseScenarioPayload(params.values).ok;
+}
+
+export function isChemicalUseScenarioUpdateBlocked(params: {
+  saving: boolean;
+  values: ChemicalUseScenarioFormValues;
+}) {
+  if (params.saving) return true;
+  return !buildUpdateChemicalUseScenarioPayload(params.values).ok;
+}
+
+export async function submitUpdateChemicalUseScenarioForm(params: {
+  saving: boolean;
+  values: ChemicalUseScenarioFormValues;
+  update: (body: UpdateChemicalUseScenarioPayload) => Promise<unknown>;
+  onUpdated: () => void;
+}): Promise<
+  | { status: 'blocked' }
+  | { status: 'invalid'; error: string }
+  | { status: 'error'; error: string }
+  | { status: 'ok' }
+> {
+  if (params.saving) return { status: 'blocked' };
+  const built = buildUpdateChemicalUseScenarioPayload(params.values);
+  if (!built.ok) return { status: 'invalid', error: built.error };
+  try {
+    await params.update(built.body);
+    params.onUpdated();
+    return { status: 'ok' };
+  } catch (err: unknown) {
+    const payload = (err as { response?: { data?: { message?: unknown } } })
+      ?.response?.data;
+    const message = payload?.message;
+    return {
+      status: 'error',
+      error:
+        typeof message === 'string'
+          ? message
+          : 'Não foi possível atualizar o cenário de uso.',
+    };
+  }
 }
 
 export async function submitCreateChemicalUseScenarioForm(params: {

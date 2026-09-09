@@ -15,6 +15,7 @@ import {
   nextUseScenarioBoardSort,
   USE_SCENARIO_BOARD_STATUS_FILTER_OPTIONS,
 } from './chemical-use-scenario-board-view.util';
+import { USE_SCENARIO_REAL_GSE_NONE_FILTER } from './chemical-use-scenario-gse.util';
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
@@ -489,7 +490,7 @@ assert(
   'pending renderiza —',
 );
 assert(
-  formatUseScenarioBoardExposureGroupCell(ezolem1) === '1014',
+  formatUseScenarioBoardExposureGroupCell(ezolem1) === '1014 · sem GSE real',
   'cenário real mostra o snapshot textual',
 );
 assert(
@@ -622,7 +623,11 @@ assert(
 assert(filterOptions.sectors.join('|') === 'Caldeira', 'opções de Setor deduplicadas');
 assert(
   filterOptions.exposureGroups.join('|') === '1014|10009',
-  'opções de GSE são únicas, não vazias e ordenadas',
+  'opções de GSE da coleta são únicas, não vazias e ordenadas',
+);
+assert(
+  filterOptions.realGses.join('|') === '',
+  'board sem FK não inventa opção de GSE real',
 );
 assert(
   !filterOptions.products.includes('') &&
@@ -674,6 +679,60 @@ const riskChip = listUseScenarioBoardFilterChips(
 assert(
   riskChip?.label === 'Hipoclorito de sódio · CAS 7681-52-9',
   'chip de fator mostra o nome, não o id',
+);
+
+const linkedEzolem = {
+  ...ezolem1,
+  homogeneousGroupId: 'gse-1014',
+  homogeneousGroup: {
+    id: 'gse-1014',
+    name: 'GSE 1014 — Mixer',
+    deletedAt: null,
+  },
+};
+assert(
+  formatUseScenarioBoardExposureGroupCell(linkedEzolem) ===
+    'GSE 1014 — Mixer',
+  'GSE real vigente substitui o snapshot só na apresentação',
+);
+assert(
+  linkedEzolem.exposureGroupSnapshot === '1014',
+  'snapshot do modelo permanece intacto',
+);
+assert(
+  applyUseScenarioBoardView([linkedEzolem, ezolem1], {
+    filters: {
+      ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+      realGse: USE_SCENARIO_REAL_GSE_NONE_FILTER,
+    },
+  }).map((row) => row.id).join() === 's-6',
+  'filtro Sem GSE real exclui vínculo real',
+);
+assert(
+  applyUseScenarioBoardView([linkedEzolem, ezolem1], {
+    filters: {
+      ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+      realGse: 'GSE 1014 — Mixer',
+    },
+  }).map((row) => row.id).join() === 's-6',
+  'filtro por GSE real do workspace',
+);
+assert(
+  applyUseScenarioBoardView([linkedEzolem], {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, search: 'Mixer' },
+  }).length === 1,
+  'busca inclui homogeneousGroup.name',
+);
+assert(
+  applyUseScenarioBoardView([linkedEzolem], {
+    filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, search: '1014' },
+  }).length === 1,
+  'busca pelo snapshot continua válida',
+);
+assert(
+  linkedEzolem.presentationStatus === 'LEVANTAMENTO_CONCLUIDO' &&
+    !linkedEzolem.homogeneousGroupId === false,
+  'vínculo real não vira Pendente de levantamento',
 );
 
 console.log('chemical-use-scenario-board-view.util.spec.ts: OK');

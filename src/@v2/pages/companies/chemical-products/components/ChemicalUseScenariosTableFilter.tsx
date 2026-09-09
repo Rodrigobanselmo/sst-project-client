@@ -8,6 +8,7 @@ import {
   type UseScenarioBoardRiskFactorFilterOption,
   type UseScenarioBoardViewFilters,
 } from './chemical-use-scenario-board-view.util';
+import { USE_SCENARIO_REAL_GSE_NONE_FILTER } from './chemical-use-scenario-gse.util';
 
 type TextOption = { value: string; label: string };
 
@@ -36,6 +37,10 @@ export function ChemicalUseScenariosTableFilter({
   const activityOptions = toTextOptions(options.activities);
   const sectorOptions = toTextOptions(options.sectors);
   const exposureGroupOptions = toTextOptions(options.exposureGroups);
+  const realGseOptions: TextOption[] = [
+    { value: USE_SCENARIO_REAL_GSE_NONE_FILTER, label: 'Sem GSE real' },
+    ...toTextOptions(options.realGses),
+  ];
 
   const selectedProduct =
     productOptions.find((option) => option.value === filters.product) || null;
@@ -50,6 +55,8 @@ export function ChemicalUseScenariosTableFilter({
     exposureGroupOptions.find(
       (option) => option.value === filters.exposureGroup,
     ) || null;
+  const selectedRealGse =
+    realGseOptions.find((option) => option.value === filters.realGse) || null;
 
   return (
     <SFlex direction="column" gap={4} width={360} pb={10}>
@@ -92,7 +99,7 @@ export function ChemicalUseScenariosTableFilter({
         onChange={(option) => onFilterChange({ sector: option?.value || '' })}
       />
       <SSearchSelect
-        label="GSE"
+        label="GSE da coleta"
         placeholder="selecione"
         value={selectedExposureGroup}
         options={exposureGroupOptions}
@@ -100,6 +107,17 @@ export function ChemicalUseScenariosTableFilter({
         getOptionValue={(option) => option.value}
         onChange={(option) =>
           onFilterChange({ exposureGroup: option?.value || '' })
+        }
+      />
+      <SSearchSelect
+        label="GSE real"
+        placeholder="selecione"
+        value={selectedRealGse}
+        options={realGseOptions}
+        getOptionLabel={(option) => option.label}
+        getOptionValue={(option) => option.value}
+        onChange={(option) =>
+          onFilterChange({ realGse: option?.value || '' })
         }
       />
       <SSearchSelect

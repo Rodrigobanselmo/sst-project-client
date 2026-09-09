@@ -1,4 +1,5 @@
 import type { ChemicalProductListItem } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import type { TechnicalWorkspaceGseOption } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import {
   Alert,
   Autocomplete,
@@ -32,6 +33,8 @@ type Props = {
   onChange: (values: ChemicalUseScenarioFormValues) => void;
   products: ChemicalProductListItem[];
   productsLoading?: boolean;
+  gseOptions?: TechnicalWorkspaceGseOption[];
+  gseOptionsLoading?: boolean;
   disabled?: boolean;
   error?: string | null;
 };
@@ -85,6 +88,8 @@ export const ChemicalUseScenarioForm = ({
   onChange,
   products,
   productsLoading = false,
+  gseOptions = [],
+  gseOptionsLoading = false,
   disabled = false,
   error = null,
 }: Props) => {
@@ -144,13 +149,51 @@ export const ChemicalUseScenarioForm = ({
           disabled={disabled}
         />
         <TextField
-          label="GSE"
+          label="GSE da coleta / evidência"
           value={values.exposureGroupSnapshot}
           onChange={(event) =>
             patch(values, onChange, 'exposureGroupSnapshot', event.target.value)
           }
           disabled={disabled}
-          helperText="Snapshot textual. Não cria GSE estrutural."
+          helperText="Evidência histórica. Independente do GSE real e não é apagada ao desvincular."
+        />
+        <Autocomplete
+          options={gseOptions}
+          value={
+            values.homogeneousGroup
+              ? gseOptions.find(
+                  (option) => option.id === values.homogeneousGroup?.id,
+                ) || {
+                  id: values.homogeneousGroup.id,
+                  name: values.homogeneousGroup.name,
+                }
+              : null
+          }
+          onChange={(_, value) =>
+            patch(
+              values,
+              onChange,
+              'homogeneousGroup',
+              value
+                ? {
+                    id: value.id,
+                    name: value.name,
+                    deletedAt: null,
+                  }
+                : null,
+            )
+          }
+          getOptionLabel={(option) => option.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          disabled={disabled}
+          loading={gseOptionsLoading}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="GSE real"
+              helperText="Opcional. Somente GSEs técnicos ativos deste estabelecimento. Não cria GSE."
+            />
+          )}
         />
         <TextField
           label="Cargos expostos"

@@ -193,12 +193,12 @@ assert(
   'PDF 10009 não colapsa as duas linhas',
 );
 assert(
-  gse10009Pdf.rows.every((row) => row.gse === '10009'),
-  'GSE textual aparece no dataset',
+  gse10009Pdf.rows.every((row) => row.gse === '10009 · sem GSE real'),
+  'GSE textual aparece no dataset como evidência, não como vínculo',
 );
 assert(
-  gse10009Pdf.filterSummary.some((item) => item === 'GSE: 10009'),
-  'resumo do recorte inclui GSE 10009',
+  gse10009Pdf.filterSummary.some((item) => item === 'GSE da coleta: 10009'),
+  'resumo do recorte inclui GSE da coleta 10009',
 );
 
 const gse1014Pdf = buildUseScenarioBoardPdfDataset(
@@ -208,7 +208,7 @@ const gse1014Pdf = buildUseScenarioBoardPdfDataset(
 );
 assert(gse1014Pdf.rows.length === 1, 'filtro GSE 1014 → 1 linha no PDF');
 assert(gse1014Pdf.rows[0]?.id === 's-6', 'PDF 1014 é a linha correspondente');
-assert(gse1014Pdf.rows[0]?.gse === '1014', 'GSE 1014 no dataset');
+assert(gse1014Pdf.rows[0]?.gse === '1014 · sem GSE real', 'GSE 1014 no dataset como evidência');
 
 const pendingPdf = buildUseScenarioBoardPdfDataset([pendingActiclor]);
 assert(pendingPdf.rows.length === 1, 'PENDING_SURVEY entra no PDF');
@@ -230,10 +230,16 @@ assert(
 );
 
 const aquaVisible = applyUseScenarioBoardView(board, {
-  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: '651ST' },
+  filters: {
+    ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+    product: 'CHEM-AQUA 651ST- 5790',
+  },
 });
 const aqua910Visible = applyUseScenarioBoardView(board, {
-  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: '910' },
+  filters: {
+    ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+    product: 'CHEM-AQUA 910- 5471',
+  },
 });
 assert(aquaVisible.map((row) => row.id).join() === 's-651', '651ST ≠ 910 na tela');
 assert(
@@ -248,7 +254,10 @@ assert(
 );
 
 const sortedVisible = applyUseScenarioBoardView(board, {
-  filters: { ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS, product: 'EZOLEM' },
+  filters: {
+    ...EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS,
+    product: 'BRASKEM EZOLEM 6/7',
+  },
   sort: { field: 'activity', order: 'desc' },
 });
 const sortedPdf = buildUseScenarioBoardPdfDataset(sortedVisible, {
@@ -274,5 +283,22 @@ assert(
 
 const emptyPdf = buildUseScenarioBoardPdfDataset([]);
 assert(emptyPdf.rows.length === 0, 'recorte vazio não inventa linhas');
+
+const linkedPdf = buildUseScenarioBoardPdfDataset([
+  {
+    ...ezolem1,
+    homogeneousGroupId: 'gse-1014',
+    homogeneousGroup: {
+      id: 'gse-1014',
+      name: 'GSE 1014 — Mixer',
+      deletedAt: null,
+    },
+  },
+]);
+assert(
+  linkedPdf.rows[0]?.gse === 'GSE 1014 — Mixer',
+  'PDF mostra o GSE real vigente quando há vínculo',
+);
+assert(ezolem1.exposureGroupSnapshot === '1014', 'snapshot do modelo não muda');
 
 console.log('exportUseScenarioBoardPdfInBrowser.spec.ts: OK');

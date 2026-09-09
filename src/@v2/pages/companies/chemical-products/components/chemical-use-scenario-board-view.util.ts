@@ -7,6 +7,12 @@ import {
   isPendingSurveyBoardRow,
   USE_SCENARIO_BOARD_STATUS_LABELS,
 } from './chemical-use-scenario-activity-risk.util';
+import {
+  getUseScenarioRealGseName,
+  hasRealUseScenarioGse,
+  presentUseScenarioGse,
+  USE_SCENARIO_REAL_GSE_NONE_FILTER,
+} from './chemical-use-scenario-gse.util';
 
 export type UseScenarioBoardViewSortField =
   | 'product'
@@ -32,6 +38,7 @@ export type UseScenarioBoardViewFilters = {
   activity: string;
   sector: string;
   exposureGroup: string;
+  realGse: string;
   status: string;
 };
 
@@ -43,6 +50,7 @@ export const EMPTY_USE_SCENARIO_BOARD_VIEW_FILTERS: UseScenarioBoardViewFilters 
     activity: '',
     sector: '',
     exposureGroup: '',
+    realGse: '',
     status: '',
   };
 
@@ -88,9 +96,12 @@ function contains(haystack: string | null | undefined, needle: string) {
 }
 
 export function formatUseScenarioBoardExposureGroupCell(
-  row: Pick<ChemicalUseScenarioBoardRow, 'exposureGroupSnapshot'>,
+  row: Pick<
+    ChemicalUseScenarioBoardRow,
+    'exposureGroupSnapshot' | 'homogeneousGroupId' | 'homogeneousGroup'
+  >,
 ): string {
-  return row.exposureGroupSnapshot?.trim() || '—';
+  return presentUseScenarioGse(row).cellText;
 }
 
 export function getUseScenarioBoardStatusFilterValue(
@@ -180,6 +191,7 @@ export type UseScenarioBoardFilterOptions = {
   activities: string[];
   sectors: string[];
   exposureGroups: string[];
+  realGses: string[];
 };
 
 export function formatUseScenarioBoardRiskFactorOptionLabel(factor: {
@@ -218,6 +230,7 @@ export function listUseScenarioBoardFilterOptions(
     exposureGroups: uniqueSortedTexts(
       rows.map((row) => row.exposureGroupSnapshot),
     ),
+    realGses: uniqueSortedTexts(rows.map((row) => getUseScenarioRealGseName(row))),
   };
 }
 
@@ -243,6 +256,13 @@ export function rowMatchesUseScenarioBoardFilters(
   if (!equalsText(row.exposureGroupSnapshot, filters.exposureGroup)) {
     return false;
   }
+  if (filters.realGse.trim()) {
+    if (filters.realGse === USE_SCENARIO_REAL_GSE_NONE_FILTER) {
+      if (hasRealUseScenarioGse(row)) return false;
+    } else if (!equalsText(getUseScenarioRealGseName(row), filters.realGse)) {
+      return false;
+    }
+  }
 
   const search = filters.search;
   if (!normalize(search)) return true;
@@ -252,6 +272,7 @@ export function rowMatchesUseScenarioBoardFilters(
     row.activityName,
     row.sectorSnapshot,
     row.exposureGroupSnapshot,
+    getUseScenarioRealGseName(row),
     row.sourceProductLabel,
     riskFactorsText(row),
     formatUseScenarioBoardStatusChip(row),
@@ -284,8 +305,8 @@ export function compareUseScenarioBoardRows(
       );
     case 'exposureGroup':
       return compareText(
-        left.exposureGroupSnapshot || '',
-        right.exposureGroupSnapshot || '',
+        formatUseScenarioBoardExposureGroupCell(left),
+        formatUseScenarioBoardExposureGroupCell(right),
         order,
       );
     case 'frequency': {
@@ -393,8 +414,18 @@ export function listUseScenarioBoardFilterChips(
   if (filters.exposureGroup.trim()) {
     chips.push({
       key: 'exposureGroup',
-      leftLabel: 'GSE',
+      leftLabel: 'GSE da coleta',
       label: filters.exposureGroup.trim(),
+    });
+  }
+  if (filters.realGse.trim()) {
+    chips.push({
+      key: 'realGse',
+      leftLabel: 'GSE real',
+      label:
+        filters.realGse === USE_SCENARIO_REAL_GSE_NONE_FILTER
+          ? 'Sem GSE real'
+          : filters.realGse.trim(),
     });
   }
   if (filters.status.trim()) {

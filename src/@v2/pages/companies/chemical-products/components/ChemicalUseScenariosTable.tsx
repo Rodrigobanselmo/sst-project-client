@@ -16,11 +16,8 @@ import {
   getScenarioActivityRiskFactors,
   isPendingSurveyBoardRow,
 } from './chemical-use-scenario-activity-risk.util';
-import {
-  formatUseScenarioBoardExposureGroupCell,
-  type UseScenarioBoardViewSort,
-  type UseScenarioBoardViewSortField,
-} from './chemical-use-scenario-board-view.util';
+import { type UseScenarioBoardViewSort, type UseScenarioBoardViewSortField } from './chemical-use-scenario-board-view.util';
+import { presentUseScenarioGse } from './chemical-use-scenario-gse.util';
 import {
   ChemicalUseScenarioColumnMap as columnMap,
   ChemicalUseScenarioColumnsEnum as columnsEnum,
@@ -152,7 +149,7 @@ export function ChemicalUseScenariosTable({
       ),
     },
     {
-      column: 'minmax(90px, 0.8fr)',
+      column: 'minmax(120px, 1fr)',
       hidden: hidden(columnsEnum.EXPOSURE_GROUP),
       header: (
         <ChemicalUseScenarioTableHeaderRow
@@ -162,13 +159,21 @@ export function ChemicalUseScenariosTable({
           onSortField={onSortField}
         />
       ),
-      row: (row) => (
-        <STextRow
-          fontSize={13}
-          lineNumber={1}
-          text={formatUseScenarioBoardExposureGroupCell(row)}
-        />
-      ),
+      row: (row) => {
+        const gse = presentUseScenarioGse(row);
+        return (
+          <SFlex direction="column" gap={0}>
+            <SText fontSize={13} lineHeight="18px">
+              {gse.primary}
+            </SText>
+            {gse.hint ? (
+              <SText fontSize={11} color="text.secondary" lineHeight="14px">
+                {gse.hint}
+              </SText>
+            ) : null}
+          </SFlex>
+        );
+      },
     },
     {
       column: 'minmax(90px, 0.7fr)',

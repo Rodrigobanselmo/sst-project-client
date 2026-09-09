@@ -65,6 +65,10 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios',
   USE_SCENARIO_BOARD:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/board',
+  USE_SCENARIO_RECONCILE_PREVIEW:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/reconcile/preview',
+  USE_SCENARIO_RECONCILE_APPLY:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/reconcile/apply',
   USE_SCENARIO_BY_ID:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/:scenarioId',
   USE_SCENARIOS_BY_PRODUCT:
