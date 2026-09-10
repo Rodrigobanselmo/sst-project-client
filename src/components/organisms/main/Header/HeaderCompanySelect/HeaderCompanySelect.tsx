@@ -15,16 +15,16 @@ import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import {
   HOME_ALL_GROUP_COMPANIES_VALUE,
   isHomeCompanyPage,
+  resolveHeaderCompaniesQueryType,
   shouldRestrictCompanySelectorToBusinessGroup,
 } from 'core/constants/home-business-group-scope.constants';
+import { useAuth } from 'core/contexts/AuthContext';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import {
-  IQueryCompaniesTypes,
-  useQueryCompanies,
-} from 'core/services/hooks/queries/useQueryCompanies';
+import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { isCompanyMaxAdminRole } from 'core/utils/auth/frps-privacy-auth';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
@@ -43,6 +43,8 @@ export function HeaderCompanySelect(): JSX.Element | null {
   const router = useRouter();
   const { pathname, query } = router;
   const { data: company } = useQueryCompany();
+  const { user } = useAuth();
+  const { data: homeCompany } = useQueryCompany(user?.companyId);
   const { hasBusinessGroup, businessGroupId, isGroupConsolidated } =
     useHomeBusinessGroupScope();
   const { isMasterAdmin } = usePermissionsAccess();
@@ -61,11 +63,15 @@ export function HeaderCompanySelect(): JSX.Element | null {
       businessGroupId,
     });
 
-  // Usuários comuns (ex.: escopo multiempresa por grupo) não têm permissão em
-  // GET /company; /company/by-user retorna apenas empresas com UserCompany ativo.
-  const companiesQueryType: IQueryCompaniesTypes = isMasterAdmin
-    ? ''
-    : '/by-user';
+  // Usuários comuns não têm permissão em GET /company.
+  // Consultoria + Administrador Máximo, dentro de um grupo, usa GET /company?groupId=
+  // (carteira por contrato ∩ membros). Demais continuam em /by-user.
+  const companiesQueryType = resolveHeaderCompaniesQueryType({
+    isMasterAdmin,
+    homeCompanyIsConsulting: !!homeCompany?.isConsulting,
+    isCompanyMaxAdmin: isCompanyMaxAdminRole(user?.roles),
+    restrictToBusinessGroup: restrictSelectorToBusinessGroup,
+  });
 
   const { companies, isLoading } = useQueryCompanies(
     1,

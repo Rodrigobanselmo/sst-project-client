@@ -8,6 +8,7 @@ import { describe, it } from 'node:test';
 import { RoleEnum } from '../../../project/enum/roles.enums';
 import {
   canManageFrpsRiskAnalysisPrivacy,
+  canRequestAdminPasswordReset,
   isCompanyMaxAdminRole,
 } from './frps-privacy-auth';
 
@@ -57,6 +58,63 @@ describe('frps-privacy-auth (client)', () => {
         RoleEnum.RISK,
         RoleEnum.FORM,
       ]),
+      false,
+    );
+  });
+
+  it('admin password reset visibility follows privilege rules', () => {
+    assert.equal(
+      canRequestAdminPasswordReset({
+        actorRoles: [RoleEnum.MASTER],
+        actorUserId: 1,
+        targetUserId: 2,
+        targetRoles: [RoleEnum.USER],
+      }),
+      true,
+    );
+    assert.equal(
+      canRequestAdminPasswordReset({
+        actorRoles: [RoleEnum.ADMIN],
+        actorUserId: 1,
+        targetUserId: 2,
+        targetRoles: [RoleEnum.USER],
+      }),
+      true,
+    );
+    assert.equal(
+      canRequestAdminPasswordReset({
+        actorRoles: [RoleEnum.USER],
+        actorUserId: 1,
+        targetUserId: 2,
+        targetRoles: [RoleEnum.USER],
+      }),
+      false,
+    );
+    assert.equal(
+      canRequestAdminPasswordReset({
+        actorRoles: [RoleEnum.ADMIN],
+        actorUserId: 1,
+        targetUserId: 2,
+        targetRoles: [RoleEnum.ADMIN],
+      }),
+      false,
+    );
+    assert.equal(
+      canRequestAdminPasswordReset({
+        actorRoles: [RoleEnum.ADMIN],
+        actorUserId: 1,
+        targetUserId: 2,
+        targetRoles: [RoleEnum.MASTER],
+      }),
+      false,
+    );
+    assert.equal(
+      canRequestAdminPasswordReset({
+        actorRoles: [RoleEnum.MASTER],
+        actorUserId: 1,
+        targetUserId: 1,
+        targetRoles: [RoleEnum.USER],
+      }),
       false,
     );
   });

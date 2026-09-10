@@ -35,3 +35,28 @@ export function canManageFrpsRiskAnalysisPrivacy(
 ): boolean {
   return isSystemMasterRole(roles) || isCompanyMaxAdminRole(roles);
 }
+
+export function canRequestAdminPasswordReset(params: {
+  actorRoles: string[] | null | undefined;
+  actorUserId?: number;
+  targetUserId?: number;
+  targetRoles: string[] | null | undefined;
+}): boolean {
+  if (!params.targetUserId || params.actorUserId === params.targetUserId) {
+    return false;
+  }
+  if (
+    !isSystemMasterRole(params.actorRoles) &&
+    !isCompanyMaxAdminRole(params.actorRoles)
+  ) {
+    return false;
+  }
+  if (isSystemMasterRole(params.targetRoles)) return false;
+  if (
+    isCompanyMaxAdminRole(params.targetRoles) &&
+    !isSystemMasterRole(params.actorRoles)
+  ) {
+    return false;
+  }
+  return true;
+}

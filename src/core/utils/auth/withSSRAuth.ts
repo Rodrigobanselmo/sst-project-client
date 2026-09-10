@@ -42,7 +42,20 @@ export function withSSRAuth(
       roles: string[];
       exp: number;
       companyId?: string;
+      mustChangePassword?: boolean;
     }>(token);
+
+    if (
+      user.mustChangePassword &&
+      !ctx.resolvedUrl?.startsWith(RoutesEnum.CHANGE_REQUIRED_PASSWORD)
+    ) {
+      return {
+        redirect: {
+          destination: RoutesEnum.CHANGE_REQUIRED_PASSWORD,
+          permanent: false,
+        },
+      };
+    }
 
     if (!user.companyId && !options?.skipCompanyCheck)
       return {

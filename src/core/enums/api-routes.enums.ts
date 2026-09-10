@@ -76,6 +76,7 @@ export enum ApiRoutesEnum {
   USERS = '/users',
   USERS_HISTORY = '/users/history',
   USERS_RESET_PASS = '/users/reset-password',
+  USERS_ADMIN_RESET_PASS = '/users/company/:companyId/:id/admin-reset-password',
   PDF_GUIDE = '/documents/pdf/guide',
   PDF_KIT = '/documents/pdf/kit',
   PDF_VISIT_REPORT = '/documents/pdf/visit-report',

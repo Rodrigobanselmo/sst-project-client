@@ -42,6 +42,8 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
     isLoadingGroupMembers,
     hasLoadedGroupMembers,
     isResolvingEditLinks,
+    isResolvingConsultingLinks,
+    isConsultingCompaniesError,
   } = props;
 
   const buttons = [
@@ -170,12 +172,23 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
           <SText fontSize={14} color={'text.label'}>
             Acesso
           </SText>
+          {isResolvingConsultingLinks ? (
+            <SText fontSize={13} mt={2} color="text.label">
+              Carregando vínculos do usuário...
+            </SText>
+          ) : null}
+          {isConsultingCompaniesError ? (
+            <SText fontSize={13} mt={2} color={'error.main'}>
+              Não foi possível carregar os vínculos do usuário.
+            </SText>
+          ) : null}
           <SFlex mt={5} gap={5}>
             {isConsulting && (
               <STagButton
                 maxWidth="200px"
                 minWidth={180}
                 text={'Empresas'}
+                disabled={isResolvingConsultingLinks}
                 onClick={() => handleOpenCompanySelect()}
               />
             )}
@@ -185,6 +198,7 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
                 maxWidth="200px"
                 minWidth={180}
                 text={'Grupos Empresariais'}
+                disabled={isResolvingConsultingLinks}
                 onClick={() => handleOpenCompanySelect({ isGroup: true })}
               />
             )}
@@ -193,6 +207,7 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
                 maxWidth="200px"
                 minWidth={180}
                 text={'Clínicas'}
+                disabled={isResolvingConsultingLinks}
                 onClick={() => handleOpenCompanySelect({ isClinic: true })}
               />
             )}

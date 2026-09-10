@@ -176,6 +176,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }),
       );
 
+      if (response.data.mustChangePassword) {
+        if (!router.asPath.includes(RoutesEnum.CHANGE_REQUIRED_PASSWORD)) {
+          router.replace(RoutesEnum.CHANGE_REQUIRED_PASSWORD);
+        }
+        return;
+      }
+
       if (
         !response.data.name &&
         !router.asPath.includes(RoutesEnum.ONBOARD_USER)
@@ -249,7 +256,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     setIsInitializingAuth(false);
 
-    if (type === 'signIn') {
+    if (user?.mustChangePassword) {
+      router.push(RoutesEnum.CHANGE_REQUIRED_PASSWORD);
+    } else if (type === 'signIn') {
       router.push(redirect || RoutesEnum.DASHBOARD);
     }
 

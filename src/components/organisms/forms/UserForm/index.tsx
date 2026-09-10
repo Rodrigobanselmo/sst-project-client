@@ -162,7 +162,7 @@ export const UserForm = (
           )}
         </SFlex>
 
-        {props.passChange && (
+        {props.passChange && !isUserEditAdmin && (
           <SFlex
             gap={8}
             direction="column"

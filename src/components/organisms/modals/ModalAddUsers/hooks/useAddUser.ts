@@ -26,6 +26,12 @@ import {
 } from 'core/services/hooks/queries/useQueryCompanies';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import {
+  CONSULTING_USER_COMPANIES_TAKE,
+  resolveConsultingEditCompanies,
+  resolveInitialConsultingEditCompanies,
+  shouldBlockConsultingUserSave,
+} from 'core/utils/helpers/consulting-user-companies.helper';
+import {
   getUserGroupLinkedCompanies,
   inferUserAccessScope,
   resolveCompaniesIdsForSubmit,
@@ -135,8 +141,11 @@ export const useAddUser = () => {
   const hydratedModalRef = useRef<string | null>(null);
   const editLinksResolvedRef = useRef<string | null>(null);
   const userChangedScopeRef = useRef(false);
+  const userChangedConsultingLinksRef = useRef(false);
   const [missingGroup, setMissingGroup] = useState(false);
   const [missingScopeSelection, setMissingScopeSelection] = useState(false);
+  const [consultingLinksHydratedUserId, setConsultingLinksHydratedUserId] =
+    useState<number | null>(null);
 
   const { handleSubmit, setError, control, setValue, reset, getValues } =
     useForm<any>({
@@ -180,15 +189,34 @@ export const useAddUser = () => {
       companyId: activeCompany?.id,
     });
 
-  const { companies: consultingCompanies = [] } = useQueryCompanies(
+  const isConsultingLinksQueryEnabled =
+    isModalOpen && isConsulting && isEdit && !!userData.id;
+
+  const {
+    companies: consultingCompanies = [],
+    isLoading: isLoadingConsultingCompanies,
+    isFetching: isFetchingConsultingCompanies,
+    isSuccess: isConsultingCompaniesSuccess,
+    isError: isConsultingCompaniesError,
+  } = useQueryCompanies(
     1,
     {
-      userId: isConsulting && userData.id ? userData.id : undefined,
+      userId: isConsultingLinksQueryEnabled ? userData.id : undefined,
       findAll: true,
-      disabled: !isConsulting || !userData.id,
+      disabled: !isConsultingLinksQueryEnabled,
     },
-    200,
+    CONSULTING_USER_COMPANIES_TAKE,
   );
+
+  const hasHydratedConsultingLinks =
+    !isConsultingLinksQueryEnabled ||
+    consultingLinksHydratedUserId === userData.id;
+
+  const isResolvingConsultingLinks = shouldBlockConsultingUserSave({
+    isEdit,
+    isConsulting,
+    hasHydratedConsultingLinks,
+  });
 
   const linkedCompanyIdsForEdit = useMemo(() => {
     if (userData.linkedCompanyIds?.length) return userData.linkedCompanyIds;
@@ -203,6 +231,8 @@ export const useAddUser = () => {
       hydratedModalRef.current = null;
       editLinksResolvedRef.current = null;
       userChangedScopeRef.current = false;
+      userChangedConsultingLinksRef.current = false;
+      setConsultingLinksHydratedUserId(null);
       return;
     }
 
@@ -229,6 +259,8 @@ export const useAddUser = () => {
     hydratedModalRef.current = hydrationKey;
     editLinksResolvedRef.current = null;
     userChangedScopeRef.current = false;
+    userChangedConsultingLinksRef.current = false;
+    setConsultingLinksHydratedUserId(null);
 
     setUserData((oldData) => {
       const { roles, permissions } = resolveUserEditRolesAndPermissions({
@@ -237,6 +269,10 @@ export const useAddUser = () => {
         group: initialData.group ?? null,
       });
 
+      const isConsultingEdit = !!(
+        initialData.id && initialData.company?.isConsulting
+      );
+
       const newData = {
         ...initialUserState,
         ...oldData,
@@ -244,11 +280,11 @@ export const useAddUser = () => {
         roles,
         permissions,
         sendEmail: initialData.id ? false : initialData.sendEmail ?? true,
-        companies: initialData.companies?.length
-          ? initialData.companies
-          : initialData.company
-            ? [initialData.company]
-            : [],
+        companies: resolveInitialConsultingEditCompanies({
+          isConsultingEdit,
+          initialCompanies: initialData.companies,
+          fallbackCompany: initialData.company,
+        }),
       };
 
       initialDataRef.current = newData;
@@ -261,19 +297,44 @@ export const useAddUser = () => {
   }, [findModalData, isModalOpen]);
 
   useEffect(() => {
-    if (!isModalOpen || !isConsulting) return;
-    if (!consultingCompanies.length || userData.companies.length > 0) return;
+    if (!isModalOpen || !isConsulting || !isEdit) return;
+    if (!isConsultingLinksQueryEnabled) return;
+    if (userChangedConsultingLinksRef.current) return;
+    if (consultingLinksHydratedUserId === userData.id) return;
+    if (isConsultingCompaniesError) return;
+    if (isLoadingConsultingCompanies || isFetchingConsultingCompanies) return;
+    if (!isConsultingCompaniesSuccess) return;
 
+    const nextCompanies = resolveConsultingEditCompanies({
+      fetchedCompanies: consultingCompanies,
+      fallbackCompany: activeCompany,
+    });
+
+    setConsultingLinksHydratedUserId(userData.id);
     setUserData((oldData) => {
       const newData = {
         ...oldData,
-        companies: consultingCompanies,
+        companies: nextCompanies,
+        linkedCompanyIds: nextCompanies.map((company) => company.id),
       };
 
       initialDataRef.current = newData;
       return newData;
     });
-  }, [consultingCompanies, isConsulting, isModalOpen, userData.companies.length]);
+  }, [
+    activeCompany,
+    consultingCompanies,
+    consultingLinksHydratedUserId,
+    isConsulting,
+    isConsultingCompaniesError,
+    isConsultingCompaniesSuccess,
+    isConsultingLinksQueryEnabled,
+    isEdit,
+    isFetchingConsultingCompanies,
+    isLoadingConsultingCompanies,
+    isModalOpen,
+    userData.id,
+  ]);
 
   useEffect(() => {
     if (!isModalOpen || !isEdit || !isBusinessGroup || !hasLoadedGroupMembers) {
@@ -315,9 +376,10 @@ export const useAddUser = () => {
   ]);
 
   const isResolvingEditLinks =
-    isEdit &&
-    isBusinessGroup &&
-    (isLoadingEditUserLinks || !editUserDetails?.companies);
+    (isEdit &&
+      isBusinessGroup &&
+      (isLoadingEditUserLinks || !editUserDetails?.companies)) ||
+    isResolvingConsultingLinks;
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.USER_ADD, data);
@@ -328,6 +390,8 @@ export const useAddUser = () => {
     hydratedModalRef.current = null;
     editLinksResolvedRef.current = null;
     userChangedScopeRef.current = false;
+    userChangedConsultingLinksRef.current = false;
+    setConsultingLinksHydratedUserId(null);
   };
 
   const onSubmit: SubmitHandler<{
@@ -336,6 +400,16 @@ export const useAddUser = () => {
   }> = async (data) => {
     if (!userData.id && !data?.email && userData.sendEmail) {
       return setError('email', { message: 'E-mail é obrigatório' });
+    }
+
+    if (
+      shouldBlockConsultingUserSave({
+        isEdit: !!userData.id,
+        isConsulting,
+        hasHydratedConsultingLinks,
+      })
+    ) {
+      return;
     }
 
     if (!userData?.group?.id) {
@@ -460,7 +534,10 @@ export const useAddUser = () => {
   };
 
   const handleOpenCompanySelect = (query?: IQueryCompanies) => {
+    if (isResolvingConsultingLinks) return;
+
     const onSelect = (companies: ICompany[]) => {
+      userChangedConsultingLinksRef.current = true;
       setUserData({
         ...userData,
         companies,
@@ -483,6 +560,9 @@ export const useAddUser = () => {
   };
 
   const handleRemoveCompany = (company: ICompany) => {
+    if (isResolvingConsultingLinks) return;
+
+    userChangedConsultingLinksRef.current = true;
     setUserData({
       ...userData,
       companies: userData.companies.filter((c) => c.id !== company.id),
@@ -517,7 +597,8 @@ export const useAddUser = () => {
     loading:
       inviteUserMut.isLoading ||
       updateUserMut.isLoading ||
-      addUserMut.isPending,
+      addUserMut.isPending ||
+      isResolvingConsultingLinks,
     userData,
     setUserData,
     control,
@@ -536,6 +617,8 @@ export const useAddUser = () => {
     isLoadingGroupMembers,
     hasLoadedGroupMembers,
     isResolvingEditLinks,
+    isResolvingConsultingLinks,
+    isConsultingCompaniesError,
   };
 };
 

@@ -41,6 +41,7 @@ export type IUser = {
   type: ProfessionalTypeEnum;
   password: string;
   hasAccess: boolean;
+  mustChangePassword?: boolean;
   created_at: Date;
   updated_at: Date;
   companies: IUserCompany[];

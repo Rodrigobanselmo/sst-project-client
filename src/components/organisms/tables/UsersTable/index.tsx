@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useCallback, useState } from 'react';
 
 import { BoxProps } from '@mui/material';
 import {
@@ -41,11 +41,32 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
-import { IUser } from 'core/interfaces/api/IUser';
+import { IUser, IUserCompany } from 'core/interfaces/api/IUser';
 import { useMutInviteDelete } from 'core/services/hooks/mutations/user/useMutInviteDelete';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';
+
+const USERS_TABLE_PAGE_SIZES = [15, 25, 50, 100] as const;
+const DEFAULT_USERS_TABLE_PAGE_SIZE = 15;
+
+function getUserCompanyForTable(
+  companies: IUserCompany[] | undefined,
+  companyId?: string,
+): IUserCompany | undefined {
+  if (!companies?.length) return undefined;
+  return (
+    companies.find((userCompany) => userCompany.companyId === companyId) ||
+    companies[0]
+  );
+}
+
+function getUserProfileLabel(
+  companies: IUserCompany[] | undefined,
+  companyId?: string,
+): string {
+  return getUserCompanyForTable(companies, companyId)?.group?.name || '--';
+}
 
 export const UsersTable: FC<
   { children?: any; title?: ReactNode } & Omit<BoxProps, 'title'>
@@ -60,17 +81,26 @@ export const UsersTable: FC<
   const { onStackOpenModal } = useModal();
 
   const data = [...invites, ...users];
+  const [pageSize, setPageSize] = useState(DEFAULT_USERS_TABLE_PAGE_SIZE);
 
   const { handleSearchChange, results, page, setPage } = useTableSearch({
     data,
     keys: ['name'],
+    rowsPerPage: pageSize,
+    limit: Math.max(data.length, 1),
   });
 
+  const onRegistersPerPageChange = useCallback(
+    (size: number) => {
+      if (!(USERS_TABLE_PAGE_SIZES as readonly number[]).includes(size)) return;
+      setPageSize(size);
+      setPage(1);
+    },
+    [setPage],
+  );
+
   const handleEditUser = (user: IUser) => {
-    const userCompany =
-      user?.companies?.find(
-        (userCompany) => userCompany.companyId === company.id,
-      ) || user?.companies?.[0];
+    const userCompany = getUserCompanyForTable(user?.companies, company.id);
 
     const linkedCompanyIds = user.companies?.map((uc) => uc.companyId) ?? [];
 
@@ -130,17 +160,21 @@ export const UsersTable: FC<
       />
       <STable
         loading={isLoading || isLoadingInvites}
-        columns="minmax(200px, 5fr) 200px minmax(200px, 300px)  90px 80px"
+        rowsNumber={pageSize}
+        columns="minmax(160px, 4fr) minmax(140px, 2fr) 180px minmax(180px, 3fr) 90px 80px"
       >
         <STableHeader>
           <STableHRow>Nome</STableHRow>
+          <STableHRow>Perfil</STableHRow>
           <STableHRow>Link</STableHRow>
           <STableHRow>Email</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<(typeof data)[0]>
+          key={pageSize}
           rowsData={results}
+          rowsInitialNumber={pageSize}
           hideLoadMore
           renderRow={(row) => {
             return (
@@ -152,6 +186,13 @@ export const UsersTable: FC<
                 key={row.id}
               >
                 <TextIconRow clickable text={'name' in row ? row.name : '--'} />
+                <TextIconRow
+                  clickable
+                  text={getUserProfileLabel(
+                    'companies' in row ? row.companies : undefined,
+                    company.id,
+                  )}
+                />
                 {'token' in row && row.token && !row.hasAccess ? (
                   <STagButton
                     tooltipTitle={'copiar'}
@@ -218,12 +259,14 @@ export const UsersTable: FC<
       </STable>
       <STablePagination
         mt={2}
-        registersPerPage={8}
+        registersPerPage={pageSize}
         totalCountOfRegisters={
           isLoading || isLoadingInvites ? undefined : data.length
         }
         currentPage={page}
         onPageChange={setPage}
+        pageSizeOptions={[...USERS_TABLE_PAGE_SIZES]}
+        onRegistersPerPageChange={onRegistersPerPageChange}
       />
     </>
   );

@@ -6,6 +6,7 @@ import { RoutesParamsEnum } from 'components/organisms/main/Header/Location/hook
 import { getCompanyWorkspaceHomePath } from 'core/constants/company-breadcrumb.constants';
 import {
   isHomeCompanyPage,
+  resolveHeaderCompaniesQueryType,
   shouldRestrictCompanySelectorToBusinessGroup,
 } from 'core/constants/home-business-group-scope.constants';
 import { useAuth } from 'core/contexts/AuthContext';
@@ -13,11 +14,9 @@ import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import {
-  IQueryCompaniesTypes,
-  useQueryCompanies,
-} from 'core/services/hooks/queries/useQueryCompanies';
+import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { isCompanyMaxAdminRole } from 'core/utils/auth/frps-privacy-auth';
 import { useRouter } from 'next/router';
 
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
@@ -50,8 +49,9 @@ export function useSidebarSearch(params: {
   const { searchQuery, setSearchQuery } = useSidebarDrawer();
   const router = useRouter();
   const { pathname, query } = router;
-  const { refreshUser } = useAuth();
+  const { refreshUser, user } = useAuth();
   const { data: company } = useQueryCompany();
+  const { data: homeCompany } = useQueryCompany(user?.companyId);
   const { isMasterAdmin } = usePermissionsAccess();
   const { workspaceId: tabWorkspaceId } = useTabWorkspaceId();
   const { hasBusinessGroup, businessGroupId } = useHomeBusinessGroupScope();
@@ -80,9 +80,12 @@ export function useSidebarSearch(params: {
     return () => window.clearTimeout(timer);
   }, [queryText]);
 
-  const companiesQueryType: IQueryCompaniesTypes = isMasterAdmin
-    ? ''
-    : '/by-user';
+  const companiesQueryType = resolveHeaderCompaniesQueryType({
+    isMasterAdmin,
+    homeCompanyIsConsulting: !!homeCompany?.isConsulting,
+    isCompanyMaxAdmin: isCompanyMaxAdminRole(user?.roles),
+    restrictToBusinessGroup: restrictSelectorToBusinessGroup,
+  });
 
   const shouldFetchCompanies =
     debouncedCompanyQuery.length >= COMPANY_QUERY_MIN_LENGTH;

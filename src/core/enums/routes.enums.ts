@@ -44,6 +44,7 @@ export enum RoutesEnum {
   ONBOARD = '/acesso',
   ONBOARD_NO_TEAM = '/acesso/empresa',
   ONBOARD_USER = '/acesso/usuario',
+  CHANGE_REQUIRED_PASSWORD = '/acesso/definir-senha',
   PGR_DOCUMENT = '/dashboard/empresas/:companyId/seus_documentos/pgr/:riskGroupId',
   PCMSO_DOCUMENT = '/dashboard/empresas/:companyId/seus_documentos/pcmso/:riskGroupId',
   PERICULOSIDADE_DOCUMENT = '/dashboard/empresas/:companyId/seus_documentos/periculosidade/:riskGroupId',
@@ -56,8 +57,7 @@ export enum RoutesEnum {
   HO_METHODS = '/dashboard/empresas/:companyId/metodos-ho',
   CHEMICAL_PRODUCTS = '/dashboard/empresas/:companyId/produtos-quimicos',
   EXPOSURE_GROUP_ASSISTANT = '/dashboard/empresas/:companyId/assistente-gse',
-  CHARACTERIZATION_AI_PROFILES =
-    '/dashboard/empresas/:companyId/modelos-ia-caracterizacao',
+  CHARACTERIZATION_AI_PROFILES = '/dashboard/empresas/:companyId/modelos-ia-caracterizacao',
   RISK_EDIT = '/dashboard/empresas/:companyId/fatores-riscos/:riskId/edit',
   RISK_DATA = '/dashboard/empresas/:companyId/hierarquia?riskGroupId=:riskGroupId',
   SCHEDULE = '/dashboard/empresas/:companyId/agenda',

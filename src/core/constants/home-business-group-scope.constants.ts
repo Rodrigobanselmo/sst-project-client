@@ -28,3 +28,34 @@ export function shouldRestrictCompanySelectorToBusinessGroup(params: {
     !!params.businessGroupId
   );
 }
+
+export type HeaderCompaniesQueryType = '' | '/by-user';
+
+/**
+ * Fonte da lista do seletor/busca de empresas.
+ *
+ * - MASTER: GET /company (carteira ampla do sistema).
+ * - Consultoria + Administrador Máximo, já dentro de um grupo: GET /company?groupId=
+ *   (carteira por contrato da consultoria ∩ membros do grupo).
+ * - Demais: GET /company/by-user (somente UserCompany ativo).
+ */
+export function resolveHeaderCompaniesQueryType(params: {
+  isMasterAdmin: boolean;
+  homeCompanyIsConsulting: boolean;
+  isCompanyMaxAdmin: boolean;
+  restrictToBusinessGroup: boolean;
+}): HeaderCompaniesQueryType {
+  if (params.isMasterAdmin) {
+    return '';
+  }
+
+  if (
+    params.homeCompanyIsConsulting &&
+    params.isCompanyMaxAdmin &&
+    params.restrictToBusinessGroup
+  ) {
+    return '';
+  }
+
+  return '/by-user';
+}
