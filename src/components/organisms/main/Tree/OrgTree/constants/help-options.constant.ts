@@ -4,6 +4,7 @@ import { ElementType } from 'react';
 import CloseFullscreenOutlinedIcon from '@mui/icons-material/CloseFullscreenOutlined';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
 
+import SCopyIcon from 'assets/icons/SCopyIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
 
@@ -26,6 +27,11 @@ export const helpOptionsConstant = {
     value: HelpOptionsEnum.EDIT,
     name: 'Editar',
     icon: SEditIcon,
+  },
+  [HelpOptionsEnum.COPY_STRUCTURE]: {
+    value: HelpOptionsEnum.COPY_STRUCTURE,
+    name: 'Copiar estrutura',
+    icon: SCopyIcon,
   },
   [HelpOptionsEnum.CLOSE_ALL]: {
     value: HelpOptionsEnum.CLOSE_ALL,

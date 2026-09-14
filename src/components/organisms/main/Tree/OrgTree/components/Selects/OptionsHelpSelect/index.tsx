@@ -7,8 +7,11 @@ import {
 } from 'components/organisms/main/Tree/OrgTree/constants/help-options.constant';
 import { HelpOptionsEnum } from 'components/organisms/main/Tree/OrgTree/enums/help-options.enums';
 import { usePreventNode } from 'components/organisms/main/Tree/OrgTree/hooks/usePreventNode';
+import { canCopyHierarchyNode } from 'components/organisms/main/Tree/OrgTree/utils/get-copy-hierarchy-destinations';
 
+import { ModalEnum } from 'core/enums/modal.enums';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
+import { useModal } from 'core/hooks/useModal';
 
 import { IMenuOptionResponse } from '../../../../../../../molecules/SMenu/types';
 import { STagSelect } from '../../../../../../../molecules/STagSelect';
@@ -19,6 +22,7 @@ export const OptionsHelpSelect: FC<
 > = ({ large, node, menuRef, onEdit, ...props }) => {
   const { onExpandAll, removeNodes } = useHierarchyTreeActions();
   const { preventDelete } = usePreventNode();
+  const { onOpenModal } = useModal();
 
   const handleAction = ({ value }: IMenuOptionResponse, e: any) => {
     if (HelpOptionsEnum.OPEN_ALL === value) {
@@ -27,6 +31,12 @@ export const OptionsHelpSelect: FC<
 
     if (HelpOptionsEnum.EDIT === value) {
       return onEdit?.(e);
+    }
+
+    if (HelpOptionsEnum.COPY_STRUCTURE === value) {
+      return onOpenModal(ModalEnum.HIERARCHY_COPY_BRANCH, {
+        sourceTreeId: String(node.id),
+      });
     }
 
     if (HelpOptionsEnum.CLOSE_ALL === value) {
@@ -41,9 +51,15 @@ export const OptionsHelpSelect: FC<
     }
   };
 
+  const options = (Object.values(helpOptionsConstant) as IHelpOption[]).filter(
+    (option) =>
+      option.value !== HelpOptionsEnum.COPY_STRUCTURE ||
+      canCopyHierarchyNode(node),
+  );
+
   return (
     <STagSelect
-      options={Object.values(helpOptionsConstant) as IHelpOption[]}
+      options={options}
       text={''}
       large={large}
       icon={MoreHorizOutlinedIcon}

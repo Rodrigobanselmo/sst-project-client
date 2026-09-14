@@ -5,15 +5,23 @@ import { useDrag, useDrop } from 'react-dnd';
 import { useStore } from 'react-redux';
 
 import { useHierarchyTreeActions } from '../../../../../../../../core/hooks/useHierarchyTreeActions';
+import { useMutCopyHierarchyBranch } from '../../../../../../../../core/services/hooks/mutations/checklist/hierarchy/useMutCopyHierarchyBranch';
 import { nodeTypesConstant } from '../../../constants/node-type.constant';
+import { TreeTypeEnum } from '../../../enums/tree-type.enums';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { ITreeMap, ITreeMapObject } from '../../../interfaces';
+import {
+  getHierarchyIdFromTreeId,
+  getWorkspaceIdFromTreeNode,
+  isHierarchyCopyDropAllowed,
+} from '../../../utils/get-copy-hierarchy-destinations';
 
 export const useDnd = (node: ITreeMapObject) => {
   const { setDraggingItem, isChild, editNodes, removeNodes } =
     useHierarchyTreeActions();
   const isMockAppend = useRef(false);
   const store = useStore<any>();
+  const copyMutation = useMutCopyHierarchyBranch();
 
   const onAppendMock = (id: number | string) => {
     if (node.stopDrag) return;
@@ -131,6 +139,32 @@ export const useDnd = (node: ITreeMapObject) => {
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const dragItem = nodesMap[drag.id] as ITreeMapObject | null;
     const dropItem = nodesMap[node.id] as ITreeMapObject | null;
+    const copyDndActive = !!store.getState().hierarchy.copyDndActive;
+
+    if (copyDndActive) {
+      onRemoveMock();
+      if (!dragItem || !dropItem) return;
+      if (
+        !isHierarchyCopyDropAllowed({
+          source: dragItem,
+          target: dropItem,
+          nodes: nodesMap,
+        })
+      ) {
+        return;
+      }
+      if (copyMutation.isLoading) return;
+
+      copyMutation.mutate({
+        sourceHierarchyId: getHierarchyIdFromTreeId(String(dragItem.id)),
+        targetParentId:
+          dropItem.type === TreeTypeEnum.WORKSPACE
+            ? null
+            : getHierarchyIdFromTreeId(String(dropItem.id)),
+        targetWorkspaceId: getWorkspaceIdFromTreeNode(dragItem),
+      });
+      return;
+    }
 
     const removeDragFromParent = {
       id: dragItem?.parentId || '',
@@ -164,6 +198,15 @@ export const useDnd = (node: ITreeMapObject) => {
     if (store.getState().hierarchy?.selectionMode) return false;
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const actualDragItem = nodesMap[dragItem.id];
+    if (!actualDragItem) return false;
+
+    if (store.getState().hierarchy.copyDndActive) {
+      return isHierarchyCopyDropAllowed({
+        source: actualDragItem,
+        target: node,
+        nodes: nodesMap,
+      });
+    }
 
     const differentId = actualDragItem.id !== node.id;
     const notChildOfDrop = !isChild(actualDragItem.id, node.id);

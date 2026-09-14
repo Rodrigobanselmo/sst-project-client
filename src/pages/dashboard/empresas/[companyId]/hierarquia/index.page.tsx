@@ -2,6 +2,7 @@ import { Alert, Box, Button, CircularProgress, Stack } from '@mui/material';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
 import { ModalEditCard } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard';
+import { ModalCopyHierarchyBranch } from 'components/organisms/main/Tree/OrgTree/components/ModalCopyHierarchyBranch';
 import { useHierarchyDeepLink } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyDeepLink';
 import { useHierarchyTreeLoad } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyTreeLoad';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
@@ -119,6 +120,7 @@ const Hierarchy: NextPage = () => {
         <ModalExcelHierarchies />
 
         <ModalEditCard />
+        <ModalCopyHierarchyBranch />
         <ModalRiskTool />
         <StackModalEditEmployee />
         <ModalSelectWorkspace />

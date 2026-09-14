@@ -4,7 +4,7 @@ import { Box, Icon, Stack } from '@mui/material';
 import SSlider from 'components/atoms/SSlider';
 import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
-import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
+import { setCopyDndActive, setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
 import { selectRiskAddExpand } from 'store/reducers/hierarchy/riskAddSlice';
 
 import SZooInIcon from 'assets/icons/SZooInIcon';
@@ -39,6 +39,12 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
 
   useEffect(() => {
     dispatch(setHierarchySearch(''));
+  }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(setCopyDndActive(false));
+    };
   }, [dispatch]);
 
   const { query } = useRouter();

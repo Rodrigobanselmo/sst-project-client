@@ -25,6 +25,7 @@ interface IHierarchySlice {
   search: string;
   selectionMode: boolean;
   selectedNodeIds: string[];
+  copyDndActive: boolean;
 }
 
 const initialState: IHierarchySlice = {
@@ -47,6 +48,7 @@ const initialState: IHierarchySlice = {
   workspaceId: null,
   selectionMode: false,
   selectedNodeIds: [],
+  copyDndActive: false,
 };
 
 const name = 'hierarchy';
@@ -165,6 +167,9 @@ export const hierarchySlice = createSlice({
     clearSelectedNodeIds: (state) => {
       state.selectedNodeIds = [];
     },
+    setCopyDndActive: (state, action: PayloadAction<boolean>) => {
+      state.copyDndActive = action.payload;
+    },
     setEditSelectItem: (
       state,
       action: PayloadAction<Partial<ITreeSelectedItem> | null>,
@@ -234,6 +239,7 @@ export const {
   setSelectedNodeIds,
   toggleSelectedNodeId,
   clearSelectedNodeIds,
+  setCopyDndActive,
 } = hierarchySlice.actions;
 
 export const selectAllHierarchyTreeNodes = (state: AppState) =>
@@ -289,5 +295,8 @@ export const selectHierarchySelectedNodeIds = (state: AppState) =>
 export const selectHierarchyNodeIsSelected =
   (id: string | number) => (state: AppState) =>
     state[name].selectedNodeIds.includes(String(id));
+
+export const selectHierarchyCopyDndActive = (state: AppState) =>
+  !!state[name].copyDndActive;
 
 export default hierarchySlice.reducer;
