@@ -1,0 +1,32 @@
+import { firstNodeId } from 'core/constants/first-node-id.constant';
+
+import { ITreeMap } from '../interfaces';
+
+/**
+ * Filtro visual da raiz do organograma.
+ * 0 ids = empresa inteira; ids existentes = somente esses ramos, na ordem da árvore.
+ * Se nenhum id existir na raiz, devolve a árvore intacta (mesmo fallback de 1 id inválido).
+ */
+export function filterTreeMapByWorkspace(
+  nodes: ITreeMap,
+  workspaceIds: string[],
+): ITreeMap {
+  if (!workspaceIds.length) return nodes;
+
+  const root = nodes[firstNodeId];
+  if (!root?.childrenIds?.length) return nodes;
+
+  const selected = new Set(workspaceIds);
+  const nextChildren = root.childrenIds.filter((id) =>
+    selected.has(String(id)),
+  );
+  if (!nextChildren.length) return nodes;
+
+  return {
+    ...nodes,
+    [firstNodeId]: {
+      ...root,
+      childrenIds: nextChildren,
+    },
+  };
+}

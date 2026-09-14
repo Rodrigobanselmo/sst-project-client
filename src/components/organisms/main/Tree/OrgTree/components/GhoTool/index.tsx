@@ -13,6 +13,7 @@ import {
 import {
   selectGhoId,
   selectGhoOpen,
+  setGhoOpen,
   setGhoSearch,
   setGhoSearchSelect,
   setGhoState,
@@ -27,6 +28,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
@@ -87,20 +89,31 @@ export const GhoTool = () => {
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const addMutation = useMutCreateGho();
   const deleteMutation = useMutDeleteGho();
+  const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
 
   useEffect(() => {
     dispatch(setGhoSearch(''));
     dispatch(setGhoSearchSelect(''));
   }, [dispatch]);
 
+  useEffect(() => {
+    if (!isOrgMultiWorkspace) return;
+    dispatch(setGhoState({ hierarchies: [], data: null }));
+    dispatch(setGhoOpen(false));
+    dispatch(setGhoSearch(''));
+    dispatch(setGhoSearchSelect(''));
+  }, [dispatch, isOrgMultiWorkspace]);
+
   // HomoTypeEnum.GSE is 0 — do not use `|| null` or the default becomes null and breaks the list filter.
   const [filter, setFilter] = useState<HomoTypeEnum | null>(HomoTypeEnum.GSE);
 
   const handleAddGHO = async () => {
+    if (isOrgMultiWorkspace) return;
     onOpenModal(ModalEnum.GHO_ADD);
   };
 
   const handleEditGHO = (data: IGho) => {
+    if (isOrgMultiWorkspace) return;
     onOpenModal(ModalEnum.GHO_ADD, {
       id: data.id,
       name: data.name,
@@ -111,6 +124,7 @@ export const GhoTool = () => {
 
   const handleDeleteGHO = useCallback(
     (id: string, data?: IGho) => {
+      if (isOrgMultiWorkspace) return;
       preventDelete(
         async () => {
           await deleteMutation.mutateAsync(id).catch(() => {});
@@ -130,11 +144,15 @@ export const GhoTool = () => {
         { inputConfirm: true },
       );
     },
-    [deleteMutation, dispatch, preventDelete],
+    [deleteMutation, dispatch, isOrgMultiWorkspace, preventDelete],
   );
 
   const handleSelectGHO = useCallback(
     (gho: IGho | null, hierarchies: string[]) => {
+      if (isOrgMultiWorkspace) {
+        if (!gho) dispatch(setGhoState({ hierarchies: [], data: null }));
+        return;
+      }
       if (!gho) {
         if (!selectExpanded) dispatch(setRiskAddToggleExpand());
         return dispatch(setGhoState({ hierarchies: [], data: null }));
@@ -148,7 +166,7 @@ export const GhoTool = () => {
       if (selectExpanded) dispatch(setRiskAddToggleExpand());
       dispatch(setGhoState(data));
     },
-    [dispatch, selectExpanded],
+    [dispatch, isOrgMultiWorkspace, selectExpanded],
   );
 
   const handleFilter = (filter: HomoTypeEnum | null) => {
@@ -162,6 +180,7 @@ export const GhoTool = () => {
     : undefined;
 
   const handleAddCharacterization = useCallback(() => {
+    if (isOrgMultiWorkspace) return;
     if (!company?.id || filter == null || !homoCharacterizationTabs.has(filter))
       return;
 
@@ -190,11 +209,18 @@ export const GhoTool = () => {
         if (w?.id) openModal(w.id);
       },
     } as typeof initialWorkspaceSelectState);
-  }, [company?.id, company?.workspace, filter, onOpenModal, tabWorkspaceId]);
+  }, [
+    company?.id,
+    company?.workspace,
+    filter,
+    isOrgMultiWorkspace,
+    onOpenModal,
+    tabWorkspaceId,
+  ]);
 
   return (
     <>
-      {isGhoOpen && (
+      {isGhoOpen && !isOrgMultiWorkspace && (
         <STBoxContainer expanded={selectExpanded ? 1 : 0}>
           <GhoToolTopButtons handleSelectGHO={handleSelectGHO} />
           <STTableContainer>

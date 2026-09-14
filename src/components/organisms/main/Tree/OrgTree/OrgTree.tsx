@@ -12,6 +12,7 @@ import SZooOutIcon from 'assets/icons/SZooOutIcon';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 
 import { useZoom } from '../../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
@@ -41,7 +42,8 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
   }, [dispatch]);
 
   const { query } = useRouter();
-  const isRiskOpen = query.riskGroupId;
+  const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
+  const isRiskOpen = Boolean(query.riskGroupId) && !isOrgMultiWorkspace;
   const { onChangeZoom, onGetScale } = useZoom(orgContainerRef);
 
   return (
@@ -105,7 +107,7 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
       {showGHO && (
         <STGhoBox
           expanded={selectExpanded ? 1 : 0}
-          gho={isGhoOpen ? 1 : 0}
+          gho={isGhoOpen && !isOrgMultiWorkspace ? 1 : 0}
           risk_init={isRiskOpen ? 1 : 0}
         >
           {isRiskOpen && <RiskTool />}

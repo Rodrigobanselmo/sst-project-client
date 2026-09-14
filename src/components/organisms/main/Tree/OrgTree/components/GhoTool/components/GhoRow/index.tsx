@@ -9,6 +9,7 @@ import { selectGhoSearch } from 'store/reducers/hierarchy/ghoSlice';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useDisclosure } from 'core/hooks/useDisclosure';
 import { useObserverHide } from 'core/hooks/useObserverHide';
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { Row } from './Row';
@@ -27,6 +28,7 @@ export const GhoRow = React.memo<GhoRowProps>(
     const isSelected = selectedGhoId === gho.id;
     const { hide, ref } = useObserverHide();
     const searchSelected = useAppSelector(selectGhoSearch);
+    const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
 
     const { isOpen, close } = useDisclosure(true);
     const anchorEl = useRef<HTMLDivElement>(null);
@@ -60,9 +62,9 @@ export const GhoRow = React.memo<GhoRowProps>(
           />
         </SFlex>
         <SPopperHelper
-          show={isFirst}
+          show={isFirst && !isOrgMultiWorkspace}
           content="Click aqui para adicionar setores e cargos ao GSE"
-          isOpen={isOpen}
+          isOpen={isOpen && !isOrgMultiWorkspace}
           close={close}
           anchorEl={anchorEl}
           minWidth={'400px'}

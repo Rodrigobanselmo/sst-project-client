@@ -25,6 +25,7 @@ import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist
 import { useQueryRiskDataByHierarchy } from 'core/services/hooks/queries/useQueryRiskDataByHierarchy';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { dateToString } from 'core/utils/date/date-format';
+import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-query';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -57,11 +58,12 @@ export const ModalViewRiskData = ({
   const [showRiskExam, setShowRiskExam] = useState(false);
   const companyId = riskGroupData?.[riskGroupData.length - 1]?.companyId;
 
-  const { onOpenOfficeRiskTool, onOpenRiskTool } = useModalCardActions({
-    hierarchyId,
-    riskGroupId,
-    selectedNode,
-  });
+  const { onOpenOfficeRiskTool, onOpenRiskTool, isOrgMultiWorkspace } =
+    useModalCardActions({
+      hierarchyId,
+      riskGroupId,
+      selectedNode,
+    });
 
   const { data: riskDataHierarchy, isLoading: loadingRiskData } =
     useQueryRiskDataByHierarchy(hierarchyId);
@@ -119,27 +121,35 @@ export const ModalViewRiskData = ({
     <SFlex direction="column" minHeight={220}>
       {(loadingRiskGroup || loadingRiskData) && <LinearProgress />}
       <SFlex justify="space-between" mb={10}>
-        <SButton
-          size="small"
-          sx={{
-            backgroundColor: 'grey.100',
-            width: 'fit-content',
-            color: 'black',
-            boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
-            mb: 5,
-            ':hover': {
-              backgroundColor: 'grey.200',
-              boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
-            },
-          }}
-          onClick={() => onOpenOfficeRiskTool()}
+        <STooltip
+          withWrapper
+          title={
+            isOrgMultiWorkspace ? ORG_MULTI_WORKSPACE_DISABLED_HINT : undefined
+          }
         >
-          <Icon
-            sx={{ fontSize: 20, mr: 4, color: 'success.dark' }}
-            component={SAddIcon}
-          />
-          Adicionar riscos ao cargo
-        </SButton>
+          <SButton
+            size="small"
+            disabled={isOrgMultiWorkspace}
+            sx={{
+              backgroundColor: 'grey.100',
+              width: 'fit-content',
+              color: 'black',
+              boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+              mb: 5,
+              ':hover': {
+                backgroundColor: 'grey.200',
+                boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
+              },
+            }}
+            onClick={() => onOpenOfficeRiskTool()}
+          >
+            <Icon
+              sx={{ fontSize: 20, mr: 4, color: 'success.dark' }}
+              component={SAddIcon}
+            />
+            Adicionar riscos ao cargo
+          </SButton>
+        </STooltip>
         <SSwitch
           onChange={() => {
             setShowRiskExam(!showRiskExam);
@@ -279,6 +289,7 @@ export const ModalViewRiskData = ({
                           }}
                           fontSize={11}
                           onClick={() => {
+                            if (isOrgMultiWorkspace) return;
                             if (isHomoInactive)
                               return enqueueSnackbar(
                                 'Grupo homogênio inativo',

@@ -9,6 +9,10 @@ import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import {
+  isOrgMultiWorkspaceMode,
+  ORG_MULTI_WORKSPACE_DISABLED_HINT,
+} from 'core/utils/org-workspace-query';
 
 import { GhoRow } from '../GhoRow';
 import { RiskToolRiskViewProps } from './types';
@@ -107,7 +111,9 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
               disabled={tabDisabled}
               tooltipTitle={
                 tabDisabled
-                  ? 'Selecione um estabelecimento no cabeçalho para listar e vincular elementos caracterizados a este organograma.'
+                  ? isOrgMultiWorkspaceMode(query)
+                    ? ORG_MULTI_WORKSPACE_DISABLED_HINT
+                    : 'Selecione um estabelecimento no cabeçalho para listar e vincular elementos caracterizados a este organograma.'
                   : undefined
               }
             />

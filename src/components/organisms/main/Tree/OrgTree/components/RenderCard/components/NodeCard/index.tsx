@@ -27,8 +27,10 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { useModal } from 'core/hooks/useModal';
 import { useObserverHide } from 'core/hooks/useObserverHide';
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
+import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-query';
 
 import { ModalEnum } from '../../../../../../../../../core/enums/modal.enums';
 import { useHierarchyTreeActions } from '../../../../../../../../../core/hooks/useHierarchyTreeActions';
@@ -103,19 +105,33 @@ const SelectGho: FC<{
   isSelectedGho: boolean;
   handleAddGhoHierarchy: (e: MouseEvent<HTMLDivElement>) => void;
   node: ITreeMapObject;
-}> = ({ isSelectedGho, handleAddGhoHierarchy, node }) => {
+  disabled?: boolean;
+  disabledHint?: string;
+}> = ({
+  isSelectedGho,
+  handleAddGhoHierarchy,
+  node,
+  disabled,
+  disabledHint,
+}) => {
   const ref = useRef<HTMLElement>(null);
 
   return (
     <STooltip
-      title={`Click aqui para incluir o ${node.label.slice(0, 8)}${
-        node.label.length > 9 ? '...' : ''
-      } ao GSE`}
+      withWrapper
+      title={
+        disabled
+          ? disabledHint
+          : `Click aqui para incluir o ${node.label.slice(0, 8)}${
+              node.label.length > 9 ? '...' : ''
+            } ao GSE`
+      }
     >
       <STSelectBox
         ref={ref}
         selected={isSelectedGho ? 1 : 0}
-        onClick={handleAddGhoHierarchy}
+        onClick={disabled ? undefined : handleAddGhoHierarchy}
+        sx={disabled ? { opacity: 0.4, pointerEvents: 'auto' } : undefined}
       />
     </STooltip>
   );
@@ -147,6 +163,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   const store = useStore<any>();
   const dispatch = useAppDispatch();
   const { hide, ref } = useObserverHide();
+  const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -167,6 +184,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
 
   const onUpdateGho = (newHierarchyIds: string[]) => {
     if (node.showRef) return;
+    if (isOrgMultiWorkspace) return;
     dispatch(setGhoState({ hierarchies: newHierarchyIds }));
 
     const newGhoState = store.getState().gho as IGhoState;
@@ -183,6 +201,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
 
   const handleAddGhoHierarchy = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
+    if (isOrgMultiWorkspace) return;
     if (selectionMode || updateMutation.isLoading) return;
     if (node.showRef) return;
 
@@ -286,7 +305,11 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
         minHeight: '100%',
         gap: 2.5,
       }}
-      onClick={!selectionMode && GhoId ? handleAddGhoHierarchy : undefined}
+      onClick={
+        !selectionMode && GhoId && !isOrgMultiWorkspace
+          ? handleAddGhoHierarchy
+          : undefined
+      }
     >
       {/* 1. Cabeçalho — tipo do nó */}
       {!showRefSelect && (
@@ -345,6 +368,8 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
                 isSelectedGho={isSelectedGho}
                 handleAddGhoHierarchy={handleAddGhoHierarchy}
                 node={node}
+                disabled={isOrgMultiWorkspace}
+                disabledHint={ORG_MULTI_WORKSPACE_DISABLED_HINT}
               />
             )}
             {(showGhoSelect || showCornerGhoBadge) && (

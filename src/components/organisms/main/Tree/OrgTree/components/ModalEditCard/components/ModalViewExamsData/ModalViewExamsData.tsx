@@ -15,6 +15,7 @@ import SStarIcon from 'assets/icons/SStarIcon';
 
 import { useQueryExamsHierarchy } from 'core/services/hooks/queries/useQueryExamsHierarchy/useQueryExamsHierarchy';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-query';
 
 import SFlex from '../../../../../../../../atoms/SFlex';
 import SText from '../../../../../../../../atoms/SText';
@@ -36,11 +37,12 @@ export const ModalViewExamsData = ({
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
   const hierarchyId = String(selectedNode?.id)?.split('//')[0];
 
-  const { onOpenOfficeRiskTool, onOpenRiskTool } = useModalCardActions({
-    hierarchyId,
-    riskGroupId,
-    selectedNode,
-  });
+  const { onOpenOfficeRiskTool, onOpenRiskTool, isOrgMultiWorkspace } =
+    useModalCardActions({
+      hierarchyId,
+      riskGroupId,
+      selectedNode,
+    });
 
   //! improve invalidate fetch when risk data change (refetch all times you change a risk data on riskTool)
   //! can show schedule exam, not only done
@@ -53,27 +55,35 @@ export const ModalViewExamsData = ({
       {(loadingRiskGroup || loadingExams) && <LinearProgress />}
 
       <SFlex justify="space-between" mb={10}>
-        <SButton
-          size="small"
-          sx={{
-            width: 'fit-content',
-            backgroundColor: 'white',
-            color: 'black',
-            boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
-            mb: 5,
-            ':hover': {
-              backgroundColor: 'grey.200',
-              boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
-            },
-          }}
-          onClick={() => onOpenOfficeRiskTool()}
+        <STooltip
+          withWrapper
+          title={
+            isOrgMultiWorkspace ? ORG_MULTI_WORKSPACE_DISABLED_HINT : undefined
+          }
         >
-          <Icon
-            sx={{ fontSize: 20, mr: 4, color: 'success.dark' }}
-            component={SAddIcon}
-          />
-          Adicionar exames ao cargo
-        </SButton>
+          <SButton
+            size="small"
+            disabled={isOrgMultiWorkspace}
+            sx={{
+              width: 'fit-content',
+              backgroundColor: 'white',
+              color: 'black',
+              boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+              mb: 5,
+              ':hover': {
+                backgroundColor: 'grey.200',
+                boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
+              },
+            }}
+            onClick={() => onOpenOfficeRiskTool()}
+          >
+            <Icon
+              sx={{ fontSize: 20, mr: 4, color: 'success.dark' }}
+              component={SAddIcon}
+            />
+            Adicionar exames ao cargo
+          </SButton>
+        </STooltip>
         <SSwitch
           onChange={() => {
             setShowRiskExam(!showRiskExam);
@@ -89,6 +99,7 @@ export const ModalViewExamsData = ({
         showRiskExam={showRiskExam}
         hierarchyId={hierarchyId}
         onHandleOrigin={(origin) => {
+          if (isOrgMultiWorkspace) return;
           onOpenRiskTool(origin.homogeneousGroup, origin.risk);
         }}
       />

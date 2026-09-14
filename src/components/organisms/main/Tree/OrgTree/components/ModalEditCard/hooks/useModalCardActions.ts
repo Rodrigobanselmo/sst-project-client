@@ -1,12 +1,10 @@
-import { useMemo } from 'react';
-
 import { initialRiskToolState } from 'components/organisms/modals/ModalRiskTool/hooks/useModalRiskTool';
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { IGho } from 'core/interfaces/api/IGho';
-import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { ITreeSelectedItem } from '../../../interfaces';
@@ -55,11 +53,13 @@ export const useModalCardActions = ({
 }) => {
   const { onOpenSelected } = useOpenRiskTool();
   const { onStackOpenModal } = useModal();
+  const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
 
   const onOpenRiskTool = (
     homogeneousGroup: IGho | undefined,
     riskFactor: IRiskFactors,
   ) => {
+    if (isOrgMultiWorkspace) return;
     const foundGho = homogeneousGroup;
 
     const { viewData, ghoName } = getGhoName(
@@ -86,6 +86,7 @@ export const useModalCardActions = ({
   };
 
   const onOpenOfficeRiskTool = () => {
+    if (isOrgMultiWorkspace) return;
     if (hierarchyId)
       setTimeout(() => {
         onOpenSelected({
@@ -101,7 +102,7 @@ export const useModalCardActions = ({
       typeof initialRiskToolState
     >);
   };
-  return { onOpenOfficeRiskTool, onOpenRiskTool };
+  return { onOpenOfficeRiskTool, onOpenRiskTool, isOrgMultiWorkspace };
 };
 
 export type IUseModalCardActions = ReturnType<typeof useModalCardActions>;

@@ -12,6 +12,9 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
+import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-query';
+
 import { STBoxItem } from './styles';
 import { RowItemsProps } from './types';
 
@@ -26,6 +29,10 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
   isFirst,
   anchorEl,
 }) => {
+  const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
+  const actionHint = isOrgMultiWorkspace
+    ? ORG_MULTI_WORKSPACE_DISABLED_HINT
+    : undefined;
   const hierarchies = data.hierarchies
     ? data.hierarchies
         .map((value) =>
@@ -52,27 +59,46 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
       <SFlex>
         {!hide && (
           <>
-            <STooltip withWrapper title={'Deletar'}>
+            <STooltip
+              withWrapper
+              title={actionHint || 'Deletar'}
+            >
               <SIconButton
                 loading={isDeleteLoading}
-                onClick={() => handleDeleteGHO(data.id, data)}
+                disabled={isOrgMultiWorkspace}
+                onClick={() => {
+                  if (isOrgMultiWorkspace) return;
+                  handleDeleteGHO(data.id, data);
+                }}
                 size="small"
               >
                 <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
               </SIconButton>
             </STooltip>
             {handleEditGHO && (
-              <STooltip withWrapper title={'Editar'}>
-                <SIconButton onClick={() => handleEditGHO?.(data)} size="small">
+              <STooltip withWrapper title={actionHint || 'Editar'}>
+                <SIconButton
+                  disabled={isOrgMultiWorkspace}
+                  onClick={() => {
+                    if (isOrgMultiWorkspace) return;
+                    handleEditGHO?.(data);
+                  }}
+                  size="small"
+                >
                   <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
                 </SIconButton>
               </STooltip>
             )}
-            <STooltip withWrapper title={'Adicionar cargos ao GSE'}>
+            <STooltip
+              withWrapper
+              title={actionHint || 'Adicionar cargos ao GSE'}
+            >
               <SIconButton
-                onClick={() =>
-                  handleSelectGHO(isSelected ? null : data, hierarchies)
-                }
+                disabled={isOrgMultiWorkspace}
+                onClick={() => {
+                  if (isOrgMultiWorkspace) return;
+                  handleSelectGHO(isSelected ? null : data, hierarchies);
+                }}
                 size="small"
               >
                 <Icon

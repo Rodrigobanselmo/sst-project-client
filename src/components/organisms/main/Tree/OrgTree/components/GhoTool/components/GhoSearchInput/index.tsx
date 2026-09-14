@@ -8,7 +8,9 @@ import { selectGhoData } from 'store/reducers/hierarchy/ghoSlice';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-query';
 
 import { STSInput } from './styles';
 import { GhoInputProps } from './types';
@@ -29,6 +31,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
     ref,
   ) => {
     const selectedGho = useAppSelector(selectGhoData);
+    const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
     const anchorEl = useRef<HTMLDivElement>(null);
     const { data: ghoQuery } = useQueryGHOAll();
     const handleSearch = useDebouncedCallback((value: string) => {
@@ -36,11 +39,13 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
     }, debounceTime);
 
     const topAddHandler = handleAddGHO ?? handleAddCharacterization;
-    const topAddTooltip = handleAddCharacterization
-      ? characterizationAddTooltip || 'Adicionar'
-      : selectedGho?.id
-        ? 'Salvar'
-        : 'Adicionar';
+    const topAddTooltip = isOrgMultiWorkspace
+      ? ORG_MULTI_WORKSPACE_DISABLED_HINT
+      : handleAddCharacterization
+        ? characterizationAddTooltip || 'Adicionar'
+        : selectedGho?.id
+          ? 'Salvar'
+          : 'Adicionar';
 
     return (
       <>
@@ -52,7 +57,11 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
                   <div ref={anchorEl}>
                     <SEndButton
                       bg={'tag.add'}
-                      onClick={(e) => (topAddHandler as any)(e)}
+                      disabled={isOrgMultiWorkspace}
+                      onClick={(e) => {
+                        if (isOrgMultiWorkspace) return;
+                        (topAddHandler as any)(e);
+                      }}
                     />{' '}
                   </div>
                 </STooltip>
@@ -71,8 +80,18 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
           {...props}
         />
         <SPopperHelper
-          show={!!handleAddGHO && !!ghoQuery && ghoQuery.length === 0}
-          isOpen={!!handleAddGHO && !!ghoQuery && ghoQuery.length === 0}
+          show={
+            !isOrgMultiWorkspace &&
+            !!handleAddGHO &&
+            !!ghoQuery &&
+            ghoQuery.length === 0
+          }
+          isOpen={
+            !isOrgMultiWorkspace &&
+            !!handleAddGHO &&
+            !!ghoQuery &&
+            ghoQuery.length === 0
+          }
           close={() => null}
           content="Click aqui para adicionar um GSE"
           anchorEl={anchorEl}

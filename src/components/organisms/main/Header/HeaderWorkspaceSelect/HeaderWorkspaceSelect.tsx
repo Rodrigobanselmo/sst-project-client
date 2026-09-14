@@ -1,4 +1,5 @@
 import type { ParsedUrlQuery } from 'querystring';
+import { useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import SArrowUpFilterIcon from 'assets/icons/SArrowUpFilterIcon';
@@ -20,6 +21,11 @@ import {
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
+import {
+  applyOrgWorkspaceFilterToQuery,
+  isOrgMultiWorkspaceMode,
+  parseOrgWorkspaceFilterIds,
+} from 'core/utils/org-workspace-query';
 import { RoutesParamsEnum } from '../Location/hooks/useLocation';
 import { STBox } from '../Tenant/Tenant';
 
@@ -30,6 +36,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const { isHomePage, isGroupConsolidated } = useHomeBusinessGroupScope();
   const companyId = query.companyId as string | undefined;
   const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
+  const hierarchyWorkspaceIds = parseOrgWorkspaceFilterIds(query);
   const workspaceRouteId = query.workspaceId as string | undefined;
 
   const isDocumentsListPage = pathname === DOCUMENTS_LIST_PATHNAME;
@@ -58,6 +65,33 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     pathname.includes('/empresas/') &&
     pathname.includes('/hierarquia');
   const routeHasWorkspace = pathname.includes(RoutesParamsEnum.WORKSPACE);
+  const isMultiOrgWorkspace = isOrgMultiWorkspaceMode(query);
+  const leftoverSingularWorkspaceId = query.tabWorkspaceId;
+
+  useEffect(() => {
+    if (!isHierarchyOrganogramPage) return;
+    if (!isMultiOrgWorkspace) return;
+    if (leftoverSingularWorkspaceId == null || leftoverSingularWorkspaceId === '')
+      return;
+
+    const nextQuery = { ...query } as ParsedUrlQuery;
+    applyOrgWorkspaceFilterToQuery(
+      nextQuery,
+      parseOrgWorkspaceFilterIds(query),
+    );
+    void router.replace(
+      { pathname, query: nextQuery },
+      undefined,
+      { shallow: true },
+    );
+  }, [
+    isHierarchyOrganogramPage,
+    isMultiOrgWorkspace,
+    leftoverSingularWorkspaceId,
+    pathname,
+    query,
+    router,
+  ]);
 
   const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
     companyId: companyId || '',
@@ -146,6 +180,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
         sx={{
           cursor: 'default',
           ...documentsHeaderChipShellSx,
+          maxWidth: 420,
         }}
         onClick={(e) => e.stopPropagation()}
         id={IdsEnum.HIERARCHY_ORG_WORKSPACE_NAVBAR}
@@ -161,12 +196,12 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
         />
         <Box sx={{ flex: 1, minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
           <WorkspaceBrowseAutocomplete
+            multiple
             companyId={companyId}
-            workspaceId={tabWorkspaceId}
-            onChange={(id) => {
+            workspaceIds={hierarchyWorkspaceIds}
+            onChange={(ids) => {
               const nextQuery = { ...router.query } as ParsedUrlQuery;
-              if (id) nextQuery.tabWorkspaceId = id;
-              else delete nextQuery.tabWorkspaceId;
+              applyOrgWorkspaceFilterToQuery(nextQuery, ids);
               void router.replace(
                 {
                   pathname: router.pathname,
