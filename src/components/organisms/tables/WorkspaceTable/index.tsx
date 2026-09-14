@@ -1,8 +1,10 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { BoxProps, useTheme } from '@mui/material';
+import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined';
 import {
   brandIdentityGlyphDarkSx,
+  brandIdentityToolbarAddSx,
   tableUtilityPillButtonProps,
 } from 'configs/theme/brand-identity-fill';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
@@ -19,6 +21,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import { STableAddButton } from 'components/atoms/STable/components/STableSearch';
+import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
@@ -328,7 +331,12 @@ export const WorkspaceTable: FC<
 
   return (
     <>
-      <SFlex mb={8} mt={40} align="center">
+      <SFlex
+        mb={8}
+        mt={40}
+        align="center"
+        sx={{ flexWrap: 'wrap', columnGap: 2, rowGap: 2 }}
+      >
         <STableTitle mb={0} mt={0} mr={10} variant="h6" icon={SWorkspaceIcon}>
           Estabelecimentos
         </STableTitle>
@@ -337,6 +345,24 @@ export const WorkspaceTable: FC<
           onAddClick={handleAddWorkspace}
           addText={'Adicionar'}
           identitySquareActions
+        />
+        <STableButton
+          sm
+          onClick={() => onOpenModal(ModalEnum.ESTABLISHMENT_GROUPS)}
+          text="Grupos de estabelecimentos"
+          icon={FolderCopyOutlinedIcon}
+          tooltip="Grupos de estabelecimentos"
+          variant="outlined"
+          color="transparent"
+          iconColor="grey.600"
+          boxProps={{ sx: { flexShrink: 0 } }}
+          sx={{
+            ...brandIdentityToolbarAddSx,
+            width: 'auto',
+            maxWidth: 'none',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
         />
       </SFlex>
       <STableSearch

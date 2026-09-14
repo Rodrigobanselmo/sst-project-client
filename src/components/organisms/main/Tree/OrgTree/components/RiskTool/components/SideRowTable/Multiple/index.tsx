@@ -56,6 +56,10 @@ import { queryClient } from 'core/services/queryClient';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
+import {
+  getEmbeddedWorkspaceIdFromTreeId,
+  getHierarchyIdFromTreeId,
+} from '../../../../../utils/get-copy-hierarchy-destinations';
 import { useColumnAction } from '../../../hooks/useColumnAction';
 import { useRowColumns } from '../../../hooks/useRowColumns';
 import { ViewsDataEnum } from '../../../utils/view-data-type.constant';
@@ -240,13 +244,15 @@ export const SideRowTableMulti: FC<
 
     const submitData = {
       ...riskData,
-      homogeneousGroupIds: ghosIds.map((gho) => gho.split('//')[0]),
+      homogeneousGroupIds: ghosIds.map((gho) => getHierarchyIdFromTreeId(gho)),
       riskIds: selectedRisks.map((risk) => risk.id),
       riskFactorGroupDataId: riskGroupId,
       ...(isHierarchy
         ? {
             type: HomoTypeEnum.HIERARCHY,
-            workspaceIds: ghosIds.map((gho) => gho.split('//')[1]),
+            workspaceIds: ghosIds.map((gho) =>
+              getEmbeddedWorkspaceIdFromTreeId(gho),
+            ),
           }
         : {}),
     };

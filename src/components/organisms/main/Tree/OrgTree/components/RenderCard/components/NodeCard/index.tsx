@@ -41,17 +41,28 @@ import { isHierarchyNodeSelectable } from '../../../../constants/hierarchy-selec
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { usePreventNode } from '../../../../hooks/usePreventNode';
 import { ITreeMapObject } from '../../../../interfaces';
+import {
+  getEmbeddedWorkspaceIdFromTreeId,
+  getHierarchyIdFromTreeId,
+} from '../../../../utils/get-copy-hierarchy-destinations';
+import { isUngroupedEstablishmentGroupTreeId } from '../../../../utils/attach-establishment-group-layer';
 import { resolveHierarchyNodeTypeLabel } from '../../../../utils/resolve-hierarchy-node-type-label';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { GhoSelectCard } from './Select/ghoSelect';
 import { STSelectBox } from './styles';
 import { INodeCardProps } from './types';
 
-const NodeTypeHeader: FC<{ type: TreeTypeEnum }> = ({ type }) => {
+const NodeTypeHeader: FC<{ type: TreeTypeEnum; treeId?: string | number }> = ({
+  type,
+  treeId,
+}) => {
   const typeLabels = useHierarchyTypeLabels();
   const visual = hierarchyNodeVisualIdentity[type];
-  const label = resolveHierarchyNodeTypeLabel(type, typeLabels);
+  const label = isUngroupedEstablishmentGroupTreeId(treeId)
+    ? 'Sem grupo'
+    : resolveHierarchyNodeTypeLabel(type, typeLabels);
   const isSector = type === TreeTypeEnum.SECTOR;
+  const isGroup = type === TreeTypeEnum.ESTABLISHMENT_GROUP;
 
   if (!label || !visual) return null;
 
@@ -63,15 +74,15 @@ const NodeTypeHeader: FC<{ type: TreeTypeEnum }> = ({ type }) => {
         px: 2,
         py: 0.5,
         borderRadius: '3px',
-        fontSize: isSector ? 10.5 : 10,
-        fontWeight: isSector ? 800 : 700,
-        letterSpacing: isSector ? '0.06em' : '0.04em',
+        fontSize: isSector || isGroup ? 10.5 : 10,
+        fontWeight: isSector || isGroup ? 800 : 700,
+        letterSpacing: isSector || isGroup ? '0.06em' : '0.04em',
         lineHeight: 1.2,
         textTransform: 'uppercase',
         color: visual.headerColor,
         backgroundColor: visual.headerBg,
         maxWidth: '100%',
-        border: isSector ? `1px solid ${visual.border}` : 'none',
+        border: isSector || isGroup ? `1px solid ${visual.border}` : 'none',
       }}
     >
       {label}
@@ -192,8 +203,8 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
       updateMutation.mutate({
         id: GhoId,
         hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
-          id: hierarchy.split('//')[0],
-          workspaceId: hierarchy.split('//')[1],
+          id: getHierarchyIdFromTreeId(hierarchy),
+          workspaceId: getEmbeddedWorkspaceIdFromTreeId(hierarchy),
         })),
       });
   };
@@ -253,14 +264,19 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   };
 
   const showRefSelect = node.showRef;
-  const isHierarchy = ![TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(
-    node.type,
-  );
+  const isHierarchy = ![
+    TreeTypeEnum.COMPANY,
+    TreeTypeEnum.ESTABLISHMENT_GROUP,
+    TreeTypeEnum.WORKSPACE,
+  ].includes(node.type);
   const showGhoSelect = !node.showRef && node.ghos && node.ghos.length > 0;
   const isCargoCard =
     node.type === TreeTypeEnum.OFFICE || node.type === TreeTypeEnum.SUB_OFFICE;
   const showCornerGhoBadge = isCargoCard && !node.showRef;
-  const showOptionsSelect = !node.showRef && !GhoId;
+  const showOptionsSelect =
+    !node.showRef &&
+    !GhoId &&
+    !isUngroupedEstablishmentGroupTreeId(node.id);
   const showPopperHelp =
     !node.showRef &&
     node.type === TreeTypeEnum.WORKSPACE &&
@@ -271,14 +287,19 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     !selectionMode &&
     !node.showRef &&
     !GhoId &&
-    ![TreeTypeEnum.COMPANY, TreeTypeEnum.SUB_OFFICE].includes(node.type);
+    ![
+      TreeTypeEnum.COMPANY,
+      TreeTypeEnum.ESTABLISHMENT_GROUP,
+      TreeTypeEnum.SUB_OFFICE,
+    ].includes(node.type);
 
   const showDeleteButton =
     !selectionMode &&
     !node.showRef &&
     !GhoId &&
     !!node.parentId &&
-    node.type !== TreeTypeEnum.COMPANY;
+    node.type !== TreeTypeEnum.COMPANY &&
+    node.type !== TreeTypeEnum.ESTABLISHMENT_GROUP;
 
   const showHeaderActions =
     !hide &&
@@ -315,7 +336,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
           sx={{ minHeight: 22 }}
         >
           <Box sx={{ minWidth: 0, textAlign: 'left', flexShrink: 0 }}>
-            <NodeTypeHeader type={node.type} />
+            <NodeTypeHeader type={node.type} treeId={node.id} />
           </Box>
           <SFlex
             gap={1}

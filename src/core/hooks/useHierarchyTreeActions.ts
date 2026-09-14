@@ -5,6 +5,17 @@ import { useStore } from 'react-redux';
 import clone from 'clone';
 import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
 import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
+import {
+  isCrossWorkspaceHierarchyMove,
+  getWorkspaceIdFromTreeNode,
+  resolveHierarchyUpsertParentId,
+  resolveOrgWorkspaceNodeFromId,
+  resolveWorkspaceIdForTreeEdit,
+} from 'components/organisms/main/Tree/OrgTree/utils/get-org-workspace-id';
+import {
+  attachEstablishmentGroupLayer,
+  isEstablishmentGroupTreeId,
+} from 'components/organisms/main/Tree/OrgTree/utils/attach-establishment-group-layer';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { sortHierarchyChildIds, sortIdsByLabel } from 'core/utils/sort-hierarchy-child-ids.util';
@@ -322,6 +333,11 @@ export const useHierarchyTreeActions = () => {
         treeMap[firstNodeId].employeesCount = companyCount;
       }
 
+      attachEstablishmentGroupLayer(treeMap, {
+        groups: company.establishmentGroups,
+        workspaces: company.workspace,
+      });
+
       if (nodesTree)
         Object.values(nodesTree).forEach((node) => {
           if (treeMap[node.id]) {
@@ -360,36 +376,11 @@ export const useHierarchyTreeActions = () => {
       const isDiffWorkspace = () => {
         if (nodesMap.length != 3) return false;
 
-        if (
-          !((nodesMap?.[0]?.id as string) || '').split('//')[1] &&
-          !((nodesMap?.[2]?.id as string) || '').split('//')[1]
-        ) {
-          const isMovingToAnyCardAndIsSameWorkspace =
-            ((nodesMap?.[0]?.id as string) || '').split('//')[0] ==
-            ((nodesMap?.[2]?.id as string) || '').split('//')[0];
-
-          if (!isMovingToAnyCardAndIsSameWorkspace) return true;
-        } else if (!((nodesMap?.[2]?.id as string) || '').split('//')[1]) {
-          const isMovingToWorkspaceCardAndIsSameWorkspace =
-            ((nodesMap?.[0]?.id as string) || '').split('//')[1] ==
-            ((nodesMap?.[2]?.id as string) || '').split('//')[0];
-
-          if (!isMovingToWorkspaceCardAndIsSameWorkspace) return true;
-        } else if (!((nodesMap?.[0]?.id as string) || '').split('//')[1]) {
-          const isMovingToWorkspaceCardAndIsSameWorkspace =
-            ((nodesMap?.[0]?.id as string) || '').split('//')[0] ==
-            ((nodesMap?.[2]?.id as string) || '').split('//')[1];
-
-          if (!isMovingToWorkspaceCardAndIsSameWorkspace) return true;
-        } else {
-          const isMovingToAnyCardAndIsSameWorkspace =
-            ((nodesMap?.[0]?.id as string) || '').split('//')[1] ==
-            ((nodesMap?.[2]?.id as string) || '').split('//')[1];
-
-          if (!isMovingToAnyCardAndIsSameWorkspace) return true;
-        }
-
-        return false;
+        const liveNodes = store.getState().hierarchy.nodes as ITreeMap;
+        return isCrossWorkspaceHierarchyMove(
+          resolveOrgWorkspaceNodeFromId(nodesMap[0].id, liveNodes),
+          resolveOrgWorkspaceNodeFromId(nodesMap[2].id, liveNodes),
+        );
       };
 
       if (isDiffWorkspace())
@@ -423,14 +414,19 @@ export const useHierarchyTreeActions = () => {
           queryCompany as ICompany,
         ) as ITreeMap;
 
+        const liveNodes = store.getState().hierarchy.nodes as ITreeMap;
         const workspaceId = (node: ITreeMapEdit) =>
-          String(getPathById(node.id)[1]);
+          resolveWorkspaceIdForTreeEdit(node, liveNodes);
 
         const data = nodesMap
-          .filter((node) => !node.childrenIds || node.label)
+          .filter((node) => {
+            if (isEstablishmentGroupTreeId(node.id)) return false;
+            if (node.type === TreeTypeEnum.ESTABLISHMENT_GROUP) return false;
+            return !node.childrenIds || node.label;
+          })
           .map((node) => {
             const [id] = ((node.id as string) || '').split('//');
-            const [parentId] = ((node.parentId as string) || '').split('//');
+            const nodeWorkspaceId = workspaceId(node);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const data: any = {
@@ -439,15 +435,16 @@ export const useHierarchyTreeActions = () => {
               name: node.label ? node.label : undefined,
               description: node?.description ?? undefined,
               realDescription: node?.realDescription ?? undefined,
-              parentId: [workspaceId(node), 'seed'].includes(parentId)
-                ? null
-                : parentId,
+              parentId: resolveHierarchyUpsertParentId({
+                treeParentId: node.parentId,
+                workspaceId: nodeWorkspaceId,
+              }),
             };
 
-            if (options?.isAdd) data.workspaceIds = [workspaceId(node)];
+            if (options?.isAdd) data.workspaceIds = [nodeWorkspaceId];
             if (options?.workspacesIds)
               data.workspaceIds = removeDuplicate([
-                workspaceId(node),
+                nodeWorkspaceId,
                 ...options.workspacesIds,
               ]);
 
@@ -649,13 +646,16 @@ export const useHierarchyTreeActions = () => {
     exampleNode: Partial<ITreeMapObject> = {},
   ) => {
     const node = store.getState().hierarchy.nodes[parentId] as ITreeMapObject;
-    const workspaceId = ((parentId as string) || '').split('//')[1] || '';
+    const workspaceId = node ? getWorkspaceIdFromTreeNode(node) : '';
+    const childType = node
+      ? nodeTypesConstant[node.type]?.childOptions?.[0]
+      : undefined;
 
-    if (node) {
+    if (node && childType) {
       const newNode = {
         id: `${getUniqueId()}//${workspaceId}`,
         childrenIds: [],
-        type: nodeTypesConstant[node.type].childOptions[0],
+        type: childType,
         label: '',
         parentId: node.id,
         expand: false,

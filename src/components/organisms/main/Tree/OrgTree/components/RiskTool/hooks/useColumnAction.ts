@@ -8,7 +8,6 @@ import { useSnackbar } from 'notistack';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi, IEpiRiskData } from 'core/interfaces/api/IEpi';
@@ -29,10 +28,10 @@ import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { IHierarchyTreeMapObject } from '../components/RiskToolViews/RiskToolRiskView/types';
+import { getEmbeddedWorkspaceIdFromTreeId } from '../../../utils/get-org-workspace-id';
 
 export const useColumnAction = () => {
   const upsertRiskData = useMutUpsertRiskData();
-  const { getPathById } = useHierarchyTreeActions();
   const { companyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
   const { onStackOpenModal } = useModal();
@@ -174,7 +173,10 @@ export const useColumnAction = () => {
     const isHierarchy = !('employeeCount' in gho);
     let workspaceIds = [] as string[];
 
-    if (isHierarchy) workspaceIds = [String(getPathById(gho.id)[1])];
+    if (isHierarchy) {
+      const workspaceId = getEmbeddedWorkspaceIdFromTreeId(gho.id);
+      workspaceIds = workspaceId ? [workspaceId] : [];
+    }
     else workspaceIds = gho.workspaceIds;
 
     const company = queryClient.getQueryData<ICompany>([

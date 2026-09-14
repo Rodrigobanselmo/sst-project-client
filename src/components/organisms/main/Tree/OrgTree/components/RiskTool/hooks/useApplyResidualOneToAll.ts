@@ -3,59 +3,23 @@ import { useCallback, useMemo, useState } from 'react';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 import { useSnackbar } from 'notistack';
 
-import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { usePreventAction } from 'core/hooks/usePreventAction';
-import { IRiskData } from 'core/interfaces/api/IRiskData';
-import {
-  IUpsertRiskData,
-} from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 
-import { ViewsDataEnum } from '../utils/view-data-type.constant';
 import { getEligibleForBulkResidualOne } from '../utils/riskToolResidualEligibility.util';
+import { buildResidualOneUpsertPayload } from './build-residual-one-upsert-payload.util';
 import { useColumnAction } from './useColumnAction';
 
-export const buildResidualOneUpsertPayload = (
-  riskData: IRiskData,
-  riskId: string,
-  riskGroupId: string,
-  viewDataType: ViewsDataEnum,
-  getPathById: (id: string | number) => (string | number)[],
-): IUpsertRiskData => {
-  const homogeneousGroupId = String(riskData.homogeneousGroupId).split('//')[0];
-
-  const payload: IUpsertRiskData = {
-    id: riskData.id,
-    probabilityAfter: 1,
-    riskId,
-    riskFactorGroupDataId: riskGroupId,
-    homogeneousGroupId,
-  };
-
-  if (viewDataType === ViewsDataEnum.HIERARCHY && riskData.hierarchyId) {
-    const workspaceId = getPathById(riskData.hierarchyId)[1];
-    if (workspaceId != null && workspaceId !== '') {
-      return {
-        ...payload,
-        type: HomoTypeEnum.HIERARCHY,
-        workspaceId: String(workspaceId),
-      };
-    }
-  }
-
-  return payload;
-};
+export { buildResidualOneUpsertPayload } from './build-residual-one-upsert-payload.util';
 
 export const useApplyResidualOneToAll = (riskGroupId: string) => {
   const risk = useAppSelector(selectRisk);
   const viewDataType = useAppSelector((state) => state.riskAdd.viewData);
   const { companyId } = useGetCompanyId();
-  const { getPathById } = useHierarchyTreeActions();
   const { onHandleSelectSave } = useColumnAction();
   const { preventDelete } = usePreventAction();
   const { enqueueSnackbar } = useSnackbar();
@@ -85,7 +49,6 @@ export const useApplyResidualOneToAll = (riskGroupId: string) => {
           risk.id,
           riskGroupId,
           viewDataType,
-          getPathById,
         );
         await onHandleSelectSave(payload, riskData, { keepEmpty: true });
         successCount += 1;
@@ -121,7 +84,6 @@ export const useApplyResidualOneToAll = (riskGroupId: string) => {
     companyId,
     eligibleItems,
     enqueueSnackbar,
-    getPathById,
     onHandleSelectSave,
     risk?.id,
     riskGroupId,

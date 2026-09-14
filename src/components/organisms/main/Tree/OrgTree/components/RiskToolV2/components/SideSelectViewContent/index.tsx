@@ -70,7 +70,8 @@ export const SideSelectViewContent: FC<
         (gho) =>
           !(
             gho.type === TreeTypeEnum.WORKSPACE ||
-            gho.type === TreeTypeEnum.COMPANY
+            gho.type === TreeTypeEnum.COMPANY ||
+            gho.type === TreeTypeEnum.ESTABLISHMENT_GROUP
           ) && TreeConvertToHierarchy[gho.type] === filter,
       );
     }

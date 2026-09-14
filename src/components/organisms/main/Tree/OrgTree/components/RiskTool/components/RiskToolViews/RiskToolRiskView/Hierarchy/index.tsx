@@ -78,7 +78,13 @@ export const RiskToolRiskHierarchyView: FC<
   return (
     <>
       {hierarchyOrderedData.map((gho) => {
-        if ([TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(gho.type))
+        if (
+          [
+            TreeTypeEnum.COMPANY,
+            TreeTypeEnum.ESTABLISHMENT_GROUP,
+            TreeTypeEnum.WORKSPACE,
+          ].includes(gho.type)
+        )
           return null;
 
         return (

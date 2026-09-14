@@ -73,7 +73,11 @@ export const useModalTree = () => {
     const upsertDataHierarchy = Object.values(nodes)
       .filter(
         (node) =>
-          ![TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(node.type),
+          ![
+            TreeTypeEnum.COMPANY,
+            TreeTypeEnum.ESTABLISHMENT_GROUP,
+            TreeTypeEnum.WORKSPACE,
+          ].includes(node.type),
       )
       .map((node) => ({
         id: String(node.id).split('//')[0],

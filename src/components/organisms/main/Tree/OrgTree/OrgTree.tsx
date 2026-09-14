@@ -19,7 +19,6 @@ import { TreeNode } from './components';
 import { BottomButton } from './components/BottomButton';
 import { GhoTool } from './components/GhoTool';
 import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
-import { HierarchyLegend } from './components/HierarchyLegend';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { MouseControl } from './components/MouseControl';
 import { RiskTool } from './components/RiskTool/RiskTool';
@@ -58,6 +57,7 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        minHeight: 0,
         width: '100%',
         flex: 1,
       }}
@@ -83,16 +83,30 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
       <Box
         sx={{
           position: 'relative',
-          height: '100%',
           width: '100%',
           flex: 1,
+          minHeight: 0,
         }}
       >
         {(!selectExpanded || !isRiskOpen) && (
           <>
-            <LoadingFeedback />
-            <HierarchyLegend />
-            {showGHO && <BottomButton />}
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 20,
+                right: 88,
+                zIndex: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                flexWrap: 'wrap',
+                gap: 2,
+                maxWidth: 'calc(100% - 108px)',
+              }}
+            >
+              <LoadingFeedback />
+              {showGHO && <BottomButton />}
+            </Box>
             <MouseControl orgContainerRef={orgContainerRef} />
             <OrgTreeContainer
               id="org-tree-container"

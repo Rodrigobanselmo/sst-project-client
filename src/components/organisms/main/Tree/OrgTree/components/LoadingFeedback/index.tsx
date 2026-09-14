@@ -20,24 +20,25 @@ export const LoadingFeedback: FC = () => {
       <SFlex
         center
         sx={{
-          position: 'absolute',
-          bottom: 25,
-          left: 30,
           zIndex: defaultTheme.mixins.saveFeedback,
           backgroundColor: 'background.default',
-          px: 5,
+          px: 2,
+          py: 0.5,
           borderRadius: 1,
+          minHeight: 28,
+          pointerEvents: 'none',
+          opacity: 0.85,
         }}
       >
         {saveMutation.isLoading || saveDocument ? (
           <>
-            <CircularProgress size={15} />
-            <SText color="text.light" fontSize={18} sx={{ ml: 3 }}>
+            <CircularProgress size={12} />
+            <SText color="text.light" fontSize={12} sx={{ ml: 2 }}>
               salvando...
             </SText>
           </>
         ) : (
-          <SText color="text.light" fontSize={18} sx={{ ml: 3 }}>
+          <SText color="text.light" fontSize={12}>
             salvo
           </SText>
         )}

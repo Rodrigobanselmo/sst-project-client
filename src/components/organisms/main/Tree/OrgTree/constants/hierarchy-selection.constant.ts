@@ -5,6 +5,7 @@ import { ITreeMapObject } from '../interfaces';
 
 export const HIERARCHY_SELECTION_PROTECTED_TYPES = [
   TreeTypeEnum.COMPANY,
+  TreeTypeEnum.ESTABLISHMENT_GROUP,
   TreeTypeEnum.WORKSPACE,
 ] as const;
 

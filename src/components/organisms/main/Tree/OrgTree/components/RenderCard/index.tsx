@@ -15,6 +15,10 @@ import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
 import { useHierarchyTreeActions } from '../../../../../../../core/hooks/useHierarchyTreeActions';
 import { isHierarchyNodeSelectable } from '../../constants/hierarchy-selection.constant';
 import { canExpandOrgNode } from '../../utils/get-org-employee-leaves';
+import {
+  getEstablishmentGroupIdFromTreeId,
+  isEstablishmentGroupTreeType,
+} from '../../utils/attach-establishment-group-layer';
 import { IRenderCard } from '../interfaces';
 import { RenderBtn } from '../RenderBtn';
 import { NodeCard } from './components/NodeCard';
@@ -54,6 +58,15 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
       return;
     }
 
+    if (isEstablishmentGroupTreeType(node.type)) {
+      const groupId = getEstablishmentGroupIdFromTreeId(node.id);
+      onOpenModal(
+        ModalEnum.ESTABLISHMENT_GROUPS,
+        groupId ? { groupId } : {},
+      );
+      return;
+    }
+
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
     setSelectedItem(node);
   };
@@ -85,7 +98,10 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
         isSelected={isSelected}
         selectionMode={selectionMode}
         className={clx.join(' ')}
-        style={{ ...node?.style }}
+        style={{
+          ...node?.style,
+          ...(node.stopDrag ? { cursor: 'pointer' } : {}),
+        }}
         onClick={handleClickCard}
         onContextMenu={onContextMenu}
       >

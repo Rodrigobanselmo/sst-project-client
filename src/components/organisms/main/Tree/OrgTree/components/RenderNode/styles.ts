@@ -1,6 +1,9 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
+/** Espaço vertical entre irmãos no organograma horizontal. Antes: 10px. */
+const HORIZONTAL_SIBLING_PADDING_PX = 7;
+
 export const OrgTreeNode = styled.div<{
   horizontal?: number;
   expanded?: number;
@@ -67,8 +70,8 @@ export const OrgTreeNode = styled.div<{
 
       &.is-leaf,
       &.collapsed {
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding-top: ${HORIZONTAL_SIBLING_PADDING_PX}px;
+        padding-bottom: ${HORIZONTAL_SIBLING_PADDING_PX}px;
       }
 
       &:before,

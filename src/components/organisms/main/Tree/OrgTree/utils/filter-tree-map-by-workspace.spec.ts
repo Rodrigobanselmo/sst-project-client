@@ -81,4 +81,42 @@ assert.deepEqual(two.seed.childrenIds, ['ws-a', 'ws-c']);
 const missing = filterTreeMapByWorkspace(full, ['ws-missing']);
 assert.equal(missing, full);
 
+const nested: ITreeMap = {
+  [firstNodeId]: node({
+    id: firstNodeId,
+    label: 'Empresa',
+    parentId: null,
+    childrenIds: ['container'],
+    type: TreeTypeEnum.COMPANY,
+  }),
+  container: node({
+    id: 'container',
+    label: 'Container',
+    parentId: firstNodeId,
+    childrenIds: ['ws-a', 'ws-b'],
+    type: TreeTypeEnum.DIRECTORY,
+  }),
+  'ws-a': node({
+    id: 'ws-a',
+    label: 'A',
+    parentId: 'container',
+    childrenIds: [],
+    type: TreeTypeEnum.WORKSPACE,
+  }),
+  'ws-b': node({
+    id: 'ws-b',
+    label: 'B',
+    parentId: 'container',
+    childrenIds: [],
+    type: TreeTypeEnum.WORKSPACE,
+  }),
+};
+
+const nestedOne = filterTreeMapByWorkspace(nested, ['ws-b']);
+assert.deepEqual(nestedOne.seed.childrenIds, ['container']);
+assert.equal(nestedOne['ws-b']?.label, 'B');
+
+const nestedMissing = filterTreeMapByWorkspace(nested, ['ws-missing']);
+assert.equal(nestedMissing, nested);
+
 console.log('filter-tree-map-by-workspace.spec.ts OK');

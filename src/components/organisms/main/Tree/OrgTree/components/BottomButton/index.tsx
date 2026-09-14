@@ -48,13 +48,7 @@ export const BottomButton: FC = () => {
   }, [dispatch, isOrgMultiWorkspace, push, query.companyId, tabWorkspaceId]);
 
   return (
-    <SFlex
-      sx={{
-        bottom: 20,
-        right: 30,
-        position: 'absolute',
-      }}
-    >
+    <SFlex>
       <STooltip
         placement="top"
         title={

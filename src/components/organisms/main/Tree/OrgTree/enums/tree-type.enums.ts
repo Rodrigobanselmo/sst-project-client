@@ -2,6 +2,7 @@ import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 
 export enum TreeTypeEnum {
   COMPANY = 'COMPANY',
+  ESTABLISHMENT_GROUP = 'ESTABLISHMENT_GROUP',
   WORKSPACE = 'WORKSPACE',
   DIRECTORY = 'DIRECTORY',
   MANAGEMENT = 'MANAGEMENT',
@@ -13,6 +14,7 @@ export enum TreeTypeEnum {
 
 export const TreeConvertToHierarchy: Record<TreeTypeEnum, HierarchyEnum> = {
   COMPANY: HierarchyEnum.OFFICE,
+  ESTABLISHMENT_GROUP: HierarchyEnum.OFFICE,
   WORKSPACE: HierarchyEnum.OFFICE,
   DIRECTORY: HierarchyEnum.DIRECTORY,
   MANAGEMENT: HierarchyEnum.MANAGEMENT,

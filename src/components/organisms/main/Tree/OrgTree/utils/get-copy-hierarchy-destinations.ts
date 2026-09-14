@@ -1,7 +1,14 @@
 import { nodeTypesConstant } from '../constants/node-type.constant';
 import { TreeTypeEnum } from '../enums/tree-type.enums';
 import { ITreeMap, ITreeMapObject } from '../interfaces';
+import { getWorkspaceIdFromTreeNode } from './get-org-workspace-id';
+import { isEstablishmentGroupTreeType } from './attach-establishment-group-layer';
 import { resolveHierarchyNodeTypeLabel } from './resolve-hierarchy-node-type-label';
+
+export {
+  getEmbeddedWorkspaceIdFromTreeId,
+  getWorkspaceIdFromTreeNode,
+} from './get-org-workspace-id';
 
 export type CopyHierarchyDestinationOption = {
   treeId: string;
@@ -15,15 +22,6 @@ export type CopyHierarchyDestinationOption = {
 
 export function getHierarchyIdFromTreeId(treeId: string) {
   return String(treeId).split('//')[0];
-}
-
-export function getWorkspaceIdFromTreeNode(
-  node: Pick<ITreeMapObject, 'id' | 'type' | 'parentId'>,
-) {
-  const parts = String(node.id).split('//');
-  if (parts[1]) return parts[1];
-  if (node.type === TreeTypeEnum.WORKSPACE) return String(node.id);
-  return String(node.parentId || '');
 }
 
 export function getWorkspaceLabelFromTreeNode(
@@ -44,6 +42,7 @@ export function canCopyHierarchyNode(
   if (node.showRef) return false;
   if (
     node.type === TreeTypeEnum.COMPANY ||
+    node.type === TreeTypeEnum.ESTABLISHMENT_GROUP ||
     node.type === TreeTypeEnum.WORKSPACE
   ) {
     return false;
@@ -110,6 +109,12 @@ export function isHierarchyCopyDropAllowed(params: {
   const { source, target, nodes } = params;
   if (!source || !target) return false;
   if (!canCopyHierarchyNode(source)) return false;
+  if (
+    isEstablishmentGroupTreeType(source.type) ||
+    isEstablishmentGroupTreeType(target.type)
+  ) {
+    return false;
+  }
   if (String(source.id) === String(target.id)) return false;
   if (isSameStructuralHierarchy(source, target)) return false;
   if (isCurrentHierarchyParent(source, target)) return false;
@@ -129,7 +134,8 @@ export function buildCopyHierarchyBranchPayload(params: {
     sourceHierarchyId: getHierarchyIdFromTreeId(String(params.source.id)),
     sourceWorkspaceId: getWorkspaceIdFromTreeNode(params.source),
     targetParentId:
-      params.target.type === TreeTypeEnum.WORKSPACE
+      params.target.type === TreeTypeEnum.WORKSPACE ||
+      isEstablishmentGroupTreeType(params.target.type)
         ? null
         : getHierarchyIdFromTreeId(String(params.target.id)),
     targetWorkspaceId: getWorkspaceIdFromTreeNode(params.target),
@@ -164,6 +170,7 @@ export function getCopyHierarchyDestinationOptions(params: {
       if (!node || String(node.id) === 'mock_id') return false;
       if (node.showRef) return false;
       if (node.type === TreeTypeEnum.COMPANY) return false;
+      if (node.type === TreeTypeEnum.ESTABLISHMENT_GROUP) return false;
       if (String(node.id) === String(params.source.id)) return false;
       if (blockedIds.has(String(node.id))) return false;
       if (isSameStructuralHierarchy(params.source, node)) return false;
@@ -188,7 +195,8 @@ export function getCopyHierarchyDestinationOptions(params: {
         workspaceLabel: getWorkspaceLabelFromTreeNode(node, params.nodes),
         targetWorkspaceId,
         targetParentId:
-          node.type === TreeTypeEnum.WORKSPACE
+          node.type === TreeTypeEnum.WORKSPACE ||
+          isEstablishmentGroupTreeType(node.type)
             ? null
             : getHierarchyIdFromTreeId(String(node.id)),
       };

@@ -46,12 +46,16 @@ assert.equal(
   'Empresa',
 );
 assert.equal(
-  resolveHierarchyNodeTypeLabel(TreeTypeEnum.WORKSPACE, SEFAZ_LABELS),
-  'Estabelecimento',
+  resolveHierarchyNodeTypeLabel(TreeTypeEnum.ESTABLISHMENT_GROUP, SEFAZ_LABELS),
+  'Grupo de estabelecimentos',
 );
 
 const legend = resolveHierarchyLegendItems(SEFAZ_LABELS);
-assert.equal(legend.length, 8);
+assert.equal(legend.length, 9);
+assert.equal(
+  legend.find((item) => item.type === TreeTypeEnum.ESTABLISHMENT_GROUP)?.label,
+  'Grupo de estabelecimentos',
+);
 assert.equal(
   legend.find((item) => item.type === TreeTypeEnum.DIRECTORY)?.label,
   'Superintendência',

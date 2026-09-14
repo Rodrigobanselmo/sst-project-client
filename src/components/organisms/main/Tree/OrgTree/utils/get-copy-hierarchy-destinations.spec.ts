@@ -90,6 +90,13 @@ assert.equal(
   canCopyHierarchyNode({ id: 'ws-a', type: TreeTypeEnum.WORKSPACE }),
   false,
 );
+assert.equal(
+  canCopyHierarchyNode({
+    id: 'establishment-group:g1',
+    type: TreeTypeEnum.ESTABLISHMENT_GROUP,
+  }),
+  false,
+);
 
 const officeDestinations = getCopyHierarchyDestinationOptions({
   source: tree['office-1//ws-a'],

@@ -3,6 +3,10 @@ import { IEmployee } from 'core/interfaces/api/IEmployee';
 
 import { TreeTypeEnum } from '../enums/tree-type.enums';
 import { ITreeMap, ITreeMapObject } from '../interfaces';
+import {
+  getEmbeddedWorkspaceIdFromTreeId,
+  getWorkspaceIdFromTreeNode,
+} from './get-org-workspace-id';
 import { resolveHierarchyNodeTypeLabel } from './resolve-hierarchy-node-type-label';
 
 export type EmployeeTooltipGroup = {
@@ -56,12 +60,7 @@ export function groupEmployeesByHierarchy(params: {
     { title: string; order: number; employees: IEmployee[] }
   >();
 
-  const viewerWorkspaceId =
-    viewerNode.type === TreeTypeEnum.WORKSPACE
-      ? String(viewerNode.id)
-      : String(viewerNode.id).includes('//')
-        ? String(viewerNode.id).split('//')[1]
-        : '';
+  const viewerWorkspaceId = getWorkspaceIdFromTreeNode(viewerNode);
 
   employees.forEach((employee) => {
     const officeId = employee.hierarchyId || employee.hierarchy?.id;
@@ -170,7 +169,7 @@ function findWorkspaceIdForOffice(officeId: string, treeMap: ITreeMap) {
       (node.type === TreeTypeEnum.OFFICE ||
         node.type === TreeTypeEnum.SUB_OFFICE),
   );
-  return match ? String(match.id).split('//')[1] : '';
+  return match ? getEmbeddedWorkspaceIdFromTreeId(match.id) : '';
 }
 
 function findTreeIdByHierarchyId(hierarchyId: string, treeMap: ITreeMap) {

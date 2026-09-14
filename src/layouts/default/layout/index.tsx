@@ -2,6 +2,7 @@ import React, { FC, useEffect } from 'react';
 
 import { Global } from '@emotion/react';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
+import { ModalEstablishmentGroups } from 'components/organisms/modals/ModalEstablishmentGroups';
 import { ModalAddContact } from 'components/organisms/modals/ModalAddContact/ModalAddContact';
 import { ModalAddPcmsoAttendanceService } from 'components/organisms/modals/ModalAddPcmsoAttendanceService/ModalAddPcmsoAttendanceService';
 import { ModalAddPcmsoExaminingPhysician } from 'components/organisms/modals/ModalAddPcmsoExaminingPhysician/ModalAddPcmsoExaminingPhysician';
@@ -89,6 +90,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <ModalCopyRiskSelect />
       <ModalSelectClinic />
       <ModalEditCompany />
+      <ModalEstablishmentGroups />
       <ModalAddProfessionalResponsible />
       <ModalAddContact />
       <ModalAddPcmsoAttendanceService />

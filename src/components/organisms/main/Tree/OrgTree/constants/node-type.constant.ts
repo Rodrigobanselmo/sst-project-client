@@ -24,6 +24,14 @@ export const nodeTypesConstant = {
     childOptions: [TreeTypeEnum.WORKSPACE],
     placeholder: 'nome do empresa...',
   },
+  [TreeTypeEnum.ESTABLISHMENT_GROUP]: {
+    value: TreeTypeEnum.ESTABLISHMENT_GROUP,
+    title: 'Grupo de estabelecimentos',
+    name: 'Grupo de estabelecimentos',
+    color: 'option',
+    childOptions: [] as TreeTypeEnum[],
+    placeholder: 'nome do grupo de estabelecimentos...',
+  },
   [TreeTypeEnum.WORKSPACE]: {
     value: TreeTypeEnum.WORKSPACE,
     color: 'option',

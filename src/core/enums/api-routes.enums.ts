@@ -18,6 +18,7 @@ export enum ApiRoutesEnum {
   COMPANY_HIERARCHY_TYPE_LABELS = '/company/:companyId/hierarchy-type-labels',
   WORKSPACE = '/workspace',
   COMPANY_GROUP = '/company/:companyId/group',
+  ESTABLISHMENT_GROUPS = '/establishment-groups/:companyId',
   CONTACTS = '/company/:companyId/contact',
   PCMSO_ATTENDANCE_SERVICES = '/company/:companyId/workspace/:workspaceId/pcmso-attendance-services',
   PCMSO_EXAMINING_PHYSICIANS = '/company/:companyId/pcmso-examining-physicians',

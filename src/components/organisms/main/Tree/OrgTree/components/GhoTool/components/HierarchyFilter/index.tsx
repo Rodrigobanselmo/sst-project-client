@@ -38,6 +38,7 @@ import {
 } from '../../../../constants/hierarchy-selection.constant';
 import { usePreventNode } from '../../../../hooks/usePreventNode';
 import { HierarchyDndModeToggle } from '../../../HierarchyDndModeToggle';
+import { HierarchyLegend } from '../../../HierarchyLegend';
 import { STSInput } from './styles';
 import { GhoHeaderProps } from './types';
 
@@ -316,6 +317,8 @@ export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
           />
         </>
       )}
+
+      <HierarchyLegend />
     </SFlex>
   );
 };

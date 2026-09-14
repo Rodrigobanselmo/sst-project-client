@@ -10,6 +10,7 @@ import { TreeTypeEnum } from '../enums/tree-type.enums';
 
 const STRUCTURAL_TREE_TYPE_LABELS: Partial<Record<TreeTypeEnum, string>> = {
   [TreeTypeEnum.COMPANY]: 'Empresa',
+  [TreeTypeEnum.ESTABLISHMENT_GROUP]: 'Grupo de estabelecimentos',
   [TreeTypeEnum.WORKSPACE]: 'Estabelecimento',
 };
 

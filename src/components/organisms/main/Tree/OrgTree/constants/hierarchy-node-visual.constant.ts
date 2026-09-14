@@ -27,6 +27,15 @@ export const hierarchyNodeVisualIdentity: Record<
     accentLeft: '#123e96',
     shadow: '0 2px 8px rgba(18, 62, 150, 0.16)',
   },
+  [TreeTypeEnum.ESTABLISHMENT_GROUP]: {
+    border: '#5C6570',
+    borderWidth: 1.5,
+    background: '#F4F5F7',
+    headerBg: '#5C6570',
+    headerColor: '#FFFFFF',
+    accentLeft: '#C4A35A',
+    shadow: '0 1px 6px rgba(92, 101, 112, 0.16)',
+  },
   [TreeTypeEnum.WORKSPACE]: {
     border: '#2153b7',
     borderWidth: 1.5,
@@ -93,6 +102,7 @@ export const hierarchyLegendItems: {
   label: string;
 }[] = [
   { type: TreeTypeEnum.COMPANY, label: 'Empresa' },
+  { type: TreeTypeEnum.ESTABLISHMENT_GROUP, label: 'Grupo de estabelecimentos' },
   { type: TreeTypeEnum.WORKSPACE, label: 'Estabelecimento' },
   { type: TreeTypeEnum.DIRECTORY, label: 'Diretoria' },
   { type: TreeTypeEnum.MANAGEMENT, label: 'Gerência' },

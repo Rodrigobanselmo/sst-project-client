@@ -28,6 +28,7 @@ export interface ICompany {
   parentCompanyId?: string;
   license?: ILicense;
   workspace?: IWorkspace[];
+  establishmentGroups?: IEstablishmentGroup[];
   address?: IAddress;
   size: string;
   phone: string;
@@ -119,6 +120,17 @@ export interface ICompanyContract {
   applyingServiceCompany: ICompany;
 }
 
+export interface IEstablishmentGroup {
+  id: string;
+  companyId: string;
+  name: string;
+  sortOrder: number;
+  status: StatusEnum;
+  created_at?: Date;
+  updated_at?: Date;
+  workspaceIds?: string[];
+}
+
 export interface IWorkspace {
   id: string;
   name: string;
@@ -137,6 +149,7 @@ export interface IWorkspace {
   logoUrl?: string;
   hasFirstAidService?: boolean | null;
   firstAidServiceDescription?: string | null;
+  establishmentGroupId?: string | null;
 }
 
 export interface IAddress {

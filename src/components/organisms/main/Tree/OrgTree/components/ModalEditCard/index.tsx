@@ -72,6 +72,7 @@ export const ModalEditCard = () => {
 
   const isNotHierarchy = ![
     TreeTypeEnum.COMPANY,
+    TreeTypeEnum.ESTABLISHMENT_GROUP,
     TreeTypeEnum.WORKSPACE,
   ].includes(selectedNode?.type || ('' as any));
 

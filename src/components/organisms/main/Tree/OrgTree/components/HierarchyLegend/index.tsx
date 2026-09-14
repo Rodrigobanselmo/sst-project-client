@@ -14,16 +14,15 @@ export const HierarchyLegend: FC = () => {
 
   return (
     <SFlex
+      aria-label="Legenda do organograma"
       sx={{
-        position: 'absolute',
-        bottom: 56,
-        left: 30,
-        zIndex: 2,
         flexWrap: 'wrap',
-        gap: 2,
-        maxWidth: 380,
-        px: 2.5,
-        py: 1,
+        alignItems: 'center',
+        gap: 1.5,
+        minWidth: 0,
+        flex: '1 1 240px',
+        px: 1.5,
+        py: 0.5,
         borderRadius: 1,
         backgroundColor: 'rgba(255, 255, 255, 0.78)',
         border: '1px solid',

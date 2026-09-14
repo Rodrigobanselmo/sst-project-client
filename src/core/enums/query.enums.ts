@@ -27,6 +27,7 @@ export enum QueryEnum {
   COMPANIES = 'companies',
   COMPANY = 'company',
   COMPANY_GROUP = 'company-group',
+  ESTABLISHMENT_GROUPS = 'establishment-groups',
   USERS_HISTORY = 'USERS_HISTORY',
   CONTACTS = 'contacts',
   PCMSO_ATTENDANCE_SERVICES = 'pcmso-attendance-services',

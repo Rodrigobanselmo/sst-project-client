@@ -8,6 +8,7 @@ import {
 import { HelpOptionsEnum } from 'components/organisms/main/Tree/OrgTree/enums/help-options.enums';
 import { usePreventNode } from 'components/organisms/main/Tree/OrgTree/hooks/usePreventNode';
 import { canCopyHierarchyNode } from 'components/organisms/main/Tree/OrgTree/utils/get-copy-hierarchy-destinations';
+import { isEstablishmentGroupTreeType } from 'components/organisms/main/Tree/OrgTree/utils/attach-establishment-group-layer';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
@@ -52,9 +53,22 @@ export const OptionsHelpSelect: FC<
   };
 
   const options = (Object.values(helpOptionsConstant) as IHelpOption[]).filter(
-    (option) =>
-      option.value !== HelpOptionsEnum.COPY_STRUCTURE ||
-      canCopyHierarchyNode(node),
+    (option) => {
+      if (
+        option.value === HelpOptionsEnum.COPY_STRUCTURE &&
+        !canCopyHierarchyNode(node)
+      ) {
+        return false;
+      }
+      if (
+        isEstablishmentGroupTreeType(node.type) &&
+        (option.value === HelpOptionsEnum.DELETE ||
+          option.value === HelpOptionsEnum.COPY_STRUCTURE)
+      ) {
+        return false;
+      }
+      return true;
+    },
   );
 
   return (
