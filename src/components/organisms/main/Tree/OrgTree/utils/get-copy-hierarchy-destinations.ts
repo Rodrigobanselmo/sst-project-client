@@ -8,6 +8,7 @@ export type CopyHierarchyDestinationOption = {
   label: string;
   type: TreeTypeEnum;
   typeLabel: string;
+  workspaceLabel: string;
   targetParentId: string | null;
   targetWorkspaceId: string;
 };
@@ -23,6 +24,18 @@ export function getWorkspaceIdFromTreeNode(
   if (parts[1]) return parts[1];
   if (node.type === TreeTypeEnum.WORKSPACE) return String(node.id);
   return String(node.parentId || '');
+}
+
+export function getWorkspaceLabelFromTreeNode(
+  node: Pick<ITreeMapObject, 'id' | 'type' | 'parentId'>,
+  nodes: ITreeMap,
+) {
+  const workspaceId = getWorkspaceIdFromTreeNode(node);
+  const workspaceNode = nodes[workspaceId];
+  if (workspaceNode?.type === TreeTypeEnum.WORKSPACE && workspaceNode.label) {
+    return workspaceNode.label;
+  }
+  return workspaceId;
 }
 
 export function canCopyHierarchyNode(
@@ -54,11 +67,6 @@ export function collectSubtreeTreeIds(rootId: string, nodes: ITreeMap) {
   return ids;
 }
 
-function isSameWorkspaceNode(node: ITreeMapObject, workspaceId: string) {
-  if (node.type === TreeTypeEnum.WORKSPACE) return String(node.id) === workspaceId;
-  return String(node.id).split('//')[1] === workspaceId;
-}
-
 export function isSameHierarchyWorkspace(
   source: Pick<ITreeMapObject, 'id' | 'type' | 'parentId'>,
   target: Pick<ITreeMapObject, 'id' | 'type' | 'parentId'>,
@@ -72,7 +80,26 @@ export function isCurrentHierarchyParent(
   source: Pick<ITreeMapObject, 'id' | 'parentId'>,
   target: Pick<ITreeMapObject, 'id'>,
 ) {
-  return String(source.parentId || '') === String(target.id);
+  if (String(source.parentId || '') === String(target.id)) return true;
+
+  const sourceParentId = String(source.parentId || '');
+  if (!sourceParentId.includes('//')) return false;
+
+  return (
+    getHierarchyIdFromTreeId(sourceParentId) ===
+    getHierarchyIdFromTreeId(String(target.id))
+  );
+}
+
+function isSameStructuralHierarchy(
+  source: Pick<ITreeMapObject, 'id'>,
+  target: Pick<ITreeMapObject, 'id' | 'type'>,
+) {
+  if (target.type === TreeTypeEnum.WORKSPACE) return false;
+  return (
+    getHierarchyIdFromTreeId(String(source.id)) ===
+    getHierarchyIdFromTreeId(String(target.id))
+  );
 }
 
 export function isHierarchyCopyDropAllowed(params: {
@@ -84,8 +111,8 @@ export function isHierarchyCopyDropAllowed(params: {
   if (!source || !target) return false;
   if (!canCopyHierarchyNode(source)) return false;
   if (String(source.id) === String(target.id)) return false;
+  if (isSameStructuralHierarchy(source, target)) return false;
   if (isCurrentHierarchyParent(source, target)) return false;
-  if (!isSameHierarchyWorkspace(source, target)) return false;
   if (collectSubtreeTreeIds(String(source.id), nodes).has(String(target.id))) {
     return false;
   }
@@ -94,34 +121,84 @@ export function isHierarchyCopyDropAllowed(params: {
   );
 }
 
+export function buildCopyHierarchyBranchPayload(params: {
+  source: Pick<ITreeMapObject, 'id' | 'type' | 'parentId'>;
+  target: Pick<ITreeMapObject, 'id' | 'type' | 'parentId'>;
+}) {
+  return {
+    sourceHierarchyId: getHierarchyIdFromTreeId(String(params.source.id)),
+    sourceWorkspaceId: getWorkspaceIdFromTreeNode(params.source),
+    targetParentId:
+      params.target.type === TreeTypeEnum.WORKSPACE
+        ? null
+        : getHierarchyIdFromTreeId(String(params.target.id)),
+    targetWorkspaceId: getWorkspaceIdFromTreeNode(params.target),
+  };
+}
+
+export function formatCopyHierarchyDestinationLabel(
+  option: Pick<CopyHierarchyDestinationOption, 'label' | 'workspaceLabel'>,
+) {
+  return `${option.workspaceLabel} - ${option.label}`;
+}
+
 export function getCopyHierarchyDestinationOptions(params: {
   source: Pick<ITreeMapObject, 'id' | 'type' | 'parentId'>;
   nodes: ITreeMap;
+  selectedWorkspaceIds?: string[];
 }): CopyHierarchyDestinationOption[] {
-  const workspaceId = getWorkspaceIdFromTreeNode(params.source);
-  const blockedIds = collectSubtreeTreeIds(String(params.source.id), params.nodes);
+  const blockedIds = collectSubtreeTreeIds(
+    String(params.source.id),
+    params.nodes,
+  );
   const sourceType = params.source.type;
+  const selectedWorkspaceIds = (params.selectedWorkspaceIds || []).filter(
+    Boolean,
+  );
+  const allowedWorkspaceIds = selectedWorkspaceIds.length
+    ? new Set(selectedWorkspaceIds)
+    : null;
 
   return Object.values(params.nodes)
     .filter((node) => {
       if (!node || String(node.id) === 'mock_id') return false;
+      if (node.showRef) return false;
+      if (node.type === TreeTypeEnum.COMPANY) return false;
+      if (String(node.id) === String(params.source.id)) return false;
       if (blockedIds.has(String(node.id))) return false;
+      if (isSameStructuralHierarchy(params.source, node)) return false;
       if (isCurrentHierarchyParent(params.source, node)) return false;
-      if (!isSameWorkspaceNode(node, workspaceId)) return false;
+      if (
+        allowedWorkspaceIds &&
+        !allowedWorkspaceIds.has(getWorkspaceIdFromTreeNode(node))
+      ) {
+        return false;
+      }
       return (nodeTypesConstant[node.type]?.childOptions || []).includes(
         sourceType,
       );
     })
-    .map((node) => ({
-      treeId: String(node.id),
-      label: node.label,
-      type: node.type,
-      typeLabel: resolveHierarchyNodeTypeLabel(node.type) || node.type,
-      targetWorkspaceId: workspaceId,
-      targetParentId:
-        node.type === TreeTypeEnum.WORKSPACE
-          ? null
-          : getHierarchyIdFromTreeId(String(node.id)),
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+    .map((node) => {
+      const targetWorkspaceId = getWorkspaceIdFromTreeNode(node);
+      return {
+        treeId: String(node.id),
+        label: node.label,
+        type: node.type,
+        typeLabel: resolveHierarchyNodeTypeLabel(node.type) || node.type,
+        workspaceLabel: getWorkspaceLabelFromTreeNode(node, params.nodes),
+        targetWorkspaceId,
+        targetParentId:
+          node.type === TreeTypeEnum.WORKSPACE
+            ? null
+            : getHierarchyIdFromTreeId(String(node.id)),
+      };
+    })
+    .sort((a, b) => {
+      const workspaceCompare = a.workspaceLabel.localeCompare(
+        b.workspaceLabel,
+        'pt-BR',
+      );
+      if (workspaceCompare !== 0) return workspaceCompare;
+      return a.label.localeCompare(b.label, 'pt-BR');
+    });
 }

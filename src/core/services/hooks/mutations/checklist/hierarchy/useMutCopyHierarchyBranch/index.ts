@@ -13,6 +13,7 @@ import { setCopyDndActive } from 'store/reducers/hierarchy/hierarchySlice';
 
 export type CopyHierarchyBranchPayload = {
   sourceHierarchyId: string;
+  sourceWorkspaceId: string;
   targetParentId: string | null;
   targetWorkspaceId: string;
 };

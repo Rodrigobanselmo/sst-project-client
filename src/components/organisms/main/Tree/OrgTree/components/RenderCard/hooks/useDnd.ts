@@ -7,12 +7,10 @@ import { useStore } from 'react-redux';
 import { useHierarchyTreeActions } from '../../../../../../../../core/hooks/useHierarchyTreeActions';
 import { useMutCopyHierarchyBranch } from '../../../../../../../../core/services/hooks/mutations/checklist/hierarchy/useMutCopyHierarchyBranch';
 import { nodeTypesConstant } from '../../../constants/node-type.constant';
-import { TreeTypeEnum } from '../../../enums/tree-type.enums';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { ITreeMap, ITreeMapObject } from '../../../interfaces';
 import {
-  getHierarchyIdFromTreeId,
-  getWorkspaceIdFromTreeNode,
+  buildCopyHierarchyBranchPayload,
   isHierarchyCopyDropAllowed,
 } from '../../../utils/get-copy-hierarchy-destinations';
 
@@ -155,14 +153,10 @@ export const useDnd = (node: ITreeMapObject) => {
       }
       if (copyMutation.isLoading) return;
 
-      copyMutation.mutate({
-        sourceHierarchyId: getHierarchyIdFromTreeId(String(dragItem.id)),
-        targetParentId:
-          dropItem.type === TreeTypeEnum.WORKSPACE
-            ? null
-            : getHierarchyIdFromTreeId(String(dropItem.id)),
-        targetWorkspaceId: getWorkspaceIdFromTreeNode(dragItem),
-      });
+      copyMutation.mutate(buildCopyHierarchyBranchPayload({
+        source: dragItem,
+        target: dropItem,
+      }));
       return;
     }
 
