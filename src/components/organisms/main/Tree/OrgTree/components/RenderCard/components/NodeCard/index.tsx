@@ -43,7 +43,6 @@ import { usePreventNode } from '../../../../hooks/usePreventNode';
 import { ITreeMapObject } from '../../../../interfaces';
 import { resolveHierarchyNodeTypeLabel } from '../../../../utils/resolve-hierarchy-node-type-label';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
-import { EmployeeSelectCard } from './Select/employeeSelect';
 import { GhoSelectCard } from './Select/ghoSelect';
 import { STSelectBox } from './styles';
 import { INodeCardProps } from './types';
@@ -261,8 +260,6 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   const isCargoCard =
     node.type === TreeTypeEnum.OFFICE || node.type === TreeTypeEnum.SUB_OFFICE;
   const showCornerGhoBadge = isCargoCard && !node.showRef;
-  const showEmployeeIndicator =
-    !node.showRef && (node.employeesCount ?? 0) > 0;
   const showOptionsSelect = !node.showRef && !GhoId;
   const showPopperHelp =
     !node.showRef &&
@@ -283,13 +280,11 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     !!node.parentId &&
     node.type !== TreeTypeEnum.COMPANY;
 
-  const showFooter =
-    !selectionMode &&
+  const showHeaderActions =
     !hide &&
     (showGhoSelectButton ||
       showGhoSelect ||
       showCornerGhoBadge ||
-      showEmployeeIndicator ||
       showOptionsSelect ||
       showRefSelect ||
       showAddButton ||
@@ -302,8 +297,8 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        minHeight: '100%',
-        gap: 2.5,
+        minHeight: 0,
+        gap: 1,
       }}
       onClick={
         !selectionMode && GhoId && !isOrgMultiWorkspace
@@ -311,179 +306,165 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
           : undefined
       }
     >
-      {/* 1. Cabeçalho — tipo do nó */}
       {!showRefSelect && (
         <SFlex
           alignItems="center"
           justifyContent="space-between"
           width="100%"
           gap={1}
+          sx={{ minHeight: 22 }}
         >
-          <Box sx={{ minWidth: 0, textAlign: 'left' }}>
+          <Box sx={{ minWidth: 0, textAlign: 'left', flexShrink: 0 }}>
             <NodeTypeHeader type={node.type} />
           </Box>
-          {selectionMode && canSelect && (
-            <Checkbox
-              size="small"
-              checked={isSelected}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                e.stopPropagation();
-                handleClickCard();
-              }}
-              inputProps={{
-                'aria-label': `Selecionar ${node.label}`,
-              }}
-              sx={{ p: 0.25, flexShrink: 0 }}
-            />
-          )}
-        </SFlex>
-      )}
-
-      {/* 2. Conteúdo — nome com largura total */}
-      <Box sx={{ width: '100%', flex: 1, minWidth: 0, textAlign: 'left' }}>
-        <NodeLabel label={node.label} />
-      </Box>
-
-      {/* 3. Rodapé de ações */}
-      {showFooter && (
-        <SFlex
-          gap={1.5}
-          alignItems="center"
-          width="100%"
-          sx={{
-            mt: 'auto',
-            minHeight: 24,
-            pt: 0.5,
-          }}
-        >
-          <SFlex
-            gap={1.5}
-            alignItems="center"
-            sx={{ flex: 1, minWidth: 0 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {showGhoSelectButton && (
-              <SelectGho
-                isSelectedGho={isSelectedGho}
-                handleAddGhoHierarchy={handleAddGhoHierarchy}
-                node={node}
-                disabled={isOrgMultiWorkspace}
-                disabledHint={ORG_MULTI_WORKSPACE_DISABLED_HINT}
-              />
-            )}
-            {(showGhoSelect || showCornerGhoBadge) && (
-              <GhoSelectCard node={node} cornerBadge />
-            )}
-            {showEmployeeIndicator && <EmployeeSelectCard node={node} />}
-            {showRefSelect && isHierarchy && (
-              <HierarchySelect
-                tooltipText={(textField) => (
-                  <p>
-                    <p>Selecione a hierarquia que deseja cópiar</p>
-                    <p>cópiar em: {textField}</p>
-                  </p>
-                )}
-                text="Selecionar cópia"
-                icon={SCopyIcon}
-                handleSelect={(hierarchy: IHierarchy) =>
-                  editNodes([{ id: node.id, idRef: hierarchy.id }], true)
-                }
-                companyId={node.copyCompanyId}
-                selectedId={node.idRef}
-              />
-            )}
-          </SFlex>
-
           <SFlex
             gap={1}
             alignItems="center"
-            sx={{ flexShrink: 0, position: 'relative' }}
+            sx={{ flexShrink: 0, ml: 'auto', position: 'relative' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {showDeleteButton && (
-              <Box className="hierarchy-card-delete">
-                <STagButton
-                  sx={{
-                    pr: 1,
-                    pl: 2,
-                    color: 'grey.500',
-                    '&:hover': { color: 'error.main' },
-                  }}
-                  onClick={handleDeleteCard}
-                  icon={SDeleteIcon}
-                  tooltipTitle="Excluir"
-                />
-              </Box>
-            )}
-            {showOptionsSelect && (
-              <OptionsHelpSelect
-                disabled={!!GhoId}
-                menuRef={menuRef}
-                node={node}
-                onEdit={handleClickCard}
+            {selectionMode && canSelect && (
+              <Checkbox
+                size="small"
+                checked={isSelected}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  handleClickCard();
+                }}
+                inputProps={{
+                  'aria-label': `Selecionar ${node.label}`,
+                }}
+                sx={{ p: 0.25, flexShrink: 0 }}
               />
             )}
-            {showAddButton && (
-              <Box sx={{ position: 'relative' }}>
-                <STagButton
-                  sx={{ pr: 1, pl: 2 }}
-                  onClick={handleAddCard}
-                  icon={AddIcon}
-                  active
-                  bg={'success.main'}
-                  tooltipTitle="Adicionar"
-                />
-                {showPopperHelp && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      right: 'calc(-50% + 10px)',
-                      top: 34,
-                      zIndex: 2,
-                    }}
-                  >
-                    <SText
+            {!selectionMode && showHeaderActions && (
+              <>
+                {showGhoSelectButton && (
+                  <SelectGho
+                    isSelectedGho={isSelectedGho}
+                    handleAddGhoHierarchy={handleAddGhoHierarchy}
+                    node={node}
+                    disabled={isOrgMultiWorkspace}
+                    disabledHint={ORG_MULTI_WORKSPACE_DISABLED_HINT}
+                  />
+                )}
+                {(showGhoSelect || showCornerGhoBadge) && (
+                  <GhoSelectCard node={node} cornerBadge />
+                )}
+                {showDeleteButton && (
+                  <Box className="hierarchy-card-delete">
+                    <STagButton
                       sx={{
-                        backgroundColor: 'background.paper',
-                        px: 8,
-                        borderRadius: 1,
-                        py: 3,
-                        boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.4)',
-                        whiteSpace: 'nowrap',
+                        pr: 1,
+                        pl: 2,
+                        color: 'grey.500',
+                        '&:hover': { color: 'error.main' },
                       }}
-                      fontSize={13}
-                    >
-                      Click aqui para incluir um setor
-                    </SText>
-                    <Box
-                      sx={{
-                        top: -13,
-                        right: 'calc(50% - 15px)',
-                        height: 13,
-                        width: 30,
-                        position: 'absolute',
-                        overflowY: 'hidden',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.5)',
-                          backgroundColor: 'background.paper',
-                          width: 14,
-                          height: 14,
-                          right: 'calc(50% - 7px)',
-                          position: 'absolute',
-                          transform: 'rotate(45deg)',
-                          top: 7,
-                        }}
-                      />
-                    </Box>
+                      onClick={handleDeleteCard}
+                      icon={SDeleteIcon}
+                      tooltipTitle="Excluir"
+                    />
                   </Box>
                 )}
-              </Box>
+                {showOptionsSelect && (
+                  <OptionsHelpSelect
+                    disabled={!!GhoId}
+                    menuRef={menuRef}
+                    node={node}
+                    onEdit={handleClickCard}
+                  />
+                )}
+                {showAddButton && (
+                  <Box sx={{ position: 'relative' }}>
+                    <STagButton
+                      sx={{ pr: 1, pl: 2 }}
+                      onClick={handleAddCard}
+                      icon={AddIcon}
+                      active
+                      bg={'success.main'}
+                      tooltipTitle="Adicionar"
+                    />
+                    {showPopperHelp && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          right: 'calc(-50% + 10px)',
+                          top: 34,
+                          zIndex: 2,
+                        }}
+                      >
+                        <SText
+                          sx={{
+                            backgroundColor: 'background.paper',
+                            px: 8,
+                            borderRadius: 1,
+                            py: 3,
+                            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.4)',
+                            whiteSpace: 'nowrap',
+                          }}
+                          fontSize={13}
+                        >
+                          Click aqui para incluir um setor
+                        </SText>
+                        <Box
+                          sx={{
+                            top: -13,
+                            right: 'calc(50% - 15px)',
+                            height: 13,
+                            width: 30,
+                            position: 'absolute',
+                            overflowY: 'hidden',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.5)',
+                              backgroundColor: 'background.paper',
+                              width: 14,
+                              height: 14,
+                              right: 'calc(50% - 7px)',
+                              position: 'absolute',
+                              transform: 'rotate(45deg)',
+                              top: 7,
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+              </>
             )}
           </SFlex>
+        </SFlex>
+      )}
+
+      <Box sx={{ width: '100%', minWidth: 0, textAlign: 'left' }}>
+        <NodeLabel label={node.label} />
+      </Box>
+
+      {showRefSelect && isHierarchy && (
+        <SFlex
+          alignItems="center"
+          width="100%"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <HierarchySelect
+            tooltipText={(textField) => (
+              <p>
+                <p>Selecione a hierarquia que deseja cópiar</p>
+                <p>cópiar em: {textField}</p>
+              </p>
+            )}
+            text="Selecionar cópia"
+            icon={SCopyIcon}
+            handleSelect={(hierarchy: IHierarchy) =>
+              editNodes([{ id: node.id, idRef: hierarchy.id }], true)
+            }
+            companyId={node.copyCompanyId}
+            selectedId={node.idRef}
+          />
         </SFlex>
       )}
     </Box>

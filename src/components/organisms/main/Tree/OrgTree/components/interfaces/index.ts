@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 import { IOrgTreeNodeProps, ITreeMapObject } from '../../interfaces';
 
 export interface ITreeOptions {
@@ -9,6 +11,7 @@ export interface IRenderChildren {
   list: Array<number | string>;
   nodeId: number | string;
   prop: IOrgTreeNodeProps;
+  extra?: ReactNode;
 }
 
 export interface IRender {

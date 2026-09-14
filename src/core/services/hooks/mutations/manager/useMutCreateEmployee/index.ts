@@ -12,6 +12,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
+import { invalidateEmployeeOrgViews } from '../invalidate-employee-org-views';
 
 export interface ICreateEmployee {
   name: string;
@@ -45,7 +46,7 @@ export function useMutCreateEmployee() {
     async (data: ICreateEmployee) => upsertRiskDocs(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp) queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+        if (resp) invalidateEmployeeOrgViews();
         if (resp)
           queryClient.invalidateQueries([QueryEnum.COMPANY, resp?.companyId]);
 

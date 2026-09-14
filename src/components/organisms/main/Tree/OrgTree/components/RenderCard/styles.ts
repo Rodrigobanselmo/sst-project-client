@@ -12,7 +12,7 @@ interface ICardCard {
 }
 
 /** Largura única para todos os níveis — evita falsa hierarquia por tamanho. */
-export const HIERARCHY_CARD_WIDTH = '13.75rem'; // ~220px (spacing 110)
+export const HIERARCHY_CARD_WIDTH = '20.625rem'; // ~330px (50% acima de 13.75rem)
 
 const FadeInAnimation = keyframes`  
   0% { 
@@ -78,11 +78,11 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   box-sizing: border-box;
   background-color: white;
   cursor: ${(props) => (props.selectionMode ? 'pointer' : 'grab')};
-  padding: ${(props) => props.theme.spacing(3.5, 5)};
+  padding: ${(props) => props.theme.spacing(2, 4)};
   width: ${HIERARCHY_CARD_WIDTH};
   min-width: ${HIERARCHY_CARD_WIDTH};
   max-width: ${HIERARCHY_CARD_WIDTH};
-  min-height: ${(props) => props.theme.spacing(50)};
+  min-height: 0;
   height: auto;
   display: flex;
   flex-direction: column;

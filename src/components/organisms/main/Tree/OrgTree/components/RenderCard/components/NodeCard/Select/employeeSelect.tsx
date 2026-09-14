@@ -226,7 +226,8 @@ export const EmployeeSelectCard: FC<
           onClick={handleClick}
           sx={{
             minWidth: 26,
-            maxWidth: 44,
+            width: 'auto',
+            maxWidth: 'none',
             height: 22,
             pl: '4px',
             pr: '6px',
@@ -234,6 +235,10 @@ export const EmployeeSelectCard: FC<
             '& .icon_main': {
               mr: '4px',
               fontSize: '13px !important',
+            },
+            '& .text_main': {
+              overflow: 'visible',
+              textOverflow: 'clip',
             },
           }}
         />

@@ -4,6 +4,11 @@ import { selectHierarchyTreeData } from 'store/reducers/hierarchy/hierarchySlice
 
 import { useAppSelector } from '../../../../../../../core/hooks/useAppSelector';
 import { ITreeMapObject } from '../../interfaces';
+import {
+  canExpandOrgNode,
+  hasOrgEmployeeLeaves,
+} from '../../utils/get-org-employee-leaves';
+import { EmployeeTreeLeaves } from '../EmployeeTreeLeaves';
 import { IRender } from '../interfaces';
 import { RenderCard } from '../RenderCard';
 import { RenderChildren } from '../RenderChildren';
@@ -22,8 +27,10 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
   const cls = ['org-tree-node'];
 
   const { horizontal, collapsable } = prop;
+  const canExpand = canExpandOrgNode(node);
+  const showEmployeeLeaves = hasOrgEmployeeLeaves(node);
 
-  if (node.childrenIds.length == 0) {
+  if (!canExpand) {
     cls.push('is-leaf');
   } else if (collapsable && !expanded) {
     cls.push('collapsed');
@@ -39,7 +46,16 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
     >
       <RenderCard node={node} prop={prop} />
       {(!collapsable || expanded) && (
-        <RenderChildren nodeId={node.id} list={node.childrenIds} prop={prop} />
+        <RenderChildren
+          nodeId={node.id}
+          list={node.childrenIds}
+          prop={prop}
+          extra={
+            showEmployeeLeaves ? (
+              <EmployeeTreeLeaves node={node} horizontal={horizontal} />
+            ) : null
+          }
+        />
       )}
       {node.childrenIds.includes('mock_id') && !expanded && (
         <RenderChildren

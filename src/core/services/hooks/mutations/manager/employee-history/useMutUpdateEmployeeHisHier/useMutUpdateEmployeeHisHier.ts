@@ -11,6 +11,7 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { invalidateEmployeeOrgViews } from '../../invalidate-employee-org-views';
 
 export interface IUpdateEmployeeHierarchyHistory {
   id?: number;
@@ -49,7 +50,7 @@ export function useMutUpdateEmployeeHisHier() {
       onSuccess: async (resp) => {
         if (resp) {
           queryClient.invalidateQueries([QueryEnum.EMPLOYEE_HISTORY_HIER]);
-          queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+          invalidateEmployeeOrgViews();
         }
 
         enqueueSnackbar('Historico editado com sucesso', {

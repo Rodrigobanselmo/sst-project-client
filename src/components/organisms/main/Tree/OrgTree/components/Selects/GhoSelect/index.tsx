@@ -49,12 +49,17 @@ export const GhoSelect: FC<{ children?: any } & IGhoSelectProps> = ({
   const cornerSx = cornerBadge
     ? {
         minWidth: 26,
-        maxWidth: 40,
+        width: 'auto',
+        maxWidth: 'none',
         height: 22,
         pl: '4px',
         pr: '6px',
         borderRadius: '11px',
         '& .icon_main': { mr: ghos.length ? '4px' : 0, fontSize: '13px !important' },
+        '& .text_main': {
+          overflow: 'visible',
+          textOverflow: 'clip',
+        },
         ...sx,
       }
     : sx;
@@ -71,7 +76,7 @@ export const GhoSelect: FC<{ children?: any } & IGhoSelectProps> = ({
       }
       tooltipTitle={tooltipTitle}
       large={cornerBadge ? false : large}
-      maxWidth={cornerBadge ? 44 : 200}
+      maxWidth={cornerBadge ? undefined : 200}
       icon={SGhoIcon}
       sx={cornerSx}
       {...props}

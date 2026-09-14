@@ -98,6 +98,11 @@ export const OrgTreeNode = styled.div<{
         border-top: 1px solid #000;
       }
 
+      &.is-leaf.org-tree-node-employee {
+        padding-top: 1px;
+        padding-bottom: 1px;
+      }
+
       // remove the line of the first label
       &.org-tree-node-first {
         padding-left: 0;
