@@ -53,7 +53,7 @@ export function useMutCreateEmployeeHisHier() {
           invalidateEmployeeOrgViews();
         }
 
-        enqueueSnackbar('Cargo vinculado com sucesso', {
+        enqueueSnackbar('Evento adicionado ao histórico', {
           variant: 'success',
         });
         return resp;

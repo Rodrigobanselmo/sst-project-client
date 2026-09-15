@@ -23,6 +23,10 @@ import { useMutUpdateEmployeeHisHier } from 'core/services/hooks/mutations/manag
 import { SModalInitContactProps } from '../types';
 import { cleanObjectNullValues } from './../../../../../core/utils/helpers/cleanObjectValues';
 import { employeeHistoryHierarchySchema } from './../../../../../core/utils/schemas/employee.schema';
+import {
+  EMPLOYEE_HIERARCHY_CORRECTION_CONFIRM_TEXT,
+  EMPLOYEE_HIERARCHY_CORRECTION_CONFIRM_TITLE,
+} from '../employee-hierarchy-correction.util';
 
 export const initialEmployeeHistoryHierState = {
   id: 0 as number | undefined,
@@ -60,7 +64,7 @@ export const useAddData = () => {
   const updateMutation = useMutUpdateEmployeeHisHier();
   const deleteMutation = useMutDeleteEmployeeHisHier();
 
-  const { preventUnwantedChanges, preventDelete } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete, preventWarn } = usePreventAction();
 
   const [data, setData] = useState({
     ...initialEmployeeHistoryHierState,
@@ -146,18 +150,30 @@ export const useAddData = () => {
       startDate: dayjs(data.startDate).format('DD/MM/YYYY'),
     };
 
-    try {
-      if (!submitData.id) {
-        delete submitData.id;
-        await createMutation.mutateAsync(submitData);
-        onClose();
-      } else {
-        await updateMutation.mutateAsync(submitData);
-        onClose();
-      }
-    } catch (error) {
-      console.error('error');
+    if (!submitData.id) {
+      delete submitData.id;
+      createMutation
+        .mutateAsync(submitData)
+        .then(() => onClose())
+        .catch(() => {});
+      return;
     }
+
+    preventWarn(
+      EMPLOYEE_HIERARCHY_CORRECTION_CONFIRM_TEXT,
+      () => {
+        updateMutation
+          .mutateAsync(submitData)
+          .then(() => onClose())
+          .catch(() => {});
+      },
+      {
+        title: EMPLOYEE_HIERARCHY_CORRECTION_CONFIRM_TITLE,
+        confirmText: 'Corrigir registro',
+        confirmCancel: 'Cancelar',
+        tag: 'warning',
+      },
+    );
   };
 
   const onCloseUnsaved = () => {

@@ -1,7 +1,10 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
+import {
+  EmployeeHierarchyTransferPayload,
+  getEmployeeTransferErrorMessage,
+} from 'components/organisms/modals/ModalTransferEmployeeHierarchy/employee-hierarchy-transfer.util';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -13,40 +16,40 @@ import { queryClient } from 'core/services/queryClient';
 import { IErrorResp } from '../../../../../errors/types';
 import { invalidateEmployeeOrgViews } from '../../invalidate-employee-org-views';
 
-export interface IUpdateEmployeeHierarchyHistory {
-  id?: number;
-  motive?: EmployeeHierarchyMotiveTypeEnum;
-  startDate?: string;
-  hierarchyId?: string;
-  subOfficeId?: string;
-  employeeId?: number;
+export type ITransferEmployeeHierarchy = EmployeeHierarchyTransferPayload & {
   companyId?: string;
-}
+};
 
-export async function update(
-  data: IUpdateEmployeeHierarchyHistory,
+export async function transferEmployeeHierarchy(
+  data: ITransferEmployeeHierarchy,
   companyId?: string,
 ) {
   if (!companyId) return null;
 
-  const response = await api.patch<IEmployeeHierarchyHistory>(
-    ApiRoutesEnum.EMPLOYEE_HISTORY_HIER + '/' + data.id + '/' + companyId,
-    {
-      ...data,
-      companyId,
-    },
+  const body: EmployeeHierarchyTransferPayload = {
+    employeeId: data.employeeId,
+    hierarchyId: data.hierarchyId,
+    startDate: data.startDate,
+    motive: data.motive,
+    workspaceId: data.workspaceId,
+  };
+  if (data.subOfficeId) body.subOfficeId = data.subOfficeId;
+
+  const response = await api.post<IEmployeeHierarchyHistory>(
+    `${ApiRoutesEnum.EMPLOYEE_HISTORY_HIER}/transfer/${companyId}`,
+    body,
   );
 
   return response.data;
 }
 
-export function useMutUpdateEmployeeHisHier() {
+export function useMutTransferEmployeeHisHier() {
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: IUpdateEmployeeHierarchyHistory) =>
-      update(data, getCompanyId(data)),
+    async (data: ITransferEmployeeHierarchy) =>
+      transferEmployeeHierarchy(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
         if (resp) {
@@ -54,14 +57,15 @@ export function useMutUpdateEmployeeHisHier() {
           invalidateEmployeeOrgViews();
         }
 
-        enqueueSnackbar('Registro de lotação corrigido com sucesso', {
+        enqueueSnackbar('Lotação alterada com sucesso', {
           variant: 'success',
         });
         return resp;
       },
       onError: (error: IErrorResp) => {
-        if (error.response?.data)
-          enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        enqueueSnackbar(getEmployeeTransferErrorMessage(error), {
+          variant: 'error',
+        });
       },
     },
   );

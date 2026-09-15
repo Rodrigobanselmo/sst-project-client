@@ -45,7 +45,7 @@ export const ModalAddEmployeeHistoryHier = () => {
   const buttons = [
     {},
     {
-      text: isEdit ? 'Salvar' : 'Criar',
+      text: isEdit ? 'Corrigir registro' : 'Adicionar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setData({ ...data }),
@@ -73,10 +73,16 @@ export const ModalAddEmployeeHistoryHier = () => {
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Lotação'}
+          title={isEdit ? 'Corrigir registro de lotação' : 'Adicionar evento de lotação'}
           secondIcon={data?.id ? SDeleteIcon : undefined}
           secondIconClick={handleDelete}
         />
+        {isEdit && (
+          <SText color="text.label" fontSize={13} mb={6}>
+            Esta ação corrige o evento selecionado. Não registra uma nova
+            movimentação.
+          </SText>
+        )}
         <DatePickerForm
           setValue={setValue}
           label="Data de início"

@@ -11,6 +11,7 @@ import { employeeSchema } from 'core/utils/schemas/employee.schema';
 import { ModalAddEmployeeHistoryExam } from '../ModalAddEmployeeHistoryExam/ModalAddEmployeeHistoryExam';
 import { ModalAddEmployeeHistoryHier } from '../ModalAddEmployeeHistoryHier/ModalAddEmployeeHistoryHier';
 import { ModalAddExamSchedule } from '../ModalAddExamSchedule/ModalAddExamSchedule';
+import { ModalTransferEmployeeHierarchy } from '../ModalTransferEmployeeHierarchy/ModalTransferEmployeeHierarchy';
 import { DataModalCompanyStep } from './components/1-data';
 import { HierarchyHistoryStep } from './components/2-hierarchy';
 import { ExamHistoryStep } from './components/3-exam';
@@ -85,6 +86,7 @@ export const StackModalEditEmployee = () => {
       <ModalAddExamSchedule />
       <ModalEditEmployee />
       <ModalAddEmployeeHistoryHier />
+      <ModalTransferEmployeeHierarchy />
       <ModalAddEmployeeHistoryExam />
     </>
   );

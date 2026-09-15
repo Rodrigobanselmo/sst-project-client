@@ -9,6 +9,7 @@ import { examScheduleSchema } from 'core/utils/schemas/examSchedule.schema';
 
 import { ModalAddEmployeeHistoryHier } from '../ModalAddEmployeeHistoryHier/ModalAddEmployeeHistoryHier';
 import { ModalEditEmployee } from '../ModalEditEmployee/ModalEditEmployee';
+import { ModalTransferEmployeeHierarchy } from '../ModalTransferEmployeeHierarchy/ModalTransferEmployeeHierarchy';
 import { EmployeeStep } from './components/1-employee';
 import { EvalStep } from './components/2-eval';
 import { ExamStep } from './components/2-exams';
@@ -64,6 +65,7 @@ export const StackModalAddExamSchedule = () => {
       <ModalAddExamSchedule />
       <ModalEditEmployee />
       <ModalAddEmployeeHistoryHier />
+      <ModalTransferEmployeeHierarchy />
     </>
   );
 };

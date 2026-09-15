@@ -117,6 +117,36 @@ export const useEditEmployee = () => {
     }
   }, [getModalData, employee]);
 
+  useEffect(() => {
+    if (!employee?.id) return;
+
+    setData((oldData) => {
+      if (!oldData.id || oldData.id !== employee.id) return oldData;
+
+      const hierarchyId = employee.hierarchyId ?? oldData.hierarchyId;
+      const hierarchy = employee.hierarchy ?? oldData.hierarchy;
+      const subOffices = employee.subOffices ?? oldData.subOffices;
+      const status = employee.status ?? oldData.status;
+
+      if (
+        hierarchyId === oldData.hierarchyId &&
+        hierarchy === oldData.hierarchy &&
+        subOffices === oldData.subOffices &&
+        status === oldData.status
+      ) {
+        return oldData;
+      }
+
+      return {
+        ...oldData,
+        hierarchyId,
+        hierarchy,
+        subOffices,
+        status,
+      };
+    });
+  }, [employee]);
+
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
     setData(initialEditEmployeeState);
