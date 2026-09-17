@@ -58,13 +58,13 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   //! can improve by using riskData.ro (cant use now because need to include risk on risk data, to do that is good to change the actual risk load to be partial load - to not load risk twice)
   //! problem is that will lose the risk / rec / med fuse search and need to see alternative on postgres
   const actualMatrixLevel = getMatrizRisk(
-    riskData?.probability,
     risk?.severity,
+    riskData?.probability,
   );
 
   const actualMatrixLevelAfter = getMatrizRisk(
-    riskData?.probabilityAfter,
     risk?.severity,
+    riskData?.probabilityAfter,
   );
 
   const onEditDate = () => {

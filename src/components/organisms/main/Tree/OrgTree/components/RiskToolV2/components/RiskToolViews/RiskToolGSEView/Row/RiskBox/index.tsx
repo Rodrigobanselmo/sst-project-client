@@ -152,9 +152,8 @@ export const RiskToolGSEViewRowRiskBox: FC<
     return subCategoryLabels;
   }, [isRepresentAll, isPsicologico, subCategoryLabels]);
 
-  // Mesma ordem de args usada em RowColumns (legado do getMatrizRisk).
   const inherentMatrix = useMemo(
-    () => getMatrizRisk(riskData?.probability, data?.severity),
+    () => getMatrizRisk(data?.severity, riskData?.probability),
     [data?.severity, riskData?.probability],
   );
 
@@ -167,7 +166,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const residualMatrix = useMemo(
     () =>
       residualProbability
-        ? getMatrizRisk(residualProbability, data?.severity)
+        ? getMatrizRisk(data?.severity, residualProbability)
         : null,
     [data?.severity, residualProbability],
   );

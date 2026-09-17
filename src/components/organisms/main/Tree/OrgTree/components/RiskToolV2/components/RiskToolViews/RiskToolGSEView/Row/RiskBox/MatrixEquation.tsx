@@ -128,12 +128,13 @@ export function MatrixEquation({
           <FactorPill kind="P" value={probability} />
           <SText
             component="span"
-            fontSize={13}
-            fontWeight={600}
+            fontSize={11}
+            fontWeight={500}
             color="text.secondary"
             sx={{ lineHeight: 1, px: 0.25 }}
+            title="Probabilidade e Severidade → Risco Ocupacional"
           >
-            ×
+            e
           </SText>
           <FactorPill kind="S" value={severity} />
           <SText
@@ -143,7 +144,7 @@ export function MatrixEquation({
             color="text.secondary"
             sx={{ lineHeight: 1, px: 0.25 }}
           >
-            =
+            →
           </SText>
           <ResultPill label={resultLabel || '--'} level={resultLevel} />
         </>

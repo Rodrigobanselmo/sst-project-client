@@ -36,6 +36,13 @@ export const matrixRiskMap = {
   },
 };
 
+/**
+ * Matriz qualitativa SimpleSST: 5x5 (espelho da API).
+ * Primeiras cinco colunas = Severidade 1..5. Níveis 1..5 = resultados ordinários.
+ * Nível 6 = estado extraordinário Interromper atividades (não é 6ª classe qualitativa).
+ * A sexta coluna física é legado defensivo para eventual severity=6 inválido;
+ * não faz parte do eixo metodológico de Severidade.
+ */
 export const matrixRisk = [
   [2, 3, 4, 5, 5, 6],
   [2, 3, 3, 4, 5, 6],
