@@ -2,6 +2,11 @@ import {
   buildHierarchyGroupAggregates,
   type HierarchyGroupForParticipants,
 } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-group';
+import {
+  filterFlatDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
 import type { HierarchyGroupGroupingConfig } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
@@ -26,6 +31,7 @@ type Props = {
   isLoading: boolean;
   fetchCap: number;
   isPartialFetch: boolean;
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
 };
 
 function formatPercent(value: number) {
@@ -42,10 +48,15 @@ export const FormParticipantsGroupedByHierarchyGroup = ({
   isLoading,
   fetchCap,
   isPartialFetch,
+  diagnosticFilter = INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
 }: Props) => {
   const aggregates = useMemo(
-    () => buildHierarchyGroupAggregates(rows, hierarchyGroups),
-    [rows, hierarchyGroups],
+    () =>
+      filterFlatDiagnosticGroups(
+        buildHierarchyGroupAggregates(rows, hierarchyGroups),
+        diagnosticFilter,
+      ),
+    [rows, hierarchyGroups, diagnosticFilter],
   );
 
   if (isLoading) {

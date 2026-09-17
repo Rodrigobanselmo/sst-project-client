@@ -1,4 +1,9 @@
 import { buildEstablishmentSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-sector';
+import {
+  filterParentChildDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
@@ -22,6 +27,7 @@ type Props = {
   isLoading: boolean;
   fetchCap: number;
   isPartialFetch: boolean;
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
 };
 
 function ResponseRateBar({ percent }: { percent: number }) {
@@ -57,10 +63,17 @@ export const FormParticipantsGroupedByEstablishmentSector = ({
   isLoading,
   fetchCap,
   isPartialFetch,
+  diagnosticFilter = INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
 }: Props) => {
   const groups = useMemo(
-    () => buildEstablishmentSectorAggregates(rows),
-    [rows],
+    () =>
+      filterParentChildDiagnosticGroups(
+        buildEstablishmentSectorAggregates(rows),
+        (est) => est.sectors,
+        (est, sectors, metrics) => ({ ...est, sectors, ...metrics }),
+        diagnosticFilter,
+      ),
+    [rows, diagnosticFilter],
   );
 
   if (isLoading) {

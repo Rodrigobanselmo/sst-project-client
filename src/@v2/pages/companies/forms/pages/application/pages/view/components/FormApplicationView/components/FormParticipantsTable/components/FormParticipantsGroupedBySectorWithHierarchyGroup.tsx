@@ -2,6 +2,11 @@ import {
   buildSectorWithHierarchyGroupAggregates,
   type HierarchyGroupForParticipants,
 } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-group';
+import {
+  filterParentChildDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
 import type { HierarchyGroupGroupingConfig } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
@@ -26,6 +31,7 @@ type Props = {
   isLoading: boolean;
   fetchCap: number;
   isPartialFetch: boolean;
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
 };
 
 function ResponseRateBar({ percent }: { percent: number }) {
@@ -63,10 +69,17 @@ export const FormParticipantsGroupedBySectorWithHierarchyGroup = ({
   isLoading,
   fetchCap,
   isPartialFetch,
+  diagnosticFilter = INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
 }: Props) => {
   const blocks = useMemo(
-    () => buildSectorWithHierarchyGroupAggregates(rows, hierarchyGroups),
-    [rows, hierarchyGroups],
+    () =>
+      filterParentChildDiagnosticGroups(
+        buildSectorWithHierarchyGroupAggregates(rows, hierarchyGroups),
+        (block) => block.sectors,
+        (block, sectors, metrics) => ({ ...block, sectors, ...metrics }),
+        diagnosticFilter,
+      ),
+    [rows, hierarchyGroups, diagnosticFilter],
   );
 
   if (isLoading) {

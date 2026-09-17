@@ -4,6 +4,7 @@ import { SText } from '@v2/components/atoms/SText/SText';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { IFormParticipantsAdherenceEvolutionModel } from '@v2/models/form/models/form-participants/form-participants-adherence-evolution.model';
 import type { IFormParticipantsFilterSummary } from '@v2/models/form/models/form-participants/form-participants-browse.model';
+import { RECORTE_DIAGNOSTIC_FILTER_EVOLUTION_UNAVAILABLE_MESSAGE } from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
 import { Box, LinearProgress, Typography } from '@mui/material';
 import dynamic from 'next/dynamic';
 
@@ -21,6 +22,7 @@ type Props = {
   evolution?: IFormParticipantsAdherenceEvolutionModel;
   evolutionLoading?: boolean;
   evolutionError?: boolean;
+  hideEvolutionForGroupFilter?: boolean;
 };
 
 export const FormParticipantsFilterSummary = ({
@@ -29,6 +31,7 @@ export const FormParticipantsFilterSummary = ({
   evolution,
   evolutionLoading,
   evolutionError,
+  hideEvolutionForGroupFilter,
 }: Props) => {
   const pct = summary.responseRatePercent;
   const barPct = Math.min(100, Math.max(0, pct));
@@ -154,7 +157,11 @@ export const FormParticipantsFilterSummary = ({
         >
           Evolução da adesão
         </Typography>
-        {evolutionLoading ? (
+        {hideEvolutionForGroupFilter ? (
+          <SText color="text.secondary" textAlign="center">
+            {RECORTE_DIAGNOSTIC_FILTER_EVOLUTION_UNAVAILABLE_MESSAGE}
+          </SText>
+        ) : evolutionLoading ? (
           <SText color="text.secondary" textAlign="center">
             Carregando evolução…
           </SText>

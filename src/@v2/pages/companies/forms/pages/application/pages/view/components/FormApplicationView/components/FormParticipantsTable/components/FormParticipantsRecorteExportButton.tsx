@@ -23,6 +23,17 @@ import {
   type CombinedHierarchyNestedGroup,
 } from '@v2/models/form/helpers/form-participants-aggregate-by-combined-hierarchy';
 import {
+  buildDiagnosticFilterPdfNotes,
+  deriveDiagnosticSummaryFromLeaves,
+  filterCombinedHierarchyDiagnosticGroups,
+  filterFlatDiagnosticGroups,
+  filterParentChildDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  isRecorteDiagnosticFilterActive,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
+import { collectFilteredDiagnosticLeaves } from '@v2/models/form/helpers/form-participants-diagnostic-group-leaves';
+import {
   getCombinedHierarchyGroupingConfig,
   getCombinedHierarchyLevelsForDisplay,
   getEstablishmentHierarchyGroupingConfig,
@@ -67,6 +78,7 @@ type Props = {
   viewMode: FormParticipantsPdfViewMode;
   typeLabels?: unknown;
   hierarchyGroups?: HierarchyGroupForParticipants[];
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
   /** Série já carregada na tela. Ausência = PDF antigo, sem gráfico. */
   evolution?: IFormParticipantsAdherenceEvolutionModel;
 };
@@ -83,6 +95,7 @@ const GROUPED_ORDER_BY: IOrderByParams<FormParticipantsOrderByEnum>[] = [
   { field: FormParticipantsOrderByEnum.HIERARCHY, order: 'asc' },
   { field: FormParticipantsOrderByEnum.NAME, order: 'asc' },
 ];
+
 
 type AggregatePdfRow = {
   label: string;
@@ -150,11 +163,15 @@ function renderFlatHierarchyPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   config: NonNullable<ReturnType<typeof getFlatHierarchyGroupingConfig>>,
   typeLabels?: unknown,
+  diagnosticFilter?: RecorteDiagnosticFilterParams,
 ): string {
-  const aggregates = buildHierarchyTypeAggregates(
-    rows,
-    config.hierarchyType,
-    getFlatHierarchyMissingLabel(config, typeLabels),
+  const aggregates = filterFlatDiagnosticGroups(
+    buildHierarchyTypeAggregates(
+      rows,
+      config.hierarchyType,
+      getFlatHierarchyMissingLabel(config, typeLabels),
+    ),
+    diagnosticFilter ?? INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
   );
   const tableRows = aggregates
     .map((g) =>
@@ -173,11 +190,15 @@ function renderCombinedHierarchyPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   config: NonNullable<ReturnType<typeof getCombinedHierarchyGroupingConfig>>,
   typeLabels?: unknown,
+  diagnosticFilter?: RecorteDiagnosticFilterParams,
 ): string {
   const levels =
     getCombinedHierarchyLevelsForDisplay(config.viewMode, typeLabels) ??
     config.levels;
-  const groups = buildCombinedHierarchyNestedAggregates(rows, levels);
+  const groups = filterCombinedHierarchyDiagnosticGroups(
+    buildCombinedHierarchyNestedAggregates(rows, levels),
+    diagnosticFilter ?? INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  );
   const tableRows = renderCombinedHierarchyNestedPdfRows(groups).join('');
 
   return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(config.viewMode, typeLabels))}</h2>
@@ -191,11 +212,21 @@ function renderEstablishmentHierarchyPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   config: NonNullable<ReturnType<typeof getEstablishmentHierarchyGroupingConfig>>,
   typeLabels?: unknown,
+  diagnosticFilter?: RecorteDiagnosticFilterParams,
 ): string {
-  const groups = buildEstablishmentHierarchyAggregates(
-    rows,
-    config.hierarchyType,
-    getEstablishmentHierarchyMissingLabel(config, typeLabels),
+  const groups = filterParentChildDiagnosticGroups(
+    buildEstablishmentHierarchyAggregates(
+      rows,
+      config.hierarchyType,
+      getEstablishmentHierarchyMissingLabel(config, typeLabels),
+    ),
+    (est) => est.hierarchyGroups,
+    (est, hierarchyGroups, metrics) => ({
+      ...est,
+      hierarchyGroups,
+      ...metrics,
+    }),
+    diagnosticFilter ?? INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
   );
   const tableRows = groups
     .flatMap((est) => [
@@ -223,8 +254,12 @@ function renderHierarchyGroupPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   hierarchyGroups: HierarchyGroupForParticipants[],
   typeLabels?: unknown,
+  diagnosticFilter?: RecorteDiagnosticFilterParams,
 ): string {
-  const aggregates = buildHierarchyGroupAggregates(rows, hierarchyGroups);
+  const aggregates = filterFlatDiagnosticGroups(
+    buildHierarchyGroupAggregates(rows, hierarchyGroups),
+    diagnosticFilter ?? INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  );
   const tableRows = aggregates
     .map((g) => renderAggregatePdfTableRow(g, ''))
     .join('');
@@ -240,8 +275,14 @@ function renderSectorWithHierarchyGroupPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   hierarchyGroups: HierarchyGroupForParticipants[],
   typeLabels?: unknown,
+  diagnosticFilter?: RecorteDiagnosticFilterParams,
 ): string {
-  const blocks = buildSectorWithHierarchyGroupAggregates(rows, hierarchyGroups);
+  const blocks = filterParentChildDiagnosticGroups(
+    buildSectorWithHierarchyGroupAggregates(rows, hierarchyGroups),
+    (block) => block.sectors,
+    (block, sectors, metrics) => ({ ...block, sectors, ...metrics }),
+    diagnosticFilter ?? INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  );
   const tableRows = blocks
     .flatMap((block) => [
       renderAggregatePdfTableRow(
@@ -269,9 +310,17 @@ function buildGroupedTableSection(
   rows: FormParticipantsBrowseResultModel[],
   hierarchyGroups: HierarchyGroupForParticipants[],
   typeLabels?: unknown,
+  diagnosticFilter?: RecorteDiagnosticFilterParams,
 ): string {
+  const filter = diagnosticFilter ?? INACTIVE_RECORTE_DIAGNOSTIC_FILTER;
+
   if (viewMode === 'grouped_hierarchy_group') {
-    return renderHierarchyGroupPdfSection(rows, hierarchyGroups, typeLabels);
+    return renderHierarchyGroupPdfSection(
+      rows,
+      hierarchyGroups,
+      typeLabels,
+      filter,
+    );
   }
 
   if (viewMode === 'grouped_sector_hierarchy_group') {
@@ -279,11 +328,15 @@ function buildGroupedTableSection(
       rows,
       hierarchyGroups,
       typeLabels,
+      filter,
     );
   }
 
   if (viewMode === 'grouped') {
-    const aggregates = buildSectorAggregates(rows);
+    const aggregates = filterFlatDiagnosticGroups(
+      buildSectorAggregates(rows),
+      filter,
+    );
     const tableRows = aggregates
       .map((g) =>
         renderAggregatePdfTableRow({ label: g.sectorLabel, ...g }, ''),
@@ -298,7 +351,10 @@ function buildGroupedTableSection(
   }
 
   if (viewMode === 'grouped_establishment') {
-    const aggregates = buildEstablishmentAggregates(rows);
+    const aggregates = filterFlatDiagnosticGroups(
+      buildEstablishmentAggregates(rows),
+      filter,
+    );
     const tableRows = aggregates
       .map((g) =>
         renderAggregatePdfTableRow(
@@ -316,7 +372,12 @@ function buildGroupedTableSection(
   }
 
   if (viewMode === 'grouped_establishment_sector') {
-    const groups = buildEstablishmentSectorAggregates(rows);
+    const groups = filterParentChildDiagnosticGroups(
+      buildEstablishmentSectorAggregates(rows),
+      (est) => est.sectors,
+      (est, sectors, metrics) => ({ ...est, sectors, ...metrics }),
+      filter,
+    );
     const tableRows = groups
       .flatMap((est) => [
         renderAggregatePdfTableRow(
@@ -341,12 +402,17 @@ function buildGroupedTableSection(
 
   const flatConfig = getFlatHierarchyGroupingConfig(viewMode);
   if (flatConfig) {
-    return renderFlatHierarchyPdfSection(rows, flatConfig, typeLabels);
+    return renderFlatHierarchyPdfSection(rows, flatConfig, typeLabels, filter);
   }
 
   const combinedConfig = getCombinedHierarchyGroupingConfig(viewMode);
   if (combinedConfig) {
-    return renderCombinedHierarchyPdfSection(rows, combinedConfig, typeLabels);
+    return renderCombinedHierarchyPdfSection(
+      rows,
+      combinedConfig,
+      typeLabels,
+      filter,
+    );
   }
 
   const establishmentHierarchyConfig =
@@ -356,6 +422,7 @@ function buildGroupedTableSection(
       rows,
       establishmentHierarchyConfig,
       typeLabels,
+      filter,
     );
   }
 
@@ -381,6 +448,7 @@ export const FormParticipantsRecorteExportButton = ({
   viewMode,
   typeLabels,
   hierarchyGroups: hierarchyGroupsProp,
+  diagnosticFilter,
   evolution,
 }: Props) => {
   const [loading, setLoading] = useState(false);
@@ -423,10 +491,27 @@ export const FormParticipantsRecorteExportButton = ({
           fs.totalParticipants > FORM_PARTICIPANTS_GROUPED_FETCH_CAP);
       const generatedAt = new Date().toLocaleString('pt-BR');
       const appName = formApplication?.name ?? applicationId;
-      const barColor = getResponseRateBarColor(fs.responseRatePercent);
-      const barW = Math.min(100, Math.max(0, fs.responseRatePercent));
 
-      const pctLabel = fs.responseRatePercent.toLocaleString('pt-BR', {
+      const activeDiagnosticFilter =
+        diagnosticFilter ?? INACTIVE_RECORTE_DIAGNOSTIC_FILTER;
+      const diagnosticFiltersActive =
+        isGroupedFetch && isRecorteDiagnosticFilterActive(activeDiagnosticFilter);
+      const displaySummary = diagnosticFiltersActive
+        ? deriveDiagnosticSummaryFromLeaves(
+            collectFilteredDiagnosticLeaves({
+              viewMode,
+              rows,
+              filter: activeDiagnosticFilter,
+              typeLabels,
+              hierarchyGroups,
+            }),
+          )
+        : fs;
+
+      const barColor = getResponseRateBarColor(displaySummary.responseRatePercent);
+      const barW = Math.min(100, Math.max(0, displaySummary.responseRatePercent));
+
+      const pctLabel = displaySummary.responseRatePercent.toLocaleString('pt-BR', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 1,
       });
@@ -474,6 +559,7 @@ export const FormParticipantsRecorteExportButton = ({
         rows,
         hierarchyGroups,
         typeLabels,
+        activeDiagnosticFilter,
       );
 
       let noteHtml = '';
@@ -489,8 +575,16 @@ export const FormParticipantsRecorteExportButton = ({
         noteHtml = `<p class="note">${fs.totalParticipants > EXPORT_ROW_CAP_LIST ? `Listagem limitada a ${EXPORT_ROW_CAP_LIST} linhas. ` : ''}Total no recorte: ${fs.totalParticipants} participantes.</p>`;
       }
 
+      const diagnosticNotesHtml = buildDiagnosticFilterPdfNotes(
+        activeDiagnosticFilter,
+      )
+        .map((line) => `<p class="note">${escapeHtml(line)}</p>`)
+        .join('');
+
       const titleMain = getGroupedPdfTitle(viewMode, typeLabels);
-      const evolutionHtml = buildAdherenceEvolutionPdfSection(evolution);
+      const evolutionHtml = diagnosticFiltersActive
+        ? ''
+        : buildAdherenceEvolutionPdfSection(evolution);
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Recorte — ${escapeHtml(appName)}</title>
         <style>${sharedStyles}</style></head><body>
@@ -502,10 +596,11 @@ export const FormParticipantsRecorteExportButton = ({
         <p class="section-title">Taxa de resposta no recorte</p>
         <div class="pct">${pctLabel}%</div>
         <div class="bar-wrap"><div class="bar"><div></div></div></div>
-        <div class="sub">Total: ${fs.totalParticipants} participantes | Responderam: ${fs.respondedCount} | Não responderam: ${fs.notRespondedCount}</div>
+        <div class="sub">Total: ${displaySummary.totalParticipants} participantes | Responderam: ${displaySummary.respondedCount} | Não responderam: ${displaySummary.notRespondedCount}</div>
         </div>
         ${evolutionHtml}
         ${tableSection}
+        ${diagnosticNotesHtml}
         ${noteHtml}
         </body></html>`;
 
@@ -528,6 +623,7 @@ export const FormParticipantsRecorteExportButton = ({
     viewMode,
     typeLabels,
     hierarchyGroupsProp,
+    diagnosticFilter,
     evolution,
   ]);
 

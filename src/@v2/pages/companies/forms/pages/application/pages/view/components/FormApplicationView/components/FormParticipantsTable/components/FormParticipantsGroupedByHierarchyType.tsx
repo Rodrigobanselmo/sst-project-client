@@ -1,5 +1,10 @@
 import { buildHierarchyTypeAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-type';
 import {
+  filterFlatDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
+import {
   getFlatHierarchyGroupColumnLabel,
   getFlatHierarchyMissingLabel,
   getFlatHierarchySelectLabel,
@@ -28,6 +33,7 @@ type Props = {
   isLoading: boolean;
   fetchCap: number;
   isPartialFetch: boolean;
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
 };
 
 export const FormParticipantsGroupedByHierarchyType = ({
@@ -36,16 +42,20 @@ export const FormParticipantsGroupedByHierarchyType = ({
   isLoading,
   fetchCap,
   isPartialFetch,
+  diagnosticFilter = INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
 }: Props) => {
   const typeLabels = useHierarchyTypeLabels();
   const aggregates = useMemo(
     () =>
-      buildHierarchyTypeAggregates(
-        rows,
-        config.hierarchyType,
-        getFlatHierarchyMissingLabel(config, typeLabels),
+      filterFlatDiagnosticGroups(
+        buildHierarchyTypeAggregates(
+          rows,
+          config.hierarchyType,
+          getFlatHierarchyMissingLabel(config, typeLabels),
+        ),
+        diagnosticFilter,
       ),
-    [rows, config, typeLabels],
+    [rows, config, typeLabels, diagnosticFilter],
   );
 
   if (isLoading) {

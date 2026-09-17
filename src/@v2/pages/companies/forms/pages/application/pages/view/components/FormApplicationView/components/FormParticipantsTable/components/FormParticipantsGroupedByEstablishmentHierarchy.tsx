@@ -1,5 +1,10 @@
 import { buildEstablishmentHierarchyAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-hierarchy';
 import {
+  filterParentChildDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
+import {
   getEstablishmentHierarchyHeaderColumnLabel,
   getEstablishmentHierarchyMissingLabel,
   getEstablishmentHierarchySelectLabel,
@@ -28,6 +33,7 @@ type Props = {
   isLoading: boolean;
   fetchCap: number;
   isPartialFetch: boolean;
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
 };
 
 function ResponseRateBar({ percent }: { percent: number }) {
@@ -64,16 +70,26 @@ export const FormParticipantsGroupedByEstablishmentHierarchy = ({
   isLoading,
   fetchCap,
   isPartialFetch,
+  diagnosticFilter = INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
 }: Props) => {
   const typeLabels = useHierarchyTypeLabels();
   const groups = useMemo(
     () =>
-      buildEstablishmentHierarchyAggregates(
-        rows,
-        config.hierarchyType,
-        getEstablishmentHierarchyMissingLabel(config, typeLabels),
+      filterParentChildDiagnosticGroups(
+        buildEstablishmentHierarchyAggregates(
+          rows,
+          config.hierarchyType,
+          getEstablishmentHierarchyMissingLabel(config, typeLabels),
+        ),
+        (est) => est.hierarchyGroups,
+        (est, hierarchyGroups, metrics) => ({
+          ...est,
+          hierarchyGroups,
+          ...metrics,
+        }),
+        diagnosticFilter,
       ),
-    [rows, config, typeLabels],
+    [rows, config, typeLabels, diagnosticFilter],
   );
 
   if (isLoading) {

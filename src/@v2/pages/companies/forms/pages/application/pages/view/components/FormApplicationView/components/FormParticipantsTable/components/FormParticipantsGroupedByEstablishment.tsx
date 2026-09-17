@@ -1,4 +1,9 @@
 import { buildEstablishmentAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment';
+import {
+  filterFlatDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
@@ -22,6 +27,7 @@ type Props = {
   isLoading: boolean;
   fetchCap: number;
   isPartialFetch: boolean;
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
 };
 
 export const FormParticipantsGroupedByEstablishment = ({
@@ -29,8 +35,16 @@ export const FormParticipantsGroupedByEstablishment = ({
   isLoading,
   fetchCap,
   isPartialFetch,
+  diagnosticFilter = INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
 }: Props) => {
-  const aggregates = useMemo(() => buildEstablishmentAggregates(rows), [rows]);
+  const aggregates = useMemo(
+    () =>
+      filterFlatDiagnosticGroups(
+        buildEstablishmentAggregates(rows),
+        diagnosticFilter,
+      ),
+    [rows, diagnosticFilter],
+  );
 
   if (isLoading) {
     return (

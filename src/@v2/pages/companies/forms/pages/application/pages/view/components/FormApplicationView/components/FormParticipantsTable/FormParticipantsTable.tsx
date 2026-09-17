@@ -23,6 +23,17 @@ import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-particip
 import { FORM_PARTICIPANTS_GROUPED_FETCH_CAP } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-all-filtered-form-participants';
 import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.types';
 import { coerceParticipantSearchQuery } from '@v2/models/form/helpers/coerce-participant-search-query';
+import {
+  ADHERENCE_BAND_FILTER_OPTIONS,
+  DIAGNOSTIC_CAPACITY_FILTER_OPTIONS,
+  deriveDiagnosticSummaryFromLeaves,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  isRecorteDiagnosticFilterActive,
+  RECORTE_DIAGNOSTIC_FILTERS_LIST_HINT,
+  type AdherenceBandFilter,
+  type DiagnosticCapacityFilter,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
+import { collectFilteredDiagnosticLeaves } from '@v2/models/form/helpers/form-participants-diagnostic-group-leaves';
 import { normalizeParticipantSearchTerm } from '@v2/models/form/helpers/normalize-participant-search-term';
 import { FormParticipantsTableFilter } from './components/FormParticipantsTableFilter/FormParticipantsTableFilter';
 import { FormParticipantsFilterSummary } from './components/FormParticipantsFilterSummary';
@@ -68,6 +79,7 @@ import { GrantFormReminderLimitModal } from './components/GrantFormReminderLimit
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import { useAccess } from 'core/hooks/useAccess';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
+import { useQueryFrpsPrivacySettings } from 'core/services/hooks/queries/useQueryFrpsPrivacySettings/useQueryFrpsPrivacySettings';
 import {
   Alert,
   Box,
@@ -77,6 +89,7 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Tooltip,
 } from '@mui/material';
 import {
   useCallback,
@@ -125,6 +138,7 @@ export const FormParticipantsTable = ({
   formApplication?: FormApplicationReadModel;
 }) => {
   const typeLabels = useHierarchyTypeLabels();
+  const { data: frpsPrivacySettings } = useQueryFrpsPrivacySettings(companyId);
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<FormParticipantsColumnsEnum, boolean>
   >(persistKeys.COLUMNS_FORMS_PARTICIPANTS, {} as any);
@@ -162,6 +176,10 @@ export const FormParticipantsTable = ({
 
   const [viewMode, setViewMode] = useState<ParticipantsViewMode>('list');
   const [viewModeMenuOpen, setViewModeMenuOpen] = useState(false);
+  const [diagnosticCapacity, setDiagnosticCapacity] =
+    useState<DiagnosticCapacityFilter>('all');
+  const [adherenceBand, setAdherenceBand] =
+    useState<AdherenceBandFilter>('all');
 
   const participantWorkspacesCount =
     formApplication?.participants?.workspaces?.length ?? 0;
@@ -377,7 +395,31 @@ export const FormParticipantsTable = ({
 
   const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
-  const filterSummaryForUi = useMemo(
+  const diagnosticFilter = useMemo(
+    () =>
+      viewMode === 'list'
+        ? INACTIVE_RECORTE_DIAGNOSTIC_FILTER
+        : {
+            capacity: diagnosticCapacity,
+            adherenceBand,
+            indicatorsMinParticipants:
+              frpsPrivacySettings.indicatorsMinParticipants,
+            isShareableLink: formApplication?.isShareableLink ?? false,
+          },
+    [
+      viewMode,
+      diagnosticCapacity,
+      adherenceBand,
+      frpsPrivacySettings.indicatorsMinParticipants,
+      formApplication?.isShareableLink,
+    ],
+  );
+
+  const diagnosticFiltersActive = isRecorteDiagnosticFilterActive(
+    diagnosticFilter,
+  );
+
+  const apiFilterSummary = useMemo(
     () =>
       formParticipants?.filterSummary ?? {
         totalParticipants: 0,
@@ -523,6 +565,10 @@ export const FormParticipantsTable = ({
           workspaces: formApplication?.participants?.workspaces,
         });
       }
+      if (next === 'list') {
+        setDiagnosticCapacity('all');
+        setAdherenceBand('all');
+      }
       setViewMode(next);
       setViewModeMenuOpen(false);
     },
@@ -563,7 +609,7 @@ export const FormParticipantsTable = ({
   };
 
   const groupedRowsCount = groupedRows.length;
-  const recorteTotalParticipants = filterSummaryForUi.totalParticipants;
+  const recorteTotalParticipants = apiFilterSummary.totalParticipants;
   const isGroupedOverCap =
     isGroupedViewMode(viewMode) &&
     groupedParticipants != null &&
@@ -575,14 +621,36 @@ export const FormParticipantsTable = ({
     recorteTotalParticipants > 0 &&
     groupedRowsCount < recorteTotalParticipants;
 
+  const filterSummaryForUi = useMemo(() => {
+    if (!diagnosticFiltersActive) return apiFilterSummary;
+    return deriveDiagnosticSummaryFromLeaves(
+      collectFilteredDiagnosticLeaves({
+        viewMode,
+        rows: groupedRows,
+        filter: diagnosticFilter,
+        typeLabels,
+        hierarchyGroups: hierarchyGroupsForGrouping,
+      }),
+    );
+  }, [
+    diagnosticFiltersActive,
+    apiFilterSummary,
+    viewMode,
+    groupedRows,
+    diagnosticFilter,
+    typeLabels,
+    hierarchyGroupsForGrouping,
+  ]);
+
   const groupedTableProps = useMemo(
     () => ({
       rows: groupedRows,
       isLoading: groupedTableLoading,
       fetchCap: FORM_PARTICIPANTS_GROUPED_FETCH_CAP,
       isPartialFetch: false,
+      diagnosticFilter,
     }),
-    [groupedRows, groupedTableLoading],
+    [groupedRows, groupedTableLoading, diagnosticFilter],
   );
 
   const renderGroupedContent = () => {
@@ -690,10 +758,11 @@ export const FormParticipantsTable = ({
     <>
       <FormParticipantsFilterSummary
         summary={filterSummaryForUi}
-        isLoading={isLoading}
+        isLoading={diagnosticFiltersActive ? groupedTableLoading : isLoading}
         evolution={evolution}
         evolutionLoading={isEvolutionLoading}
         evolutionError={isEvolutionError}
+        hideEvolutionForGroupFilter={diagnosticFiltersActive}
       />
       <STableSearch
         search={searchInput}
@@ -715,8 +784,13 @@ export const FormParticipantsTable = ({
                 ? hierarchyGroupsForGrouping
                 : undefined
             }
+            diagnosticFilter={diagnosticFilter}
             evolution={
-              !isEvolutionError && !isEvolutionLoading ? evolution : undefined
+              diagnosticFiltersActive
+                ? undefined
+                : !isEvolutionError && !isEvolutionLoading
+                  ? evolution
+                  : undefined
             }
           />
           <STableButton
@@ -793,7 +867,16 @@ export const FormParticipantsTable = ({
           ))}
         </STableFilterChipList>
       </STableInfoSection>
-      <Box sx={{ mb: 2, maxWidth: 420 }}>
+      <Box
+        sx={{
+          mb: 2,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          alignItems: 'flex-start',
+        }}
+      >
+        <Box sx={{ minWidth: 280, maxWidth: 420, flex: '1 1 280px' }}>
         <FormControl fullWidth size="small">
           <InputLabel id="form-participants-view-mode">
             Modo de visualização
@@ -927,6 +1010,73 @@ export const FormParticipantsTable = ({
             ) : null}
           </Select>
         </FormControl>
+        </Box>
+        <Tooltip
+          title={
+            viewMode === 'list' ? RECORTE_DIAGNOSTIC_FILTERS_LIST_HINT : ''
+          }
+          disableHoverListener={viewMode !== 'list'}
+        >
+          <span>
+            <FormControl
+              size="small"
+              sx={{ minWidth: 260 }}
+              disabled={viewMode === 'list'}
+            >
+              <InputLabel id="form-participants-diagnostic-capacity">
+                Capacidade diagnóstica
+              </InputLabel>
+              <Select
+                labelId="form-participants-diagnostic-capacity"
+                label="Capacidade diagnóstica"
+                value={diagnosticCapacity}
+                onChange={(event) =>
+                  setDiagnosticCapacity(
+                    event.target.value as DiagnosticCapacityFilter,
+                  )
+                }
+              >
+                {DIAGNOSTIC_CAPACITY_FILTER_OPTIONS.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </span>
+        </Tooltip>
+        <Tooltip
+          title={
+            viewMode === 'list' ? RECORTE_DIAGNOSTIC_FILTERS_LIST_HINT : ''
+          }
+          disableHoverListener={viewMode !== 'list'}
+        >
+          <span>
+            <FormControl
+              size="small"
+              sx={{ minWidth: 220 }}
+              disabled={viewMode === 'list'}
+            >
+              <InputLabel id="form-participants-adherence-band">
+                Faixa de adesão
+              </InputLabel>
+              <Select
+                labelId="form-participants-adherence-band"
+                label="Faixa de adesão"
+                value={adherenceBand}
+                onChange={(event) =>
+                  setAdherenceBand(event.target.value as AdherenceBandFilter)
+                }
+              >
+                {ADHERENCE_BAND_FILTER_OPTIONS.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </span>
+        </Tooltip>
       </Box>
       {viewMode === 'list' ? (
         <SFormParticipantsTable

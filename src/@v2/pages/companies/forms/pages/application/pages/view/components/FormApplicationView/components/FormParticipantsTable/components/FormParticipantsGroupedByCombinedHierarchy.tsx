@@ -11,6 +11,11 @@ import {
 } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
+import {
+  filterCombinedHierarchyDiagnosticGroups,
+  INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
+  type RecorteDiagnosticFilterParams,
+} from '@v2/models/form/helpers/form-participants-diagnostic-group-filters';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
   Alert,
@@ -32,6 +37,7 @@ type Props = {
   isLoading: boolean;
   fetchCap: number;
   isPartialFetch: boolean;
+  diagnosticFilter?: RecorteDiagnosticFilterParams;
 };
 
 function ResponseRateBar({ percent }: { percent: number }) {
@@ -143,16 +149,20 @@ export const FormParticipantsGroupedByCombinedHierarchy = ({
   isLoading,
   fetchCap,
   isPartialFetch,
+  diagnosticFilter = INACTIVE_RECORTE_DIAGNOSTIC_FILTER,
 }: Props) => {
   const typeLabels = useHierarchyTypeLabels();
   const groups = useMemo(
     () =>
-      buildCombinedHierarchyNestedAggregates(
-        rows,
-        getCombinedHierarchyLevelsForDisplay(config.viewMode, typeLabels) ??
-          config.levels,
+      filterCombinedHierarchyDiagnosticGroups(
+        buildCombinedHierarchyNestedAggregates(
+          rows,
+          getCombinedHierarchyLevelsForDisplay(config.viewMode, typeLabels) ??
+            config.levels,
+        ),
+        diagnosticFilter,
       ),
-    [rows, config.viewMode, config.levels, typeLabels],
+    [rows, config.viewMode, config.levels, typeLabels, diagnosticFilter],
   );
 
   if (isLoading) {
