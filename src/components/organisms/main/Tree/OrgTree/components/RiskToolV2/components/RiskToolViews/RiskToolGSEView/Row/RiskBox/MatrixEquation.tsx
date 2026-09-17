@@ -1,61 +1,9 @@
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SScaleFactorPill } from 'components/atoms/SScaleFactorPill';
 import SText from 'components/atoms/SText';
 
-/** Mesma escala de cores do STag (action 1–6). */
-function scaleColor(level?: number | null): string {
-  switch (level) {
-    case 1:
-      return 'scale.low';
-    case 2:
-      return 'scale.mediumLow';
-    case 3:
-      return 'scale.medium';
-    case 4:
-      return 'scale.mediumHigh';
-    case 5:
-      return 'scale.high';
-    case 6:
-      return 'common.black';
-    default:
-      return 'grey.300';
-  }
-}
-
-function FactorPill({
-  kind,
-  value,
-}: {
-  kind: 'P' | 'S';
-  value?: number | null;
-}) {
-  const hasValue = typeof value === 'number' && value > 0;
-  const bg = hasValue ? scaleColor(Math.min(value, 6)) : 'grey.200';
-
-  return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 34,
-        height: 22,
-        px: 1.5,
-        borderRadius: '999px',
-        backgroundColor: bg,
-        color: hasValue && bg !== 'grey.200' ? 'common.white' : 'text.secondary',
-        fontSize: 11,
-        fontWeight: 700,
-        lineHeight: 1,
-        letterSpacing: 0.2,
-        boxShadow: '0px 1px 1px 0px rgb(0 0 0 / 5%)',
-      }}
-    >
-      {hasValue ? `${kind}${value}` : `${kind}--`}
-    </Box>
-  );
-}
+import { getSimpleSstScaleChipColors } from 'core/utils/helpers/simple-sst-scale-chip.util';
 
 /** Largura fixa para caber “Muito Alto” / “Não informado” sem variar linha a linha. */
 const RESULT_PILL_MIN_WIDTH = 96;
@@ -68,7 +16,9 @@ function ResultPill({
   level?: number | null;
 }) {
   const hasLevel = typeof level === 'number' && level > 0;
-  const bg = hasLevel ? scaleColor(level) : 'grey.200';
+  const chip = hasLevel
+    ? getSimpleSstScaleChipColors(level)
+    : { bgcolor: 'grey.200', color: 'text.secondary' };
 
   return (
     <Box
@@ -82,8 +32,8 @@ function ResultPill({
         height: 22,
         px: 1.5,
         borderRadius: '999px',
-        backgroundColor: bg,
-        color: hasLevel ? 'common.white' : 'text.secondary',
+        backgroundColor: chip.bgcolor,
+        color: chip.color,
         fontSize: 11,
         fontWeight: 600,
         lineHeight: 1,
@@ -125,7 +75,7 @@ export function MatrixEquation({
         </SText>
       ) : (
         <>
-          <FactorPill kind="P" value={probability} />
+          <SScaleFactorPill kind="P" value={probability} />
           <SText
             component="span"
             fontSize={11}
@@ -136,7 +86,7 @@ export function MatrixEquation({
           >
             e
           </SText>
-          <FactorPill kind="S" value={severity} />
+          <SScaleFactorPill kind="S" value={severity} />
           <SText
             component="span"
             fontSize={13}

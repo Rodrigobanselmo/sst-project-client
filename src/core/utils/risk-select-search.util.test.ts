@@ -153,6 +153,11 @@ describe('risk-select-search.util', () => {
     assert.equal(mapped.id, anidroOriginal.id);
   });
 
+  it('mantém severity do catálogo no option do seletor', () => {
+    const mapped = mapRiskSelectSearchFields({ ...anidroOriginal, severity: 4 });
+    assert.equal(mapped.severity, 4);
+  });
+
   it('objeto devolvido ao consumidor não contém casDigits', () => {
     const indexed = mapRiskSelectSearchFields(anidroOriginal);
     const returned = resolveSelectedRisk([anidroOriginal], indexed);

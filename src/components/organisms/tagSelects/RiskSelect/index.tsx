@@ -9,6 +9,7 @@ import { initialAddRiskState } from 'components/organisms/modals/ModalAddRisk/ho
 import { RiskEnum } from 'project/enum/risk.enums';
 
 import EditIcon from 'assets/icons/SEditIcon';
+import { SScaleFactorPill } from 'components/atoms/SScaleFactorPill';
 import { STagRisk } from 'components/atoms/STagRisk';
 
 import { IdsEnum } from 'core/enums/ids.enums';
@@ -148,18 +149,34 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
         ) : null
       }
       endAdornment={(options: IRiskFactors | undefined) => {
+        const severity = options?.severity;
+        const showSeverity = typeof severity === 'number' && severity >= 1;
+
         return (
-          <STooltip enterDelay={1200} withWrapper title={'editar'}>
-            <SIconButton
-              onClick={(e) => handleEditRisk(e, options)}
-              sx={{ width: '2rem', height: '2rem' }}
-            >
-              <Icon
-                sx={{ color: 'text.light', fontSize: '18px' }}
-                component={EditIcon}
-              />
-            </SIconButton>
-          </STooltip>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              flexShrink: 0,
+              gap: 0.25,
+              ml: 1,
+            }}
+          >
+            {showSeverity ? (
+              <SScaleFactorPill kind="S" value={severity} />
+            ) : null}
+            <STooltip enterDelay={1200} withWrapper title={'editar'}>
+              <SIconButton
+                onClick={(e) => handleEditRisk(e, options)}
+                sx={{ width: '2rem', height: '2rem' }}
+              >
+                <Icon
+                  sx={{ color: 'text.light', fontSize: '18px' }}
+                  component={EditIcon}
+                />
+              </SIconButton>
+            </STooltip>
+          </Box>
         );
       }}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}

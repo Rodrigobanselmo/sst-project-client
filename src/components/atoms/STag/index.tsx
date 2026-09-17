@@ -1,5 +1,10 @@
 import React, { FC } from 'react';
 
+import {
+  getSimpleSstScaleChipColors,
+  isSimpleSstScaleAction,
+} from 'core/utils/helpers/simple-sst-scale-chip.util';
+
 import SFlex from '../SFlex';
 import SText from '../SText';
 import { ISTagProps } from './types';
@@ -13,20 +18,12 @@ export const STag: FC<{ children?: any } & ISTagProps> = ({
 }) => {
   if (action === 'none') return null;
 
+  const scaleChip = isSimpleSstScaleAction(action)
+    ? getSimpleSstScaleChipColors(Number(action))
+    : null;
+
   const color = () => {
     switch (action) {
-      case '1':
-        return 'scale.low';
-      case '2':
-        return 'scale.mediumLow';
-      case '3':
-        return 'scale.medium';
-      case '4':
-        return 'scale.mediumHigh';
-      case '5':
-        return 'scale.high';
-      case '6':
-        return 'common.black';
       case 'add':
         return 'tag.add';
       case 'main':
@@ -51,10 +48,15 @@ export const STag: FC<{ children?: any } & ISTagProps> = ({
     }
   };
 
+  const backgroundColor = scaleChip?.bgcolor ?? color();
+  const textColor =
+    scaleChip?.color ??
+    (color() !== 'grey.100' ? 'common.white' : 'text.main');
+
   return (
     <SFlex
       sx={{
-        backgroundColor: color(),
+        backgroundColor,
         borderRadius: '3px',
         pr: 8,
         pl: 8,
@@ -67,14 +69,14 @@ export const STag: FC<{ children?: any } & ISTagProps> = ({
     >
       <SText
         sx={{
-          color: color() !== 'grey.100' ? 'common.white' : 'text.main',
+          color: textColor,
           fontSize: '14px',
           textAlign: 'center',
         }}
       >
         {text}
       </SText>
-      {Icon && <Icon sx={{ fontSize: '18px', color: 'common.white' }} />}
+      {Icon && <Icon sx={{ fontSize: '18px', color: textColor }} />}
     </SFlex>
   );
 };
