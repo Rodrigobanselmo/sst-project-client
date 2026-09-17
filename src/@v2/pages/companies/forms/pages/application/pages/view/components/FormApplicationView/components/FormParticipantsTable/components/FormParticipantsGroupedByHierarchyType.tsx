@@ -1,6 +1,7 @@
 import { buildHierarchyTypeAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-type';
 import {
   getFlatHierarchyGroupColumnLabel,
+  getFlatHierarchyMissingLabel,
   getFlatHierarchySelectLabel,
   type FlatHierarchyGroupingConfig,
 } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
@@ -42,9 +43,9 @@ export const FormParticipantsGroupedByHierarchyType = ({
       buildHierarchyTypeAggregates(
         rows,
         config.hierarchyType,
-        config.missingLabel,
+        getFlatHierarchyMissingLabel(config, typeLabels),
       ),
-    [rows, config.hierarchyType, config.missingLabel],
+    [rows, config, typeLabels],
   );
 
   if (isLoading) {

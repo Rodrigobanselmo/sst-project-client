@@ -1,6 +1,7 @@
 import { buildEstablishmentHierarchyAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-hierarchy';
 import {
   getEstablishmentHierarchyHeaderColumnLabel,
+  getEstablishmentHierarchyMissingLabel,
   getEstablishmentHierarchySelectLabel,
   type EstablishmentHierarchyGroupingConfig,
 } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
@@ -70,9 +71,9 @@ export const FormParticipantsGroupedByEstablishmentHierarchy = ({
       buildEstablishmentHierarchyAggregates(
         rows,
         config.hierarchyType,
-        config.missingLabel,
+        getEstablishmentHierarchyMissingLabel(config, typeLabels),
       ),
-    [rows, config.hierarchyType, config.missingLabel],
+    [rows, config, typeLabels],
   );
 
   if (isLoading) {

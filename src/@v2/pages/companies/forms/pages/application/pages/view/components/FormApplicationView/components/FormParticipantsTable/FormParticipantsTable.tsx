@@ -709,6 +709,7 @@ export const FormParticipantsTable = ({
             orderBy={orderByForExport}
             hierarchyLabels={hierarchyFilterDescription}
             viewMode={viewMode}
+            typeLabels={typeLabels}
             hierarchyGroups={
               isHierarchyGroupViewMode(viewMode)
                 ? hierarchyGroupsForGrouping

@@ -1,9 +1,13 @@
+import type { CombinedHierarchyLevelConfig } from '@v2/models/form/helpers/form-participants-aggregate-by-combined-hierarchy';
 import {
   formatAgrupadoPor,
   formatAgrupadoPorEstabelecimentoE,
+  formatPorSectionTitle,
   resolveCombinedHierarchyColumnLabel,
+  resolveCombinedHierarchySectionTitle,
   resolveCombinedHierarchySelectLabel,
   resolveFormHierarchyTypeLabel,
+  resolveMissingHierarchyTypeLabel,
   toFormHierarchySelectPart,
 } from '@v2/models/form/helpers/form-hierarchy-type-presentation.util';
 import {
@@ -338,6 +342,36 @@ export function getHierarchyGroupSelectLabel(
   return `Agrupado por ${sector} + agrupamento de setores`;
 }
 
+export function getFlatHierarchyMissingLabel(
+  config: FlatHierarchyGroupingConfig,
+  companyLabels?: unknown,
+): string {
+  return resolveMissingHierarchyTypeLabel(config.hierarchyType, companyLabels);
+}
+
+export function getEstablishmentHierarchyMissingLabel(
+  config: EstablishmentHierarchyGroupingConfig,
+  companyLabels?: unknown,
+): string {
+  return resolveMissingHierarchyTypeLabel(config.hierarchyType, companyLabels);
+}
+
+export function getCombinedHierarchyLevelsForDisplay(
+  viewMode: ParticipantsViewMode,
+  companyLabels?: unknown,
+): CombinedHierarchyLevelConfig[] | undefined {
+  const combined = getCombinedHierarchyGroupingConfig(viewMode);
+  if (!combined) return undefined;
+
+  return combined.levels.map((level) => ({
+    kind: level.kind,
+    missingLabel:
+      level.kind === 'ESTABLISHMENT'
+        ? level.missingLabel
+        : resolveMissingHierarchyTypeLabel(level.kind, companyLabels),
+  }));
+}
+
 export function getParticipantsViewModeSelectLabel(
   viewMode: ParticipantsViewMode,
   companyLabels?: unknown,
@@ -369,21 +403,105 @@ export function getParticipantsViewModeSelectLabel(
   return viewMode;
 }
 
-export function getGroupedPdfTitle(viewMode: ParticipantsViewMode): string {
-  const flat = getFlatHierarchyGroupingConfig(viewMode);
-  if (flat) return flat.pdfTitle;
-  const combined = getCombinedHierarchyGroupingConfig(viewMode);
-  if (combined) return combined.pdfTitle;
-  const est = getEstablishmentHierarchyGroupingConfig(viewMode);
-  if (est) return est.pdfTitle;
-  const hierarchyGroup = getHierarchyGroupGroupingConfig(viewMode);
-  if (hierarchyGroup) return hierarchyGroup.pdfTitle;
-  if (viewMode === 'grouped') return 'Recorte filtrado — agrupado por setor';
-  if (viewMode === 'grouped_establishment') {
-    return 'Recorte filtrado — agrupado por estabelecimento';
+export function getGroupedPdfTitle(
+  viewMode: ParticipantsViewMode,
+  companyLabels?: unknown,
+): string {
+  if (viewMode === 'list') {
+    return 'Participantes — recorte filtrado (lista detalhada)';
   }
+
+  return `Recorte filtrado — ${getParticipantsViewModeSelectLabel(
+    viewMode,
+    companyLabels,
+  ).toLocaleLowerCase('pt-BR')}`;
+}
+
+export function getGroupedPdfSectionTitle(
+  viewMode: ParticipantsViewMode,
+  companyLabels?: unknown,
+): string {
+  if (viewMode === 'list') return 'Lista de participantes';
+  if (viewMode === 'grouped') {
+    return formatPorSectionTitle([
+      resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, companyLabels),
+    ]);
+  }
+  if (viewMode === 'grouped_establishment') return 'Por estabelecimento';
   if (viewMode === 'grouped_establishment_sector') {
-    return 'Recorte filtrado — agrupado por estabelecimento e setor';
+    return formatPorSectionTitle([
+      'Estabelecimento',
+      resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, companyLabels),
+    ]);
   }
-  return 'Participantes — recorte filtrado (lista detalhada)';
+  if (viewMode === 'grouped_hierarchy_group') {
+    return 'Por agrupamento de setores';
+  }
+  if (viewMode === 'grouped_sector_hierarchy_group') {
+    return `Por agrupamento e ${toFormHierarchySelectPart(
+      resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, companyLabels),
+    )}`;
+  }
+
+  const flat = getFlatHierarchyGroupingConfig(viewMode);
+  if (flat) {
+    return formatPorSectionTitle([
+      resolveFormHierarchyTypeLabel(flat.hierarchyType, companyLabels),
+    ]);
+  }
+
+  const combined = getCombinedHierarchyGroupingConfig(viewMode);
+  if (combined) {
+    return resolveCombinedHierarchySectionTitle(
+      combined.levels.map((level) => level.kind),
+      companyLabels,
+    );
+  }
+
+  const est = getEstablishmentHierarchyGroupingConfig(viewMode);
+  if (est) {
+    return formatPorSectionTitle([
+      'Estabelecimento',
+      resolveFormHierarchyTypeLabel(est.hierarchyType, companyLabels),
+    ]);
+  }
+
+  return 'Lista de participantes';
+}
+
+export function getGroupedPdfColumnLabel(
+  viewMode: ParticipantsViewMode,
+  companyLabels?: unknown,
+): string {
+  if (viewMode === 'list') return 'Setor / hierarquia';
+  if (viewMode === 'grouped') {
+    return resolveFormHierarchyTypeLabel(HierarchyTypeEnum.SECTOR, companyLabels);
+  }
+  if (viewMode === 'grouped_establishment') return 'Estabelecimento';
+  if (viewMode === 'grouped_establishment_sector') {
+    return `Estabelecimento / ${resolveFormHierarchyTypeLabel(
+      HierarchyTypeEnum.SECTOR,
+      companyLabels,
+    )}`;
+  }
+  if (viewMode === 'grouped_hierarchy_group') {
+    return 'Agrupamento de setores';
+  }
+  if (viewMode === 'grouped_sector_hierarchy_group') {
+    return `Agrupamento / ${resolveFormHierarchyTypeLabel(
+      HierarchyTypeEnum.SECTOR,
+      companyLabels,
+    )}`;
+  }
+
+  const flat = getFlatHierarchyGroupingConfig(viewMode);
+  if (flat) return getFlatHierarchyGroupColumnLabel(flat, companyLabels);
+
+  const combined = getCombinedHierarchyColumnLabel(viewMode, companyLabels);
+  if (combined) return combined;
+
+  const est = getEstablishmentHierarchyGroupingConfig(viewMode);
+  if (est) return getEstablishmentHierarchyHeaderColumnLabel(est, companyLabels);
+
+  return 'Setor / hierarquia';
 }

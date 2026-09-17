@@ -46,3 +46,25 @@ export function resolveCombinedHierarchyColumnLabel(
     .map((kind) => resolveCombinedLevelLabel(kind, companyLabels))
     .join(' / ');
 }
+
+export function formatPorSectionTitle(parts: string[]): string {
+  return `Por ${parts.map(toFormHierarchySelectPart).join(' e ')}`;
+}
+
+export function resolveCombinedHierarchySectionTitle(
+  kinds: CombinedHierarchyLevelKind[],
+  companyLabels?: unknown,
+): string {
+  return formatPorSectionTitle(
+    kinds.map((kind) => resolveCombinedLevelLabel(kind, companyLabels)),
+  );
+}
+
+export function resolveMissingHierarchyTypeLabel(
+  type: HierarchyTypeEnum,
+  companyLabels?: unknown,
+): string {
+  return `Sem ${toFormHierarchySelectPart(
+    resolveFormHierarchyTypeLabel(type, companyLabels),
+  )}`;
+}

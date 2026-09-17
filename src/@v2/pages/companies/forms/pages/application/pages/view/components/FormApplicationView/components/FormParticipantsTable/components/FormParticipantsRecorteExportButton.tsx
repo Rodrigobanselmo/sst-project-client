@@ -24,10 +24,14 @@ import {
 } from '@v2/models/form/helpers/form-participants-aggregate-by-combined-hierarchy';
 import {
   getCombinedHierarchyGroupingConfig,
+  getCombinedHierarchyLevelsForDisplay,
   getEstablishmentHierarchyGroupingConfig,
+  getEstablishmentHierarchyMissingLabel,
   getFlatHierarchyGroupingConfig,
+  getFlatHierarchyMissingLabel,
+  getGroupedPdfColumnLabel,
+  getGroupedPdfSectionTitle,
   getGroupedPdfTitle,
-  getHierarchyGroupGroupingConfig,
   isGroupedViewMode,
   isHierarchyGroupViewMode,
   type FormParticipantsPdfViewMode,
@@ -61,6 +65,7 @@ type Props = {
   orderBy: IOrderByParams<FormParticipantsOrderByEnum>[];
   hierarchyLabels: string;
   viewMode: FormParticipantsPdfViewMode;
+  typeLabels?: unknown;
   hierarchyGroups?: HierarchyGroupForParticipants[];
   /** Série já carregada na tela. Ausência = PDF antigo, sem gráfico. */
   evolution?: IFormParticipantsAdherenceEvolutionModel;
@@ -144,11 +149,12 @@ function renderCombinedHierarchyNestedPdfRows(
 function renderFlatHierarchyPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   config: NonNullable<ReturnType<typeof getFlatHierarchyGroupingConfig>>,
+  typeLabels?: unknown,
 ): string {
   const aggregates = buildHierarchyTypeAggregates(
     rows,
     config.hierarchyType,
-    config.missingLabel,
+    getFlatHierarchyMissingLabel(config, typeLabels),
   );
   const tableRows = aggregates
     .map((g) =>
@@ -156,9 +162,9 @@ function renderFlatHierarchyPdfSection(
     )
     .join('');
 
-  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(config.viewMode, typeLabels))}</h2>
         <table><thead><tr>
-          <th>${escapeHtml(config.groupColumnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel(config.viewMode, typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 }
@@ -166,13 +172,17 @@ function renderFlatHierarchyPdfSection(
 function renderCombinedHierarchyPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   config: NonNullable<ReturnType<typeof getCombinedHierarchyGroupingConfig>>,
+  typeLabels?: unknown,
 ): string {
-  const groups = buildCombinedHierarchyNestedAggregates(rows, config.levels);
+  const levels =
+    getCombinedHierarchyLevelsForDisplay(config.viewMode, typeLabels) ??
+    config.levels;
+  const groups = buildCombinedHierarchyNestedAggregates(rows, levels);
   const tableRows = renderCombinedHierarchyNestedPdfRows(groups).join('');
 
-  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(config.viewMode, typeLabels))}</h2>
         <table><thead><tr>
-          <th>${escapeHtml(config.columnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel(config.viewMode, typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 }
@@ -180,11 +190,12 @@ function renderCombinedHierarchyPdfSection(
 function renderEstablishmentHierarchyPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   config: NonNullable<ReturnType<typeof getEstablishmentHierarchyGroupingConfig>>,
+  typeLabels?: unknown,
 ): string {
   const groups = buildEstablishmentHierarchyAggregates(
     rows,
     config.hierarchyType,
-    config.missingLabel,
+    getEstablishmentHierarchyMissingLabel(config, typeLabels),
   );
   const tableRows = groups
     .flatMap((est) => [
@@ -201,9 +212,9 @@ function renderEstablishmentHierarchyPdfSection(
     ])
     .join('');
 
-  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(config.viewMode, typeLabels))}</h2>
         <table><thead><tr>
-          <th>${escapeHtml(config.headerColumnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel(config.viewMode, typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 }
@@ -211,16 +222,16 @@ function renderEstablishmentHierarchyPdfSection(
 function renderHierarchyGroupPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   hierarchyGroups: HierarchyGroupForParticipants[],
+  typeLabels?: unknown,
 ): string {
-  const config = getHierarchyGroupGroupingConfig('grouped_hierarchy_group')!;
   const aggregates = buildHierarchyGroupAggregates(rows, hierarchyGroups);
   const tableRows = aggregates
     .map((g) => renderAggregatePdfTableRow(g, ''))
     .join('');
 
-  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle('grouped_hierarchy_group', typeLabels))}</h2>
         <table><thead><tr>
-          <th>${escapeHtml(config.columnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel('grouped_hierarchy_group', typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 }
@@ -228,8 +239,8 @@ function renderHierarchyGroupPdfSection(
 function renderSectorWithHierarchyGroupPdfSection(
   rows: FormParticipantsBrowseResultModel[],
   hierarchyGroups: HierarchyGroupForParticipants[],
+  typeLabels?: unknown,
 ): string {
-  const config = getHierarchyGroupGroupingConfig('grouped_sector_hierarchy_group')!;
   const blocks = buildSectorWithHierarchyGroupAggregates(rows, hierarchyGroups);
   const tableRows = blocks
     .flatMap((block) => [
@@ -246,9 +257,9 @@ function renderSectorWithHierarchyGroupPdfSection(
     ])
     .join('');
 
-  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle('grouped_sector_hierarchy_group', typeLabels))}</h2>
         <table><thead><tr>
-          <th>${escapeHtml(config.nestedHeaderColumnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel('grouped_sector_hierarchy_group', typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 }
@@ -257,13 +268,18 @@ function buildGroupedTableSection(
   viewMode: FormParticipantsPdfViewMode,
   rows: FormParticipantsBrowseResultModel[],
   hierarchyGroups: HierarchyGroupForParticipants[],
+  typeLabels?: unknown,
 ): string {
   if (viewMode === 'grouped_hierarchy_group') {
-    return renderHierarchyGroupPdfSection(rows, hierarchyGroups);
+    return renderHierarchyGroupPdfSection(rows, hierarchyGroups, typeLabels);
   }
 
   if (viewMode === 'grouped_sector_hierarchy_group') {
-    return renderSectorWithHierarchyGroupPdfSection(rows, hierarchyGroups);
+    return renderSectorWithHierarchyGroupPdfSection(
+      rows,
+      hierarchyGroups,
+      typeLabels,
+    );
   }
 
   if (viewMode === 'grouped') {
@@ -274,9 +290,9 @@ function buildGroupedTableSection(
       )
       .join('');
 
-    return `<h2 style="font-size:15px;margin:20px 0 8px">Por setor</h2>
+    return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(viewMode, typeLabels))}</h2>
         <table><thead><tr>
-          <th>Setor</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel(viewMode, typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
   }
@@ -292,9 +308,9 @@ function buildGroupedTableSection(
       )
       .join('');
 
-    return `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento</h2>
+    return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(viewMode, typeLabels))}</h2>
         <table><thead><tr>
-          <th>Estabelecimento</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel(viewMode, typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
   }
@@ -316,19 +332,21 @@ function buildGroupedTableSection(
       ])
       .join('');
 
-    return `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento e setor</h2>
+    return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(viewMode, typeLabels))}</h2>
         <table><thead><tr>
-          <th>Estabelecimento / Setor</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th>${escapeHtml(getGroupedPdfColumnLabel(viewMode, typeLabels))}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
   }
 
   const flatConfig = getFlatHierarchyGroupingConfig(viewMode);
-  if (flatConfig) return renderFlatHierarchyPdfSection(rows, flatConfig);
+  if (flatConfig) {
+    return renderFlatHierarchyPdfSection(rows, flatConfig, typeLabels);
+  }
 
   const combinedConfig = getCombinedHierarchyGroupingConfig(viewMode);
   if (combinedConfig) {
-    return renderCombinedHierarchyPdfSection(rows, combinedConfig);
+    return renderCombinedHierarchyPdfSection(rows, combinedConfig, typeLabels);
   }
 
   const establishmentHierarchyConfig =
@@ -337,6 +355,7 @@ function buildGroupedTableSection(
     return renderEstablishmentHierarchyPdfSection(
       rows,
       establishmentHierarchyConfig,
+      typeLabels,
     );
   }
 
@@ -347,8 +366,8 @@ function buildGroupedTableSection(
     })
     .join('');
 
-  return `<h2 style="font-size:15px;margin:20px 0 8px">Lista de participantes</h2>
-        <table><thead><tr><th>Nome</th><th>Estabelecimento</th><th>Setor / hierarquia</th><th>Respondeu</th></tr></thead>
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(getGroupedPdfSectionTitle(viewMode, typeLabels))}</h2>
+        <table><thead><tr><th>Nome</th><th>Estabelecimento</th><th>${escapeHtml(getGroupedPdfColumnLabel(viewMode, typeLabels))}</th><th>Respondeu</th></tr></thead>
         <tbody>${tableRows}</tbody></table>`;
 }
 
@@ -360,6 +379,7 @@ export const FormParticipantsRecorteExportButton = ({
   orderBy,
   hierarchyLabels,
   viewMode,
+  typeLabels,
   hierarchyGroups: hierarchyGroupsProp,
   evolution,
 }: Props) => {
@@ -453,6 +473,7 @@ export const FormParticipantsRecorteExportButton = ({
         viewMode,
         rows,
         hierarchyGroups,
+        typeLabels,
       );
 
       let noteHtml = '';
@@ -468,7 +489,7 @@ export const FormParticipantsRecorteExportButton = ({
         noteHtml = `<p class="note">${fs.totalParticipants > EXPORT_ROW_CAP_LIST ? `Listagem limitada a ${EXPORT_ROW_CAP_LIST} linhas. ` : ''}Total no recorte: ${fs.totalParticipants} participantes.</p>`;
       }
 
-      const titleMain = getGroupedPdfTitle(viewMode);
+      const titleMain = getGroupedPdfTitle(viewMode, typeLabels);
       const evolutionHtml = buildAdherenceEvolutionPdfSection(evolution);
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Recorte — ${escapeHtml(appName)}</title>
@@ -505,6 +526,7 @@ export const FormParticipantsRecorteExportButton = ({
     orderBy,
     hierarchyLabels,
     viewMode,
+    typeLabels,
     hierarchyGroupsProp,
     evolution,
   ]);

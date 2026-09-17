@@ -6,6 +6,7 @@ import {
 import type { CombinedHierarchyGroupingConfig } from '@v2/models/form/helpers/form-participants-combined-hierarchy-grouping.config';
 import {
   getCombinedHierarchyColumnLabel,
+  getCombinedHierarchyLevelsForDisplay,
   getParticipantsViewModeSelectLabel,
 } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
@@ -145,8 +146,13 @@ export const FormParticipantsGroupedByCombinedHierarchy = ({
 }: Props) => {
   const typeLabels = useHierarchyTypeLabels();
   const groups = useMemo(
-    () => buildCombinedHierarchyNestedAggregates(rows, config.levels),
-    [rows, config.levels],
+    () =>
+      buildCombinedHierarchyNestedAggregates(
+        rows,
+        getCombinedHierarchyLevelsForDisplay(config.viewMode, typeLabels) ??
+          config.levels,
+      ),
+    [rows, config.viewMode, config.levels, typeLabels],
   );
 
   if (isLoading) {
