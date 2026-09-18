@@ -14,4 +14,5 @@ export const RiskMatrixRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/risk-matrices/:versionId',
   WORKSPACE_SWITCH:
     'v2/companies/:companyId/workspaces/:workspaceId/risk-matrices/switch',
+  SYSTEM: 'v2/master/system-risk-matrix',
 } as const;

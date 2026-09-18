@@ -20,6 +20,7 @@ export enum RoutesEnum {
   COMPANY_RISKS = '/dashboard/empresas/:companyId/riscos',
   DASHBOARD = '/dashboard',
   DATABASE = '/dashboard/dados',
+  DATABASE_SYSTEM_RISK_MATRIX = '/dashboard/dados/matriz-padrao-simplesst',
   DATABASE_CATALOG_EQUIVALENCES = '/dashboard/dados/equivalencias-catalogo',
   DATABASE_FRPS_EXPLAINABILITY_LIBRARY = '/dashboard/dados/biblioteca-explicabilidade-frps',
   DATABASE_BIOLOGICAL_INDICATORS = '/dashboard/dados/indicadores-biologicos',

@@ -1,3 +1,8 @@
+export enum RiskMatrixSourceEnum {
+  SYSTEM = 'SYSTEM',
+  CUSTOM = 'CUSTOM',
+}
+
 export enum CompanyRiskMatrixStatusEnum {
   ACTIVE = 'ACTIVE',
   ARCHIVED = 'ARCHIVED',
@@ -134,6 +139,28 @@ export type RiskMatrixVersion = {
   classifications: RiskMatrixClassification[];
   cells: RiskMatrixCell[];
   coverages: RiskMatrixCoverageKeyEnum[];
+};
+
+export type SystemRiskMatrixMethodologicalGap = {
+  coverageKey: RiskMatrixCoverageKeyEnum;
+  field: 'AXIS_CRITERIA';
+  axis?: RiskMatrixAxisEnum;
+  reason: 'NO_PUBLISHED_SOURCE';
+  message: string;
+};
+
+export type SystemRiskMatrixVersion = Omit<RiskMatrixVersion, 'companyId'> & {
+  companyId: string | null;
+};
+
+export type SystemRiskMatrixProjection = {
+  source: RiskMatrixSourceEnum.SYSTEM;
+  name: string;
+  description: string;
+  readOnly: true;
+  coverages: RiskMatrixCoverageKeyEnum[];
+  methodologicalGaps: SystemRiskMatrixMethodologicalGap[];
+  version: SystemRiskMatrixVersion;
 };
 
 export type CreateRiskMatrixPayload = {

@@ -42,7 +42,8 @@ export const RISK_MATRIX_COVERAGE_LABELS: Record<
   [RiskMatrixCoverageKeyEnum.BIO]: 'BIO',
   [RiskMatrixCoverageKeyEnum.ACI]: 'ACI',
   [RiskMatrixCoverageKeyEnum.ERG]: 'ERG',
-  [RiskMatrixCoverageKeyEnum.PSICOSOCIAL]: 'PSICOSOCIAL',
+  // Abreviação visual do produto (SUBTYPE_CHIP_BY_NAME / SRiskChip): PSIC.
+  [RiskMatrixCoverageKeyEnum.PSICOSOCIAL]: 'PSIC',
 };
 
 export const RISK_MATRIX_COVERAGE_OPTIONS: Array<{

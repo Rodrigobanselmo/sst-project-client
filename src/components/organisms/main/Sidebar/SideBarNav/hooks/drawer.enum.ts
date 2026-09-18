@@ -19,6 +19,7 @@ export enum DrawerItemsEnum {
   checklist = 'checklist',
   importExportData = 'importExportData',
   catalogEquivalences = 'catalogEquivalences',
+  systemRiskMatrix = 'systemRiskMatrix',
   frpsExplainabilityLibrary = 'frpsExplainabilityLibrary',
   /** Órfão — substituído por Bases de curadoria / Risco × Exame. */
   biologicalIndicatorsGroup = 'biologicalIndicatorsGroup',

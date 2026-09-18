@@ -111,6 +111,11 @@ assert.equal(
   '/dashboard/empresas/:companyId/matrizes-risco/:matrixId/versoes/:versionId',
 );
 assert.equal(DrawerItemsEnum.riskMatrices, 'riskMatrices');
+assert.equal(DrawerItemsEnum.systemRiskMatrix, 'systemRiskMatrix');
+assert.equal(
+  RoutesEnum.DATABASE_SYSTEM_RISK_MATRIX,
+  '/dashboard/dados/matriz-padrao-simplesst',
+);
 assert.equal(RISK_MATRICES_BREADCRUMB_LABEL, 'Matrizes de Risco');
 assert.equal(
   RISK_MATRICES_PATHNAME,

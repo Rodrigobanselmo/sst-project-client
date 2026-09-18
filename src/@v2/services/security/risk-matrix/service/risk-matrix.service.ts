@@ -11,6 +11,7 @@ import type {
   RiskMatrixIdentity,
   RiskMatrixVersion,
   SwitchWorkspaceRiskMatrixPayload,
+  SystemRiskMatrixProjection,
   WorkspaceRiskMatrixAvailability,
 } from './risk-matrix.types';
 
@@ -204,6 +205,14 @@ export async function switchWorkspaceRiskMatrix(params: {
       },
     }),
     params.payload,
+  );
+
+  return response.data;
+}
+
+export async function readSystemRiskMatrix(): Promise<SystemRiskMatrixProjection> {
+  const response = await api.get<SystemRiskMatrixProjection>(
+    RiskMatrixRoutes.SYSTEM,
   );
 
   return response.data;

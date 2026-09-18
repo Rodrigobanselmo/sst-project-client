@@ -190,6 +190,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE_CATALOG_EQUIVALENCES,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.systemRiskMatrix]: {
+      text: 'Matriz Padrão SimpleSST',
+      description:
+        'Metodologia nativa 5×5 do SimpleSST (somente leitura, MASTER)',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_SYSTEM_RISK_MATRIX,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.frpsExplainabilityLibrary]: {
       text: 'Explicabilidade FRPS',
       description:
@@ -629,6 +637,7 @@ export const useDrawerItems = () => {
 
   /** Árvore MASTER de bibliotecas/curadoria (antes sob Geral → Banco de dados). */
   const librariesTree: IDrawerItems[] = [
+    items[DrawerItemsEnum.systemRiskMatrix],
     items[DrawerItemsEnum.catalogEquivalences],
     items[DrawerItemsEnum.frpsExplainabilityLibrary],
     ...(featureFlags.examRiskRuleLibrary

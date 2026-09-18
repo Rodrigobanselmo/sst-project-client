@@ -16,9 +16,11 @@ import {
   RiskMatrixCoverageKeyEnum,
   RiskMatrixGridOrientationEnum,
   RiskMatrixYAxisDirectionEnum,
+  RiskMatrixAxisEnum,
 } from '@v2/services/security/risk-matrix/service/risk-matrix.types';
 
 import { RISK_MATRIX_COVERAGE_OPTIONS } from '../maps/risk-matrix.maps';
+import { groupCoverageCriteriaForDisplay } from '../utils/risk-matrix-criteria-display.util';
 import type {
   RiskMatrixEditorAxisLevel,
   RiskMatrixEditorCell,
@@ -29,11 +31,16 @@ import {
   getCellClassificationKey,
   getPresentedGridAxes,
 } from '../utils/risk-matrix-editor-state.util';
+import { CriterionHierarchyView } from './CriterionHierarchyView';
 
 type RiskMatrixGridEditorProps = {
   orientation: RiskMatrixGridOrientationEnum;
   yAxisDirection: RiskMatrixYAxisDirectionEnum;
   selectedCoverages: RiskMatrixCoverageKeyEnum[];
+  undefinedCoverages?: RiskMatrixCoverageKeyEnum[];
+  undefinedCoveragesByAxis?: Partial<
+    Record<RiskMatrixAxisEnum, RiskMatrixCoverageKeyEnum[]>
+  >;
   severityLevels: RiskMatrixEditorAxisLevel[];
   probabilityLevels: RiskMatrixEditorAxisLevel[];
   classifications: RiskMatrixEditorClassification[];
@@ -63,6 +70,8 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
   orientation,
   yAxisDirection,
   selectedCoverages,
+  undefinedCoverages = [],
+  undefinedCoveragesByAxis,
   severityLevels,
   probabilityLevels,
   classifications,
@@ -120,6 +129,9 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
             title={presentation.xTitle}
             level={level}
             selectedCoverages={selectedCoverages}
+            undefinedCoverages={
+              undefinedCoveragesByAxis?.[level.axis] ?? undefinedCoverages
+            }
             disabled={disabled}
             onChangeLabel={(label) => onChangeLabel(level.axis, level.value, label)}
             onChangeCriterion={(coverage, criterion) =>
@@ -137,6 +149,9 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
               title={presentation.yTitle}
               level={rowLevel}
               selectedCoverages={selectedCoverages}
+              undefinedCoverages={
+                undefinedCoveragesByAxis?.[rowLevel.axis] ?? undefinedCoverages
+              }
               disabled={disabled}
               onChangeLabel={(label) =>
                 onChangeLabel(rowLevel.axis, rowLevel.value, label)
@@ -216,6 +231,7 @@ const AxisHeader: FC<{
   title: string;
   level: RiskMatrixEditorAxisLevel;
   selectedCoverages: RiskMatrixCoverageKeyEnum[];
+  undefinedCoverages?: RiskMatrixCoverageKeyEnum[];
   disabled?: boolean;
   onChangeLabel: (label: string) => void;
   onChangeCriterion: (
@@ -229,6 +245,7 @@ const AxisHeader: FC<{
   title,
   level,
   selectedCoverages,
+  undefinedCoverages = [],
   disabled,
   onChangeLabel,
   onChangeCriterion,
@@ -276,8 +293,12 @@ const AxisHeader: FC<{
       />
       <Box mt={0.75}>
         <CriteriaEditor
+          axisTitle={title}
+          levelValue={level.value}
+          levelLabel={level.label}
           criteriaByCoverage={level.criteriaByCoverage}
           selectedCoverages={selectedCoverages}
+          undefinedCoverages={undefinedCoverages}
           disabled={disabled}
           onChange={onChangeCriterion}
           onCopyToOtherCoverages={onCopyCriterionToOtherCoverages}
@@ -288,14 +309,22 @@ const AxisHeader: FC<{
 };
 
 const CriteriaEditor: FC<{
+  axisTitle: string;
+  levelValue: number;
+  levelLabel: string;
   criteriaByCoverage: Partial<Record<RiskMatrixCoverageKeyEnum, string>>;
   selectedCoverages: RiskMatrixCoverageKeyEnum[];
+  undefinedCoverages?: RiskMatrixCoverageKeyEnum[];
   disabled?: boolean;
   onChange: (coverage: RiskMatrixCoverageKeyEnum, value: string) => void;
   onCopyToOtherCoverages: (sourceCoverage: RiskMatrixCoverageKeyEnum) => void;
 }> = ({
+  axisTitle,
+  levelValue,
+  levelLabel,
   criteriaByCoverage,
   selectedCoverages,
+  undefinedCoverages = [],
   disabled,
   onChange,
   onCopyToOtherCoverages,
@@ -308,29 +337,35 @@ const CriteriaEditor: FC<{
   const coverageOptions = RISK_MATRIX_COVERAGE_OPTIONS.filter((option) =>
     selectedCoverages.includes(option.value),
   );
-  const canCopy = coverageOptions.length > 1;
+  const canCopy = coverageOptions.length > 1 && !disabled;
+  const triggerLabel = disabled
+    ? 'Ver critério'
+    : hasCriteria
+      ? 'Critério'
+      : 'Adicionar critério';
 
   return (
     <>
       <Tooltip
         title={
-          hasCriteria
-            ? 'Editar critério do nível. O critério descreve o eixo para aquela classe de risco, não a classificação da célula.'
-            : 'Adicionar critério opcional do nível. Isso não define o resultado da célula.'
+          disabled
+            ? 'Consultar o critério metodológico deste nível. O critério descreve o eixo, não a classificação da célula.'
+            : hasCriteria
+              ? 'Editar critério do nível. O critério descreve o eixo para aquela classe de risco, não a classificação da célula.'
+              : 'Adicionar critério opcional do nível. Isso não define o resultado da célula.'
         }
       >
         <span>
           <Button
             size="small"
-            disabled={disabled}
             startIcon={<NotesIcon fontSize="small" />}
             onClick={(event: MouseEvent<HTMLElement>) =>
               setAnchorEl(event.currentTarget)
             }
-            aria-label={hasCriteria ? 'Editar critério' : 'Adicionar critério'}
+            aria-label={triggerLabel}
             sx={{ minWidth: 0, px: 0.75, whiteSpace: 'nowrap' }}
           >
-            {hasCriteria ? 'Critério' : 'Adicionar critério'}
+            {triggerLabel}
           </Button>
         </span>
       </Tooltip>
@@ -340,15 +375,18 @@ const CriteriaEditor: FC<{
         onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Box sx={{ p: 2, width: 360 }}>
+        <Box sx={{ p: 2, width: 520, maxWidth: '90vw', maxHeight: '80vh', overflowY: 'auto' }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Typography variant="subtitle2">Critério do nível</Typography>
+            <Typography variant="subtitle2">
+              {axisTitle} {levelValue}
+              {levelLabel.trim() ? ` — ${levelLabel.trim()}` : ''}
+            </Typography>
             <IconButton size="small" onClick={() => setAnchorEl(null)}>
               <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
           <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-            Descreve este nível do eixo para cada classe de risco. Não classifica a
+            Critério deste nível do eixo, por coverage. Não classifica a
             interseção da matriz.
           </Typography>
           {coverageOptions.length === 0 ? (
@@ -357,26 +395,72 @@ const CriteriaEditor: FC<{
             </Typography>
           ) : (
             <Box display="flex" flexDirection="column" gap={2}>
-              {coverageOptions.map((option) => {
-                const value = criteriaByCoverage[option.value] ?? '';
+              {(disabled
+                ? groupCoverageCriteriaForDisplay({
+                    selectedCoverages,
+                    criteriaByCoverage,
+                    undefinedCoverages,
+                    options: RISK_MATRIX_COVERAGE_OPTIONS,
+                  })
+                : coverageOptions.map((option) => ({
+                    key: option.value,
+                    coverageKeys: [option.value],
+                    label: `${option.code} — ${option.title}`,
+                    criterion: criteriaByCoverage[option.value] ?? '',
+                    isUndefined: undefinedCoverages.includes(option.value),
+                  }))
+              ).map((item) => {
+                if (item.isUndefined) {
+                  return (
+                    <Box key={item.key}>
+                      <Typography variant="subtitle2">{item.label}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Não há critério de {axisTitle.toLowerCase()} publicado
+                        para esta coverage.
+                      </Typography>
+                    </Box>
+                  );
+                }
+
+                if (disabled) {
+                  return (
+                    <Box
+                      key={item.key}
+                      sx={{
+                        p: 1.25,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                        {item.label}
+                      </Typography>
+                      <CriterionHierarchyView criterion={item.criterion} />
+                    </Box>
+                  );
+                }
+
+                const coverage = item.coverageKeys[0];
+                const value = item.criterion;
                 return (
-                  <Box key={option.value}>
+                  <Box key={item.key}>
                     <TextField
                       fullWidth
                       multiline
                       minRows={2}
-                      label={option.title}
+                      label={item.label}
                       placeholder="Critério opcional"
                       value={value}
-                      disabled={disabled}
-                      onChange={(event) => onChange(option.value, event.target.value)}
+                      onChange={(event) =>
+                        onChange(coverage, event.target.value)
+                      }
                     />
                     {canCopy && (
                       <Button
                         size="small"
                         sx={{ mt: 0.5 }}
-                        disabled={disabled}
-                        onClick={() => onCopyToOtherCoverages(option.value)}
+                        onClick={() => onCopyToOtherCoverages(coverage)}
                       >
                         Aplicar às demais coberturas deste nível
                       </Button>
@@ -384,8 +468,8 @@ const CriteriaEditor: FC<{
                     <Button
                       size="small"
                       sx={{ mt: canCopy ? 0 : 0.5 }}
-                      disabled={disabled || !value}
-                      onClick={() => onChange(option.value, '')}
+                      disabled={!value}
+                      onClick={() => onChange(coverage, '')}
                     >
                       Remover critério
                     </Button>

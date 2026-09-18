@@ -21,4 +21,5 @@ export const riskMatrixQueryKeys = {
       companyId,
       matrixId,
     ] as const,
+  system: () => [...riskMatrixQueryKeys.all, 'system'] as const,
 };
