@@ -7,10 +7,23 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
   TextField,
+  Typography,
 } from '@mui/material';
 
+import {
+  RiskMatrixCreateSourceEnum,
+  type CreateRiskMatrixPayload,
+} from '@v2/services/security/risk-matrix/service/risk-matrix.types';
+
+import { RISK_MATRIX_CREATE_SOURCE_HELP } from '../maps/risk-matrix.maps';
 import { getRiskMatrixApiErrorMessage } from '../utils/risk-matrix-error.util';
+import { buildCreateRiskMatrixPayload } from '../utils/risk-matrix-create.util';
 
 const NAME_MAX = 255;
 const DESCRIPTION_MAX = 2000;
@@ -19,7 +32,7 @@ type RiskMatrixCreateDialogProps = {
   open: boolean;
   loading?: boolean;
   onClose: () => void;
-  onSubmit: (payload: { name: string; description?: string }) => Promise<void>;
+  onSubmit: (payload: CreateRiskMatrixPayload) => Promise<void>;
 };
 
 export const RiskMatrixCreateDialog: FC<RiskMatrixCreateDialogProps> = ({
@@ -30,11 +43,15 @@ export const RiskMatrixCreateDialog: FC<RiskMatrixCreateDialogProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [source, setSource] = useState<RiskMatrixCreateSourceEnum>(
+    RiskMatrixCreateSourceEnum.BLANK,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const resetAndClose = () => {
     setName('');
     setDescription('');
+    setSource(RiskMatrixCreateSourceEnum.BLANK);
     setError(null);
     onClose();
   };
@@ -59,12 +76,16 @@ export const RiskMatrixCreateDialog: FC<RiskMatrixCreateDialogProps> = ({
 
     try {
       setError(null);
-      await onSubmit({
-        name: trimmedName,
-        description: trimmedDescription || undefined,
-      });
+      await onSubmit(
+        buildCreateRiskMatrixPayload({
+          name: trimmedName,
+          description: trimmedDescription,
+          source,
+        }),
+      );
       setName('');
       setDescription('');
+      setSource(RiskMatrixCreateSourceEnum.BLANK);
     } catch (submitError) {
       setError(
         getRiskMatrixApiErrorMessage(
@@ -80,6 +101,31 @@ export const RiskMatrixCreateDialog: FC<RiskMatrixCreateDialogProps> = ({
       <DialogTitle>Criar matriz de risco</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
         {error && <Alert severity="error">{error}</Alert>}
+        <FormControl>
+          <FormLabel>Origem da matriz</FormLabel>
+          <RadioGroup
+            value={source}
+            onChange={(event) =>
+              setSource(event.target.value as RiskMatrixCreateSourceEnum)
+            }
+          >
+            <FormControlLabel
+              value={RiskMatrixCreateSourceEnum.BLANK}
+              control={<Radio />}
+              disabled={loading}
+              label="Em branco"
+            />
+            <FormControlLabel
+              value={RiskMatrixCreateSourceEnum.SYSTEM}
+              control={<Radio />}
+              disabled={loading}
+              label="A partir do Padrão SimpleSST"
+            />
+          </RadioGroup>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+            {RISK_MATRIX_CREATE_SOURCE_HELP}
+          </Typography>
+        </FormControl>
         <TextField
           autoFocus
           required

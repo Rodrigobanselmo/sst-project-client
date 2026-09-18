@@ -3,6 +3,11 @@ export enum RiskMatrixSourceEnum {
   CUSTOM = 'CUSTOM',
 }
 
+export enum RiskMatrixCreateSourceEnum {
+  BLANK = 'BLANK',
+  SYSTEM = 'SYSTEM',
+}
+
 export enum CompanyRiskMatrixStatusEnum {
   ACTIVE = 'ACTIVE',
   ARCHIVED = 'ARCHIVED',
@@ -166,6 +171,7 @@ export type SystemRiskMatrixProjection = {
 export type CreateRiskMatrixPayload = {
   name: string;
   description?: string | null;
+  source?: RiskMatrixCreateSourceEnum;
 };
 
 export type PatchRiskMatrixPayload = {

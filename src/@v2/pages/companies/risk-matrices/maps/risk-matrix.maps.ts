@@ -144,3 +144,6 @@ export const RISK_MATRIX_DUPLICATE_CONFIRMATION = {
   confirmText: 'Duplicar',
   cancelText: 'Cancelar',
 } as const;
+
+export const RISK_MATRIX_CREATE_SOURCE_HELP =
+  'A opção “A partir do Padrão SimpleSST” cria uma cópia editável nesta empresa. O padrão do sistema permanece inalterado.';
