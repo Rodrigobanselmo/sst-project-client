@@ -6,6 +6,9 @@ export const RiskMatrixRoutes = {
   PUBLISH:
     'v2/companies/:companyId/risk-matrices/:matrixId/versions/:versionId/publish',
   ARCHIVE: 'v2/companies/:companyId/risk-matrices/:matrixId/archive',
+  DUPLICATE: 'v2/companies/:companyId/risk-matrices/:matrixId/duplicate',
+  WORKSPACE_AVAILABILITY:
+    'v2/companies/:companyId/risk-matrices/:matrixId/workspace-availability',
   WORKSPACE: 'v2/companies/:companyId/workspaces/:workspaceId/risk-matrices',
   WORKSPACE_VERSION:
     'v2/companies/:companyId/workspaces/:workspaceId/risk-matrices/:versionId',

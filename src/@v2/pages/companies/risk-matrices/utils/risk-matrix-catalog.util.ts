@@ -1,6 +1,7 @@
-import type {
-  BrowseRiskMatricesResponse,
-  RiskMatrixBrowseItem,
+import {
+  CompanyRiskMatrixStatusEnum,
+  type BrowseRiskMatricesResponse,
+  type RiskMatrixBrowseItem,
 } from '@v2/services/security/risk-matrix/service/risk-matrix.types';
 
 export function mapBrowseRiskMatrices(
@@ -15,4 +16,23 @@ export function hasCatalogDraft(matrix: RiskMatrixBrowseItem) {
 
 export function catalogPublishedCoverageCount(matrix: RiskMatrixBrowseItem) {
   return matrix.latestPublishedVersion?.coverages.length ?? 0;
+}
+
+export function canOpenWorkspaceAvailability(matrix: RiskMatrixBrowseItem) {
+  return (
+    matrix.status === CompanyRiskMatrixStatusEnum.ACTIVE &&
+    Boolean(matrix.latestPublishedVersion?.id)
+  );
+}
+
+export function canDuplicateRiskMatrix(matrix: RiskMatrixBrowseItem) {
+  return Boolean(matrix.latestPublishedVersion?.id || matrix.draftVersion?.id);
+}
+
+export function catalogEstablishmentAvailabilityLabel(
+  matrix: RiskMatrixBrowseItem,
+) {
+  if (!matrix.latestPublishedVersion?.id) return null;
+  if (!matrix.hasActiveBindings) return 'Nenhum estabelecimento';
+  return null;
 }

@@ -5,10 +5,13 @@ import { api } from 'core/services/apiClient';
 import type {
   BrowseRiskMatricesResponse,
   CreateRiskMatrixPayload,
+  MatrixWorkspaceAvailability,
   ReplaceRiskMatrixDraftPayload,
   RiskMatrixBrowseItem,
   RiskMatrixIdentity,
   RiskMatrixVersion,
+  SwitchWorkspaceRiskMatrixPayload,
+  WorkspaceRiskMatrixAvailability,
 } from './risk-matrix.types';
 
 export async function browseRiskMatrices(params: {
@@ -34,6 +37,23 @@ export async function createRiskMatrix(params: {
       pathParams: { companyId: params.companyId },
     }),
     params.payload,
+  );
+
+  return response.data;
+}
+
+export async function duplicateRiskMatrix(params: {
+  companyId: string;
+  matrixId: string;
+}): Promise<RiskMatrixBrowseItem> {
+  const response = await api.post<RiskMatrixBrowseItem>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.DUPLICATE,
+      pathParams: {
+        companyId: params.companyId,
+        matrixId: params.matrixId,
+      },
+    }),
   );
 
   return response.data;
@@ -110,6 +130,80 @@ export async function publishRiskMatrixVersion(params: {
         versionId: params.versionId,
       },
     }),
+  );
+
+  return response.data;
+}
+
+export async function browseMatrixWorkspaceAvailability(params: {
+  companyId: string;
+  matrixId: string;
+}): Promise<MatrixWorkspaceAvailability> {
+  const response = await api.get<MatrixWorkspaceAvailability>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.WORKSPACE_AVAILABILITY,
+      pathParams: {
+        companyId: params.companyId,
+        matrixId: params.matrixId,
+      },
+    }),
+  );
+
+  return response.data;
+}
+
+export async function enableWorkspaceRiskMatrix(params: {
+  companyId: string;
+  workspaceId: string;
+  versionId: string;
+}): Promise<WorkspaceRiskMatrixAvailability> {
+  const response = await api.put<WorkspaceRiskMatrixAvailability>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.WORKSPACE_VERSION,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+        versionId: params.versionId,
+      },
+    }),
+  );
+
+  return response.data;
+}
+
+export async function disableWorkspaceRiskMatrix(params: {
+  companyId: string;
+  workspaceId: string;
+  versionId: string;
+}): Promise<WorkspaceRiskMatrixAvailability> {
+  const response = await api.delete<WorkspaceRiskMatrixAvailability>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.WORKSPACE_VERSION,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+        versionId: params.versionId,
+      },
+    }),
+  );
+
+  return response.data;
+}
+
+export async function switchWorkspaceRiskMatrix(params: {
+  companyId: string;
+  workspaceId: string;
+  payload: SwitchWorkspaceRiskMatrixPayload;
+}): Promise<WorkspaceRiskMatrixAvailability> {
+  const response = await api.post<WorkspaceRiskMatrixAvailability>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.WORKSPACE_SWITCH,
+      pathParams: {
+        companyId: params.companyId,
+        workspaceId: params.workspaceId,
+      },
+    }),
+    params.payload,
   );
 
   return response.data;

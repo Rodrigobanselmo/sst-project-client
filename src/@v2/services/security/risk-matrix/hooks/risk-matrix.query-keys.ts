@@ -14,4 +14,11 @@ export const riskMatrixQueryKeys = {
     ] as const,
   workspace: (companyId: string, workspaceId: string) =>
     [...riskMatrixQueryKeys.all, 'workspace', companyId, workspaceId] as const,
+  matrixWorkspaceAvailability: (companyId: string, matrixId: string) =>
+    [
+      ...riskMatrixQueryKeys.all,
+      'matrix-workspace-availability',
+      companyId,
+      matrixId,
+    ] as const,
 };

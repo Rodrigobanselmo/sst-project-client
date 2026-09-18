@@ -96,6 +96,24 @@ assert.equal(
   emptyHydrated.yAxisDirection,
   RiskMatrixYAxisDirectionEnum.DESCENDING_TOP_TO_BOTTOM,
 );
+assert.equal(emptyHydrated.name, '');
+assert.equal(emptyHydrated.description, '');
+
+const hydratedCopy = hydrateEditorState(
+  {
+    ...emptyVersion,
+    nameSnapshot: 'Matriz de Riscos Físicos, Químicos e Biológicos — ACELEN — Cópia',
+  },
+  {
+    name: 'Matriz de Riscos Físicos, Químicos e Biológicos — ACELEN — Cópia',
+    description: 'Metodologia clonada',
+  },
+);
+assert.equal(
+  hydratedCopy.name,
+  'Matriz de Riscos Físicos, Químicos e Biológicos — ACELEN — Cópia',
+);
+assert.equal(hydratedCopy.description, 'Metodologia clonada');
 
 const persisted = hydrateEditorState({
   coverages: [RiskMatrixCoverageKeyEnum.FIS],
@@ -442,8 +460,11 @@ assert.equal(invalid.structuralComplete, false);
 assert.equal(invalid.readyForPublish, false);
 assert.equal(invalid.missingCoverages, true);
 assert.equal(invalid.missingSeverityLabels, true);
+assert.ok(invalid.messages.includes('Nome da matriz é obrigatório.'));
 
 const structuralState = {
+  name: 'Matriz BIO',
+  description: '',
   coverages: [RiskMatrixCoverageKeyEnum.BIO],
   gridOrientation: RiskMatrixGridOrientationEnum.PROBABILITY_ON_X,
   yAxisDirection: RiskMatrixYAxisDirectionEnum.DESCENDING_TOP_TO_BOTTOM,
@@ -715,6 +736,26 @@ assert.equal(
   ),
   true,
 );
+assert.equal(
+  isEditorStateDirty(
+    {
+      ...emptyHydrated,
+      name: 'Matriz de Riscos Químicos — ACELEN',
+    },
+    emptyHydrated,
+  ),
+  true,
+);
+assert.equal(
+  isEditorStateDirty(
+    {
+      ...emptyHydrated,
+      description: 'Nova descrição',
+    },
+    emptyHydrated,
+  ),
+  true,
+);
 
 const filledCells = cartesianCoordinatesFromAxisLevels(axisSeed).map(
   (coordinate, index) => ({
@@ -781,6 +822,8 @@ assert.equal(
 
 const acelensEditor = {
   ...structuralState,
+  name: 'Matriz de Riscos Físicos, Químicos e Biológicos — ACELEN — Cópia',
+  description: 'Metodologia clonada',
   coverages: [
     RiskMatrixCoverageKeyEnum.FIS,
     RiskMatrixCoverageKeyEnum.QUI,
@@ -813,6 +856,11 @@ const acelensEditor = {
   ],
 };
 const putPayload = toReplaceDraftPayload(acelensEditor);
+assert.equal(
+  putPayload.name,
+  'Matriz de Riscos Físicos, Químicos e Biológicos — ACELEN — Cópia',
+);
+assert.equal(putPayload.description, 'Metodologia clonada');
 assert.equal(putPayload.gridOrientation, RiskMatrixGridOrientationEnum.SEVERITY_ON_X);
 assert.equal(
   putPayload.yAxisDirection,

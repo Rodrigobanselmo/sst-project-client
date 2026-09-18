@@ -126,15 +126,16 @@ export const RiskMatrixEditorPageContent: FC<
 
   useEffect(() => {
     if (!version) return;
+    if (isLoadingMatrix) return;
     const hydrateKey = `${version.matrixId}:${version.id}:${version.status}`;
     if (hydratedKeyRef.current === hydrateKey) return;
 
-    const next = hydrateEditorState(version);
+    const next = hydrateEditorState(version, matrix);
     setEditor(next);
     setBaseline(next);
     setSelectedClassificationKey(null);
     hydratedKeyRef.current = hydrateKey;
-  }, [version]);
+  }, [version, matrix, isLoadingMatrix]);
 
   const readOnly =
     version?.status === CompanyRiskMatrixVersionStatusEnum.PUBLISHED ||
@@ -181,12 +182,19 @@ export const RiskMatrixEditorPageContent: FC<
       return;
     }
 
+    if (!editor.name.trim()) {
+      showSnackBar('Nome da matriz é obrigatório', { type: 'error' });
+      return;
+    }
+
     savingRef.current = true;
     try {
-      const saved = await replaceDraftMutation.mutateAsync(
-        toReplaceDraftPayload(editor),
-      );
-      const next = hydrateEditorState(saved);
+      const payload = toReplaceDraftPayload(editor);
+      const saved = await replaceDraftMutation.mutateAsync(payload);
+      const next = hydrateEditorState(saved, {
+        name: payload.name,
+        description: payload.description,
+      });
       setEditor(next);
       setBaseline(next);
     } catch (error) {
@@ -280,18 +288,7 @@ export const RiskMatrixEditorPageContent: FC<
     applyCoverageToggle(coverage);
   };
 
-  if (isLoadingVersion || (isLoadingMatrix && !version)) {
-    return (
-      <Box display="flex" alignItems="center" gap={2} py={4}>
-        <CircularProgress size={22} />
-        <Typography variant="body2" color="text.secondary">
-          Carregando versão da matriz…
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (isVersionError || !version || !editor) {
+  if (isVersionError) {
     return (
       <Alert severity="error">
         {getRiskMatrixApiErrorMessage(
@@ -299,6 +296,17 @@ export const RiskMatrixEditorPageContent: FC<
           'Não foi possível carregar a versão da matriz.',
         )}
       </Alert>
+    );
+  }
+
+  if (isLoadingVersion || isLoadingMatrix || !version || !editor) {
+    return (
+      <Box display="flex" alignItems="center" gap={2} py={4}>
+        <CircularProgress size={22} />
+        <Typography variant="body2" color="text.secondary">
+          Carregando versão da matriz…
+        </Typography>
+      </Box>
     );
   }
 
@@ -315,10 +323,15 @@ export const RiskMatrixEditorPageContent: FC<
       >
         <Box>
           <Typography variant="h5" gutterBottom>
-            {matrix?.name || version.nameSnapshot || 'Editor da matriz'}
+            {(!readOnly && editor?.name.trim()) ||
+              matrix?.name ||
+              version.nameSnapshot ||
+              'Editor da matriz'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {matrix?.description?.trim() || 'Sem descrição'}
+            {(!readOnly && editor
+              ? editor.description.trim()
+              : matrix?.description?.trim()) || 'Sem descrição'}
           </Typography>
           <Box display="flex" flexWrap="wrap" gap={0.5} mt={1}>
             {matrix && (
@@ -411,6 +424,36 @@ export const RiskMatrixEditorPageContent: FC<
             : 'Esta versão está somente leitura. Correções exigem uma nova versão.'}
         </Alert>
       )}
+
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Nome da matriz
+        </Typography>
+        <TextField
+          fullWidth
+          required
+          value={editor.name}
+          onChange={(event) =>
+            setEditor({ ...editor, name: event.target.value })
+          }
+          disabled={readOnly || isBusy}
+          inputProps={{ maxLength: 255 }}
+        />
+        <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+          Descrição
+        </Typography>
+        <TextField
+          fullWidth
+          multiline
+          minRows={2}
+          value={editor.description}
+          onChange={(event) =>
+            setEditor({ ...editor, description: event.target.value })
+          }
+          disabled={readOnly || isBusy}
+          inputProps={{ maxLength: 2000 }}
+        />
+      </Paper>
 
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Typography variant="subtitle1" gutterBottom>

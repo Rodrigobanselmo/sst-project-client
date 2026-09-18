@@ -126,3 +126,20 @@ export const RISK_MATRIX_COVERAGE_TITLES: Record<
   [RiskMatrixCoverageKeyEnum.ERG]: 'Ergonômico',
   [RiskMatrixCoverageKeyEnum.PSICOSOCIAL]: 'Psicossocial',
 };
+
+export const RISK_MATRIX_AVAILABILITY_DISCLAIMER =
+  'Disponibilizar uma matriz não altera avaliações já realizadas.';
+
+export const RISK_MATRIX_SIMPLESST_ALWAYS_AVAILABLE =
+  'O padrão SimpleSST permanece disponível.';
+
+export const RISK_MATRIX_MANAGE_AVAILABILITY_ACTION =
+  'Gerenciar disponibilidade';
+
+export const RISK_MATRIX_DUPLICATE_CONFIRMATION = {
+  title: 'Duplicar matriz?',
+  message:
+    'Será criada uma nova matriz em rascunho com a mesma metodologia. A original permanece inalterada e os estabelecimentos não são copiados.',
+  confirmText: 'Duplicar',
+  cancelText: 'Cancelar',
+} as const;

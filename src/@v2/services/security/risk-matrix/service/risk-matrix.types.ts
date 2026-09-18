@@ -168,6 +168,8 @@ export type RiskMatrixCellPayload = {
 };
 
 export type ReplaceRiskMatrixDraftPayload = {
+  name?: string;
+  description?: string | null;
   axisLevels: RiskMatrixAxisLevelPayload[];
   classifications: RiskMatrixClassificationPayload[];
   cells: RiskMatrixCellPayload[];
@@ -219,6 +221,45 @@ export type WorkspaceRiskMatrixAvailability = {
 export type SwitchWorkspaceRiskMatrixPayload = {
   sourceVersionId: string;
   targetVersionId: string;
+};
+
+export type MatrixWorkspaceAvailabilityAction =
+  | 'enable'
+  | 'disable'
+  | 'switch'
+  | 'blocked'
+  | 'unavailable';
+
+export type MatrixWorkspaceAvailabilityTargetVersion = {
+  versionId: string;
+  versionNumber: number;
+  coverages: RiskMatrixCoverageKeyEnum[];
+};
+
+export type MatrixWorkspaceAvailabilityWorkspace = {
+  workspaceId: string;
+  workspaceName: string;
+  enabled: boolean;
+  enabledVersionId: string | null;
+  enabledVersionNumber: number | null;
+  targetVersionId: string | null;
+  coverages: RiskMatrixCoverageKeyEnum[];
+  conflicts: RiskMatrixBindingConflict[];
+  switchFrom: { versionId: string; versionNumber: number } | null;
+  action: MatrixWorkspaceAvailabilityAction;
+  canEnable: boolean;
+  canDisable: boolean;
+  canSwitch: boolean;
+};
+
+export type MatrixWorkspaceAvailability = {
+  matrixId: string;
+  matrixName: string;
+  matrixStatus: CompanyRiskMatrixStatusEnum;
+  simpleSst: { alwaysAvailable: true };
+  enableable: boolean;
+  targetPublishedVersion: MatrixWorkspaceAvailabilityTargetVersion | null;
+  workspaces: MatrixWorkspaceAvailabilityWorkspace[];
 };
 
 export type RiskMatrixApiErrorBody = {

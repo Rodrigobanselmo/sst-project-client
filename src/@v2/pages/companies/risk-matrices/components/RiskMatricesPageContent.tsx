@@ -13,8 +13,12 @@ import { useRouter } from 'next/router';
 import { SAuthShow, useAuthShow } from 'components/molecules/SAuthShow';
 import { PermissionEnum } from 'project/enum/permission.enum';
 
+import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { useFetchBrowseRiskMatrices } from '@v2/services/security/risk-matrix/hooks/useFetchBrowseRiskMatrices';
-import { useMutateCreateRiskMatrix } from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
+import {
+  useMutateCreateRiskMatrix,
+  useMutateDuplicateRiskMatrix,
+} from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
 import {
   CompanyRiskMatrixStatusEnum,
   type CreateRiskMatrixPayload,
@@ -26,9 +30,16 @@ import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import {
   RISK_MATRIX_COVERAGE_LABELS,
   RISK_MATRIX_COVERAGE_TITLES,
+  RISK_MATRIX_DUPLICATE_CONFIRMATION,
+  RISK_MATRIX_MANAGE_AVAILABILITY_ACTION,
   RISK_MATRIX_STATUS_LABELS,
 } from '../maps/risk-matrix.maps';
-import { mapBrowseRiskMatrices } from '../utils/risk-matrix-catalog.util';
+import {
+  mapBrowseRiskMatrices,
+  canDuplicateRiskMatrix,
+  canOpenWorkspaceAvailability,
+  catalogEstablishmentAvailabilityLabel,
+} from '../utils/risk-matrix-catalog.util';
 import { getRiskMatrixApiErrorMessage } from '../utils/risk-matrix-error.util';
 import { canWriteRiskMatrix } from '../utils/risk-matrix-permission.util';
 import {
@@ -36,6 +47,7 @@ import {
   resolveCreatedRiskMatrixEditorPath,
 } from '../utils/risk-matrix-paths.util';
 import { RiskMatrixCreateDialog } from './RiskMatrixCreateDialog';
+import { RiskMatrixWorkspaceAvailabilityDialog } from './RiskMatrixWorkspaceAvailabilityDialog';
 
 type RiskMatricesPageContentProps = {
   companyId: string;
@@ -47,12 +59,16 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
   const router = useRouter();
   const { isAuthSuccess } = useAuthShow();
   const { showSnackBar } = useSystemSnackbar();
+  const { showConfirmation } = useConfirmationModal();
   const [createOpen, setCreateOpen] = useState(false);
+  const [availabilityMatrix, setAvailabilityMatrix] =
+    useState<RiskMatrixBrowseItem | null>(null);
   const canCreate = canWriteRiskMatrix({ isAuthSuccess });
 
   const { data, isLoading, isError, error } =
     useFetchBrowseRiskMatrices(companyId);
   const createMutation = useMutateCreateRiskMatrix(companyId);
+  const duplicateMutation = useMutateDuplicateRiskMatrix(companyId);
 
   const matrices = mapBrowseRiskMatrices(data);
   const listedCountLabel = isLoading
@@ -86,6 +102,39 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
 
     setCreateOpen(false);
     await router.push(editorPath);
+  };
+
+  const handleDuplicate = async (matrix: RiskMatrixBrowseItem) => {
+    const confirmed = await showConfirmation({
+      title: RISK_MATRIX_DUPLICATE_CONFIRMATION.title,
+      message: RISK_MATRIX_DUPLICATE_CONFIRMATION.message,
+      confirmText: RISK_MATRIX_DUPLICATE_CONFIRMATION.confirmText,
+      cancelText: RISK_MATRIX_DUPLICATE_CONFIRMATION.cancelText,
+    });
+    if (!confirmed) return;
+
+    try {
+      const created = await duplicateMutation.mutateAsync(matrix.id);
+      const editorPath = resolveCreatedRiskMatrixEditorPath(companyId, created);
+
+      if (!editorPath) {
+        showSnackBar(
+          'A matriz foi duplicada, mas o rascunho inicial não foi retornado.',
+          { type: 'error' },
+        );
+        return;
+      }
+
+      await router.push(editorPath);
+    } catch (duplicateError) {
+      showSnackBar(
+        getRiskMatrixApiErrorMessage(
+          duplicateError,
+          'Não foi possível duplicar a matriz.',
+        ),
+        { type: 'error' },
+      );
+    }
   };
 
   return (
@@ -154,7 +203,11 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
             <RiskMatrixCatalogCard
               key={matrix.id}
               matrix={matrix}
+              canWrite={canCreate}
+              duplicating={duplicateMutation.isPending}
               onOpenDraft={() => handleOpenDraft(matrix)}
+              onOpenAvailability={() => setAvailabilityMatrix(matrix)}
+              onDuplicate={() => handleDuplicate(matrix)}
             />
           ))}
         </Box>
@@ -166,16 +219,38 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
         onClose={() => setCreateOpen(false)}
         onSubmit={handleCreate}
       />
+      <RiskMatrixWorkspaceAvailabilityDialog
+        open={Boolean(availabilityMatrix)}
+        companyId={companyId}
+        matrixId={availabilityMatrix?.id ?? null}
+        matrixName={availabilityMatrix?.name}
+        canWrite={canCreate}
+        onClose={() => setAvailabilityMatrix(null)}
+      />
     </Box>
   );
 };
 
 const RiskMatrixCatalogCard: FC<{
   matrix: RiskMatrixBrowseItem;
+  canWrite: boolean;
+  duplicating: boolean;
   onOpenDraft: () => void;
-}> = ({ matrix, onOpenDraft }) => {
+  onOpenAvailability: () => void;
+  onDuplicate: () => void;
+}> = ({
+  matrix,
+  canWrite,
+  duplicating,
+  onOpenDraft,
+  onOpenAvailability,
+  onDuplicate,
+}) => {
   const published = matrix.latestPublishedVersion;
   const coverages = published?.coverages ?? [];
+  const showAvailabilityAction = canOpenWorkspaceAvailability(matrix);
+  const showDuplicateAction = canWrite && canDuplicateRiskMatrix(matrix);
+  const establishmentLabel = catalogEstablishmentAvailabilityLabel(matrix);
 
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
@@ -210,14 +285,6 @@ const RiskMatrixCatalogCard: FC<{
                 label={`Publicada v${published.versionNumber}`}
               />
             )}
-            {matrix.hasActiveBindings && (
-              <Chip
-                size="small"
-                color="info"
-                variant="outlined"
-                label="Disponível em estabelecimentos"
-              />
-            )}
           </Box>
           <Typography variant="subtitle1">{matrix.name}</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -235,6 +302,11 @@ const RiskMatrixCatalogCard: FC<{
               Sem versão publicada
             </Typography>
           )}
+          {establishmentLabel && (
+            <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+              {establishmentLabel}
+            </Typography>
+          )}
           {coverages.length > 0 && (
             <Box display="flex" flexWrap="wrap" gap={0.5} mt={1}>
               {coverages.map((coverage) => (
@@ -243,13 +315,34 @@ const RiskMatrixCatalogCard: FC<{
             </Box>
           )}
         </Box>
-        {matrix.draftVersion && (
-          <Box>
+        <Box display="flex" gap={1} flexWrap="wrap">
+          {showAvailabilityAction && (
+            <Button
+              size="small"
+              variant="contained"
+              onClick={onOpenAvailability}
+            >
+              {RISK_MATRIX_MANAGE_AVAILABILITY_ACTION}
+            </Button>
+          )}
+          {showDuplicateAction && (
+            <SAuthShow permissions={[PermissionEnum.RISK]} cruds="c">
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={onDuplicate}
+                disabled={duplicating}
+              >
+                Duplicar
+              </Button>
+            </SAuthShow>
+          )}
+          {matrix.draftVersion && (
             <Button size="small" variant="outlined" onClick={onOpenDraft}>
               Editar rascunho
             </Button>
-          </Box>
-        )}
+          )}
+        </Box>
       </Box>
     </Paper>
   );

@@ -12,7 +12,10 @@ import {
 } from '@v2/services/security/risk-matrix/service/risk-matrix.types';
 
 import {
+  catalogEstablishmentAvailabilityLabel,
   catalogPublishedCoverageCount,
+  canDuplicateRiskMatrix,
+  canOpenWorkspaceAvailability,
   hasCatalogDraft,
   mapBrowseRiskMatrices,
 } from './risk-matrix-catalog.util';
@@ -51,6 +54,57 @@ assert.equal(catalogPublishedCoverageCount(matrix), 2);
 assert.equal(
   catalogPublishedCoverageCount({ ...matrix, latestPublishedVersion: null }),
   0,
+);
+assert.equal(canOpenWorkspaceAvailability(matrix), true);
+assert.equal(
+  canOpenWorkspaceAvailability({ ...matrix, latestPublishedVersion: null }),
+  false,
+);
+assert.equal(
+  canOpenWorkspaceAvailability({
+    ...matrix,
+    status: CompanyRiskMatrixStatusEnum.ARCHIVED,
+  }),
+  false,
+);
+assert.equal(canDuplicateRiskMatrix(matrix), true);
+assert.equal(
+  canDuplicateRiskMatrix({
+    ...matrix,
+    latestPublishedVersion: null,
+  }),
+  true,
+);
+assert.equal(
+  canDuplicateRiskMatrix({
+    ...matrix,
+    status: CompanyRiskMatrixStatusEnum.ARCHIVED,
+  }),
+  true,
+);
+assert.equal(
+  canDuplicateRiskMatrix({
+    ...matrix,
+    latestPublishedVersion: null,
+    draftVersion: null,
+  }),
+  false,
+);
+assert.equal(
+  catalogEstablishmentAvailabilityLabel({
+    ...matrix,
+    hasActiveBindings: false,
+  }),
+  'Nenhum estabelecimento',
+);
+assert.equal(catalogEstablishmentAvailabilityLabel(matrix), null);
+assert.equal(
+  catalogEstablishmentAvailabilityLabel({
+    ...matrix,
+    latestPublishedVersion: null,
+    hasActiveBindings: false,
+  }),
+  null,
 );
 
 console.log('risk-matrix-catalog.util.spec.ts OK');

@@ -37,6 +37,8 @@ export type RiskMatrixEditorCell = {
 };
 
 export type RiskMatrixEditorState = {
+  name: string;
+  description: string;
   coverages: RiskMatrixCoverageKeyEnum[];
   gridOrientation: RiskMatrixGridOrientationEnum;
   yAxisDirection: RiskMatrixYAxisDirectionEnum;
@@ -561,7 +563,8 @@ export function hydrateEditorState(
   version: Pick<
     RiskMatrixVersion,
     'axisLevels' | 'classifications' | 'cells' | 'coverages' | 'gridOrientation' | 'yAxisDirection'
-  >,
+  > & { nameSnapshot?: string },
+  identity?: { name?: string | null; description?: string | null } | null,
 ): RiskMatrixEditorState {
   const persistedAxisLevels = (version.axisLevels ?? []).map((level) => ({
     axis: level.axis,
@@ -591,6 +594,8 @@ export function hydrateEditorState(
   }));
 
   return {
+    name: identity?.name || version.nameSnapshot || '',
+    description: identity?.description ?? '',
     coverages: [...(version.coverages ?? [])],
     gridOrientation: normalizeGridOrientation(version.gridOrientation),
     yAxisDirection: normalizeYAxisDirection(version.yAxisDirection),
@@ -602,6 +607,8 @@ export function hydrateEditorState(
 
 export function serializeEditorState(state: RiskMatrixEditorState) {
   return JSON.stringify({
+    name: state.name ?? '',
+    description: state.description ?? '',
     coverages: [...state.coverages].sort(),
     gridOrientation: state.gridOrientation,
     yAxisDirection: state.yAxisDirection,
@@ -643,6 +650,10 @@ export function toReplaceDraftPayload(
   state: RiskMatrixEditorState,
 ): ReplaceRiskMatrixDraftPayload {
   return {
+    name: (state.name ?? '').trim(),
+    description: (state.description ?? '').trim()
+      ? (state.description ?? '').trim()
+      : null,
     gridOrientation: state.gridOrientation,
     yAxisDirection: state.yAxisDirection,
     coverages: [...state.coverages],
@@ -704,6 +715,7 @@ export function validateEditorState(
   );
 
   const missingCoverages = state.coverages.length < 1;
+  const missingName = !state.name?.trim();
   const missingSeverityLabels =
     severity.length !== V1_QUALITATIVE_VALUES.length ||
     severity.some((level) => !level.label.trim());
@@ -774,6 +786,7 @@ export function validateEditorState(
     unusedClassificationCount === 0;
 
   const messages: string[] = [];
+  if (missingName) messages.push('Nome da matriz é obrigatório.');
   if (missingCoverages) messages.push('Selecione pelo menos uma cobertura.');
   if (missingSeverityLabels) {
     messages.push('Preencha o nome dos 5 níveis de Severidade.');
