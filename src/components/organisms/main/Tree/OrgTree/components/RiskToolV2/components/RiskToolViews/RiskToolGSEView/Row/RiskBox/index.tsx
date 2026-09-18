@@ -21,6 +21,8 @@ import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklis
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
+import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
 import { canEditGseEffectiveOccurrenceHere, getGseEffectiveOriginReturnTo, resolveGseEffectiveOriginAction } from '../../open-gse-effective-origin.util';
 import { GseEffectiveOriginActionButtons } from '../../GseEffectiveOriginActionButtons';
@@ -58,6 +60,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const router = useRouter();
   const { onStackOpenModal } = useModal();
   const { companyId } = useGetCompanyId();
+  const presentation = useSystemRiskMatrixPresentation();
   const selectedGhoId = useAppSelector((state) => state.gho.selected?.id);
   const [editHereOpen, setEditHereOpen] = useState(false);
   const hasData = riskData && riskData.homogeneousGroupId;
@@ -321,6 +324,10 @@ export const RiskToolGSEViewRowRiskBox: FC<
               <STag
                 text={`Severidade ${severity}`}
                 action={severityAction(severity)}
+                chipColors={resolveSystemAxisLevelChipColors(
+                  severity,
+                  presentation,
+                )}
                 sx={{
                   px: 3,
                   py: 0.5,

@@ -49,8 +49,17 @@ const tag = readFileSync(
   ),
   'utf8',
 );
-assert.match(tag, /\[3\]: \{\s*bgcolor: 'primary\.main',\s*color: 'text\.dark',/);
-assert.match(tag, /\[2\]: \{\s*bgcolor: 'scale\.mediumLow',\s*color: 'white',/);
-assert.match(tag, /\[4\]: \{\s*bgcolor: 'scale\.mediumHigh',\s*color: 'white',/);
+assert.match(tag, /resolveSystemOccupationalChipColors/);
+assert.match(tag, /'action-plan-tag'/);
+
+const resolver = readFileSync(
+  resolve(
+    'src/@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util.ts',
+  ),
+  'utf8',
+);
+assert.match(resolver, /bgcolor: 'primary\.main'/);
+assert.match(resolver, /bgcolor: 'scale\.mediumLow'/);
+assert.match(resolver, /bgcolor: 'scale\.mediumHigh'/);
 
 console.log('action-plan occupational risk labels ok');

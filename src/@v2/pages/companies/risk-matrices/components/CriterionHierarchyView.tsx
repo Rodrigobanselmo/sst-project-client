@@ -7,7 +7,16 @@ import { parseCriterionHierarchy } from '../utils/risk-matrix-criteria-display.u
 export const CriterionHierarchyView: FC<{ criterion: string }> = ({
   criterion,
 }) => {
-  const nodes = parseCriterionHierarchy(criterion);
+  let nodes: ReturnType<typeof parseCriterionHierarchy> = [];
+  try {
+    nodes = parseCriterionHierarchy(criterion ?? '');
+  } catch {
+    return (
+      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 1 }}>
+        {criterion}
+      </Typography>
+    );
+  }
 
   if (nodes.length === 0) {
     return (

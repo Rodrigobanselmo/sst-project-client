@@ -9,12 +9,20 @@ import {
 export type SScaleFactorPillProps = {
   kind: SimpleSstScaleFactorKind;
   value?: number | null;
+  chipColors?: {
+    bgcolor: string;
+    color: string;
+  };
 };
 
-export function SScaleFactorPill({ kind, value }: SScaleFactorPillProps) {
+export function SScaleFactorPill({
+  kind,
+  value,
+  chipColors,
+}: SScaleFactorPillProps) {
   const hasValue = typeof value === 'number' && value > 0;
   const chip = hasValue
-    ? getSimpleSstScaleChipColors(Math.min(value, 6))
+    ? chipColors ?? getSimpleSstScaleChipColors(Math.min(value, 6))
     : { bgcolor: 'grey.200', color: 'text.secondary' };
 
   return (

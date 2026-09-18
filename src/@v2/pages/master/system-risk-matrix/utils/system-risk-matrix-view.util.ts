@@ -18,12 +18,12 @@ export const SYSTEM_RISK_MATRIX_HIDDEN_ACTION_LABELS = [
 export function getSystemRiskMatrixToolbarState() {
   return {
     readOnly: true as const,
-    canSave: false,
+    canSave: true,
     canPublish: false,
     canManageAvailability: false,
     canDuplicate: false,
     canChangeMatrix: false,
-    visibleWriteActionLabels: [] as string[],
+    visibleWriteActionLabels: ['Salvar'] as string[],
   };
 }
 

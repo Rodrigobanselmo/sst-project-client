@@ -3,7 +3,11 @@ import SFlex from 'components/atoms/SFlex';
 import { SScaleFactorPill } from 'components/atoms/SScaleFactorPill';
 import SText from 'components/atoms/SText';
 
-import { getSimpleSstScaleChipColors } from 'core/utils/helpers/simple-sst-scale-chip.util';
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
+import {
+  resolveSystemAxisLevelChipColors,
+  resolveSystemOccupationalChipColors,
+} from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
 /** Largura fixa para caber “Muito Alto” / “Não informado” sem variar linha a linha. */
 const RESULT_PILL_MIN_WIDTH = 96;
@@ -15,9 +19,10 @@ function ResultPill({
   label: string;
   level?: number | null;
 }) {
+  const presentation = useSystemRiskMatrixPresentation();
   const hasLevel = typeof level === 'number' && level > 0;
   const chip = hasLevel
-    ? getSimpleSstScaleChipColors(level)
+    ? resolveSystemOccupationalChipColors(level, presentation)
     : { bgcolor: 'grey.200', color: 'text.secondary' };
 
   return (
@@ -64,6 +69,8 @@ export function MatrixEquation({
   resultLevel,
   empty,
 }: MatrixEquationProps) {
+  const presentation = useSystemRiskMatrixPresentation();
+
   return (
     <SFlex align="center" gap={1} flexWrap="nowrap" sx={{ flexShrink: 0 }}>
       <SText fontSize={11} color="text.secondary" noBreak sx={{ mr: 0.5 }}>
@@ -75,7 +82,14 @@ export function MatrixEquation({
         </SText>
       ) : (
         <>
-          <SScaleFactorPill kind="P" value={probability} />
+          <SScaleFactorPill
+            kind="P"
+            value={probability}
+            chipColors={resolveSystemAxisLevelChipColors(
+              probability,
+              presentation,
+            )}
+          />
           <SText
             component="span"
             fontSize={11}
@@ -86,7 +100,11 @@ export function MatrixEquation({
           >
             e
           </SText>
-          <SScaleFactorPill kind="S" value={severity} />
+          <SScaleFactorPill
+            kind="S"
+            value={severity}
+            chipColors={resolveSystemAxisLevelChipColors(severity, presentation)}
+          />
           <SText
             component="span"
             fontSize={13}

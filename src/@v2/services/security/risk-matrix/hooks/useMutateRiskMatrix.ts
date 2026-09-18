@@ -9,13 +9,16 @@ import {
   enableWorkspaceRiskMatrix,
   publishRiskMatrixVersion,
   replaceRiskMatrixDraft,
+  saveSystemRiskMatrix,
   switchWorkspaceRiskMatrix,
 } from '../service/risk-matrix.service';
 import type {
   CreateRiskMatrixPayload,
+  PutSystemRiskMatrixPayload,
   ReplaceRiskMatrixDraftPayload,
   RiskMatrixVersion,
   SwitchWorkspaceRiskMatrixPayload,
+  SystemRiskMatrixProjection,
 } from '../service/risk-matrix.types';
 import { riskMatrixQueryKeys } from './risk-matrix.query-keys';
 
@@ -145,6 +148,26 @@ export const useMutateDisableWorkspaceRiskMatrix = (companyId: string) => {
     },
     onError: async () => {
       await invalidateRiskMatrixQueries(queryClient);
+    },
+  });
+};
+
+export const useMutateSaveSystemRiskMatrix = () => {
+  const queryClient = useQueryClient();
+  const { showSnackBar } = useSystemSnackbar();
+
+  return useMutation({
+    mutationFn: (payload: PutSystemRiskMatrixPayload) =>
+      saveSystemRiskMatrix(payload),
+    onSuccess: async (projection: SystemRiskMatrixProjection) => {
+      queryClient.setQueryData(riskMatrixQueryKeys.system(), projection);
+      await queryClient.invalidateQueries({
+        queryKey: riskMatrixQueryKeys.system(),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [...riskMatrixQueryKeys.all, 'system-presentation'],
+      });
+      showSnackBar('Matriz-mãe salva com sucesso', { type: 'success' });
     },
   });
 };

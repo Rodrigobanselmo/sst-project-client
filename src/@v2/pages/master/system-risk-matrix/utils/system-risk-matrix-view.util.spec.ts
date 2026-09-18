@@ -122,12 +122,12 @@ const view = hydrateSystemRiskMatrixView(projection);
 const toolbar = getSystemRiskMatrixToolbarState();
 
 assert.equal(view.readOnly, true);
-assert.equal(view.canSave, false);
+assert.equal(view.canSave, true);
 assert.equal(view.canPublish, false);
 assert.equal(view.canManageAvailability, false);
 assert.equal(view.canDuplicate, false);
 assert.equal(view.canChangeMatrix, false);
-assert.deepEqual(view.visibleWriteActionLabels, []);
+assert.deepEqual(view.visibleWriteActionLabels, ['Salvar']);
 assert.deepEqual([...SYSTEM_RISK_MATRIX_HIDDEN_ACTION_LABELS], [
   'Salvar rascunho',
   'Publicar versão',
@@ -135,7 +135,8 @@ assert.deepEqual([...SYSTEM_RISK_MATRIX_HIDDEN_ACTION_LABELS], [
   'Duplicar',
   'Alterar matriz',
 ]);
-assert.equal(toolbar.visibleWriteActionLabels.length, 0);
+assert.equal(toolbar.visibleWriteActionLabels.length, 1);
+assert.deepEqual(toolbar.visibleWriteActionLabels, ['Salvar']);
 
 assert.equal(view.editor.name, 'Padrão SimpleSST');
 assert.equal(
@@ -206,8 +207,12 @@ assert.equal(pageSource.includes('FIS/QUI — Físicos e Químicos'), false);
 assert.ok(pageSource.includes('CriterionHierarchyView'));
 assert.ok(pageSource.includes('SAccordion'));
 assert.ok(pageSource.includes('defaultExpanded={false}'));
+assert.ok(pageSource.includes('Edição editorial'));
+assert.ok(/Salvar\n\s*<\/Button>/.test(pageSource));
 assert.equal(pageSource.includes('expanded={'), false);
 assert.equal(pageSource.includes('groupCoverageCriteriaForDisplay'), false);
+assert.equal(pageSource.includes('Salvar rascunho'), false);
+assert.equal(pageSource.includes('system-presentation'), false);
 
 const gridSource = readFileSync(
   'src/@v2/pages/companies/risk-matrices/components/RiskMatrixGridEditor.tsx',
@@ -215,6 +220,8 @@ const gridSource = readFileSync(
 );
 assert.ok(gridSource.includes('groupCoverageCriteriaForDisplay'));
 assert.ok(gridSource.includes('CriterionHierarchyView'));
+assert.ok(gridSource.includes("badgeColor || 'grey.200'"));
+assert.ok(gridSource.includes('axisLevelColorByValue?:'));
 assert.equal(gridSource.includes('FIS/QUI — Físicos e Químicos'), false);
 assert.equal(RiskMatrixCoverageKeyEnum.PSICOSOCIAL, 'PSICOSOCIAL');
 assert.equal(

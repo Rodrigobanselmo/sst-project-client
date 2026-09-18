@@ -11,4 +11,9 @@ assert.equal(
   'v2/companies/:companyId/risk-matrices/:matrixId/duplicate',
 );
 
+assert.equal(
+  RiskMatrixRoutes.SYSTEM_PRESENTATION,
+  'v2/companies/:companyId/risk-matrices/system-presentation',
+);
+
 console.log('risk-matrix.routes.spec.ts OK');

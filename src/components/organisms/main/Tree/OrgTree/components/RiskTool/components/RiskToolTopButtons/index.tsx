@@ -33,6 +33,8 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
+import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
 import {
   IViewsDataOption,
@@ -60,6 +62,7 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
   const { asPath, push } = useRouter();
   const { onOpenModal, onCloseModal } = useModal();
   const { companyId } = useGetCompanyId();
+  const presentation = useSystemRiskMatrixPresentation();
   const selectedRisks = useAppSelector(selectRisks);
   const selectedRiskStore = useAppSelector(selectRisk);
 
@@ -122,6 +125,11 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
               sx={{ px: 4, mr: 15, fontWeight: 'bold' }}
               text={severity ? String(severity) : '0'}
               action={String(severity) as any}
+              chipColors={
+                typeof severity === 'number'
+                  ? resolveSystemAxisLevelChipColors(severity, presentation)
+                  : undefined
+              }
             />
 
             {/*<STooltip title="Adicionar GSE e Cargos por planilha excel">

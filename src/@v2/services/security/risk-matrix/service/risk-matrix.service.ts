@@ -11,6 +11,8 @@ import type {
   RiskMatrixIdentity,
   RiskMatrixVersion,
   SwitchWorkspaceRiskMatrixPayload,
+  PutSystemRiskMatrixPayload,
+  SystemRiskMatrixPresentation,
   SystemRiskMatrixProjection,
   WorkspaceRiskMatrixAvailability,
 } from './risk-matrix.types';
@@ -213,6 +215,30 @@ export async function switchWorkspaceRiskMatrix(params: {
 export async function readSystemRiskMatrix(): Promise<SystemRiskMatrixProjection> {
   const response = await api.get<SystemRiskMatrixProjection>(
     RiskMatrixRoutes.SYSTEM,
+  );
+
+  return response.data;
+}
+
+export async function saveSystemRiskMatrix(
+  payload: PutSystemRiskMatrixPayload,
+): Promise<SystemRiskMatrixProjection> {
+  const response = await api.put<SystemRiskMatrixProjection>(
+    RiskMatrixRoutes.SYSTEM,
+    payload,
+  );
+
+  return response.data;
+}
+
+export async function readSystemRiskMatrixPresentation(
+  companyId: string,
+): Promise<SystemRiskMatrixPresentation> {
+  const response = await api.get<SystemRiskMatrixPresentation>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.SYSTEM_PRESENTATION,
+      pathParams: { companyId },
+    }),
   );
 
   return response.data;

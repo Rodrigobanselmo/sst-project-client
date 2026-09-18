@@ -156,6 +156,59 @@ export type SystemRiskMatrixMethodologicalGap = {
 
 export type SystemRiskMatrixVersion = Omit<RiskMatrixVersion, 'companyId'> & {
   companyId: string | null;
+  axisLevelColors?: SystemRiskMatrixAxisLevelColor[];
+};
+
+export type SystemRiskMatrixAxisCriterion = {
+  axis: RiskMatrixAxisEnum;
+  value: number;
+  coverageKey: RiskMatrixCoverageKeyEnum;
+  criterion: string;
+};
+
+export type SystemRiskMatrixAxisLevelColor = {
+  value: number;
+  color: string;
+};
+
+export type SystemRiskMatrixClassificationColor = {
+  key: string;
+  color: string;
+};
+
+export type SystemRiskMatrixExtraordinaryProbability = {
+  value: number;
+  label: string;
+  color: string;
+  editable?: boolean;
+};
+
+export type SystemRiskMatrixEditorialMeta = {
+  persisted: boolean;
+  revision: number;
+  updatedAt: string | Date | null;
+  updatedById: number | null;
+};
+
+export type PutSystemRiskMatrixPayload = {
+  axisCriteria: SystemRiskMatrixAxisCriterion[];
+  axisLevelColors: SystemRiskMatrixAxisLevelColor[];
+  classificationColors: SystemRiskMatrixClassificationColor[];
+};
+
+export type SystemRiskMatrixPresentationClassification = {
+  key: string;
+  label: string;
+  color: string;
+  sortOrder?: number;
+};
+
+export type SystemRiskMatrixPresentation = {
+  source: RiskMatrixSourceEnum;
+  name?: string;
+  axisLevelColors: SystemRiskMatrixAxisLevelColor[];
+  classifications: SystemRiskMatrixPresentationClassification[];
+  extraordinaryProbability?: SystemRiskMatrixExtraordinaryProbability;
 };
 
 export type SystemRiskMatrixProjection = {
@@ -166,6 +219,11 @@ export type SystemRiskMatrixProjection = {
   coverages: RiskMatrixCoverageKeyEnum[];
   methodologicalGaps: SystemRiskMatrixMethodologicalGap[];
   version: SystemRiskMatrixVersion;
+  axisCriteria?: SystemRiskMatrixAxisCriterion[];
+  axisLevelColors?: SystemRiskMatrixAxisLevelColor[];
+  classificationColors?: SystemRiskMatrixClassificationColor[];
+  extraordinaryProbability?: SystemRiskMatrixExtraordinaryProbability;
+  editorial?: SystemRiskMatrixEditorialMeta;
 };
 
 export type CreateRiskMatrixPayload = {

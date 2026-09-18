@@ -25,4 +25,8 @@ export interface ISTagProps extends BoxProps {
   text: ReactNode;
   action?: ITagActionColors;
   icon?: ElementType<any>;
+  chipColors?: {
+    bgcolor: string;
+    color: string;
+  };
 }

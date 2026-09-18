@@ -30,6 +30,11 @@ assert.deepEqual(
   ['risk-matrices', 'matrix-workspace-availability', 'c1', 'm1'],
 );
 assert.deepEqual(riskMatrixQueryKeys.system(), ['risk-matrices', 'system']);
+assert.deepEqual(riskMatrixQueryKeys.systemPresentation('c1'), [
+  'risk-matrices',
+  'system-presentation',
+  'c1',
+]);
 assert.ok(riskMatrixQueryKeys.browse('c1')[0] === riskMatrixQueryKeys.all[0]);
 
 console.log('risk-matrix.query-keys.spec.ts OK');

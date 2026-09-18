@@ -16,6 +16,8 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
+import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
 import { useRowColumns } from '../../../../hooks/useRowColumns';
 import { SEndDateBox, STGridItem } from '../../styles';
@@ -52,6 +54,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   const { columns } = useRowColumns();
   const upsertMutation = useMutUpsertRiskData();
   const { selectStartEndDate } = useStartEndDate();
+  const presentation = useSystemRiskMatrixPresentation();
 
   //! can improve by using riskData.ro (cant use now because need to include risk on risk data, to do that is good to change the actual risk load to be partial load - to not load risk twice)
   //! problem is that will lose the risk / rec / med fuse search and need to see alternative on postgres
@@ -149,6 +152,14 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                   }
                   text={actualMatrixLevel?.label || '--'}
                   maxHeight={24}
+                  chipColors={
+                    typeof actualMatrixLevel?.level === 'number'
+                      ? resolveSystemOccupationalChipColors(
+                          actualMatrixLevel.level,
+                          presentation,
+                        )
+                      : undefined
+                  }
                 />
               </>
             ) : (
@@ -185,6 +196,14 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                   }
                   maxHeight={24}
                   text={actualMatrixLevelAfter?.label || '--'}
+                  chipColors={
+                    typeof actualMatrixLevelAfter?.level === 'number'
+                      ? resolveSystemOccupationalChipColors(
+                          actualMatrixLevelAfter.level,
+                          presentation,
+                        )
+                      : undefined
+                  }
                 />
               </>
             ) : (

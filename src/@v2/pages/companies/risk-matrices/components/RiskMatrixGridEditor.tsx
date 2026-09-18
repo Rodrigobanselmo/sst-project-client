@@ -47,6 +47,7 @@ type RiskMatrixGridEditorProps = {
   cells: RiskMatrixEditorCell[];
   selectedClassificationKey: string | null;
   disabled?: boolean;
+  axisLevelColorByValue?: Partial<Record<number, string>>;
   onChangeLabel: (
     axis: RiskMatrixEditorAxisLevel['axis'],
     value: number,
@@ -78,6 +79,7 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
   cells,
   selectedClassificationKey,
   disabled = false,
+  axisLevelColorByValue,
   onChangeLabel,
   onChangeCriterion,
   onCopyCriterionToOtherCoverages,
@@ -133,6 +135,7 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
               undefinedCoveragesByAxis?.[level.axis] ?? undefinedCoverages
             }
             disabled={disabled}
+            badgeColor={axisLevelColorByValue?.[level.value]}
             onChangeLabel={(label) => onChangeLabel(level.axis, level.value, label)}
             onChangeCriterion={(coverage, criterion) =>
               onChangeCriterion(level.axis, level.value, coverage, criterion)
@@ -153,6 +156,7 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
                 undefinedCoveragesByAxis?.[rowLevel.axis] ?? undefinedCoverages
               }
               disabled={disabled}
+              badgeColor={axisLevelColorByValue?.[rowLevel.value]}
               onChangeLabel={(label) =>
                 onChangeLabel(rowLevel.axis, rowLevel.value, label)
               }
@@ -233,6 +237,7 @@ const AxisHeader: FC<{
   selectedCoverages: RiskMatrixCoverageKeyEnum[];
   undefinedCoverages?: RiskMatrixCoverageKeyEnum[];
   disabled?: boolean;
+  badgeColor?: string;
   onChangeLabel: (label: string) => void;
   onChangeCriterion: (
     coverage: RiskMatrixCoverageKeyEnum,
@@ -247,6 +252,7 @@ const AxisHeader: FC<{
   selectedCoverages,
   undefinedCoverages = [],
   disabled,
+  badgeColor,
   onChangeLabel,
   onChangeCriterion,
   onCopyCriterionToOtherCoverages,
@@ -268,7 +274,8 @@ const AxisHeader: FC<{
             height: 24,
             px: 0.75,
             borderRadius: 1,
-            bgcolor: 'grey.200',
+            bgcolor: badgeColor || 'grey.200',
+            color: badgeColor ? contrastText(badgeColor) : 'inherit',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

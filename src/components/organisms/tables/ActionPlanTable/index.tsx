@@ -16,6 +16,8 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STag } from 'components/atoms/STag';
 import { STagButton } from 'components/atoms/STagButton';
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
+import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { StackModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
 import { ModalAddComment } from 'components/organisms/modals/ModalRiskDataComment';
@@ -52,6 +54,7 @@ export const ActionPlanTable: FC<
   const riskGroupDataId = query.riskGroupId as string;
   const workspaceId = query.workspaceId as string;
   const companyId = query.companyId as string;
+  const presentation = useSystemRiskMatrixPresentation();
 
   const { data: riskGroupData, isLoading: loadRiskGroup } =
     useQueryRiskGroupDataOne(riskGroupDataId);
@@ -203,6 +206,11 @@ export const ActionPlanTable: FC<
                   action={String(row.level) as any}
                   text={row?.ro || '--'}
                   sx={{ '*': { fontSize: 13 } }}
+                  chipColors={resolveSystemOccupationalChipColors(
+                    row.level,
+                    presentation,
+                    'action-plan-tag',
+                  )}
                 />
                 <TextIconRow
                   text={row?.intervention}

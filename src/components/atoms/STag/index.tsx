@@ -13,14 +13,17 @@ export const STag: FC<{ children?: any } & ISTagProps> = ({
   text,
   action,
   icon: Icon,
+  chipColors,
   sx,
   ...props
 }) => {
   if (action === 'none') return null;
 
-  const scaleChip = isSimpleSstScaleAction(action)
-    ? getSimpleSstScaleChipColors(Number(action))
-    : null;
+  const scaleChip = chipColors
+    ? chipColors
+    : isSimpleSstScaleAction(action)
+      ? getSimpleSstScaleChipColors(Number(action))
+      : null;
 
   const color = () => {
     switch (action) {
