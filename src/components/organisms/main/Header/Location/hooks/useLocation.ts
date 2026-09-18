@@ -28,6 +28,11 @@ import {
 import {
   ABSENTEEISM_TAB_PATHNAME,
   ACTION_PLAN_PATHNAME,
+  RISK_MATRICES_BREADCRUMB_LABEL,
+  RISK_MATRICES_MODULE_ROUTE_VALUE,
+  RISK_MATRICES_PATHNAME,
+  RISK_MATRIX_VERSION_PATHNAME,
+  getRiskMatricesListPath,
   COMPANY_HOME_PATHNAME,
   COMPANY_STAGE_BREADCRUMB,
   DOCUMENTS_LIST_MODULE_ROUTE_VALUE,
@@ -494,6 +499,40 @@ export const useLocation = () => {
       ]);
     }
 
+    if (pathname === RISK_MATRICES_PATHNAME) {
+      const filtered = routesPath.filter((r) => r.value !== 'matrizes-risco');
+      return insertAfterCompany(filtered, [
+        {
+          name: RISK_MATRICES_BREADCRUMB_LABEL,
+          value: RISK_MATRICES_MODULE_ROUTE_VALUE,
+          action: () => getRiskMatricesListPath(companyId),
+        },
+      ]);
+    }
+
+    if (pathname === RISK_MATRIX_VERSION_PATHNAME) {
+      const filtered = routesPath.filter(
+        (r) =>
+          ![
+            'matrizes-risco',
+            'versoes',
+            query.matrixId as string,
+            query.versionId as string,
+          ].includes(r.value),
+      );
+      return insertAfterCompany(filtered, [
+        {
+          name: RISK_MATRICES_BREADCRUMB_LABEL,
+          value: RISK_MATRICES_MODULE_ROUTE_VALUE,
+          action: () => getRiskMatricesListPath(companyId),
+        },
+        {
+          name: 'Editor',
+          value: 'matriz-risco-editor',
+        },
+      ]);
+    }
+
     if (pathname === DOCUMENTS_LIST_PATHNAME) {
       const filtered = routesPath.filter((r) => r.value !== 'documentos');
       return insertAfterCompany(filtered, [
@@ -582,7 +621,9 @@ export const useLocation = () => {
     query.active,
     query.formTab,
     query.id,
+    query.matrixId,
     query.stage,
+    query.versionId,
     routeMap,
   ]);
 

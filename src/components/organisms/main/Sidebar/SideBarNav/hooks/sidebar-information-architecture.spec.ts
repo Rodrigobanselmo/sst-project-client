@@ -7,6 +7,12 @@
 import assert from 'node:assert/strict';
 
 import { CompanyActionEnum } from 'core/enums/company-action.enum';
+import {
+  RISK_MATRICES_BREADCRUMB_LABEL,
+  RISK_MATRICES_PATHNAME,
+  RISK_MATRIX_VERSION_PATHNAME,
+  getRiskMatricesListPath,
+} from 'core/constants/company-breadcrumb.constants';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
 import {
@@ -58,6 +64,7 @@ const EXPECTED_OPERACOES = [
 ];
 const EXPECTED_CADASTROS = [
   'Fatores de Risco',
+  'Matrizes de Risco',
   'Métodos de HO',
   'Exames',
   'EPI e CA',
@@ -93,7 +100,30 @@ assert.equal(EXPECTED_GESTAO_HOME_CHILDREN.length, 5);
 assert.ok(!EXPECTED_GERAL.includes('Home'));
 assert.ok(!EXPECTED_GERAL.includes('Empresas|Home'));
 assert.equal(EXPECTED_OPERACOES[1], 'Plano de Ação');
-assert.equal(EXPECTED_CADASTROS[3], 'EPI e CA');
+assert.equal(EXPECTED_CADASTROS[1], 'Matrizes de Risco');
+assert.equal(EXPECTED_CADASTROS[4], 'EPI e CA');
+assert.equal(
+  RoutesEnum.RISK_MATRICES,
+  '/dashboard/empresas/:companyId/matrizes-risco',
+);
+assert.equal(
+  RoutesEnum.RISK_MATRIX_VERSION,
+  '/dashboard/empresas/:companyId/matrizes-risco/:matrixId/versoes/:versionId',
+);
+assert.equal(DrawerItemsEnum.riskMatrices, 'riskMatrices');
+assert.equal(RISK_MATRICES_BREADCRUMB_LABEL, 'Matrizes de Risco');
+assert.equal(
+  RISK_MATRICES_PATHNAME,
+  '/dashboard/empresas/[companyId]/matrizes-risco',
+);
+assert.equal(
+  RISK_MATRIX_VERSION_PATHNAME,
+  '/dashboard/empresas/[companyId]/matrizes-risco/[matrixId]/versoes/[versionId]',
+);
+assert.equal(
+  getRiskMatricesListPath('company-1'),
+  '/dashboard/empresas/company-1/matrizes-risco',
+);
 assert.equal(EXPECTED_ADMIN[0], 'Gerenciar Usuários');
 assert.ok(EXPECTED_GERAL.includes('Agenda'));
 

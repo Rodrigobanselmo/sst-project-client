@@ -79,6 +79,20 @@ export const ABSENTEEISM_TAB_PATHNAME =
 export const ACTION_PLAN_PATHNAME =
   '/dashboard/empresas/[companyId]/plano-de-acao';
 
+export const RISK_MATRICES_PATHNAME =
+  '/dashboard/empresas/[companyId]/matrizes-risco';
+
+export const RISK_MATRIX_VERSION_PATHNAME =
+  '/dashboard/empresas/[companyId]/matrizes-risco/[matrixId]/versoes/[versionId]';
+
+export const RISK_MATRICES_BREADCRUMB_LABEL = 'Matrizes de Risco';
+
+export const RISK_MATRICES_MODULE_ROUTE_VALUE = 'matrizes-risco-modulo';
+
+export function getRiskMatricesListPath(companyId: string) {
+  return RoutesEnum.RISK_MATRICES.replace(':companyId', companyId);
+}
+
 export const FORMS_TAB_PATHNAME =
   '/dashboard/empresas/[companyId]/formularios/[formTab]';
 

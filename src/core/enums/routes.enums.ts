@@ -54,6 +54,8 @@ export enum RoutesEnum {
   PROFILE = '/dashboard/perfil',
   PUBLIC = '/publico',
   RISKS = '/dashboard/empresas/:companyId/fatores-riscos',
+  RISK_MATRICES = '/dashboard/empresas/:companyId/matrizes-risco',
+  RISK_MATRIX_VERSION = '/dashboard/empresas/:companyId/matrizes-risco/:matrixId/versoes/:versionId',
   HO_METHODS = '/dashboard/empresas/:companyId/metodos-ho',
   CHEMICAL_PRODUCTS = '/dashboard/empresas/:companyId/produtos-quimicos',
   EXPOSURE_GROUP_ASSISTANT = '/dashboard/empresas/:companyId/assistente-gse',

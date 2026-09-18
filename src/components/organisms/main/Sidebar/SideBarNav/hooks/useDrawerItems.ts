@@ -1,5 +1,6 @@
 import { MdDashboard } from 'react-icons/md';
 
+import GridOnOutlinedIcon from '@mui/icons-material/GridOnOutlined';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
 import { initialReportSelectState } from 'components/organisms/modals/ModalReportSelect/ModalReportSelect';
@@ -445,6 +446,15 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.SECURITY],
       shouldMatchExactHref: false,
     },
+    [DrawerItemsEnum.riskMatrices]: {
+      text: 'Matrizes de Risco',
+      description: 'Cadastro técnico de matrizes de risco customizadas.',
+      Icon: GridOnOutlinedIcon,
+      href: RoutesEnum.RISK_MATRICES,
+      activePrefix: RoutesEnum.RISK_MATRICES,
+      roles: [RoleEnum.SECURITY],
+      shouldMatchExactHref: false,
+    },
     [DrawerItemsEnum.hoMethodsGroup]: {
       text: 'Métodos de HO',
       description: 'Cadastro técnico de métodos de Higiene Ocupacional.',
@@ -747,12 +757,13 @@ export const useDrawerItems = () => {
     data: {
       id: 'technicalRegistrations',
       search:
-        'Cadastros Técnicos fatores risco métodos higiene exames epi profissionais',
+        'Cadastros Técnicos fatores risco matrizes risco métodos higiene exames epi profissionais',
       text: 'Cadastros Técnicos',
       roles: [],
     },
     items: [
       items[DrawerItemsEnum.risks],
+      items[DrawerItemsEnum.riskMatrices],
       {
         ...items[DrawerItemsEnum.hoMethodsGroup],
         items: [items[DrawerItemsEnum.hoMethods]],
