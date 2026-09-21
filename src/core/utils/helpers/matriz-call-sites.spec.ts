@@ -3,7 +3,7 @@
  * npx tsx src/core/utils/helpers/matriz-call-sites.spec.ts
  *
  * Garante o contrato getMatrizRisk(severity, probability) nos call sites
- * do RiskTool que historicamente invertia os argumentos.
+ * qualitativos do RiskTool, e resolveDisplayedOccupationalRisk no inerente.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -34,6 +34,7 @@ assert.match(
   matrizHelper,
   /resolveMatrixRiskLevel\(\s*severity\?: number,\s*probability\?: number/,
 );
+assert.match(matrizHelper, /resolveDisplayedOccupationalRisk/);
 
 for (const [name, source] of [
   ['RiskTool RowColumns', riskToolRowColumns],
@@ -41,8 +42,8 @@ for (const [name, source] of [
 ] as const) {
   assert.match(
     source,
-    /getMatrizRisk\(\s*risk\?\.severity,\s*riskData\?\.probability,\s*\)/,
-    `${name}: inherent lookup must be getMatrizRisk(severity, probability)`,
+    /resolveDisplayedOccupationalRisk\(\{/,
+    `${name}: inherent RO must use resolveDisplayedOccupationalRisk`,
   );
   assert.match(
     source,
@@ -51,18 +52,24 @@ for (const [name, source] of [
   );
   assert.doesNotMatch(
     source,
+    /getMatrizRisk\(\s*risk\?\.severity,\s*riskData\?\.probability,\s*\)/,
+    `${name} must not recalculate inherent RO via getMatrizRisk(S, probability)`,
+  );
+  assert.doesNotMatch(
+    source,
     /getMatrizRisk\(\s*riskData\?\.probability,\s*risk\?\.severity/,
     `${name} must not pass probability as the first argument`,
   );
 }
 
-assert.match(
-  riskBox,
-  /getMatrizRisk\(data\?\.severity, riskData\?\.probability\)/,
-);
+assert.match(riskBox, /resolveDisplayedOccupationalRisk\(\{/);
 assert.match(
   riskBox,
   /getMatrizRisk\(data\?\.severity, residualProbability\)/,
+);
+assert.doesNotMatch(
+  riskBox,
+  /getMatrizRisk\(data\?\.severity, riskData\?\.probability\)/,
 );
 assert.doesNotMatch(
   riskBox,

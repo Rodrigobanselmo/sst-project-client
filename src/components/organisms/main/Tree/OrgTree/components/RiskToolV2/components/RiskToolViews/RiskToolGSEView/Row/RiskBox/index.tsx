@@ -20,7 +20,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
-import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import { getMatrizRisk, resolveDisplayedOccupationalRisk } from 'core/utils/helpers/matriz';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
@@ -156,8 +156,19 @@ export const RiskToolGSEViewRowRiskBox: FC<
   }, [isRepresentAll, isPsicologico, subCategoryLabels]);
 
   const inherentMatrix = useMemo(
-    () => getMatrizRisk(data?.severity, riskData?.probability),
-    [data?.severity, riskData?.probability],
+    () =>
+      resolveDisplayedOccupationalRisk({
+        isQuantity: riskData?.isQuantity,
+        level: riskData?.level,
+        severity: data?.severity,
+        probability: riskData?.probability,
+      }),
+    [
+      data?.severity,
+      riskData?.isQuantity,
+      riskData?.level,
+      riskData?.probability,
+    ],
   );
 
   const hasRecs = !!(riskData?.recs && riskData.recs.length > 0);
@@ -304,8 +315,10 @@ export const RiskToolGSEViewRowRiskBox: FC<
             >
               <MatrixEquation
                 label="Inerente"
-                probability={riskData?.probability}
-                severity={severity}
+                probability={
+                  riskData?.isQuantity ? undefined : riskData?.probability
+                }
+                severity={riskData?.isQuantity ? undefined : severity}
                 resultLabel={inherentMatrix?.label}
                 resultLevel={inherentMatrix?.level}
               />

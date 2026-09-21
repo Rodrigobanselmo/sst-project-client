@@ -76,9 +76,11 @@ export const ProbabilityColumn: FC<
   const allowedLockedProbability = probabilityLockByPlan
     ? data?.probabilityAfter
     : undefined;
-  const disabledNumbers = probabilityLockByPlan
-    ? [1, 2, 3, 4, 5, 6].filter((n) => n !== allowedLockedProbability)
-    : [];
+  const disabledNumbers = data?.isQuantity
+    ? [1, 2, 3, 4, 5, 6]
+    : probabilityLockByPlan
+      ? [1, 2, 3, 4, 5, 6].filter((n) => n !== allowedLockedProbability)
+      : [];
 
   if (
     data &&
@@ -159,13 +161,16 @@ export const ProbabilityColumn: FC<
 
           handleSelect(payload);
         }}
-        selectedNumber={data?.probability}
+        // Quantitativo: probability espelha riskLevel — não destacar como P selecionada.
+        selectedNumber={data?.isQuantity ? undefined : data?.probability}
         disabledGtEqual={7}
         disabledNumbers={disabledNumbers}
         getDisabledReason={(number) =>
-          disabledNumbers.includes(number)
-            ? CURRENT_PROBABILITY_LOCKED_REASON
-            : undefined
+          data?.isQuantity
+            ? 'Resultado quantitativo: a probabilidade qualitativa não se aplica. Altere pela medição.'
+            : disabledNumbers.includes(number)
+              ? CURRENT_PROBABILITY_LOCKED_REASON
+              : undefined
         }
         handleHelp={() => handleHelp && handleHelp(dataSelect)}
       />

@@ -15,7 +15,7 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
-import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import { getMatrizRisk, resolveDisplayedOccupationalRisk } from 'core/utils/helpers/matriz';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
@@ -56,12 +56,13 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   const { selectStartEndDate } = useStartEndDate();
   const presentation = useSystemRiskMatrixPresentation();
 
-  //! can improve by using riskData.ro (cant use now because need to include risk on risk data, to do that is good to change the actual risk load to be partial load - to not load risk twice)
-  //! problem is that will lose the risk / rec / med fuse search and need to see alternative on postgres
-  const actualMatrixLevel = getMatrizRisk(
-    risk?.severity,
-    riskData?.probability,
-  );
+  //! Quantitativo: level é autoridade. Qualitativo: S×P.
+  const actualMatrixLevel = resolveDisplayedOccupationalRisk({
+    isQuantity: riskData?.isQuantity,
+    level: riskData?.level,
+    severity: risk?.severity,
+    probability: riskData?.probability,
+  });
 
   const actualMatrixLevelAfter = getMatrizRisk(
     risk?.severity,

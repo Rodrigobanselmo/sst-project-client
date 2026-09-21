@@ -117,6 +117,11 @@ export interface IRiskDataJsonNoise {
   ltcatq3?: string;
   ltcatq5?: string;
   nr15q3?: string;
+  nr15q5?: string;
+  impactPeak?: string;
+  impactCircuit?: 'FAST_C' | 'LINEAR';
+  impactMethod?: 'NR15' | 'NHO01';
+  impactCount?: string;
   type: QuantityTypeEnum;
 }
 

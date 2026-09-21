@@ -35,6 +35,10 @@ export const initialQuantityState = {
   ltcatq3: '',
   ltcatq5: '',
   nr15q5: '',
+  impactPeak: '',
+  impactCircuit: '' as '' | 'FAST_C' | 'LINEAR',
+  impactMethod: '' as '' | 'NR15' | 'NHO01',
+  impactCount: '',
 
   aren: '',
   vdvr: '',
@@ -72,6 +76,10 @@ interface ISubmit {
   ltcatq3?: string;
   ltcatq5?: string;
   nr15q5?: string;
+  impactPeak?: string;
+  impactCircuit?: 'FAST_C' | 'LINEAR' | '';
+  impactMethod?: 'NR15' | 'NHO01' | '';
+  impactCount?: string;
 
   aren?: string;
   vdvr?: string;
@@ -186,13 +194,43 @@ export const useModalAddQuantity = () => {
         unit: dataFrom?.unit || undefined,
       };
 
-    if (data.type == QuantityTypeEnum.NOISE)
+    if (data.type == QuantityTypeEnum.NOISE) {
       submit = {
         ltcatq5: (dataFrom.ltcatq5 || '').replaceAll('.', '').replace(',', '.'),
         ltcatq3: (dataFrom.ltcatq3 || '').replaceAll('.', '').replace(',', '.'),
         nr15q5: (dataFrom.nr15q5 || '').replaceAll('.', '').replace(',', '.'),
         type: QuantityTypeEnum.NOISE,
       };
+
+      const isImpactAppendix = String(data.risk?.appendix || '') === '2';
+      if (isImpactAppendix) {
+        const methodFromForm = dataFrom.impactMethod || data.impactMethod;
+        const method =
+          methodFromForm === 'NHO01' || methodFromForm === 'NR15'
+            ? methodFromForm
+            : 'NR15';
+
+        submit.impactMethod = method;
+        submit.impactPeak = (dataFrom.impactPeak || '')
+          .replaceAll('.', '')
+          .replace(',', '.');
+
+        if (method === 'NHO01') {
+          submit.impactCount = (dataFrom.impactCount || data.impactCount || '')
+            .replaceAll('.', '')
+            .replace(',', '.');
+          // Circuito é LINEAR por definição na NHO 01; persistir ajuda auditoria,
+          // mas a autoridade da metodologia é impactMethod (motor ignora circuit).
+          submit.impactCircuit = 'LINEAR';
+        } else {
+          const circuit = dataFrom.impactCircuit || data.impactCircuit;
+          if (circuit === 'FAST_C' || circuit === 'LINEAR') {
+            submit.impactCircuit = circuit;
+          }
+          // NR15 não deve carregar impactCount residual
+        }
+      }
+    }
 
     if (data.type == QuantityTypeEnum.HEAT) {
       submit = {

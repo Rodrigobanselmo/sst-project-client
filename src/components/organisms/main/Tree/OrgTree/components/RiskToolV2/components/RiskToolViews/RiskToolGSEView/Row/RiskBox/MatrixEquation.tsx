@@ -80,6 +80,9 @@ export function MatrixEquation({
         <SText fontSize={12} color="text.disabled" noBreak>
           --
         </SText>
+      ) : !probability && resultLevel ? (
+        // Quantitativo: RO vem do level — não montar equação P e S.
+        <ResultPill label={resultLabel || '--'} level={resultLevel} />
       ) : (
         <>
           <SScaleFactorPill

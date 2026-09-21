@@ -46,3 +46,34 @@ export const getMatrizRisk = (severity?: number, probability?: number) => {
 
   return matrixRiskMap[level];
 };
+
+export type MatrixRiskMapEntry = (typeof matrixRiskMap)[keyof typeof matrixRiskMap];
+
+/**
+ * RO para exibição no RiskTool.
+ *
+ * Quantitativo (`isQuantity` + `level` 1..6): `level` é autoridade — NÃO recalcular
+ * via getMatrizRisk(severity, probability). O `probability` transitório espelha
+ * quantitativeRiskLevel e NÃO é matrixProbability.
+ *
+ * Qualitativo: severity × probability → matriz S×P.
+ */
+export function resolveDisplayedOccupationalRisk(params: {
+  isQuantity?: boolean | null;
+  level?: number | null;
+  severity?: number | null;
+  probability?: number | null;
+}): MatrixRiskMapEntry | null {
+  const { isQuantity, level, severity, probability } = params;
+
+  if (isQuantity) {
+    const rounded =
+      level != null && Number.isFinite(level) ? Math.round(level) : 0;
+    if (rounded >= 1 && rounded <= 6) {
+      return matrixRiskMap[rounded as 1 | 2 | 3 | 4 | 5 | 6];
+    }
+    return null;
+  }
+
+  return getMatrizRisk(severity ?? undefined, probability ?? undefined);
+}

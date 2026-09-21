@@ -8,7 +8,7 @@
  */
 import assert from 'node:assert/strict';
 
-import { getMatrizRisk, resolveMatrixRiskLevel } from './matriz';
+import { getMatrizRisk, resolveDisplayedOccupationalRisk, resolveMatrixRiskLevel } from './matriz';
 
 const EXPECTED_LEVEL: Record<number, Record<number, number>> = {
   1: { 1: 1, 2: 1, 3: 2, 4: 2, 5: 2 },
@@ -63,5 +63,66 @@ for (let probability = 1; probability <= 5; probability += 1) {
     );
   }
 }
+
+// Quantitativo: level é autoridade — S4 + “P1” espelhado NÃO vira Baixo.
+assert.equal(
+  resolveDisplayedOccupationalRisk({
+    isQuantity: true,
+    level: 1,
+    severity: 4,
+    probability: 1,
+  })?.level,
+  1,
+);
+assert.equal(
+  resolveDisplayedOccupationalRisk({
+    isQuantity: true,
+    level: 1,
+    severity: 4,
+    probability: 1,
+  })?.short,
+  'MB',
+);
+assert.equal(
+  getMatrizRisk(4, 1)?.level,
+  2,
+  'legacy S×P still maps S4×P1 → Baixo (proves why we must not use it for quantity)',
+);
+assert.equal(
+  resolveDisplayedOccupationalRisk({
+    isQuantity: true,
+    level: 3,
+    severity: 4,
+    probability: 3,
+  })?.level,
+  3,
+);
+assert.equal(
+  resolveDisplayedOccupationalRisk({
+    isQuantity: true,
+    level: 6,
+    severity: 4,
+    probability: 6,
+  })?.level,
+  6,
+);
+
+// Qualitativo: continua S×P
+assert.equal(
+  resolveDisplayedOccupationalRisk({
+    isQuantity: false,
+    level: 99,
+    severity: 4,
+    probability: 1,
+  })?.level,
+  2,
+);
+assert.equal(
+  resolveDisplayedOccupationalRisk({
+    severity: 4,
+    probability: 2,
+  })?.level,
+  3,
+);
 
 console.log('matriz.spec.ts ok');
