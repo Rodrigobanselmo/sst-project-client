@@ -15,10 +15,17 @@ import {
   catalogEstablishmentAvailabilityLabel,
   catalogPublishedCoverageCount,
   canDuplicateRiskMatrix,
+  canDeleteCatalogDraft,
   canOpenWorkspaceAvailability,
+  deleteCatalogDraftRemovesIdentity,
   hasCatalogDraft,
   mapBrowseRiskMatrices,
 } from './risk-matrix-catalog.util';
+import {
+  RISK_MATRIX_DELETE_DRAFT_ACTION,
+  RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION,
+  RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION,
+} from '../maps/risk-matrix.maps';
 
 const matrix: RiskMatrixBrowseItem = {
   id: 'matrix-1',
@@ -89,6 +96,41 @@ assert.equal(
     draftVersion: null,
   }),
   false,
+);
+assert.equal(canDeleteCatalogDraft(matrix), true);
+assert.equal(
+  canDeleteCatalogDraft({ ...matrix, draftVersion: null }),
+  false,
+);
+assert.equal(deleteCatalogDraftRemovesIdentity(matrix), false);
+assert.equal(
+  deleteCatalogDraftRemovesIdentity({
+    ...matrix,
+    latestPublishedVersion: null,
+  }),
+  true,
+);
+assert.equal(
+  deleteCatalogDraftRemovesIdentity({ ...matrix, draftVersion: null }),
+  false,
+);
+
+assert.equal(RISK_MATRIX_DELETE_DRAFT_ACTION, 'Excluir rascunho');
+assert.match(
+  RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION.message,
+  /sairá do catálogo/,
+);
+assert.match(
+  RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION.message,
+  /versão publicada permanece/,
+);
+assert.equal(
+  RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION.confirmText,
+  'Excluir rascunho',
+);
+assert.equal(
+  RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION.confirmText,
+  'Excluir rascunho',
 );
 assert.equal(
   catalogEstablishmentAvailabilityLabel({

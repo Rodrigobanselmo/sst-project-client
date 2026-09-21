@@ -17,6 +17,7 @@ import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useC
 import { useFetchBrowseRiskMatrices } from '@v2/services/security/risk-matrix/hooks/useFetchBrowseRiskMatrices';
 import {
   useMutateCreateRiskMatrix,
+  useMutateDeleteRiskMatrixDraft,
   useMutateDuplicateRiskMatrix,
 } from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
 import {
@@ -30,15 +31,20 @@ import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import {
   RISK_MATRIX_COVERAGE_LABELS,
   RISK_MATRIX_COVERAGE_TITLES,
+  RISK_MATRIX_DELETE_DRAFT_ACTION,
+  RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION,
+  RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION,
   RISK_MATRIX_DUPLICATE_CONFIRMATION,
   RISK_MATRIX_MANAGE_AVAILABILITY_ACTION,
   RISK_MATRIX_STATUS_LABELS,
 } from '../maps/risk-matrix.maps';
 import {
   mapBrowseRiskMatrices,
+  canDeleteCatalogDraft,
   canDuplicateRiskMatrix,
   canOpenWorkspaceAvailability,
   catalogEstablishmentAvailabilityLabel,
+  deleteCatalogDraftRemovesIdentity,
 } from '../utils/risk-matrix-catalog.util';
 import { getRiskMatrixApiErrorMessage } from '../utils/risk-matrix-error.util';
 import { canWriteRiskMatrix } from '../utils/risk-matrix-permission.util';
@@ -69,6 +75,7 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
     useFetchBrowseRiskMatrices(companyId);
   const createMutation = useMutateCreateRiskMatrix(companyId);
   const duplicateMutation = useMutateDuplicateRiskMatrix(companyId);
+  const deleteDraftMutation = useMutateDeleteRiskMatrixDraft(companyId);
 
   const matrices = mapBrowseRiskMatrices(data);
   const listedCountLabel = isLoading
@@ -131,6 +138,37 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
         getRiskMatrixApiErrorMessage(
           duplicateError,
           'Não foi possível duplicar a matriz.',
+        ),
+        { type: 'error' },
+      );
+    }
+  };
+
+  const handleDeleteDraft = async (matrix: RiskMatrixBrowseItem) => {
+    if (!matrix.draftVersion?.id) return;
+
+    const confirmation = deleteCatalogDraftRemovesIdentity(matrix)
+      ? RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION
+      : RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION;
+    const confirmed = await showConfirmation({
+      title: confirmation.title,
+      message: confirmation.message,
+      confirmText: confirmation.confirmText,
+      cancelText: confirmation.cancelText,
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    try {
+      await deleteDraftMutation.mutateAsync({
+        matrixId: matrix.id,
+        versionId: matrix.draftVersion.id,
+      });
+    } catch (deleteError) {
+      showSnackBar(
+        getRiskMatrixApiErrorMessage(
+          deleteError,
+          'Não foi possível excluir o rascunho.',
         ),
         { type: 'error' },
       );
@@ -205,9 +243,11 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
               matrix={matrix}
               canWrite={canCreate}
               duplicating={duplicateMutation.isPending}
+              deletingDraft={deleteDraftMutation.isPending}
               onOpenDraft={() => handleOpenDraft(matrix)}
               onOpenAvailability={() => setAvailabilityMatrix(matrix)}
               onDuplicate={() => handleDuplicate(matrix)}
+              onDeleteDraft={() => handleDeleteDraft(matrix)}
             />
           ))}
         </Box>
@@ -235,21 +275,26 @@ const RiskMatrixCatalogCard: FC<{
   matrix: RiskMatrixBrowseItem;
   canWrite: boolean;
   duplicating: boolean;
+  deletingDraft: boolean;
   onOpenDraft: () => void;
   onOpenAvailability: () => void;
   onDuplicate: () => void;
+  onDeleteDraft: () => void;
 }> = ({
   matrix,
   canWrite,
   duplicating,
+  deletingDraft,
   onOpenDraft,
   onOpenAvailability,
   onDuplicate,
+  onDeleteDraft,
 }) => {
   const published = matrix.latestPublishedVersion;
   const coverages = published?.coverages ?? [];
   const showAvailabilityAction = canOpenWorkspaceAvailability(matrix);
   const showDuplicateAction = canWrite && canDuplicateRiskMatrix(matrix);
+  const showDeleteDraftAction = canWrite && canDeleteCatalogDraft(matrix);
   const establishmentLabel = catalogEstablishmentAvailabilityLabel(matrix);
 
   return (
@@ -341,6 +386,19 @@ const RiskMatrixCatalogCard: FC<{
             <Button size="small" variant="outlined" onClick={onOpenDraft}>
               Editar rascunho
             </Button>
+          )}
+          {showDeleteDraftAction && (
+            <SAuthShow permissions={[PermissionEnum.RISK]} cruds="c">
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                onClick={onDeleteDraft}
+                disabled={deletingDraft}
+              >
+                {RISK_MATRIX_DELETE_DRAFT_ACTION}
+              </Button>
+            </SAuthShow>
           )}
         </Box>
       </Box>

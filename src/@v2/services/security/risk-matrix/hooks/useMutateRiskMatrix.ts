@@ -4,6 +4,7 @@ import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 
 import {
   createRiskMatrix,
+  deleteRiskMatrixDraft,
   disableWorkspaceRiskMatrix,
   duplicateRiskMatrix,
   enableWorkspaceRiskMatrix,
@@ -14,6 +15,7 @@ import {
 } from '../service/risk-matrix.service';
 import type {
   CreateRiskMatrixPayload,
+  DeleteRiskMatrixDraftResponse,
   PutSystemRiskMatrixPayload,
   ReplaceRiskMatrixDraftPayload,
   RiskMatrixVersion,
@@ -55,6 +57,27 @@ export const useMutateDuplicateRiskMatrix = (companyId: string) => {
         queryKey: riskMatrixQueryKeys.all,
       });
       showSnackBar('Matriz duplicada com sucesso', { type: 'success' });
+    },
+  });
+};
+
+export const useMutateDeleteRiskMatrixDraft = (companyId: string) => {
+  const queryClient = useQueryClient();
+  const { showSnackBar } = useSystemSnackbar();
+
+  return useMutation({
+    mutationFn: (params: { matrixId: string; versionId: string }) =>
+      deleteRiskMatrixDraft({ companyId, ...params }),
+    onSuccess: async (result: DeleteRiskMatrixDraftResponse) => {
+      await queryClient.invalidateQueries({
+        queryKey: riskMatrixQueryKeys.all,
+      });
+      showSnackBar(
+        result.identityDeleted
+          ? 'Rascunho excluído. A matriz saiu do catálogo.'
+          : 'Rascunho excluído. A versão publicada foi preservada.',
+        { type: 'success' },
+      );
     },
   });
 };

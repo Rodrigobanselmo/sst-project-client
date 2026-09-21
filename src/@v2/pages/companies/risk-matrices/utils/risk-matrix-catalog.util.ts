@@ -29,6 +29,14 @@ export function canDuplicateRiskMatrix(matrix: RiskMatrixBrowseItem) {
   return Boolean(matrix.latestPublishedVersion?.id || matrix.draftVersion?.id);
 }
 
+export function canDeleteCatalogDraft(matrix: RiskMatrixBrowseItem) {
+  return Boolean(matrix.draftVersion?.id);
+}
+
+export function deleteCatalogDraftRemovesIdentity(matrix: RiskMatrixBrowseItem) {
+  return Boolean(matrix.draftVersion?.id) && !matrix.latestPublishedVersion?.id;
+}
+
 export function catalogEstablishmentAvailabilityLabel(
   matrix: RiskMatrixBrowseItem,
 ) {

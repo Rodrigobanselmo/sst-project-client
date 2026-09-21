@@ -5,6 +5,7 @@ import { api } from 'core/services/apiClient';
 import type {
   BrowseRiskMatricesResponse,
   CreateRiskMatrixPayload,
+  DeleteRiskMatrixDraftResponse,
   MatrixWorkspaceAvailability,
   ReplaceRiskMatrixDraftPayload,
   RiskMatrixBrowseItem,
@@ -127,6 +128,25 @@ export async function publishRiskMatrixVersion(params: {
   const response = await api.post<RiskMatrixVersion>(
     bindUrlParams({
       path: RiskMatrixRoutes.PUBLISH,
+      pathParams: {
+        companyId: params.companyId,
+        matrixId: params.matrixId,
+        versionId: params.versionId,
+      },
+    }),
+  );
+
+  return response.data;
+}
+
+export async function deleteRiskMatrixDraft(params: {
+  companyId: string;
+  matrixId: string;
+  versionId: string;
+}): Promise<DeleteRiskMatrixDraftResponse> {
+  const response = await api.delete<DeleteRiskMatrixDraftResponse>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.VERSION,
       pathParams: {
         companyId: params.companyId,
         matrixId: params.matrixId,

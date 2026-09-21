@@ -12,6 +12,11 @@ assert.equal(
 );
 
 assert.equal(
+  RiskMatrixRoutes.VERSION,
+  'v2/companies/:companyId/risk-matrices/:matrixId/versions/:versionId',
+);
+
+assert.equal(
   RiskMatrixRoutes.SYSTEM_PRESENTATION,
   'v2/companies/:companyId/risk-matrices/system-presentation',
 );

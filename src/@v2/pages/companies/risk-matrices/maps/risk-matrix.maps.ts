@@ -145,5 +145,23 @@ export const RISK_MATRIX_DUPLICATE_CONFIRMATION = {
   cancelText: 'Cancelar',
 } as const;
 
+export const RISK_MATRIX_DELETE_DRAFT_ACTION = 'Excluir rascunho';
+
+export const RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION = {
+  title: 'Excluir rascunho?',
+  message:
+    'O rascunho será excluído permanentemente e a matriz sairá do catálogo. Esta ação não pode ser desfeita.',
+  confirmText: 'Excluir rascunho',
+  cancelText: 'Cancelar',
+} as const;
+
+export const RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION = {
+  title: 'Excluir rascunho?',
+  message:
+    'O rascunho será excluído permanentemente. A versão publicada permanece no catálogo.',
+  confirmText: 'Excluir rascunho',
+  cancelText: 'Cancelar',
+} as const;
+
 export const RISK_MATRIX_CREATE_SOURCE_HELP =
   'A opção “A partir do Padrão SimpleSST” cria uma cópia editável nesta empresa. O padrão do sistema permanece inalterado.';

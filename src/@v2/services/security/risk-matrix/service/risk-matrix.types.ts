@@ -275,6 +275,13 @@ export type CreateRiskMatrixVersionPayload = {
   sourceVersionId: string;
 };
 
+export type DeleteRiskMatrixDraftResponse = {
+  companyId: string;
+  matrixId: string;
+  versionId: string;
+  identityDeleted: boolean;
+};
+
 export type RiskMatrixBindingConflict = {
   coverageKey: RiskMatrixCoverageKeyEnum;
   existingMatrixId: string;
