@@ -28,6 +28,7 @@ import { getSaveActionV2Color } from 'core/utils/save-action-color';
 
 import { useFetchReadRiskMatrix } from '@v2/services/security/risk-matrix/hooks/useFetchReadRiskMatrix';
 import { useFetchReadRiskMatrixVersion } from '@v2/services/security/risk-matrix/hooks/useFetchReadRiskMatrixVersion';
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import {
   useMutatePublishRiskMatrixVersion,
   useMutateReplaceRiskMatrixDraft,
@@ -53,6 +54,13 @@ import {
   RISK_MATRIX_Y_AXIS_DIRECTION_OPTIONS,
 } from '../maps/risk-matrix.maps';
 import { getRiskMatrixApiErrorMessage } from '../utils/risk-matrix-error.util';
+import {
+  hasCustomAxisLevelColorOverride,
+  resetCustomAxisLevelColors,
+  resolveEffectiveCustomAxisLevelColors,
+  setCustomAxisLevelColor,
+  toCustomAxisLevelColorByValue,
+} from '../utils/custom-axis-level-colors.util';
 import {
   canAttemptPublishRiskMatrixVersion,
   copyAxisLevelCriterionToOtherCoverages,
@@ -113,6 +121,7 @@ export const RiskMatrixEditorPageContent: FC<
     isError: isVersionError,
     error: versionError,
   } = useFetchReadRiskMatrixVersion({ companyId, matrixId, versionId });
+  const systemPresentation = useSystemRiskMatrixPresentation();
   const replaceDraftMutation = useMutateReplaceRiskMatrixDraft({
     companyId,
     matrixId,
@@ -153,6 +162,16 @@ export const RiskMatrixEditorPageContent: FC<
         ? getAxisLevelsByAxis(editor.axisLevels, RiskMatrixAxisEnum.PROBABILITY)
         : [],
     [editor],
+  );
+  const usesOwnAxisPalette = hasCustomAxisLevelColorOverride(
+    editor?.axisLevelColors,
+  );
+  const effectiveAxisLevelColors = resolveEffectiveCustomAxisLevelColors({
+    stored: editor?.axisLevelColors,
+    systemFallback: systemPresentation?.axisLevelColors,
+  });
+  const axisLevelColorByValue = toCustomAxisLevelColorByValue(
+    effectiveAxisLevelColors,
   );
 
   const handleBack = () => {
@@ -579,6 +598,7 @@ export const RiskMatrixEditorPageContent: FC<
           cells={editor.cells}
           selectedClassificationKey={selectedClassificationKey}
           disabled={readOnly}
+          axisLevelColorByValue={axisLevelColorByValue}
           onChangeLabel={(axis, value, label) =>
             updateEditor((current) => ({
               ...current,
@@ -627,6 +647,84 @@ export const RiskMatrixEditorPageContent: FC<
             }));
           }}
         />
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          gap={2}
+          flexWrap="wrap"
+          mb={2}
+        >
+          <Box>
+            <Typography variant="subtitle1">
+              Cores de Severidade e Probabilidade
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Uma única cor por nível, compartilhada pelos eixos. S1 = P1, S2 =
+              P2, S3 = P3, S4 = P4 e S5 = P5. Independente das cores das
+              classificações finais.
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+              {usesOwnAxisPalette
+                ? 'Esta versão tem paleta própria.'
+                : 'Usando paleta padrão SimpleSST vigente.'}
+            </Typography>
+          </Box>
+          {usesOwnAxisPalette && !readOnly && (
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() =>
+                updateEditor((current) => ({
+                  ...current,
+                  axisLevelColors: resetCustomAxisLevelColors(),
+                }))
+              }
+            >
+              Usar paleta padrão SimpleSST
+            </Button>
+          )}
+        </Box>
+        <Box display="flex" flexDirection="column" gap={1.5}>
+          {effectiveAxisLevelColors.map((item) => (
+            <Box
+              key={item.value}
+              display="flex"
+              alignItems="center"
+              gap={1.5}
+              flexWrap="wrap"
+            >
+              <Typography sx={{ minWidth: 148 }}>
+                Nível {item.value} (S{item.value} = P{item.value})
+              </Typography>
+              <RiskMatrixColorInput
+                value={item.color}
+                disabled={readOnly || effectiveAxisLevelColors.length !== 5}
+                onChange={(color) =>
+                  updateEditor((current) => ({
+                    ...current,
+                    axisLevelColors: setCustomAxisLevelColor(
+                      current.axisLevelColors,
+                      systemPresentation?.axisLevelColors,
+                      item.value,
+                      color,
+                    ),
+                  }))
+                }
+              />
+            </Box>
+          ))}
+          {effectiveAxisLevelColors.length !== 5 && (
+            <Typography variant="body2" color="text.secondary">
+              A paleta padrão SimpleSST ainda não está disponível para este
+              contexto. As cores dos eixos ficam no fallback visual até o
+              carregamento.
+            </Typography>
+          )}
+        </Box>
       </Paper>
 
       <Paper variant="outlined" sx={{ p: 2 }}>

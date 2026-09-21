@@ -9,6 +9,7 @@ import {
   type ReplaceRiskMatrixDraftPayload,
 } from '@v2/services/security/risk-matrix/service/risk-matrix.types';
 
+import { acceptStoredCustomAxisLevelColors } from './custom-axis-level-colors.util';
 import { isValidRiskMatrixHex, normalizeRiskMatrixHex } from './risk-matrix-hex.util';
 
 export const V1_QUALITATIVE_VALUES = [1, 2, 3, 4, 5] as const;
@@ -45,6 +46,11 @@ export type RiskMatrixEditorState = {
   axisLevels: RiskMatrixEditorAxisLevel[];
   classifications: RiskMatrixEditorClassification[];
   cells: RiskMatrixEditorCell[];
+  /**
+   * Overlay persistido. [] = herda a paleta SYSTEM vigente.
+   * GET/read não materializa fallback neste campo.
+   */
+  axisLevelColors?: Array<{ value: number; color: string }>;
 };
 
 const CLASSIFICATION_KEY_PATTERN = /^C(\d+)$/;
@@ -562,7 +568,13 @@ const toEditorClassification = (
 export function hydrateEditorState(
   version: Pick<
     RiskMatrixVersion,
-    'axisLevels' | 'classifications' | 'cells' | 'coverages' | 'gridOrientation' | 'yAxisDirection'
+    | 'axisLevels'
+    | 'classifications'
+    | 'cells'
+    | 'coverages'
+    | 'gridOrientation'
+    | 'yAxisDirection'
+    | 'axisLevelColors'
   > & { nameSnapshot?: string },
   identity?: { name?: string | null; description?: string | null } | null,
 ): RiskMatrixEditorState {
@@ -602,6 +614,7 @@ export function hydrateEditorState(
     axisLevels,
     classifications,
     cells,
+    axisLevelColors: acceptStoredCustomAxisLevelColors(version.axisLevelColors),
   };
 }
 
@@ -636,6 +649,7 @@ export function serializeEditorState(state: RiskMatrixEditorState) {
           cellCoordinateKey(b.severity, b.probability),
         ),
       ),
+    axisLevelColors: acceptStoredCustomAxisLevelColors(state.axisLevelColors),
   });
 }
 
@@ -682,6 +696,7 @@ export function toReplaceDraftPayload(
         probability: cell.probability,
         classificationKey: cell.classificationKey,
       })),
+    axisLevelColors: acceptStoredCustomAxisLevelColors(state.axisLevelColors),
   };
 }
 

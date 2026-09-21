@@ -297,7 +297,9 @@ const customEditorSource = readFileSync(
   'src/@v2/pages/companies/risk-matrices/components/RiskMatrixEditorPageContent.tsx',
   'utf8',
 );
-assert.equal(customEditorSource.includes('axisLevelColorByValue'), false);
+assert.ok(customEditorSource.includes('axisLevelColorByValue'));
+assert.ok(customEditorSource.includes('Cores de Severidade e Probabilidade'));
+assert.ok(customEditorSource.includes('Usar paleta padrão SimpleSST'));
 
 const hierarchySource = readFileSync(
   'src/@v2/pages/companies/risk-matrices/components/CriterionHierarchyView.tsx',

@@ -144,6 +144,7 @@ export type RiskMatrixVersion = {
   classifications: RiskMatrixClassification[];
   cells: RiskMatrixCell[];
   coverages: RiskMatrixCoverageKeyEnum[];
+  axisLevelColors?: SystemRiskMatrixAxisLevelColor[];
 };
 
 export type SystemRiskMatrixMethodologicalGap = {
@@ -267,6 +268,7 @@ export type ReplaceRiskMatrixDraftPayload = {
   coverages: RiskMatrixCoverageKeyEnum[];
   gridOrientation?: RiskMatrixGridOrientationEnum;
   yAxisDirection?: RiskMatrixYAxisDirectionEnum;
+  axisLevelColors?: SystemRiskMatrixAxisLevelColor[];
 };
 
 export type CreateRiskMatrixVersionPayload = {

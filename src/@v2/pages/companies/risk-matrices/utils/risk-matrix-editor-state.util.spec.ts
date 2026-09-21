@@ -878,6 +878,7 @@ assert.deepEqual(
 assert.deepEqual(putPayload.cells, [
   { severity: 2, probability: 4, classificationKey: 'IRRELEVANTE' },
 ]);
+assert.deepEqual(putPayload.axisLevelColors, []);
 const severity4 = putPayload.axisLevels.find(
   (level) => level.axis === RiskMatrixAxisEnum.SEVERITY && level.value === 4,
 );
