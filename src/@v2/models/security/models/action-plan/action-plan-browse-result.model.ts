@@ -34,7 +34,15 @@ export type IActionPlanBrowseResultModel = {
   doneDate: Date | null;
   canceledDate: Date | null;
   validDate: Date | null;
+  /** Ponte numérica 1..6 (prioridade / prazo / filtros). */
   ocupationalRisk: IRiskLevelValues | null;
+  matrixSource?: string | null;
+  matrixVersionId?: string | null;
+  matrixClassificationId?: string | null;
+  matrixEvaluatedAt?: string | Date | null;
+  resolvedLabel?: string | null;
+  resolvedColor?: string | null;
+  resolvedLegacyBand?: number | null;
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSources: { id: string; name: string }[];
   risk: {
@@ -72,6 +80,13 @@ export class ActionPlanBrowseResultModel {
   canceledDate: Date | null;
   validDate: Date | null;
   ocupationalRisk: IRiskLevelValues;
+  matrixSource: string | null;
+  matrixVersionId: string | null;
+  matrixClassificationId: string | null;
+  matrixEvaluatedAt: string | Date | null;
+  resolvedLabel: string | null;
+  resolvedColor: string | null;
+  resolvedLegacyBand: number | null;
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSource: { id: string; name: string }[];
   risk: {
@@ -102,6 +117,13 @@ export class ActionPlanBrowseResultModel {
     this.doneDate = params.doneDate;
     this.canceledDate = params.canceledDate;
     this.ocupationalRisk = params.ocupationalRisk || 0;
+    this.matrixSource = params.matrixSource ?? null;
+    this.matrixVersionId = params.matrixVersionId ?? null;
+    this.matrixClassificationId = params.matrixClassificationId ?? null;
+    this.matrixEvaluatedAt = params.matrixEvaluatedAt ?? null;
+    this.resolvedLabel = params.resolvedLabel ?? null;
+    this.resolvedColor = params.resolvedColor ?? null;
+    this.resolvedLegacyBand = params.resolvedLegacyBand ?? null;
     this.status = params.status;
     this.validDate = params.validDate ? new Date(params.validDate) : null;
     this.generateSource = params.generateSources;

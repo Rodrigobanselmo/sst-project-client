@@ -25,6 +25,11 @@ export function canOpenWorkspaceAvailability(matrix: RiskMatrixBrowseItem) {
   );
 }
 
+/** CUSTOM com versão publicada: consulta read-only da versão PUBLISHED imutável. */
+export function canViewPublishedRiskMatrix(matrix: RiskMatrixBrowseItem) {
+  return Boolean(matrix.latestPublishedVersion?.id);
+}
+
 export function canDuplicateRiskMatrix(matrix: RiskMatrixBrowseItem) {
   return Boolean(matrix.latestPublishedVersion?.id || matrix.draftVersion?.id);
 }

@@ -37,12 +37,14 @@ import {
   RISK_MATRIX_DUPLICATE_CONFIRMATION,
   RISK_MATRIX_MANAGE_AVAILABILITY_ACTION,
   RISK_MATRIX_STATUS_LABELS,
+  RISK_MATRIX_VIEW_PUBLISHED_ACTION,
 } from '../maps/risk-matrix.maps';
 import {
   mapBrowseRiskMatrices,
   canDeleteCatalogDraft,
   canDuplicateRiskMatrix,
   canOpenWorkspaceAvailability,
+  canViewPublishedRiskMatrix,
   catalogEstablishmentAvailabilityLabel,
   deleteCatalogDraftRemovesIdentity,
 } from '../utils/risk-matrix-catalog.util';
@@ -91,6 +93,17 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
         companyId,
         matrix.id,
         matrix.draftVersion.id,
+      ),
+    );
+  };
+
+  const handleViewPublished = (matrix: RiskMatrixBrowseItem) => {
+    if (!matrix.latestPublishedVersion?.id) return;
+    void router.push(
+      getRiskMatrixVersionEditorPath(
+        companyId,
+        matrix.id,
+        matrix.latestPublishedVersion.id,
       ),
     );
   };
@@ -244,6 +257,7 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
               canWrite={canCreate}
               duplicating={duplicateMutation.isPending}
               deletingDraft={deleteDraftMutation.isPending}
+              onViewPublished={() => handleViewPublished(matrix)}
               onOpenDraft={() => handleOpenDraft(matrix)}
               onOpenAvailability={() => setAvailabilityMatrix(matrix)}
               onDuplicate={() => handleDuplicate(matrix)}
@@ -276,6 +290,7 @@ const RiskMatrixCatalogCard: FC<{
   canWrite: boolean;
   duplicating: boolean;
   deletingDraft: boolean;
+  onViewPublished: () => void;
   onOpenDraft: () => void;
   onOpenAvailability: () => void;
   onDuplicate: () => void;
@@ -285,6 +300,7 @@ const RiskMatrixCatalogCard: FC<{
   canWrite,
   duplicating,
   deletingDraft,
+  onViewPublished,
   onOpenDraft,
   onOpenAvailability,
   onDuplicate,
@@ -292,6 +308,7 @@ const RiskMatrixCatalogCard: FC<{
 }) => {
   const published = matrix.latestPublishedVersion;
   const coverages = published?.coverages ?? [];
+  const showViewPublishedAction = canViewPublishedRiskMatrix(matrix);
   const showAvailabilityAction = canOpenWorkspaceAvailability(matrix);
   const showDuplicateAction = canWrite && canDuplicateRiskMatrix(matrix);
   const showDeleteDraftAction = canWrite && canDeleteCatalogDraft(matrix);
@@ -361,6 +378,16 @@ const RiskMatrixCatalogCard: FC<{
           )}
         </Box>
         <Box display="flex" gap={1} flexWrap="wrap">
+          {showViewPublishedAction && (
+            <Button
+              size="small"
+              variant="contained"
+              color="inherit"
+              onClick={onViewPublished}
+            >
+              {RISK_MATRIX_VIEW_PUBLISHED_ACTION}
+            </Button>
+          )}
           {showAvailabilityAction && (
             <Button
               size="small"

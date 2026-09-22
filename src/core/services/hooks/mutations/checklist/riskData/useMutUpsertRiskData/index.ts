@@ -93,6 +93,27 @@ export function useMutUpsertRiskData() {
     async (data: IUpsertRiskData) => upsertRiskData(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
+        // Mescla snapshot CUSTOM (e demais campos) da resposta no cache ativo
+        // antes do refetch — UI passa a mostrar CUSTOM sem reabrir a avaliação.
+        if (resp?.id) {
+          const companyId = getCompanyId(resp.companyId);
+          queryClient.setQueriesData<IRiskData[] | undefined>(
+            [QueryEnum.RISK_DATA, companyId],
+            (old) => {
+              if (!Array.isArray(old)) return old;
+              return old.map((item) => {
+                const sameId = item.id === resp.id;
+                const sameKey =
+                  !!resp.riskId &&
+                  !!resp.homogeneousGroupId &&
+                  item.riskId === resp.riskId &&
+                  item.homogeneousGroupId === resp.homogeneousGroupId;
+                return sameId || sameKey ? { ...item, ...resp } : item;
+              });
+            },
+          );
+        }
+
         queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
         queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);

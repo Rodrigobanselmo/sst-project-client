@@ -4,8 +4,6 @@ import React, { FC } from 'react';
 import { Box, CircularProgress, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
-import { STag } from 'components/atoms/STag';
-import { ITagActionColors } from 'components/atoms/STag/types';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
@@ -15,9 +13,12 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
-import { getMatrizRisk, resolveDisplayedOccupationalRisk } from 'core/utils/helpers/matriz';
-import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
-import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
+import {
+  resolveDisplayedOccupationalRisk,
+  resolveDisplayedResidualOccupationalRisk,
+} from 'core/utils/helpers/matriz';
+
+import { OccupationalRiskResultPill } from 'components/organisms/main/Tree/OrgTree/components/OccupationalRiskResultPill';
 
 import { useRowColumns } from '../../../../hooks/useRowColumns';
 import { SEndDateBox, STGridItem } from '../../styles';
@@ -56,22 +57,34 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   const { columns } = useRowColumns();
   const upsertMutation = useMutUpsertRiskData();
   const { selectStartEndDate } = useStartEndDate();
-  const presentation = useSystemRiskMatrixPresentation();
 
   //! Quantitativo: level é autoridade (não getMatrizRisk(S, probability espelhando riskLevel)).
-  //! Qualitativo: severity × probability → matriz S×P.
+  //! Qualitativo SYSTEM: severity × probability → matriz S×P.
+  //! Qualitativo CUSTOM snapshotted: resolvedLabel/Color da API (não matrixRiskMap).
   const actualMatrixLevel = resolveDisplayedOccupationalRisk({
     isQuantity: riskData?.isQuantity,
     level: riskData?.level,
     severity: risk?.severity,
     probability: riskData?.probability,
+    matrixSource: riskData?.matrixSource,
+    matrixVersionId: riskData?.matrixVersionId,
+    matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
+    resolvedLabel: riskData?.resolvedLabel,
+    resolvedColor: riskData?.resolvedColor,
+    resolvedLegacyBand: riskData?.resolvedLegacyBand,
   });
 
-  // Residual continua no eixo P qualitativo (probabilityAfter).
-  const actualMatrixLevelAfter = getMatrizRisk(
-    risk?.severity,
-    riskData?.probabilityAfter,
-  );
+  const actualMatrixLevelAfter = resolveDisplayedResidualOccupationalRisk({
+    isQuantity: riskData?.isQuantity,
+    severity: risk?.severity,
+    probabilityAfter: riskData?.probabilityAfter,
+    matrixSource: riskData?.matrixSource,
+    matrixVersionId: riskData?.matrixVersionId,
+    matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
+    residualLabel: riskData?.residualLabel,
+    residualColor: riskData?.residualColor,
+    residualLegacyBand: riskData?.residualLegacyBand,
+  });
 
   const onEditDate = () => {
     if (readOnly) return;
@@ -163,22 +176,11 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                     risk && (selectedRisks?.length ?? 1) === 1 ? risk : null
                   }
                 />
-                <STag
-                  action={
-                    String(
-                      actualMatrixLevel?.level,
-                    ) as unknown as ITagActionColors
-                  }
-                  text={actualMatrixLevel?.label || '--'}
-                  maxHeight={24}
-                  chipColors={
-                    typeof actualMatrixLevel?.level === 'number'
-                      ? resolveSystemOccupationalChipColors(
-                          actualMatrixLevel.level,
-                          presentation,
-                        )
-                      : undefined
-                  }
+                <OccupationalRiskResultPill
+                  label={actualMatrixLevel?.label || '--'}
+                  level={actualMatrixLevel?.level}
+                  resultColor={actualMatrixLevel?.color}
+                  alignSelfStart
                 />
               </>
             ) : (
@@ -208,22 +210,11 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                   handleSelect={handleSelect}
                   data={riskData}
                 />
-                <STag
-                  action={
-                    String(
-                      actualMatrixLevelAfter?.level,
-                    ) as unknown as ITagActionColors
-                  }
-                  maxHeight={24}
-                  text={actualMatrixLevelAfter?.label || '--'}
-                  chipColors={
-                    typeof actualMatrixLevelAfter?.level === 'number'
-                      ? resolveSystemOccupationalChipColors(
-                          actualMatrixLevelAfter.level,
-                          presentation,
-                        )
-                      : undefined
-                  }
+                <OccupationalRiskResultPill
+                  label={actualMatrixLevelAfter?.label || '--'}
+                  level={actualMatrixLevelAfter?.level}
+                  resultColor={actualMatrixLevelAfter?.color}
+                  alignSelfStart
                 />
               </>
             ) : (

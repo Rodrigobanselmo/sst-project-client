@@ -20,7 +20,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
-import { getMatrizRisk, resolveDisplayedOccupationalRisk } from 'core/utils/helpers/matriz';
+import { resolveDisplayedOccupationalRisk, resolveDisplayedResidualOccupationalRisk } from 'core/utils/helpers/matriz';
 import { resolveQuantitativeCollapsedPresentationFromSnapshot } from 'core/utils/helpers/format-quantitative-evidence.util';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
@@ -163,12 +163,24 @@ export const RiskToolGSEViewRowRiskBox: FC<
         level: riskData?.level,
         severity: data?.severity,
         probability: riskData?.probability,
+        matrixSource: riskData?.matrixSource,
+        matrixVersionId: riskData?.matrixVersionId,
+        matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
+        resolvedLabel: riskData?.resolvedLabel,
+        resolvedColor: riskData?.resolvedColor,
+        resolvedLegacyBand: riskData?.resolvedLegacyBand,
       }),
     [
       data?.severity,
       riskData?.isQuantity,
       riskData?.level,
       riskData?.probability,
+      riskData?.matrixSource,
+      riskData?.matrixVersionId,
+      riskData?.matrixEvaluatedAt,
+      riskData?.resolvedLabel,
+      riskData?.resolvedColor,
+      riskData?.resolvedLegacyBand,
     ],
   );
 
@@ -188,9 +200,29 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const residualMatrix = useMemo(
     () =>
       residualProbability
-        ? getMatrizRisk(data?.severity, residualProbability)
+        ? resolveDisplayedResidualOccupationalRisk({
+            isQuantity: riskData?.isQuantity,
+            severity: data?.severity,
+            probabilityAfter: residualProbability,
+            matrixSource: riskData?.matrixSource,
+            matrixVersionId: riskData?.matrixVersionId,
+            matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
+            residualLabel: riskData?.residualLabel,
+            residualColor: riskData?.residualColor,
+            residualLegacyBand: riskData?.residualLegacyBand,
+          })
         : null,
-    [data?.severity, residualProbability],
+    [
+      data?.severity,
+      residualProbability,
+      riskData?.isQuantity,
+      riskData?.matrixSource,
+      riskData?.matrixVersionId,
+      riskData?.matrixEvaluatedAt,
+      riskData?.residualLabel,
+      riskData?.residualColor,
+      riskData?.residualLegacyBand,
+    ],
   );
 
   const showCollapsedSummary =
@@ -331,6 +363,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
                 severity={riskData?.isQuantity ? undefined : severity}
                 resultLabel={inherentMatrix?.label}
                 resultLevel={inherentMatrix?.level}
+                resultColor={inherentMatrix?.color}
               />
               <MatrixEquation
                 label="Residual"
@@ -338,6 +371,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
                 severity={severity}
                 resultLabel={residualMatrix?.label}
                 resultLevel={residualMatrix?.level}
+                resultColor={residualMatrix?.color}
                 empty={!residualProbability}
               />
             </SFlex>

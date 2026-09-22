@@ -137,6 +137,8 @@ export const RISK_MATRIX_SIMPLESST_ALWAYS_AVAILABLE =
 export const RISK_MATRIX_MANAGE_AVAILABILITY_ACTION =
   'Gerenciar disponibilidade';
 
+export const RISK_MATRIX_VIEW_PUBLISHED_ACTION = 'Visualizar matriz';
+
 export const RISK_MATRIX_DUPLICATE_CONFIRMATION = {
   title: 'Duplicar matriz?',
   message:

@@ -829,7 +829,15 @@ export const RiskMatrixEditorPageContent: FC<
                     }
                   />
                   <Box display="flex" alignItems="center" gap={0.5}>
-                  <FormControl size="small" sx={{ minWidth: 320 }} disabled={readOnly}>
+                  {readOnly ? (
+                    <Typography variant="body2" sx={{ minWidth: 320 }}>
+                      Compatibilidade SimpleSST:{' '}
+                      {classification.compatibilityBands.length > 0
+                        ? classification.compatibilityBands.join(', ')
+                        : '—'}
+                    </Typography>
+                  ) : (
+                  <FormControl size="small" sx={{ minWidth: 320 }}>
                     <InputLabel>Compatibilidade SimpleSST</InputLabel>
                     <Select
                       multiple
@@ -885,6 +893,7 @@ export const RiskMatrixEditorPageContent: FC<
                       })}
                     </Select>
                   </FormControl>
+                  )}
                   <Tooltip title={RISK_MATRIX_SIMPLE_SST_HELP}>
                     <HelpOutlineIcon
                       fontSize="small"

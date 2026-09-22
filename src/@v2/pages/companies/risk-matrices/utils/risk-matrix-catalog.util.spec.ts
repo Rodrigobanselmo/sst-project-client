@@ -17,6 +17,7 @@ import {
   canDuplicateRiskMatrix,
   canDeleteCatalogDraft,
   canOpenWorkspaceAvailability,
+  canViewPublishedRiskMatrix,
   deleteCatalogDraftRemovesIdentity,
   hasCatalogDraft,
   mapBrowseRiskMatrices,
@@ -25,6 +26,7 @@ import {
   RISK_MATRIX_DELETE_DRAFT_ACTION,
   RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION,
   RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION,
+  RISK_MATRIX_VIEW_PUBLISHED_ACTION,
 } from '../maps/risk-matrix.maps';
 
 const matrix: RiskMatrixBrowseItem = {
@@ -74,6 +76,19 @@ assert.equal(
   }),
   false,
 );
+assert.equal(canViewPublishedRiskMatrix(matrix), true);
+assert.equal(
+  canViewPublishedRiskMatrix({ ...matrix, latestPublishedVersion: null }),
+  false,
+);
+assert.equal(
+  canViewPublishedRiskMatrix({
+    ...matrix,
+    status: CompanyRiskMatrixStatusEnum.ARCHIVED,
+  }),
+  true,
+);
+assert.equal(RISK_MATRIX_VIEW_PUBLISHED_ACTION, 'Visualizar matriz');
 assert.equal(canDuplicateRiskMatrix(matrix), true);
 assert.equal(
   canDuplicateRiskMatrix({

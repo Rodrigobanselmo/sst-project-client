@@ -2,8 +2,10 @@
  * Executar:
  * npx tsx src/core/utils/helpers/matriz-call-sites.spec.ts
  *
- * Garante o contrato getMatrizRisk(severity, probability) nos call sites
- * qualitativos do RiskTool, e resolveDisplayedOccupationalRisk no inerente.
+ * Garante o contrato de apresentação do RO no RiskTool:
+ * - inerente: resolveDisplayedOccupationalRisk
+ * - residual: resolveDisplayedResidualOccupationalRisk
+ * - CUSTOM não recalcula via getMatrizRisk(S, P) nos call sites.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -25,6 +27,10 @@ const matrixEquation = read(
   'src/components/organisms/main/Tree/OrgTree/components/RiskToolV2/components/RiskToolViews/RiskToolGSEView/Row/RiskBox/MatrixEquation.tsx',
 );
 const matrizHelper = read('src/core/utils/helpers/matriz.ts');
+const upsertMut = read(
+  'src/core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData/index.ts',
+);
+const iRiskData = read('src/core/interfaces/api/IRiskData.ts');
 
 assert.match(
   matrizHelper,
@@ -35,6 +41,15 @@ assert.match(
   /resolveMatrixRiskLevel\(\s*severity\?: number,\s*probability\?: number/,
 );
 assert.match(matrizHelper, /resolveDisplayedOccupationalRisk/);
+assert.match(matrizHelper, /resolveDisplayedResidualOccupationalRisk/);
+assert.match(matrizHelper, /hasCustomMatrixSnapshot/);
+
+assert.match(iRiskData, /matrixSource\?:/);
+assert.match(iRiskData, /resolvedLabel\?:/);
+assert.match(iRiskData, /residualLabel\?:/);
+
+assert.match(upsertMut, /setQueriesData/);
+assert.match(upsertMut, /\.\.\.item, \.\.\.resp/);
 
 for (const [name, source] of [
   ['RiskTool RowColumns', riskToolRowColumns],
@@ -47,8 +62,18 @@ for (const [name, source] of [
   );
   assert.match(
     source,
-    /getMatrizRisk\(\s*risk\?\.severity,\s*riskData\?\.probabilityAfter,\s*\)/,
-    `${name}: residual lookup must be getMatrizRisk(severity, probabilityAfter)`,
+    /resolveDisplayedResidualOccupationalRisk\(\{/,
+    `${name}: residual must use resolveDisplayedResidualOccupationalRisk`,
+  );
+  assert.match(
+    source,
+    /resolvedLabel:\s*riskData\?\.resolvedLabel/,
+    `${name}: must pass resolvedLabel from RFD snapshot`,
+  );
+  assert.match(
+    source,
+    /residualLabel:\s*riskData\?\.residualLabel/,
+    `${name}: must pass residualLabel from RFD snapshot`,
   );
   assert.doesNotMatch(
     source,
@@ -57,27 +82,22 @@ for (const [name, source] of [
   );
   assert.doesNotMatch(
     source,
-    /getMatrizRisk\(\s*riskData\?\.probability,\s*risk\?\.severity/,
-    `${name} must not pass probability as the first argument`,
+    /getMatrizRisk\(\s*risk\?\.severity,\s*riskData\?\.probabilityAfter,\s*\)/,
+    `${name} must not recalculate residual via getMatrizRisk alone`,
   );
 }
 
 assert.match(riskBox, /resolveDisplayedOccupationalRisk\(\{/);
-assert.match(
+assert.match(riskBox, /resolveDisplayedResidualOccupationalRisk\(\{/);
+assert.match(riskBox, /resolvedLabel:\s*riskData\?\.resolvedLabel/);
+assert.match(riskBox, /residualLabel:\s*riskData\?\.residualLabel/);
+assert.doesNotMatch(
   riskBox,
   /getMatrizRisk\(data\?\.severity, residualProbability\)/,
 );
 assert.doesNotMatch(
   riskBox,
   /getMatrizRisk\(data\?\.severity, riskData\?\.probability\)/,
-);
-assert.doesNotMatch(
-  riskBox,
-  /getMatrizRisk\(riskData\?\.probability, data\?\.severity/,
-);
-assert.doesNotMatch(
-  riskBox,
-  /getMatrizRisk\(residualProbability, data\?\.severity/,
 );
 
 assert.match(matrixEquation, />\s*e\s*</);
@@ -89,16 +109,15 @@ assert.match(
 assert.match(matrixEquation, /Quantitativo/);
 assert.match(matrixEquation, /isQuantity/);
 assert.match(matrixEquation, /quantitativePresentation/);
+assert.match(matrixEquation, /resultColor/);
 assert.doesNotMatch(matrixEquation, />\s*×\s*</);
 assert.doesNotMatch(matrixEquation, />\s*=\s*</);
 
 assert.match(riskBox, /resolveQuantitativeCollapsedPresentationFromSnapshot/);
 assert.match(riskBox, /riskData\.determiningEvidences/);
-assert.doesNotMatch(riskBox, /formatQuantitativeEvidence\(\{/);
-assert.doesNotMatch(riskBox, /json: riskData\.json/);
+assert.match(riskBox, /resultColor=\{inherentMatrix\?\.color\}/);
 assert.match(riskBox, /isQuantity=\{!!riskData\?\.isQuantity\}/);
 assert.match(riskBox, /quantitativePresentation=\{quantitativePresentation\}/);
-// Residual permanece qualitativo (sem isQuantity).
 assert.match(
   riskBox,
   /label="Residual"[\s\S]*?probability=\{residualProbability\}/,

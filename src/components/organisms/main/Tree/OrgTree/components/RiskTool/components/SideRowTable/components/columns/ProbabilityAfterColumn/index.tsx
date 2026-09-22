@@ -72,7 +72,10 @@ export const ProbabilityAfterColumn: FC<
     }
     if (data?.probabilityAfter === suggested) return;
 
-    handleSelect({ probabilityAfter: suggested });
+    handleSelect({
+      probabilityAfter: suggested,
+      ...(data?.probability ? { probability: data.probability } : {}),
+    });
     // handleSelect é recriado a cada render no RiskTool; não incluir nas deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recSignature, data?.probability, data?.probabilityAfter, suggested]);
@@ -91,7 +94,12 @@ export const ProbabilityAfterColumn: FC<
   return (
     <SFlex direction="column" gap={2} alignItems="flex-start">
       <SelectedNumber
-        handleSelect={(number) => handleSelect({ probabilityAfter: number })}
+        handleSelect={(number) =>
+          handleSelect({
+            probabilityAfter: number,
+            ...(data?.probability ? { probability: data.probability } : {}),
+          })
+        }
         selectedNumber={data?.probabilityAfter}
         disabledGtEqual={
           disabled ? 0 : data?.probability ? data.probability + 1 : 0
@@ -105,7 +113,12 @@ export const ProbabilityAfterColumn: FC<
           fontSize={11}
           color="info.main"
           sx={{ cursor: 'pointer', lineHeight: 1.3, maxWidth: 160 }}
-          onClick={() => handleSelect({ probabilityAfter: suggested })}
+          onClick={() =>
+            handleSelect({
+              probabilityAfter: suggested,
+              ...(data?.probability ? { probability: data.probability } : {}),
+            })
+          }
         >
           {`Sugestão pela hierarquia de controles: P${suggested}`}
         </SText>

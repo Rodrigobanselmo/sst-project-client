@@ -36,6 +36,10 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
+import {
+  useMutApplyCurrentRiskMatrix,
+  useMutApplyCurrentRiskMatrixToGse,
+} from 'core/services/hooks/mutations/checklist/riskData/useMutApplyCurrentRiskMatrix';
 import { useMutSyncDerivedMeasuresFromPlan } from 'core/services/hooks/mutations/checklist/riskData/useMutSyncDerivedMeasuresFromPlan';
 import { queryClient } from 'core/services/queryClient';
 import { useHorizontalScroll } from 'core/hooks/useHorizontalScroll';
@@ -154,6 +158,8 @@ export const RiskToolGhoHorizontal: FC<
   const { query } = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const syncPlanMutation = useMutSyncDerivedMeasuresFromPlan();
+  const applyMatrixMutation = useMutApplyCurrentRiskMatrix();
+  const applyMatrixToGseMutation = useMutApplyCurrentRiskMatrixToGse();
   const { companyId: userCompanyId } = useGetCompanyId(true);
   const { workspaceId: tabWorkspaceId } = useTabWorkspaceId();
   const expandCtx = useRiskRowsExpandOptional();
@@ -199,17 +205,101 @@ export const RiskToolGhoHorizontal: FC<
       homoIdForRefetch,
     ]);
   }, [
-    enqueueSnackbar,
-    homoIdForRefetch,
-    companyId,
     planWorkspaceId,
     riskGroupId,
-    syncPlanMutation,
+    companyId,
     userCompanyId,
+    homoIdForRefetch,
+    syncPlanMutation,
+    enqueueSnackbar,
+  ]);
+
+  const handleApplyCurrentRiskMatrix = useCallback(async () => {
+    if (!selected?.id || !riskGroupId) {
+      enqueueSnackbar(
+        'Selecione a origem para aplicar a matriz de risco.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
+    const isGse = viewDataType === ViewsDataEnum.GSE;
+    const isCharacterization =
+      viewDataType === ViewsDataEnum.CHARACTERIZATION;
+
+    if (!isGse && !isCharacterization) {
+      enqueueSnackbar(
+        'Aplicar matriz de risco não está disponível neste contexto.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
+    if (isGse && !planWorkspaceId) {
+      enqueueSnackbar(
+        'Selecione um estabelecimento (workspace) para aplicar a matriz neste GSE.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
+    const contextLabel = isGse ? 'este GSE' : 'esta caracterização';
+    const confirmed = window.confirm(
+      `Aplicar a matriz de risco publicada vinculada a este estabelecimento?\n\n` +
+        `Os riscos qualitativos próprios de ${contextLabel} serão reavaliados com a metodologia vigente (S × P). ` +
+        (isGse
+          ? 'Riscos herdados de outras origens (ex.: Caracterização) não serão alterados. '
+          : '') +
+        `Riscos quantitativos não serão alterados. Esta ação é explícita e registrada na auditoria.`,
+    );
+    if (!confirmed) return;
+
+    if (isGse) {
+      await applyMatrixToGseMutation.mutateAsync({
+        riskFactorGroupDataId: String(riskGroupId),
+        homogeneousGroupId: homoIdForRefetch,
+        workspaceId: String(planWorkspaceId),
+        ...(companyId ? { companyId: String(companyId) } : {}),
+      });
+    } else {
+      await applyMatrixMutation.mutateAsync({
+        riskFactorGroupDataId: String(riskGroupId),
+        homogeneousGroupId: homoIdForRefetch,
+        ...(companyId ? { companyId: String(companyId) } : {}),
+      });
+    }
+
+    await queryClient.refetchQueries([
+      QueryEnum.RISK_DATA,
+      userCompanyId,
+      riskGroupId,
+      homoIdForRefetch,
+    ]);
+  }, [
+    selected?.id,
+    riskGroupId,
+    homoIdForRefetch,
+    companyId,
+    userCompanyId,
+    viewDataType,
+    planWorkspaceId,
+    applyMatrixMutation,
+    applyMatrixToGseMutation,
+    enqueueSnackbar,
   ]);
 
   /** Disponível em todos os modos do RiskTool V2 (Vínculo, Elementos, GSE…). */
   const showSyncPlanButton = true;
+  /**
+   * Ação explícita 1C:
+   * - Characterization (Elementos / Editar Caracterização)
+   * - GSE (Editar GSE / Vínculo por GSE)
+   * Hierarquia e Funcionário: bloqueados (ver diagnóstico).
+   */
+  const showApplyMatrixButton =
+    (viewDataType === ViewsDataEnum.CHARACTERIZATION ||
+      viewDataType === ViewsDataEnum.GSE) &&
+    Boolean(selected);
 
   useEffect(() => {
     if (hideGhoPicker) return;
@@ -368,6 +458,27 @@ export const RiskToolGhoHorizontal: FC<
                 {syncPlanMutation.isLoading
                   ? 'Sincronizando…'
                   : 'Sincronizar com o plano'}
+              </SText>
+            </SButton>
+          )}
+          {showApplyMatrixButton && (
+            <SButton
+              variant="outlined"
+              sx={{ ...tableUtilityPillSx, minWidth: 'auto', height: 30 }}
+              disabled={
+                applyMatrixMutation.isLoading ||
+                applyMatrixToGseMutation.isLoading ||
+                !riskGroupId ||
+                !homoIdForRefetch ||
+                (viewDataType === ViewsDataEnum.GSE && !planWorkspaceId)
+              }
+              onClick={() => void handleApplyCurrentRiskMatrix()}
+            >
+              <SText sx={{ mr: 5 }}>
+                {applyMatrixMutation.isLoading ||
+                applyMatrixToGseMutation.isLoading
+                  ? 'Aplicando matriz…'
+                  : 'Aplicar matriz de risco'}
               </SText>
             </SButton>
           )}

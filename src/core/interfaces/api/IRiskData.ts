@@ -100,6 +100,22 @@ export interface IRiskData {
    * Somente leitura — não enviar como input metodológico no upsert.
    */
   determiningEvidences?: NoiseQuantityEvidence[] | null;
+  /**
+   * Snapshot metodológico qualitativo (Fase 1C / API).
+   * CUSTOM: autoridade de label/cor/classification; level = ponte operacional.
+   * null / ausente = legado SYSTEM (SimpleSST).
+   */
+  matrixSource?: 'SYSTEM' | 'CUSTOM' | null;
+  matrixVersionId?: string | null;
+  matrixClassificationId?: string | null;
+  matrixEvaluatedAt?: string | Date | null;
+  resolvedLabel?: string | null;
+  resolvedColor?: string | null;
+  resolvedLegacyBand?: number | null;
+  residualClassificationId?: string | null;
+  residualLabel?: string | null;
+  residualColor?: string | null;
+  residualLegacyBand?: number | null;
   dataRecs?: IRiskDataRec[];
   riskFactorDataRecDerivedMeasures?: IRiskDataRecDerivedMeasureRead[];
   created_at: Date;

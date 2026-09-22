@@ -64,6 +64,8 @@ export enum ApiRoutesEnum {
   RISK = '/risk',
   RISK_DATA = '/risk-data',
   RISK_DATA_SYNC_DERIVED_FROM_PLAN = '/risk-data/sync-derived-measures-from-plan',
+  RISK_DATA_APPLY_CURRENT_MATRIX = '/risk-data/apply-current-risk-matrix',
+  RISK_DATA_APPLY_CURRENT_MATRIX_GSE = '/risk-data/apply-current-risk-matrix/gse',
   RISK_DATA_REC = '/risk-data-rec',
   RISK_DOC_INFO = '/risk-doc-info',
   RISK_GROUP_DATA = '/risk-group-data',

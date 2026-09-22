@@ -5,64 +5,22 @@ import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
-import {
-  resolveSystemAxisLevelChipColors,
-  resolveSystemOccupationalChipColors,
-} from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
+import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 import {
   QuantitativeCollapsedPresentation,
 } from 'core/utils/helpers/format-quantitative-evidence.util';
-
-/** Largura fixa para caber “Muito Alto” / “Não informado” sem variar linha a linha. */
-const RESULT_PILL_MIN_WIDTH = 96;
-
-function ResultPill({
-  label,
-  level,
-}: {
-  label: string;
-  level?: number | null;
-}) {
-  const presentation = useSystemRiskMatrixPresentation();
-  const hasLevel = typeof level === 'number' && level > 0;
-  const chip = hasLevel
-    ? resolveSystemOccupationalChipColors(level, presentation)
-    : { bgcolor: 'grey.200', color: 'text.secondary' };
-
-  return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: RESULT_PILL_MIN_WIDTH,
-        width: RESULT_PILL_MIN_WIDTH,
-        height: 22,
-        px: 1.5,
-        borderRadius: '999px',
-        backgroundColor: chip.bgcolor,
-        color: chip.color,
-        fontSize: 11,
-        fontWeight: 600,
-        lineHeight: 1,
-        whiteSpace: 'nowrap',
-        boxShadow: '0px 1px 1px 0px rgb(0 0 0 / 5%)',
-      }}
-    >
-      {label || '--'}
-    </Box>
-  );
-}
+import { OccupationalRiskResultPill } from 'components/organisms/main/Tree/OrgTree/components/OccupationalRiskResultPill';
 
 function QuantitativeCollapsedEquation({
   presentation,
   resultLabel,
   resultLevel,
+  resultColor,
 }: {
   presentation?: QuantitativeCollapsedPresentation | null;
   resultLabel?: string | null;
   resultLevel?: number | null;
+  resultColor?: string | null;
 }) {
   const mode = presentation?.mode ?? 'none';
   const quantLabel = (
@@ -130,7 +88,11 @@ function QuantitativeCollapsedEquation({
       >
         →
       </SText>
-      <ResultPill label={resultLabel || '--'} level={resultLevel} />
+      <OccupationalRiskResultPill
+        label={resultLabel || '--'}
+        level={resultLevel}
+        resultColor={resultColor}
+      />
     </SFlex>
   );
 }
@@ -141,6 +103,8 @@ export type MatrixEquationProps = {
   severity?: number | null;
   resultLabel?: string | null;
   resultLevel?: number | null;
+  /** Hex CUSTOM do snapshot (opcional). */
+  resultColor?: string | null;
   /** Quando true, mostra só “--” no lugar da equação (ex.: residual ausente). */
   empty?: boolean;
   /** Risco inerente quantitativo: medição → RO (sem P/S). */
@@ -154,6 +118,7 @@ export function MatrixEquation({
   severity,
   resultLabel,
   resultLevel,
+  resultColor,
   empty,
   isQuantity,
   quantitativePresentation,
@@ -174,10 +139,15 @@ export function MatrixEquation({
           presentation={quantitativePresentation}
           resultLabel={resultLabel}
           resultLevel={resultLevel}
+          resultColor={resultColor}
         />
       ) : !probability && resultLevel ? (
         // Fallback legado quantitativo sem flag explícita.
-        <ResultPill label={resultLabel || '--'} level={resultLevel} />
+        <OccupationalRiskResultPill
+          label={resultLabel || '--'}
+          level={resultLevel}
+          resultColor={resultColor}
+        />
       ) : (
         <>
           <SScaleFactorPill
@@ -212,7 +182,11 @@ export function MatrixEquation({
           >
             →
           </SText>
-          <ResultPill label={resultLabel || '--'} level={resultLevel} />
+          <OccupationalRiskResultPill
+            label={resultLabel || '--'}
+            level={resultLevel}
+            resultColor={resultColor}
+          />
         </>
       )}
     </SFlex>

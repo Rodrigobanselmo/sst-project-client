@@ -191,7 +191,16 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           text={columnMap[columnsEnum.LEVEL].label}
         />
       ),
-      row: (row) => <OccupationalRiskTag level={row.ocupationalRisk} />,
+      row: (row) => (
+        <OccupationalRiskTag
+          level={row.ocupationalRisk}
+          matrixSource={row.matrixSource}
+          matrixVersionId={row.matrixVersionId}
+          matrixEvaluatedAt={row.matrixEvaluatedAt}
+          resolvedLabel={row.resolvedLabel}
+          resolvedColor={row.resolvedColor}
+        />
+      ),
     },
     [columnsEnum.EXPOSED_WORKERS]: {
       column: '90px',
