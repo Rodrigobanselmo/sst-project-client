@@ -21,6 +21,7 @@ import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklis
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { dateToString } from 'core/utils/date/date-format';
 import { getMatrizRisk, resolveDisplayedOccupationalRisk } from 'core/utils/helpers/matriz';
+import { resolveQuantitativeCollapsedPresentationFromSnapshot } from 'core/utils/helpers/format-quantitative-evidence.util';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
@@ -171,6 +172,13 @@ export const RiskToolGSEViewRowRiskBox: FC<
     ],
   );
 
+  const quantitativePresentation = useMemo(() => {
+    if (!riskData?.isQuantity) return null;
+    return resolveQuantitativeCollapsedPresentationFromSnapshot(
+      riskData.determiningEvidences,
+    );
+  }, [riskData?.determiningEvidences, riskData?.isQuantity]);
+
   const hasRecs = !!(riskData?.recs && riskData.recs.length > 0);
   const residualProbability =
     hasRecs && riskData?.probabilityAfter
@@ -315,6 +323,8 @@ export const RiskToolGSEViewRowRiskBox: FC<
             >
               <MatrixEquation
                 label="Inerente"
+                isQuantity={!!riskData?.isQuantity}
+                quantitativePresentation={quantitativePresentation}
                 probability={
                   riskData?.isQuantity ? undefined : riskData?.probability
                 }

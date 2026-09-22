@@ -86,7 +86,22 @@ assert.match(
   matrixEquation,
   /Probabilidade e Severidade → Risco Ocupacional/,
 );
+assert.match(matrixEquation, /Quantitativo/);
+assert.match(matrixEquation, /isQuantity/);
+assert.match(matrixEquation, /quantitativePresentation/);
 assert.doesNotMatch(matrixEquation, />\s*×\s*</);
 assert.doesNotMatch(matrixEquation, />\s*=\s*</);
+
+assert.match(riskBox, /resolveQuantitativeCollapsedPresentationFromSnapshot/);
+assert.match(riskBox, /riskData\.determiningEvidences/);
+assert.doesNotMatch(riskBox, /formatQuantitativeEvidence\(\{/);
+assert.doesNotMatch(riskBox, /json: riskData\.json/);
+assert.match(riskBox, /isQuantity=\{!!riskData\?\.isQuantity\}/);
+assert.match(riskBox, /quantitativePresentation=\{quantitativePresentation\}/);
+// Residual permanece qualitativo (sem isQuantity).
+assert.match(
+  riskBox,
+  /label="Residual"[\s\S]*?probability=\{residualProbability\}/,
+);
 
 console.log('matriz-call-sites.spec.ts ok');

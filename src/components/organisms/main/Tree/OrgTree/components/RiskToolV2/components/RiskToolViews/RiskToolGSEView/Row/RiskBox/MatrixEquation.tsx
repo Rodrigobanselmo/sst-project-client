@@ -2,12 +2,16 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SScaleFactorPill } from 'components/atoms/SScaleFactorPill';
 import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import {
   resolveSystemAxisLevelChipColors,
   resolveSystemOccupationalChipColors,
 } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
+import {
+  QuantitativeCollapsedPresentation,
+} from 'core/utils/helpers/format-quantitative-evidence.util';
 
 /** Largura fixa para caber “Muito Alto” / “Não informado” sem variar linha a linha. */
 const RESULT_PILL_MIN_WIDTH = 96;
@@ -51,6 +55,86 @@ function ResultPill({
   );
 }
 
+function QuantitativeCollapsedEquation({
+  presentation,
+  resultLabel,
+  resultLevel,
+}: {
+  presentation?: QuantitativeCollapsedPresentation | null;
+  resultLabel?: string | null;
+  resultLevel?: number | null;
+}) {
+  const mode = presentation?.mode ?? 'none';
+  const quantLabel = (
+    <SText fontSize={11} fontWeight={600} color="text.secondary" noBreak>
+      Quantitativo
+    </SText>
+  );
+
+  const evidenceInline =
+    (mode === 'single' || mode === 'multiple') && presentation?.inlineEvidence
+      ? presentation.inlineEvidence
+      : null;
+
+  const evidenceBlock = evidenceInline ? (
+    <>
+      <SText
+        component="span"
+        fontSize={11}
+        color="text.secondary"
+        sx={{ lineHeight: 1, px: 0.25 }}
+      >
+        ·
+      </SText>
+      <SText fontSize={11} color="text.secondary" noBreak>
+        {evidenceInline}
+      </SText>
+    </>
+  ) : null;
+
+  const leftSide =
+    mode === 'multiple' && presentation?.tooltip ? (
+      <STooltip
+        withWrapper
+        title={
+          <Box
+            component="span"
+            sx={{ whiteSpace: 'pre-line', display: 'block' }}
+          >
+            {presentation.tooltip}
+          </Box>
+        }
+        placement="top"
+      >
+        <SFlex align="center" gap={1} flexWrap="nowrap">
+          {quantLabel}
+          {evidenceBlock}
+        </SFlex>
+      </STooltip>
+    ) : (
+      <SFlex align="center" gap={1} flexWrap="nowrap">
+        {quantLabel}
+        {evidenceBlock}
+      </SFlex>
+    );
+
+  return (
+    <SFlex align="center" gap={1} flexWrap="nowrap" sx={{ flexShrink: 0 }}>
+      {leftSide}
+      <SText
+        component="span"
+        fontSize={13}
+        fontWeight={600}
+        color="text.secondary"
+        sx={{ lineHeight: 1, px: 0.25 }}
+      >
+        →
+      </SText>
+      <ResultPill label={resultLabel || '--'} level={resultLevel} />
+    </SFlex>
+  );
+}
+
 export type MatrixEquationProps = {
   label: string;
   probability?: number | null;
@@ -59,6 +143,9 @@ export type MatrixEquationProps = {
   resultLevel?: number | null;
   /** Quando true, mostra só “--” no lugar da equação (ex.: residual ausente). */
   empty?: boolean;
+  /** Risco inerente quantitativo: medição → RO (sem P/S). */
+  isQuantity?: boolean;
+  quantitativePresentation?: QuantitativeCollapsedPresentation | null;
 };
 
 export function MatrixEquation({
@@ -68,6 +155,8 @@ export function MatrixEquation({
   resultLabel,
   resultLevel,
   empty,
+  isQuantity,
+  quantitativePresentation,
 }: MatrixEquationProps) {
   const presentation = useSystemRiskMatrixPresentation();
 
@@ -80,8 +169,14 @@ export function MatrixEquation({
         <SText fontSize={12} color="text.disabled" noBreak>
           --
         </SText>
+      ) : isQuantity && resultLevel ? (
+        <QuantitativeCollapsedEquation
+          presentation={quantitativePresentation}
+          resultLabel={resultLabel}
+          resultLevel={resultLevel}
+        />
       ) : !probability && resultLevel ? (
-        // Quantitativo: RO vem do level — não montar equação P e S.
+        // Fallback legado quantitativo sem flag explícita.
         <ResultPill label={resultLabel || '--'} level={resultLevel} />
       ) : (
         <>

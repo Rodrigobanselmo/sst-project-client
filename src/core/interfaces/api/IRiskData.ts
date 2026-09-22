@@ -16,6 +16,28 @@ import { IHierarchy } from './IHierarchy';
 import { IGenerateSource, IRecMed, IRiskFactors } from './IRiskFactors';
 import { ExposureTypeEnum } from 'core/enums/exposure.enum';
 
+/** Critérios de evidência quantitativa de ruído (API). */
+export type NoiseQuantityEvidenceCriterion =
+  | 'NHO01_Q3'
+  | 'NR15_Q5'
+  | 'IMPACT_NR15'
+  | 'IMPACT_NHO01';
+
+export type NoiseQuantityEvidenceSource = 'ltcatq3' | 'nr15q5' | 'impactPeak';
+
+/**
+ * Snapshot autoritativo do canal que determinou o RO quantitativo de ruído.
+ * Produzido pela API — o client apenas formata para exibição.
+ */
+export type NoiseQuantityEvidence = {
+  criterion: NoiseQuantityEvidenceCriterion;
+  source: NoiseQuantityEvidenceSource;
+  value: string;
+  unit: string;
+  band: number;
+  riskLevel: number;
+};
+
 export type IRiskDataActivities = {
   activities: {
     description?: string;
@@ -73,6 +95,11 @@ export interface IRiskData {
   ro?: string;
   level?: number;
   intervention?: string;
+  /**
+   * Snapshot autoritativo das evidências que determinaram o level quantitativo (ruído).
+   * Somente leitura — não enviar como input metodológico no upsert.
+   */
+  determiningEvidences?: NoiseQuantityEvidence[] | null;
   dataRecs?: IRiskDataRec[];
   riskFactorDataRecDerivedMeasures?: IRiskDataRecDerivedMeasureRead[];
   created_at: Date;

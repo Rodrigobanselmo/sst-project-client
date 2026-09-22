@@ -2,6 +2,7 @@ import { CompanyStepEnum } from 'project/enum/company-step.enum';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { PreferredNoiseCriterionEnum } from 'core/constants/maps/preferred-noise-criterion';
 import { IScheduleBlock } from 'core/interfaces/api/IScheduleBlock';
 import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
 
@@ -150,6 +151,11 @@ export interface IWorkspace {
   hasFirstAidService?: boolean | null;
   firstAidServiceDescription?: string | null;
   establishmentGroupId?: string | null;
+  /**
+   * Critério contínuo de ruído ocupacional preferido no estabelecimento.
+   * Ausência → tratar como NHO01_Q3 (default SimpleSST).
+   */
+  preferredNoiseCriterion?: PreferredNoiseCriterionEnum | string | null;
 }
 
 export interface IAddress {

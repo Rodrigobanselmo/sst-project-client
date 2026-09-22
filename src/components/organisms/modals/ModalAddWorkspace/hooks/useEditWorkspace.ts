@@ -22,6 +22,11 @@ import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
 import { useMutAddWorkspacePhoto } from 'core/services/hooks/mutations/manager/company/useMutAddWorkspacePhoto';
 import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto';
 import {
+  DEFAULT_PREFERRED_NOISE_CRITERION,
+  normalizePreferredNoiseCriterion,
+  PreferredNoiseCriterionEnum,
+} from 'core/constants/maps/preferred-noise-criterion';
+import {
   hydrateWorkspaceSectionFlags,
   mergeWorkspaceCompanyJsonSectionFields,
 } from './workspace-custom-section.util';
@@ -49,6 +54,7 @@ export const initialWorkspaceState = {
   },
   hasFirstAidService: null as boolean | null,
   firstAidServiceDescription: '',
+  preferredNoiseCriterion: DEFAULT_PREFERRED_NOISE_CRITERION as PreferredNoiseCriterionEnum,
 };
 
 interface ISubmit {
@@ -112,12 +118,21 @@ export const useEditWorkspace = () => {
           useCustomSection: sectionFlags.useCustomSection,
           isFromOtherCnpj: sectionFlags.isFromOtherCnpj,
           primaryCnae: (initialData as any).companyJson?.useCustomSection,
+          preferredNoiseCriterion: normalizePreferredNoiseCriterion(
+            (initialData as Partial<IWorkspace>).preferredNoiseCriterion,
+          ),
         };
 
         initialDataRef.current = newData;
         setValue(
           'firstAidServiceDescription',
           initialData.firstAidServiceDescription ?? '',
+        );
+        setValue(
+          'preferredNoiseCriterion',
+          normalizePreferredNoiseCriterion(
+            (initialData as Partial<IWorkspace>).preferredNoiseCriterion,
+          ),
         );
 
         return newData;
@@ -228,6 +243,9 @@ export const useEditWorkspace = () => {
       logoUrl: companyData.logoUrl,
       hasFirstAidService: companyData.hasFirstAidService ?? null,
       firstAidServiceDescription: data.firstAidServiceDescription?.trim() || null,
+      preferredNoiseCriterion: normalizePreferredNoiseCriterion(
+        companyData.preferredNoiseCriterion,
+      ),
       address: {
         neighborhood: data.neighborhood,
         number: data.number,

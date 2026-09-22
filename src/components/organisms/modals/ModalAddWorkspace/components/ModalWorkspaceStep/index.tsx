@@ -8,8 +8,15 @@ import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import SHelpIcon from 'assets/icons/SHelpIcon';
 import { InputForm } from 'components/molecules/form/input';
+import { SelectForm } from 'components/molecules/form/select';
 import { CnaeInputSelect } from 'components/organisms/inputSelect/CnaeSelect/CnaeSelect';
 
+import {
+  preferredNoiseCriterionHelp,
+  preferredNoiseCriterionOptions,
+  PreferredNoiseCriterionEnum,
+  normalizePreferredNoiseCriterion,
+} from 'core/constants/maps/preferred-noise-criterion';
 import { cepMask } from 'core/utils/masks/cep.mask';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
@@ -96,6 +103,36 @@ export const ModalWorkspaceStep = ({
         name="description"
         size="small"
       />
+      <Box>
+        <SelectForm
+          setValue={setValue}
+          label="Critério quantitativo de ruído (PGR)"
+          control={control}
+          sx={{ minWidth: ['100%', 600] }}
+          name="preferredNoiseCriterion"
+          size="small"
+          options={[...preferredNoiseCriterionOptions]}
+          defaultValue={normalizePreferredNoiseCriterion(
+            companyData.preferredNoiseCriterion,
+          )}
+          onChange={(e: any) => {
+            const next = normalizePreferredNoiseCriterion(e?.target?.value);
+            setCompanyData((prev) => ({
+              ...prev,
+              preferredNoiseCriterion: next,
+            }));
+          }}
+        />
+        <SText color="text.secondary" fontSize={12} mt={2} sx={{ maxWidth: 600 }}>
+          {
+            preferredNoiseCriterionHelp[
+              normalizePreferredNoiseCriterion(
+                companyData.preferredNoiseCriterion,
+              ) as PreferredNoiseCriterionEnum
+            ]
+          }
+        </SText>
+      </Box>
       <SText color="text.label" fontSize={14}>
         Endereço
       </SText>

@@ -7,6 +7,12 @@ import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { SelectForm } from 'components/molecules/form/select';
 
+import {
+  PreferredNoiseCriterionEnum,
+  normalizePreferredNoiseCriterion,
+} from 'core/constants/maps/preferred-noise-criterion';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { floatMask } from 'core/utils/masks/float.mask';
 
 import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
@@ -38,8 +44,34 @@ const computeNho01Display = (countRaw: string | undefined) => {
   };
 };
 
+const occupationalCriterionHint = (
+  criterion: PreferredNoiseCriterionEnum | null,
+): string | null => {
+  if (!criterion) return null;
+  if (criterion === PreferredNoiseCriterionEnum.NR15_Q5) {
+    return 'Critério ocupacional do PGR: NR-15 — Q5.';
+  }
+  return 'Critério ocupacional do PGR: NHO 01 — Q3 (padrão SimpleSST).';
+};
+
 export const NoiseForm = (props: IUseModalQuantity) => {
   const { control, data, setValue, setData } = props;
+  const { workspaceId } = useGetCompanyId();
+  const { data: company } = useQueryCompany();
+
+  /**
+   * Só resolve a preferência com workspaceId inequívoco da rota + match em company.workspace.
+   * Não usa o primeiro workspace do GHO/empresa.
+   */
+  const preferredNoiseCriterion = useMemo(() => {
+    if (!workspaceId) return null;
+    const workspace = company?.workspace?.find((item) => item.id === workspaceId);
+    if (!workspace) return null;
+    return normalizePreferredNoiseCriterion(workspace.preferredNoiseCriterion);
+  }, [company?.workspace, workspaceId]);
+
+  const criterionHint = occupationalCriterionHint(preferredNoiseCriterion);
+
   const isImpactAppendix = String(data.risk?.appendix || '') === '2';
   const impactMethod =
     data.impactMethod === 'NHO01' || data.impactMethod === 'NR15'
@@ -89,6 +121,12 @@ export const NoiseForm = (props: IUseModalQuantity) => {
 
   return (
     <SFlex width={['100%', 600]} direction="column" gap={10} mt={8}>
+      {criterionHint && (
+        <SText color="text.secondary" fontSize={13}>
+          {criterionHint}
+        </SText>
+      )}
+
       {isImpactAppendix && (
         <>
           <SText color="text.label" fontSize={14}>
@@ -222,17 +260,23 @@ export const NoiseForm = (props: IUseModalQuantity) => {
         endAdornment={data.risk.unit}
         mask={floatMask.apply({ negative: false, ltAccept: true })}
       />
-      <InputForm
-        setValue={setValue}
-        defaultValue={data.ltcatq5.replace('.', ',')}
-        label="LTCAT (q5)"
-        control={control}
-        placeholder={`valor do resultado obtido em ${data.risk.unit}`}
-        name="ltcatq5"
-        size="small"
-        endAdornment={data.risk.unit}
-        mask={floatMask.apply({ negative: false, ltAccept: true })}
-      />
+      <Box>
+        <InputForm
+          setValue={setValue}
+          defaultValue={data.ltcatq5.replace('.', ',')}
+          label="LTCAT (q5)"
+          control={control}
+          placeholder={`valor do resultado obtido em ${data.risk.unit}`}
+          name="ltcatq5"
+          size="small"
+          endAdornment={data.risk.unit}
+          mask={floatMask.apply({ negative: false, ltAccept: true })}
+        />
+        <SText color="text.secondary" fontSize={12} mt={2}>
+          Uso previdenciário (LTCAT / PPP / eSocial). Não define o risco
+          ocupacional do PGR.
+        </SText>
+      </Box>
     </SFlex>
   );
 };
