@@ -113,6 +113,8 @@ export type RiskMatrixClassification = {
   id: string;
   key: string;
   label: string;
+  /** Canonical short within the version (uppercase A-Z0-9, 1..4). */
+  abbreviation: string;
   color: string;
   sortOrder: number;
   compatibilityBands: number[];
@@ -200,6 +202,8 @@ export type PutSystemRiskMatrixPayload = {
 export type SystemRiskMatrixPresentationClassification = {
   key: string;
   label: string;
+  /** Code-defined SYSTEM short (MB/B/M/A/MA). Read-only. */
+  abbreviation: string;
   color: string;
   sortOrder?: number;
 };
@@ -248,6 +252,7 @@ export type RiskMatrixAxisLevelPayload = {
 export type RiskMatrixClassificationPayload = {
   key: string;
   label: string;
+  abbreviation: string;
   color: string;
   sortOrder: number;
   compatibilityBands: number[];

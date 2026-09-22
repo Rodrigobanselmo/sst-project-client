@@ -20,6 +20,7 @@ import {
 } from '@v2/services/security/risk-matrix/service/risk-matrix.types';
 
 import { RISK_MATRIX_COVERAGE_OPTIONS } from '../maps/risk-matrix.maps';
+import { formatClassificationDisplayLabel } from '../utils/risk-matrix-classification-abbreviation.util';
 import { groupCoverageCriteriaForDisplay } from '../utils/risk-matrix-criteria-display.util';
 import type {
   RiskMatrixEditorAxisLevel,
@@ -218,7 +219,10 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
                   </Typography>
                   <Typography variant="body2" fontWeight={600} sx={{ wordBreak: 'break-word' }}>
                     {classification
-                      ? classification.label.trim() || 'Sem nome'
+                      ? formatClassificationDisplayLabel({
+                          label: classification.label,
+                          abbreviation: classification.abbreviation,
+                        })
                       : 'Vazia'}
                   </Typography>
                 </Box>

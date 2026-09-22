@@ -86,6 +86,9 @@ assert.ok(
     (item) => item.compatibilityBands.length === 0,
   ),
 );
+assert.ok(
+  emptyHydrated.classifications.every((item) => item.abbreviation === ''),
+);
 assert.deepEqual(emptyHydrated.cells, []);
 assert.deepEqual(emptyHydrated.coverages, []);
 assert.equal(
@@ -142,6 +145,7 @@ const persisted = hydrateEditorState({
       id: 'cls-z',
       key: 'IRRELEVANTE',
       label: 'Irrelevante',
+      abbreviation: 'I',
       color: '#0f0',
       sortOrder: 2,
       compatibilityBands: [2, 1],
@@ -150,6 +154,7 @@ const persisted = hydrateEditorState({
       id: 'cls-a',
       key: 'ATENCAO',
       label: 'De Atenção',
+      abbreviation: 'DA',
       color: '#FFAA00',
       sortOrder: 1,
       compatibilityBands: [3],
@@ -473,10 +478,10 @@ const structuralState = {
     label: `Nível ${level.value}`,
   })),
   classifications: [
-    { key: 'C1', label: 'Irrelevante', color: '#111111', sortOrder: 1, compatibilityBands: [1, 2] },
-    { key: 'C2', label: 'De Atenção', color: '#222222', sortOrder: 2, compatibilityBands: [3] },
-    { key: 'C3', label: 'Crítico', color: '#333333', sortOrder: 3, compatibilityBands: [4] },
-    { key: 'C4', label: 'Não Tolerável', color: '#444444', sortOrder: 4, compatibilityBands: [5] },
+    { key: 'C1', label: 'Irrelevante', abbreviation: 'I', color: '#111111', sortOrder: 1, compatibilityBands: [1, 2] },
+    { key: 'C2', label: 'De Atenção', abbreviation: 'DA', color: '#222222', sortOrder: 2, compatibilityBands: [3] },
+    { key: 'C3', label: 'Crítico', abbreviation: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [4] },
+    { key: 'C4', label: 'Não Tolerável', abbreviation: 'NT', color: '#444444', sortOrder: 4, compatibilityBands: [5] },
   ],
   cells: [],
 };
@@ -521,10 +526,10 @@ const duplicateBands = validateEditorState({
     label: `Nível ${level.value}`,
   })),
   classifications: [
-    { key: 'C1', label: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1, 2] },
-    { key: 'C2', label: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [2, 3] },
-    { key: 'C3', label: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [4] },
-    { key: 'C4', label: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [5] },
+    { key: 'C1', label: 'A', abbreviation: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1, 2] },
+    { key: 'C2', label: 'B', abbreviation: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [2, 3] },
+    { key: 'C3', label: 'C', abbreviation: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [4] },
+    { key: 'C4', label: 'D', abbreviation: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [5] },
   ],
   cells: [],
 });
@@ -537,10 +542,10 @@ assert.ok(
 const missingBand = validateEditorState({
   ...structuralState,
   classifications: [
-    { key: 'C1', label: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1] },
-    { key: 'C2', label: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [3] },
-    { key: 'C3', label: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [4] },
-    { key: 'C4', label: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [5] },
+    { key: 'C1', label: 'A', abbreviation: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1] },
+    { key: 'C2', label: 'B', abbreviation: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [3] },
+    { key: 'C3', label: 'C', abbreviation: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [4] },
+    { key: 'C4', label: 'D', abbreviation: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [5] },
   ],
 });
 assert.equal(missingBand.incompleteCompatibilityCoverage, true);
@@ -553,10 +558,10 @@ assert.ok(
 const invalidRange = validateEditorState({
   ...structuralState,
   classifications: [
-    { key: 'C1', label: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [0, 1] },
-    { key: 'C2', label: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [2] },
-    { key: 'C3', label: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [3] },
-    { key: 'C4', label: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [4, 5, 6] },
+    { key: 'C1', label: 'A', abbreviation: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [0, 1] },
+    { key: 'C2', label: 'B', abbreviation: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [2] },
+    { key: 'C3', label: 'C', abbreviation: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [3] },
+    { key: 'C4', label: 'D', abbreviation: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [4, 5, 6] },
   ],
 });
 assert.equal(invalidRange.invalidCompatibilityValues, true);
@@ -565,11 +570,11 @@ assert.equal(invalidRange.structuralComplete, false);
 const fiveComplete = validateEditorState({
   ...structuralState,
   classifications: [
-    { key: 'C1', label: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1] },
-    { key: 'C2', label: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [2] },
-    { key: 'C3', label: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [3] },
-    { key: 'C4', label: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [4] },
-    { key: 'C5', label: 'E', color: '#555555', sortOrder: 5, compatibilityBands: [5] },
+    { key: 'C1', label: 'A', abbreviation: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1] },
+    { key: 'C2', label: 'B', abbreviation: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [2] },
+    { key: 'C3', label: 'C', abbreviation: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [3] },
+    { key: 'C4', label: 'D', abbreviation: 'D', color: '#444444', sortOrder: 4, compatibilityBands: [4] },
+    { key: 'C5', label: 'E', abbreviation: 'E', color: '#555555', sortOrder: 5, compatibilityBands: [5] },
   ],
 });
 assert.equal(fiveComplete.structuralComplete, true);
@@ -580,9 +585,9 @@ assert.equal(fiveComplete.incompleteCompatibilityCoverage, false);
 const threeClasses = validateEditorState({
   ...structuralState,
   classifications: [
-    { key: 'C1', label: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1, 2, 3] },
-    { key: 'C2', label: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [4] },
-    { key: 'C3', label: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [5] },
+    { key: 'C1', label: 'A', abbreviation: 'A', color: '#111111', sortOrder: 1, compatibilityBands: [1, 2, 3] },
+    { key: 'C2', label: 'B', abbreviation: 'B', color: '#222222', sortOrder: 2, compatibilityBands: [4] },
+    { key: 'C3', label: 'C', abbreviation: 'C', color: '#333333', sortOrder: 3, compatibilityBands: [5] },
   ],
 });
 assert.equal(threeClasses.invalidClassificationCount, true);
@@ -845,10 +850,10 @@ const acelensEditor = {
       : level,
   ),
   classifications: [
-    { key: 'IRRELEVANTE', label: 'Irrelevante', color: '#00AA00', sortOrder: 1, compatibilityBands: [2, 1] },
-    { key: 'ATENCAO', label: 'De Atenção', color: '#FFAA00', sortOrder: 2, compatibilityBands: [3] },
-    { key: 'CRITICO', label: 'Crítico', color: '#FF5500', sortOrder: 3, compatibilityBands: [4] },
-    { key: 'NAO_TOLERAVEL', label: 'Não Tolerável', color: '#AA0000', sortOrder: 4, compatibilityBands: [5] },
+    { key: 'IRRELEVANTE', label: 'Irrelevante', abbreviation: 'I', color: '#00AA00', sortOrder: 1, compatibilityBands: [2, 1] },
+    { key: 'ATENCAO', label: 'De Atenção', abbreviation: 'DA', color: '#FFAA00', sortOrder: 2, compatibilityBands: [3] },
+    { key: 'CRITICO', label: 'Crítico', abbreviation: 'C', color: '#FF5500', sortOrder: 3, compatibilityBands: [4] },
+    { key: 'NAO_TOLERAVEL', label: 'Não Tolerável', abbreviation: 'NT', color: '#AA0000', sortOrder: 4, compatibilityBands: [5] },
   ],
   cells: [
     { severity: 2, probability: 4, classificationKey: 'IRRELEVANTE' },
@@ -874,6 +879,15 @@ assert.deepEqual(putPayload.coverages, [
 assert.deepEqual(
   putPayload.classifications.map((item) => item.compatibilityBands),
   [[1, 2], [3], [4], [5]],
+);
+assert.deepEqual(
+  putPayload.classifications.map((item) => item.abbreviation),
+  ['I', 'DA', 'C', 'NT'],
+);
+assert.ok(
+  putPayload.classifications.every(
+    (item) => typeof item.abbreviation === 'string' && item.abbreviation.length > 0,
+  ),
 );
 assert.deepEqual(putPayload.cells, [
   { severity: 2, probability: 4, classificationKey: 'IRRELEVANTE' },
@@ -903,6 +917,7 @@ const baselineAfterHydrate = hydrateEditorState({
     id: `cl-${index}`,
     key: item.key,
     label: item.label,
+    abbreviation: item.abbreviation,
     color: item.color,
     sortOrder: item.sortOrder,
     compatibilityBands: item.compatibilityBands,
@@ -914,6 +929,10 @@ const baselineAfterHydrate = hydrateEditorState({
     classificationId: `cl-${putPayload.classifications.findIndex((item) => item.key === cell.classificationKey)}`,
   })),
 });
+assert.deepEqual(
+  baselineAfterHydrate.classifications.map((item) => item.abbreviation),
+  ['I', 'DA', 'C', 'NT'],
+);
 assert.equal(isEditorStateDirty(acelensEditor, emptyHydrated), true);
 assert.equal(isEditorStateDirty(baselineAfterHydrate, baselineAfterHydrate), false);
 assert.equal(
@@ -1000,6 +1019,135 @@ assert.equal(
   }),
   false,
 );
+
+assert.equal(invalid.missingClassificationAbbreviations, true);
+
+const lowercaseAbbrev = validateEditorState({
+  ...structuralState,
+  classifications: structuralState.classifications.map((item, index) =>
+    index === 0 ? { ...item, abbreviation: ' i ' } : item,
+  ),
+});
+assert.equal(lowercaseAbbrev.missingClassificationAbbreviations, false);
+assert.equal(lowercaseAbbrev.invalidClassificationAbbreviations, false);
+assert.deepEqual(lowercaseAbbrev.duplicateClassificationAbbreviations, []);
+assert.equal(
+  toReplaceDraftPayload({
+    ...structuralState,
+    classifications: structuralState.classifications.map((item, index) =>
+      index === 0 ? { ...item, abbreviation: ' i ' } : item,
+    ),
+  }).classifications[0].abbreviation,
+  'I',
+);
+
+const emptyAbbrev = validateEditorState({
+  ...structuralState,
+  classifications: structuralState.classifications.map((item, index) =>
+    index === 0 ? { ...item, abbreviation: '' } : item,
+  ),
+});
+assert.equal(emptyAbbrev.missingClassificationAbbreviations, true);
+assert.equal(emptyAbbrev.structuralComplete, false);
+
+const tooLongAbbrev = validateEditorState({
+  ...structuralState,
+  classifications: structuralState.classifications.map((item, index) =>
+    index === 0 ? { ...item, abbreviation: 'TOOLONG' } : item,
+  ),
+});
+assert.equal(tooLongAbbrev.invalidClassificationAbbreviations, true);
+
+const duplicateAbbrev = validateEditorState({
+  ...structuralState,
+  classifications: structuralState.classifications.map((item, index) =>
+    index === 1 ? { ...item, abbreviation: 'I' } : item,
+  ),
+});
+assert.deepEqual(duplicateAbbrev.duplicateClassificationAbbreviations, ['I']);
+assert.equal(duplicateAbbrev.structuralComplete, false);
+
+const systemLookingAbbrev = validateEditorState({
+  ...structuralState,
+  classifications: [
+    { ...structuralState.classifications[0], abbreviation: 'A' },
+    { ...structuralState.classifications[1], abbreviation: 'M' },
+    { ...structuralState.classifications[2], abbreviation: 'MA' },
+    { ...structuralState.classifications[3], abbreviation: 'IA' },
+  ],
+});
+assert.equal(systemLookingAbbrev.structuralComplete, true);
+assert.deepEqual(systemLookingAbbrev.duplicateClassificationAbbreviations, []);
+
+const createFromSystemLike = hydrateEditorState({
+  coverages: [RiskMatrixCoverageKeyEnum.QUI],
+  axisLevels: structuralState.axisLevels.map((level, index) => ({
+    id: `ax-${index}`,
+    axis: level.axis,
+    value: level.value,
+    label: level.label,
+    criteriaByCoverage: [],
+  })),
+  classifications: [
+    {
+      id: 'c1',
+      key: 'C1',
+      label: 'Muito baixo',
+      abbreviation: 'MB',
+      color: '#00FF00',
+      sortOrder: 1,
+      compatibilityBands: [1],
+    },
+    {
+      id: 'c2',
+      key: 'C2',
+      label: 'Baixo',
+      abbreviation: 'B',
+      color: '#AAFF00',
+      sortOrder: 2,
+      compatibilityBands: [2],
+    },
+    {
+      id: 'c3',
+      key: 'C3',
+      label: 'Moderado',
+      abbreviation: 'M',
+      color: '#FFFF00',
+      sortOrder: 3,
+      compatibilityBands: [3],
+    },
+    {
+      id: 'c4',
+      key: 'C4',
+      label: 'Alto',
+      abbreviation: 'A',
+      color: '#FF8800',
+      sortOrder: 4,
+      compatibilityBands: [4],
+    },
+    {
+      id: 'c5',
+      key: 'C5',
+      label: 'Muito Alto',
+      abbreviation: 'MA',
+      color: '#FF0000',
+      sortOrder: 5,
+      compatibilityBands: [5],
+    },
+  ],
+  cells: [],
+});
+assert.deepEqual(
+  createFromSystemLike.classifications.map((item) => item.abbreviation),
+  ['MB', 'B', 'M', 'A', 'MA'],
+);
+assert.deepEqual(
+  toReplaceDraftPayload(createFromSystemLike).classifications.map(
+    (item) => item.abbreviation,
+  ),
+  ['MB', 'B', 'M', 'A', 'MA'],
+);
+
 assert.equal(
   canAttemptPublishRiskMatrixVersion({
     status: CompanyRiskMatrixVersionStatusEnum.DRAFT,

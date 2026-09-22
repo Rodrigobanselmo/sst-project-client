@@ -90,6 +90,7 @@ const inheritedVersion = {
       id: 'c1',
       key: 'C1',
       label: 'Baixo',
+      abbreviation: 'B',
       color: '#00AA00',
       sortOrder: 1,
       compatibilityBands: [1],

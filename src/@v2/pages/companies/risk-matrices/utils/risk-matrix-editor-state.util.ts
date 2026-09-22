@@ -11,6 +11,11 @@ import {
 
 import { acceptStoredCustomAxisLevelColors } from './custom-axis-level-colors.util';
 import { isValidRiskMatrixHex, normalizeRiskMatrixHex } from './risk-matrix-hex.util';
+import {
+  findDuplicateClassificationAbbreviations,
+  isValidRiskMatrixClassificationAbbreviationFormat,
+  normalizeRiskMatrixClassificationAbbreviation,
+} from './risk-matrix-classification-abbreviation.util';
 
 export const V1_QUALITATIVE_VALUES = [1, 2, 3, 4, 5] as const;
 
@@ -26,6 +31,7 @@ export type RiskMatrixEditorAxisLevel = {
 export type RiskMatrixEditorClassification = {
   key: string;
   label: string;
+  abbreviation: string;
   color: string;
   sortOrder: number;
   compatibilityBands: number[];
@@ -146,6 +152,7 @@ export function createEmptyClassification(
   return {
     key: nextClassificationKey(classifications),
     label: '',
+    abbreviation: '',
     color: '',
     sortOrder: classifications.length + 1,
     compatibilityBands: [],
@@ -560,6 +567,9 @@ const toEditorClassification = (
 ): RiskMatrixEditorClassification => ({
   key: classification.key,
   label: classification.label ?? '',
+  abbreviation: normalizeRiskMatrixClassificationAbbreviation(
+    classification.abbreviation,
+  ),
   color: normalizeRiskMatrixHex(classification.color) ?? classification.color ?? '',
   sortOrder: classification.sortOrder,
   compatibilityBands: normalizeCompatibilityBands(classification.compatibilityBands),
@@ -634,6 +644,7 @@ export function serializeEditorState(state: RiskMatrixEditorState) {
     classifications: state.classifications.map((item) => ({
       key: item.key,
       label: item.label,
+      abbreviation: normalizeRiskMatrixClassificationAbbreviation(item.abbreviation),
       color: item.color,
       sortOrder: item.sortOrder,
       compatibilityBands: item.compatibilityBands,
@@ -683,6 +694,7 @@ export function toReplaceDraftPayload(
     classifications: state.classifications.map((item) => ({
       key: item.key,
       label: item.label,
+      abbreviation: normalizeRiskMatrixClassificationAbbreviation(item.abbreviation),
       color: item.color,
       sortOrder: item.sortOrder,
       compatibilityBands: [...item.compatibilityBands].sort((left, right) => left - right),
@@ -706,6 +718,9 @@ export type RiskMatrixEditorValidation = {
   missingProbabilityLabels: boolean;
   invalidClassificationCount: boolean;
   missingClassificationLabels: boolean;
+  missingClassificationAbbreviations: boolean;
+  invalidClassificationAbbreviations: boolean;
+  duplicateClassificationAbbreviations: string[];
   invalidColors: boolean;
   missingCompatibilityBands: boolean;
   duplicateCompatibilityBands: boolean;
@@ -742,6 +757,20 @@ export function validateEditorState(
   const missingClassificationLabels = state.classifications.some(
     (item) => !item.label.trim(),
   );
+  const normalizedAbbreviations = state.classifications.map((item) => ({
+    key: item.key,
+    abbreviation: normalizeRiskMatrixClassificationAbbreviation(item.abbreviation),
+  }));
+  const missingClassificationAbbreviations = normalizedAbbreviations.some(
+    (item) => !item.abbreviation,
+  );
+  const invalidClassificationAbbreviations = normalizedAbbreviations.some(
+    (item) =>
+      item.abbreviation &&
+      !isValidRiskMatrixClassificationAbbreviationFormat(item.abbreviation),
+  );
+  const duplicateClassificationAbbreviations =
+    findDuplicateClassificationAbbreviations(normalizedAbbreviations);
   const invalidColors = state.classifications.some(
     (item) => !isValidRiskMatrixHex(item.color),
   );
@@ -789,6 +818,9 @@ export function validateEditorState(
     !missingProbabilityLabels &&
     !invalidClassificationCount &&
     !missingClassificationLabels &&
+    !missingClassificationAbbreviations &&
+    !invalidClassificationAbbreviations &&
+    duplicateClassificationAbbreviations.length === 0 &&
     !invalidColors &&
     !missingCompatibilityBands &&
     !duplicateCompatibilityBands &&
@@ -814,6 +846,19 @@ export function validateEditorState(
   }
   if (missingClassificationLabels) {
     messages.push('Preencha o nome de todas as classificações.');
+  }
+  if (missingClassificationAbbreviations) {
+    messages.push('Preencha a sigla de todas as classificações.');
+  }
+  if (invalidClassificationAbbreviations) {
+    messages.push(
+      'Cada sigla deve ter 1 a 4 caracteres A-Z ou 0-9 (sem espaços ou símbolos).',
+    );
+  }
+  if (duplicateClassificationAbbreviations.length > 0) {
+    messages.push(
+      `Há siglas duplicadas na versão: ${duplicateClassificationAbbreviations.join(', ')}.`,
+    );
   }
   if (invalidColors) {
     messages.push('Informe uma cor hex válida (#RGB ou #RRGGBB) para cada classificação.');
@@ -849,6 +894,9 @@ export function validateEditorState(
     missingProbabilityLabels,
     invalidClassificationCount,
     missingClassificationLabels,
+    missingClassificationAbbreviations,
+    invalidClassificationAbbreviations,
+    duplicateClassificationAbbreviations,
     invalidColors,
     missingCompatibilityBands,
     duplicateCompatibilityBands,

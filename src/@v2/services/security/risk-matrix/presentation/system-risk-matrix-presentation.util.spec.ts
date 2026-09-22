@@ -24,11 +24,11 @@ const presentation = acceptSystemRiskMatrixPresentation({
     { value: 5, color: '#555555' },
   ],
   classifications: [
-    { key: 'C1', label: 'Muito baixo', color: '#AAAAAA' },
-    { key: 'C2', label: 'Baixo', color: '#BBBBBB' },
-    { key: 'C3', label: 'Moderado', color: '#CCCCCC' },
-    { key: 'C4', label: 'Alto', color: '#DDDDDD' },
-    { key: 'C5', label: 'Muito Alto', color: '#EEEEEE' },
+    { key: 'C1', label: 'Muito baixo', abbreviation: 'MB', color: '#AAAAAA' },
+    { key: 'C2', label: 'Baixo', abbreviation: 'B', color: '#BBBBBB' },
+    { key: 'C3', label: 'Moderado', abbreviation: 'M', color: '#CCCCCC' },
+    { key: 'C4', label: 'Alto', abbreviation: 'A', color: '#DDDDDD' },
+    { key: 'C5', label: 'Muito Alto', abbreviation: 'MA', color: '#EEEEEE' },
   ],
   extraordinaryProbability: {
     value: 6,
@@ -131,7 +131,7 @@ assert.deepEqual(
     acceptSystemRiskMatrixPresentation({
       source: RiskMatrixSourceEnum.CUSTOM,
       axisLevelColors: [{ value: 3, color: '#FFFFFF' }],
-      classifications: [{ key: 'C3', label: 'X', color: '#FFFFFF' }],
+      classifications: [{ key: 'C3', label: 'X', abbreviation: 'X', color: '#FFFFFF' }],
     }),
   ),
   getSimpleSstScaleChipColors(3),

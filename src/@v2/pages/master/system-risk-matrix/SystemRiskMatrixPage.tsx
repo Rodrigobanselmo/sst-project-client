@@ -196,7 +196,7 @@ export const SystemRiskMatrixPage: FC = () => {
 
             {data?.extraordinaryProbability && (
               <Alert severity="warning">
-                P{data.extraordinaryProbability.value} —{' '}
+                P{data.extraordinaryProbability.value} — IA —{' '}
                 {data.extraordinaryProbability.label}. Fora da edição editorial.
               </Alert>
             )}
@@ -317,14 +317,15 @@ export const SystemRiskMatrixPage: FC = () => {
                 Classificações finais
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Key, label e faixa SimpleSST são estruturais. Somente a cor C1..C5
-                é editorial e independente da paleta S/P.
+                Key, label, sigla e faixa SimpleSST são estruturais. Somente a cor
+                C1..C5 é editorial e independente da paleta S/P. A sigla é
+                somente leitura.
               </Typography>
               <Box
                 display="grid"
                 width="max-content"
                 maxWidth="100%"
-                gridTemplateColumns="minmax(148px, max-content) max-content max-content"
+                gridTemplateColumns="minmax(148px, max-content) max-content max-content max-content"
                 columnGap={1.5}
                 rowGap={1.5}
                 alignItems="center"
@@ -343,6 +344,14 @@ export const SystemRiskMatrixPage: FC = () => {
                     <Box key={classification.key} display="contents">
                       <Typography whiteSpace="nowrap">
                         {classification.key} — {classification.label}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        whiteSpace="nowrap"
+                        title="Sigla (somente leitura)"
+                      >
+                        {classification.abbreviation || '—'}
                       </Typography>
                       <RiskMatrixColorInput
                         value={classification.color}

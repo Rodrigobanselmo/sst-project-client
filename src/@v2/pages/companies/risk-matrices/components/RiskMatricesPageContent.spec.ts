@@ -70,6 +70,10 @@ assert.ok(editorSource.includes('shouldShowRiskMatrixPublishActions'));
 assert.ok(editorSource.includes('useFetchReadRiskMatrixVersion'));
 assert.ok(editorSource.includes('Compatibilidade SimpleSST:'));
 assert.ok(editorSource.includes('classification.compatibilityBands.join'));
+assert.ok(editorSource.includes('label="Sigla"'));
+assert.ok(editorSource.includes('sanitizeRiskMatrixClassificationAbbreviationInput'));
+assert.ok(editorSource.includes('toReplaceDraftPayload'));
+assert.ok(editorSource.includes('disabled={readOnly}'));
 assert.equal(
   editorSource.includes('status: CompanyRiskMatrixVersionStatusEnum.DRAFT'),
   false,

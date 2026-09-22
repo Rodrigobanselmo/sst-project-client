@@ -53,6 +53,12 @@ import {
   RISK_MATRIX_VERSION_STATUS_LABELS,
   RISK_MATRIX_Y_AXIS_DIRECTION_OPTIONS,
 } from '../maps/risk-matrix.maps';
+import {
+  formatClassificationDisplayLabel,
+  isValidRiskMatrixClassificationAbbreviationFormat,
+  normalizeRiskMatrixClassificationAbbreviation,
+  sanitizeRiskMatrixClassificationAbbreviationInput,
+} from '../utils/risk-matrix-classification-abbreviation.util';
 import { getRiskMatrixApiErrorMessage } from '../utils/risk-matrix-error.util';
 import {
   hasCustomAxisLevelColorOverride,
@@ -203,6 +209,23 @@ export const RiskMatrixEditorPageContent: FC<
 
     if (!editor.name.trim()) {
       showSnackBar('Nome da matriz é obrigatório', { type: 'error' });
+      return;
+    }
+
+    const draftValidation = validateEditorState(editor);
+    if (
+      draftValidation.missingClassificationAbbreviations ||
+      draftValidation.invalidClassificationAbbreviations ||
+      draftValidation.duplicateClassificationAbbreviations.length > 0
+    ) {
+      showSnackBar(
+        draftValidation.messages.find(
+          (message) =>
+            message.toLowerCase().includes('sigla') ||
+            message.toLowerCase().includes('siglas'),
+        ) || 'Corrija as siglas das classificações antes de salvar.',
+        { type: 'error' },
+      );
       return;
     }
 
@@ -566,8 +589,14 @@ export const RiskMatrixEditorPageContent: FC<
                 }
                 label={
                   selected
-                    ? `Pincel: ${classification.label.trim() || 'Sem nome'}`
-                    : classification.label.trim() || 'Sem nome'
+                    ? `Pincel: ${formatClassificationDisplayLabel({
+                        label: classification.label,
+                        abbreviation: classification.abbreviation,
+                      })}`
+                    : formatClassificationDisplayLabel({
+                        label: classification.label,
+                        abbreviation: classification.abbreviation,
+                      })
                 }
                 sx={{
                   bgcolor: selected
@@ -813,6 +842,64 @@ export const RiskMatrixEditorPageContent: FC<
                       }))
                     }
                     sx={{ minWidth: 220, flex: 1 }}
+                  />
+                  <TextField
+                    required
+                    size="small"
+                    label="Sigla"
+                    placeholder="Ex.: DA"
+                    value={classification.abbreviation}
+                    disabled={readOnly}
+                    helperText={
+                      readOnly
+                        ? undefined
+                        : '1–4 caracteres A-Z / 0–9. Única nesta versão.'
+                    }
+                    inputProps={{
+                      maxLength: 4,
+                      style: { textTransform: 'uppercase' },
+                      'aria-label': `Sigla da classificação ${classification.key}`,
+                    }}
+                    onChange={(event) =>
+                      updateEditor((current) => ({
+                        ...current,
+                        classifications: current.classifications.map((item) =>
+                          item.key === classification.key
+                            ? {
+                                ...item,
+                                abbreviation:
+                                  sanitizeRiskMatrixClassificationAbbreviationInput(
+                                    event.target.value,
+                                  ),
+                              }
+                            : item,
+                        ),
+                      }))
+                    }
+                    error={
+                      !readOnly &&
+                      Boolean(validation) &&
+                      (validation!.duplicateClassificationAbbreviations.includes(
+                        normalizeRiskMatrixClassificationAbbreviation(
+                          classification.abbreviation,
+                        ),
+                      ) ||
+                        (Boolean(
+                          normalizeRiskMatrixClassificationAbbreviation(
+                            classification.abbreviation,
+                          ),
+                        ) &&
+                          !isValidRiskMatrixClassificationAbbreviationFormat(
+                            normalizeRiskMatrixClassificationAbbreviation(
+                              classification.abbreviation,
+                            ),
+                          )) ||
+                        (!normalizeRiskMatrixClassificationAbbreviation(
+                          classification.abbreviation,
+                        ) &&
+                          validation!.missingClassificationAbbreviations))
+                    }
+                    sx={{ width: 120, flexShrink: 0 }}
                   />
                   <RiskMatrixColorInput
                     value={classification.color}

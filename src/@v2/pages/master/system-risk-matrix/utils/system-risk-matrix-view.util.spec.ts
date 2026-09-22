@@ -94,6 +94,7 @@ const projection: SystemRiskMatrixProjection = {
         id: 'system-classification-1',
         key: 'C1',
         label: 'Muito baixo',
+        abbreviation: 'MB',
         color: '#3CBE7D',
         sortOrder: 1,
         compatibilityBands: [1],
@@ -102,6 +103,7 @@ const projection: SystemRiskMatrixProjection = {
         id: 'system-classification-2',
         key: 'C2',
         label: 'Baixo',
+        abbreviation: 'B',
         color: '#8FA728',
         sortOrder: 2,
         compatibilityBands: [2],
@@ -172,6 +174,8 @@ assert.equal(
   'Desprezível (Improvável)',
 );
 assert.equal(view.editor.cells[0].classificationKey, 'C1');
+assert.equal(view.editor.classifications[0].abbreviation, 'MB');
+assert.equal(view.editor.classifications[1].abbreviation, 'B');
 assert.ok(!view.editor.classifications.some((item) => item.sortOrder === 6));
 assert.ok(
   !RISK_MATRIX_SUGGESTED_COLORS.includes(
@@ -191,6 +195,8 @@ const pageSource = readFileSync(
   'src/@v2/pages/master/system-risk-matrix/SystemRiskMatrixPage.tsx',
   'utf8',
 );
+assert.ok(pageSource.includes('Sigla (somente leitura)'));
+assert.ok(pageSource.includes('IA —'));
 for (const label of SYSTEM_RISK_MATRIX_HIDDEN_ACTION_LABELS) {
   assert.equal(
     pageSource.includes(label),
