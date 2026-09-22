@@ -10,7 +10,10 @@ import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 import { useColumnAction } from '../../../hooks/useColumnAction';
-import { buildRiskDataUpsertWorkspaceFields } from '../build-risk-data-upsert-workspace-fields.util';
+import {
+  buildRiskDataUpsertWorkspaceFields,
+  isRiskToolHierarchyUpsertContext,
+} from '../build-risk-data-upsert-workspace-fields.util';
 import { resolveRiskToolOccurrenceSaveTarget } from '../resolve-risk-tool-occurrence-save-target.util';
 import { RowColumns } from '../components/RowColumns';
 import { RiskToolSingleRiskRowProps } from './types';
@@ -29,6 +32,7 @@ export const RiskToolSingleRiskRow: FC<
   planWorkspaceIdOverride,
 }) => {
   const gho = useAppSelector((state) => state.gho.selected);
+  const viewData = useAppSelector((state) => state.riskAdd.viewData);
   const { query } = useRouter();
   const isOriginEdit = !!originHomogeneousGroupId;
   const planWorkspaceId = useMemo(() => {
@@ -72,7 +76,11 @@ export const RiskToolSingleRiskRow: FC<
       return;
     }
 
-    const isHierarchy = !isOriginEdit && gho && 'childrenIds' in gho;
+    // Contexto semântico da tela (riskAdd.viewData), não `childrenIds` no GHO.
+    const isHierarchy = isRiskToolHierarchyUpsertContext({
+      viewData,
+      isOriginEdit,
+    });
     const selectedParts = String(gho?.id || '').split('//');
 
     const submitData = {
@@ -82,7 +90,7 @@ export const RiskToolSingleRiskRow: FC<
       riskId: risk.id,
       riskFactorGroupDataId: riskGroupId as string,
       ...buildRiskDataUpsertWorkspaceFields({
-        isHierarchy: !!isHierarchy,
+        isHierarchy,
         hierarchyWorkspaceId: selectedParts[1],
         explicitWorkspaceId: values.workspaceId,
         routeWorkspaceId: query.workspaceId,

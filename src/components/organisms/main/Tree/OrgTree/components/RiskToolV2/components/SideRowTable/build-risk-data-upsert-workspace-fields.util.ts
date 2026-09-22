@@ -1,6 +1,22 @@
+import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 
 type RouteQueryValue = string | string[] | undefined;
+
+/**
+ * HIERARCHY no upsert de risk-data deve seguir o contexto semântico da tela
+ * (`state.riskAdd.viewData` / lockedViewData), não a presença estrutural de
+ * `childrenIds` no GHO selecionado (Caracterização injeta essa chave sem ser HIERARCHY).
+ *
+ * Usa o ViewsDataEnum do RiskTool — o mesmo do riskAddSlice — não o enum do RiskToolV2.
+ */
+export function isRiskToolHierarchyUpsertContext(params: {
+  viewData?: ViewsDataEnum;
+  isOriginEdit?: boolean;
+}): boolean {
+  if (params.isOriginEdit) return false;
+  return params.viewData === ViewsDataEnum.HIERARCHY;
+}
 
 /**
  * Campos de workspace/type no POST /risk-data a partir do contexto do RiskTool.
