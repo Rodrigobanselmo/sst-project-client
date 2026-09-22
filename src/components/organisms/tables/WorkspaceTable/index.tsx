@@ -24,7 +24,6 @@ import { STableAddButton } from 'components/atoms/STable/components/STableSearch
 import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
-import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -38,6 +37,8 @@ import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+
+import { buildWorkspaceEditModalData } from './build-workspace-edit-modal-data';
 
 import {
   DEFAULT_WORKSPACE_COMPANY_PAGE_SIZE,
@@ -138,25 +139,7 @@ export const WorkspaceTable: FC<
   };
 
   const handleEdit = (row: IWorkspace) => {
-    const data: Partial<typeof initialWorkspaceState> = {
-      cep: row?.address?.cep,
-      number: row?.address?.number,
-      city: row?.address?.city,
-      complement: row?.address?.complement,
-      state: row?.address?.state,
-      street: row?.address?.street,
-      neighborhood: row?.address?.neighborhood,
-      description: row?.description,
-      name: row?.name,
-      id: row?.id,
-      status: row?.status,
-      companyJson: row?.companyJson,
-      logoUrl: row?.logoUrl,
-      hasFirstAidService: row?.hasFirstAidService ?? null,
-      firstAidServiceDescription: row?.firstAidServiceDescription || '',
-    };
-
-    onOpenModal(ModalEnum.WORKSPACE_ADD, data);
+    onOpenModal(ModalEnum.WORKSPACE_ADD, buildWorkspaceEditModalData(row));
   };
 
   const allColumnDefs: ColumnDef[] = useMemo(

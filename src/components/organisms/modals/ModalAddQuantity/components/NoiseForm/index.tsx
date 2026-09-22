@@ -8,8 +8,9 @@ import { InputForm } from 'components/molecules/form/input';
 import { SelectForm } from 'components/molecules/form/select';
 
 import {
-  PreferredNoiseCriterionEnum,
-  normalizePreferredNoiseCriterion,
+  occupationalCriterionHint,
+  resolveRouteWorkspaceId,
+  resolveWorkspacePreferredNoiseCriterion,
 } from 'core/constants/maps/preferred-noise-criterion';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
@@ -44,31 +45,23 @@ const computeNho01Display = (countRaw: string | undefined) => {
   };
 };
 
-const occupationalCriterionHint = (
-  criterion: PreferredNoiseCriterionEnum | null,
-): string | null => {
-  if (!criterion) return null;
-  if (criterion === PreferredNoiseCriterionEnum.NR15_Q5) {
-    return 'Critério ocupacional do PGR: NR-15 — Q5.';
-  }
-  return 'Critério ocupacional do PGR: NHO 01 — Q3 (padrão SimpleSST).';
-};
-
 export const NoiseForm = (props: IUseModalQuantity) => {
   const { control, data, setValue, setData } = props;
-  const { workspaceId } = useGetCompanyId();
+  const { router } = useGetCompanyId();
   const { data: company } = useQueryCompany();
 
   /**
-   * Só resolve a preferência com workspaceId inequívoco da rota + match em company.workspace.
+   * Preferência só com workspace inequívoco da rota (workspaceId path OU
+   * tabWorkspaceId na Caracterização) + match em company.workspace.
    * Não usa o primeiro workspace do GHO/empresa.
    */
   const preferredNoiseCriterion = useMemo(() => {
-    if (!workspaceId) return null;
-    const workspace = company?.workspace?.find((item) => item.id === workspaceId);
-    if (!workspace) return null;
-    return normalizePreferredNoiseCriterion(workspace.preferredNoiseCriterion);
-  }, [company?.workspace, workspaceId]);
+    const workspaceId = resolveRouteWorkspaceId(router.query);
+    return resolveWorkspacePreferredNoiseCriterion({
+      workspaceId,
+      workspaces: company?.workspace,
+    });
+  }, [company?.workspace, router.query]);
 
   const criterionHint = occupationalCriterionHint(preferredNoiseCriterion);
 
