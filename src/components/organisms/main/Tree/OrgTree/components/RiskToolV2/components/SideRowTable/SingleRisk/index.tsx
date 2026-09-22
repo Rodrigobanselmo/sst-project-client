@@ -3,7 +3,6 @@ import React, { FC, useMemo } from 'react';
 
 import { useRouter } from 'next/router';
 
-import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IEpi } from 'core/interfaces/api/IEpi';
 import { IExam } from 'core/interfaces/api/IExam';
@@ -11,6 +10,7 @@ import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 import { useColumnAction } from '../../../hooks/useColumnAction';
+import { buildRiskDataUpsertWorkspaceFields } from '../build-risk-data-upsert-workspace-fields.util';
 import { resolveRiskToolOccurrenceSaveTarget } from '../resolve-risk-tool-occurrence-save-target.util';
 import { RowColumns } from '../components/RowColumns';
 import { RiskToolSingleRiskRowProps } from './types';
@@ -81,12 +81,13 @@ export const RiskToolSingleRiskRow: FC<
       homogeneousGroupId: saveTarget.homogeneousGroupId,
       riskId: risk.id,
       riskFactorGroupDataId: riskGroupId as string,
-      ...(isHierarchy
-        ? {
-            type: HomoTypeEnum.HIERARCHY,
-            workspaceId: selectedParts[1],
-          }
-        : {}),
+      ...buildRiskDataUpsertWorkspaceFields({
+        isHierarchy: !!isHierarchy,
+        hierarchyWorkspaceId: selectedParts[1],
+        explicitWorkspaceId: values.workspaceId,
+        routeWorkspaceId: query.workspaceId,
+        tabWorkspaceId: query.tabWorkspaceId,
+      }),
     } as IUpsertRiskData;
 
     await onHandleSelectSave({ ...submitData }, riskData, { keepEmpty: true });
