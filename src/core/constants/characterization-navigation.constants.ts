@@ -65,11 +65,11 @@ export type CharacterizationSubareaNavItem =
 const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.RISKS,
   CharacterizationSubTabEnum.GSE,
-  CharacterizationSubTabEnum.PRIORITIZATION,
   CharacterizationSubTabEnum.ENVIRONMENTS,
+  CharacterizationSubTabEnum.ENTITY_RISKS,
+  CharacterizationSubTabEnum.PRIORITIZATION,
   CharacterizationSubTabEnum.EXAMS,
   CharacterizationSubTabEnum.PROTOCOLS,
-  CharacterizationSubTabEnum.ENTITY_RISKS,
 ] as const;
 
 export function getCharacterizationSubareaNavItems(options?: {

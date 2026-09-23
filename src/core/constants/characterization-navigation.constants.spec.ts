@@ -28,11 +28,11 @@ assert.deepEqual(
   [
     'Riscos',
     'GSE',
-    'Priorização',
     'Elementos Caracterizados',
+    'Vínculo de Riscos',
+    'Priorização',
     'Exames',
     'Protocolos',
-    'Vínculo de Riscos',
   ],
 );
 assert.equal(
