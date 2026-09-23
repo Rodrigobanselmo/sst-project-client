@@ -44,6 +44,10 @@ const EXCLUSIVE_PAIRS: [
     DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
     DocumentModelClassificationEnum.DADOS_FORNECIDOS,
   ],
+  [
+    DocumentModelClassificationEnum.MATRIZ_PADRAO,
+    DocumentModelClassificationEnum.MATRIZ_CUSTOM,
+  ],
 ];
 
 run('Com Visita de Campo is selectable and listed as a tag', () => {
@@ -247,6 +251,59 @@ run('listing tags keep the same pair order', () => {
     DocumentModelClassificationEnum.NR18,
     DocumentModelClassificationEnum.BACKUP,
   ]);
+});
+
+run('Matriz Padrão and Matriz Custom are PGR-only and mutually exclusive', () => {
+  const pgr = getDocumentModelClassificationsForType(DocumentTypeEnum.PGR).map(
+    (item) => item.value,
+  );
+  const pcmso = getDocumentModelClassificationsForType(DocumentTypeEnum.PCSMO).map(
+    (item) => item.value,
+  );
+
+  assert.ok(pgr.includes(DocumentModelClassificationEnum.MATRIZ_PADRAO));
+  assert.ok(pgr.includes(DocumentModelClassificationEnum.MATRIZ_CUSTOM));
+  assert.strictEqual(
+    documentModelClassificationMap[DocumentModelClassificationEnum.MATRIZ_PADRAO].shortLabel,
+    'Matriz Padrão',
+  );
+  assert.strictEqual(
+    documentModelClassificationMap[DocumentModelClassificationEnum.MATRIZ_CUSTOM].shortLabel,
+    'Matriz Custom',
+  );
+  assert.ok(!pcmso.includes(DocumentModelClassificationEnum.MATRIZ_PADRAO));
+  assert.ok(!pcmso.includes(DocumentModelClassificationEnum.MATRIZ_CUSTOM));
+
+  const next = toggleDocumentModelClassification(
+    [DocumentModelClassificationEnum.MATRIZ_PADRAO, DocumentModelClassificationEnum.TERCEIROS],
+    DocumentModelClassificationEnum.MATRIZ_CUSTOM,
+  );
+  assert.deepStrictEqual(next, [
+    DocumentModelClassificationEnum.TERCEIROS,
+    DocumentModelClassificationEnum.MATRIZ_CUSTOM,
+  ]);
+  assert.strictEqual(
+    getDocumentModelClassificationConflict(
+      [
+        DocumentModelClassificationEnum.MATRIZ_PADRAO,
+        DocumentModelClassificationEnum.MATRIZ_CUSTOM,
+      ],
+      DocumentTypeEnum.PGR,
+    ),
+    'Classificações incompatíveis: não é possível combinar Matriz Padrão com Matriz Custom.',
+  );
+  assert.strictEqual(
+    getDocumentModelClassificationConflict(
+      [
+        DocumentModelClassificationEnum.TERCEIROS,
+        DocumentModelClassificationEnum.SOMENTE_PGR,
+        DocumentModelClassificationEnum.SEM_FRPS,
+        DocumentModelClassificationEnum.MATRIZ_CUSTOM,
+      ],
+      DocumentTypeEnum.PGR,
+    ),
+    null,
+  );
 });
 
 run('neither exclusive classification is required', () => {

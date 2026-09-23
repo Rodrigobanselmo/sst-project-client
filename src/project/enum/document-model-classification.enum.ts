@@ -15,6 +15,8 @@ export enum DocumentModelClassificationEnum {
   ESTABELECIMENTO_PROPRIO = 'ESTABELECIMENTO_PROPRIO',
   COM_VISITA_DE_CAMPO = 'COM_VISITA_DE_CAMPO',
   DADOS_FORNECIDOS = 'DADOS_FORNECIDOS',
+  MATRIZ_PADRAO = 'MATRIZ_PADRAO',
+  MATRIZ_CUSTOM = 'MATRIZ_CUSTOM',
 }
 
 const ALL_DOCUMENT_TYPES = Object.values(DocumentTypeEnum);
@@ -115,6 +117,18 @@ export const documentModelClassificationMap: Record<
     shortLabel: 'Dados Fornecidos',
     documentTypes: ALL_DOCUMENT_TYPES,
   },
+  [DocumentModelClassificationEnum.MATRIZ_PADRAO]: {
+    value: DocumentModelClassificationEnum.MATRIZ_PADRAO,
+    label: 'Matriz Padrão',
+    shortLabel: 'Matriz Padrão',
+    documentTypes: [DocumentTypeEnum.PGR],
+  },
+  [DocumentModelClassificationEnum.MATRIZ_CUSTOM]: {
+    value: DocumentModelClassificationEnum.MATRIZ_CUSTOM,
+    label: 'Matriz Custom',
+    shortLabel: 'Matriz Custom',
+    documentTypes: [DocumentTypeEnum.PGR],
+  },
 };
 
 /** Ordem visual dos chips (pares excludentes lado a lado). */
@@ -134,6 +148,8 @@ export const DOCUMENT_MODEL_CLASSIFICATION_DISPLAY_ORDER: DocumentModelClassific
     DocumentModelClassificationEnum.DADOS_FORNECIDOS,
     DocumentModelClassificationEnum.NR18,
     DocumentModelClassificationEnum.BACKUP,
+    DocumentModelClassificationEnum.MATRIZ_PADRAO,
+    DocumentModelClassificationEnum.MATRIZ_CUSTOM,
   ];
 
 export const documentModelClassificationList =
@@ -189,6 +205,10 @@ const MUTUALLY_EXCLUSIVE: Partial<
     DocumentModelClassificationEnum.DADOS_FORNECIDOS,
   [DocumentModelClassificationEnum.DADOS_FORNECIDOS]:
     DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
+  [DocumentModelClassificationEnum.MATRIZ_PADRAO]:
+    DocumentModelClassificationEnum.MATRIZ_CUSTOM,
+  [DocumentModelClassificationEnum.MATRIZ_CUSTOM]:
+    DocumentModelClassificationEnum.MATRIZ_PADRAO,
 };
 
 /** Modelo contém todas as classificações ativas (interseção / AND). */
@@ -236,6 +256,10 @@ const MUTUALLY_EXCLUSIVE_PAIRS: [
   [
     DocumentModelClassificationEnum.COM_VISITA_DE_CAMPO,
     DocumentModelClassificationEnum.DADOS_FORNECIDOS,
+  ],
+  [
+    DocumentModelClassificationEnum.MATRIZ_PADRAO,
+    DocumentModelClassificationEnum.MATRIZ_CUSTOM,
   ],
 ];
 
