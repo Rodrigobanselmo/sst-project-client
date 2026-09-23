@@ -30,6 +30,8 @@ export type RiskPrioritizationCell = {
   color: string | null;
   level: number;
   isQuantity: boolean;
+  probability: number | null;
+  severity: number | null;
   isPrioritized: boolean;
   matrixSource: 'SYSTEM' | 'CUSTOM' | null;
   matrixVersionId: string | null;

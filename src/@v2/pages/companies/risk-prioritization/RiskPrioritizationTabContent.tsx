@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Alert, Box, CircularProgress, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 
-import { RiskPrioritizationGrid } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationGrid';
+import { RiskPrioritizationGrid, omitRepresentAllPrioritizationRisks } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationGrid';
 import { RiskPrioritizationLegend } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationLegend';
 import { RiskPrioritizationOriginsDrawer } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationOriginsDrawer';
 import {
@@ -19,6 +19,7 @@ import {
 import { STableEmpty } from '@v2/components/organisms/STable/addons/addons-table/STableEmpty/STableEmpty';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
+import { useQueryAllRisk } from 'core/services/hooks/queries/useQueryRiskAll';
 
 type RiskPrioritizationTabContentProps = {
   workspaceId?: string;
@@ -48,6 +49,24 @@ export function RiskPrioritizationTabContent({
     },
     { enabled },
   );
+  const { data: riskCatalog } = useQueryAllRisk();
+  const viewData = useMemo(() => {
+    if (!data) return data;
+    const representAllRiskIds = new Set(
+      (riskCatalog || [])
+        .filter((risk) => risk.representAll)
+        .map((risk) => risk.id),
+    );
+    return omitRepresentAllPrioritizationRisks(data, representAllRiskIds);
+  }, [data, riskCatalog]);
+
+  useEffect(() => {
+    if (!selectedCell || !viewData) return;
+    const stillVisible = viewData.columns.some(
+      (column) => column.riskId === selectedCell.riskId,
+    );
+    if (!stillVisible) setSelectedCell(null);
+  }, [selectedCell, viewData]);
 
   const viewState = resolvePrioritizationViewState({
     workspaceId,
@@ -121,7 +140,7 @@ export function RiskPrioritizationTabContent({
     );
   }
 
-  if (viewState === 'empty' || !data) {
+  if (viewState === 'empty' || !data || !viewData) {
     return (
       <Box sx={{ p: 3 }}>
         <STableEmpty>
@@ -134,7 +153,7 @@ export function RiskPrioritizationTabContent({
   }
 
   const selectedRiskName = selectedCell
-    ? data.columns.find((column) => column.riskId === selectedCell.riskId)?.name
+    ? viewData.columns.find((column) => column.riskId === selectedCell.riskId)?.name
     : undefined;
 
   return (
@@ -143,8 +162,8 @@ export function RiskPrioritizationTabContent({
         Visão consolidada do risco ocupacional atual. Clique na célula para abrir
         a origem. Edição é feita na fonte (GSE ou Elemento Caracterizado).
       </Typography>
-      <RiskPrioritizationGrid data={data} onCellClick={handleCellClick} />
-      <RiskPrioritizationLegend entries={data.legend} />
+      <RiskPrioritizationGrid data={viewData} onCellClick={handleCellClick} />
+      <RiskPrioritizationLegend entries={viewData.legend} />
       <RiskPrioritizationOriginsDrawer
         open={Boolean(selectedCell)}
         onClose={() => setSelectedCell(null)}

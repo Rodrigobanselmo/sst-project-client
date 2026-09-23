@@ -63,9 +63,17 @@ export function buildPrioritizationCellTooltip(params: {
   const originCount = params.cell.origins.length;
   const originLabel =
     originCount === 1 ? '1 origem' : `${originCount} origens`;
+  const probability = params.cell.probability;
+  const severity = params.cell.severity;
+  const classificationLine =
+    !params.cell.isQuantity &&
+    Number.isFinite(probability) &&
+    Number.isFinite(severity)
+      ? `P${probability} × S${severity} = ${params.cell.abbreviation} (${params.cell.label})`
+      : `${params.cell.abbreviation} — ${params.cell.label}`;
   return [
     params.riskName,
-    `${params.cell.abbreviation} — ${params.cell.label}`,
+    classificationLine,
     `Nível ${params.cell.level} · ${kind}`,
     originLabel,
   ].join('\n');

@@ -51,6 +51,8 @@ const cell = (
   level: 3,
   isQuantity: false,
   isPrioritized: false,
+  probability: 3,
+  severity: 4,
   matrixSource: 'SYSTEM',
   matrixVersionId: null,
   origins: [],
@@ -115,6 +117,8 @@ const quantityCell = cell({
   isQuantity: true,
   level: 3,
   abbreviation: 'M',
+  probability: null,
+  severity: null,
   origins: [
     origin({
       riskFactorDataId: 'q1',
@@ -255,8 +259,41 @@ assert.ok(tooltip.includes('Ruído'));
 assert.ok(tooltip.includes('Quantitativo'));
 assert.ok(tooltip.includes('Nível 3'));
 assert.ok(tooltip.includes('1 origem'));
+assert.ok(tooltip.includes('M — Moderado'));
+assert.ok(!tooltip.includes(' × '));
 assert.ok(!tooltip.toLowerCase().includes('employee'));
 assert.ok(!tooltip.toLowerCase().includes('cpf'));
+
+const qualitativeTooltip = buildPrioritizationCellTooltip({
+  riskName: 'Manganês elementar',
+  cell: cell({
+    abbreviation: 'A',
+    label: 'Alto',
+    level: 4,
+    isQuantity: false,
+    probability: 3,
+    severity: 5,
+    origins: [origin({ riskFactorDataId: 'q1', originKind: 'GSE' })],
+  }),
+});
+assert.ok(qualitativeTooltip.includes('P3 × S5 = A (Alto)'));
+assert.ok(qualitativeTooltip.includes('Nível 4 · Qualitativo'));
+assert.ok(qualitativeTooltip.includes('1 origem'));
+assert.ok(!qualitativeTooltip.includes('A — Alto'));
+
+const qualitativeFallbackTooltip = buildPrioritizationCellTooltip({
+  riskName: 'Ruído',
+  cell: cell({
+    abbreviation: 'A',
+    label: 'Alto',
+    level: 4,
+    isQuantity: false,
+    probability: null,
+    severity: null,
+  }),
+});
+assert.ok(qualitativeFallbackTooltip.includes('A — Alto'));
+assert.ok(!qualitativeFallbackTooltip.includes(' × '));
 
 assert.equal(normalizeCssColor('d96c2f'), '#d96c2f');
 assert.equal(normalizeCssColor('#F44336'), '#F44336');
