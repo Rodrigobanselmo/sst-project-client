@@ -1,5 +1,6 @@
 import { Box, BoxProps } from '@mui/material';
 import { CharacterizationEnvironmentsTabContent } from '@v2/pages/companies/characterizations/components/CharacterizationEnvironmentsTabContent/CharacterizationEnvironmentsTabContent';
+import { RiskPrioritizationTabContent } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationTabContent';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ExamsRiskTable } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
@@ -177,6 +178,12 @@ export const CharacterizationStage = ({
             workspaceId={workspaceId}
             companyFlowSticky
             companyFlowBelowTabs
+          />
+        </>
+        <>
+          <RiskPrioritizationTabContent
+            workspaceId={workspaceId}
+            queryEnabled={isWorkspaceFilterReady}
           />
         </>
         <>

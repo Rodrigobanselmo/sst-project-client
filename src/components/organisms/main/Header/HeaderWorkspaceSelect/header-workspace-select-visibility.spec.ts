@@ -37,6 +37,11 @@ assert.equal(
   true,
 );
 assert.equal(
+  showSstWorkspaceSelectorForTab(CharacterizationSubTabEnum.PRIORITIZATION),
+  true,
+  'Priorização is workspace-scoped and must show the header selector',
+);
+assert.equal(
   showSstWorkspaceSelectorForTab(CharacterizationSubTabEnum.PROTOCOLS),
   false,
 );

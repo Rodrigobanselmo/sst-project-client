@@ -18,6 +18,11 @@ import { IErrorResp } from '../../../../../errors/types';
 import { ExposureTypeEnum } from 'core/enums/exposure.enum';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
+import {
+  mergeRiskFactorDataCacheList,
+  riskFactorDataByGhoQueryKey,
+  riskFactorDataByGhoQueryKeyPrefix,
+} from '../merge-risk-factor-data-cache.util';
 
 export interface IUpsertRiskData {
   id?: string;
@@ -66,12 +71,16 @@ export interface IUpsertRiskData {
 export async function upsertRiskData(
   data: IUpsertRiskData,
   companyId?: string,
+  routeWorkspaceId?: string,
 ) {
   if (!companyId) return null;
+
+  const workspaceId = data.workspaceId || routeWorkspaceId;
 
   const response = await api.post<IRiskData>(`${ApiRoutesEnum.RISK_DATA}`, {
     companyId,
     ...data,
+    ...(workspaceId ? { workspaceId } : {}),
   });
 
   if (typeof response.data === 'string') {
@@ -86,48 +95,68 @@ export async function upsertRiskData(
 }
 
 export function useMutUpsertRiskData() {
-  const { getCompanyId } = useGetCompanyId();
+  const { getCompanyId, workspaceId, router } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
+  const operationWorkspaceId =
+    workspaceId || (router.query.tabWorkspaceId as string | undefined);
 
   return useMutation(
-    async (data: IUpsertRiskData) => upsertRiskData(data, getCompanyId(data)),
+    async (data: IUpsertRiskData) =>
+      upsertRiskData(
+        data,
+        getCompanyId(data),
+        data.workspaceId || operationWorkspaceId,
+      ),
     {
       onSuccess: async (resp) => {
-        // Mescla snapshot CUSTOM (e demais campos) da resposta no cache ativo
-        // antes do refetch — UI passa a mostrar CUSTOM sem reabrir a avaliação.
-        if (resp?.id) {
-          const companyId = getCompanyId(resp.companyId);
+        const companyId = getCompanyId(resp?.companyId);
+        const scopedWorkspace =
+          resp?.workspaceId || operationWorkspaceId || undefined;
+
+        if (resp?.id && resp.riskFactorGroupDataId && resp.homogeneousGroupId) {
+          const incoming = {
+            ...resp,
+            workspaceId: scopedWorkspace || resp.workspaceId,
+          };
+          const merge = (old: IRiskData[] | undefined) =>
+            mergeRiskFactorDataCacheList(old, incoming);
+
           queryClient.setQueriesData<IRiskData[] | undefined>(
-            [QueryEnum.RISK_DATA, companyId],
-            (old) => {
-              if (!Array.isArray(old)) return old;
-              return old.map((item) => {
-                const sameId = item.id === resp.id;
-                const sameKey =
-                  !!resp.riskId &&
-                  !!resp.homogeneousGroupId &&
-                  item.riskId === resp.riskId &&
-                  item.homogeneousGroupId === resp.homogeneousGroupId;
-                return sameId || sameKey ? { ...item, ...resp } : item;
-              });
-            },
+            riskFactorDataByGhoQueryKey({
+              companyId,
+              riskFactorGroupDataId: resp.riskFactorGroupDataId,
+              homogeneousGroupId: resp.homogeneousGroupId,
+              workspaceId: scopedWorkspace,
+            }),
+            merge,
+          );
+          queryClient.setQueriesData<IRiskData[] | undefined>(
+            riskFactorDataByGhoQueryKey({
+              companyId,
+              riskFactorGroupDataId: resp.riskFactorGroupDataId,
+              homogeneousGroupId: resp.homogeneousGroupId,
+              workspaceId: scopedWorkspace,
+              effective: true,
+            }),
+            merge,
           );
         }
 
         queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
         queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
-        queryClient.invalidateQueries([
-          QueryEnum.RISK_DATA,
-          getCompanyId(resp?.companyId),
-        ]);
 
-        if (resp?.homogeneousGroupId)
-          queryClient.invalidateQueries([
-            QueryEnum.RISK_DATA,
-            getCompanyId(resp?.companyId),
-            resp?.homogeneousGroupId,
-          ]);
+        if (resp?.riskFactorGroupDataId && resp?.homogeneousGroupId) {
+          queryClient.invalidateQueries(
+            riskFactorDataByGhoQueryKeyPrefix({
+              companyId,
+              riskFactorGroupDataId: resp.riskFactorGroupDataId,
+              homogeneousGroupId: resp.homogeneousGroupId,
+            }),
+          );
+        } else {
+          queryClient.invalidateQueries([QueryEnum.RISK_DATA, companyId]);
+        }
 
         return resp;
       },

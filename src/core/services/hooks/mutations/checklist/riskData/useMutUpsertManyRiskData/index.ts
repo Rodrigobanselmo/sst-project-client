@@ -13,6 +13,7 @@ import { queryClient } from 'core/services/queryClient';
 import { sortString } from 'core/utils/sorts/string.sort';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { riskFactorDataByGhoQueryKey, riskFactorDataByGhoQueryKeyPrefix } from '../merge-risk-factor-data-cache.util';
 
 export const isEmptyRiskData = (riskData: IRiskData) => {
   const isEmpty =
@@ -34,12 +35,14 @@ const invalidateGho = (riskData: IRiskData[]) => {
     const isEmpty = isEmptyRiskData(rd);
     if (!isEmpty) return;
 
-    const riskDataGet = queryClient.getQueryData<IRiskData[]>([
-      QueryEnum.RISK_DATA,
-      rd.companyId,
-      rd.riskFactorGroupDataId,
-      rd.homogeneousGroupId,
-    ]);
+    const riskDataGet = queryClient.getQueryData<IRiskData[]>(
+      riskFactorDataByGhoQueryKey({
+        companyId: rd.companyId,
+        riskFactorGroupDataId: rd.riskFactorGroupDataId,
+        homogeneousGroupId: rd.homogeneousGroupId,
+        workspaceId: rd.workspaceId,
+      }),
+    );
 
     if (!riskDataGet || riskDataGet.length == 1) {
       queryClient.invalidateQueries([QueryEnum.GHO]);
@@ -71,14 +74,18 @@ export interface IUpsertManyRiskData {
 export async function upsertManyRiskData(
   data: IUpsertManyRiskData,
   companyId?: string,
+  routeWorkspaceId?: string,
 ) {
   if (!companyId) return null;
+
+  const workspaceId = data.workspaceId || routeWorkspaceId;
 
   const response = await api.post<IRiskData[][]>(
     `${ApiRoutesEnum.RISK_DATA}/many`,
     {
       companyId,
       ...data,
+      ...(workspaceId ? { workspaceId } : {}),
     },
   );
 
@@ -88,23 +95,41 @@ export async function upsertManyRiskData(
 }
 
 export function useMutUpsertManyRiskData() {
-  const { getCompanyId } = useGetCompanyId();
+  const { getCompanyId, workspaceId, router } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
+  const operationWorkspaceId =
+    workspaceId || (router.query.tabWorkspaceId as string | undefined);
 
   return useMutation(
     async (data: IUpsertManyRiskData) =>
-      upsertManyRiskData(data, getCompanyId(data)),
+      upsertManyRiskData(
+        data,
+        getCompanyId(data),
+        data.workspaceId || operationWorkspaceId,
+      ),
     {
       onSuccess: async (resp) => {
         if (resp && resp[0] && resp[0].length > 0) {
           queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
           queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
           queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
-          if (resp[0][0]?.riskFactorGroupDataId)
+          const first = resp[0][0];
+          const companyId = getCompanyId(resp);
+          if (first?.riskFactorGroupDataId && first?.homogeneousGroupId) {
+            queryClient.invalidateQueries(
+              riskFactorDataByGhoQueryKeyPrefix({
+                companyId,
+                riskFactorGroupDataId: first.riskFactorGroupDataId,
+                homogeneousGroupId: first.homogeneousGroupId,
+              }),
+            );
+          } else if (first?.riskFactorGroupDataId) {
             queryClient.invalidateQueries([
               QueryEnum.RISK_DATA,
-              getCompanyId(resp),
+              companyId,
+              first.riskFactorGroupDataId,
             ]);
+          }
 
           return resp;
         }

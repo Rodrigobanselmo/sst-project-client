@@ -14,9 +14,13 @@ export const queryRiskData = async (
   companyId: string,
   riskGroupId: string,
   homogeneousGroupId: string,
+  workspaceId?: string,
 ): Promise<IRiskData[]> => {
   const response = await api.get<IRiskData[]>(
     `${ApiRoutesEnum.RISK_DATA}/${companyId}/${riskGroupId}/homogeneous/${homogeneousGroupId}`,
+    {
+      params: workspaceId ? { workspaceId } : undefined,
+    },
   );
 
   return response.data;
@@ -26,13 +30,20 @@ export function useQueryRiskDataByGho(
   riskGroupId: string,
   homogeneousGroupId: string,
 ): IReactQuery<IRiskData[]> {
-  const { companyId } = useGetCompanyId();
+  const { companyId, workspaceId, router } = useGetCompanyId();
+  const operationWorkspaceId =
+    workspaceId || (router.query.tabWorkspaceId as string | undefined);
 
   const { data, ...query } = useQuery(
-    [QueryEnum.RISK_DATA, companyId, riskGroupId, homogeneousGroupId],
+    [QueryEnum.RISK_DATA, companyId, riskGroupId, homogeneousGroupId, operationWorkspaceId],
     () =>
       companyId
-        ? queryRiskData(companyId, riskGroupId, homogeneousGroupId)
+        ? queryRiskData(
+            companyId,
+            riskGroupId,
+            homogeneousGroupId,
+            operationWorkspaceId,
+          )
         : <Promise<IRiskData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

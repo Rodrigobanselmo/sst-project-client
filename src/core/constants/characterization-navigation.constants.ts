@@ -9,6 +9,8 @@ export enum CharacterizationSubTabEnum {
   PROTOCOLS = 4,
   /** Tela transversal de vínculo de riscos por entidade (Hierarquia / Ambientes / GSE). */
   ENTITY_RISKS = 5,
+  /** Visão consolidada GSE/Elemento × riscos (Tabela 8 interativa). */
+  PRIORITIZATION = 6,
 }
 
 export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
@@ -21,6 +23,7 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
   [CharacterizationSubTabEnum.EXAMS]: 'Exames',
   [CharacterizationSubTabEnum.PROTOCOLS]: 'Protocolos',
   [CharacterizationSubTabEnum.ENTITY_RISKS]: 'Vínculo de Riscos',
+  [CharacterizationSubTabEnum.PRIORITIZATION]: 'Priorização',
 };
 
 export const CHARACTERIZATION_MODULE_LABEL = 'Caracterização';
@@ -62,6 +65,7 @@ export type CharacterizationSubareaNavItem =
 const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.RISKS,
   CharacterizationSubTabEnum.GSE,
+  CharacterizationSubTabEnum.PRIORITIZATION,
   CharacterizationSubTabEnum.ENVIRONMENTS,
   CharacterizationSubTabEnum.EXAMS,
   CharacterizationSubTabEnum.PROTOCOLS,
@@ -226,7 +230,7 @@ export function parseCharacterizationActiveTab(
 
   if (
     n >= CharacterizationSubTabEnum.RISKS &&
-    n <= CharacterizationSubTabEnum.ENTITY_RISKS
+    n <= CharacterizationSubTabEnum.PRIORITIZATION
   ) {
     return n as CharacterizationSubTabEnum;
   }

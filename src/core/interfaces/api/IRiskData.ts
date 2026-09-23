@@ -65,6 +65,8 @@ export interface IRiskData {
   startDate?: Date;
   hierarchyId?: string;
   riskFactorGroupDataId: string;
+  /** Contexto de overlay/cálculo; não é identidade do RFD. */
+  workspaceId?: string | null;
   hierarchy?: IHierarchy;
   homogeneousGroup?: IGho;
   generateSources?: IGenerateSource[];

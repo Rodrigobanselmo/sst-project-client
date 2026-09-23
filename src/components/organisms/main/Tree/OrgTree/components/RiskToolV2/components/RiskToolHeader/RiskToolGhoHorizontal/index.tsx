@@ -203,6 +203,7 @@ export const RiskToolGhoHorizontal: FC<
       userCompanyId,
       riskGroupId,
       homoIdForRefetch,
+      planWorkspaceId,
     ]);
   }, [
     planWorkspaceId,
@@ -274,6 +275,7 @@ export const RiskToolGhoHorizontal: FC<
       userCompanyId,
       riskGroupId,
       homoIdForRefetch,
+      planWorkspaceId,
     ]);
   }, [
     selected?.id,
