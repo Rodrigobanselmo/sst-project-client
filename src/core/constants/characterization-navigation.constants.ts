@@ -26,6 +26,26 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
   [CharacterizationSubTabEnum.PRIORITIZATION]: 'Priorização',
 };
 
+/** Stable panel identity for each enum — independent of visual order. */
+export const CHARACTERIZATION_SUB_TAB_PANEL: Record<
+  CharacterizationSubTabEnum,
+  | 'risks'
+  | 'environments'
+  | 'gse'
+  | 'exams'
+  | 'protocols'
+  | 'entity-risks'
+  | 'prioritization'
+> = {
+  [CharacterizationSubTabEnum.RISKS]: 'risks',
+  [CharacterizationSubTabEnum.ENVIRONMENTS]: 'environments',
+  [CharacterizationSubTabEnum.GSE]: 'gse',
+  [CharacterizationSubTabEnum.EXAMS]: 'exams',
+  [CharacterizationSubTabEnum.PROTOCOLS]: 'protocols',
+  [CharacterizationSubTabEnum.ENTITY_RISKS]: 'entity-risks',
+  [CharacterizationSubTabEnum.PRIORITIZATION]: 'prioritization',
+};
+
 export const CHARACTERIZATION_MODULE_LABEL = 'Caracterização';
 
 /** Valor estável do segmento "Caracterização" no breadcrumb (`useLocation`). */

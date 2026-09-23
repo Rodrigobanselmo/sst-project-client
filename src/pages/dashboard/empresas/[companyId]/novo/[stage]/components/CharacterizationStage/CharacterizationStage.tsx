@@ -13,6 +13,8 @@ import { useMemo } from 'react';
 import { Wizard } from 'react-use-wizard';
 
 import {
+  CharacterizationSubareaNavItem,
+  CharacterizationSubTabEnum,
   getAssistenteGseHref,
   getCharacterizationAiProfilesHref,
   getCharacterizationSubareaNavItems,
@@ -36,6 +38,77 @@ const formatEstablishmentLabel = (workspace?: {
   const abbreviation = workspace.abbreviation?.trim();
   return abbreviation ? `${name} — ${abbreviation}` : name;
 };
+
+function isCharacterizationTabNavItem(
+  item: CharacterizationSubareaNavItem,
+): item is Extract<CharacterizationSubareaNavItem, { kind: 'tab' }> {
+  return item.kind === 'tab';
+}
+
+function CharacterizationSubTabPanel(props: {
+  tab: CharacterizationSubTabEnum;
+  workspaceId?: string;
+  isWorkspaceFilterReady: boolean;
+  workspaceLabel: string | null;
+  isAllEstablishments: boolean;
+}) {
+  switch (props.tab) {
+    case CharacterizationSubTabEnum.RISKS:
+      return (
+        <RiskCompanyTable
+          workspaceId={props.workspaceId}
+          queryEnabled={props.isWorkspaceFilterReady}
+          companyFlowSticky
+          companyFlowBelowTabs
+        />
+      );
+    case CharacterizationSubTabEnum.GSE:
+      return (
+        <GhoGseTabContent
+          workspaceId={props.workspaceId}
+          companyFlowSticky
+          companyFlowBelowTabs
+        />
+      );
+    case CharacterizationSubTabEnum.ENVIRONMENTS:
+      return (
+        <CharacterizationEnvironmentsTabContent
+          companyFlowSticky
+          companyFlowBelowTabs
+        />
+      );
+    case CharacterizationSubTabEnum.ENTITY_RISKS:
+      return <RiskToolByEntityTabContent />;
+    case CharacterizationSubTabEnum.PRIORITIZATION:
+      return (
+        <RiskPrioritizationTabContent
+          workspaceId={props.workspaceId}
+          queryEnabled={props.isWorkspaceFilterReady}
+        />
+      );
+    case CharacterizationSubTabEnum.EXAMS:
+      return (
+        <>
+          <ExamsRiskTable
+            companyFlowSticky
+            companyFlowBelowTabs
+            enableBulkActions
+            showPcmsoStatus
+            workspaceId={props.workspaceId}
+            workspaceLabel={props.workspaceLabel}
+            isAllEstablishments={props.isAllEstablishments}
+          />
+          <ExamsRiskTableList companyFlowSticky companyFlowBelowTabs />
+        </>
+      );
+    case CharacterizationSubTabEnum.PROTOCOLS:
+      return <ProtocolsRiskTable companyFlowSticky companyFlowBelowTabs />;
+    default: {
+      const _exhaustive: never = props.tab;
+      return _exhaustive;
+    }
+  }
+}
 
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
@@ -71,6 +144,7 @@ export const CharacterizationStage = ({
   const { isMaster } = useAccess();
 
   const navItems = getCharacterizationSubareaNavItems({ showAiProfiles: isMaster });
+  const tabNavItems = navItems.filter(isCharacterizationTabNavItem);
   const tabOptions = navItems.map((item) => ({
     label: item.label,
   }));
@@ -164,52 +238,16 @@ export const CharacterizationStage = ({
           </CompanyFlowStickySubheader>
         }
       >
-        {/* Steps follow CHARACTERIZATION_SUBAREA_TABS display order */}
-        <>
-          <RiskCompanyTable
+        {tabNavItems.map((item) => (
+          <CharacterizationSubTabPanel
+            key={item.tab}
+            tab={item.tab}
             workspaceId={workspaceId}
-            queryEnabled={isWorkspaceFilterReady}
-            companyFlowSticky
-            companyFlowBelowTabs
-          />
-        </>
-        <>
-          <GhoGseTabContent
-            workspaceId={workspaceId}
-            companyFlowSticky
-            companyFlowBelowTabs
-          />
-        </>
-        <>
-          <RiskPrioritizationTabContent
-            workspaceId={workspaceId}
-            queryEnabled={isWorkspaceFilterReady}
-          />
-        </>
-        <>
-          <CharacterizationEnvironmentsTabContent
-            companyFlowSticky
-            companyFlowBelowTabs
-          />
-        </>
-        <>
-          <ExamsRiskTable
-            companyFlowSticky
-            companyFlowBelowTabs
-            enableBulkActions
-            showPcmsoStatus
-            workspaceId={workspaceId}
+            isWorkspaceFilterReady={isWorkspaceFilterReady}
             workspaceLabel={workspaceLabel}
             isAllEstablishments={isAllEstablishments}
           />
-          <ExamsRiskTableList companyFlowSticky companyFlowBelowTabs />
-        </>
-        <>
-          <ProtocolsRiskTable companyFlowSticky companyFlowBelowTabs />
-        </>
-        <>
-          <RiskToolByEntityTabContent />
-        </>
+        ))}
       </Wizard>
     </Box>
   );
