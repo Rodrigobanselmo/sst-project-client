@@ -1,6 +1,7 @@
 import { normalizeRiskMatrixHex } from '@v2/pages/companies/risk-matrices/utils/risk-matrix-hex.util';
 import {
   RiskMatrixSourceEnum,
+  type AxisLevelPresentation,
   type SystemRiskMatrixPresentation,
 } from '@v2/services/security/risk-matrix/service/risk-matrix.types';
 import { getSimpleSstScaleChipColors } from 'core/utils/helpers/simple-sst-scale-chip.util';
@@ -13,6 +14,7 @@ export type SystemPresentationChipColors = {
 export type AcceptedSystemRiskMatrixPresentation = {
   source: RiskMatrixSourceEnum.SYSTEM;
   axisLevelColors: SystemRiskMatrixPresentation['axisLevelColors'];
+  axisLevels?: AxisLevelPresentation[];
   classifications: SystemRiskMatrixPresentation['classifications'];
   extraordinaryProbability?: SystemRiskMatrixPresentation['extraordinaryProbability'];
 };
@@ -97,6 +99,7 @@ export function acceptSystemRiskMatrixPresentation(
   return {
     source: RiskMatrixSourceEnum.SYSTEM,
     axisLevelColors: input.axisLevelColors,
+    axisLevels: Array.isArray(input.axisLevels) ? input.axisLevels : undefined,
     classifications: input.classifications,
     extraordinaryProbability: input.extraordinaryProbability,
   };

@@ -370,11 +370,19 @@ export const RiskToolGSEViewRowRiskBox: FC<
                 resultColor={inherentMatrix?.color}
                 matrixSource={riskData?.matrixSource}
                 axisLevelColors={riskData?.pinnedAxisLevelColors}
+                pinnedAxisLevels={riskData?.pinnedAxisLevels}
+                evaluatedCoverageKey={riskData?.evaluatedCoverageKey}
+                riskType={data?.type}
+                riskSubTypes={data?.subTypes}
               />
               <MatrixEquation
                 label="Residual"
                 matrixSource={riskData?.matrixSource}
                 axisLevelColors={riskData?.pinnedAxisLevelColors}
+                pinnedAxisLevels={riskData?.pinnedAxisLevels}
+                evaluatedCoverageKey={riskData?.evaluatedCoverageKey}
+                riskType={data?.type}
+                riskSubTypes={data?.subTypes}
                 probability={residualProbability}
                 severity={severity}
                 resultLabel={residualMatrix?.label}

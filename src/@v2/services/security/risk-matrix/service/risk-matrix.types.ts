@@ -208,10 +208,21 @@ export type SystemRiskMatrixPresentationClassification = {
   sortOrder?: number;
 };
 
+export type AxisLevelPresentation = {
+  axis: RiskMatrixAxisEnum | string;
+  value: number;
+  label: string;
+  criteriaByCoverage: Array<{
+    coverageKey: RiskMatrixCoverageKeyEnum | string;
+    criterion: string;
+  }>;
+};
+
 export type SystemRiskMatrixPresentation = {
   source: RiskMatrixSourceEnum;
   name?: string;
   axisLevelColors: SystemRiskMatrixAxisLevelColor[];
+  axisLevels?: AxisLevelPresentation[];
   classifications: SystemRiskMatrixPresentationClassification[];
   extraordinaryProbability?: SystemRiskMatrixExtraordinaryProbability;
 };

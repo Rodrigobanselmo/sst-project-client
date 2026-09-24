@@ -116,6 +116,13 @@ export interface IRiskData {
   classificationPresentationColor?: string | null;
   residualClassificationPresentationColor?: string | null;
   pinnedAxisLevelColors?: Array<{ value: number; color: string }> | null;
+  pinnedAxisLevels?: Array<{
+    axis: string;
+    value: number;
+    label: string;
+    criteriaByCoverage: Array<{ coverageKey: string; criterion: string }>;
+  }> | null;
+  evaluatedCoverageKey?: string | null;
   resolvedLegacyBand?: number | null;
   residualClassificationId?: string | null;
   residualLabel?: string | null;
