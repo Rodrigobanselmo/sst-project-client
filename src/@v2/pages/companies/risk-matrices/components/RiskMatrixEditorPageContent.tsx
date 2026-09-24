@@ -30,6 +30,8 @@ import { useFetchReadRiskMatrix } from '@v2/services/security/risk-matrix/hooks/
 import { useFetchReadRiskMatrixVersion } from '@v2/services/security/risk-matrix/hooks/useFetchReadRiskMatrixVersion';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import {
+  useMutatePatchPublishedRiskMatrixEditorial,
+  useMutatePatchRiskMatrixIdentity,
   useMutatePublishRiskMatrixVersion,
   useMutateReplaceRiskMatrixDraft,
 } from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
@@ -138,6 +140,15 @@ export const RiskMatrixEditorPageContent: FC<
     matrixId,
     versionId,
   });
+  const patchIdentityMutation = useMutatePatchRiskMatrixIdentity({
+    companyId,
+    matrixId,
+  });
+  const patchEditorialMutation = useMutatePatchPublishedRiskMatrixEditorial({
+    companyId,
+    matrixId,
+    versionId,
+  });
 
   useEffect(() => {
     if (!version) return;
@@ -155,6 +166,10 @@ export const RiskMatrixEditorPageContent: FC<
   const readOnly =
     version?.status === CompanyRiskMatrixVersionStatusEnum.PUBLISHED ||
     matrix?.status === CompanyRiskMatrixStatusEnum.ARCHIVED;
+  const presentationEditable =
+    version?.status === CompanyRiskMatrixVersionStatusEnum.PUBLISHED &&
+    matrix?.status === CompanyRiskMatrixStatusEnum.ACTIVE;
+  const presentationLocked = readOnly && !presentationEditable;
   const dirty = Boolean(editor && baseline && isEditorStateDirty(editor, baseline));
   const validation = editor ? validateEditorState(editor) : null;
 
@@ -182,7 +197,7 @@ export const RiskMatrixEditorPageContent: FC<
 
   const handleBack = () => {
     const goBack = () => router.push(getRiskMatricesPath(companyId));
-    if (dirty && !readOnly) {
+    if (dirty && (!readOnly || presentationEditable)) {
       preventDiscardIf(true, goBack, {
         title: 'Sair sem salvar?',
         text: 'As alterações desta etapa ainda não foram salvas.',
@@ -194,7 +209,10 @@ export const RiskMatrixEditorPageContent: FC<
   };
 
   const isBusy =
-    replaceDraftMutation.isPending || publishMutation.isPending;
+    replaceDraftMutation.isPending ||
+    publishMutation.isPending ||
+    patchIdentityMutation.isPending ||
+    patchEditorialMutation.isPending;
 
   const handleSaveDraft = async () => {
     if (
@@ -301,8 +319,107 @@ export const RiskMatrixEditorPageContent: FC<
     }
   };
 
+  const handleSavePresentation = async () => {
+    if (
+      !editor ||
+      !baseline ||
+      !version ||
+      !presentationEditable ||
+      savingRef.current ||
+      isBusy
+    ) {
+      return;
+    }
+    if (!editor.name.trim()) {
+      showSnackBar('Nome da matriz é obrigatório', { type: 'error' });
+      return;
+    }
+
+    savingRef.current = true;
+    try {
+      const nameChanged = editor.name.trim() !== baseline.name.trim();
+      const descriptionChanged =
+        editor.description.trim() !== baseline.description.trim();
+      if (nameChanged || descriptionChanged) {
+        await patchIdentityMutation.mutateAsync({
+          name: editor.name.trim(),
+          description: editor.description.trim() ? editor.description.trim() : null,
+        });
+      }
+
+      const criteria = editor.axisLevels.flatMap((level) => {
+        const stored = version.axisLevels.find(
+          (item) => item.axis === level.axis && item.value === level.value,
+        );
+        const previous = baseline.axisLevels.find(
+          (item) => item.axis === level.axis && item.value === level.value,
+        );
+        if (!stored) return [];
+        return editor.coverages.flatMap((coverage) => {
+          const next = (level.criteriaByCoverage[coverage] ?? '').trim();
+          const before = (previous?.criteriaByCoverage[coverage] ?? '').trim();
+          if (!next || next === before) return [];
+          return [{ axisLevelId: stored.id, coverageKey: coverage, criterion: next }];
+        });
+      });
+
+      const nextColors = editor.axisLevelColors ?? [];
+      const previousColors = baseline.axisLevelColors ?? [];
+      const axisLevelColors = nextColors.filter((item) => {
+        const previous = previousColors.find((color) => color.value === item.value);
+        return !previous || previous.color.toUpperCase() !== item.color.toUpperCase();
+      });
+
+      const classificationColors = editor.classifications.flatMap((item) => {
+        const previous = baseline.classifications.find((row) => row.key === item.key);
+        const stored = version.classifications.find((row) => row.key === item.key);
+        if (!stored || !previous) return [];
+        if (previous.color.toUpperCase() === item.color.toUpperCase()) return [];
+        return [{ classificationId: stored.id, color: item.color }];
+      });
+
+      let savedVersion = version;
+      if (
+        criteria.length > 0 ||
+        axisLevelColors.length > 0 ||
+        classificationColors.length > 0
+      ) {
+        savedVersion = await patchEditorialMutation.mutateAsync({
+          ...(criteria.length ? { criteria } : {}),
+          ...(axisLevelColors.length ? { axisLevelColors } : {}),
+          ...(classificationColors.length ? { classificationColors } : {}),
+        });
+      }
+
+      const next = hydrateEditorState(savedVersion, {
+        name: editor.name.trim(),
+        description: editor.description.trim(),
+      });
+      setEditor(next);
+      setBaseline(next);
+      showSnackBar('Apresentação da matriz publicada salva', { type: 'success' });
+    } catch (error) {
+      showSnackBar(
+        getRiskMatrixApiErrorMessage(
+          error,
+          'Não foi possível salvar a apresentação da matriz publicada.',
+        ),
+        { type: 'error' },
+      );
+    } finally {
+      savingRef.current = false;
+    }
+  };
+
   const updateEditor = (updater: (current: RiskMatrixEditorState) => RiskMatrixEditorState) => {
     if (readOnly) return;
+    setEditor((current) => (current ? updater(current) : current));
+  };
+
+  const updatePresentation = (
+    updater: (current: RiskMatrixEditorState) => RiskMatrixEditorState,
+  ) => {
+    if (presentationLocked) return;
     setEditor((current) => (current ? updater(current) : current));
   };
 
@@ -365,13 +482,13 @@ export const RiskMatrixEditorPageContent: FC<
       >
         <Box>
           <Typography variant="h5" gutterBottom>
-            {(!readOnly && editor?.name.trim()) ||
+            {(!presentationLocked && editor?.name.trim()) ||
               matrix?.name ||
               version.nameSnapshot ||
               'Editor da matriz'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {(!readOnly && editor
+            {(!presentationLocked && editor
               ? editor.description.trim()
               : matrix?.description?.trim()) || 'Sem descrição'}
           </Typography>
@@ -438,6 +555,23 @@ export const RiskMatrixEditorPageContent: FC<
               />
             </>
           )}
+          {presentationEditable && (
+            <SButton
+              text={
+                patchIdentityMutation.isPending || patchEditorialMutation.isPending
+                  ? 'Salvando apresentação...'
+                  : 'Salvar apresentação'
+              }
+              onClick={handleSavePresentation}
+              color={getSaveActionV2Color(dirty)}
+              variant="contained"
+              size="m"
+              loading={
+                patchIdentityMutation.isPending || patchEditorialMutation.isPending
+              }
+              disabled={isBusy || !dirty}
+            />
+          )}
           <Button variant="outlined" onClick={handleBack}>
             Voltar para o catálogo
           </Button>
@@ -453,13 +587,21 @@ export const RiskMatrixEditorPageContent: FC<
         </Alert>
       )}
 
-      {dirty && !readOnly && (
+      {dirty && (!readOnly || presentationEditable) && (
         <Alert severity="warning">
           Há alterações não salvas. Não há autosave.
         </Alert>
       )}
 
-      {readOnly && (
+      {presentationEditable && (
+        <Alert severity="info">
+          Esta versão está publicada. Você pode ajustar nome, descrição,
+          textos de critério e cores. A lógica de cálculo, as siglas, os
+          rótulos e as combinações S×P permanecem bloqueados.
+        </Alert>
+      )}
+
+      {readOnly && !presentationEditable && (
         <Alert severity="info">
           {version.status === CompanyRiskMatrixVersionStatusEnum.PUBLISHED
             ? 'Esta versão está publicada e somente leitura. A metodologia permanece visível para consulta e não pode ser editada. Correções exigem uma nova versão.'
@@ -478,7 +620,7 @@ export const RiskMatrixEditorPageContent: FC<
           onChange={(event) =>
             setEditor({ ...editor, name: event.target.value })
           }
-          disabled={readOnly || isBusy}
+          disabled={presentationLocked || isBusy}
           inputProps={{ maxLength: 255 }}
         />
         <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
@@ -492,7 +634,7 @@ export const RiskMatrixEditorPageContent: FC<
           onChange={(event) =>
             setEditor({ ...editor, description: event.target.value })
           }
-          disabled={readOnly || isBusy}
+          disabled={presentationLocked || isBusy}
           inputProps={{ maxLength: 2000 }}
         />
       </Paper>
@@ -627,6 +769,7 @@ export const RiskMatrixEditorPageContent: FC<
           cells={editor.cells}
           selectedClassificationKey={selectedClassificationKey}
           disabled={readOnly}
+          criteriaDisabled={presentationLocked}
           axisLevelColorByValue={axisLevelColorByValue}
           onChangeLabel={(axis, value, label) =>
             updateEditor((current) => ({
@@ -635,7 +778,7 @@ export const RiskMatrixEditorPageContent: FC<
             }))
           }
           onChangeCriterion={(axis, value, coverage, criterion) =>
-            updateEditor((current) => ({
+            updatePresentation((current) => ({
               ...current,
               axisLevels: updateAxisLevelCriterion(
                 current.axisLevels,
@@ -647,7 +790,7 @@ export const RiskMatrixEditorPageContent: FC<
             }))
           }
           onCopyCriterionToOtherCoverages={(axis, value, sourceCoverage) =>
-            updateEditor((current) => ({
+            updatePresentation((current) => ({
               ...current,
               axisLevels: copyAxisLevelCriterionToOtherCoverages(
                 current.axisLevels,
@@ -707,7 +850,7 @@ export const RiskMatrixEditorPageContent: FC<
               size="small"
               variant="outlined"
               onClick={() =>
-                updateEditor((current) => ({
+                updatePresentation((current) => ({
                   ...current,
                   axisLevelColors: resetCustomAxisLevelColors(),
                 }))
@@ -731,9 +874,9 @@ export const RiskMatrixEditorPageContent: FC<
               </Typography>
               <RiskMatrixColorInput
                 value={item.color}
-                disabled={readOnly || effectiveAxisLevelColors.length !== 5}
+                disabled={presentationLocked || effectiveAxisLevelColors.length !== 5}
                 onChange={(color) =>
-                  updateEditor((current) => ({
+                  updatePresentation((current) => ({
                     ...current,
                     axisLevelColors: setCustomAxisLevelColor(
                       current.axisLevelColors,
@@ -903,9 +1046,9 @@ export const RiskMatrixEditorPageContent: FC<
                   />
                   <RiskMatrixColorInput
                     value={classification.color}
-                    disabled={readOnly}
+                    disabled={presentationLocked}
                     onChange={(color) =>
-                      updateEditor((current) => ({
+                      updatePresentation((current) => ({
                         ...current,
                         classifications: current.classifications.map((item) =>
                           item.key === classification.key

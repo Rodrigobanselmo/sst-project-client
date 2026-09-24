@@ -10,6 +10,22 @@ import {
  */
 export type MatrixRiskLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+const PRESENTATION_HEX = /^#?([0-9a-fA-F]{6})$/;
+
+/** Cor visual CUSTOM: vigente quando o pin traz hex; senão o snapshot. */
+export function resolvePinnedCustomClassificationColor(params: {
+  matrixSource?: string | null;
+  matrixVersionId?: string | null;
+  liveColor?: string | null;
+  snapshotColor?: string | null;
+}): string | null {
+  if (params.matrixSource === 'CUSTOM' && params.matrixVersionId && params.liveColor) {
+    const match = params.liveColor.trim().match(PRESENTATION_HEX);
+    if (match) return `#${match[1].toUpperCase()}`;
+  }
+  return params.snapshotColor ?? null;
+}
+
 /**
  * Lookup numérico da matriz qualitativa SimpleSST (5x5). Não é P×S aritmético.
  *
@@ -172,6 +188,8 @@ export function resolveDisplayedOccupationalRisk(params: {
   resolvedLabel?: string | null;
   resolvedColor?: string | null;
   resolvedLegacyBand?: number | null;
+  /** Cor editorial vigente da classification pinada. Não substitui o snapshot. */
+  classificationPresentationColor?: string | null;
 }): DisplayedOccupationalRisk | null {
   const {
     isQuantity,
@@ -184,6 +202,7 @@ export function resolveDisplayedOccupationalRisk(params: {
     resolvedLabel,
     resolvedColor,
     resolvedLegacyBand,
+    classificationPresentationColor,
   } = params;
 
   if (isQuantity) {
@@ -206,9 +225,15 @@ export function resolveDisplayedOccupationalRisk(params: {
       resolvedLabel,
     })
   ) {
+    const liveColor = resolvePinnedCustomClassificationColor({
+      matrixSource,
+      matrixVersionId,
+      liveColor: classificationPresentationColor,
+      snapshotColor: resolvedColor,
+    });
     return customEntryFromSnapshot({
       label: resolvedLabel,
-      color: resolvedColor,
+      color: liveColor,
       level,
       legacyBand: resolvedLegacyBand,
     });
@@ -236,6 +261,7 @@ export function resolveDisplayedResidualOccupationalRisk(params: {
   residualLabel?: string | null;
   residualColor?: string | null;
   residualLegacyBand?: number | null;
+  residualClassificationPresentationColor?: string | null;
 }): DisplayedOccupationalRisk | null {
   const {
     severity,
@@ -246,6 +272,7 @@ export function resolveDisplayedResidualOccupationalRisk(params: {
     residualLabel,
     residualColor,
     residualLegacyBand,
+    residualClassificationPresentationColor,
   } = params;
 
   if (
@@ -265,7 +292,12 @@ export function resolveDisplayedResidualOccupationalRisk(params: {
 
     return customEntryFromSnapshot({
       label: residualLabel,
-      color: residualColor,
+      color: resolvePinnedCustomClassificationColor({
+        matrixSource,
+        matrixVersionId,
+        liveColor: residualClassificationPresentationColor,
+        snapshotColor: residualColor,
+      }),
       level: residualLegacyBand,
       legacyBand: residualLegacyBand,
     });

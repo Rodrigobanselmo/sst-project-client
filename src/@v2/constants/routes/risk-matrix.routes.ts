@@ -5,6 +5,8 @@ export const RiskMatrixRoutes = {
   VERSION: 'v2/companies/:companyId/risk-matrices/:matrixId/versions/:versionId',
   PUBLISH:
     'v2/companies/:companyId/risk-matrices/:matrixId/versions/:versionId/publish',
+  EDITORIAL:
+    'v2/companies/:companyId/risk-matrices/:matrixId/versions/:versionId/editorial',
   ARCHIVE: 'v2/companies/:companyId/risk-matrices/:matrixId/archive',
   DUPLICATE: 'v2/companies/:companyId/risk-matrices/:matrixId/duplicate',
   WORKSPACE_AVAILABILITY:

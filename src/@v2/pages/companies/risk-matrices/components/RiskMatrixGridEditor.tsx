@@ -48,6 +48,7 @@ type RiskMatrixGridEditorProps = {
   cells: RiskMatrixEditorCell[];
   selectedClassificationKey: string | null;
   disabled?: boolean;
+  criteriaDisabled?: boolean;
   axisLevelColorByValue?: Partial<Record<number, string>>;
   onChangeLabel: (
     axis: RiskMatrixEditorAxisLevel['axis'],
@@ -80,6 +81,7 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
   cells,
   selectedClassificationKey,
   disabled = false,
+  criteriaDisabled = disabled,
   axisLevelColorByValue,
   onChangeLabel,
   onChangeCriterion,
@@ -136,6 +138,7 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
               undefinedCoveragesByAxis?.[level.axis] ?? undefinedCoverages
             }
             disabled={disabled}
+            criteriaDisabled={criteriaDisabled}
             badgeColor={axisLevelColorByValue?.[level.value]}
             onChangeLabel={(label) => onChangeLabel(level.axis, level.value, label)}
             onChangeCriterion={(coverage, criterion) =>
@@ -157,6 +160,7 @@ export const RiskMatrixGridEditor: FC<RiskMatrixGridEditorProps> = ({
                 undefinedCoveragesByAxis?.[rowLevel.axis] ?? undefinedCoverages
               }
               disabled={disabled}
+              criteriaDisabled={criteriaDisabled}
               badgeColor={axisLevelColorByValue?.[rowLevel.value]}
               onChangeLabel={(label) =>
                 onChangeLabel(rowLevel.axis, rowLevel.value, label)
@@ -241,6 +245,7 @@ const AxisHeader: FC<{
   selectedCoverages: RiskMatrixCoverageKeyEnum[];
   undefinedCoverages?: RiskMatrixCoverageKeyEnum[];
   disabled?: boolean;
+  criteriaDisabled?: boolean;
   badgeColor?: string;
   onChangeLabel: (label: string) => void;
   onChangeCriterion: (
@@ -256,6 +261,7 @@ const AxisHeader: FC<{
   selectedCoverages,
   undefinedCoverages = [],
   disabled,
+  criteriaDisabled = disabled,
   badgeColor,
   onChangeLabel,
   onChangeCriterion,
@@ -310,7 +316,7 @@ const AxisHeader: FC<{
           criteriaByCoverage={level.criteriaByCoverage}
           selectedCoverages={selectedCoverages}
           undefinedCoverages={undefinedCoverages}
-          disabled={disabled}
+          disabled={criteriaDisabled}
           onChange={onChangeCriterion}
           onCopyToOtherCoverages={onCopyCriterionToOtherCoverages}
         />

@@ -23,7 +23,7 @@ import { dateToString } from 'core/utils/date/date-format';
 import { resolveDisplayedOccupationalRisk, resolveDisplayedResidualOccupationalRisk } from 'core/utils/helpers/matriz';
 import { resolveQuantitativeCollapsedPresentationFromSnapshot } from 'core/utils/helpers/format-quantitative-evidence.util';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
-import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
+import { resolveDisplayedAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
 import { canEditGseEffectiveOccurrenceHere, getGseEffectiveOriginReturnTo, resolveGseEffectiveOriginAction } from '../../open-gse-effective-origin.util';
 import { GseEffectiveOriginActionButtons } from '../../GseEffectiveOriginActionButtons';
@@ -168,6 +168,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
         matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
         resolvedLabel: riskData?.resolvedLabel,
         resolvedColor: riskData?.resolvedColor,
+        classificationPresentationColor: riskData?.classificationPresentationColor,
         resolvedLegacyBand: riskData?.resolvedLegacyBand,
       }),
     [
@@ -180,6 +181,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
       riskData?.matrixEvaluatedAt,
       riskData?.resolvedLabel,
       riskData?.resolvedColor,
+      riskData?.classificationPresentationColor,
       riskData?.resolvedLegacyBand,
     ],
   );
@@ -209,6 +211,8 @@ export const RiskToolGSEViewRowRiskBox: FC<
             matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
             residualLabel: riskData?.residualLabel,
             residualColor: riskData?.residualColor,
+            residualClassificationPresentationColor:
+              riskData?.residualClassificationPresentationColor,
             residualLegacyBand: riskData?.residualLegacyBand,
           })
         : null,
@@ -364,9 +368,13 @@ export const RiskToolGSEViewRowRiskBox: FC<
                 resultLabel={inherentMatrix?.label}
                 resultLevel={inherentMatrix?.level}
                 resultColor={inherentMatrix?.color}
+                matrixSource={riskData?.matrixSource}
+                axisLevelColors={riskData?.pinnedAxisLevelColors}
               />
               <MatrixEquation
                 label="Residual"
+                matrixSource={riskData?.matrixSource}
+                axisLevelColors={riskData?.pinnedAxisLevelColors}
                 probability={residualProbability}
                 severity={severity}
                 resultLabel={residualMatrix?.label}
@@ -381,10 +389,12 @@ export const RiskToolGSEViewRowRiskBox: FC<
               <STag
                 text={`Severidade ${severity}`}
                 action={severityAction(severity)}
-                chipColors={resolveSystemAxisLevelChipColors(
-                  severity,
-                  presentation,
-                )}
+                chipColors={resolveDisplayedAxisLevelChipColors({
+                  value: severity,
+                  matrixSource: riskData?.matrixSource,
+                  axisLevelColors: riskData?.pinnedAxisLevelColors,
+                  systemPresentation: presentation,
+                })}
                 sx={{
                   px: 3,
                   py: 0.5,

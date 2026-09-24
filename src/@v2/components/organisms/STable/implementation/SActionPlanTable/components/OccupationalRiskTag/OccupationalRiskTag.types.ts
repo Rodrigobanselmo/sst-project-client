@@ -8,5 +8,6 @@ export interface OccupationalRiskTagProps {
   matrixEvaluatedAt?: string | Date | null;
   resolvedLabel?: string | null;
   resolvedColor?: string | null;
+  classificationPresentationColor?: string | null;
   size?: 'md';
 }

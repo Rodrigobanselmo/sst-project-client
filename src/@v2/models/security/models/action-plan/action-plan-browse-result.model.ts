@@ -42,6 +42,7 @@ export type IActionPlanBrowseResultModel = {
   matrixEvaluatedAt?: string | Date | null;
   resolvedLabel?: string | null;
   resolvedColor?: string | null;
+  classificationPresentationColor?: string | null;
   resolvedLegacyBand?: number | null;
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSources: { id: string; name: string }[];
@@ -86,6 +87,7 @@ export class ActionPlanBrowseResultModel {
   matrixEvaluatedAt: string | Date | null;
   resolvedLabel: string | null;
   resolvedColor: string | null;
+  classificationPresentationColor: string | null;
   resolvedLegacyBand: number | null;
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSource: { id: string; name: string }[];
@@ -123,6 +125,7 @@ export class ActionPlanBrowseResultModel {
     this.matrixEvaluatedAt = params.matrixEvaluatedAt ?? null;
     this.resolvedLabel = params.resolvedLabel ?? null;
     this.resolvedColor = params.resolvedColor ?? null;
+    this.classificationPresentationColor = params.classificationPresentationColor ?? null;
     this.resolvedLegacyBand = params.resolvedLegacyBand ?? null;
     this.status = params.status;
     this.validDate = params.validDate ? new Date(params.validDate) : null;

@@ -6,6 +6,7 @@ import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-
 import {
   hasCustomMatrixSnapshot,
   resolveDisplayedOccupationalChipColorsFromHex,
+  resolvePinnedCustomClassificationColor,
 } from 'core/utils/helpers/matriz';
 import { OccupationalRiskTagProps as OccupationalRiskTagProps } from './OccupationalRiskTag.types';
 
@@ -23,6 +24,7 @@ export const OccupationalRiskTag = ({
   matrixEvaluatedAt,
   resolvedLabel,
   resolvedColor,
+  classificationPresentationColor,
   size = 'md',
 }: OccupationalRiskTagProps) => {
   const presentation = useSystemRiskMatrixPresentation();
@@ -34,7 +36,14 @@ export const OccupationalRiskTag = ({
   });
 
   if (isCustomSnapshot) {
-    const customChip = resolveDisplayedOccupationalChipColorsFromHex(resolvedColor);
+    const customChip = resolveDisplayedOccupationalChipColorsFromHex(
+      resolvePinnedCustomClassificationColor({
+        matrixSource,
+        matrixVersionId,
+        liveColor: classificationPresentationColor,
+        snapshotColor: resolvedColor,
+      }),
+    );
     const label =
       typeof resolvedLabel === 'string' && resolvedLabel.trim().length > 0
         ? resolvedLabel

@@ -199,6 +199,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           matrixEvaluatedAt={row.matrixEvaluatedAt}
           resolvedLabel={row.resolvedLabel}
           resolvedColor={row.resolvedColor}
+          classificationPresentationColor={row.classificationPresentationColor}
         />
       ),
     },

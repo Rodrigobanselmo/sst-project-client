@@ -8,6 +8,8 @@ import {
   disableWorkspaceRiskMatrix,
   duplicateRiskMatrix,
   enableWorkspaceRiskMatrix,
+  patchPublishedRiskMatrixEditorial,
+  patchRiskMatrixIdentity,
   publishRiskMatrixVersion,
   replaceRiskMatrixDraft,
   saveSystemRiskMatrix,
@@ -16,6 +18,8 @@ import {
 import type {
   CreateRiskMatrixPayload,
   DeleteRiskMatrixDraftResponse,
+  PatchPublishedRiskMatrixEditorialPayload,
+  PatchRiskMatrixPayload,
   PutSystemRiskMatrixPayload,
   ReplaceRiskMatrixDraftPayload,
   RiskMatrixVersion,
@@ -106,6 +110,45 @@ export const useMutateReplaceRiskMatrixDraft = (params: {
         queryKey: riskMatrixQueryKeys.all,
       });
       showSnackBar('Rascunho salvo com sucesso', { type: 'success' });
+    },
+  });
+};
+
+export const useMutatePatchRiskMatrixIdentity = (params: {
+  companyId: string;
+  matrixId: string;
+}) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: PatchRiskMatrixPayload) =>
+      patchRiskMatrixIdentity({ ...params, payload }),
+    onSuccess: async () => {
+      await invalidateRiskMatrixQueries(queryClient);
+    },
+  });
+};
+
+export const useMutatePatchPublishedRiskMatrixEditorial = (params: {
+  companyId: string;
+  matrixId: string;
+  versionId: string;
+}) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: PatchPublishedRiskMatrixEditorialPayload) =>
+      patchPublishedRiskMatrixEditorial({ ...params, payload }),
+    onSuccess: async (version: RiskMatrixVersion) => {
+      queryClient.setQueryData(
+        riskMatrixQueryKeys.version(
+          params.companyId,
+          params.matrixId,
+          params.versionId,
+        ),
+        version,
+      );
+      await invalidateRiskMatrixQueries(queryClient);
     },
   });
 };

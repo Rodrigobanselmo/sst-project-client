@@ -113,6 +113,9 @@ export interface IRiskData {
   matrixEvaluatedAt?: string | Date | null;
   resolvedLabel?: string | null;
   resolvedColor?: string | null;
+  classificationPresentationColor?: string | null;
+  residualClassificationPresentationColor?: string | null;
+  pinnedAxisLevelColors?: Array<{ value: number; color: string }> | null;
   resolvedLegacyBand?: number | null;
   residualClassificationId?: string | null;
   residualLabel?: string | null;

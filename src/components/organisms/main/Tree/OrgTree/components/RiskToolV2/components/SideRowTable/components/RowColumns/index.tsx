@@ -71,6 +71,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
     matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
     resolvedLabel: riskData?.resolvedLabel,
     resolvedColor: riskData?.resolvedColor,
+    classificationPresentationColor: riskData?.classificationPresentationColor,
     resolvedLegacyBand: riskData?.resolvedLegacyBand,
   });
 
@@ -83,6 +84,8 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
     matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
     residualLabel: riskData?.residualLabel,
     residualColor: riskData?.residualColor,
+    residualClassificationPresentationColor:
+      riskData?.residualClassificationPresentationColor,
     residualLegacyBand: riskData?.residualLegacyBand,
   });
 

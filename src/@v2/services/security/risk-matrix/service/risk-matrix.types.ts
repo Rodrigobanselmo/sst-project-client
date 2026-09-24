@@ -242,6 +242,16 @@ export type PatchRiskMatrixPayload = {
   description?: string | null;
 };
 
+export type PatchPublishedRiskMatrixEditorialPayload = {
+  criteria?: Array<{
+    axisLevelId: string;
+    coverageKey: RiskMatrixCoverageKeyEnum;
+    criterion: string;
+  }>;
+  axisLevelColors?: Array<{ value: number; color: string }>;
+  classificationColors?: Array<{ classificationId: string; color: string }>;
+};
+
 export type RiskMatrixAxisLevelPayload = {
   axis: RiskMatrixAxisEnum;
   value: number;

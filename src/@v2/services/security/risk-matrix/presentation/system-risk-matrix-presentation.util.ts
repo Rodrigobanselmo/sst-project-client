@@ -102,6 +102,29 @@ export function acceptSystemRiskMatrixPresentation(
   };
 }
 
+export function resolveDisplayedAxisLevelChipColors(params: {
+  value: number | null | undefined;
+  matrixSource?: string | null;
+  axisLevelColors?: Array<{ value: number; color: string }> | null;
+  systemPresentation: AcceptedSystemRiskMatrixPresentation | null;
+}): SystemPresentationChipColors {
+  const { value, matrixSource, axisLevelColors, systemPresentation } = params;
+  if (
+    matrixSource === RiskMatrixSourceEnum.CUSTOM &&
+    Array.isArray(axisLevelColors) &&
+    axisLevelColors.length > 0 &&
+    typeof value === 'number' &&
+    value >= 1 &&
+    value <= 5
+  ) {
+    const hex = axisLevelColors.find((item) => item.value === value)?.color;
+    const chip = chipFromHex(hex);
+    if (chip) return chip;
+  }
+
+  return resolveSystemAxisLevelChipColors(value, systemPresentation);
+}
+
 export function resolveSystemAxisLevelChipColors(
   value: number | null | undefined,
   presentation: AcceptedSystemRiskMatrixPresentation | null,

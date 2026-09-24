@@ -5,7 +5,7 @@ import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
-import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
+import { resolveDisplayedAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 import {
   QuantitativeCollapsedPresentation,
 } from 'core/utils/helpers/format-quantitative-evidence.util';
@@ -105,6 +105,8 @@ export type MatrixEquationProps = {
   resultLevel?: number | null;
   /** Hex CUSTOM do snapshot (opcional). */
   resultColor?: string | null;
+  matrixSource?: string | null;
+  axisLevelColors?: Array<{ value: number; color: string }> | null;
   /** Quando true, mostra só “--” no lugar da equação (ex.: residual ausente). */
   empty?: boolean;
   /** Risco inerente quantitativo: medição → RO (sem P/S). */
@@ -119,6 +121,8 @@ export function MatrixEquation({
   resultLabel,
   resultLevel,
   resultColor,
+  matrixSource,
+  axisLevelColors,
   empty,
   isQuantity,
   quantitativePresentation,
@@ -153,10 +157,12 @@ export function MatrixEquation({
           <SScaleFactorPill
             kind="P"
             value={probability}
-            chipColors={resolveSystemAxisLevelChipColors(
-              probability,
-              presentation,
-            )}
+            chipColors={resolveDisplayedAxisLevelChipColors({
+              value: probability,
+              matrixSource,
+              axisLevelColors,
+              systemPresentation: presentation,
+            })}
           />
           <SText
             component="span"
@@ -171,7 +177,12 @@ export function MatrixEquation({
           <SScaleFactorPill
             kind="S"
             value={severity}
-            chipColors={resolveSystemAxisLevelChipColors(severity, presentation)}
+            chipColors={resolveDisplayedAxisLevelChipColors({
+              value: severity,
+              matrixSource,
+              axisLevelColors,
+              systemPresentation: presentation,
+            })}
           />
           <SText
             component="span"

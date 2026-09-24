@@ -7,6 +7,8 @@ import type {
   CreateRiskMatrixPayload,
   DeleteRiskMatrixDraftResponse,
   MatrixWorkspaceAvailability,
+  PatchRiskMatrixPayload,
+  PatchPublishedRiskMatrixEditorialPayload,
   ReplaceRiskMatrixDraftPayload,
   RiskMatrixBrowseItem,
   RiskMatrixIdentity,
@@ -75,6 +77,46 @@ export async function readRiskMatrix(params: {
         matrixId: params.matrixId,
       },
     }),
+  );
+
+  return response.data;
+}
+
+export async function patchRiskMatrixIdentity(params: {
+  companyId: string;
+  matrixId: string;
+  payload: PatchRiskMatrixPayload;
+}): Promise<RiskMatrixIdentity> {
+  const response = await api.patch<RiskMatrixIdentity>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.BY_ID,
+      pathParams: {
+        companyId: params.companyId,
+        matrixId: params.matrixId,
+      },
+    }),
+    params.payload,
+  );
+
+  return response.data;
+}
+
+export async function patchPublishedRiskMatrixEditorial(params: {
+  companyId: string;
+  matrixId: string;
+  versionId: string;
+  payload: PatchPublishedRiskMatrixEditorialPayload;
+}): Promise<RiskMatrixVersion> {
+  const response = await api.patch<RiskMatrixVersion>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.EDITORIAL,
+      pathParams: {
+        companyId: params.companyId,
+        matrixId: params.matrixId,
+        versionId: params.versionId,
+      },
+    }),
+    params.payload,
   );
 
   return response.data;
