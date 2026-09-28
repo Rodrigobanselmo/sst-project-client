@@ -34,14 +34,11 @@ const GROUP_HEADER_HEIGHT = 28;
 const RISK_HEADER_HEIGHT = 140;
 const RISK_HEADER_LABEL_FONT_SIZE = 11;
 const RISK_HEADER_LABEL_LINE_HEIGHT = 1.2;
-/** Two sideways lines, same cap the header used via line-clamp. */
-const RISK_HEADER_LABEL_MAX_WIDTH =
+/** Horizontal width before rotation. Becomes the vertical run of the name. */
+const RISK_HEADER_LABEL_WIDTH = RISK_HEADER_HEIGHT - 3;
+/** At most two horizontal lines before rotation. Becomes the column thickness. */
+const RISK_HEADER_LABEL_MAX_HEIGHT =
   RISK_HEADER_LABEL_FONT_SIZE * RISK_HEADER_LABEL_LINE_HEIGHT * 2;
-/**
- * Pixel length. `max-height: 100%` plus `-webkit-line-clamp` on the
- * flex item collapses this label to a sliver in Safari.
- */
-const RISK_HEADER_LABEL_MAX_HEIGHT = RISK_HEADER_HEIGHT - 3;
 const CELL_INSET = 2;
 const CHIP_RADIUS = 5;
 const CHIP_HEIGHT = ROW_HEIGHT - CELL_INSET * 2;
@@ -400,7 +397,7 @@ export function RiskPrioritizationGrid({
                   bgcolor: 'background.paper',
                   position: 'sticky',
                   verticalAlign: 'bottom',
-                  overflow: 'hidden',
+                  overflow: 'visible',
                   boxSizing: 'border-box',
                   borderLeft: '1px solid',
                   borderLeftColor: groupStartRiskIds.has(column.riskId)
@@ -413,15 +410,12 @@ export function RiskPrioritizationGrid({
                 <Box
                   sx={{
                     position: 'absolute',
+                    top: 0,
                     right: 0,
-                    bottom: 2,
+                    bottom: 0,
                     left: 0,
-                    maxHeight: RISK_HEADER_LABEL_MAX_HEIGHT,
-                    overflow: 'hidden',
-                    boxSizing: 'border-box',
+                    overflow: 'visible',
                     pointerEvents: 'none',
-                    textAlign: 'center',
-                    lineHeight: 0,
                   }}
                 >
                   <Tooltip title={column.name} placement="top">
@@ -429,18 +423,21 @@ export function RiskPrioritizationGrid({
                       variant="caption"
                       fontWeight={700}
                       sx={{
-                        writingMode: 'vertical-rl',
-                        transform: 'rotate(180deg)',
-                        transformOrigin: 'center center',
-                        display: 'inline-block',
-                        overflow: 'hidden',
-                        whiteSpace: 'normal',
-                        overflowWrap: 'break-word',
-                        wordBreak: 'normal',
-                        pointerEvents: 'auto',
+                        position: 'absolute',
+                        left: '50%',
+                        bottom: 2,
+                        width: RISK_HEADER_LABEL_WIDTH,
                         maxHeight: RISK_HEADER_LABEL_MAX_HEIGHT,
-                        maxWidth: RISK_HEADER_LABEL_MAX_WIDTH,
-                        textAlign: 'start',
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
+                        transformOrigin: 'center center',
+                        transform: `translateX(-50%) translateY(calc(-${
+                          RISK_HEADER_LABEL_WIDTH / 2
+                        }px + 50%)) rotate(-90deg)`,
+                        display: 'block',
+                        whiteSpace: 'normal',
+                        textAlign: 'left',
+                        pointerEvents: 'auto',
                         lineHeight: RISK_HEADER_LABEL_LINE_HEIGHT,
                         fontSize: RISK_HEADER_LABEL_FONT_SIZE,
                         color: 'text.primary',
