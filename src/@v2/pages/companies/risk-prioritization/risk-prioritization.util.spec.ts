@@ -10,6 +10,11 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { CharacterizationSubTabEnum } from 'core/constants/characterization-navigation.constants';
 
 import {
+  displayedPrioritizationOrientation,
+  presentPrioritizationMatrix,
+  prioritizationOrientationToPersist,
+} from './risk-prioritization.presentation';
+import {
   buildPrioritizationCellTooltip,
   cellKey,
   indexPrioritizationCells,
@@ -298,5 +303,108 @@ assert.ok(!qualitativeFallbackTooltip.includes(' × '));
 assert.equal(normalizeCssColor('d96c2f'), '#d96c2f');
 assert.equal(normalizeCssColor('#F44336'), '#F44336');
 assert.equal(normalizeCssColor(null), undefined);
+
+const matrix = {
+  rows: [
+    { id: 'unit-a', label: 'GSE Alfa', kind: 'REAL_GSE' as const },
+    { id: 'unit-b', label: 'Atividade B', kind: 'UNITARY_FALLBACK' as const },
+  ],
+  columns: [
+    { riskId: 'risk-noise', name: 'Ruído', typeCode: 'FIS' },
+    { riskId: 'risk-chem', name: 'Acetona', typeCode: 'QUI' },
+  ],
+  cells: [
+    cell({
+      rowId: 'unit-a',
+      riskId: 'risk-noise',
+      abbreviation: 'MERG',
+      label: 'Moderado_ERG',
+      matrixSource: 'CUSTOM',
+      isQuantity: true,
+      matrixVersionId: 'ver-1',
+      origins: [
+        origin({
+          riskFactorDataId: 'r-click',
+          originKind: 'GSE',
+          openOrigin: { kind: 'GSE', id: 'unit-a' },
+        }),
+      ],
+    }),
+    cell({
+      rowId: 'unit-b',
+      riskId: 'risk-chem',
+      abbreviation: 'A',
+      label: 'Alto',
+      matrixSource: 'SYSTEM',
+      isQuantity: false,
+    }),
+  ],
+};
+
+assert.equal(displayedPrioritizationOrientation(null), 'UNITS_IN_ROWS');
+assert.equal(displayedPrioritizationOrientation(undefined), 'UNITS_IN_ROWS');
+assert.equal(prioritizationOrientationToPersist({ event: 'open', stored: null }), null);
+assert.equal(
+  prioritizationOrientationToPersist({
+    event: 'select',
+    stored: 'UNITS_IN_ROWS',
+    selected: 'UNITS_IN_ROWS',
+  }),
+  null,
+);
+assert.equal(
+  prioritizationOrientationToPersist({
+    event: 'select',
+    stored: null,
+    selected: 'UNITS_IN_ROWS',
+  }),
+  'UNITS_IN_ROWS',
+);
+
+const unitsView = presentPrioritizationMatrix(matrix, 'UNITS_IN_ROWS');
+const risksView = presentPrioritizationMatrix(matrix, 'RISKS_IN_ROWS');
+assert.equal(unitsView.cornerLabel, 'GSE / Elemento');
+assert.equal(risksView.cornerLabel, 'Riscos');
+assert.deepEqual(
+  unitsView.rows.map((row) => row.id),
+  ['unit-a', 'unit-b'],
+);
+assert.deepEqual(
+  risksView.rows.map((row) => row.id),
+  ['risk-noise', 'risk-chem'],
+);
+assert.deepEqual(
+  risksView.columns.map((column) => column.id),
+  ['unit-a', 'unit-b'],
+);
+
+const unitsCell = unitsView.cell('unit-a', 'risk-noise');
+const risksCell = risksView.cell('risk-noise', 'unit-a');
+assert.equal(unitsCell, risksCell);
+assert.equal(unitsCell?.abbreviation, 'MERG');
+assert.equal(unitsCell?.matrixSource, 'CUSTOM');
+assert.equal(unitsCell?.isQuantity, true);
+assert.equal(unitsCell?.matrixVersionId, 'ver-1');
+assert.deepEqual(
+  resolvePrioritizationCellClick(unitsCell),
+  resolvePrioritizationCellClick(risksCell),
+);
+assert.equal(resolvePrioritizationCellClick(unitsCell).type, 'open-origin');
+
+const legendSource = matrix.cells.map((entry) => ({
+  abbreviation: entry.abbreviation,
+  label: entry.label,
+  matrixSource: entry.matrixSource,
+  isQuantity: entry.isQuantity,
+}));
+assert.deepEqual(
+  legendSource,
+  [unitsCell, risksView.cell('risk-chem', 'unit-b')].map((entry) => ({
+    abbreviation: entry?.abbreviation,
+    label: entry?.label,
+    matrixSource: entry?.matrixSource,
+    isQuantity: entry?.isQuantity,
+  })),
+);
 
 console.log('risk-prioritization.util.spec.ts OK');

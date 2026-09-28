@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Alert, Box, CircularProgress, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 
 import { RiskPrioritizationGrid, omitRepresentAllPrioritizationRisks } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationGrid';
@@ -11,8 +11,14 @@ import {
   resolvePrioritizationOriginNavigation,
   resolvePrioritizationViewState,
 } from '@v2/pages/companies/risk-prioritization/risk-prioritization.util';
-import { useFetchBrowseRiskPrioritization } from '@v2/services/security/risk-prioritization/useFetchBrowseRiskPrioritization';
 import {
+  displayedPrioritizationOrientation,
+  prioritizationOrientationToPersist,
+} from '@v2/pages/companies/risk-prioritization/risk-prioritization.presentation';
+import { useFetchBrowseRiskPrioritization } from '@v2/services/security/risk-prioritization/useFetchBrowseRiskPrioritization';
+import { useMutateRiskPrioritizationOrientation } from '@v2/services/security/risk-prioritization/useMutateRiskPrioritizationOrientation';
+import {
+  PrioritizationMatrixOrientation,
   RiskPrioritizationCell,
   RiskPrioritizationOrigin,
 } from '@v2/services/security/risk-prioritization/risk-prioritization.types';
@@ -49,6 +55,7 @@ export function RiskPrioritizationTabContent({
     },
     { enabled },
   );
+  const orientationMutation = useMutateRiskPrioritizationOrientation();
   const { data: riskCatalog } = useQueryAllRisk();
   const viewData = useMemo(() => {
     if (!data) return data;
@@ -89,6 +96,26 @@ export function RiskPrioritizationTabContent({
       onStackOpenModal(action.modal, action.payload);
     },
     [companyId, onStackOpenModal, router],
+  );
+
+  const storedOrientation = data?.matrixOrientation ?? null;
+  const displayedOrientation = displayedPrioritizationOrientation(storedOrientation);
+
+  const selectOrientation = useCallback(
+    (selected: PrioritizationMatrixOrientation) => {
+      const next = prioritizationOrientationToPersist({
+        event: 'select',
+        stored: storedOrientation,
+        selected,
+      });
+      if (!next || !companyId || !workspaceId) return;
+      orientationMutation.mutate({
+        companyId,
+        workspaceId,
+        orientation: next,
+      });
+    },
+    [companyId, orientationMutation, storedOrientation, workspaceId],
   );
 
   const handleCellClick = useCallback(
@@ -162,7 +189,39 @@ export function RiskPrioritizationTabContent({
         Visão consolidada do risco ocupacional atual. Clique na célula para abrir
         a origem. Edição é feita na fonte (GSE ou Elemento Caracterizado).
       </Typography>
-      <RiskPrioritizationGrid data={viewData} onCellClick={handleCellClick} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
+        <Button
+          size="small"
+          variant={displayedOrientation === 'UNITS_IN_ROWS' ? 'contained' : 'outlined'}
+          disabled={orientationMutation.isPending}
+          onClick={() => selectOrientation('UNITS_IN_ROWS')}
+        >
+          Unidades nas linhas
+        </Button>
+        <Button
+          size="small"
+          variant={displayedOrientation === 'RISKS_IN_ROWS' ? 'contained' : 'outlined'}
+          disabled={orientationMutation.isPending}
+          onClick={() => selectOrientation('RISKS_IN_ROWS')}
+        >
+          Riscos nas linhas
+        </Button>
+        <Typography variant="caption" color="text.secondary">
+          {storedOrientation
+            ? 'Esta orientação vale para a tela e para a próxima geração do Word.'
+            : 'Ainda sem escolha gravada: a tela usa unidades nas linhas e o Word mantém a orientação automática.'}
+        </Typography>
+      </Box>
+      {orientationMutation.isError ? (
+        <Alert severity="error" sx={{ mb: 1.5 }}>
+          Não foi possível gravar a orientação da matriz.
+        </Alert>
+      ) : null}
+      <RiskPrioritizationGrid
+        data={viewData}
+        orientation={displayedOrientation}
+        onCellClick={handleCellClick}
+      />
       <RiskPrioritizationLegend entries={viewData.legend} />
       <RiskPrioritizationOriginsDrawer
         open={Boolean(selectedCell)}

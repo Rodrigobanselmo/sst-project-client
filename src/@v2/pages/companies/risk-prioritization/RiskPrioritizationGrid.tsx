@@ -13,16 +13,15 @@ import {
 } from '@mui/material';
 
 import {
+  PrioritizationMatrixOrientation,
   RiskPrioritizationBrowseResult,
   RiskPrioritizationCell,
-  RiskPrioritizationUnitKind,
 } from '@v2/services/security/risk-prioritization/risk-prioritization.types';
 
+import { presentPrioritizationMatrix } from './risk-prioritization.presentation';
 import {
   buildPrioritizationCellTooltip,
-  cellKey,
   contrastTextColor,
-  indexPrioritizationCells,
   normalizeCssColor,
 } from './risk-prioritization.util';
 
@@ -46,99 +45,6 @@ const QUANTITY_HATCH =
   'repeating-linear-gradient(135deg, rgba(255,255,255,0.22) 0 4px, transparent 4px 8px)';
 const PRIORITIZED_INSET_RING =
   'inset 0 0 0 1px rgba(255,255,255,0.88), inset 0 0 0 2px rgba(20,20,20,0.72)';
-
-/** Canonical system type order (RiskOrderEnum), Outros last. */
-const TYPE_ORDER = ['FIS', 'QUI', 'BIO', 'ERG', 'ACI', 'OUTROS'] as const;
-
-const TYPE_GROUP_LABEL: Record<(typeof TYPE_ORDER)[number], string> = {
-  FIS: 'Físicos',
-  QUI: 'Químicos',
-  BIO: 'Biológicos',
-  ERG: 'Ergonômicos',
-  ACI: 'Acidentes',
-  OUTROS: 'Outros',
-};
-
-/** Theme tokens from `palette.risk` / SRiskChip — do not duplicate hex here. */
-const TYPE_ACCENT: Record<(typeof TYPE_ORDER)[number], string> = {
-  FIS: 'risk.fis',
-  QUI: 'risk.qui',
-  BIO: 'risk.bio',
-  ERG: 'risk.erg',
-  ACI: 'risk.aci',
-  OUTROS: 'risk.outros',
-};
-
-function typeAccent(typeCode: string | null): string | undefined {
-  if (!typeCode) return undefined;
-  return TYPE_ACCENT[typeCode as keyof typeof TYPE_ACCENT];
-}
-
-type Column = RiskPrioritizationBrowseResult['columns'][number];
-type Row = RiskPrioritizationBrowseResult['rows'][number];
-
-function typeOrderIndex(typeCode: string | null): number {
-  if (!typeCode) return TYPE_ORDER.length + 1;
-  const index = TYPE_ORDER.indexOf(typeCode as (typeof TYPE_ORDER)[number]);
-  return index === -1 ? TYPE_ORDER.length : index;
-}
-
-function sortColumnsByType(columns: Column[]): Column[] {
-  return [...columns].sort((a, b) => {
-    const type = typeOrderIndex(a.typeCode) - typeOrderIndex(b.typeCode);
-    if (type !== 0) return type;
-    return a.name.localeCompare(b.name, 'pt-BR');
-  });
-}
-
-function groupColumnsByType(columns: Column[]): Array<{
-  typeCode: string | null;
-  label: string;
-  columns: Column[];
-}> {
-  const groups: Array<{
-    typeCode: string | null;
-    label: string;
-    columns: Column[];
-  }> = [];
-
-  for (const column of columns) {
-    const last = groups[groups.length - 1];
-    if (last && last.typeCode === column.typeCode) {
-      last.columns.push(column);
-      continue;
-    }
-    const known =
-      column.typeCode &&
-      TYPE_GROUP_LABEL[column.typeCode as keyof typeof TYPE_GROUP_LABEL];
-    groups.push({
-      typeCode: column.typeCode,
-      label: known || (column.typeCode ? column.typeCode : '—'),
-      columns: [column],
-    });
-  }
-  return groups;
-}
-
-function kindBlockLabel(kind: RiskPrioritizationUnitKind): string {
-  return kind === 'REAL_GSE' ? 'GSE' : 'Elemento Caracterizado';
-}
-
-function splitRowBlocks(rows: Row[]): Array<{
-  kind: RiskPrioritizationUnitKind;
-  rows: Row[];
-}> {
-  const blocks: Array<{ kind: RiskPrioritizationUnitKind; rows: Row[] }> = [];
-  for (const row of rows) {
-    const last = blocks[blocks.length - 1];
-    if (last && last.kind === row.kind) {
-      last.rows.push(row);
-      continue;
-    }
-    blocks.push({ kind: row.kind, rows: [row] });
-  }
-  return blocks;
-}
 
 export function omitRepresentAllPrioritizationRisks(
   data: RiskPrioritizationBrowseResult,
@@ -263,27 +169,39 @@ function riskColumnSx(isGroupStart: boolean) {
 
 export function RiskPrioritizationGrid({
   data,
+  orientation = 'UNITS_IN_ROWS',
   onCellClick,
 }: {
   data: RiskPrioritizationBrowseResult;
+  orientation?: PrioritizationMatrixOrientation;
   onCellClick: (cell: RiskPrioritizationCell) => void;
 }) {
-  const byKey = indexPrioritizationCells(data.cells);
-  const columns = useMemo(
-    () => sortColumnsByType(data.columns),
-    [data.columns],
+  const presentation = useMemo(
+    () => presentPrioritizationMatrix(data, orientation),
+    [data, orientation],
   );
-  const typeGroups = useMemo(() => groupColumnsByType(columns), [columns]);
-  const groupStartRiskIds = useMemo(
+  const { columns, columnGroups, rows } = presentation;
+  const groupStartIds = useMemo(
     () =>
       new Set(
-        typeGroups
-          .map((group) => group.columns[0]?.riskId)
+        columnGroups
+          .map((group) => group.columns[0]?.id)
           .filter((id): id is string => Boolean(id)),
       ),
-    [typeGroups],
+    [columnGroups],
   );
-  const rowBlocks = useMemo(() => splitRowBlocks(data.rows), [data.rows]);
+  const rowBlocks = useMemo(() => {
+    const blocks: Array<{ rows: typeof rows }> = [];
+    for (const row of rows) {
+      const last = blocks[blocks.length - 1];
+      if (last && last.rows[0]?.groupKey === row.groupKey) {
+        last.rows.push(row);
+        continue;
+      }
+      blocks.push({ rows: [row] });
+    }
+    return blocks;
+  }, [rows]);
   const tableWidth =
     KIND_COL_WIDTH + NAME_COL_WIDTH + columns.length * RISK_COL_WIDTH;
   const headerStackHeight = GROUP_HEADER_HEIGHT + RISK_HEADER_HEIGHT;
@@ -294,7 +212,7 @@ export function RiskPrioritizationGrid({
   const rowspanByFirstRowId = new Map(
     rowBlocks.map((block) => [block.rows[0]!.id, block.rows.length] as const),
   );
-  const lastRowId = data.rows[data.rows.length - 1]?.id;
+  const lastRowId = rows[rows.length - 1]?.id;
   const lastKindRowId = rowBlocks[rowBlocks.length - 1]?.rows[0]?.id;
 
   return (
@@ -326,7 +244,7 @@ export function RiskPrioritizationGrid({
           <col style={{ width: KIND_COL_WIDTH }} />
           <col style={{ width: NAME_COL_WIDTH }} />
           {columns.map((column) => (
-            <col key={column.riskId} style={{ width: RISK_COL_WIDTH }} />
+            <col key={column.id} style={{ width: RISK_COL_WIDTH }} />
           ))}
         </colgroup>
         <TableHead>
@@ -336,15 +254,15 @@ export function RiskPrioritizationGrid({
               rowSpan={2}
               sx={{ ...stickyNameHeaderSx, height: headerStackHeight }}
             >
-              GSE / Elemento
+              {presentation.cornerLabel}
             </TableCell>
-            {typeGroups.map((group) => {
+            {columnGroups.map((group) => {
               const compact = group.columns.length * RISK_COL_WIDTH < 72;
-              const code = group.typeCode || '—';
-              const accent = typeAccent(group.typeCode);
+              const code = group.code;
+              const accent = group.accent;
               return (
                 <TableCell
-                  key={`${group.typeCode || 'none'}-${group.columns[0]?.riskId}`}
+                  key={`${group.key}-${group.columns[0]?.id}`}
                   align="center"
                   colSpan={group.columns.length}
                   sx={{
@@ -369,7 +287,13 @@ export function RiskPrioritizationGrid({
                     boxSizing: 'border-box',
                   }}
                 >
-                  <Tooltip title={`${group.label}${group.typeCode ? ` (${group.typeCode})` : ''}`}>
+                  <Tooltip
+                    title={
+                      group.code && group.code !== group.label && group.code !== '—'
+                        ? `${group.label} (${group.code})`
+                        : group.label
+                    }
+                  >
                     <Typography
                       component="span"
                       sx={{ fontSize: 10, fontWeight: 700, color: 'text.secondary' }}
@@ -384,7 +308,7 @@ export function RiskPrioritizationGrid({
           <TableRow sx={{ height: RISK_HEADER_HEIGHT }}>
             {columns.map((column) => (
               <TableCell
-                key={column.riskId}
+                key={column.id}
                 align="center"
                 sx={{
                   width: RISK_COL_WIDTH,
@@ -400,7 +324,7 @@ export function RiskPrioritizationGrid({
                   overflow: 'visible',
                   boxSizing: 'border-box',
                   borderLeft: '1px solid',
-                  borderLeftColor: groupStartRiskIds.has(column.riskId)
+                  borderLeftColor: groupStartIds.has(column.id)
                     ? 'grey.400'
                     : 'grey.100',
                   borderBottom: '1px solid',
@@ -418,7 +342,7 @@ export function RiskPrioritizationGrid({
                     pointerEvents: 'none',
                   }}
                 >
-                  <Tooltip title={column.name} placement="top">
+                  <Tooltip title={column.label} placement="top">
                     <Typography
                       variant="caption"
                       fontWeight={700}
@@ -443,7 +367,7 @@ export function RiskPrioritizationGrid({
                         color: 'text.primary',
                       }}
                     >
-                      {column.name}
+                      {column.label}
                     </Typography>
                   </Tooltip>
                 </Box>
@@ -452,7 +376,7 @@ export function RiskPrioritizationGrid({
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.rows.map((row) => (
+          {rows.map((row) => (
             <TableRow key={row.id} hover sx={{ height: ROW_HEIGHT }}>
               {firstRowIds.has(row.id) ? (
                 <TableCell
@@ -483,7 +407,7 @@ export function RiskPrioritizationGrid({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {kindBlockLabel(row.kind)}
+                    {row.groupLabel}
                   </Typography>
                 </TableCell>
               ) : null}
@@ -515,13 +439,13 @@ export function RiskPrioritizationGrid({
                 </Typography>
               </TableCell>
               {columns.map((column) => {
-                const cell = byKey.get(cellKey(row.id, column.riskId));
-                const isGroupStart = groupStartRiskIds.has(column.riskId);
+                const cell = presentation.cell(row.id, column.id);
+                const isGroupStart = groupStartIds.has(column.id);
                 const isLastRow = row.id === lastRowId;
                 if (!cell) {
                   return (
                     <TableCell
-                      key={column.riskId}
+                      key={column.id}
                       align="center"
                       sx={{
                         ...riskColumnSx(isGroupStart),
@@ -541,7 +465,7 @@ export function RiskPrioritizationGrid({
                 const textColor = contrastTextColor(cellColor);
                 return (
                   <TableCell
-                    key={column.riskId}
+                    key={column.id}
                     align="center"
                     onClick={clickable ? () => onCellClick(cell) : undefined}
                     sx={{
@@ -559,11 +483,11 @@ export function RiskPrioritizationGrid({
                       title={
                         <Box>
                           <Box sx={{ lineHeight: 1.2, whiteSpace: 'normal' }}>
-                            {column.name}
+                            {presentation.riskName(row.id, column.id)}
                           </Box>
                           <Box sx={{ mt: 0.75, whiteSpace: 'pre-line' }}>
                             {buildPrioritizationCellTooltip({
-                              riskName: column.name,
+                              riskName: presentation.riskName(row.id, column.id),
                               cell,
                             })
                               .split('\n')

@@ -1,3 +1,5 @@
+export type PrioritizationMatrixOrientation = 'UNITS_IN_ROWS' | 'RISKS_IN_ROWS';
+
 export type RiskPrioritizationUnitKind = 'REAL_GSE' | 'UNITARY_FALLBACK';
 
 export type RiskPrioritizationOriginKind =
@@ -61,6 +63,8 @@ export type RiskPrioritizationBrowseResult = {
     cellCount: number;
     originCount: number;
   };
+  /** Null until the user explicitly chooses. Absent responses keep the historical screen. */
+  matrixOrientation?: PrioritizationMatrixOrientation | null;
 };
 
 export type BrowseRiskPrioritizationParams = {
