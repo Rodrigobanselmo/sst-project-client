@@ -32,6 +32,16 @@ const RISK_COL_WIDTH = 40;
 const ROW_HEIGHT = 34;
 const GROUP_HEADER_HEIGHT = 28;
 const RISK_HEADER_HEIGHT = 140;
+const RISK_HEADER_LABEL_FONT_SIZE = 11;
+const RISK_HEADER_LABEL_LINE_HEIGHT = 1.2;
+/** Two sideways lines, same cap the header used via line-clamp. */
+const RISK_HEADER_LABEL_MAX_WIDTH =
+  RISK_HEADER_LABEL_FONT_SIZE * RISK_HEADER_LABEL_LINE_HEIGHT * 2;
+/**
+ * Pixel length. `max-height: 100%` plus `-webkit-line-clamp` on the
+ * flex item collapses this label to a sliver in Safari.
+ */
+const RISK_HEADER_LABEL_MAX_HEIGHT = RISK_HEADER_HEIGHT - 3;
 const CELL_INSET = 2;
 const CHIP_RADIUS = 5;
 const CHIP_HEIGHT = ROW_HEIGHT - CELL_INSET * 2;
@@ -403,18 +413,15 @@ export function RiskPrioritizationGrid({
                 <Box
                   sx={{
                     position: 'absolute',
-                    top: 0,
                     right: 0,
-                    bottom: 0,
+                    bottom: 2,
                     left: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
+                    maxHeight: RISK_HEADER_LABEL_MAX_HEIGHT,
                     overflow: 'hidden',
                     boxSizing: 'border-box',
-                    pb: '2px',
                     pointerEvents: 'none',
+                    textAlign: 'center',
+                    lineHeight: 0,
                   }}
                 >
                   <Tooltip title={column.name} placement="top">
@@ -424,23 +431,18 @@ export function RiskPrioritizationGrid({
                       sx={{
                         writingMode: 'vertical-rl',
                         transform: 'rotate(180deg)',
-                        display: '-webkit-box',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: 2,
-                        lineClamp: '2',
+                        transformOrigin: 'center center',
+                        display: 'inline-block',
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis',
                         whiteSpace: 'normal',
                         overflowWrap: 'break-word',
                         wordBreak: 'normal',
                         pointerEvents: 'auto',
-                        flex: '0 0 auto',
-                        height: 'auto',
-                        maxHeight: '100%',
-                        maxWidth: RISK_COL_WIDTH - 8,
+                        maxHeight: RISK_HEADER_LABEL_MAX_HEIGHT,
+                        maxWidth: RISK_HEADER_LABEL_MAX_WIDTH,
                         textAlign: 'start',
-                        lineHeight: 1.2,
-                        fontSize: 11,
+                        lineHeight: RISK_HEADER_LABEL_LINE_HEIGHT,
+                        fontSize: RISK_HEADER_LABEL_FONT_SIZE,
                         color: 'text.primary',
                       }}
                     >
