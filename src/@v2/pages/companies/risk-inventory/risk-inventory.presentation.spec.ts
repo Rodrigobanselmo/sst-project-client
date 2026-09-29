@@ -12,9 +12,11 @@ import {
   formatInventoryLines,
   inventoryExposedEmployeeText,
   inventoryColumnDraftHeaderChoice,
+  inventoryColumnDraftHeaderLabel,
   inventoryColumnDraftOrientation,
   inventoryColumnHeaderOrientation,
   inventoryColumnOrientation,
+  inventoryScreenColumnHeaderLabel,
   inventoryScreenColumnHeaderOrientation,
   inventoryScreenColumnOrientation,
   inventoryPresentationText,
@@ -26,6 +28,7 @@ import {
   INVENTORY_CONFIGURABLE_COLUMNS,
   INVENTORY_EXPOSED_LABEL,
   INVENTORY_SCOPE_LABEL,
+  INVENTORY_VERTICAL_HEADER_LINE_PX,
   INVENTORY_VERTICAL_LINE_PX,
   INVENTORY_VERTICAL_READING,
   INVENTORY_VERTICAL_ROTATION,
@@ -103,8 +106,14 @@ assert.equal(INVENTORY_VERTICAL_ROTATION, 'rotate(-90deg)');
 assert.equal(tableSource.includes('INVENTORY_VERTICAL_ROTATION'), true);
 assert.equal(tableSource.includes("whiteSpace: 'normal'"), true);
 assert.equal(tableSource.includes("whiteSpace: 'nowrap'"), true);
-assert.equal(tableSource.includes('height: INVENTORY_VERTICAL_LINE_PX'), true);
-assert.equal(tableSource.includes('maxHeight: INVENTORY_VERTICAL_LINE_PX'), true);
+assert.equal(tableSource.includes('linePx = INVENTORY_VERTICAL_LINE_PX'), true);
+assert.equal(tableSource.includes('height: linePx'), true);
+assert.equal(tableSource.includes('maxHeight: linePx'), true);
+assert.equal(tableSource.includes('width: linePx'), true);
+assert.equal(tableSource.includes('linePx={INVENTORY_VERTICAL_HEADER_LINE_PX}'), true);
+assert.equal(INVENTORY_VERTICAL_LINE_PX, 140);
+assert.equal(INVENTORY_VERTICAL_HEADER_LINE_PX, 104);
+assert.equal(INVENTORY_VERTICAL_HEADER_LINE_PX < INVENTORY_VERTICAL_LINE_PX, true);
 assert.equal(tableSource.includes('maxWidth: INVENTORY_VERTICAL_STACK_PX'), true);
 assert.equal(tableSource.includes("overflow: 'hidden'"), true);
 assert.equal(INVENTORY_VERTICAL_LINE_PX > 0 && INVENTORY_VERTICAL_LINE_PX < 200, true);
@@ -192,6 +201,57 @@ assert.equal(
 assert.equal(inventoryColumnHeaderOrientation(null, 'TYPE'), 'HORIZONTAL');
 assert.equal(tableSource.includes('inventoryScreenColumnHeaderOrientation'), true);
 assert.equal(tableSource.includes('inventoryScreenColumnOrientation'), true);
+assert.equal(tableSource.includes('inventoryScreenColumnHeaderLabel'), true);
+assert.equal(
+  inventoryScreenColumnHeaderLabel(null, 'hazard', 'Fator de risco'),
+  'Fator de risco',
+);
+assert.equal(
+  inventoryScreenColumnHeaderLabel(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL' }] },
+    'hazard',
+    'Fator de risco',
+  ),
+  'Fator de risco',
+);
+assert.equal(
+  inventoryScreenColumnHeaderLabel(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerLabel: 'Perigo' }] },
+    'hazard',
+    'Fator de risco',
+  ),
+  'Perigo',
+);
+assert.equal(
+  inventoryScreenColumnHeaderLabel(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerLabel: 'Perigo' }] },
+    'damage',
+    'Risco / dano',
+  ),
+  'Risco / dano',
+);
+assert.equal(
+  inventoryScreenColumnOrientation(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerLabel: 'Perigo' }] },
+    'hazard',
+  ),
+  'VERTICAL',
+);
+assert.equal(inventoryColumnDraftHeaderLabel(null, 'HAZARD'), '');
+assert.equal(
+  inventoryColumnDraftHeaderLabel(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerLabel: 'Perigo' }] },
+    'HAZARD',
+  ),
+  'Perigo',
+);
+assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === 'HAZARD')?.label, 'Fator de risco');
+assert.equal(
+  INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === 'HAZARD')?.wordLabel,
+  'Perigo ou Fator de Risco Ocupacional (P/FRO)',
+);
+assert.equal(tableSource.includes("label: 'Fator de risco'"), true);
+assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === 'TYPE')?.wordLabel, 'Tipo');
 
 const dialogSource = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryColumnsDialog.tsx'),
@@ -202,6 +262,9 @@ assert.equal(dialogSource.includes("value=\"SAME\""), true);
 assert.equal(dialogSource.includes('headerOrientation: title'), true);
 assert.equal(dialogSource.includes("title === 'SAME'"), true);
 assert.equal(dialogSource.includes('save(null)'), true);
+assert.equal(dialogSource.includes('placeholder="Padrão"'), true);
+assert.equal(dialogSource.includes('headerLabel'), true);
+assert.equal(dialogSource.includes('Título personalizado'), true);
 assert.equal(inventoryVerticalRiskText({ label: 'Tolerável', abbreviation: 'DA', color: null, level: null, matrixSource: 'CUSTOM', matrixVersionId: null }), 'Tolerável');
 assert.equal(inventoryVerticalRiskText({ label: 'Moderado_ERG', abbreviation: 'MERG', color: '#abc', level: 3, matrixSource: 'CUSTOM', matrixVersionId: null }), 'Moderado_ERG');
 assert.equal(inventoryVerticalRiskText({ label: 'Moderado', abbreviation: 'M', color: null, level: 3, matrixSource: 'SYSTEM', matrixVersionId: null }), 'Moderado');

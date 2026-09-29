@@ -63,20 +63,21 @@ export function inventoryPresentationText(
 export const INVENTORY_CONFIGURABLE_COLUMNS: Array<{
   key: RiskInventoryConfigurableColumnKey;
   label: string;
+  wordLabel: string;
 }> = [
-  { key: 'TYPE', label: 'Tipo' },
-  { key: 'HAZARD', label: 'Fator de risco' },
-  { key: 'DAMAGE', label: 'Risco / dano' },
-  { key: 'GENERATING_SOURCE', label: 'Fonte geradora' },
-  { key: 'EPI', label: 'EPI' },
-  { key: 'ENGINEERING', label: 'EPC / ENG' },
-  { key: 'ADMINISTRATIVE', label: 'ADM' },
-  { key: 'SEVERITY', label: 'S' },
-  { key: 'PROBABILITY', label: 'P' },
-  { key: 'REAL_RISK', label: 'Risco real' },
-  { key: 'RECOMMENDATIONS', label: 'Recomendações' },
-  { key: 'PROBABILITY_RESIDUAL', label: 'P residual' },
-  { key: 'RESIDUAL_RISK', label: 'Risco residual' },
+  { key: 'TYPE', label: 'Tipo', wordLabel: 'Tipo' },
+  { key: 'HAZARD', label: 'Fator de risco', wordLabel: 'Perigo ou Fator de Risco Ocupacional (P/FRO)' },
+  { key: 'DAMAGE', label: 'Risco / dano', wordLabel: 'Risco' },
+  { key: 'GENERATING_SOURCE', label: 'Fonte geradora', wordLabel: 'Fonte Geradora ou Circunstância de Risco' },
+  { key: 'EPI', label: 'EPI', wordLabel: 'EPI' },
+  { key: 'ENGINEERING', label: 'EPC / ENG', wordLabel: 'EPC/ENG.' },
+  { key: 'ADMINISTRATIVE', label: 'ADM', wordLabel: 'ADM' },
+  { key: 'SEVERITY', label: 'S', wordLabel: 'S' },
+  { key: 'PROBABILITY', label: 'P', wordLabel: 'P' },
+  { key: 'REAL_RISK', label: 'Risco real', wordLabel: 'RO' },
+  { key: 'RECOMMENDATIONS', label: 'Recomendações', wordLabel: 'Recomendações' },
+  { key: 'PROBABILITY_RESIDUAL', label: 'P residual', wordLabel: 'P' },
+  { key: 'RESIDUAL_RISK', label: 'Risco residual', wordLabel: 'RO' },
 ];
 
 const SCREEN_COLUMN_KEY = {
@@ -128,6 +129,23 @@ export function inventoryColumnHeaderOrientation(
   return saved.headerOrientation ?? saved.orientation;
 }
 
+/** Screen title text. A missing headerLabel keeps the screen's own default. */
+export function inventoryScreenColumnHeaderLabel(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  columnId: keyof typeof SCREEN_COLUMN_KEY,
+  fallback: string,
+): string {
+  if (preference == null) return fallback;
+  return preference.columns.find((column) => column.key === SCREEN_COLUMN_KEY[columnId])?.headerLabel || fallback;
+}
+
+export function inventoryColumnDraftHeaderLabel(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  key: RiskInventoryConfigurableColumnKey,
+): string {
+  return preference?.columns.find((column) => column.key === key)?.headerLabel ?? '';
+}
+
 export function inventoryScreenColumnHeaderOrientation(
   preference: RiskInventoryColumnsPreference | null | undefined,
   columnId: keyof typeof SCREEN_COLUMN_KEY,
@@ -164,8 +182,10 @@ export function inventoryColumnDraftOrientation(
  */
 export const INVENTORY_VERTICAL_READING = 'bottom-to-top' as const;
 export const INVENTORY_VERTICAL_ROTATION = 'rotate(-90deg)' as const;
-/** Vertical run of one wrapped line. Caps the row height. */
+/** Vertical run of one wrapped line. Caps the body row height. */
 export const INVENTORY_VERTICAL_LINE_PX = 140;
+/** Header titles are short. Caps the header row without using the body box. */
+export const INVENTORY_VERTICAL_HEADER_LINE_PX = 104;
 /** How many wrapped lines may stack before the rest stays in the tooltip. */
 export const INVENTORY_VERTICAL_STACK_PX = 96;
 

@@ -16,10 +16,12 @@ import {
   inventoryProbabilityHint,
   inventoryProbabilityText,
   inventoryResidualProbabilityText,
+  inventoryScreenColumnHeaderLabel,
   inventoryScreenColumnHeaderOrientation,
   inventoryScreenColumnOrientation,
   inventoryUnitScopeText,
   inventoryVerticalRiskText,
+  INVENTORY_VERTICAL_HEADER_LINE_PX,
   INVENTORY_VERTICAL_LINE_PX,
   INVENTORY_VERTICAL_ROTATION,
   INVENTORY_VERTICAL_STACK_PX,
@@ -72,10 +74,12 @@ function VerticalText({
   text,
   title,
   tone,
+  linePx = INVENTORY_VERTICAL_LINE_PX,
 }: {
   text: string;
   title?: string;
   tone?: { bgcolor: string; color: string };
+  linePx?: number;
 }) {
   return (
     <Box
@@ -83,9 +87,9 @@ function VerticalText({
       title={title ?? text}
       sx={{
         position: 'relative',
-        height: INVENTORY_VERTICAL_LINE_PX,
+        height: linePx,
         width: INVENTORY_VERTICAL_STACK_PX,
-        maxHeight: INVENTORY_VERTICAL_LINE_PX,
+        maxHeight: linePx,
         maxWidth: INVENTORY_VERTICAL_STACK_PX,
         overflow: 'hidden',
         mx: 'auto',
@@ -97,7 +101,7 @@ function VerticalText({
           position: 'absolute',
           left: '50%',
           top: '50%',
-          width: INVENTORY_VERTICAL_LINE_PX,
+          width: linePx,
           height: INVENTORY_VERTICAL_STACK_PX,
           boxSizing: 'border-box',
           transform: `translate(-50%, -50%) ${INVENTORY_VERTICAL_ROTATION}`,
@@ -269,6 +273,8 @@ export function RiskInventoryTable({
 }) {
   const headerVertical = (columnId: (typeof columns)[number]['id']) =>
     inventoryScreenColumnHeaderOrientation(columnPreference, columnId) === 'VERTICAL';
+  const headerLabel = (columnId: (typeof columns)[number]['id'], fallback: string) =>
+    inventoryScreenColumnHeaderLabel(columnPreference, columnId, fallback);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -304,7 +310,14 @@ export function RiskInventoryTable({
                           ...(headerVertical(column.id) ? {} : { whiteSpace: 'nowrap' }),
                         }}
                       >
-                        {headerVertical(column.id) ? <VerticalText text={column.label} /> : column.label}
+                        {headerVertical(column.id) ? (
+                          <VerticalText
+                            text={headerLabel(column.id, column.label)}
+                            linePx={INVENTORY_VERTICAL_HEADER_LINE_PX}
+                          />
+                        ) : (
+                          headerLabel(column.id, column.label)
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>

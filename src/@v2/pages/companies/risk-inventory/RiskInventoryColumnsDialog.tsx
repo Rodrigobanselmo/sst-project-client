@@ -12,6 +12,7 @@ import {
   RadioGroup,
   Select,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 
@@ -25,6 +26,7 @@ import {
 
 import {
   inventoryColumnDraftHeaderChoice,
+  inventoryColumnDraftHeaderLabel,
   inventoryColumnDraftOrientation,
   InventoryTitleChoice,
   INVENTORY_CONFIGURABLE_COLUMNS,
@@ -52,11 +54,15 @@ export function RiskInventoryColumnsDialog({
   const [titleDraft, setTitleDraft] = useState<Record<RiskInventoryConfigurableColumnKey, InventoryTitleChoice>>(
     () => titleDraftFrom(columnPreference),
   );
+  const [labelDraft, setLabelDraft] = useState<Record<RiskInventoryConfigurableColumnKey, string>>(
+    () => labelDraftFrom(columnPreference),
+  );
 
   useEffect(() => {
     if (open) {
       setDraft(draftFrom(columnPreference));
       setTitleDraft(titleDraftFrom(columnPreference));
+      setLabelDraft(labelDraftFrom(columnPreference));
     }
   }, [open, columnPreference, workspaceId]);
 
@@ -78,51 +84,69 @@ export function RiskInventoryColumnsDialog({
         </Typography>
         <Stack spacing={1.25}>
           {INVENTORY_CONFIGURABLE_COLUMNS.map((column) => (
-            <Stack
-              key={column.key}
-              direction="row"
-              spacing={2}
-              sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            >
-              <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 120 }}>
-                {column.label}
-              </Typography>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Typography variant="caption" color="text.secondary">
-                  Conteúdo
+            <Stack key={column.key} spacing={0.5}>
+              <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 120 }}>
+                  {column.label}
                 </Typography>
-                <RadioGroup
-                  row
-                  value={draft[column.key]}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      [column.key]: event.target.value as RiskInventoryColumnOrientation,
-                    }))
-                  }
-                >
-                  <FormControlLabel value="HORIZONTAL" control={<Radio size="small" />} label="Horizontal" />
-                  <FormControlLabel value="VERTICAL" control={<Radio size="small" />} label="Vertical" />
-                </RadioGroup>
-                <Typography variant="caption" color="text.secondary">
-                  Título
-                </Typography>
-                <Select
-                  size="small"
-                  value={titleDraft[column.key]}
-                  onChange={(event) =>
-                    setTitleDraft((current) => ({
-                      ...current,
-                      [column.key]: event.target.value as InventoryTitleChoice,
-                    }))
-                  }
-                  sx={{ minWidth: 120 }}
-                >
-                  <MenuItem value="SAME">Igual</MenuItem>
-                  <MenuItem value="HORIZONTAL">Horizontal</MenuItem>
-                  <MenuItem value="VERTICAL">Vertical</MenuItem>
-                </Select>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Conteúdo
+                  </Typography>
+                  <RadioGroup
+                    row
+                    value={draft[column.key]}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        [column.key]: event.target.value as RiskInventoryColumnOrientation,
+                      }))
+                    }
+                  >
+                    <FormControlLabel value="HORIZONTAL" control={<Radio size="small" />} label="Horizontal" />
+                    <FormControlLabel value="VERTICAL" control={<Radio size="small" />} label="Vertical" />
+                  </RadioGroup>
+                  <Typography variant="caption" color="text.secondary">
+                    Título
+                  </Typography>
+                  <Select
+                    size="small"
+                    value={titleDraft[column.key]}
+                    onChange={(event) =>
+                      setTitleDraft((current) => ({
+                        ...current,
+                        [column.key]: event.target.value as InventoryTitleChoice,
+                      }))
+                    }
+                    sx={{ minWidth: 120 }}
+                  >
+                    <MenuItem value="SAME">Igual</MenuItem>
+                    <MenuItem value="HORIZONTAL">Horizontal</MenuItem>
+                    <MenuItem value="VERTICAL">Vertical</MenuItem>
+                  </Select>
+                </Stack>
               </Stack>
+              <Typography variant="caption" color="text.secondary">
+                Título personalizado
+              </Typography>
+              <TextField
+                size="small"
+                fullWidth
+                placeholder="Padrão"
+                value={labelDraft[column.key]}
+                inputProps={{ maxLength: 80, 'aria-label': 'Título personalizado' }}
+                onChange={(event) =>
+                  setLabelDraft((current) => ({
+                    ...current,
+                    [column.key]: event.target.value.replace(/[\u0000-\u001F\u007F\u2028\u2029]/g, '').slice(0, 80),
+                  }))
+                }
+              />
+              {column.wordLabel !== column.label ? (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: -0.25 }}>
+                  Word: {column.wordLabel}
+                </Typography>
+              ) : null}
             </Stack>
           ))}
         </Stack>
@@ -145,7 +169,7 @@ export function RiskInventoryColumnsDialog({
             onClick={() =>
               save(
                 INVENTORY_CONFIGURABLE_COLUMNS.map((column) =>
-                  columnSetting(column.key, draft[column.key], titleDraft[column.key]),
+                  columnSetting(column.key, draft[column.key], titleDraft[column.key], labelDraft[column.key]),
                 ),
               )
             }
@@ -171,9 +195,22 @@ function columnSetting(
   key: RiskInventoryConfigurableColumnKey,
   orientation: RiskInventoryColumnOrientation,
   title: InventoryTitleChoice,
+  headerLabel: string,
 ): RiskInventoryColumnSetting {
-  if (title === 'SAME') return { key, orientation };
-  return { key, orientation, headerOrientation: title };
+  const label = headerLabel.trim();
+  if (title === 'SAME') return label ? { key, orientation, headerLabel: label } : { key, orientation };
+  return label
+    ? { key, orientation, headerOrientation: title, headerLabel: label }
+    : { key, orientation, headerOrientation: title };
+}
+
+function labelDraftFrom(preference: RiskInventoryColumnsPreference | null) {
+  return Object.fromEntries(
+    INVENTORY_CONFIGURABLE_COLUMNS.map((column) => [
+      column.key,
+      inventoryColumnDraftHeaderLabel(preference, column.key),
+    ]),
+  ) as Record<RiskInventoryConfigurableColumnKey, string>;
 }
 
 function titleDraftFrom(preference: RiskInventoryColumnsPreference | null) {

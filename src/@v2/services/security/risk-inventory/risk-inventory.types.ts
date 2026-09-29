@@ -92,6 +92,7 @@ export type RiskInventoryColumnSetting = {
   key: RiskInventoryConfigurableColumnKey;
   orientation: RiskInventoryColumnOrientation;
   headerOrientation?: RiskInventoryColumnOrientation;
+  headerLabel?: string;
 };
 
 export type RiskInventoryColumnsPreference = {
