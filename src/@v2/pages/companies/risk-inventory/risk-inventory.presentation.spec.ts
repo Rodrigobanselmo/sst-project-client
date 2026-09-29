@@ -20,6 +20,9 @@ import {
   inventoryScreenColumnHeaderLabel,
   inventoryScreenColumnHeaderOrientation,
   inventoryScreenColumnLayout,
+  inventoryColumnWidthWeight,
+  inventoryTableMinWidth,
+  inventoryWidthPercent,
   inventoryVerticalHeaderBoxPx,
   inventoryScreenColumnOrientation,
   inventoryPresentationText,
@@ -32,6 +35,7 @@ import {
   INVENTORY_HEADER_GROUPS,
   INVENTORY_EXPOSED_LABEL,
   INVENTORY_SCOPE_LABEL,
+  INVENTORY_WIDTH_FLOOR_PX,
   INVENTORY_VERTICAL_HEADER_LINE_PX,
   INVENTORY_VERTICAL_LINE_PX,
   INVENTORY_VERTICAL_READING,
@@ -125,51 +129,111 @@ assert.equal(INVENTORY_VERTICAL_LINE_PX > 0 && INVENTORY_VERTICAL_LINE_PX < 200,
 assert.equal(INVENTORY_VERTICAL_STACK_PX > 0 && INVENTORY_VERTICAL_STACK_PX < INVENTORY_VERTICAL_LINE_PX, true);
 assert.equal(tableSource.includes('inventoryScreenColumnLayout'), true);
 assert.equal(tableSource.includes('<colgroup>'), true);
-assert.equal(tableSource.includes('calc((100% - ${pinnedSum}px) / ${flexCount})'), true);
+assert.equal(tableSource.includes('inventoryWidthPercent(column.layout.weight, totalWeight)'), true);
+assert.equal(tableSource.includes('inventoryTableMinWidth'), true);
+assert.equal(tableSource.includes('totalWeight * INVENTORY_WIDTH_FLOOR_PX'), false);
 assert.equal(tableSource.includes("verticalAlign: 'middle'"), true);
+assert.equal(tableSource.includes('lineHeight: 1.15'), true);
+assert.equal(tableSource.includes('contentAlignY="top"'), true);
+assert.equal(tableSource.includes("alignItems: contentAlignY === 'top' ? 'center' : undefined"), true);
+assert.equal(tableSource.includes("justifyContent: contentAlignY === 'top' ? 'flex-end' : undefined"), true);
+assert.equal(tableSource.includes("verticalAlign: 'top'"), true);
 assert.equal(tableSource.includes("display: 'inline-block'"), true);
 assert.equal(tableSource.includes('align={column.layout.align}'), true);
 assert.equal(tableSource.includes("align={layout('severity').align}"), true);
 assert.equal(tableSource.includes('minWidth: 1480'), false);
 
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.length, 13);
-assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').width, 48);
-assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').pinWidth, true);
-assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').align, 'center');
-assert.equal(inventoryScreenColumnLayout(null, 'hazard', 'Perigo ou Fator de Risco Ocupacional (P/FRO)').align, 'left');
+assert.equal(inventoryScreenColumnLayout(null, 'severity').weight, 1);
+assert.equal(inventoryScreenColumnLayout(null, 'probability').weight, 1);
+assert.equal(inventoryScreenColumnLayout(null, 'real').weight, 2);
+assert.equal(inventoryScreenColumnLayout(null, 'residual').weight, 2);
+assert.equal(inventoryScreenColumnLayout(null, 'hazard').weight, 7);
+assert.equal(inventoryScreenColumnLayout(null, 'damage').weight, 14);
+assert.equal(inventoryScreenColumnLayout(null, 'type').weight, 2);
+assert.equal(inventoryScreenColumnLayout(null, 'epi').weight, 5);
+assert.equal(inventoryScreenColumnLayout(null, 'recs').weight, 8);
+assert.equal(inventoryColumnWidthWeight(null, 'DAMAGE'), inventoryColumnWidthWeight(null, 'HAZARD') * 2);
+assert.equal(inventoryColumnWidthWeight(null, 'REAL_RISK'), inventoryColumnWidthWeight(null, 'SEVERITY') * 2);
+assert.equal(inventoryColumnWidthWeight(null, 'REAL_RISK'), inventoryColumnWidthWeight(null, 'PROBABILITY') * 2);
+const canonicalTotal = INVENTORY_CONFIGURABLE_COLUMNS.reduce(
+  (sum, column) => sum + inventoryColumnWidthWeight(null, column.key),
+  0,
+);
+assert.equal(canonicalTotal, 64);
+assert.equal(inventoryTableMinWidth(INVENTORY_CONFIGURABLE_COLUMNS.map((column) => inventoryColumnWidthWeight(null, column.key))), canonicalTotal * INVENTORY_WIDTH_FLOOR_PX);
+const scaledCanonical = INVENTORY_CONFIGURABLE_COLUMNS.map((column) => inventoryColumnWidthWeight(null, column.key) * 10);
+assert.equal(
+  inventoryTableMinWidth(scaledCanonical),
+  inventoryTableMinWidth(INVENTORY_CONFIGURABLE_COLUMNS.map((column) => inventoryColumnWidthWeight(null, column.key))),
+);
+assert.equal(inventoryTableMinWidth([1, 2, 7]), inventoryTableMinWidth([10, 20, 70]));
+const raised = INVENTORY_CONFIGURABLE_COLUMNS.map((column, index) =>
+  inventoryColumnWidthWeight(null, column.key) + (index === 0 ? 39 : 0),
+);
+assert.equal(raised.reduce((sum, weight) => sum + weight, 0), 103);
+assert.equal(
+  inventoryTableMinWidth(raised),
+  inventoryTableMinWidth(INVENTORY_CONFIGURABLE_COLUMNS.map((column) => inventoryColumnWidthWeight(null, column.key))),
+);
+assert.equal(inventoryTableMinWidth(raised) === raised.reduce((sum, weight) => sum + weight, 0) * INVENTORY_WIDTH_FLOOR_PX, false);
+function widthPercents(weights: number[]) {
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  return weights.map((weight) => inventoryWidthPercent(weight, total));
+}
+const compactPercents = widthPercents([1, 2, 7]);
+const scaledPercents = widthPercents([10, 20, 70]);
+assert.equal(compactPercents.reduce((sum, percent) => sum + percent, 0), 100);
+assert.equal(scaledPercents.reduce((sum, percent) => sum + percent, 0), 100);
+compactPercents.forEach((percent, index) => assert.equal(percent, scaledPercents[index]));
+assert.equal(widthPercents(scaledCanonical).reduce((sum, percent) => sum + percent, 0), 100);
+assert.equal(
+  inventoryWidthPercent(inventoryColumnWidthWeight(null, 'DAMAGE'), canonicalTotal),
+  inventoryWidthPercent(inventoryColumnWidthWeight(null, 'HAZARD'), canonicalTotal) * 2,
+);
+assert.equal(
+  INVENTORY_CONFIGURABLE_COLUMNS.reduce(
+    (sum, column) => sum + inventoryWidthPercent(inventoryColumnWidthWeight(null, column.key), canonicalTotal),
+    0,
+  ),
+  100,
+);
+assert.equal(
+  inventoryColumnWidthWeight(
+    { version: 1, columns: [{ key: 'DAMAGE', orientation: 'VERTICAL', headerOrientation: 'HORIZONTAL', widthWeight: 28 }] },
+    'DAMAGE',
+  ),
+  28,
+);
+assert.equal(
+  inventoryColumnWidthWeight(
+    { version: 1, columns: [{ key: 'DAMAGE', orientation: 'VERTICAL', headerOrientation: 'HORIZONTAL', widthWeight: 28 }] },
+    'HAZARD',
+  ),
+  7,
+);
+assert.equal(inventoryScreenColumnLayout(null, 'severity').align, 'center');
+assert.equal(inventoryScreenColumnLayout(null, 'hazard').align, 'left');
 assert.equal(inventoryVerticalHeaderBoxPx('S') <= 24, true);
 assert.equal(
   inventoryVerticalHeaderBoxPx('Perigo ou Fator de Risco Ocupacional (P/FRO)'),
   INVENTORY_VERTICAL_HEADER_LINE_PX,
 );
-assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').stackPx, 32);
-assert.equal(inventoryScreenColumnLayout(null, 'real', 'RO').width, 120);
-assert.equal(inventoryScreenColumnLayout(null, 'real', 'RO').pinWidth, true);
+assert.equal(inventoryScreenColumnLayout(null, 'severity').stackPx, 32);
 assert.equal(
   inventoryScreenColumnLayout(
     { version: 1, columns: [{ key: 'REAL_RISK', orientation: 'VERTICAL', headerOrientation: 'VERTICAL' }] },
     'real',
-    'RO',
-  ).width,
-  64,
+  ).weight,
+  2,
 );
 assert.equal(
   inventoryScreenColumnLayout(
     { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerOrientation: 'VERTICAL' }] },
     'hazard',
-    'Perigo ou Fator de Risco Ocupacional (P/FRO)',
   ).stackPx,
   INVENTORY_VERTICAL_STACK_PX,
 );
-assert.equal(
-  inventoryScreenColumnLayout(
-    { version: 1, columns: [{ key: 'HAZARD', orientation: 'HORIZONTAL', headerOrientation: 'VERTICAL' }] },
-    'hazard',
-    'Perigo ou Fator de Risco Ocupacional (P/FRO)',
-  ).width,
-  168,
-);
-assert.equal(inventoryScreenColumnLayout(null, 'severity', 'Gravidade').pinWidth, false);
 assert.equal(
   INVENTORY_HEADER_GROUPS.reduce((sum, group) => sum + group.colSpan, 0),
   INVENTORY_CONFIGURABLE_COLUMNS.length,
@@ -182,7 +246,7 @@ assert.deepEqual(
       colSpan: 4,
       label: 'Severidade (S) × Probabilidade (P) = RISCO OCUPACIONAL (RO):',
     },
-    { id: 'real', colSpan: 6, label: 'RISCO PURO / INERENTE (REAL)' },
+    { id: 'real', colSpan: 6, label: 'RISCO REAL (Puro/Inerente)' },
     { id: 'residual', colSpan: 3, label: 'RISCO RESIDUAL' },
   ],
 );
@@ -192,12 +256,44 @@ assert.equal(tableSource.includes("borderLeft: '2px solid'"), true);
 assert.equal(tableSource.includes('dividerBefore: true'), true);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'ORIGIN'), false);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'SEVERITY_RESIDUAL'), false);
-assert.equal(inventoryColumnOrientation(null, 'TYPE'), 'HORIZONTAL');
-assert.equal(inventoryColumnOrientation(null, 'REAL_RISK'), 'HORIZONTAL');
+for (const preference of [null, undefined] as const) {
+  assert.equal(inventoryColumnOrientation(preference, 'TYPE'), 'VERTICAL');
+  assert.equal(inventoryColumnHeaderOrientation(preference, 'TYPE'), 'VERTICAL');
+  assert.equal(inventoryColumnDraftOrientation(preference, 'TYPE'), 'VERTICAL');
+  assert.equal(inventoryColumnDraftHeaderChoice(preference, 'TYPE'), 'SAME');
+  assert.equal(inventoryColumnOrientation(preference, 'EPI'), 'VERTICAL');
+  assert.equal(inventoryColumnHeaderOrientation(preference, 'EPI'), 'HORIZONTAL');
+  assert.equal(inventoryColumnDraftOrientation(preference, 'EPI'), 'VERTICAL');
+  assert.equal(inventoryColumnDraftHeaderChoice(preference, 'EPI'), 'HORIZONTAL');
+  assert.equal(inventoryColumnOrientation(preference, 'REAL_RISK'), 'VERTICAL');
+  assert.equal(inventoryColumnHeaderOrientation(preference, 'REAL_RISK'), 'HORIZONTAL');
+  assert.equal(inventoryColumnDraftOrientation(preference, 'REAL_RISK'), 'VERTICAL');
+  assert.equal(inventoryColumnDraftHeaderChoice(preference, 'REAL_RISK'), 'HORIZONTAL');
+  assert.equal(inventoryColumnOrientation(preference, 'RESIDUAL_RISK'), 'VERTICAL');
+  assert.equal(inventoryColumnHeaderOrientation(preference, 'RESIDUAL_RISK'), 'HORIZONTAL');
+  assert.equal(inventoryColumnDraftHeaderChoice(preference, 'RESIDUAL_RISK'), 'HORIZONTAL');
+  assert.equal(inventoryColumnOrientation(preference, 'HAZARD'), 'HORIZONTAL');
+  assert.equal(inventoryColumnHeaderOrientation(preference, 'HAZARD'), 'HORIZONTAL');
+  assert.equal(inventoryColumnDraftHeaderChoice(preference, 'HAZARD'), 'SAME');
+}
 assert.equal(
   inventoryColumnOrientation(
-    { version: 1, columns: [{ key: 'EPI', orientation: 'VERTICAL' }] },
+    { version: 1, columns: [{ key: 'EPI', orientation: 'HORIZONTAL' }] },
     'TYPE',
+  ),
+  'VERTICAL',
+);
+assert.equal(
+  inventoryColumnOrientation(
+    { version: 1, columns: [{ key: 'EPI', orientation: 'HORIZONTAL' }] },
+    'EPI',
+  ),
+  'HORIZONTAL',
+);
+assert.equal(
+  inventoryColumnHeaderOrientation(
+    { version: 1, columns: [{ key: 'EPI', orientation: 'HORIZONTAL' }] },
+    'EPI',
   ),
   'HORIZONTAL',
 );
@@ -209,8 +305,35 @@ assert.equal(
   'VERTICAL',
 );
 assert.equal(inventoryColumnDraftOrientation(null, 'TYPE'), 'VERTICAL');
-assert.equal(inventoryColumnDraftOrientation(null, 'EPI'), 'HORIZONTAL');
-assert.equal(inventoryColumnDraftHeaderChoice(null, 'HAZARD'), 'SAME');
+assert.equal(inventoryColumnDraftOrientation(null, 'EPI'), 'VERTICAL');
+assert.equal(
+  inventoryColumnDraftHeaderChoice(
+    { version: 1, columns: [{ key: 'REAL_RISK', orientation: 'VERTICAL' }] },
+    'REAL_RISK',
+  ),
+  'SAME',
+);
+assert.equal(
+  inventoryColumnHeaderOrientation(
+    { version: 1, columns: [{ key: 'REAL_RISK', orientation: 'VERTICAL' }] },
+    'REAL_RISK',
+  ),
+  'VERTICAL',
+);
+assert.equal(
+  inventoryColumnHeaderOrientation(
+    { version: 1, columns: [{ key: 'REAL_RISK', orientation: 'VERTICAL', headerOrientation: 'HORIZONTAL' }] },
+    'REAL_RISK',
+  ),
+  'HORIZONTAL',
+);
+assert.equal(
+  inventoryColumnHeaderOrientation(
+    { version: 1, columns: [{ key: 'RESIDUAL_RISK', orientation: 'VERTICAL', headerOrientation: 'VERTICAL' }] },
+    'RESIDUAL_RISK',
+  ),
+  'VERTICAL',
+);
 assert.equal(
   inventoryColumnDraftHeaderChoice(
     { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL' }] },
@@ -267,7 +390,7 @@ assert.equal(
   ),
   'VERTICAL',
 );
-assert.equal(inventoryColumnHeaderOrientation(null, 'TYPE'), 'HORIZONTAL');
+assert.equal(inventoryColumnHeaderOrientation(null, 'TYPE'), 'VERTICAL');
 assert.equal(tableSource.includes('inventoryScreenColumnHeaderOrientation'), true);
 assert.equal(tableSource.includes('inventoryScreenColumnOrientation'), true);
 assert.equal(tableSource.includes('inventoryScreenColumnHeaderLabel'), true);
@@ -345,6 +468,15 @@ assert.equal(dialogSource.includes("value=\"SAME\""), true);
 assert.equal(dialogSource.includes('headerOrientation: title'), true);
 assert.equal(dialogSource.includes("title === 'SAME'"), true);
 assert.equal(dialogSource.includes('save(null)'), true);
+assert.equal(dialogSource.includes('save(currentColumns())'), true);
+assert.equal(dialogSource.includes('Definir como padrão do sistema'), true);
+assert.equal(dialogSource.includes('SAuthShow'), true);
+assert.equal(dialogSource.includes('RoleEnum.MASTER'), true);
+assert.equal(dialogSource.includes('defineSystemDefault'), true);
+assert.equal(dialogSource.includes('useMutateSystemRiskInventoryColumns'), true);
+assert.equal(dialogSource.includes('currentColumns()'), true);
+assert.equal(dialogSource.includes('widthWeight'), true);
+assert.equal(dialogSource.includes('Largura'), true);
 assert.equal(dialogSource.includes('placeholder="Título personalizado"'), true);
 assert.equal(dialogSource.includes('placeholder="Padrão"'), false);
 assert.equal(dialogSource.includes('Word:'), false);

@@ -93,6 +93,7 @@ export type RiskInventoryColumnSetting = {
   orientation: RiskInventoryColumnOrientation;
   headerOrientation?: RiskInventoryColumnOrientation;
   headerLabel?: string;
+  widthWeight?: number;
 };
 
 export type RiskInventoryColumnsPreference = {
@@ -100,12 +101,15 @@ export type RiskInventoryColumnsPreference = {
   columns: RiskInventoryColumnSetting[];
 };
 
+export type RiskInventoryColumnsSource = 'workspace' | 'global' | 'canonical';
+
 export type RiskInventoryBrowseResult = {
   workspaceId: string;
   composition: 'APR_GROUP';
   hasRealGse: boolean;
   units: RiskInventoryUnit[];
   columnPreference: RiskInventoryColumnsPreference | null;
+  columnPreferenceSource: RiskInventoryColumnsSource;
 };
 
 export type BrowseRiskInventoryParams = {

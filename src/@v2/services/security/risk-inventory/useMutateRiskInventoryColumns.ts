@@ -10,10 +10,22 @@ export function useMutateRiskInventoryColumns() {
   return useMutation({
     mutationFn: updateRiskInventoryColumns,
     onSuccess: (result, variables) => {
+      if (variables.columns === null) {
+        queryClient.invalidateQueries({
+          queryKey: [RISK_INVENTORY_QUERY_KEY, variables.companyId, variables.workspaceId],
+        });
+        return;
+      }
       queryClient.setQueryData<RiskInventoryBrowseResult>(
         [RISK_INVENTORY_QUERY_KEY, variables.companyId, variables.workspaceId],
         (current) =>
-          current ? { ...current, columnPreference: result.columnPreference } : current,
+          current
+            ? {
+                ...current,
+                columnPreference: result.columnPreference,
+                columnPreferenceSource: 'workspace',
+              }
+            : current,
       );
     },
   });

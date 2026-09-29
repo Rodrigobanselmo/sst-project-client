@@ -84,7 +84,7 @@ export function inventoryDefaultColumnLabel(key: RiskInventoryConfigurableColumn
   return INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === key)!.label;
 }
 
-/** Width policy. A new column picks a role; it does not resize the table by hand. */
+/** Width role controls alignment and the vertical stack. The column share comes from its weight. */
 export type InventoryColumnWidthRole = 'mark' | 'token' | 'text';
 
 const INVENTORY_COLUMN_WIDTH_ROLE: Record<RiskInventoryConfigurableColumnKey, InventoryColumnWidthRole> = {
@@ -103,17 +103,30 @@ const INVENTORY_COLUMN_WIDTH_ROLE: Record<RiskInventoryConfigurableColumnKey, In
   RESIDUAL_RISK: 'token',
 };
 
-const INVENTORY_WIDTH_HORIZONTAL_PX: Record<InventoryColumnWidthRole, number> = {
-  mark: 48,
-  token: 120,
-  text: 168,
+/** Canonical relative weights. The same integers used by the APR_GROUP inventory grid. */
+export const INVENTORY_CANONICAL_WIDTH_WEIGHT: Record<RiskInventoryConfigurableColumnKey, number> = {
+  TYPE: 2,
+  HAZARD: 7,
+  DAMAGE: 14,
+  GENERATING_SOURCE: 7,
+  EPI: 5,
+  ENGINEERING: 7,
+  ADMINISTRATIVE: 7,
+  SEVERITY: 1,
+  PROBABILITY: 1,
+  REAL_RISK: 2,
+  RECOMMENDATIONS: 8,
+  PROBABILITY_RESIDUAL: 1,
+  RESIDUAL_RISK: 2,
 };
 
-const INVENTORY_WIDTH_VERTICAL_PX: Record<InventoryColumnWidthRole, number> = {
-  mark: 48,
-  token: 64,
-  text: 128,
-};
+export const INVENTORY_WIDTH_WEIGHT_MIN = 1;
+export const INVENTORY_WIDTH_WEIGHT_MAX = 100;
+/**
+ * Pixel size of one canonical weight point. Used only to size the fixed table
+ * floor below. It is not multiplied by the user's absolute weight sum.
+ */
+export const INVENTORY_WIDTH_FLOOR_PX = 20;
 
 const INVENTORY_STACK_VERTICAL_PX = {
   mark: 32,
@@ -132,7 +145,7 @@ export const INVENTORY_HEADER_GROUPS = [
   },
   {
     id: 'real',
-    label: 'RISCO PURO / INERENTE (REAL)',
+    label: 'RISCO REAL (Puro/Inerente)',
     colSpan: 6,
   },
   {
@@ -158,19 +171,35 @@ const SCREEN_COLUMN_KEY = {
   residual: 'RESIDUAL_RISK',
 } as const;
 
-const WORD_HISTORICAL_VERTICAL = new Set<RiskInventoryConfigurableColumnKey>([
+/** Canonical inventory layout used when the workspace has no saved column. */
+const INVENTORY_CANONICAL_CONTENT_VERTICAL = new Set<RiskInventoryConfigurableColumnKey>([
   'TYPE',
+  'EPI',
   'REAL_RISK',
   'RESIDUAL_RISK',
 ]);
 
-/** Screen default is horizontal whenever the workspace has no saved preference or that key is absent. */
+const INVENTORY_CANONICAL_HEADER_VERTICAL = new Set<RiskInventoryConfigurableColumnKey>(['TYPE']);
+
+function inventoryCanonicalContentOrientation(
+  key: RiskInventoryConfigurableColumnKey,
+): RiskInventoryColumnOrientation {
+  return INVENTORY_CANONICAL_CONTENT_VERTICAL.has(key) ? 'VERTICAL' : 'HORIZONTAL';
+}
+
+function inventoryCanonicalHeaderOrientation(
+  key: RiskInventoryConfigurableColumnKey,
+): RiskInventoryColumnOrientation {
+  return INVENTORY_CANONICAL_HEADER_VERTICAL.has(key) ? 'VERTICAL' : 'HORIZONTAL';
+}
+
+/** Content orientation. A missing preference or a missing key uses the canonical layout. */
 export function inventoryColumnOrientation(
   preference: RiskInventoryColumnsPreference | null | undefined,
   key: RiskInventoryConfigurableColumnKey,
 ): RiskInventoryColumnOrientation {
-  if (preference == null) return 'HORIZONTAL';
-  return preference.columns.find((column) => column.key === key)?.orientation ?? 'HORIZONTAL';
+  if (preference == null) return inventoryCanonicalContentOrientation(key);
+  return preference.columns.find((column) => column.key === key)?.orientation ?? inventoryCanonicalContentOrientation(key);
 }
 
 export function inventoryScreenColumnOrientation(
@@ -180,14 +209,17 @@ export function inventoryScreenColumnOrientation(
   return inventoryColumnOrientation(preference, SCREEN_COLUMN_KEY[columnId]);
 }
 
-/** Screen title. A missing header choice follows the content orientation. Null stays horizontal. */
+/**
+ * Title orientation. A saved column without headerOrientation follows its content.
+ * A missing preference or a missing key uses the canonical title, which can differ from the content.
+ */
 export function inventoryColumnHeaderOrientation(
   preference: RiskInventoryColumnsPreference | null | undefined,
   key: RiskInventoryConfigurableColumnKey,
 ): RiskInventoryColumnOrientation {
-  if (preference == null) return 'HORIZONTAL';
+  if (preference == null) return inventoryCanonicalHeaderOrientation(key);
   const saved = preference.columns.find((column) => column.key === key);
-  if (!saved) return 'HORIZONTAL';
+  if (!saved) return inventoryCanonicalHeaderOrientation(key);
   return saved.headerOrientation ?? saved.orientation;
 }
 
@@ -215,34 +247,47 @@ export function inventoryScreenColumnHeaderOrientation(
   return inventoryColumnHeaderOrientation(preference, SCREEN_COLUMN_KEY[columnId]);
 }
 
+export function inventoryColumnWidthWeight(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  key: RiskInventoryConfigurableColumnKey,
+): number {
+  const saved = preference?.columns.find((column) => column.key === key)?.widthWeight;
+  return saved ?? INVENTORY_CANONICAL_WIDTH_WEIGHT[key];
+}
+
+export function inventoryWidthPercent(weight: number, totalWeight: number): number {
+  if (totalWeight <= 0) return 0;
+  return (weight / totalWeight) * 100;
+}
+
+const INVENTORY_CANONICAL_WEIGHT_TOTAL = Object.values(INVENTORY_CANONICAL_WIDTH_WEIGHT).reduce(
+  (sum, weight) => sum + weight,
+  0,
+);
+
+/**
+ * Fixed readability floor for the 13-column table. Proportional weight sets
+ * share it: scaling every weight leaves this width unchanged.
+ */
+export function inventoryTableMinWidth(weights: number[]): number {
+  if (weights.length === 0 || weights.some((weight) => weight <= 0)) return 0;
+  return INVENTORY_CANONICAL_WEIGHT_TOTAL * INVENTORY_WIDTH_FLOOR_PX;
+}
+
 export function inventoryScreenColumnLayout(
   preference: RiskInventoryColumnsPreference | null | undefined,
   columnId: keyof typeof SCREEN_COLUMN_KEY,
-  headerText: string,
 ): {
   role: InventoryColumnWidthRole;
-  width: number;
+  weight: number;
   stackPx: number;
-  lockWidth: boolean;
-  pinWidth: boolean;
   align: 'left' | 'center';
 } {
   const role = INVENTORY_COLUMN_WIDTH_ROLE[SCREEN_COLUMN_KEY[columnId]];
-  const headerOrientation = inventoryScreenColumnHeaderOrientation(preference, columnId);
-  const contentOrientation = inventoryScreenColumnOrientation(preference, columnId);
-  const verticalWidth = INVENTORY_WIDTH_VERTICAL_PX[role];
-  const horizontalWidth = INVENTORY_WIDTH_HORIZONTAL_PX[role];
-  const headerFloor = headerOrientation === 'VERTICAL' ? verticalWidth : role === 'mark' ? 48 : 72;
-  const contentWidth = contentOrientation === 'VERTICAL' ? verticalWidth : horizontalWidth;
-  const longHorizontalHeader = headerOrientation === 'HORIZONTAL' && headerText.trim().length > 4;
-  const wideHorizontalContent = contentOrientation === 'HORIZONTAL' && role !== 'mark';
-  const lockWidth = !longHorizontalHeader && !wideHorizontalContent;
   return {
     role,
-    width: Math.max(headerFloor, contentWidth),
+    weight: inventoryColumnWidthWeight(preference, SCREEN_COLUMN_KEY[columnId]),
     stackPx: role === 'text' ? INVENTORY_VERTICAL_STACK_PX : INVENTORY_STACK_VERTICAL_PX[role],
-    lockWidth,
-    pinWidth: lockWidth || (role !== 'text' && !longHorizontalHeader),
     align: role === 'text' ? 'left' : 'center',
   };
 }
@@ -255,17 +300,27 @@ export function inventoryVerticalHeaderBoxPx(text: string): number {
 
 export type InventoryTitleChoice = 'SAME' | RiskInventoryColumnOrientation;
 
-/** Dialog title control. Absent headerOrientation is shown as Igual and is not saved. */
+/**
+ * Dialog title control.
+ * A saved column without headerOrientation stays Igual and follows that saved content.
+ * With no saved column, Igual is used only when the canonical title matches the canonical content.
+ * EPI and the two RO columns show Horizontal, because their canonical content is vertical.
+ */
 export function inventoryColumnDraftHeaderChoice(
   preference: RiskInventoryColumnsPreference | null | undefined,
   key: RiskInventoryConfigurableColumnKey,
 ): InventoryTitleChoice {
-  return preference?.columns.find((column) => column.key === key)?.headerOrientation ?? 'SAME';
+  const saved = preference?.columns.find((column) => column.key === key);
+  if (saved?.headerOrientation) return saved.headerOrientation;
+  if (saved) return 'SAME';
+  const header = inventoryCanonicalHeaderOrientation(key);
+  if (header === inventoryCanonicalContentOrientation(key)) return 'SAME';
+  return header;
 }
 
 /**
  * Draft shown in the dialog. It is not persisted until Salvar.
- * Missing keys follow the Word historical default so saving the draft does not flatten those Word columns.
+ * A missing column shows the canonical content orientation.
  */
 export function inventoryColumnDraftOrientation(
   preference: RiskInventoryColumnsPreference | null | undefined,
@@ -273,7 +328,7 @@ export function inventoryColumnDraftOrientation(
 ): RiskInventoryColumnOrientation {
   const saved = preference?.columns.find((column) => column.key === key);
   if (saved) return saved.orientation;
-  return WORD_HISTORICAL_VERTICAL.has(key) ? 'VERTICAL' : 'HORIZONTAL';
+  return inventoryCanonicalContentOrientation(key);
 }
 
 /**

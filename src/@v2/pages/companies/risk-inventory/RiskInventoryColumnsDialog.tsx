@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -15,12 +16,17 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { SAuthShow } from 'components/molecules/SAuthShow';
+import { RoleEnum } from 'project/enum/roles.enums';
 
+import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import { useMutateRiskInventoryColumns } from '@v2/services/security/risk-inventory/useMutateRiskInventoryColumns';
+import { useMutateSystemRiskInventoryColumns } from '@v2/services/security/risk-inventory/useMutateSystemRiskInventoryColumns';
 import {
   RiskInventoryColumnOrientation,
   RiskInventoryColumnSetting,
   RiskInventoryColumnsPreference,
+  RiskInventoryColumnsSource,
   RiskInventoryConfigurableColumnKey,
 } from '@v2/services/security/risk-inventory/risk-inventory.types';
 
@@ -28,6 +34,10 @@ import {
   inventoryColumnDraftHeaderChoice,
   inventoryColumnDraftHeaderLabel,
   inventoryColumnDraftOrientation,
+  inventoryColumnWidthWeight,
+  inventoryWidthPercent,
+  INVENTORY_WIDTH_WEIGHT_MAX,
+  INVENTORY_WIDTH_WEIGHT_MIN,
   InventoryTitleChoice,
   INVENTORY_CONFIGURABLE_COLUMNS,
 } from './risk-inventory.presentation';
@@ -37,6 +47,7 @@ type RiskInventoryColumnsDialogProps = {
   companyId: string;
   workspaceId: string;
   columnPreference: RiskInventoryColumnsPreference | null;
+  columnPreferenceSource: RiskInventoryColumnsSource;
   onClose: () => void;
 };
 
@@ -45,9 +56,13 @@ export function RiskInventoryColumnsDialog({
   companyId,
   workspaceId,
   columnPreference,
+  columnPreferenceSource,
   onClose,
 }: RiskInventoryColumnsDialogProps) {
   const mutation = useMutateRiskInventoryColumns();
+  const systemMutation = useMutateSystemRiskInventoryColumns();
+  const { showSnackBar } = useSystemSnackbar();
+  const [systemNotice, setSystemNotice] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<RiskInventoryConfigurableColumnKey, RiskInventoryColumnOrientation>>(
     () => draftFrom(columnPreference),
   );
@@ -57,19 +72,54 @@ export function RiskInventoryColumnsDialog({
   const [labelDraft, setLabelDraft] = useState<Record<RiskInventoryConfigurableColumnKey, string>>(
     () => labelDraftFrom(columnPreference),
   );
+  const [weightDraft, setWeightDraft] = useState<Record<RiskInventoryConfigurableColumnKey, number>>(
+    () => weightDraftFrom(columnPreference),
+  );
 
   useEffect(() => {
-    if (open) {
-      setDraft(draftFrom(columnPreference));
-      setTitleDraft(titleDraftFrom(columnPreference));
-      setLabelDraft(labelDraftFrom(columnPreference));
-    }
+    if (!open) return;
+    setDraft(draftFrom(columnPreference));
+    setTitleDraft(titleDraftFrom(columnPreference));
+    setLabelDraft(labelDraftFrom(columnPreference));
+    setWeightDraft(weightDraftFrom(columnPreference));
   }, [open, columnPreference, workspaceId]);
 
+  useEffect(() => {
+    if (open) setSystemNotice(null);
+  }, [open, workspaceId]);
+
+  const weightTotal = INVENTORY_CONFIGURABLE_COLUMNS.reduce((sum, column) => sum + weightDraft[column.key], 0);
+  const busy = mutation.isPending || systemMutation.isPending;
+  const currentColumns = () =>
+    INVENTORY_CONFIGURABLE_COLUMNS.map((column) =>
+      columnSetting(
+        column.key,
+        draft[column.key],
+        titleDraft[column.key],
+        labelDraft[column.key],
+        weightDraft[column.key],
+      ),
+    );
   const save = (columns: RiskInventoryColumnSetting[] | null) => {
     mutation.mutate(
       { companyId, workspaceId, columns },
       { onSuccess: () => onClose() },
+    );
+  };
+  const defineSystemDefault = () => {
+    systemMutation.mutate(
+      { companyId, workspaceId, columns: currentColumns() },
+      {
+        onSuccess: () => {
+          const message =
+            'Padrão do sistema atualizado. A personalização deste estabelecimento não foi gravada por esta ação.';
+          setSystemNotice(message);
+          showSnackBar('Padrão do sistema atualizado.', { type: 'success' });
+        },
+        onError: () => {
+          showSnackBar('Não foi possível atualizar o padrão do sistema.', { type: 'error' });
+        },
+      },
     );
   };
 
@@ -78,10 +128,27 @@ export function RiskInventoryColumnsDialog({
       <DialogTitle>Configurar colunas</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Sem configuração salva, a tela permanece horizontal e o Word mantém Tipo, Risco Real e
-          Risco Residual na vertical. Salvar aplica a escolha abaixo na tela e no próximo PGR deste
-          estabelecimento.
+          Sem personalização deste estabelecimento, a tela e o próximo PGR usam o padrão do sistema,
+          quando existir; caso contrário, o padrão canônico: Tipo com título e conteúdo verticais; EPI e
+          os dois RO com título horizontal e conteúdo vertical; as demais colunas horizontais. A largura
+          é um peso relativo; o percentual ao lado já fecha nas 13 colunas. Salvar aplica a escolha abaixo
+          somente neste estabelecimento.
         </Typography>
+        {columnPreferenceSource === 'workspace' ? (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Este estabelecimento tem personalização própria. Salvar altera só ele.
+          </Alert>
+        ) : null}
+        {columnPreferenceSource === 'global' ? (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Este estabelecimento está usando o padrão do sistema. Salvar passa a guardá-lo como personalização própria.
+          </Alert>
+        ) : null}
+        {systemNotice ? (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {systemNotice}
+          </Alert>
+        ) : null}
         <Stack spacing={1.25}>
           {INVENTORY_CONFIGURABLE_COLUMNS.map((column) => (
             <Stack key={column.key} spacing={0.5}>
@@ -124,6 +191,30 @@ export function RiskInventoryColumnsDialog({
                     <MenuItem value="HORIZONTAL">Horizontal</MenuItem>
                     <MenuItem value="VERTICAL">Vertical</MenuItem>
                   </Select>
+                  <Typography variant="caption" color="text.secondary">
+                    Largura
+                  </Typography>
+                  <TextField
+                    size="small"
+                    type="number"
+                    value={weightDraft[column.key]}
+                    inputProps={{
+                      min: INVENTORY_WIDTH_WEIGHT_MIN,
+                      max: INVENTORY_WIDTH_WEIGHT_MAX,
+                      step: 1,
+                      'aria-label': `Largura de ${column.label}`,
+                    }}
+                    onChange={(event) => {
+                      const next = Number(event.target.value);
+                      if (!Number.isInteger(next)) return;
+                      if (next < INVENTORY_WIDTH_WEIGHT_MIN || next > INVENTORY_WIDTH_WEIGHT_MAX) return;
+                      setWeightDraft((current) => ({ ...current, [column.key]: next }));
+                    }}
+                    sx={{ width: 72 }}
+                  />
+                  <Typography variant="caption" sx={{ minWidth: 52 }}>
+                    {weightPercent(weightDraft[column.key], weightTotal)}
+                  </Typography>
                 </Stack>
               </Stack>
               <TextField
@@ -144,28 +235,21 @@ export function RiskInventoryColumnsDialog({
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
-        <Button
-          color="inherit"
-          disabled={mutation.isPending}
-          onClick={() => save(null)}
-        >
-          Restaurar padrão
-        </Button>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Button color="inherit" disabled={busy} onClick={() => save(null)}>
+            Restaurar padrão
+          </Button>
+          <SAuthShow roles={[RoleEnum.MASTER]}>
+            <Button color="inherit" disabled={busy} onClick={defineSystemDefault}>
+              Definir como padrão do sistema
+            </Button>
+          </SAuthShow>
+        </Stack>
         <Stack direction="row" spacing={1}>
-          <Button onClick={onClose} disabled={mutation.isPending}>
+          <Button onClick={onClose} disabled={busy}>
             Cancelar
           </Button>
-          <Button
-            variant="contained"
-            disabled={mutation.isPending}
-            onClick={() =>
-              save(
-                INVENTORY_CONFIGURABLE_COLUMNS.map((column) =>
-                  columnSetting(column.key, draft[column.key], titleDraft[column.key], labelDraft[column.key]),
-                ),
-              )
-            }
-          >
+          <Button variant="contained" disabled={busy} onClick={() => save(currentColumns())}>
             Salvar
           </Button>
         </Stack>
@@ -188,12 +272,26 @@ function columnSetting(
   orientation: RiskInventoryColumnOrientation,
   title: InventoryTitleChoice,
   headerLabel: string,
+  widthWeight: number,
 ): RiskInventoryColumnSetting {
   const label = headerLabel.trim();
-  if (title === 'SAME') return label ? { key, orientation, headerLabel: label } : { key, orientation };
+  const width = { widthWeight };
+  if (title === 'SAME') return label ? { key, orientation, headerLabel: label, ...width } : { key, orientation, ...width };
   return label
-    ? { key, orientation, headerOrientation: title, headerLabel: label }
-    : { key, orientation, headerOrientation: title };
+    ? { key, orientation, headerOrientation: title, headerLabel: label, ...width }
+    : { key, orientation, headerOrientation: title, ...width };
+}
+
+function weightDraftFrom(preference: RiskInventoryColumnsPreference | null) {
+  return Object.fromEntries(
+    INVENTORY_CONFIGURABLE_COLUMNS.map((column) => [column.key, inventoryColumnWidthWeight(preference, column.key)]),
+  ) as Record<RiskInventoryConfigurableColumnKey, number>;
+}
+
+function weightPercent(weight: number, total: number) {
+  return `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(
+    inventoryWidthPercent(weight, total),
+  )}%`;
 }
 
 function labelDraftFrom(preference: RiskInventoryColumnsPreference | null) {

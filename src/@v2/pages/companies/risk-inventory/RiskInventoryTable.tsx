@@ -22,6 +22,8 @@ import {
   inventoryScreenColumnHeaderLabel,
   inventoryScreenColumnHeaderOrientation,
   inventoryScreenColumnLayout,
+  inventoryTableMinWidth,
+  inventoryWidthPercent,
   inventoryScreenColumnOrientation,
   inventoryUnitScopeText,
   inventoryVerticalRiskText,
@@ -60,16 +62,8 @@ const INVENTORY_GROUP_HEADER_PX = 32;
 
 type InventoryColumnId = (typeof columns)[number]['id'];
 
-function columnLayout(
-  preference: RiskInventoryColumnsPreference | null,
-  columnId: InventoryColumnId,
-  fallback: string,
-) {
-  return inventoryScreenColumnLayout(
-    preference,
-    columnId,
-    inventoryScreenColumnHeaderLabel(preference, columnId, fallback),
-  );
+function columnLayout(preference: RiskInventoryColumnsPreference | null, columnId: InventoryColumnId) {
+  return inventoryScreenColumnLayout(preference, columnId);
 }
 
 const residualDividerSx = {
@@ -100,6 +94,7 @@ function VerticalText({
   linePx = INVENTORY_VERTICAL_LINE_PX,
   stackPx,
   align = 'center',
+  contentAlignY = 'bottom',
 }: {
   text: string;
   title?: string;
@@ -107,6 +102,7 @@ function VerticalText({
   linePx?: number;
   stackPx: number;
   align?: 'left' | 'center';
+  contentAlignY?: 'bottom' | 'top';
 }) {
   return (
     <Box
@@ -120,7 +116,7 @@ function VerticalText({
         maxHeight: linePx,
         maxWidth: stackPx,
         overflow: 'hidden',
-        verticalAlign: 'middle',
+        verticalAlign: contentAlignY === 'top' ? 'top' : 'middle',
         textAlign: align,
       }}
     >
@@ -140,8 +136,12 @@ function VerticalText({
           overflowWrap: 'anywhere',
           wordBreak: 'break-word',
           lineHeight: 1.25,
+          display: contentAlignY === 'top' ? 'flex' : 'block',
+          alignItems: contentAlignY === 'top' ? 'center' : undefined,
+          justifyContent: contentAlignY === 'top' ? 'flex-end' : undefined,
+          // The stack axis becomes the column axis after rotate(-90deg). Centering it puts the badge on the column center.
+          // flex-end keeps the right edge, which the same rotation maps to the top.
           textAlign: 'left',
-          display: 'block',
         }}
       >
         {tone ? (
@@ -172,11 +172,13 @@ function RiskPill({
   compact = false,
   stackPx,
   align = 'center',
+  contentAlignY = 'bottom',
 }: {
   presentation: RiskInventoryPresentation | null;
   compact?: boolean;
   stackPx: number;
   align?: 'left' | 'center';
+  contentAlignY?: 'bottom' | 'top';
 }) {
   const fullLabel = inventoryPresentationText(presentation);
   const label = compact ? inventoryVerticalRiskText(presentation) : fullLabel;
@@ -193,6 +195,7 @@ function RiskPill({
         title={label}
         stackPx={stackPx}
         align={align}
+        contentAlignY={contentAlignY}
         tone={{ bgcolor, color: color ? textOn(color) : 'text.primary' }}
       />
     );
@@ -228,7 +231,7 @@ function InventoryRow({
   const vertical = (columnId: InventoryColumnId) =>
     inventoryScreenColumnOrientation(columnPreference, columnId) === 'VERTICAL';
   const layout = (columnId: InventoryColumnId) =>
-    columnLayout(columnPreference, columnId, columns.find((column) => column.id === columnId)!.label);
+    columnLayout(columnPreference, columnId);
   const pad = (columnId: InventoryColumnId) => (layout(columnId).role === 'text' ? {} : { px: 0.5 });
   const renderText = (
     columnId: InventoryColumnId,
@@ -266,12 +269,16 @@ function InventoryRow({
       <TableCell align={layout('probability').align} sx={{ ...cellSx, ...pad('probability'), fontWeight: 700 }}>
         {renderText('probability', inventoryProbabilityText(row), probabilityHint)}
       </TableCell>
-      <TableCell align={layout('real').align} sx={{ ...cellSx, ...pad('real') }}>
+      <TableCell
+        align={layout('real').align}
+        sx={{ ...cellSx, ...pad('real'), ...(vertical('real') ? { verticalAlign: 'top' } : {}) }}
+      >
         <RiskPill
           presentation={row.realRisk}
           compact={vertical('real')}
           stackPx={layout('real').stackPx}
           align={layout('real').align}
+          contentAlignY="top"
         />
       </TableCell>
       <TableCell align={layout('recs').align} sx={{ ...cellSx, ...residualDividerSx }}>
@@ -280,12 +287,16 @@ function InventoryRow({
       <TableCell align={layout('pAfter').align} sx={{ ...cellSx, ...pad('pAfter'), fontWeight: 700 }}>
         {renderText('pAfter', inventoryResidualProbabilityText(row))}
       </TableCell>
-      <TableCell align={layout('residual').align} sx={{ ...cellSx, ...pad('residual') }}>
+      <TableCell
+        align={layout('residual').align}
+        sx={{ ...cellSx, ...pad('residual'), ...(vertical('residual') ? { verticalAlign: 'top' } : {}) }}
+      >
         <RiskPill
           presentation={row.residual.presentation}
           compact={vertical('residual')}
           stackPx={layout('residual').stackPx}
           align={layout('residual').align}
+          contentAlignY="top"
         />
       </TableCell>
     </TableRow>
@@ -336,14 +347,10 @@ export function RiskInventoryTable({
     inventoryScreenColumnHeaderLabel(columnPreference, columnId, fallback);
   const layouts = columns.map((column) => ({
     ...column,
-    layout: columnLayout(columnPreference, column.id, column.label),
+    layout: columnLayout(columnPreference, column.id),
   }));
-  const tableMinWidth = layouts.reduce((sum, column) => sum + column.layout.width, 0);
-  const pinnedSum = layouts.reduce(
-    (sum, column) => sum + (column.layout.pinWidth ? column.layout.width : 0),
-    0,
-  );
-  const flexCount = layouts.filter((column) => !column.layout.pinWidth).length;
+  const totalWeight = layouts.reduce((sum, column) => sum + column.layout.weight, 0);
+  const tableMinWidth = inventoryTableMinWidth(layouts.map((column) => column.layout.weight));
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -370,7 +377,7 @@ export function RiskInventoryTable({
                 size="small"
                 sx={{
                   tableLayout: 'fixed',
-                  width: flexCount === 0 ? tableMinWidth : '100%',
+                  width: '100%',
                   minWidth: tableMinWidth,
                 }}
               >
@@ -378,11 +385,7 @@ export function RiskInventoryTable({
                   {layouts.map((column) => (
                     <col
                       key={column.id}
-                      style={{
-                        width: column.layout.pinWidth
-                          ? `${column.layout.width}px`
-                          : `max(${column.layout.width}px, calc((100% - ${pinnedSum}px) / ${flexCount}))`,
-                      }}
+                      style={{ width: `${inventoryWidthPercent(column.layout.weight, totalWeight)}%` }}
                     />
                   ))}
                 </colgroup>
@@ -423,6 +426,7 @@ export function RiskInventoryTable({
                           ...(column.layout.role === 'text' ? {} : { px: 0.5 }),
                           fontWeight: 700,
                           fontSize: 12,
+                          ...(headerVertical(column.id) ? {} : { lineHeight: 1.15 }),
                           bgcolor: 'background.paper',
                           ...(headerVertical(column.id) || column.layout.role === 'text'
                             ? {}

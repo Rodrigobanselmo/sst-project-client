@@ -81,6 +81,7 @@ export function RiskInventoryTabContent({
           companyId={companyId}
           workspaceId={workspaceId}
           columnPreference={data?.columnPreference ?? null}
+          columnPreferenceSource={data?.columnPreferenceSource ?? 'canonical'}
           onClose={() => setColumnsOpen(false)}
         />
       ) : null}
