@@ -1,4 +1,5 @@
 import {
+  RiskInventoryColumnKey,
   RiskInventoryColumnOrientation,
   RiskInventoryColumnsPreference,
   RiskInventoryConfigurableColumnKey,
@@ -80,14 +81,38 @@ export const INVENTORY_CONFIGURABLE_COLUMNS: Array<{
   { key: 'RESIDUAL_RISK', label: 'RO' },
 ];
 
-export function inventoryDefaultColumnLabel(key: RiskInventoryConfigurableColumnKey): string {
+export const INVENTORY_ORIGIN_COLUMN = { key: 'ORIGIN' as const, label: 'Origem' };
+
+/** Dialog order. ORIGIN sits after Tipo and is not one of the 13 required keys. */
+export const INVENTORY_DIALOG_COLUMNS: Array<{ key: RiskInventoryColumnKey; label: string }> = [
+  INVENTORY_CONFIGURABLE_COLUMNS[0],
+  INVENTORY_ORIGIN_COLUMN,
+  ...INVENTORY_CONFIGURABLE_COLUMNS.slice(1),
+];
+
+export function inventoryDefaultColumnLabel(key: RiskInventoryColumnKey): string {
+  if (key === 'ORIGIN') return INVENTORY_ORIGIN_COLUMN.label;
   return INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === key)!.label;
+}
+
+/** ORIGIN is shown only when the effective preference marks it visible. */
+export function inventoryOriginVisible(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+): boolean {
+  return preference?.columns.some((column) => column.key === 'ORIGIN' && column.visible === true) === true;
+}
+
+export function inventoryOriginText(unit: { name: string; originType: string | null }): string {
+  const name = unit.name.trim();
+  const typeLabel = unit.originType?.trim() || 'GSE';
+  return name ? `${name}\n(${typeLabel})` : typeLabel;
 }
 
 /** Width role controls alignment and the vertical stack. The column share comes from its weight. */
 export type InventoryColumnWidthRole = 'mark' | 'token' | 'text';
 
-const INVENTORY_COLUMN_WIDTH_ROLE: Record<RiskInventoryConfigurableColumnKey, InventoryColumnWidthRole> = {
+const INVENTORY_COLUMN_WIDTH_ROLE: Record<RiskInventoryColumnKey, InventoryColumnWidthRole> = {
+  ORIGIN: 'text',
   TYPE: 'token',
   HAZARD: 'text',
   DAMAGE: 'text',
@@ -137,6 +162,12 @@ const INVENTORY_STACK_VERTICAL_PX = {
  * Structural screen header only. These bands are not column preferences.
  * Spans follow the 13 screen columns: no Origem, and no second S.
  */
+export function inventoryHeaderGroups(showOrigin: boolean) {
+  return INVENTORY_HEADER_GROUPS.map((group) =>
+    group.id === 'occupation' ? { ...group, colSpan: showOrigin ? 5 : group.colSpan } : group,
+  );
+}
+
 export const INVENTORY_HEADER_GROUPS = [
   {
     id: 'occupation',
@@ -156,6 +187,7 @@ export const INVENTORY_HEADER_GROUPS = [
 ] as const;
 
 const SCREEN_COLUMN_KEY = {
+  origin: 'ORIGIN',
   type: 'TYPE',
   hazard: 'HAZARD',
   damage: 'DAMAGE',
@@ -181,22 +213,20 @@ const INVENTORY_CANONICAL_CONTENT_VERTICAL = new Set<RiskInventoryConfigurableCo
 
 const INVENTORY_CANONICAL_HEADER_VERTICAL = new Set<RiskInventoryConfigurableColumnKey>(['TYPE']);
 
-function inventoryCanonicalContentOrientation(
-  key: RiskInventoryConfigurableColumnKey,
-): RiskInventoryColumnOrientation {
+function inventoryCanonicalContentOrientation(key: RiskInventoryColumnKey): RiskInventoryColumnOrientation {
+  if (key === 'ORIGIN') return 'HORIZONTAL';
   return INVENTORY_CANONICAL_CONTENT_VERTICAL.has(key) ? 'VERTICAL' : 'HORIZONTAL';
 }
 
-function inventoryCanonicalHeaderOrientation(
-  key: RiskInventoryConfigurableColumnKey,
-): RiskInventoryColumnOrientation {
+function inventoryCanonicalHeaderOrientation(key: RiskInventoryColumnKey): RiskInventoryColumnOrientation {
+  if (key === 'ORIGIN') return 'HORIZONTAL';
   return INVENTORY_CANONICAL_HEADER_VERTICAL.has(key) ? 'VERTICAL' : 'HORIZONTAL';
 }
 
 /** Content orientation. A missing preference or a missing key uses the canonical layout. */
 export function inventoryColumnOrientation(
   preference: RiskInventoryColumnsPreference | null | undefined,
-  key: RiskInventoryConfigurableColumnKey,
+  key: RiskInventoryColumnKey,
 ): RiskInventoryColumnOrientation {
   if (preference == null) return inventoryCanonicalContentOrientation(key);
   return preference.columns.find((column) => column.key === key)?.orientation ?? inventoryCanonicalContentOrientation(key);
@@ -215,7 +245,7 @@ export function inventoryScreenColumnOrientation(
  */
 export function inventoryColumnHeaderOrientation(
   preference: RiskInventoryColumnsPreference | null | undefined,
-  key: RiskInventoryConfigurableColumnKey,
+  key: RiskInventoryColumnKey,
 ): RiskInventoryColumnOrientation {
   if (preference == null) return inventoryCanonicalHeaderOrientation(key);
   const saved = preference.columns.find((column) => column.key === key);
@@ -235,7 +265,7 @@ export function inventoryScreenColumnHeaderLabel(
 
 export function inventoryColumnDraftHeaderLabel(
   preference: RiskInventoryColumnsPreference | null | undefined,
-  key: RiskInventoryConfigurableColumnKey,
+  key: RiskInventoryColumnKey,
 ): string {
   return preference?.columns.find((column) => column.key === key)?.headerLabel ?? '';
 }
@@ -247,11 +277,14 @@ export function inventoryScreenColumnHeaderOrientation(
   return inventoryColumnHeaderOrientation(preference, SCREEN_COLUMN_KEY[columnId]);
 }
 
+export const INVENTORY_ORIGIN_WIDTH_WEIGHT = 6;
+
 export function inventoryColumnWidthWeight(
   preference: RiskInventoryColumnsPreference | null | undefined,
-  key: RiskInventoryConfigurableColumnKey,
+  key: RiskInventoryColumnKey,
 ): number {
   const saved = preference?.columns.find((column) => column.key === key)?.widthWeight;
+  if (key === 'ORIGIN') return saved ?? INVENTORY_ORIGIN_WIDTH_WEIGHT;
   return saved ?? INVENTORY_CANONICAL_WIDTH_WEIGHT[key];
 }
 
@@ -308,7 +341,7 @@ export type InventoryTitleChoice = 'SAME' | RiskInventoryColumnOrientation;
  */
 export function inventoryColumnDraftHeaderChoice(
   preference: RiskInventoryColumnsPreference | null | undefined,
-  key: RiskInventoryConfigurableColumnKey,
+  key: RiskInventoryColumnKey,
 ): InventoryTitleChoice {
   const saved = preference?.columns.find((column) => column.key === key);
   if (saved?.headerOrientation) return saved.headerOrientation;
@@ -324,7 +357,7 @@ export function inventoryColumnDraftHeaderChoice(
  */
 export function inventoryColumnDraftOrientation(
   preference: RiskInventoryColumnsPreference | null | undefined,
-  key: RiskInventoryConfigurableColumnKey,
+  key: RiskInventoryColumnKey,
 ): RiskInventoryColumnOrientation {
   const saved = preference?.columns.find((column) => column.key === key);
   if (saved) return saved.orientation;

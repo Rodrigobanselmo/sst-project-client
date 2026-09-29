@@ -12,7 +12,9 @@ import {
   formatInventoryLines,
   inventoryDefaultColumnLabel,
   inventoryExposedEmployeeText,
-  INVENTORY_HEADER_GROUPS,
+  inventoryHeaderGroups,
+  inventoryOriginText,
+  inventoryOriginVisible,
   inventoryPresentationColor,
   inventoryPresentationText,
   inventoryProbabilityHint,
@@ -50,6 +52,14 @@ const columns = [
   { id: 'residual', label: inventoryDefaultColumnLabel('RESIDUAL_RISK') },
 ] as const;
 
+type InventoryColumnId = (typeof columns)[number]['id'] | 'origin';
+
+function columnsFor(showOrigin: boolean) {
+  if (!showOrigin) return columns;
+  const origin = { id: 'origin' as const, label: inventoryDefaultColumnLabel('ORIGIN') };
+  return [columns[0], origin, ...columns.slice(1)];
+}
+
 const cellSx = {
   verticalAlign: 'top',
   whiteSpace: 'pre-line',
@@ -59,8 +69,6 @@ const cellSx = {
 };
 
 const INVENTORY_GROUP_HEADER_PX = 32;
-
-type InventoryColumnId = (typeof columns)[number]['id'];
 
 function columnLayout(preference: RiskInventoryColumnsPreference | null, columnId: InventoryColumnId) {
   return inventoryScreenColumnLayout(preference, columnId);
@@ -137,10 +145,12 @@ function VerticalText({
           wordBreak: 'break-word',
           lineHeight: 1.25,
           display: contentAlignY === 'top' ? 'flex' : 'block',
-          alignItems: contentAlignY === 'top' ? 'center' : undefined,
+          alignItems:
+            contentAlignY === 'top' ? (align === 'left' ? 'flex-start' : 'center') : undefined,
           justifyContent: contentAlignY === 'top' ? 'flex-end' : undefined,
-          // The stack axis becomes the column axis after rotate(-90deg). Centering it puts the badge on the column center.
-          // flex-end keeps the right edge, which the same rotation maps to the top.
+          // After rotate(-90deg) the cross axis is the column width. flex-start is the same
+          // edge the block header uses, so it lands on the left. center keeps the RO badge
+          // in the middle. flex-end on the long axis still maps to the top of the row.
           textAlign: 'left',
         }}
       >
@@ -222,9 +232,13 @@ function RiskPill({
 
 function InventoryRow({
   row,
+  unit,
+  showOrigin,
   columnPreference,
 }: {
   row: RiskInventoryRow;
+  unit: RiskInventoryUnit;
+  showOrigin: boolean;
   columnPreference: RiskInventoryColumnsPreference | null;
 }) {
   const probabilityHint = inventoryProbabilityHint(row);
@@ -245,16 +259,22 @@ function InventoryRow({
         text={text}
         title={title}
         stackPx={layout(columnId).stackPx}
-        align={layout(columnId).align}
+        align={columnId === 'type' ? 'left' : layout(columnId).align}
+        contentAlignY={columnId === 'type' ? 'top' : 'bottom'}
       />
     );
   };
 
   return (
     <TableRow>
-      <TableCell align={layout('type').align} sx={{ ...cellSx, ...pad('type') }}>
+      <TableCell align="left" sx={{ ...cellSx, ...pad('type') }}>
         {renderText('type', textOrEmpty(row.riskTypeLabel || row.riskType))}
       </TableCell>
+      {showOrigin ? (
+        <TableCell align={layout('origin').align} sx={cellSx}>
+          {renderText('origin', inventoryOriginText(unit))}
+        </TableCell>
+      ) : null}
       <TableCell align={layout('hazard').align} sx={{ ...cellSx, fontWeight: 600 }}>
         {renderText('hazard', textOrEmpty(row.hazardName))}
       </TableCell>
@@ -341,11 +361,13 @@ export function RiskInventoryTable({
   units: RiskInventoryUnit[];
   columnPreference?: RiskInventoryColumnsPreference | null;
 }) {
+  const showOrigin = inventoryOriginVisible(columnPreference);
+  const headerGroups = inventoryHeaderGroups(showOrigin);
   const headerVertical = (columnId: InventoryColumnId) =>
     inventoryScreenColumnHeaderOrientation(columnPreference, columnId) === 'VERTICAL';
   const headerLabel = (columnId: InventoryColumnId, fallback: string) =>
     inventoryScreenColumnHeaderLabel(columnPreference, columnId, fallback);
-  const layouts = columns.map((column) => ({
+  const layouts = columnsFor(showOrigin).map((column) => ({
     ...column,
     layout: columnLayout(columnPreference, column.id),
   }));
@@ -391,7 +413,7 @@ export function RiskInventoryTable({
                 </colgroup>
                 <TableHead>
                   <TableRow>
-                    {INVENTORY_HEADER_GROUPS.map((group) => (
+                    {headerGroups.map((group) => (
                       <TableCell
                         key={group.id}
                         colSpan={group.colSpan}
@@ -418,7 +440,7 @@ export function RiskInventoryTable({
                     {layouts.map((column) => (
                       <TableCell
                         key={column.id}
-                        align={column.layout.align}
+                        align={column.id === 'type' ? 'left' : column.layout.align}
                         sx={{
                           top: INVENTORY_GROUP_HEADER_PX,
                           zIndex: 3,
@@ -439,7 +461,7 @@ export function RiskInventoryTable({
                             text={headerLabel(column.id, column.label)}
                             linePx={inventoryVerticalHeaderBoxPx(headerLabel(column.id, column.label))}
                             stackPx={column.layout.stackPx}
-                            align={column.layout.align}
+                            align={column.id === 'type' ? 'left' : column.layout.align}
                           />
                         ) : (
                           headerLabel(column.id, column.label)
@@ -453,6 +475,8 @@ export function RiskInventoryTable({
                     <InventoryRow
                       key={`${unit.id}-${row.riskFactorId}`}
                       row={row}
+                      unit={unit}
+                      showOrigin={showOrigin}
                       columnPreference={columnPreference}
                     />
                   ))}

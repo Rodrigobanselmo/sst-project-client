@@ -86,14 +86,17 @@ export const RISK_INVENTORY_CONFIGURABLE_COLUMN_KEYS = [
 ] as const;
 
 export type RiskInventoryConfigurableColumnKey = (typeof RISK_INVENTORY_CONFIGURABLE_COLUMN_KEYS)[number];
+export type RiskInventoryColumnKey = RiskInventoryConfigurableColumnKey | 'ORIGIN';
 export type RiskInventoryColumnOrientation = 'HORIZONTAL' | 'VERTICAL';
 
 export type RiskInventoryColumnSetting = {
-  key: RiskInventoryConfigurableColumnKey;
+  key: RiskInventoryColumnKey;
   orientation: RiskInventoryColumnOrientation;
   headerOrientation?: RiskInventoryColumnOrientation;
   headerLabel?: string;
   widthWeight?: number;
+  /** Stored only for ORIGIN. Absent or false hides that column. */
+  visible?: boolean;
 };
 
 export type RiskInventoryColumnsPreference = {

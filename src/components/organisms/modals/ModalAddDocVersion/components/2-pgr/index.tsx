@@ -250,21 +250,6 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
                 } as any);
               }}
               checked={data.json?.isHideCA}
-              label="Não mostrar coluna de origem nas APR's"
-              sx={{ mr: 4 }}
-              color="text.light"
-            />
-            <SSwitch
-              onChange={() => {
-                setData({
-                  ...data,
-                  json: {
-                    ...data.json,
-                    isHideOriginColumn: !data.json?.isHideOriginColumn,
-                  },
-                } as any);
-              }}
-              checked={data.json?.isHideOriginColumn}
               label="Não mostrar CA's de EPI's"
               sx={{ mr: 4 }}
               color="text.light"
