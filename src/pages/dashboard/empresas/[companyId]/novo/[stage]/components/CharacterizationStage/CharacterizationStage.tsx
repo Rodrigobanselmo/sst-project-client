@@ -1,5 +1,6 @@
 import { Box, BoxProps } from '@mui/material';
 import { CharacterizationEnvironmentsTabContent } from '@v2/pages/companies/characterizations/components/CharacterizationEnvironmentsTabContent/CharacterizationEnvironmentsTabContent';
+import { RiskInventoryTabContent } from '@v2/pages/companies/risk-inventory/RiskInventoryTabContent';
 import { RiskPrioritizationTabContent } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationTabContent';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
@@ -79,6 +80,13 @@ function CharacterizationSubTabPanel(props: {
       );
     case CharacterizationSubTabEnum.ENTITY_RISKS:
       return <RiskToolByEntityTabContent />;
+    case CharacterizationSubTabEnum.RISK_INVENTORY:
+      return (
+        <RiskInventoryTabContent
+          workspaceId={props.workspaceId}
+          queryEnabled={props.isWorkspaceFilterReady}
+        />
+      );
     case CharacterizationSubTabEnum.PRIORITIZATION:
       return (
         <RiskPrioritizationTabContent

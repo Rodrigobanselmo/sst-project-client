@@ -42,6 +42,11 @@ assert.equal(
   'Priorização is workspace-scoped and must show the header selector',
 );
 assert.equal(
+  showSstWorkspaceSelectorForTab(CharacterizationSubTabEnum.RISK_INVENTORY),
+  true,
+  'Inventário de Riscos is workspace-scoped and must show the header selector',
+);
+assert.equal(
   showSstWorkspaceSelectorForTab(CharacterizationSubTabEnum.PROTOCOLS),
   false,
 );

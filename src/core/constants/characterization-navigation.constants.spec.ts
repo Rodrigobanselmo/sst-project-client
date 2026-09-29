@@ -35,6 +35,7 @@ assert.deepEqual(
     'Elementos Caracterizados',
     'Vínculo de Riscos',
     'Priorização',
+    'Inventário de Riscos',
     'Exames',
     'Protocolos',
     CHEMICAL_PRODUCTS_NAV_LABEL,
@@ -73,6 +74,12 @@ const tabIdentityContract = [
     tab: CharacterizationSubTabEnum.PRIORITIZATION,
     active: '6',
     panel: 'prioritization',
+  },
+  {
+    label: 'Inventário de Riscos',
+    tab: CharacterizationSubTabEnum.RISK_INVENTORY,
+    active: '7',
+    panel: 'risk-inventory',
   },
   {
     label: 'Exames',

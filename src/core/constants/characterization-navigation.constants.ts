@@ -11,6 +11,8 @@ export enum CharacterizationSubTabEnum {
   ENTITY_RISKS = 5,
   /** Visão consolidada GSE/Elemento × riscos (Tabela 8 interativa). */
   PRIORITIZATION = 6,
+  /** Inventário operacional somente leitura, mesma composição do APR_GROUP v2. */
+  RISK_INVENTORY = 7,
 }
 
 export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
@@ -24,6 +26,7 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
   [CharacterizationSubTabEnum.PROTOCOLS]: 'Protocolos',
   [CharacterizationSubTabEnum.ENTITY_RISKS]: 'Vínculo de Riscos',
   [CharacterizationSubTabEnum.PRIORITIZATION]: 'Priorização',
+  [CharacterizationSubTabEnum.RISK_INVENTORY]: 'Inventário de Riscos',
 };
 
 /** Stable panel identity for each enum — independent of visual order. */
@@ -36,6 +39,7 @@ export const CHARACTERIZATION_SUB_TAB_PANEL: Record<
   | 'protocols'
   | 'entity-risks'
   | 'prioritization'
+  | 'risk-inventory'
 > = {
   [CharacterizationSubTabEnum.RISKS]: 'risks',
   [CharacterizationSubTabEnum.ENVIRONMENTS]: 'environments',
@@ -44,6 +48,7 @@ export const CHARACTERIZATION_SUB_TAB_PANEL: Record<
   [CharacterizationSubTabEnum.PROTOCOLS]: 'protocols',
   [CharacterizationSubTabEnum.ENTITY_RISKS]: 'entity-risks',
   [CharacterizationSubTabEnum.PRIORITIZATION]: 'prioritization',
+  [CharacterizationSubTabEnum.RISK_INVENTORY]: 'risk-inventory',
 };
 
 export const CHARACTERIZATION_MODULE_LABEL = 'Caracterização';
@@ -88,6 +93,7 @@ const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.ENVIRONMENTS,
   CharacterizationSubTabEnum.ENTITY_RISKS,
   CharacterizationSubTabEnum.PRIORITIZATION,
+  CharacterizationSubTabEnum.RISK_INVENTORY,
   CharacterizationSubTabEnum.EXAMS,
   CharacterizationSubTabEnum.PROTOCOLS,
 ] as const;
@@ -250,7 +256,7 @@ export function parseCharacterizationActiveTab(
 
   if (
     n >= CharacterizationSubTabEnum.RISKS &&
-    n <= CharacterizationSubTabEnum.PRIORITIZATION
+    n <= CharacterizationSubTabEnum.RISK_INVENTORY
   ) {
     return n as CharacterizationSubTabEnum;
   }
