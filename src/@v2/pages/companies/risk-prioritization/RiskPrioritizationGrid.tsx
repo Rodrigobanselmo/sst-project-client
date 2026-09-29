@@ -18,7 +18,11 @@ import {
   RiskPrioritizationCell,
 } from '@v2/services/security/risk-prioritization/risk-prioritization.types';
 
-import { presentPrioritizationMatrix } from './risk-prioritization.presentation';
+import {
+  presentPrioritizationMatrix,
+  PrioritizationRiskState,
+  visiblePrioritizationClassification,
+} from './risk-prioritization.presentation';
 import {
   buildPrioritizationCellTooltip,
   contrastTextColor,
@@ -66,11 +70,24 @@ export function omitRepresentAllPrioritizationRisks(
   const legend = data.legend.filter((entry) =>
     legendKeys.has(`${entry.matrixSource}:${entry.abbreviation}:${entry.label}`),
   );
+  const residualKeys = new Set(
+    cells.flatMap((cell) =>
+      cell.residual?.abbreviation
+        ? [
+            `${cell.residual.matrixSource}:${cell.residual.abbreviation}:${cell.residual.label}`,
+          ]
+        : [],
+    ),
+  );
+  const residualLegend = (data.residualLegend ?? []).filter((entry) =>
+    residualKeys.has(`${entry.matrixSource}:${entry.abbreviation}:${entry.label}`),
+  );
   return {
     ...data,
     columns,
     cells,
     legend,
+    residualLegend,
     meta: {
       ...data.meta,
       riskCount: columns.length,
@@ -170,10 +187,12 @@ function riskColumnSx(isGroupStart: boolean) {
 export function RiskPrioritizationGrid({
   data,
   orientation = 'UNITS_IN_ROWS',
+  riskState = 'REAL',
   onCellClick,
 }: {
   data: RiskPrioritizationBrowseResult;
   orientation?: PrioritizationMatrixOrientation;
+  riskState?: PrioritizationRiskState;
   onCellClick: (cell: RiskPrioritizationCell) => void;
 }) {
   const presentation = useMemo(
@@ -440,15 +459,23 @@ export function RiskPrioritizationGrid({
               </TableCell>
               {columns.map((column) => {
                 const cell = presentation.cell(row.id, column.id);
+                const visible = cell
+                  ? visiblePrioritizationClassification(cell, riskState)
+                  : null;
                 const isGroupStart = groupStartIds.has(column.id);
                 const isLastRow = row.id === lastRowId;
-                if (!cell) {
+                if (!cell || !visible) {
+                  const clickable = Boolean(cell && cell.origins.length > 0);
                   return (
                     <TableCell
                       key={column.id}
                       align="center"
+                      onClick={
+                        cell && clickable ? () => onCellClick(cell) : undefined
+                      }
                       sx={{
                         ...riskColumnSx(isGroupStart),
+                        cursor: clickable ? 'pointer' : 'default',
                         ...(isLastRow
                           ? {
                               borderBottom: '1px solid',
@@ -461,7 +488,7 @@ export function RiskPrioritizationGrid({
                 }
 
                 const clickable = cell.origins.length > 0;
-                const cellColor = normalizeCssColor(cell.color);
+                const cellColor = normalizeCssColor(visible.color);
                 const textColor = contrastTextColor(cellColor);
                 return (
                   <TableCell
@@ -489,6 +516,7 @@ export function RiskPrioritizationGrid({
                             {buildPrioritizationCellTooltip({
                               riskName: presentation.riskName(row.id, column.id),
                               cell,
+                              riskState,
                             })
                               .split('\n')
                               .slice(1)
@@ -507,11 +535,11 @@ export function RiskPrioritizationGrid({
                           justifyContent: 'center',
                           bgcolor: cellColor || 'grey.100',
                           color: textColor,
-                          fontWeight: cell.isPrioritized ? 800 : 700,
-                          boxShadow: cell.isPrioritized
+                          fontWeight: visible.isPrioritized ? 800 : 700,
+                          boxShadow: visible.isPrioritized
                             ? PRIORITIZED_INSET_RING
                             : undefined,
-                          backgroundImage: cell.isQuantity
+                          backgroundImage: visible.isQuantity
                             ? QUANTITY_HATCH
                             : undefined,
                           boxSizing: 'border-box',
@@ -520,14 +548,14 @@ export function RiskPrioritizationGrid({
                         <Typography
                           component="span"
                           sx={{
-                            fontSize: cell.abbreviation.length > 3 ? 10 : 12,
+                            fontSize: visible.abbreviation.length > 3 ? 10 : 12,
                             fontWeight: 'inherit',
                             color: 'inherit',
                             letterSpacing: 0.2,
                             lineHeight: 1,
                           }}
                         >
-                          {cell.abbreviation}
+                          {visible.abbreviation}
                         </Typography>
                       </Box>
                     </Tooltip>

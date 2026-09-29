@@ -9,6 +9,17 @@ import { cellKey, indexPrioritizationCells } from './risk-prioritization.util';
 
 export type { PrioritizationMatrixOrientation };
 
+export type PrioritizationRiskState = 'REAL' | 'RESIDUAL';
+
+export type VisiblePrioritizationClassification = {
+  abbreviation: string;
+  label: string;
+  color: string | null;
+  level: number;
+  isQuantity: boolean;
+  isPrioritized: boolean;
+};
+
 const TYPE_ORDER = ['FIS', 'QUI', 'BIO', 'ERG', 'ACI', 'OUTROS'] as const;
 
 const TYPE_GROUP_LABEL: Record<(typeof TYPE_ORDER)[number], string> = {
@@ -65,6 +76,39 @@ export function displayedPrioritizationOrientation(
   stored: PrioritizationMatrixOrientation | null | undefined,
 ): PrioritizationMatrixOrientation {
   return stored === 'RISKS_IN_ROWS' ? 'RISKS_IN_ROWS' : 'UNITS_IN_ROWS';
+}
+
+/** Real uses the current cell. Residual uses only the persisted snapshot. */
+export function visiblePrioritizationClassification(
+  cell: RiskPrioritizationCell,
+  riskState: PrioritizationRiskState,
+): VisiblePrioritizationClassification | null {
+  if (riskState !== 'RESIDUAL') {
+    return {
+      abbreviation: cell.abbreviation,
+      label: cell.label,
+      color: cell.color,
+      level: cell.level,
+      isQuantity: cell.isQuantity,
+      isPrioritized: cell.isPrioritized,
+    };
+  }
+  if (!cell.residual?.abbreviation) return null;
+  return {
+    abbreviation: cell.residual.abbreviation,
+    label: cell.residual.label,
+    color: cell.residual.color,
+    level: cell.residual.level,
+    isQuantity: false,
+    isPrioritized: cell.residual.level >= 4,
+  };
+}
+
+export function legendForPrioritizationState(
+  data: Pick<RiskPrioritizationBrowseResult, 'legend' | 'residualLegend'>,
+  riskState: PrioritizationRiskState,
+) {
+  return riskState === 'RESIDUAL' ? data.residualLegend ?? [] : data.legend;
 }
 
 /** Opening the screen never writes. A click writes only when the stored value changes. */

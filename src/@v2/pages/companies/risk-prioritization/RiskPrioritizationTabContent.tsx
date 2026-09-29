@@ -13,7 +13,10 @@ import {
 } from '@v2/pages/companies/risk-prioritization/risk-prioritization.util';
 import {
   displayedPrioritizationOrientation,
+  legendForPrioritizationState,
+  PrioritizationRiskState,
   prioritizationOrientationToPersist,
+  visiblePrioritizationClassification,
 } from '@v2/pages/companies/risk-prioritization/risk-prioritization.presentation';
 import { useFetchBrowseRiskPrioritization } from '@v2/services/security/risk-prioritization/useFetchBrowseRiskPrioritization';
 import { useMutateRiskPrioritizationOrientation } from '@v2/services/security/risk-prioritization/useMutateRiskPrioritizationOrientation';
@@ -100,6 +103,7 @@ export function RiskPrioritizationTabContent({
 
   const storedOrientation = data?.matrixOrientation ?? null;
   const displayedOrientation = displayedPrioritizationOrientation(storedOrientation);
+  const [riskState, setRiskState] = useState<PrioritizationRiskState>('REAL');
 
   const selectOrientation = useCallback(
     (selected: PrioritizationMatrixOrientation) => {
@@ -182,13 +186,32 @@ export function RiskPrioritizationTabContent({
   const selectedRiskName = selectedCell
     ? viewData.columns.find((column) => column.riskId === selectedCell.riskId)?.name
     : undefined;
+  const selectedVisible = selectedCell
+    ? visiblePrioritizationClassification(selectedCell, riskState)
+    : null;
 
   return (
     <Box sx={{ p: 2, pt: 1.5 }}>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        Visão consolidada do risco ocupacional atual. Clique na célula para abrir
-        a origem. Edição é feita na fonte (GSE ou Elemento Caracterizado).
+        Visão consolidada do risco ocupacional. Clique na célula para abrir a
+        origem. Edição é feita na fonte (GSE ou Elemento Caracterizado).
       </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+        <Button
+          size="small"
+          variant={riskState === 'REAL' ? 'contained' : 'outlined'}
+          onClick={() => setRiskState('REAL')}
+        >
+          Risco real
+        </Button>
+        <Button
+          size="small"
+          variant={riskState === 'RESIDUAL' ? 'contained' : 'outlined'}
+          onClick={() => setRiskState('RESIDUAL')}
+        >
+          Risco residual
+        </Button>
+      </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
         <Button
           size="small"
@@ -220,17 +243,22 @@ export function RiskPrioritizationTabContent({
       <RiskPrioritizationGrid
         data={viewData}
         orientation={displayedOrientation}
+        riskState={riskState}
         onCellClick={handleCellClick}
       />
-      <RiskPrioritizationLegend entries={viewData.legend} />
+      <RiskPrioritizationLegend
+        entries={legendForPrioritizationState(viewData, riskState)}
+      />
       <RiskPrioritizationOriginsDrawer
         open={Boolean(selectedCell)}
         onClose={() => setSelectedCell(null)}
         riskName={selectedRiskName}
         cellLabel={
-          selectedCell
-            ? `${selectedCell.abbreviation} — ${selectedCell.label}`
-            : undefined
+          selectedVisible
+            ? `${selectedVisible.abbreviation} — ${selectedVisible.label}`
+            : selectedCell && riskState === 'RESIDUAL'
+              ? 'Sem classificação residual'
+              : undefined
         }
         origins={selectedCell?.origins || []}
         onOpenOrigin={(origin) => {

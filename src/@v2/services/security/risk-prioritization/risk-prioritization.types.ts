@@ -24,6 +24,16 @@ export type RiskPrioritizationOrigin = {
   openOrigin: RiskPrioritizationOpenOrigin | null;
 };
 
+/** Persisted residual presentation. Absent or null means the residual cell is empty. */
+export type RiskPrioritizationResidualPresentation = {
+  abbreviation: string;
+  label: string;
+  color: string | null;
+  level: number;
+  matrixSource: 'SYSTEM' | 'CUSTOM' | null;
+  matrixVersionId: string | null;
+};
+
 export type RiskPrioritizationCell = {
   rowId: string;
   riskId: string;
@@ -38,6 +48,7 @@ export type RiskPrioritizationCell = {
   matrixSource: 'SYSTEM' | 'CUSTOM' | null;
   matrixVersionId: string | null;
   origins: RiskPrioritizationOrigin[];
+  residual?: RiskPrioritizationResidualPresentation | null;
 };
 
 export type RiskPrioritizationLegendEntry = {
@@ -57,6 +68,8 @@ export type RiskPrioritizationBrowseResult = {
   columns: Array<{ riskId: string; name: string; typeCode: string | null }>;
   cells: RiskPrioritizationCell[];
   legend: RiskPrioritizationLegendEntry[];
+  /** Classifications shown when the grid is in the residual state. */
+  residualLegend?: RiskPrioritizationLegendEntry[];
   meta: {
     unitCount: number;
     riskCount: number;

@@ -58,7 +58,25 @@ export function resolvePrioritizationCellClick(
 export function buildPrioritizationCellTooltip(params: {
   riskName: string;
   cell: RiskPrioritizationCell;
+  riskState?: 'REAL' | 'RESIDUAL';
 }): string {
+  if (params.riskState === 'RESIDUAL' && !params.cell.residual?.abbreviation) {
+    const originCount = params.cell.origins.length;
+    const originLabel =
+      originCount === 1 ? '1 origem' : `${originCount} origens`;
+    return [params.riskName, 'Sem classificação residual', originLabel].join('\n');
+  }
+  if (params.riskState === 'RESIDUAL' && params.cell.residual) {
+    const originCount = params.cell.origins.length;
+    const originLabel =
+      originCount === 1 ? '1 origem' : `${originCount} origens`;
+    return [
+      params.riskName,
+      `${params.cell.residual.abbreviation} — ${params.cell.residual.label}`,
+      `Nível ${params.cell.residual.level} · Residual`,
+      originLabel,
+    ].join('\n');
+  }
   const kind = params.cell.isQuantity ? 'Quantitativo' : 'Qualitativo';
   const originCount = params.cell.origins.length;
   const originLabel =

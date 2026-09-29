@@ -11,8 +11,10 @@ import { CharacterizationSubTabEnum } from 'core/constants/characterization-navi
 
 import {
   displayedPrioritizationOrientation,
+  legendForPrioritizationState,
   presentPrioritizationMatrix,
   prioritizationOrientationToPersist,
+  visiblePrioritizationClassification,
 } from './risk-prioritization.presentation';
 import {
   buildPrioritizationCellTooltip,
@@ -406,5 +408,86 @@ assert.deepEqual(
     isQuantity: entry?.isQuantity,
   })),
 );
+
+const residualCell = cell({
+  rowId: 'unit-a',
+  riskId: 'risk-noise',
+  abbreviation: 'A',
+  label: 'Alto',
+  color: '#d96c2f',
+  level: 4,
+  isPrioritized: true,
+  origins: [
+    origin({
+      riskFactorDataId: 'r-click',
+      originKind: 'GSE',
+      openOrigin: { kind: 'GSE', id: 'unit-a' },
+    }),
+  ],
+  residual: {
+    abbreviation: 'B',
+    label: 'Baixo',
+    color: '#4caf50',
+    level: 2,
+    matrixSource: 'SYSTEM',
+    matrixVersionId: null,
+  },
+});
+const emptyResidual = cell({
+  abbreviation: 'MA',
+  label: 'Muito Alto',
+  residual: null,
+});
+
+assert.equal(visiblePrioritizationClassification(residualCell, 'REAL')?.abbreviation, 'A');
+assert.equal(visiblePrioritizationClassification(residualCell, 'RESIDUAL')?.abbreviation, 'B');
+assert.equal(visiblePrioritizationClassification(residualCell, 'RESIDUAL')?.isQuantity, false);
+assert.equal(visiblePrioritizationClassification(emptyResidual, 'RESIDUAL'), null);
+assert.equal(emptyResidual.abbreviation, 'MA');
+assert.equal(residualCell.rowId, 'unit-a');
+assert.equal(residualCell.riskId, 'risk-noise');
+assert.equal(resolvePrioritizationCellClick(residualCell).type, 'open-origin');
+
+const residualMatrix = {
+  ...matrix,
+  cells: [residualCell],
+  legend: [{ abbreviation: 'A', label: 'Alto', color: '#d96c2f', matrixSource: 'SYSTEM' as const }],
+  residualLegend: [
+    { abbreviation: 'B', label: 'Baixo', color: '#4caf50', matrixSource: 'SYSTEM' as const },
+  ],
+};
+assert.deepEqual(legendForPrioritizationState(residualMatrix, 'REAL'), residualMatrix.legend);
+assert.deepEqual(
+  legendForPrioritizationState(residualMatrix, 'RESIDUAL'),
+  residualMatrix.residualLegend,
+);
+const residualUnits = presentPrioritizationMatrix(residualMatrix, 'UNITS_IN_ROWS');
+const residualRisks = presentPrioritizationMatrix(residualMatrix, 'RISKS_IN_ROWS');
+assert.equal(residualUnits.cell('unit-a', 'risk-noise'), residualRisks.cell('risk-noise', 'unit-a'));
+assert.equal(
+  visiblePrioritizationClassification(
+    residualUnits.cell('unit-a', 'risk-noise')!,
+    'RESIDUAL',
+  )?.abbreviation,
+  'B',
+);
+assert.equal(
+  prioritizationOrientationToPersist({ event: 'open', stored: 'UNITS_IN_ROWS' }),
+  null,
+);
+const residualTooltip = buildPrioritizationCellTooltip({
+  riskName: 'Ruído',
+  cell: residualCell,
+  riskState: 'RESIDUAL',
+});
+assert.ok(residualTooltip.includes('B — Baixo'));
+assert.ok(!residualTooltip.includes('P3'));
+const emptyTooltip = buildPrioritizationCellTooltip({
+  riskName: 'Ruído',
+  cell: emptyResidual,
+  riskState: 'RESIDUAL',
+});
+assert.ok(emptyTooltip.includes('Sem classificação residual'));
+assert.ok(!emptyTooltip.includes('MA'));
 
 console.log('risk-prioritization.util.spec.ts OK');
