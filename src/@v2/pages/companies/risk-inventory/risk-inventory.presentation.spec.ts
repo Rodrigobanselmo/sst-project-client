@@ -19,6 +19,8 @@ import {
   inventoryColumnOrientation,
   inventoryScreenColumnHeaderLabel,
   inventoryScreenColumnHeaderOrientation,
+  inventoryScreenColumnLayout,
+  inventoryVerticalHeaderBoxPx,
   inventoryScreenColumnOrientation,
   inventoryPresentationText,
   inventoryProbabilityHint,
@@ -112,17 +114,62 @@ assert.equal(tableSource.includes('linePx = INVENTORY_VERTICAL_LINE_PX'), true);
 assert.equal(tableSource.includes('height: linePx'), true);
 assert.equal(tableSource.includes('maxHeight: linePx'), true);
 assert.equal(tableSource.includes('width: linePx'), true);
-assert.equal(tableSource.includes('linePx={INVENTORY_VERTICAL_HEADER_LINE_PX}'), true);
+assert.equal(tableSource.includes('inventoryVerticalHeaderBoxPx'), true);
 assert.equal(INVENTORY_VERTICAL_LINE_PX, 140);
 assert.equal(INVENTORY_VERTICAL_HEADER_LINE_PX, 104);
 assert.equal(INVENTORY_VERTICAL_HEADER_LINE_PX < INVENTORY_VERTICAL_LINE_PX, true);
-assert.equal(tableSource.includes('maxWidth: INVENTORY_VERTICAL_STACK_PX'), true);
+assert.equal(tableSource.includes('maxWidth: stackPx'), true);
+assert.equal(tableSource.includes('width: stackPx'), true);
 assert.equal(tableSource.includes("overflow: 'hidden'"), true);
 assert.equal(INVENTORY_VERTICAL_LINE_PX > 0 && INVENTORY_VERTICAL_LINE_PX < 200, true);
 assert.equal(INVENTORY_VERTICAL_STACK_PX > 0 && INVENTORY_VERTICAL_STACK_PX < INVENTORY_VERTICAL_LINE_PX, true);
-assert.equal(tableSource.includes('minWidth: column.minWidth'), true);
+assert.equal(tableSource.includes('inventoryScreenColumnLayout'), true);
+assert.equal(tableSource.includes('<colgroup>'), true);
+assert.equal(tableSource.includes('calc((100% - ${pinnedSum}px) / ${flexCount})'), true);
+assert.equal(tableSource.includes("verticalAlign: 'middle'"), true);
+assert.equal(tableSource.includes("display: 'inline-block'"), true);
+assert.equal(tableSource.includes('align={column.layout.align}'), true);
+assert.equal(tableSource.includes("align={layout('severity').align}"), true);
+assert.equal(tableSource.includes('minWidth: 1480'), false);
 
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.length, 13);
+assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').width, 48);
+assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').pinWidth, true);
+assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').align, 'center');
+assert.equal(inventoryScreenColumnLayout(null, 'hazard', 'Perigo ou Fator de Risco Ocupacional (P/FRO)').align, 'left');
+assert.equal(inventoryVerticalHeaderBoxPx('S') <= 24, true);
+assert.equal(
+  inventoryVerticalHeaderBoxPx('Perigo ou Fator de Risco Ocupacional (P/FRO)'),
+  INVENTORY_VERTICAL_HEADER_LINE_PX,
+);
+assert.equal(inventoryScreenColumnLayout(null, 'severity', 'S').stackPx, 32);
+assert.equal(inventoryScreenColumnLayout(null, 'real', 'RO').width, 120);
+assert.equal(inventoryScreenColumnLayout(null, 'real', 'RO').pinWidth, true);
+assert.equal(
+  inventoryScreenColumnLayout(
+    { version: 1, columns: [{ key: 'REAL_RISK', orientation: 'VERTICAL', headerOrientation: 'VERTICAL' }] },
+    'real',
+    'RO',
+  ).width,
+  64,
+);
+assert.equal(
+  inventoryScreenColumnLayout(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerOrientation: 'VERTICAL' }] },
+    'hazard',
+    'Perigo ou Fator de Risco Ocupacional (P/FRO)',
+  ).stackPx,
+  INVENTORY_VERTICAL_STACK_PX,
+);
+assert.equal(
+  inventoryScreenColumnLayout(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'HORIZONTAL', headerOrientation: 'VERTICAL' }] },
+    'hazard',
+    'Perigo ou Fator de Risco Ocupacional (P/FRO)',
+  ).width,
+  168,
+);
+assert.equal(inventoryScreenColumnLayout(null, 'severity', 'Gravidade').pinWidth, false);
 assert.equal(
   INVENTORY_HEADER_GROUPS.reduce((sum, group) => sum + group.colSpan, 0),
   INVENTORY_CONFIGURABLE_COLUMNS.length,

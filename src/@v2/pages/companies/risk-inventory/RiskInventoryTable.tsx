@@ -18,34 +18,34 @@ import {
   inventoryProbabilityHint,
   inventoryProbabilityText,
   inventoryResidualProbabilityText,
+  inventoryVerticalHeaderBoxPx,
   inventoryScreenColumnHeaderLabel,
   inventoryScreenColumnHeaderOrientation,
+  inventoryScreenColumnLayout,
   inventoryScreenColumnOrientation,
   inventoryUnitScopeText,
   inventoryVerticalRiskText,
-  INVENTORY_VERTICAL_HEADER_LINE_PX,
   INVENTORY_VERTICAL_LINE_PX,
   INVENTORY_VERTICAL_ROTATION,
-  INVENTORY_VERTICAL_STACK_PX,
   INVENTORY_EMPTY,
   INVENTORY_EXPOSED_LABEL,
   INVENTORY_SCOPE_LABEL,
 } from './risk-inventory.presentation';
 
 const columns = [
-  { id: 'type', label: inventoryDefaultColumnLabel('TYPE'), minWidth: 88 },
-  { id: 'hazard', label: inventoryDefaultColumnLabel('HAZARD'), minWidth: 180 },
-  { id: 'damage', label: inventoryDefaultColumnLabel('DAMAGE'), minWidth: 160 },
-  { id: 'source', label: inventoryDefaultColumnLabel('GENERATING_SOURCE'), minWidth: 160 },
-  { id: 'epi', label: inventoryDefaultColumnLabel('EPI'), minWidth: 160 },
-  { id: 'epc', label: inventoryDefaultColumnLabel('ENGINEERING'), minWidth: 140 },
-  { id: 'adm', label: inventoryDefaultColumnLabel('ADMINISTRATIVE'), minWidth: 140 },
-  { id: 'severity', label: inventoryDefaultColumnLabel('SEVERITY'), minWidth: 48 },
-  { id: 'probability', label: inventoryDefaultColumnLabel('PROBABILITY'), minWidth: 48 },
-  { id: 'real', label: inventoryDefaultColumnLabel('REAL_RISK'), minWidth: 140 },
-  { id: 'recs', label: inventoryDefaultColumnLabel('RECOMMENDATIONS'), minWidth: 180, dividerBefore: true },
-  { id: 'pAfter', label: inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL'), minWidth: 72 },
-  { id: 'residual', label: inventoryDefaultColumnLabel('RESIDUAL_RISK'), minWidth: 150 },
+  { id: 'type', label: inventoryDefaultColumnLabel('TYPE') },
+  { id: 'hazard', label: inventoryDefaultColumnLabel('HAZARD') },
+  { id: 'damage', label: inventoryDefaultColumnLabel('DAMAGE') },
+  { id: 'source', label: inventoryDefaultColumnLabel('GENERATING_SOURCE') },
+  { id: 'epi', label: inventoryDefaultColumnLabel('EPI') },
+  { id: 'epc', label: inventoryDefaultColumnLabel('ENGINEERING') },
+  { id: 'adm', label: inventoryDefaultColumnLabel('ADMINISTRATIVE') },
+  { id: 'severity', label: inventoryDefaultColumnLabel('SEVERITY') },
+  { id: 'probability', label: inventoryDefaultColumnLabel('PROBABILITY') },
+  { id: 'real', label: inventoryDefaultColumnLabel('REAL_RISK') },
+  { id: 'recs', label: inventoryDefaultColumnLabel('RECOMMENDATIONS'), dividerBefore: true },
+  { id: 'pAfter', label: inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL') },
+  { id: 'residual', label: inventoryDefaultColumnLabel('RESIDUAL_RISK') },
 ] as const;
 
 const cellSx = {
@@ -57,6 +57,20 @@ const cellSx = {
 };
 
 const INVENTORY_GROUP_HEADER_PX = 32;
+
+type InventoryColumnId = (typeof columns)[number]['id'];
+
+function columnLayout(
+  preference: RiskInventoryColumnsPreference | null,
+  columnId: InventoryColumnId,
+  fallback: string,
+) {
+  return inventoryScreenColumnLayout(
+    preference,
+    columnId,
+    inventoryScreenColumnHeaderLabel(preference, columnId, fallback),
+  );
+}
 
 const residualDividerSx = {
   borderLeft: '2px solid',
@@ -84,24 +98,30 @@ function VerticalText({
   title,
   tone,
   linePx = INVENTORY_VERTICAL_LINE_PX,
+  stackPx,
+  align = 'center',
 }: {
   text: string;
   title?: string;
   tone?: { bgcolor: string; color: string };
   linePx?: number;
+  stackPx: number;
+  align?: 'left' | 'center';
 }) {
   return (
     <Box
-      component="div"
+      component="span"
       title={title ?? text}
       sx={{
         position: 'relative',
+        display: 'inline-block',
         height: linePx,
-        width: INVENTORY_VERTICAL_STACK_PX,
+        width: stackPx,
         maxHeight: linePx,
-        maxWidth: INVENTORY_VERTICAL_STACK_PX,
+        maxWidth: stackPx,
         overflow: 'hidden',
-        mx: 'auto',
+        verticalAlign: 'middle',
+        textAlign: align,
       }}
     >
       <Box
@@ -111,7 +131,7 @@ function VerticalText({
           left: '50%',
           top: '50%',
           width: linePx,
-          height: INVENTORY_VERTICAL_STACK_PX,
+          height: stackPx,
           boxSizing: 'border-box',
           transform: `translate(-50%, -50%) ${INVENTORY_VERTICAL_ROTATION}`,
           transformOrigin: 'center center',
@@ -150,9 +170,13 @@ function VerticalText({
 function RiskPill({
   presentation,
   compact = false,
+  stackPx,
+  align = 'center',
 }: {
   presentation: RiskInventoryPresentation | null;
   compact?: boolean;
+  stackPx: number;
+  align?: 'left' | 'center';
 }) {
   const fullLabel = inventoryPresentationText(presentation);
   const label = compact ? inventoryVerticalRiskText(presentation) : fullLabel;
@@ -167,6 +191,8 @@ function RiskPill({
       <VerticalText
         text={label}
         title={label}
+        stackPx={stackPx}
+        align={align}
         tone={{ bgcolor, color: color ? textOn(color) : 'text.primary' }}
       />
     );
@@ -199,46 +225,68 @@ function InventoryRow({
   columnPreference: RiskInventoryColumnsPreference | null;
 }) {
   const probabilityHint = inventoryProbabilityHint(row);
-  const vertical = (columnId: Parameters<typeof inventoryScreenColumnOrientation>[1]) =>
+  const vertical = (columnId: InventoryColumnId) =>
     inventoryScreenColumnOrientation(columnPreference, columnId) === 'VERTICAL';
+  const layout = (columnId: InventoryColumnId) =>
+    columnLayout(columnPreference, columnId, columns.find((column) => column.id === columnId)!.label);
+  const pad = (columnId: InventoryColumnId) => (layout(columnId).role === 'text' ? {} : { px: 0.5 });
   const renderText = (
-    columnId: Parameters<typeof inventoryScreenColumnOrientation>[1],
+    columnId: InventoryColumnId,
     text: string,
     extraTitle?: string | null,
   ) => {
     if (!vertical(columnId)) return text;
     const title = [text, extraTitle].filter(Boolean).join('\n');
-    return <VerticalText text={text} title={title} />;
+    return (
+      <VerticalText
+        text={text}
+        title={title}
+        stackPx={layout(columnId).stackPx}
+        align={layout(columnId).align}
+      />
+    );
   };
 
   return (
     <TableRow>
-      <TableCell sx={cellSx}>{renderText('type', textOrEmpty(row.riskTypeLabel || row.riskType))}</TableCell>
-      <TableCell sx={{ ...cellSx, fontWeight: 600 }}>
+      <TableCell align={layout('type').align} sx={{ ...cellSx, ...pad('type') }}>
+        {renderText('type', textOrEmpty(row.riskTypeLabel || row.riskType))}
+      </TableCell>
+      <TableCell align={layout('hazard').align} sx={{ ...cellSx, fontWeight: 600 }}>
         {renderText('hazard', textOrEmpty(row.hazardName))}
       </TableCell>
-      <TableCell sx={cellSx}>{renderText('damage', textOrEmpty(row.damage))}</TableCell>
-      <TableCell sx={cellSx}>{renderText('source', formatInventoryLines(row.generatingSources))}</TableCell>
-      <TableCell sx={cellSx}>{renderText('epi', formatInventoryEpis(row.epis))}</TableCell>
-      <TableCell sx={cellSx}>{renderText('epc', formatInventoryLines(row.engineeringMeasures))}</TableCell>
-      <TableCell sx={cellSx}>{renderText('adm', formatInventoryLines(row.administrativeMeasures))}</TableCell>
-      <TableCell sx={{ ...cellSx, fontWeight: 700 }} align="center">
+      <TableCell align={layout('damage').align} sx={cellSx}>{renderText('damage', textOrEmpty(row.damage))}</TableCell>
+      <TableCell align={layout('source').align} sx={cellSx}>{renderText('source', formatInventoryLines(row.generatingSources))}</TableCell>
+      <TableCell align={layout('epi').align} sx={cellSx}>{renderText('epi', formatInventoryEpis(row.epis))}</TableCell>
+      <TableCell align={layout('epc').align} sx={cellSx}>{renderText('epc', formatInventoryLines(row.engineeringMeasures))}</TableCell>
+      <TableCell align={layout('adm').align} sx={cellSx}>{renderText('adm', formatInventoryLines(row.administrativeMeasures))}</TableCell>
+      <TableCell align={layout('severity').align} sx={{ ...cellSx, ...pad('severity'), fontWeight: 700 }}>
         {renderText('severity', textOrEmpty(row.severity))}
       </TableCell>
-      <TableCell sx={{ ...cellSx, fontWeight: 700 }} align="center">
+      <TableCell align={layout('probability').align} sx={{ ...cellSx, ...pad('probability'), fontWeight: 700 }}>
         {renderText('probability', inventoryProbabilityText(row), probabilityHint)}
       </TableCell>
-      <TableCell sx={cellSx}>
-        <RiskPill presentation={row.realRisk} compact={vertical('real')} />
+      <TableCell align={layout('real').align} sx={{ ...cellSx, ...pad('real') }}>
+        <RiskPill
+          presentation={row.realRisk}
+          compact={vertical('real')}
+          stackPx={layout('real').stackPx}
+          align={layout('real').align}
+        />
       </TableCell>
-      <TableCell sx={{ ...cellSx, ...residualDividerSx }}>
+      <TableCell align={layout('recs').align} sx={{ ...cellSx, ...residualDividerSx }}>
         {renderText('recs', formatInventoryLines(row.recommendations))}
       </TableCell>
-      <TableCell sx={{ ...cellSx, fontWeight: 700 }} align="center">
+      <TableCell align={layout('pAfter').align} sx={{ ...cellSx, ...pad('pAfter'), fontWeight: 700 }}>
         {renderText('pAfter', inventoryResidualProbabilityText(row))}
       </TableCell>
-      <TableCell sx={cellSx}>
-        <RiskPill presentation={row.residual.presentation} compact={vertical('residual')} />
+      <TableCell align={layout('residual').align} sx={{ ...cellSx, ...pad('residual') }}>
+        <RiskPill
+          presentation={row.residual.presentation}
+          compact={vertical('residual')}
+          stackPx={layout('residual').stackPx}
+          align={layout('residual').align}
+        />
       </TableCell>
     </TableRow>
   );
@@ -282,10 +330,20 @@ export function RiskInventoryTable({
   units: RiskInventoryUnit[];
   columnPreference?: RiskInventoryColumnsPreference | null;
 }) {
-  const headerVertical = (columnId: (typeof columns)[number]['id']) =>
+  const headerVertical = (columnId: InventoryColumnId) =>
     inventoryScreenColumnHeaderOrientation(columnPreference, columnId) === 'VERTICAL';
-  const headerLabel = (columnId: (typeof columns)[number]['id'], fallback: string) =>
+  const headerLabel = (columnId: InventoryColumnId, fallback: string) =>
     inventoryScreenColumnHeaderLabel(columnPreference, columnId, fallback);
+  const layouts = columns.map((column) => ({
+    ...column,
+    layout: columnLayout(columnPreference, column.id, column.label),
+  }));
+  const tableMinWidth = layouts.reduce((sum, column) => sum + column.layout.width, 0);
+  const pinnedSum = layouts.reduce(
+    (sum, column) => sum + (column.layout.pinWidth ? column.layout.width : 0),
+    0,
+  );
+  const flexCount = layouts.filter((column) => !column.layout.pinWidth).length;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -307,7 +365,27 @@ export function RiskInventoryTable({
             </Typography>
           ) : (
             <TableContainer sx={{ maxHeight: 'calc(100vh - 280px)', overflow: 'auto' }}>
-              <Table stickyHeader size="small" sx={{ minWidth: 1480 }}>
+              <Table
+                stickyHeader
+                size="small"
+                sx={{
+                  tableLayout: 'fixed',
+                  width: flexCount === 0 ? tableMinWidth : '100%',
+                  minWidth: tableMinWidth,
+                }}
+              >
+                <colgroup>
+                  {layouts.map((column) => (
+                    <col
+                      key={column.id}
+                      style={{
+                        width: column.layout.pinWidth
+                          ? `${column.layout.width}px`
+                          : `max(${column.layout.width}px, calc((100% - ${pinnedSum}px) / ${flexCount}))`,
+                      }}
+                    />
+                  ))}
+                </colgroup>
                 <TableHead>
                   <TableRow>
                     {INVENTORY_HEADER_GROUPS.map((group) => (
@@ -334,24 +412,30 @@ export function RiskInventoryTable({
                     ))}
                   </TableRow>
                   <TableRow>
-                    {columns.map((column) => (
+                    {layouts.map((column) => (
                       <TableCell
                         key={column.id}
+                        align={column.layout.align}
                         sx={{
                           top: INVENTORY_GROUP_HEADER_PX,
                           zIndex: 3,
-                          minWidth: column.minWidth,
+                          verticalAlign: 'middle',
+                          ...(column.layout.role === 'text' ? {} : { px: 0.5 }),
                           fontWeight: 700,
                           fontSize: 12,
                           bgcolor: 'background.paper',
-                          ...(headerVertical(column.id) ? {} : { whiteSpace: 'nowrap' }),
+                          ...(headerVertical(column.id) || column.layout.role === 'text'
+                            ? {}
+                            : { whiteSpace: 'nowrap' }),
                           ...('dividerBefore' in column ? residualDividerSx : {}),
                         }}
                       >
                         {headerVertical(column.id) ? (
                           <VerticalText
                             text={headerLabel(column.id, column.label)}
-                            linePx={INVENTORY_VERTICAL_HEADER_LINE_PX}
+                            linePx={inventoryVerticalHeaderBoxPx(headerLabel(column.id, column.label))}
+                            stackPx={column.layout.stackPx}
+                            align={column.layout.align}
                           />
                         ) : (
                           headerLabel(column.id, column.label)

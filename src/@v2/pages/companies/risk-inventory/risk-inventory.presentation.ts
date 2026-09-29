@@ -84,6 +84,42 @@ export function inventoryDefaultColumnLabel(key: RiskInventoryConfigurableColumn
   return INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === key)!.label;
 }
 
+/** Width policy. A new column picks a role; it does not resize the table by hand. */
+export type InventoryColumnWidthRole = 'mark' | 'token' | 'text';
+
+const INVENTORY_COLUMN_WIDTH_ROLE: Record<RiskInventoryConfigurableColumnKey, InventoryColumnWidthRole> = {
+  TYPE: 'token',
+  HAZARD: 'text',
+  DAMAGE: 'text',
+  GENERATING_SOURCE: 'text',
+  EPI: 'text',
+  ENGINEERING: 'text',
+  ADMINISTRATIVE: 'text',
+  SEVERITY: 'mark',
+  PROBABILITY: 'mark',
+  REAL_RISK: 'token',
+  RECOMMENDATIONS: 'text',
+  PROBABILITY_RESIDUAL: 'mark',
+  RESIDUAL_RISK: 'token',
+};
+
+const INVENTORY_WIDTH_HORIZONTAL_PX: Record<InventoryColumnWidthRole, number> = {
+  mark: 48,
+  token: 120,
+  text: 168,
+};
+
+const INVENTORY_WIDTH_VERTICAL_PX: Record<InventoryColumnWidthRole, number> = {
+  mark: 48,
+  token: 64,
+  text: 128,
+};
+
+const INVENTORY_STACK_VERTICAL_PX = {
+  mark: 32,
+  token: 44,
+} as const;
+
 /**
  * Structural screen header only. These bands are not column preferences.
  * Spans follow the 13 screen columns: no Origem, and no second S.
@@ -177,6 +213,44 @@ export function inventoryScreenColumnHeaderOrientation(
   columnId: keyof typeof SCREEN_COLUMN_KEY,
 ): RiskInventoryColumnOrientation {
   return inventoryColumnHeaderOrientation(preference, SCREEN_COLUMN_KEY[columnId]);
+}
+
+export function inventoryScreenColumnLayout(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  columnId: keyof typeof SCREEN_COLUMN_KEY,
+  headerText: string,
+): {
+  role: InventoryColumnWidthRole;
+  width: number;
+  stackPx: number;
+  lockWidth: boolean;
+  pinWidth: boolean;
+  align: 'left' | 'center';
+} {
+  const role = INVENTORY_COLUMN_WIDTH_ROLE[SCREEN_COLUMN_KEY[columnId]];
+  const headerOrientation = inventoryScreenColumnHeaderOrientation(preference, columnId);
+  const contentOrientation = inventoryScreenColumnOrientation(preference, columnId);
+  const verticalWidth = INVENTORY_WIDTH_VERTICAL_PX[role];
+  const horizontalWidth = INVENTORY_WIDTH_HORIZONTAL_PX[role];
+  const headerFloor = headerOrientation === 'VERTICAL' ? verticalWidth : role === 'mark' ? 48 : 72;
+  const contentWidth = contentOrientation === 'VERTICAL' ? verticalWidth : horizontalWidth;
+  const longHorizontalHeader = headerOrientation === 'HORIZONTAL' && headerText.trim().length > 4;
+  const wideHorizontalContent = contentOrientation === 'HORIZONTAL' && role !== 'mark';
+  const lockWidth = !longHorizontalHeader && !wideHorizontalContent;
+  return {
+    role,
+    width: Math.max(headerFloor, contentWidth),
+    stackPx: role === 'text' ? INVENTORY_VERTICAL_STACK_PX : INVENTORY_STACK_VERTICAL_PX[role],
+    lockWidth,
+    pinWidth: lockWidth || (role !== 'text' && !longHorizontalHeader),
+    align: role === 'text' ? 'left' : 'center',
+  };
+}
+
+/** Header box only. Short titles stay short so the cell can center them. Capped at the header limit. */
+export function inventoryVerticalHeaderBoxPx(text: string): number {
+  const estimated = Math.ceil(text.trim().length * 7.5 + 8);
+  return Math.min(INVENTORY_VERTICAL_HEADER_LINE_PX, Math.max(20, estimated));
 }
 
 export type InventoryTitleChoice = 'SAME' | RiskInventoryColumnOrientation;
