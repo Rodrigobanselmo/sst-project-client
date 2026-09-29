@@ -60,25 +60,29 @@ export function inventoryPresentationText(
   return label || abbreviation || INVENTORY_EMPTY;
 }
 
+/** One default title per column, shared by the screen and APR_GROUP v2. */
 export const INVENTORY_CONFIGURABLE_COLUMNS: Array<{
   key: RiskInventoryConfigurableColumnKey;
   label: string;
-  wordLabel: string;
 }> = [
-  { key: 'TYPE', label: 'Tipo', wordLabel: 'Tipo' },
-  { key: 'HAZARD', label: 'Fator de risco', wordLabel: 'Perigo ou Fator de Risco Ocupacional (P/FRO)' },
-  { key: 'DAMAGE', label: 'Risco / dano', wordLabel: 'Risco' },
-  { key: 'GENERATING_SOURCE', label: 'Fonte geradora', wordLabel: 'Fonte Geradora ou Circunstância de Risco' },
-  { key: 'EPI', label: 'EPI', wordLabel: 'EPI' },
-  { key: 'ENGINEERING', label: 'EPC / ENG', wordLabel: 'EPC/ENG.' },
-  { key: 'ADMINISTRATIVE', label: 'ADM', wordLabel: 'ADM' },
-  { key: 'SEVERITY', label: 'S', wordLabel: 'S' },
-  { key: 'PROBABILITY', label: 'P', wordLabel: 'P' },
-  { key: 'REAL_RISK', label: 'Risco real', wordLabel: 'RO' },
-  { key: 'RECOMMENDATIONS', label: 'Recomendações', wordLabel: 'Recomendações' },
-  { key: 'PROBABILITY_RESIDUAL', label: 'P residual', wordLabel: 'P' },
-  { key: 'RESIDUAL_RISK', label: 'Risco residual', wordLabel: 'RO' },
+  { key: 'TYPE', label: 'Tipo' },
+  { key: 'HAZARD', label: 'Perigo ou Fator de Risco Ocupacional (P/FRO)' },
+  { key: 'DAMAGE', label: 'Risco' },
+  { key: 'GENERATING_SOURCE', label: 'Fonte Geradora ou Circunstância de Risco' },
+  { key: 'EPI', label: 'EPI' },
+  { key: 'ENGINEERING', label: 'EPC/ENG.' },
+  { key: 'ADMINISTRATIVE', label: 'ADM' },
+  { key: 'SEVERITY', label: 'S' },
+  { key: 'PROBABILITY', label: 'P' },
+  { key: 'REAL_RISK', label: 'RO' },
+  { key: 'RECOMMENDATIONS', label: 'Recomendações' },
+  { key: 'PROBABILITY_RESIDUAL', label: 'P' },
+  { key: 'RESIDUAL_RISK', label: 'RO' },
 ];
+
+export function inventoryDefaultColumnLabel(key: RiskInventoryConfigurableColumnKey): string {
+  return INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === key)!.label;
+}
 
 const SCREEN_COLUMN_KEY = {
   type: 'TYPE',

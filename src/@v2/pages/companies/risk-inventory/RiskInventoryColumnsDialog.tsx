@@ -86,7 +86,7 @@ export function RiskInventoryColumnsDialog({
           {INVENTORY_CONFIGURABLE_COLUMNS.map((column) => (
             <Stack key={column.key} spacing={0.5}>
               <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 120 }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, flex: '1 1 220px' }}>
                   {column.label}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -126,13 +126,10 @@ export function RiskInventoryColumnsDialog({
                   </Select>
                 </Stack>
               </Stack>
-              <Typography variant="caption" color="text.secondary">
-                Título personalizado
-              </Typography>
               <TextField
                 size="small"
                 fullWidth
-                placeholder="Padrão"
+                placeholder="Título personalizado"
                 value={labelDraft[column.key]}
                 inputProps={{ maxLength: 80, 'aria-label': 'Título personalizado' }}
                 onChange={(event) =>
@@ -142,11 +139,6 @@ export function RiskInventoryColumnsDialog({
                   }))
                 }
               />
-              {column.wordLabel !== column.label ? (
-                <Typography variant="caption" color="text.secondary" sx={{ mt: -0.25 }}>
-                  Word: {column.wordLabel}
-                </Typography>
-              ) : null}
             </Stack>
           ))}
         </Stack>

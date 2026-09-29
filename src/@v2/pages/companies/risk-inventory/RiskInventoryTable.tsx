@@ -10,6 +10,7 @@ import {
 import {
   formatInventoryEpis,
   formatInventoryLines,
+  inventoryDefaultColumnLabel,
   inventoryExposedEmployeeText,
   inventoryPresentationColor,
   inventoryPresentationText,
@@ -31,19 +32,19 @@ import {
 } from './risk-inventory.presentation';
 
 const columns = [
-  { id: 'type', label: 'Tipo', minWidth: 88 },
-  { id: 'hazard', label: 'Fator de risco', minWidth: 180 },
-  { id: 'damage', label: 'Risco / dano', minWidth: 160 },
-  { id: 'source', label: 'Fonte geradora', minWidth: 160 },
-  { id: 'epi', label: 'EPI', minWidth: 160 },
-  { id: 'epc', label: 'EPC / ENG', minWidth: 140 },
-  { id: 'adm', label: 'ADM', minWidth: 140 },
-  { id: 'severity', label: 'S', minWidth: 48 },
-  { id: 'probability', label: 'P', minWidth: 48 },
-  { id: 'real', label: 'Risco real', minWidth: 140 },
-  { id: 'recs', label: 'Recomendações', minWidth: 180 },
-  { id: 'pAfter', label: 'P residual', minWidth: 72 },
-  { id: 'residual', label: 'Risco residual', minWidth: 150 },
+  { id: 'type', label: inventoryDefaultColumnLabel('TYPE'), minWidth: 88 },
+  { id: 'hazard', label: inventoryDefaultColumnLabel('HAZARD'), minWidth: 180 },
+  { id: 'damage', label: inventoryDefaultColumnLabel('DAMAGE'), minWidth: 160 },
+  { id: 'source', label: inventoryDefaultColumnLabel('GENERATING_SOURCE'), minWidth: 160 },
+  { id: 'epi', label: inventoryDefaultColumnLabel('EPI'), minWidth: 160 },
+  { id: 'epc', label: inventoryDefaultColumnLabel('ENGINEERING'), minWidth: 140 },
+  { id: 'adm', label: inventoryDefaultColumnLabel('ADMINISTRATIVE'), minWidth: 140 },
+  { id: 'severity', label: inventoryDefaultColumnLabel('SEVERITY'), minWidth: 48 },
+  { id: 'probability', label: inventoryDefaultColumnLabel('PROBABILITY'), minWidth: 48 },
+  { id: 'real', label: inventoryDefaultColumnLabel('REAL_RISK'), minWidth: 140 },
+  { id: 'recs', label: inventoryDefaultColumnLabel('RECOMMENDATIONS'), minWidth: 180 },
+  { id: 'pAfter', label: inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL'), minWidth: 72 },
+  { id: 'residual', label: inventoryDefaultColumnLabel('RESIDUAL_RISK'), minWidth: 150 },
 ] as const;
 
 const cellSx = {

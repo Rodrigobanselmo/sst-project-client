@@ -11,6 +11,7 @@ import {
   formatInventoryEpis,
   formatInventoryLines,
   inventoryExposedEmployeeText,
+  inventoryDefaultColumnLabel,
   inventoryColumnDraftHeaderChoice,
   inventoryColumnDraftHeaderLabel,
   inventoryColumnDraftOrientation,
@@ -94,7 +95,7 @@ const tableSource = readFileSync(
 );
 assert.equal(tableSource.includes('EPIs do grupo'), false);
 assert.equal(tableSource.includes('expostos`'), false);
-assert.equal(tableSource.includes("label: 'EPI'"), true);
+assert.equal(tableSource.includes("inventoryDefaultColumnLabel('EPI')"), true);
 assert.equal(tableSource.includes('formatInventoryEpis(row.epis)'), true);
 assert.equal(tableSource.includes('row.realRisk'), true);
 assert.equal(tableSource.includes('row.residual.presentation'), true);
@@ -202,33 +203,45 @@ assert.equal(inventoryColumnHeaderOrientation(null, 'TYPE'), 'HORIZONTAL');
 assert.equal(tableSource.includes('inventoryScreenColumnHeaderOrientation'), true);
 assert.equal(tableSource.includes('inventoryScreenColumnOrientation'), true);
 assert.equal(tableSource.includes('inventoryScreenColumnHeaderLabel'), true);
+const hazardDefault = inventoryDefaultColumnLabel('HAZARD');
+const damageDefault = inventoryDefaultColumnLabel('DAMAGE');
+assert.equal(hazardDefault, 'Perigo ou Fator de Risco Ocupacional (P/FRO)');
+assert.equal(damageDefault, 'Risco');
 assert.equal(
-  inventoryScreenColumnHeaderLabel(null, 'hazard', 'Fator de risco'),
-  'Fator de risco',
+  inventoryScreenColumnHeaderLabel(null, 'hazard', hazardDefault),
+  hazardDefault,
 );
 assert.equal(
   inventoryScreenColumnHeaderLabel(
     { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL' }] },
     'hazard',
-    'Fator de risco',
+    hazardDefault,
   ),
-  'Fator de risco',
+  hazardDefault,
 );
 assert.equal(
   inventoryScreenColumnHeaderLabel(
     { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerLabel: 'Perigo' }] },
     'hazard',
-    'Fator de risco',
+    hazardDefault,
   ),
   'Perigo',
 );
 assert.equal(
   inventoryScreenColumnHeaderLabel(
+    { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL' }] },
+    'hazard',
+    hazardDefault,
+  ),
+  hazardDefault,
+);
+assert.equal(
+  inventoryScreenColumnHeaderLabel(
     { version: 1, columns: [{ key: 'HAZARD', orientation: 'VERTICAL', headerLabel: 'Perigo' }] },
     'damage',
-    'Risco / dano',
+    damageDefault,
   ),
-  'Risco / dano',
+  damageDefault,
 );
 assert.equal(
   inventoryScreenColumnOrientation(
@@ -245,13 +258,15 @@ assert.equal(
   ),
   'Perigo',
 );
-assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === 'HAZARD')?.label, 'Fator de risco');
-assert.equal(
-  INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === 'HAZARD')?.wordLabel,
-  'Perigo ou Fator de Risco Ocupacional (P/FRO)',
-);
-assert.equal(tableSource.includes("label: 'Fator de risco'"), true);
-assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === 'TYPE')?.wordLabel, 'Tipo');
+assert.equal(inventoryDefaultColumnLabel('TYPE'), 'Tipo');
+assert.equal(inventoryDefaultColumnLabel('GENERATING_SOURCE'), 'Fonte Geradora ou Circunstância de Risco');
+assert.equal(inventoryDefaultColumnLabel('ENGINEERING'), 'EPC/ENG.');
+assert.equal(inventoryDefaultColumnLabel('REAL_RISK'), 'RO');
+assert.equal(inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL'), 'P');
+assert.equal(inventoryDefaultColumnLabel('RESIDUAL_RISK'), 'RO');
+assert.equal(tableSource.includes('inventoryDefaultColumnLabel'), true);
+assert.equal(tableSource.includes('Fator de risco'), false);
+assert.equal(tableSource.includes('headerLabel(column.id, column.label)'), true);
 
 const dialogSource = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryColumnsDialog.tsx'),
@@ -262,9 +277,12 @@ assert.equal(dialogSource.includes("value=\"SAME\""), true);
 assert.equal(dialogSource.includes('headerOrientation: title'), true);
 assert.equal(dialogSource.includes("title === 'SAME'"), true);
 assert.equal(dialogSource.includes('save(null)'), true);
-assert.equal(dialogSource.includes('placeholder="Padrão"'), true);
+assert.equal(dialogSource.includes('placeholder="Título personalizado"'), true);
+assert.equal(dialogSource.includes('placeholder="Padrão"'), false);
+assert.equal(dialogSource.includes('Word:'), false);
+assert.equal(dialogSource.includes('wordLabel'), false);
 assert.equal(dialogSource.includes('headerLabel'), true);
-assert.equal(dialogSource.includes('Título personalizado'), true);
+assert.equal(dialogSource.includes('fontWeight: 700'), true);
 assert.equal(inventoryVerticalRiskText({ label: 'Tolerável', abbreviation: 'DA', color: null, level: null, matrixSource: 'CUSTOM', matrixVersionId: null }), 'Tolerável');
 assert.equal(inventoryVerticalRiskText({ label: 'Moderado_ERG', abbreviation: 'MERG', color: '#abc', level: 3, matrixSource: 'CUSTOM', matrixVersionId: null }), 'Moderado_ERG');
 assert.equal(inventoryVerticalRiskText({ label: 'Moderado', abbreviation: 'M', color: null, level: 3, matrixSource: 'SYSTEM', matrixVersionId: null }), 'Moderado');
