@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import { Alert, Box, Button, CircularProgress, IconButton, Popover, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 
 import { RiskPrioritizationGrid, omitRepresentAllPrioritizationRisks } from '@v2/pages/companies/risk-prioritization/RiskPrioritizationGrid';
@@ -33,6 +34,22 @@ import { useQueryAllRisk } from 'core/services/hooks/queries/useQueryRiskAll';
 type RiskPrioritizationTabContentProps = {
   workspaceId?: string;
   queryEnabled?: boolean;
+};
+
+const RISK_STATE_HELP: Record<
+  PrioritizationRiskState,
+  { title: string; text: string; label: string }
+> = {
+  REAL: {
+    title: 'Risco Real (Puro/Inerente)',
+    text: 'Risco constatado na avaliação, considerando os controles existentes no momento da caracterização.',
+    label: 'Definição de risco real',
+  },
+  RESIDUAL: {
+    title: 'Risco Residual',
+    text: 'Risco remanescente após a implantação e/ou ajuste das medidas de controle recomendadas.',
+    label: 'Definição de risco residual',
+  },
 };
 
 export function RiskPrioritizationTabContent({
@@ -104,6 +121,10 @@ export function RiskPrioritizationTabContent({
   const storedOrientation = data?.matrixOrientation ?? null;
   const displayedOrientation = displayedPrioritizationOrientation(storedOrientation);
   const [riskState, setRiskState] = useState<PrioritizationRiskState>('REAL');
+  const [riskHelp, setRiskHelp] = useState<{
+    anchor: HTMLElement;
+    state: PrioritizationRiskState;
+  } | null>(null);
 
   const selectOrientation = useCallback(
     (selected: PrioritizationMatrixOrientation) => {
@@ -197,20 +218,46 @@ export function RiskPrioritizationTabContent({
         origem. Edição é feita na fonte (GSE ou Elemento Caracterizado).
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-        <Button
-          size="small"
-          variant={riskState === 'REAL' ? 'contained' : 'outlined'}
-          onClick={() => setRiskState('REAL')}
+        {(['REAL', 'RESIDUAL'] as const).map((state) => (
+          <Box key={state} sx={{ display: 'inline-flex', alignItems: 'center' }}>
+            <Button
+              size="small"
+              variant={riskState === state ? 'contained' : 'outlined'}
+              onClick={() => setRiskState(state)}
+            >
+              {state === 'REAL' ? 'Risco real' : 'Risco residual'}
+            </Button>
+            <IconButton
+              size="small"
+              aria-label={RISK_STATE_HELP[state].label}
+              aria-expanded={riskHelp?.state === state}
+              onClick={(event) =>
+                setRiskHelp({ anchor: event.currentTarget, state })
+              }
+              sx={{ ml: 0.25, color: 'text.secondary' }}
+            >
+              <InfoOutlined sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Box>
+        ))}
+        <Popover
+          open={Boolean(riskHelp)}
+          anchorEl={riskHelp?.anchor}
+          onClose={() => setRiskHelp(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         >
-          Risco real
-        </Button>
-        <Button
-          size="small"
-          variant={riskState === 'RESIDUAL' ? 'contained' : 'outlined'}
-          onClick={() => setRiskState('RESIDUAL')}
-        >
-          Risco residual
-        </Button>
+          {riskHelp ? (
+            <Box sx={{ p: 1.5, maxWidth: 280 }}>
+              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                {RISK_STATE_HELP[riskHelp.state].title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {RISK_STATE_HELP[riskHelp.state].text}
+              </Typography>
+            </Box>
+          ) : null}
+        </Popover>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
         <Button
