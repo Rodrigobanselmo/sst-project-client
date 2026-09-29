@@ -84,6 +84,28 @@ export function inventoryDefaultColumnLabel(key: RiskInventoryConfigurableColumn
   return INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === key)!.label;
 }
 
+/**
+ * Structural screen header only. These bands are not column preferences.
+ * Spans follow the 13 screen columns: no Origem, and no second S.
+ */
+export const INVENTORY_HEADER_GROUPS = [
+  {
+    id: 'occupation',
+    label: 'Severidade (S) × Probabilidade (P) = RISCO OCUPACIONAL (RO):',
+    colSpan: 4,
+  },
+  {
+    id: 'real',
+    label: 'RISCO PURO / INERENTE (REAL)',
+    colSpan: 6,
+  },
+  {
+    id: 'residual',
+    label: 'RISCO RESIDUAL',
+    colSpan: 3,
+  },
+] as const;
+
 const SCREEN_COLUMN_KEY = {
   type: 'TYPE',
   hazard: 'HAZARD',

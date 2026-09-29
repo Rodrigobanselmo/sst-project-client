@@ -12,6 +12,7 @@ import {
   formatInventoryLines,
   inventoryDefaultColumnLabel,
   inventoryExposedEmployeeText,
+  INVENTORY_HEADER_GROUPS,
   inventoryPresentationColor,
   inventoryPresentationText,
   inventoryProbabilityHint,
@@ -42,7 +43,7 @@ const columns = [
   { id: 'severity', label: inventoryDefaultColumnLabel('SEVERITY'), minWidth: 48 },
   { id: 'probability', label: inventoryDefaultColumnLabel('PROBABILITY'), minWidth: 48 },
   { id: 'real', label: inventoryDefaultColumnLabel('REAL_RISK'), minWidth: 140 },
-  { id: 'recs', label: inventoryDefaultColumnLabel('RECOMMENDATIONS'), minWidth: 180 },
+  { id: 'recs', label: inventoryDefaultColumnLabel('RECOMMENDATIONS'), minWidth: 180, dividerBefore: true },
   { id: 'pAfter', label: inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL'), minWidth: 72 },
   { id: 'residual', label: inventoryDefaultColumnLabel('RESIDUAL_RISK'), minWidth: 150 },
 ] as const;
@@ -53,6 +54,13 @@ const cellSx = {
   fontSize: 13,
   lineHeight: 1.35,
   py: 1,
+};
+
+const INVENTORY_GROUP_HEADER_PX = 32;
+
+const residualDividerSx = {
+  borderLeft: '2px solid',
+  borderLeftColor: 'text.primary',
 };
 
 function textOn(color: string): string {
@@ -223,7 +231,9 @@ function InventoryRow({
       <TableCell sx={cellSx}>
         <RiskPill presentation={row.realRisk} compact={vertical('real')} />
       </TableCell>
-      <TableCell sx={cellSx}>{renderText('recs', formatInventoryLines(row.recommendations))}</TableCell>
+      <TableCell sx={{ ...cellSx, ...residualDividerSx }}>
+        {renderText('recs', formatInventoryLines(row.recommendations))}
+      </TableCell>
       <TableCell sx={{ ...cellSx, fontWeight: 700 }} align="center">
         {renderText('pAfter', inventoryResidualProbabilityText(row))}
       </TableCell>
@@ -300,15 +310,42 @@ export function RiskInventoryTable({
               <Table stickyHeader size="small" sx={{ minWidth: 1480 }}>
                 <TableHead>
                   <TableRow>
+                    {INVENTORY_HEADER_GROUPS.map((group) => (
+                      <TableCell
+                        key={group.id}
+                        colSpan={group.colSpan}
+                        align={group.id === 'occupation' ? 'left' : 'center'}
+                        sx={{
+                          top: 0,
+                          zIndex: 4,
+                          height: INVENTORY_GROUP_HEADER_PX,
+                          py: 0,
+                          boxSizing: 'border-box',
+                          fontWeight: 700,
+                          fontSize: 11,
+                          lineHeight: 1.2,
+                          whiteSpace: 'nowrap',
+                          bgcolor: 'grey.50',
+                          ...(group.id === 'residual' ? residualDividerSx : {}),
+                        }}
+                      >
+                        {group.label}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow>
                     {columns.map((column) => (
                       <TableCell
                         key={column.id}
                         sx={{
+                          top: INVENTORY_GROUP_HEADER_PX,
+                          zIndex: 3,
                           minWidth: column.minWidth,
                           fontWeight: 700,
                           fontSize: 12,
                           bgcolor: 'background.paper',
                           ...(headerVertical(column.id) ? {} : { whiteSpace: 'nowrap' }),
+                          ...('dividerBefore' in column ? residualDividerSx : {}),
                         }}
                       >
                         {headerVertical(column.id) ? (

@@ -27,6 +27,7 @@ import {
   inventoryUnitScopeText,
   inventoryVerticalRiskText,
   INVENTORY_CONFIGURABLE_COLUMNS,
+  INVENTORY_HEADER_GROUPS,
   INVENTORY_EXPOSED_LABEL,
   INVENTORY_SCOPE_LABEL,
   INVENTORY_VERTICAL_HEADER_LINE_PX,
@@ -122,6 +123,26 @@ assert.equal(INVENTORY_VERTICAL_STACK_PX > 0 && INVENTORY_VERTICAL_STACK_PX < IN
 assert.equal(tableSource.includes('minWidth: column.minWidth'), true);
 
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.length, 13);
+assert.equal(
+  INVENTORY_HEADER_GROUPS.reduce((sum, group) => sum + group.colSpan, 0),
+  INVENTORY_CONFIGURABLE_COLUMNS.length,
+);
+assert.deepEqual(
+  INVENTORY_HEADER_GROUPS.map((group) => ({ id: group.id, colSpan: group.colSpan, label: group.label })),
+  [
+    {
+      id: 'occupation',
+      colSpan: 4,
+      label: 'Severidade (S) × Probabilidade (P) = RISCO OCUPACIONAL (RO):',
+    },
+    { id: 'real', colSpan: 6, label: 'RISCO PURO / INERENTE (REAL)' },
+    { id: 'residual', colSpan: 3, label: 'RISCO RESIDUAL' },
+  ],
+);
+assert.equal(tableSource.includes('INVENTORY_HEADER_GROUPS'), true);
+assert.equal(tableSource.includes('headerLabel(column.id, column.label)'), true);
+assert.equal(tableSource.includes("borderLeft: '2px solid'"), true);
+assert.equal(tableSource.includes('dividerBefore: true'), true);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'ORIGIN'), false);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'SEVERITY_RESIDUAL'), false);
 assert.equal(inventoryColumnOrientation(null, 'TYPE'), 'HORIZONTAL');
