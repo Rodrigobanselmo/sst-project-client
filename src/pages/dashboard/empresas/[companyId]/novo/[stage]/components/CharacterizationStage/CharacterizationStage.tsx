@@ -61,6 +61,8 @@ function CharacterizationSubTabPanel(props: {
           queryEnabled={props.isWorkspaceFilterReady}
           companyFlowSticky
           companyFlowBelowTabs
+          enableSectorRiskPresenceMap
+          isAllEstablishments={props.isAllEstablishments}
         />
       );
     case CharacterizationSubTabEnum.GSE:

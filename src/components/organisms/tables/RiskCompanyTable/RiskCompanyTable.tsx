@@ -1,6 +1,6 @@
 import { FC, useCallback, useMemo, useState } from 'react';
 
-import { Box, BoxProps } from '@mui/material';
+import { Box, BoxProps, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { tableUtilityPillButtonProps } from 'configs/theme/brand-identity-fill';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -23,7 +23,9 @@ import { STagRisk } from 'components/atoms/STagRisk';
 import SText from 'components/atoms/SText';
 import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
+import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
+import { SectorRiskPresenceView } from '@v2/pages/companies/sector-risk-presence/SectorRiskPresenceView';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
@@ -108,6 +110,9 @@ export const RiskCompanyTable: FC<
       companyFlowSticky?: boolean;
       /** Chrome sticky abaixo das abas do módulo (ex.: Riscos / GSE). */
       companyFlowBelowTabs?: boolean;
+      /** Liga Lista | Mapa de Presença. Só a aba Caracterização > Riscos usa isso. */
+      enableSectorRiskPresenceMap?: boolean;
+      isAllEstablishments?: boolean;
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
@@ -117,8 +122,11 @@ export const RiskCompanyTable: FC<
   selectedData,
   companyFlowSticky = false,
   companyFlowBelowTabs = false,
+  enableSectorRiskPresenceMap = false,
+  isAllEstablishments = false,
 }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
+  const [presenceView, setPresenceView] = useState<'list' | 'presence'>('list');
   const [openId, setOpenId] = useState('');
   const { data: riskGroupData } = useQueryRiskGroupData();
 
@@ -298,6 +306,67 @@ export const RiskCompanyTable: FC<
     ...visibleColumns.map((c) => c.column),
   ].join(' ');
 
+  const presenceToggle =
+    enableSectorRiskPresenceMap && !isSelect ? (
+      <ToggleButtonGroup
+        exclusive
+        size="small"
+        value={presenceView}
+        aria-label="Visualização dos fatores de risco"
+        onChange={(_, next: 'list' | 'presence' | null) => {
+          if (next) setPresenceView(next);
+        }}
+        sx={{
+          mb: 2,
+          '& .MuiToggleButton-root': { textTransform: 'none', px: 1.5 },
+        }}
+      >
+        <ToggleButton value="list">Lista</ToggleButton>
+        <ToggleButton value="presence">Mapa de Presença</ToggleButton>
+      </ToggleButtonGroup>
+    ) : null;
+
+  const presenceHeader = (
+    <>
+      <STableTitle
+        subtitle="Mapa de Presença dos Fatores de Risco por Setor"
+        icon={SRiskFactorIcon}
+      >
+        Fatores de risco e perigos
+      </STableTitle>
+      {presenceToggle}
+    </>
+  );
+
+  if (enableSectorRiskPresenceMap && presenceView === 'presence' && !isSelect) {
+    const map = (
+      <SectorRiskPresenceView
+        companyId={companyId}
+        workspaceId={workspaceId}
+        isAllEstablishments={isAllEstablishments}
+        queryEnabled={queryEnabled}
+      />
+    );
+
+    if (companyFlowSticky) {
+      return (
+        <>
+          <CompanyFlowStickySubheader belowModuleTabs={companyFlowBelowTabs}>
+            {presenceHeader}
+          </CompanyFlowStickySubheader>
+          {map}
+        </>
+      );
+    }
+
+    return (
+      <>
+        {presenceHeader}
+        {map}
+      </>
+    );
+  }
+
   const tableChrome = (
     <>
       {!isSelect && (
@@ -308,6 +377,7 @@ export const RiskCompanyTable: FC<
           Fatores de risco e perigos
         </STableTitle>
       )}
+      {presenceToggle}
       <STableSearch
         onAddClick={onAddRisk}
         onChange={(e) => handleSearchChange(e.target.value)}
