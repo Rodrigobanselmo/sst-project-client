@@ -1,4 +1,6 @@
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { useState } from 'react';
 
 import {
   RiskInventoryColumnsPreference,
@@ -320,21 +322,67 @@ function InventoryRow({
   );
 }
 
-function UnitHeader({ unit }: { unit: RiskInventoryUnit }) {
+function UnitHeader({
+  unit,
+  expanded,
+  onToggle,
+}: {
+  unit: RiskInventoryUnit;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Box
+      component="button"
+      type="button"
+      aria-expanded={expanded}
+      onClick={onToggle}
+      sx={{
+        display: 'flex',
+        width: '100%',
+        alignItems: 'center',
+        gap: 1,
+        px: 1.5,
+        py: 1.25,
+        bgcolor: 'grey.50',
+        border: 0,
+        borderBottom: expanded ? '1px solid' : 'none',
+        borderColor: 'divider',
+        borderRadius: 0,
+        cursor: 'pointer',
+        textAlign: 'left',
+        color: 'inherit',
+        font: 'inherit',
+      }}
+    >
+      <ExpandMoreIcon
+        sx={{
+          fontSize: '1.4rem',
+          color: 'text.secondary',
+          flexShrink: 0,
+          transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+          transition: 'transform 0.15s ease',
+        }}
+      />
+      <Typography component="span" variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+        {unit.name}
+      </Typography>
+    </Box>
+  );
+}
+
+function UnitDetails({ unit }: { unit: RiskInventoryUnit }) {
   const scope = inventoryUnitScopeText(unit.scope);
 
   return (
-    <Box sx={{ px: 1.5, py: 1.25, bgcolor: 'grey.50', borderBottom: '1px solid', borderColor: 'divider' }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
-        {unit.name}
-      </Typography>
+    <Box sx={{ px: 1.5, pt: 1, pb: 1.25 }}>
       {unit.description ? (
-        <Typography variant="body2" sx={{ mt: 0.5 }}>
+        <Typography variant="body2">
           {unit.description}
         </Typography>
       ) : null}
       {scope ? (
-        <Typography variant="body2" sx={{ mt: 0.75 }}>
+        <Typography variant="body2" sx={{ mt: unit.description ? 0.75 : 0 }}>
           <Box component="span" sx={{ fontWeight: 700 }}>
             {INVENTORY_SCOPE_LABEL}{' '}
           </Box>
@@ -370,10 +418,21 @@ export function RiskInventoryTable({
   }));
   const totalWeight = layouts.reduce((sum, column) => sum + column.layout.weight, 0);
   const tableMinWidth = inventoryTableMinWidth(layouts.map((column) => column.layout.weight));
+  const [expandedUnitIds, setExpandedUnitIds] = useState<ReadonlySet<string>>(() => new Set());
+  const toggleUnit = (unitId: string) => {
+    setExpandedUnitIds((current) => {
+      const next = new Set(current);
+      if (next.has(unitId)) next.delete(unitId);
+      else next.add(unitId);
+      return next;
+    });
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {units.map((unit) => (
+      {units.map((unit) => {
+        const expanded = expandedUnitIds.has(unit.id);
+        return (
         <Box
           key={unit.id}
           sx={{
@@ -384,7 +443,10 @@ export function RiskInventoryTable({
             bgcolor: 'background.paper',
           }}
         >
-          <UnitHeader unit={unit} />
+          <UnitHeader unit={unit} expanded={expanded} onToggle={() => toggleUnit(unit.id)} />
+          {expanded ? (
+          <>
+          <UnitDetails unit={unit} />
           {unit.rows.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ px: 1.5, py: 2 }}>
               Nenhum fator de risco neste grupo.
@@ -480,8 +542,11 @@ export function RiskInventoryTable({
               </Table>
             </TableContainer>
           )}
+          </>
+          ) : null}
         </Box>
-      ))}
+        );
+      })}
     </Box>
   );
 }
