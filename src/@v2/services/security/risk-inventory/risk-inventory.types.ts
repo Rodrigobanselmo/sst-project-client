@@ -23,6 +23,8 @@ export type RiskInventoryRow = {
   riskFactorId: string;
   riskFactorDataIds: string[];
   originHomogeneousGroupIds: string[];
+  /** Resolved on the server for this row's homogeneous group. */
+  originText: string;
   riskType: string;
   riskTypeLabel: string;
   hazardName: string;

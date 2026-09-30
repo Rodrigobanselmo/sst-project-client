@@ -263,7 +263,10 @@ assert.deepEqual(
 assert.equal(tableSource.includes('inventoryHeaderGroups'), true);
 assert.equal(tableSource.includes("id: 'origin'"), true);
 assert.equal(tableSource.includes('inventoryOriginVisible'), true);
-assert.equal(tableSource.includes('inventoryOriginText(unit)'), true);
+assert.equal(tableSource.includes('inventoryOriginText(unit)'), false);
+assert.equal(tableSource.includes('row.originText'), true);
+assert.equal(tableSource.includes('unit.originSliceLabel'), false);
+assert.equal(tableSource.includes('originHomogeneousGroupIds.join'), true);
 assert.equal(tableSource.includes('headerLabel(column.id, column.label)'), true);
 assert.equal(tableSource.includes("borderLeft: '2px solid'"), true);
 assert.equal(tableSource.includes('dividerBefore: true'), true);

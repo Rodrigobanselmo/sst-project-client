@@ -13,7 +13,6 @@ import {
   inventoryDefaultColumnLabel,
   inventoryExposedEmployeeText,
   inventoryHeaderGroups,
-  inventoryOriginText,
   inventoryOriginVisible,
   inventoryPresentationColor,
   inventoryPresentationText,
@@ -232,12 +231,10 @@ function RiskPill({
 
 function InventoryRow({
   row,
-  unit,
   showOrigin,
   columnPreference,
 }: {
   row: RiskInventoryRow;
-  unit: RiskInventoryUnit;
   showOrigin: boolean;
   columnPreference: RiskInventoryColumnsPreference | null;
 }) {
@@ -272,7 +269,7 @@ function InventoryRow({
       </TableCell>
       {showOrigin ? (
         <TableCell align={layout('origin').align} sx={cellSx}>
-          {renderText('origin', inventoryOriginText(unit))}
+          {renderText('origin', textOrEmpty(row.originText))}
         </TableCell>
       ) : null}
       <TableCell align={layout('hazard').align} sx={{ ...cellSx, fontWeight: 600 }}>
@@ -473,9 +470,8 @@ export function RiskInventoryTable({
                 <TableBody>
                   {unit.rows.map((row) => (
                     <InventoryRow
-                      key={`${unit.id}-${row.riskFactorId}`}
+                      key={`${unit.id}-${row.riskFactorId}-${row.originHomogeneousGroupIds.join(',')}`}
                       row={row}
-                      unit={unit}
                       showOrigin={showOrigin}
                       columnPreference={columnPreference}
                     />
