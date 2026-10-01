@@ -9,6 +9,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEpiRiskData } from 'core/interfaces/api/IEpi';
 import { IExamRiskData } from 'core/interfaces/api/IExam';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
+import { QualitativeProbabilityCriteria } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { IEngsRiskData } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
@@ -35,6 +36,7 @@ export interface IUpsertRiskData {
   standardExams?: boolean;
   probability?: number;
   probabilityAfter?: number;
+  probabilityCriteria?: QualitativeProbabilityCriteria | null;
   adms?: string[];
   recs?: string[];
   exposure?: ExposureTypeEnum;

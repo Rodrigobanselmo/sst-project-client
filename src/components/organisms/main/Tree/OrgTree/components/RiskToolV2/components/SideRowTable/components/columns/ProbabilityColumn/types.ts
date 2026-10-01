@@ -1,5 +1,6 @@
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
+import { ProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 
 import { IRiskDataRow } from '../../../types';
 
@@ -10,4 +11,5 @@ export interface EpiColumnProps {
   data?: IRiskDataRow;
   risk?: IRiskFactors | null;
   planWorkspaceId?: string;
+  probabilityCountSource?: ProbabilityCountSource;
 }

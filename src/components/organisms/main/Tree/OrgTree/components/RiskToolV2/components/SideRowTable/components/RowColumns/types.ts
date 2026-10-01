@@ -5,6 +5,7 @@ import { IExam } from 'core/interfaces/api/IExam';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
+import { ProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 
 import { IRiskDataRow } from '../../types';
 
@@ -27,5 +28,6 @@ export interface RowColumnsProps extends BoxProps {
   handleDeleteRiskData?: () => void;
   /** Workspace do Plano de Ação (URL ou id composto do GHO) para filtrar `dataRecs`. */
   planWorkspaceId?: string;
+  probabilityCountSource?: ProbabilityCountSource;
   readOnly?: boolean;
 }

@@ -8,6 +8,8 @@ import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import { STagButton } from 'components/atoms/STagButton';
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
+import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
+import { allWorkspacesCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
 import { useRouter } from 'next/router';
@@ -164,9 +166,13 @@ export const SideRowTableMulti: FC<
         return acc + count;
       }, 0) || 0;
 
-    const handleSelectSync = (value: number) => {
-      handleSelect({ probability: value, ...data });
-      enqueueSnackbar(`A probabilidade sugerida pelo sistema é ${value}`, {
+    const handleSelectSync = (value: ProbabilityEstimateResult) => {
+      handleSelect({
+        ...data,
+        probability: value.probability,
+        probabilityCriteria: value.criteria,
+      });
+      enqueueSnackbar(`A probabilidade sugerida pelo sistema é ${value.probability}`, {
         variant: 'info',
         autoHideDuration: 3000,
         style: { transform: 'translateY(70px)' },
@@ -180,6 +186,7 @@ export const SideRowTableMulti: FC<
     onStackOpenModal(ModalEnum.PROBABILITY_ADD, {
       riskType: selectedRiskStore.type,
       employeeCountTotal: workspaceEmployeesCount,
+      adoptedCriteria: riskData?.probabilityCriteria ?? null,
       onCreate: handleSelectSync,
     } as typeof initialProbState);
   };
@@ -366,6 +373,7 @@ export const SideRowTableMulti: FC<
         handleEditEpi={handleEditEpi}
         handleEditEngs={handleEditEngs}
         handleEditExams={handleEditExams}
+        probabilityCountSource={allWorkspacesCountSource}
         mt={10}
         isRepresentAll={
           selectedRiskStore?.representAll ||

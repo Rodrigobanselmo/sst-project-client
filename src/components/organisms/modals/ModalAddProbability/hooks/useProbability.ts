@@ -13,6 +13,13 @@ import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/compa
 import { useQueryHierarchy } from 'core/services/hooks/queries/useQueryHierarchy';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
+import {
+  criteriaFromForm,
+  ProbabilityEstimateResult,
+  QualitativeProbabilityCriteria,
+  qualitativeProbabilityFromCriteria,
+} from '../qualitative-probability.util';
+
 export const initialProbState = {
   id: '',
   riskFactorDataAfterId: '',
@@ -31,18 +38,21 @@ export const initialProbState = {
   medsImplemented: '',
 
   hierarchyId: '',
+  adoptedCriteria: null as QualitativeProbabilityCriteria | null,
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onCreate: (value: number) => {},
+  onCreate: (_value: ProbabilityEstimateResult) => {},
 };
 
 interface ISubmit {
-  minDurationJT?: number;
-  minDurationEO?: number;
-  chancesOfHappening?: number;
-  frequency?: number;
-  history?: number;
-  medsImplemented?: number;
+  employeeCountTotal?: number | string;
+  employeeCountGho?: number | string;
+  minDurationJT?: number | string;
+  minDurationEO?: number | string;
+  chancesOfHappening?: number | string;
+  frequency?: number | string;
+  history?: number | string;
+  medsImplemented?: number | string;
 }
 
 const modalName = ModalEnum.PROBABILITY_ADD;
@@ -68,6 +78,7 @@ export const useProbability = () => {
   );
 
   useEffect(() => {
+    if (probabilityData.adoptedCriteria) return;
     if (hierarchy?.employeesCount) {
       setProbabilityData((oldData) => {
         return {
@@ -78,7 +89,7 @@ export const useProbability = () => {
 
       setValue('employeeCountGho', hierarchy.employeesCount);
     }
-  }, [hierarchy, setValue]);
+  }, [hierarchy, probabilityData.adoptedCriteria, setValue]);
 
   useEffect(() => {
     const initialData =
@@ -90,10 +101,36 @@ export const useProbability = () => {
       Object.keys(initialData)?.length &&
       !(initialData as any).passBack
     ) {
+      const adopted = initialData.adoptedCriteria;
+      if (adopted) {
+        reset({
+          employeeCountTotal: adopted.employeeCountTotal ?? '',
+          employeeCountGho: adopted.employeeCountGho ?? '',
+          minDurationJT: adopted.minDurationJT ?? '',
+          minDurationEO: adopted.minDurationEO ?? '',
+          chancesOfHappening: adopted.chancesOfHappening ?? '',
+          frequency: adopted.frequency ?? '',
+          history: adopted.history ?? '',
+          medsImplemented: adopted.medsImplemented ?? '',
+        });
+      }
+
       setProbabilityData((oldData) => {
         const newData = {
           ...oldData,
           ...initialData,
+          ...(adopted
+            ? {
+                employeeCountTotal: adopted.employeeCountTotal ?? 0,
+                employeeCountGho: adopted.employeeCountGho ?? 0,
+                minDurationJT: adopted.minDurationJT ?? '',
+                minDurationEO: adopted.minDurationEO ?? '',
+                chancesOfHappening: adopted.chancesOfHappening ?? '',
+                frequency: adopted.frequency ?? '',
+                history: adopted.history ?? '',
+                medsImplemented: adopted.medsImplemented ?? '',
+              }
+            : {}),
         };
 
         initialDataRef.current = newData;
@@ -101,7 +138,7 @@ export const useProbability = () => {
         return newData;
       });
     }
-  }, [getModalData]);
+  }, [getModalData, reset]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
@@ -122,56 +159,12 @@ export const useProbability = () => {
     onClose();
   };
 
-  const percentageCheck = (value: number, limit: number) => {
-    if (!value || !limit) return 0;
+  const onSubmit: SubmitHandler<ISubmit> = async (values) => {
+    const criteria = criteriaFromForm(values);
+    const result = qualitativeProbabilityFromCriteria(criteria);
 
-    const stage = value / limit;
-    if (stage < 0.1) return 1;
-    if (stage < 0.25) return 2;
-    if (stage < 0.5) return 3;
-    if (stage < 1) return 4;
-    return 5;
-  };
-
-  const onSubmit: SubmitHandler<ISubmit> = async ({
-    frequency,
-    history,
-    chancesOfHappening,
-    medsImplemented,
-    minDurationEO,
-    minDurationJT,
-  }) => {
-    // eslint-disable-next-line prettier/prettier
-    const probabilities = [
-      frequency,
-      history,
-      chancesOfHappening,
-      medsImplemented,
-    ];
-
-    if (probabilityData.employeeCountGho && probabilityData.employeeCountTotal)
-      // eslint-disable-next-line prettier/prettier
-      probabilities.push(
-        percentageCheck(
-          probabilityData.employeeCountGho,
-          probabilityData.employeeCountTotal,
-        ),
-      );
-
-    if (minDurationEO && minDurationJT)
-      probabilities.push(percentageCheck(minDurationEO, minDurationJT));
-
-    const finalProbabilities = probabilities.filter((value) => value);
-
-    if (finalProbabilities.length) {
-      const result =
-        (finalProbabilities as number[]).reduce(
-          (acc, curr) => Number(acc) + Number(curr),
-          0,
-        ) / finalProbabilities.length;
-
-      if (result)
-        probabilityData.onCreate && probabilityData.onCreate(Math.ceil(result));
+    if (result) {
+      probabilityData.onCreate?.({ probability: result, criteria });
     }
 
     onClose();

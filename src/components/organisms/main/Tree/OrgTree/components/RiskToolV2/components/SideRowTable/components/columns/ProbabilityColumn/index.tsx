@@ -18,6 +18,7 @@ import { EpiColumnProps as ProbabilityColumnProps } from './types';
 import { ExposureTypeEnum, ExposureTypeMap } from 'core/enums/exposure.enum';
 import { SelectExposure } from './SelectExposure';
 import { StatusEnum } from 'project/enum/status.enum';
+import { RealProbabilityCountSuggestion } from 'components/organisms/modals/ModalAddProbability/RealProbabilityCountSuggestion';
 
 const CURRENT_PROBABILITY_LOCKED_REASON =
   'Como todas as recomendações aplicáveis a este risco foram concluídas com sucesso, o risco real deve ser igual ao risco residual. Para alterar essa probabilidade, adicione novas medidas de controle.';
@@ -66,7 +67,7 @@ const isCurrentProbabilityLocked = (
 
 export const ProbabilityColumn: FC<
   { children?: any } & ProbabilityColumnProps
-> = ({ handleSelect, data, handleHelp, risk, planWorkspaceId }) => {
+> = ({ handleSelect, data, handleHelp, risk, planWorkspaceId, probabilityCountSource }) => {
   const dataSelect = {} as Partial<IUpsertRiskData>;
   const { onStackOpenModal } = useModal();
   const probabilityLockByPlan = isCurrentProbabilityLocked(
@@ -173,6 +174,11 @@ export const ProbabilityColumn: FC<
               : undefined
         }
         handleHelp={() => handleHelp && handleHelp(dataSelect)}
+      />
+      <RealProbabilityCountSuggestion
+        data={data}
+        countSource={probabilityCountSource}
+        handleSelect={handleSelect}
       />
       <SelectExposure exposure={exposure} onSelect={onChangeExposure} />
       {hasQuality && (

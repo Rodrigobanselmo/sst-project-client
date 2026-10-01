@@ -1,4 +1,5 @@
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
+import { ProbabilityEstimateResult, QualitativeProbabilityCriteria } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
 import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
@@ -163,10 +164,12 @@ export const useColumnAction = () => {
     gho,
     risk,
     handleSelect,
+    adoptedCriteria,
   }: {
     risk?: IRiskFactors;
-    handleSelect: (value: number) => void;
+    handleSelect: (value: ProbabilityEstimateResult) => void;
     gho: IGho | IHierarchyTreeMapObject | IHierarchy | null;
+    adoptedCriteria?: QualitativeProbabilityCriteria | null;
   }) => {
     if (!gho?.id) return;
 
@@ -195,9 +198,9 @@ export const useColumnAction = () => {
         0,
       ) || 0;
 
-    const handleSelectSync = (value: number) => {
+    const handleSelectSync = (value: ProbabilityEstimateResult) => {
       handleSelect(value);
-      enqueueSnackbar(`A probabilidade sugerida pelo sistema é ${value}`, {
+      enqueueSnackbar(`A probabilidade sugerida pelo sistema é ${value.probability}`, {
         variant: 'info',
         autoHideDuration: 5000,
         style: { transform: 'translateY(70px)' },
@@ -213,6 +216,7 @@ export const useColumnAction = () => {
       hierarchyId: isHierarchy ? gho.id.split('//')[0] : '',
       riskType: risk?.type,
       employeeCountTotal: workspaceEmployeesCount,
+      adoptedCriteria: adoptedCriteria ?? null,
       onCreate: handleSelectSync,
     } as typeof initialProbState);
   };

@@ -10,4 +10,5 @@ export interface EpiColumnProps {
   data?: IRiskDataRow;
   risk?: IRiskFactors | null;
   planWorkspaceId?: string;
+  probabilityCountSource?: import('components/organisms/modals/ModalAddProbability/qualitative-probability.util').ProbabilityCountSource;
 }

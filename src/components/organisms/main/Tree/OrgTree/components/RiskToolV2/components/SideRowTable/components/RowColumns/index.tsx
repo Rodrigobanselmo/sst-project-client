@@ -51,6 +51,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   isDeleteLoading,
   isLoading,
   planWorkspaceId,
+  probabilityCountSource,
   readOnly = false,
   ...props
 }) => {
@@ -175,6 +176,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                   handleSelect={handleSelect}
                   data={riskData}
                   planWorkspaceId={planWorkspaceId}
+                  probabilityCountSource={probabilityCountSource}
                   risk={
                     risk && (selectedRisks?.length ?? 1) === 1 ? risk : null
                   }

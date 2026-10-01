@@ -11,6 +11,9 @@ import { IExam } from 'core/interfaces/api/IExam';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
+import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
+import { buildProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
+
 import { useColumnAction } from '../../../hooks/useColumnAction';
 import { RowColumns } from '../components/RowColumns';
 import { SideTableProps } from './types';
@@ -71,8 +74,13 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
     onHandleHelp({
       gho,
       risk,
-      handleSelect: (value: number) =>
-        handleSelect({ probability: value, ...data }),
+      adoptedCriteria: riskData?.probabilityCriteria,
+      handleSelect: (value: ProbabilityEstimateResult) =>
+        handleSelect({
+          ...data,
+          probability: value.probability,
+          probabilityCriteria: value.criteria,
+        }),
     });
   };
 
@@ -114,6 +122,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
       handleEditEpi={handleEditEpi}
       handleEditEngs={handleEditEngs}
       handleEditExams={handleEditExams}
+      probabilityCountSource={buildProbabilityCountSource(gho)}
       isRepresentAll={risk?.representAll}
       showEndDate
       isDeleteLoading={isDeleteLoading}

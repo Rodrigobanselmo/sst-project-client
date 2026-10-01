@@ -58,6 +58,16 @@ export interface IRiskData {
   id: string;
   probability?: number;
   probabilityAfter?: number;
+  probabilityCriteria?: {
+    employeeCountTotal: number | null;
+    employeeCountGho: number | null;
+    minDurationJT: number | null;
+    minDurationEO: number | null;
+    chancesOfHappening: number | null;
+    frequency: number | null;
+    history: number | null;
+    medsImplemented: number | null;
+  } | null;
   companyId: string;
   riskId: string;
   homogeneousGroupId?: string;

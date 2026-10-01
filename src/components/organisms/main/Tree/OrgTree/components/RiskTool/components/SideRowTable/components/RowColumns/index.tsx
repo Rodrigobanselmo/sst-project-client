@@ -49,6 +49,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   handleDeleteRiskData,
   isDeleteLoading,
   isLoading,
+  probabilityCountSource,
   ...props
 }) => {
   const { columns } = useRowColumns();
@@ -156,6 +157,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                   handleHelp={handleHelp}
                   handleSelect={handleSelect}
                   data={riskData}
+                  probabilityCountSource={probabilityCountSource}
                   risk={
                     risk && (selectedRisks?.length ?? 1) === 1 ? risk : null
                   }
