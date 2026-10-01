@@ -13,6 +13,7 @@ import {
   RadioGroup,
   Select,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -36,6 +37,7 @@ import {
   RISK_TECHNICAL_WIDTH_WEIGHT_MIN,
   RiskTechnicalTitleChoice,
   riskTechnicalColumnContentOrientation,
+  riskTechnicalColumnVisible,
   riskTechnicalColumnWeight,
   riskTechnicalColumns,
   riskTechnicalTitleChoice,
@@ -69,19 +71,24 @@ export function RiskTechnicalDataColumnsDialog({
   const [draft, setDraft] = useState(() => orientationDraft(columns, columnPreference));
   const [titleDraft, setTitleDraft] = useState(() => titleDraftFrom(columns, columnPreference));
   const [weightDraft, setWeightDraft] = useState(() => weightDraftFrom(columns, columnPreference));
+  const [visibleDraft, setVisibleDraft] = useState(() => visibleDraftFrom(columns, columnPreference));
 
   useEffect(() => {
     if (!open) return;
     setDraft(orientationDraft(columns, columnPreference));
     setTitleDraft(titleDraftFrom(columns, columnPreference));
     setWeightDraft(weightDraftFrom(columns, columnPreference));
+    setVisibleDraft(visibleDraftFrom(columns, columnPreference));
   }, [open, columnPreference, family, workspaceId, columns]);
 
   useEffect(() => {
     if (open) setSystemNotice(null);
   }, [open, family, workspaceId]);
 
-  const weightTotal = columns.reduce((sum, column) => sum + weightDraft[column.key], 0);
+  const weightTotal = columns.reduce((sum, column) => {
+    if (!visibleDraft[column.key]) return sum;
+    return sum + weightDraft[column.key];
+  }, 0);
   const busy = mutation.isPending || systemMutation.isPending;
   const currentColumns = (): RiskTechnicalColumnSetting[] =>
     columns.map((column) => {
@@ -91,6 +98,7 @@ export function RiskTechnicalDataColumnsDialog({
         orientation: draft[column.key],
         ...(title === 'SAME' ? {} : { headerOrientation: title }),
         widthWeight: weightDraft[column.key],
+        visible: visibleDraft[column.key],
       };
     });
   const save = (next: RiskTechnicalColumnSetting[] | null) => {
@@ -123,7 +131,9 @@ export function RiskTechnicalDataColumnsDialog({
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {family === 'PHYSICAL_CHEMICAL' ? 'Físicos e Químicos' : 'Demais Fatores'}. Sem personalização
           deste estabelecimento, a tela usa o padrão do sistema, quando existir; caso contrário, o padrão
-          canônico. A largura é um peso relativo e o percentual fecha em 100% das colunas desta família.
+          canônico. Todas as colunas aparecem até serem ocultadas. A largura é um peso relativo e o
+          percentual fecha em 100% das colunas que serão exibidas. Ocultar uma coluna não altera o peso
+          das demais.
           Salvar aplica a escolha somente neste estabelecimento e somente nesta família.
         </Typography>
         {columnPreferenceSource === 'workspace' ? (
@@ -149,9 +159,25 @@ export function RiskTechnicalDataColumnsDialog({
               spacing={1.5}
               sx={{ alignItems: 'center', justifyContent: 'space-between' }}
             >
-              <Typography variant="body2" sx={{ fontWeight: 700, flex: '1 1 220px' }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, flex: '1 1 180px' }}>
                 {column.headerLabel}
               </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={visibleDraft[column.key]}
+                    onChange={(event) =>
+                      setVisibleDraft((current) => ({
+                        ...current,
+                        [column.key]: event.target.checked,
+                      }))
+                    }
+                    inputProps={{ 'aria-label': `Mostrar conteúdo de ${column.headerLabel}` }}
+                  />
+                }
+                label="Mostrar conteúdo"
+              />
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                 <Typography variant="caption" color="text.secondary">
                   Conteúdo
@@ -209,7 +235,7 @@ export function RiskTechnicalDataColumnsDialog({
                   sx={{ width: 72 }}
                 />
                 <Typography variant="caption" sx={{ minWidth: 52 }}>
-                  {weightPercent(weightDraft[column.key], weightTotal)}
+                  {visibleDraft[column.key] ? weightPercent(weightDraft[column.key], weightTotal) : 'oculta'}
                 </Typography>
               </Stack>
             </Stack>
@@ -256,6 +282,15 @@ function titleDraftFrom(
   return Object.fromEntries(
     columns.map((column) => [column.key, riskTechnicalTitleChoice(columns, preference, column.key)]),
   ) as Record<RiskTechnicalColumnKey, RiskTechnicalTitleChoice>;
+}
+
+function visibleDraftFrom(
+  columns: ReturnType<typeof riskTechnicalColumns>,
+  preference: RiskTechnicalColumnsPreference | null,
+) {
+  return Object.fromEntries(
+    columns.map((column) => [column.key, riskTechnicalColumnVisible(preference, column.key)]),
+  ) as Record<RiskTechnicalColumnKey, boolean>;
 }
 
 function weightDraftFrom(

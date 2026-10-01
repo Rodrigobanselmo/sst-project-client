@@ -17,6 +17,7 @@ import {
   riskTechnicalCellText,
   riskTechnicalColumnAlign,
   riskTechnicalColumnHeaderOrientation,
+  riskTechnicalColumnVisible,
   riskTechnicalColumns,
   riskTechnicalLayouts,
   riskTechnicalTitleChoice,
@@ -400,6 +401,39 @@ assert.equal(dialogSource.includes('Definir como padrão do sistema'), true);
 assert.equal(dialogSource.includes('SAuthShow'), true);
 assert.equal(dialogSource.includes('RoleEnum.MASTER'), true);
 assert.equal(dialogSource.includes('título personalizado'), false);
-assert.equal(dialogSource.includes('Mostrar'), false);
+assert.equal(dialogSource.includes('Mostrar conteúdo'), true);
+assert.equal(dialogSource.includes('<Switch'), true);
+
+const hiddenPe: RiskTechnicalColumnsPreference = {
+  version: 1,
+  columns: RISK_TECHNICAL_PHYSICAL_COLUMNS.map((column) => ({
+    key: column.key,
+    orientation: column.orientation,
+    ...(column.headerOrientation ? { headerOrientation: column.headerOrientation } : {}),
+    widthWeight: column.widthWeight,
+    ...(column.key === 'pe' ? { visible: false as const } : {}),
+  })),
+};
+assert.equal(riskTechnicalColumnVisible(null, 'pe'), true);
+assert.equal(riskTechnicalColumnVisible(hiddenPe, 'factor'), true);
+assert.equal(riskTechnicalColumnVisible(hiddenPe, 'pe'), false);
+const hiddenLayouts = riskTechnicalLayouts('PHYSICAL_CHEMICAL', hiddenPe);
+assert.equal(hiddenLayouts.some((column) => column.key === 'pe'), false);
+assert.equal(hiddenLayouts.length, RISK_TECHNICAL_PHYSICAL_COLUMNS.length - 1);
+assert.ok(Math.abs(hiddenLayouts.reduce((sum, column) => sum + column.percent, 0) - 100) < 0.001);
+assert.equal(hiddenPe.columns.find((column) => column.key === 'pe')?.widthWeight, 2);
+assert.equal(hiddenPe.columns.find((column) => column.key === 'factor')?.widthWeight, 10);
+assert.equal(hiddenLayouts.find((column) => column.key === 'factor')?.weight, 10);
+const otherUntouched = riskTechnicalLayouts('OTHER', null);
+assert.equal(otherUntouched.length, RISK_TECHNICAL_OTHER_COLUMNS.length);
+assert.equal(otherUntouched.some((column) => column.key === 'propagation'), true);
+
+const restoredPe = riskTechnicalLayouts('PHYSICAL_CHEMICAL', {
+  version: 1,
+  columns: hiddenPe.columns.map((column) => (column.key === 'pe' ? { ...column, visible: true } : column)),
+});
+assert.equal(restoredPe.find((column) => column.key === 'pe')?.weight, 2);
+assert.equal(restoredPe.some((column) => column.key === 'pe'), true);
+assert.ok(Math.abs(restoredPe.reduce((sum, column) => sum + column.percent, 0) - 100) < 0.001);
 
 console.log('risk-technical-data presentation spec ok');

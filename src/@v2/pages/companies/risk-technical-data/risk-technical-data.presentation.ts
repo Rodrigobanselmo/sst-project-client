@@ -176,6 +176,13 @@ export type RiskTechnicalColumnLayout = {
 const savedColumn = (preference: RiskTechnicalColumnsPreference | null | undefined, key: RiskTechnicalColumnKey) =>
   preference?.columns.find((column) => column.key === key);
 
+export function riskTechnicalColumnVisible(
+  preference: RiskTechnicalColumnsPreference | null | undefined,
+  key: RiskTechnicalColumnKey,
+): boolean {
+  return savedColumn(preference, key)?.visible !== false;
+}
+
 export function riskTechnicalColumnWeight(
   columns: RiskTechnicalColumn[],
   preference: RiskTechnicalColumnsPreference | null | undefined,
@@ -231,8 +238,10 @@ export function riskTechnicalLayouts(
   group: RiskTechnicalDataGroup,
   preference: RiskTechnicalColumnsPreference | null | undefined,
 ): RiskTechnicalColumnLayout[] {
-  const columns = riskTechnicalColumns(group);
-  const weights = columns.map((column) => riskTechnicalColumnWeight(columns, preference, column.key));
+  const columns = riskTechnicalColumns(group).filter((column) =>
+    riskTechnicalColumnVisible(preference, column.key),
+  );
+  const weights = columns.map((column) => riskTechnicalColumnWeight(riskTechnicalColumns(group), preference, column.key));
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   return columns.map((column, index) => ({
     key: column.key,

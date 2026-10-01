@@ -30,6 +30,8 @@ export type RiskTechnicalColumnSetting = {
   orientation: RiskTechnicalColumnOrientation;
   headerOrientation?: RiskTechnicalColumnOrientation;
   widthWeight: number;
+  /** Ausente significa visível. */
+  visible?: boolean;
 };
 
 export type RiskTechnicalColumnsPreference = {
