@@ -25,6 +25,7 @@ import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
+import { RiskTechnicalDataView } from '@v2/pages/companies/risk-technical-data/RiskTechnicalDataView';
 import { SectorRiskPresenceView } from '@v2/pages/companies/sector-risk-presence/SectorRiskPresenceView';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 
@@ -110,7 +111,7 @@ export const RiskCompanyTable: FC<
       companyFlowSticky?: boolean;
       /** Chrome sticky abaixo das abas do módulo (ex.: Riscos / GSE). */
       companyFlowBelowTabs?: boolean;
-      /** Liga Lista | Mapa de Presença. Só a aba Caracterização > Riscos usa isso. */
+      /** Liga Lista | Mapa de Presença | Dados Técnicos. Só a aba Caracterização > Riscos usa isso. */
       enableSectorRiskPresenceMap?: boolean;
       isAllEstablishments?: boolean;
     }
@@ -126,7 +127,7 @@ export const RiskCompanyTable: FC<
   isAllEstablishments = false,
 }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
-  const [presenceView, setPresenceView] = useState<'list' | 'presence'>('list');
+  const [presenceView, setPresenceView] = useState<'list' | 'presence' | 'technical'>('list');
   const [openId, setOpenId] = useState('');
   const { data: riskGroupData } = useQueryRiskGroupData();
 
@@ -313,7 +314,7 @@ export const RiskCompanyTable: FC<
         size="small"
         value={presenceView}
         aria-label="Visualização dos fatores de risco"
-        onChange={(_, next: 'list' | 'presence' | null) => {
+        onChange={(_, next: 'list' | 'presence' | 'technical' | null) => {
           if (next) setPresenceView(next);
         }}
         sx={{
@@ -323,6 +324,7 @@ export const RiskCompanyTable: FC<
       >
         <ToggleButton value="list">Lista</ToggleButton>
         <ToggleButton value="presence">Mapa de Presença</ToggleButton>
+        <ToggleButton value="technical">Dados Técnicos</ToggleButton>
       </ToggleButtonGroup>
     ) : null;
 
@@ -337,6 +339,43 @@ export const RiskCompanyTable: FC<
       {presenceToggle}
     </>
   );
+
+  if (enableSectorRiskPresenceMap && presenceView === 'technical' && !isSelect) {
+    const technical = (
+      <RiskTechnicalDataView
+        companyId={companyId}
+        workspaceId={workspaceId}
+        isAllEstablishments={isAllEstablishments}
+        queryEnabled={queryEnabled}
+      />
+    );
+    const technicalHeader = (
+      <>
+        <STableTitle subtitle="Dados técnicos dos fatores de risco" icon={SRiskFactorIcon}>
+          Fatores de risco e perigos
+        </STableTitle>
+        {presenceToggle}
+      </>
+    );
+
+    if (companyFlowSticky) {
+      return (
+        <>
+          <CompanyFlowStickySubheader belowModuleTabs={companyFlowBelowTabs}>
+            {technicalHeader}
+          </CompanyFlowStickySubheader>
+          {technical}
+        </>
+      );
+    }
+
+    return (
+      <>
+        {technicalHeader}
+        {technical}
+      </>
+    );
+  }
 
   if (enableSectorRiskPresenceMap && presenceView === 'presence' && !isSelect) {
     const map = (
