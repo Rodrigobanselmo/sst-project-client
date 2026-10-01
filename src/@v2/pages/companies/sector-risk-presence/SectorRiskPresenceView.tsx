@@ -3,7 +3,13 @@ import { useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material';
 
 import { useFetchBrowseSectorRiskPresence } from '@v2/services/security/sector-risk-presence/useFetchBrowseSectorRiskPresence';
+import { SectorRiskPresenceOrigin } from '@v2/services/security/sector-risk-presence/sector-risk-presence.types';
+import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
+import { IGho } from 'core/interfaces/api/IGho';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 
+import { buildSectorRiskPresenceNavigation } from './sector-risk-presence-navigation';
 import { SectorRiskPresenceGrid } from './SectorRiskPresenceGrid';
 import {
   SECTOR_RISK_PRESENCE_LEGEND,
@@ -23,7 +29,23 @@ export function SectorRiskPresenceView({
 }) {
   const [orientation, setOrientation] =
     useState<SectorRiskPresenceOrientation>('RISKS_IN_ROWS');
+  const { data: riskGroupData } = useQueryRiskGroupData();
+  const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
+  // Lista usa este hook, que abre ModalEnum.RISK_TOOL — o modal montado nesta tela.
+  const { onOpenRiskToolSelected } = useOpenRiskTool();
   const canLoad = queryEnabled && !isAllEstablishments && Boolean(workspaceId);
+  const openOrigin = (params: {
+    origin: SectorRiskPresenceOrigin;
+    riskId: string;
+    riskLabel: string;
+  }) => {
+    const target = buildSectorRiskPresenceNavigation(params);
+    onOpenRiskToolSelected({
+      homogeneousGroup: target.homogeneousGroup as IGho,
+      riskFactor: target.riskFactor as IRiskFactors,
+      riskGroupId,
+    });
+  };
   const { data, isError, isLoading, refetch } = useFetchBrowseSectorRiskPresence(
     { companyId: companyId || '', workspaceId: workspaceId || '' },
     { enabled: canLoad && Boolean(companyId) },
@@ -93,7 +115,12 @@ export function SectorRiskPresenceView({
         <Alert severity="info">Nenhum setor alcançado por cargo neste estabelecimento.</Alert>
       ) : null}
       {data && data.risks.length > 0 && data.sectors.length > 0 ? (
-        <SectorRiskPresenceGrid data={data} orientation={orientation} />
+        <SectorRiskPresenceGrid
+          key={orientation}
+          data={data}
+          orientation={orientation}
+          onOpenOrigin={openOrigin}
+        />
       ) : null}
     </Box>
   );
