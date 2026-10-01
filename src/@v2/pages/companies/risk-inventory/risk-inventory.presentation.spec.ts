@@ -12,9 +12,12 @@ import {
   formatInventoryLines,
   inventoryExposedEmployeeText,
   inventoryDefaultColumnLabel,
+  inventoryColumnCanHide,
+  inventoryColumnVisible,
   inventoryHeaderGroups,
   inventoryOriginText,
   inventoryOriginVisible,
+  INVENTORY_HIDEABLE_COLUMN_KEYS,
   inventoryColumnDraftHeaderChoice,
   inventoryColumnDraftHeaderLabel,
   inventoryColumnDraftOrientation,
@@ -141,7 +144,7 @@ assert.equal(tableSource.includes("verticalAlign: 'middle'"), true);
 assert.equal(tableSource.includes('lineHeight: 1.15'), true);
 assert.equal(tableSource.includes('contentAlignY="top"'), true);
 assert.equal(tableSource.includes("align={column.id === 'type' ? 'left' : column.layout.align}"), true);
-assert.equal(tableSource.includes('align="left"'), true);
+assert.equal(tableSource.includes("align={column.id === 'type' ? 'left' : layout(column.id).align}"), true);
 assert.equal(tableSource.includes("columnId === 'type' ? 'left'"), true);
 assert.equal(
   tableSource.includes("alignItems:\n            contentAlignY === 'top' ? (align === 'left' ? 'flex-start' : 'center') : undefined"),
@@ -150,7 +153,7 @@ assert.equal(
 assert.equal(tableSource.includes("justifyContent: contentAlignY === 'top' ? 'flex-end' : undefined"), true);
 assert.equal(tableSource.includes("verticalAlign: 'top'"), true);
 assert.equal(tableSource.includes("display: 'inline-block'"), true);
-assert.equal(tableSource.includes("align={layout('severity').align}"), true);
+assert.equal(tableSource.includes('layout(column.id).align'), true);
 assert.equal(tableSource.includes('minWidth: 1480'), false);
 
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.length, 13);
@@ -262,7 +265,7 @@ assert.deepEqual(
 );
 assert.equal(tableSource.includes('inventoryHeaderGroups'), true);
 assert.equal(tableSource.includes("id: 'origin'"), true);
-assert.equal(tableSource.includes('inventoryOriginVisible'), true);
+assert.equal(tableSource.includes('inventoryColumnVisible'), true);
 assert.equal(tableSource.includes('inventoryOriginText(unit)'), false);
 assert.equal(tableSource.includes('row.originText'), true);
 assert.equal(tableSource.includes('unit.originSliceLabel'), false);
@@ -272,7 +275,7 @@ assert.equal(tableSource.includes("rotate(-90deg)"), true);
 assert.equal(tableSource.includes('originHomogeneousGroupIds.join'), true);
 assert.equal(tableSource.includes('headerLabel(column.id, column.label)'), true);
 assert.equal(tableSource.includes("borderLeft: '2px solid'"), true);
-assert.equal(tableSource.includes('dividerBefore: true'), true);
+assert.equal(tableSource.includes('dividerBefore: column.id === firstResidualId'), true);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'ORIGIN'), false);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'SEVERITY_RESIDUAL'), false);
 assert.equal(INVENTORY_DIALOG_COLUMNS[0].key, 'TYPE');
@@ -297,6 +300,44 @@ assert.equal(
   }),
   true,
 );
+const structuralKeys = ['TYPE', 'HAZARD', 'DAMAGE', 'SEVERITY', 'PROBABILITY', 'REAL_RISK', 'RESIDUAL_RISK'] as const;
+structuralKeys.forEach((key) => {
+  assert.equal(inventoryColumnCanHide(key), false);
+  assert.equal(
+    inventoryColumnVisible(
+      { version: 1, columns: [{ key, orientation: 'HORIZONTAL', visible: false }] },
+      key,
+    ),
+    true,
+  );
+});
+INVENTORY_HIDEABLE_COLUMN_KEYS.forEach((key) => {
+  assert.equal(inventoryColumnCanHide(key), true);
+  assert.equal(
+    inventoryColumnVisible(
+      { version: 1, columns: [{ key, orientation: 'HORIZONTAL', visible: false }] },
+      key,
+    ),
+    false,
+  );
+});
+assert.equal(inventoryColumnVisible(null, 'GENERATING_SOURCE'), true);
+assert.equal(inventoryColumnVisible(null, 'ORIGIN'), false);
+assert.equal(
+  inventoryColumnVisible(
+    { version: 1, columns: [{ key: 'ORIGIN', orientation: 'HORIZONTAL' }] },
+    'ORIGIN',
+  ),
+  false,
+);
+const hiddenEpiWeights = INVENTORY_CONFIGURABLE_COLUMNS.filter((column) => column.key !== 'EPI').map((column) =>
+  inventoryColumnWidthWeight(null, column.key),
+);
+const hiddenEpiPercent = hiddenEpiWeights.reduce(
+  (sum, weight) => sum + inventoryWidthPercent(weight, hiddenEpiWeights.reduce((total, item) => total + item, 0)),
+  0,
+);
+assert.ok(Math.abs(hiddenEpiPercent - 100) < 0.001);
 assert.equal(inventoryColumnWidthWeight(null, 'ORIGIN'), INVENTORY_ORIGIN_WIDTH_WEIGHT);
 assert.equal(INVENTORY_ORIGIN_WIDTH_WEIGHT, 6);
 assert.equal(
@@ -313,13 +354,41 @@ assert.equal(
   ]),
   canonicalTotal * INVENTORY_WIDTH_FLOOR_PX,
 );
-assert.equal(inventoryHeaderGroups(false)[0].colSpan, 4);
-assert.equal(inventoryHeaderGroups(true)[0].colSpan, 5);
-assert.equal(inventoryHeaderGroups(true)[1].colSpan, 6);
-assert.equal(inventoryHeaderGroups(true)[2].colSpan, 3);
+const screenWithoutOrigin = [
+  'type',
+  'hazard',
+  'damage',
+  'source',
+  'epi',
+  'epc',
+  'adm',
+  'severity',
+  'probability',
+  'real',
+  'recs',
+  'pAfter',
+  'residual',
+];
+const screenWithOrigin = ['type', 'origin', ...screenWithoutOrigin.slice(1)];
+assert.equal(inventoryHeaderGroups(screenWithoutOrigin)[0].colSpan, 4);
+assert.equal(inventoryHeaderGroups(screenWithOrigin)[0].colSpan, 5);
+assert.equal(inventoryHeaderGroups(screenWithOrigin)[1].colSpan, 6);
+assert.equal(inventoryHeaderGroups(screenWithOrigin)[2].colSpan, 3);
 assert.equal(
-  inventoryHeaderGroups(true).reduce((sum, group) => sum + group.colSpan, 0),
+  inventoryHeaderGroups(screenWithOrigin).reduce((sum, group) => sum + group.colSpan, 0),
   INVENTORY_CONFIGURABLE_COLUMNS.length + 1,
+);
+const screenHidingOptional = screenWithoutOrigin.filter(
+  (column) => !['source', 'epi', 'epc', 'adm', 'recs', 'pAfter'].includes(column),
+);
+const hiddenGroups = inventoryHeaderGroups(screenHidingOptional);
+assert.deepEqual(
+  hiddenGroups.map((group) => group.colSpan),
+  [3, 3, 1],
+);
+assert.equal(
+  hiddenGroups.reduce((sum, group) => sum + group.colSpan, 0),
+  screenHidingOptional.length,
 );
 assert.equal(
   inventoryOriginText({ name: 'GSE Operacional', originType: 'GSE' }),
@@ -553,9 +622,13 @@ assert.equal(dialogSource.includes('Word:'), false);
 assert.equal(dialogSource.includes('wordLabel'), false);
 assert.equal(dialogSource.includes('headerLabel'), true);
 assert.equal(dialogSource.includes('INVENTORY_DIALOG_COLUMNS'), true);
-assert.equal(dialogSource.includes('label="Mostrar"'), true);
-assert.equal(dialogSource.includes('visible: originVisible'), true);
-assert.equal(dialogSource.includes('setOriginVisible'), true);
+assert.equal(dialogSource.includes('label="Mostrar conteúdo"'), true);
+assert.equal(dialogSource.includes('label="Mostrar"'), false);
+assert.equal(dialogSource.includes('inventoryColumnCanHide(column.key)'), true);
+assert.equal(dialogSource.includes('visible: visibleDraft[column.key]'), true);
+assert.equal(dialogSource.includes('maxWidth="lg"'), true);
+assert.equal(dialogSource.includes('maxWidth="md"'), false);
+assert.equal(dialogSource.includes('flexWrap: \'wrap\''), true);
 assert.equal(dialogSource.includes('fontWeight: 700'), true);
 assert.equal(inventoryVerticalRiskText({ label: 'Tolerável', abbreviation: 'DA', color: null, level: null, matrixSource: 'CUSTOM', matrixVersionId: null }), 'Tolerável');
 assert.equal(inventoryVerticalRiskText({ label: 'Moderado_ERG', abbreviation: 'MERG', color: '#abc', level: 3, matrixSource: 'CUSTOM', matrixVersionId: null }), 'Moderado_ERG');

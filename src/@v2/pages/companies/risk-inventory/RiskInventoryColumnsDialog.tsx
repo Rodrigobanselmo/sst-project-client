@@ -32,16 +32,18 @@ import {
 } from '@v2/services/security/risk-inventory/risk-inventory.types';
 
 import {
+  inventoryColumnCanHide,
   inventoryColumnDraftHeaderChoice,
   inventoryColumnDraftHeaderLabel,
   inventoryColumnDraftOrientation,
+  inventoryColumnVisible,
   inventoryColumnWidthWeight,
-  inventoryOriginVisible,
   inventoryWidthPercent,
   INVENTORY_WIDTH_WEIGHT_MAX,
   INVENTORY_WIDTH_WEIGHT_MIN,
   InventoryTitleChoice,
   INVENTORY_DIALOG_COLUMNS,
+  INVENTORY_HIDEABLE_COLUMN_KEYS,
 } from './risk-inventory.presentation';
 
 type RiskInventoryColumnsDialogProps = {
@@ -65,7 +67,7 @@ export function RiskInventoryColumnsDialog({
   const systemMutation = useMutateSystemRiskInventoryColumns();
   const { showSnackBar } = useSystemSnackbar();
   const [systemNotice, setSystemNotice] = useState<string | null>(null);
-  const [originVisible, setOriginVisible] = useState(() => inventoryOriginVisible(columnPreference));
+  const [visibleDraft, setVisibleDraft] = useState(() => visibleDraftFrom(columnPreference));
   const [draft, setDraft] = useState<Record<RiskInventoryColumnKey, RiskInventoryColumnOrientation>>(
     () => draftFrom(columnPreference),
   );
@@ -81,7 +83,7 @@ export function RiskInventoryColumnsDialog({
 
   useEffect(() => {
     if (!open) return;
-    setOriginVisible(inventoryOriginVisible(columnPreference));
+    setVisibleDraft(visibleDraftFrom(columnPreference));
     setDraft(draftFrom(columnPreference));
     setTitleDraft(titleDraftFrom(columnPreference));
     setLabelDraft(labelDraftFrom(columnPreference));
@@ -93,7 +95,7 @@ export function RiskInventoryColumnsDialog({
   }, [open, workspaceId]);
 
   const weightTotal = INVENTORY_DIALOG_COLUMNS.reduce((sum, column) => {
-    if (column.key === 'ORIGIN' && !originVisible) return sum;
+    if (inventoryColumnCanHide(column.key) && !visibleDraft[column.key]) return sum;
     return sum + weightDraft[column.key];
   }, 0);
   const busy = mutation.isPending || systemMutation.isPending;
@@ -106,8 +108,8 @@ export function RiskInventoryColumnsDialog({
         labelDraft[column.key],
         weightDraft[column.key],
       );
-      if (column.key !== 'ORIGIN') return setting;
-      return { ...setting, visible: originVisible };
+      if (!inventoryColumnCanHide(column.key)) return setting;
+      return { ...setting, visible: visibleDraft[column.key] };
     });
   const save = (columns: RiskInventoryColumnSetting[] | null) => {
     mutation.mutate(
@@ -133,16 +135,17 @@ export function RiskInventoryColumnsDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle>Configurar colunas</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Sem personalização deste estabelecimento, a tela e o próximo PGR usam o padrão do sistema,
           quando existir; caso contrário, o padrão canônico: Tipo com título e conteúdo verticais; EPI e
           os dois RO com título horizontal e conteúdo vertical; as demais colunas horizontais. Origem fica
-          oculta até ser marcada e, quando aparece, entra na mesma largura, orientação e título. A largura
-          é um peso relativo; o percentual ao lado fecha nas colunas que serão exibidas. Salvar aplica a
-          escolha abaixo somente neste estabelecimento.
+          oculta até ser marcada. Fonte geradora, EPI, EPC/ENG., ADM, Recomendações e a probabilidade
+          residual podem ser ocultadas; as demais colunas permanecem. A largura é um peso relativo; o
+          percentual ao lado fecha nas colunas que serão exibidas. Salvar aplica a escolha abaixo somente
+          neste estabelecimento.
         </Typography>
         {columnPreferenceSource === 'workspace' ? (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -162,23 +165,33 @@ export function RiskInventoryColumnsDialog({
         <Stack spacing={1.25}>
           {INVENTORY_DIALOG_COLUMNS.map((column) => (
             <Stack key={column.key} spacing={0.5}>
-              <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}
+              >
                 <Typography variant="body2" sx={{ fontWeight: 700, flex: '1 1 220px' }}>
                   {column.label}
                 </Typography>
-                {column.key === 'ORIGIN' ? (
+                {inventoryColumnCanHide(column.key) ? (
                   <FormControlLabel
                     control={
                       <Switch
                         size="small"
-                        checked={originVisible}
-                        onChange={(event) => setOriginVisible(event.target.checked)}
+                        checked={visibleDraft[column.key]}
+                        onChange={(event) =>
+                          setVisibleDraft((current) => ({
+                            ...current,
+                            [column.key]: event.target.checked,
+                          }))
+                        }
+                        inputProps={{ 'aria-label': `Mostrar conteúdo de ${column.label}` }}
                       />
                     }
-                    label="Mostrar"
+                    label="Mostrar conteúdo"
                   />
                 ) : null}
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                   <Typography variant="caption" color="text.secondary">
                     Conteúdo
                   </Typography>
@@ -235,7 +248,7 @@ export function RiskInventoryColumnsDialog({
                     sx={{ width: 72 }}
                   />
                   <Typography variant="caption" sx={{ minWidth: 52 }}>
-                    {column.key === 'ORIGIN' && !originVisible
+                    {inventoryColumnCanHide(column.key) && !visibleDraft[column.key]
                       ? 'oculta'
                       : weightPercent(weightDraft[column.key], weightTotal)}
                   </Typography>
@@ -280,6 +293,12 @@ export function RiskInventoryColumnsDialog({
       </DialogActions>
     </Dialog>
   );
+}
+
+function visibleDraftFrom(preference: RiskInventoryColumnsPreference | null) {
+  return Object.fromEntries(
+    INVENTORY_HIDEABLE_COLUMN_KEYS.map((key) => [key, inventoryColumnVisible(preference, key)]),
+  ) as Record<(typeof INVENTORY_HIDEABLE_COLUMN_KEYS)[number], boolean>;
 }
 
 function draftFrom(preference: RiskInventoryColumnsPreference | null) {

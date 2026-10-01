@@ -97,7 +97,10 @@ export type RiskInventoryColumnSetting = {
   headerOrientation?: RiskInventoryColumnOrientation;
   headerLabel?: string;
   widthWeight?: number;
-  /** Stored only for ORIGIN. Absent or false hides that column. */
+  /**
+   * ORIGIN is shown only when true. Other hideable columns are hidden only when false.
+   * Structural columns ignore this flag.
+   */
   visible?: boolean;
 };
 

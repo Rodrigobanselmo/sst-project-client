@@ -3,6 +3,7 @@ import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, Tabl
 import { useState } from 'react';
 
 import {
+  RiskInventoryColumnKey,
   RiskInventoryColumnsPreference,
   RiskInventoryPresentation,
   RiskInventoryRow,
@@ -12,10 +13,10 @@ import {
 import {
   formatInventoryEpis,
   formatInventoryLines,
+  inventoryColumnVisible,
   inventoryDefaultColumnLabel,
   inventoryExposedEmployeeText,
   inventoryHeaderGroups,
-  inventoryOriginVisible,
   inventoryPresentationColor,
   inventoryPresentationText,
   inventoryProbabilityHint,
@@ -38,27 +39,28 @@ import {
 } from './risk-inventory.presentation';
 
 const columns = [
-  { id: 'type', label: inventoryDefaultColumnLabel('TYPE') },
-  { id: 'hazard', label: inventoryDefaultColumnLabel('HAZARD') },
-  { id: 'damage', label: inventoryDefaultColumnLabel('DAMAGE') },
-  { id: 'source', label: inventoryDefaultColumnLabel('GENERATING_SOURCE') },
-  { id: 'epi', label: inventoryDefaultColumnLabel('EPI') },
-  { id: 'epc', label: inventoryDefaultColumnLabel('ENGINEERING') },
-  { id: 'adm', label: inventoryDefaultColumnLabel('ADMINISTRATIVE') },
-  { id: 'severity', label: inventoryDefaultColumnLabel('SEVERITY') },
-  { id: 'probability', label: inventoryDefaultColumnLabel('PROBABILITY') },
-  { id: 'real', label: inventoryDefaultColumnLabel('REAL_RISK') },
-  { id: 'recs', label: inventoryDefaultColumnLabel('RECOMMENDATIONS'), dividerBefore: true },
-  { id: 'pAfter', label: inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL') },
-  { id: 'residual', label: inventoryDefaultColumnLabel('RESIDUAL_RISK') },
+  { id: 'type', key: 'TYPE', label: inventoryDefaultColumnLabel('TYPE') },
+  { id: 'origin', key: 'ORIGIN', label: inventoryDefaultColumnLabel('ORIGIN') },
+  { id: 'hazard', key: 'HAZARD', label: inventoryDefaultColumnLabel('HAZARD') },
+  { id: 'damage', key: 'DAMAGE', label: inventoryDefaultColumnLabel('DAMAGE') },
+  { id: 'source', key: 'GENERATING_SOURCE', label: inventoryDefaultColumnLabel('GENERATING_SOURCE') },
+  { id: 'epi', key: 'EPI', label: inventoryDefaultColumnLabel('EPI') },
+  { id: 'epc', key: 'ENGINEERING', label: inventoryDefaultColumnLabel('ENGINEERING') },
+  { id: 'adm', key: 'ADMINISTRATIVE', label: inventoryDefaultColumnLabel('ADMINISTRATIVE') },
+  { id: 'severity', key: 'SEVERITY', label: inventoryDefaultColumnLabel('SEVERITY') },
+  { id: 'probability', key: 'PROBABILITY', label: inventoryDefaultColumnLabel('PROBABILITY') },
+  { id: 'real', key: 'REAL_RISK', label: inventoryDefaultColumnLabel('REAL_RISK') },
+  { id: 'recs', key: 'RECOMMENDATIONS', label: inventoryDefaultColumnLabel('RECOMMENDATIONS') },
+  { id: 'pAfter', key: 'PROBABILITY_RESIDUAL', label: inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL') },
+  { id: 'residual', key: 'RESIDUAL_RISK', label: inventoryDefaultColumnLabel('RESIDUAL_RISK') },
 ] as const;
 
-type InventoryColumnId = (typeof columns)[number]['id'] | 'origin';
+type InventoryColumnId = (typeof columns)[number]['id'];
 
-function columnsFor(showOrigin: boolean) {
-  if (!showOrigin) return columns;
-  const origin = { id: 'origin' as const, label: inventoryDefaultColumnLabel('ORIGIN') };
-  return [columns[0], origin, ...columns.slice(1)];
+const RESIDUAL_COLUMN_IDS = new Set<InventoryColumnId>(['recs', 'pAfter', 'residual']);
+
+function columnsFor(preference: RiskInventoryColumnsPreference | null) {
+  return columns.filter((column) => inventoryColumnVisible(preference, column.key as RiskInventoryColumnKey));
 }
 
 const cellSx = {
@@ -233,11 +235,11 @@ function RiskPill({
 
 function InventoryRow({
   row,
-  showOrigin,
+  columns: visibleColumns,
   columnPreference,
 }: {
   row: RiskInventoryRow;
-  showOrigin: boolean;
+  columns: ReadonlyArray<{ id: InventoryColumnId; dividerBefore?: boolean }>;
   columnPreference: RiskInventoryColumnsPreference | null;
 }) {
   const probabilityHint = inventoryProbabilityHint(row);
@@ -263,35 +265,19 @@ function InventoryRow({
       />
     );
   };
-
-  return (
-    <TableRow>
-      <TableCell align="left" sx={{ ...cellSx, ...pad('type') }}>
-        {renderText('type', textOrEmpty(row.riskTypeLabel || row.riskType))}
-      </TableCell>
-      {showOrigin ? (
-        <TableCell align={layout('origin').align} sx={cellSx}>
-          {renderText('origin', textOrEmpty(row.originText))}
-        </TableCell>
-      ) : null}
-      <TableCell align={layout('hazard').align} sx={{ ...cellSx, fontWeight: 600 }}>
-        {renderText('hazard', textOrEmpty(row.hazardName))}
-      </TableCell>
-      <TableCell align={layout('damage').align} sx={cellSx}>{renderText('damage', textOrEmpty(row.damage))}</TableCell>
-      <TableCell align={layout('source').align} sx={cellSx}>{renderText('source', formatInventoryLines(row.generatingSources))}</TableCell>
-      <TableCell align={layout('epi').align} sx={cellSx}>{renderText('epi', formatInventoryEpis(row.epis))}</TableCell>
-      <TableCell align={layout('epc').align} sx={cellSx}>{renderText('epc', formatInventoryLines(row.engineeringMeasures))}</TableCell>
-      <TableCell align={layout('adm').align} sx={cellSx}>{renderText('adm', formatInventoryLines(row.administrativeMeasures))}</TableCell>
-      <TableCell align={layout('severity').align} sx={{ ...cellSx, ...pad('severity'), fontWeight: 700 }}>
-        {renderText('severity', textOrEmpty(row.severity))}
-      </TableCell>
-      <TableCell align={layout('probability').align} sx={{ ...cellSx, ...pad('probability'), fontWeight: 700 }}>
-        {renderText('probability', inventoryProbabilityText(row), probabilityHint)}
-      </TableCell>
-      <TableCell
-        align={layout('real').align}
-        sx={{ ...cellSx, ...pad('real'), ...(vertical('real') ? { verticalAlign: 'top' } : {}) }}
-      >
+  const content = (columnId: InventoryColumnId) => {
+    if (columnId === 'type') return renderText('type', textOrEmpty(row.riskTypeLabel || row.riskType));
+    if (columnId === 'origin') return renderText('origin', textOrEmpty(row.originText));
+    if (columnId === 'hazard') return renderText('hazard', textOrEmpty(row.hazardName));
+    if (columnId === 'damage') return renderText('damage', textOrEmpty(row.damage));
+    if (columnId === 'source') return renderText('source', formatInventoryLines(row.generatingSources));
+    if (columnId === 'epi') return renderText('epi', formatInventoryEpis(row.epis));
+    if (columnId === 'epc') return renderText('epc', formatInventoryLines(row.engineeringMeasures));
+    if (columnId === 'adm') return renderText('adm', formatInventoryLines(row.administrativeMeasures));
+    if (columnId === 'severity') return renderText('severity', textOrEmpty(row.severity));
+    if (columnId === 'probability') return renderText('probability', inventoryProbabilityText(row), probabilityHint);
+    if (columnId === 'real') {
+      return (
         <RiskPill
           presentation={row.realRisk}
           compact={vertical('real')}
@@ -299,25 +285,43 @@ function InventoryRow({
           align={layout('real').align}
           contentAlignY="top"
         />
-      </TableCell>
-      <TableCell align={layout('recs').align} sx={{ ...cellSx, ...residualDividerSx }}>
-        {renderText('recs', formatInventoryLines(row.recommendations))}
-      </TableCell>
-      <TableCell align={layout('pAfter').align} sx={{ ...cellSx, ...pad('pAfter'), fontWeight: 700 }}>
-        {renderText('pAfter', inventoryResidualProbabilityText(row))}
-      </TableCell>
-      <TableCell
+      );
+    }
+    if (columnId === 'recs') return renderText('recs', formatInventoryLines(row.recommendations));
+    if (columnId === 'pAfter') return renderText('pAfter', inventoryResidualProbabilityText(row));
+    return (
+      <RiskPill
+        presentation={row.residual.presentation}
+        compact={vertical('residual')}
+        stackPx={layout('residual').stackPx}
         align={layout('residual').align}
-        sx={{ ...cellSx, ...pad('residual'), ...(vertical('residual') ? { verticalAlign: 'top' } : {}) }}
-      >
-        <RiskPill
-          presentation={row.residual.presentation}
-          compact={vertical('residual')}
-          stackPx={layout('residual').stackPx}
-          align={layout('residual').align}
-          contentAlignY="top"
-        />
-      </TableCell>
+        contentAlignY="top"
+      />
+    );
+  };
+
+  return (
+    <TableRow>
+      {visibleColumns.map((column) => (
+        <TableCell
+          key={column.id}
+          align={column.id === 'type' ? 'left' : layout(column.id).align}
+          sx={{
+            ...cellSx,
+            ...pad(column.id),
+            ...(column.id === 'hazard' ? { fontWeight: 600 } : {}),
+            ...(column.id === 'severity' || column.id === 'probability' || column.id === 'pAfter'
+              ? { fontWeight: 700 }
+              : {}),
+            ...(column.id === 'real' || column.id === 'residual'
+              ? { ...(vertical(column.id) ? { verticalAlign: 'top' } : {}) }
+              : {}),
+            ...(column.dividerBefore ? residualDividerSx : {}),
+          }}
+        >
+          {content(column.id)}
+        </TableCell>
+      ))}
     </TableRow>
   );
 }
@@ -406,14 +410,16 @@ export function RiskInventoryTable({
   units: RiskInventoryUnit[];
   columnPreference?: RiskInventoryColumnsPreference | null;
 }) {
-  const showOrigin = inventoryOriginVisible(columnPreference);
-  const headerGroups = inventoryHeaderGroups(showOrigin);
+  const visibleColumns = columnsFor(columnPreference);
+  const firstResidualId = visibleColumns.find((column) => RESIDUAL_COLUMN_IDS.has(column.id))?.id;
+  const headerGroups = inventoryHeaderGroups(visibleColumns.map((column) => column.id));
   const headerVertical = (columnId: InventoryColumnId) =>
     inventoryScreenColumnHeaderOrientation(columnPreference, columnId) === 'VERTICAL';
   const headerLabel = (columnId: InventoryColumnId, fallback: string) =>
     inventoryScreenColumnHeaderLabel(columnPreference, columnId, fallback);
-  const layouts = columnsFor(showOrigin).map((column) => ({
+  const layouts = visibleColumns.map((column) => ({
     ...column,
+    dividerBefore: column.id === firstResidualId,
     layout: columnLayout(columnPreference, column.id),
   }));
   const totalWeight = layouts.reduce((sum, column) => sum + column.layout.weight, 0);
@@ -512,7 +518,7 @@ export function RiskInventoryTable({
                           ...(headerVertical(column.id) || column.layout.role === 'text'
                             ? {}
                             : { whiteSpace: 'nowrap' }),
-                          ...('dividerBefore' in column ? residualDividerSx : {}),
+                          ...(column.dividerBefore ? residualDividerSx : {}),
                         }}
                       >
                         {headerVertical(column.id) ? (
@@ -534,7 +540,7 @@ export function RiskInventoryTable({
                     <InventoryRow
                       key={`${unit.id}-${row.riskFactorId}-${row.originHomogeneousGroupIds.join(',')}`}
                       row={row}
-                      showOrigin={showOrigin}
+                      columns={layouts}
                       columnPreference={columnPreference}
                     />
                   ))}

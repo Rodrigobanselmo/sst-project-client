@@ -83,6 +83,25 @@ export const INVENTORY_CONFIGURABLE_COLUMNS: Array<{
 
 export const INVENTORY_ORIGIN_COLUMN = { key: 'ORIGIN' as const, label: 'Origem' };
 
+/** Columns the dialog may hide. Structural columns stay visible. */
+export const INVENTORY_HIDEABLE_COLUMN_KEYS = [
+  'ORIGIN',
+  'GENERATING_SOURCE',
+  'EPI',
+  'ENGINEERING',
+  'ADMINISTRATIVE',
+  'RECOMMENDATIONS',
+  'PROBABILITY_RESIDUAL',
+] as const;
+
+const INVENTORY_HIDEABLE_KEYS = new Set<string>(INVENTORY_HIDEABLE_COLUMN_KEYS);
+
+export function inventoryColumnCanHide(
+  key: RiskInventoryColumnKey,
+): key is (typeof INVENTORY_HIDEABLE_COLUMN_KEYS)[number] {
+  return INVENTORY_HIDEABLE_KEYS.has(key);
+}
+
 /** Dialog order. ORIGIN sits after Tipo and is not one of the 13 required keys. */
 export const INVENTORY_DIALOG_COLUMNS: Array<{ key: RiskInventoryColumnKey; label: string }> = [
   INVENTORY_CONFIGURABLE_COLUMNS[0],
@@ -95,11 +114,26 @@ export function inventoryDefaultColumnLabel(key: RiskInventoryColumnKey): string
   return INVENTORY_CONFIGURABLE_COLUMNS.find((column) => column.key === key)!.label;
 }
 
+/**
+ * ORIGIN is shown only when `visible` is true.
+ * Other hideable columns are hidden only when `visible` is false.
+ * Structural columns stay visible even if a stored flag says otherwise.
+ */
+export function inventoryColumnVisible(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  key: RiskInventoryColumnKey,
+): boolean {
+  if (!inventoryColumnCanHide(key)) return true;
+  const visible = preference?.columns.find((column) => column.key === key)?.visible;
+  if (key === 'ORIGIN') return visible === true;
+  return visible !== false;
+}
+
 /** ORIGIN is shown only when the effective preference marks it visible. */
 export function inventoryOriginVisible(
   preference: RiskInventoryColumnsPreference | null | undefined,
 ): boolean {
-  return preference?.columns.some((column) => column.key === 'ORIGIN' && column.visible === true) === true;
+  return inventoryColumnVisible(preference, 'ORIGIN');
 }
 
 export function inventoryOriginText(unit: { name: string; originType: string | null }): string {
@@ -160,14 +194,8 @@ const INVENTORY_STACK_VERTICAL_PX = {
 
 /**
  * Structural screen header only. These bands are not column preferences.
- * Spans follow the 13 screen columns: no Origem, and no second S.
+ * Canonical spans follow the 13 screen columns: no Origem, and no second S.
  */
-export function inventoryHeaderGroups(showOrigin: boolean) {
-  return INVENTORY_HEADER_GROUPS.map((group) =>
-    group.id === 'occupation' ? { ...group, colSpan: showOrigin ? 5 : group.colSpan } : group,
-  );
-}
-
 export const INVENTORY_HEADER_GROUPS = [
   {
     id: 'occupation',
@@ -185,6 +213,34 @@ export const INVENTORY_HEADER_GROUPS = [
     colSpan: 3,
   },
 ] as const;
+
+const INVENTORY_SCREEN_GROUP_COLUMNS = [
+  {
+    id: 'occupation' as const,
+    label: INVENTORY_HEADER_GROUPS[0].label,
+    columns: ['type', 'origin', 'hazard', 'damage', 'source'],
+  },
+  {
+    id: 'real' as const,
+    label: INVENTORY_HEADER_GROUPS[1].label,
+    columns: ['epi', 'epc', 'adm', 'severity', 'probability', 'real'],
+  },
+  {
+    id: 'residual' as const,
+    label: INVENTORY_HEADER_GROUPS[2].label,
+    columns: ['recs', 'pAfter', 'residual'],
+  },
+];
+
+/** Band spans follow the columns actually drawn. An empty band is omitted. */
+export function inventoryHeaderGroups(visibleColumnIds: readonly string[]) {
+  const visible = new Set(visibleColumnIds);
+  return INVENTORY_SCREEN_GROUP_COLUMNS.map((group) => ({
+    id: group.id,
+    label: group.label,
+    colSpan: group.columns.filter((column) => visible.has(column)).length,
+  })).filter((group) => group.colSpan > 0);
+}
 
 const SCREEN_COLUMN_KEY = {
   origin: 'ORIGIN',
