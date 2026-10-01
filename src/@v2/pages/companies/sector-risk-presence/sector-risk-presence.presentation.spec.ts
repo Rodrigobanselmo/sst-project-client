@@ -13,6 +13,7 @@ import {
   presentSectorRiskPresence,
   sectorRiskPresenceCellRef,
   sectorRiskPresenceTooltip,
+  SECTOR_RISK_PRESENCE_DEFAULT_ORIENTATION,
   SECTOR_RISK_PRESENCE_MARK,
   sectorRiskPresenceAccent,
 } from './sector-risk-presence.presentation';
@@ -60,6 +61,8 @@ const data: SectorRiskPresence = {
   riskOrder: { rows: ['fall', 'noise'], columns: ['noise', 'fall'] },
   sectorOrder: ['admin', 'heat'],
 };
+
+assert.equal(SECTOR_RISK_PRESENCE_DEFAULT_ORIENTATION, 'SECTORS_IN_ROWS');
 
 const risksInRows = presentSectorRiskPresence(data, 'RISKS_IN_ROWS');
 assert.deepEqual(

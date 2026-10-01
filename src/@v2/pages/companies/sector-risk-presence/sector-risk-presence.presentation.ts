@@ -5,6 +5,9 @@ import {
 
 export type SectorRiskPresenceOrientation = 'RISKS_IN_ROWS' | 'SECTORS_IN_ROWS';
 
+export const SECTOR_RISK_PRESENCE_DEFAULT_ORIENTATION: SectorRiskPresenceOrientation =
+  'SECTORS_IN_ROWS';
+
 export const SECTOR_RISK_PRESENCE_INK = '#1A202C';
 export const SECTOR_RISK_PRESENCE_GRID = '#E2E8F0';
 export const SECTOR_RISK_PRESENCE_SURFACE = '#FFFFFF';

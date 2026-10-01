@@ -12,6 +12,7 @@ import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskG
 import { buildSectorRiskPresenceNavigation } from './sector-risk-presence-navigation';
 import { SectorRiskPresenceGrid } from './SectorRiskPresenceGrid';
 import {
+  SECTOR_RISK_PRESENCE_DEFAULT_ORIENTATION,
   SECTOR_RISK_PRESENCE_LEGEND,
   SectorRiskPresenceOrientation,
 } from './sector-risk-presence.presentation';
@@ -27,8 +28,9 @@ export function SectorRiskPresenceView({
   isAllEstablishments: boolean;
   queryEnabled: boolean;
 }) {
-  const [orientation, setOrientation] =
-    useState<SectorRiskPresenceOrientation>('RISKS_IN_ROWS');
+  const [orientation, setOrientation] = useState<SectorRiskPresenceOrientation>(
+    SECTOR_RISK_PRESENCE_DEFAULT_ORIENTATION,
+  );
   const { data: riskGroupData } = useQueryRiskGroupData();
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
   // Lista usa este hook, que abre ModalEnum.RISK_TOOL — o modal montado nesta tela.
