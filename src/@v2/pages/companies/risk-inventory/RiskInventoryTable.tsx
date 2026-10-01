@@ -3,8 +3,8 @@ import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, Tabl
 import { useState } from 'react';
 
 import {
-  RiskInventoryColumnKey,
   RiskInventoryColumnsPreference,
+  RiskInventoryExtraColumnSetting,
   RiskInventoryPresentation,
   RiskInventoryRow,
   RiskInventoryUnit,
@@ -13,10 +13,12 @@ import {
 import {
   formatInventoryEpis,
   formatInventoryLines,
-  inventoryColumnVisible,
   inventoryDefaultColumnLabel,
   inventoryExposedEmployeeText,
-  inventoryHeaderGroups,
+  inventoryExtraColumnHeaderOrientation,
+  inventoryExtraColumnLabel,
+  inventoryExtraColumnOrientation,
+  inventoryExtraColumnWidthWeight,
   inventoryPresentationColor,
   inventoryPresentationText,
   inventoryProbabilityHint,
@@ -28,11 +30,17 @@ import {
   inventoryScreenColumnLayout,
   inventoryTableMinWidth,
   inventoryWidthPercent,
+  inventoryColumnFamily,
+  inventoryHeaderRuns,
+  inventoryOrderColumnVisible,
   inventoryScreenColumnOrientation,
+  resolveInventoryColumnOrder,
   inventoryUnitScopeText,
   inventoryVerticalRiskText,
+  inventoryVisibleExtraColumns,
   INVENTORY_VERTICAL_LINE_PX,
   INVENTORY_VERTICAL_ROTATION,
+  INVENTORY_VERTICAL_STACK_PX,
   INVENTORY_EMPTY,
   INVENTORY_EXPOSED_LABEL,
   INVENTORY_SCOPE_LABEL,
@@ -57,11 +65,9 @@ const columns = [
 
 type InventoryColumnId = (typeof columns)[number]['id'];
 
-const RESIDUAL_COLUMN_IDS = new Set<InventoryColumnId>(['recs', 'pAfter', 'residual']);
-
-function columnsFor(preference: RiskInventoryColumnsPreference | null) {
-  return columns.filter((column) => inventoryColumnVisible(preference, column.key as RiskInventoryColumnKey));
-}
+type InventorySlot =
+  | { kind: 'native'; id: InventoryColumnId; label: string; dividerBefore: boolean; weight: number }
+  | { kind: 'extra'; extra: ExtraLayout; dividerBefore: boolean };
 
 const cellSx = {
   verticalAlign: 'top',
@@ -233,13 +239,35 @@ function RiskPill({
   );
 }
 
+type ExtraLayout = {
+  key: RiskInventoryExtraColumnSetting['key'];
+  label: string;
+  weight: number;
+  align: 'left' | 'center';
+  vertical: boolean;
+  headerVertical: boolean;
+  stackPx: number;
+};
+
+function extraLayoutsFor(preference: RiskInventoryColumnsPreference | null): ExtraLayout[] {
+  return inventoryVisibleExtraColumns(preference).map((column) => ({
+    key: column.key,
+    label: inventoryExtraColumnLabel(column),
+    weight: inventoryExtraColumnWidthWeight(column),
+    align: column.key === 'symptoms' ? 'left' : 'center',
+    vertical: inventoryExtraColumnOrientation(column) === 'VERTICAL',
+    headerVertical: inventoryExtraColumnHeaderOrientation(column) === 'VERTICAL',
+    stackPx: column.key === 'symptoms' || column.key === 'propagation' ? INVENTORY_VERTICAL_STACK_PX : 44,
+  }));
+}
+
 function InventoryRow({
   row,
-  columns: visibleColumns,
+  slots,
   columnPreference,
 }: {
   row: RiskInventoryRow;
-  columns: ReadonlyArray<{ id: InventoryColumnId; dividerBefore?: boolean }>;
+  slots: readonly InventorySlot[];
   columnPreference: RiskInventoryColumnsPreference | null;
 }) {
   const probabilityHint = inventoryProbabilityHint(row);
@@ -302,26 +330,49 @@ function InventoryRow({
 
   return (
     <TableRow>
-      {visibleColumns.map((column) => (
-        <TableCell
-          key={column.id}
-          align={column.id === 'type' ? 'left' : layout(column.id).align}
-          sx={{
-            ...cellSx,
-            ...pad(column.id),
-            ...(column.id === 'hazard' ? { fontWeight: 600 } : {}),
-            ...(column.id === 'severity' || column.id === 'probability' || column.id === 'pAfter'
-              ? { fontWeight: 700 }
-              : {}),
-            ...(column.id === 'real' || column.id === 'residual'
-              ? { ...(vertical(column.id) ? { verticalAlign: 'top' } : {}) }
-              : {}),
-            ...(column.dividerBefore ? residualDividerSx : {}),
-          }}
-        >
-          {content(column.id)}
-        </TableCell>
-      ))}
+      {slots.map((slot) => {
+        if (slot.kind === 'extra') {
+          const column = slot.extra;
+          const text = row.technicalValues?.[column.key]?.trim() || INVENTORY_EMPTY;
+          return (
+            <TableCell
+              key={column.key}
+              align={column.align}
+              sx={{
+                ...cellSx,
+                ...(column.align === 'center' ? { px: 0.5 } : {}),
+                ...(slot.dividerBefore ? residualDividerSx : {}),
+              }}
+            >
+              {column.vertical ? (
+                <VerticalText text={text} title={text} stackPx={column.stackPx} align={column.align} />
+              ) : (
+                text
+              )}
+            </TableCell>
+          );
+        }
+        return (
+          <TableCell
+            key={slot.id}
+            align={slot.id === 'type' ? 'left' : layout(slot.id).align}
+            sx={{
+              ...cellSx,
+              ...pad(slot.id),
+              ...(slot.id === 'hazard' ? { fontWeight: 600 } : {}),
+              ...(slot.id === 'severity' || slot.id === 'probability' || slot.id === 'pAfter'
+                ? { fontWeight: 700 }
+                : {}),
+              ...(slot.id === 'real' || slot.id === 'residual'
+                ? { ...(vertical(slot.id) ? { verticalAlign: 'top' } : {}) }
+                : {}),
+              ...(slot.dividerBefore ? residualDividerSx : {}),
+            }}
+          >
+            {content(slot.id)}
+          </TableCell>
+        );
+      })}
     </TableRow>
   );
 }
@@ -410,20 +461,40 @@ export function RiskInventoryTable({
   units: RiskInventoryUnit[];
   columnPreference?: RiskInventoryColumnsPreference | null;
 }) {
-  const visibleColumns = columnsFor(columnPreference);
-  const firstResidualId = visibleColumns.find((column) => RESIDUAL_COLUMN_IDS.has(column.id))?.id;
-  const headerGroups = inventoryHeaderGroups(visibleColumns.map((column) => column.id));
+  const nativeByKey = new Map(columns.map((column) => [column.key, column]));
+  const extrasByKey = new Map(extraLayoutsFor(columnPreference).map((column) => [column.key, column]));
+  const logicalOrder = resolveInventoryColumnOrder(columnPreference);
+  const visibleKeys = logicalOrder.filter((key) => inventoryOrderColumnVisible(columnPreference, key));
+  const slots: InventorySlot[] = visibleKeys.flatMap((key, index): InventorySlot[] => {
+    const previous = index > 0 ? inventoryColumnFamily(visibleKeys[index - 1]) : null;
+    const dividerBefore = inventoryColumnFamily(key) === 'residual' && previous !== 'residual';
+    const native = nativeByKey.get(key as (typeof columns)[number]['key']);
+    if (native) {
+      return [
+        {
+          kind: 'native' as const,
+          id: native.id,
+          label: native.label,
+          dividerBefore,
+          weight: columnLayout(columnPreference, native.id).weight,
+        },
+      ];
+    }
+    const extra = extrasByKey.get(key as RiskInventoryExtraColumnSetting['key']);
+    return extra ? [{ kind: 'extra' as const, extra, dividerBefore }] : [];
+  });
+  const headerGroups = inventoryHeaderRuns(visibleKeys);
   const headerVertical = (columnId: InventoryColumnId) =>
     inventoryScreenColumnHeaderOrientation(columnPreference, columnId) === 'VERTICAL';
   const headerLabel = (columnId: InventoryColumnId, fallback: string) =>
     inventoryScreenColumnHeaderLabel(columnPreference, columnId, fallback);
-  const layouts = visibleColumns.map((column) => ({
-    ...column,
-    dividerBefore: column.id === firstResidualId,
-    layout: columnLayout(columnPreference, column.id),
-  }));
-  const totalWeight = layouts.reduce((sum, column) => sum + column.layout.weight, 0);
-  const tableMinWidth = inventoryTableMinWidth(layouts.map((column) => column.layout.weight));
+  const totalWeight = slots.reduce(
+    (sum, slot) => sum + (slot.kind === 'native' ? slot.weight : slot.extra.weight),
+    0,
+  );
+  const tableMinWidth = inventoryTableMinWidth(
+    slots.flatMap((slot) => (slot.kind === 'native' ? [slot.weight] : [])),
+  );
   const [expandedUnitIds, setExpandedUnitIds] = useState<ReadonlySet<string>>(() => new Set());
   const toggleUnit = (unitId: string) => {
     setExpandedUnitIds((current) => {
@@ -469,20 +540,25 @@ export function RiskInventoryTable({
                 }}
               >
                 <colgroup>
-                  {layouts.map((column) => (
+                  {slots.map((slot) => (
                     <col
-                      key={column.id}
-                      style={{ width: `${inventoryWidthPercent(column.layout.weight, totalWeight)}%` }}
+                      key={slot.kind === 'native' ? slot.id : slot.extra.key}
+                      style={{
+                        width: `${inventoryWidthPercent(
+                          slot.kind === 'native' ? slot.weight : slot.extra.weight,
+                          totalWeight,
+                        )}%`,
+                      }}
                     />
                   ))}
                 </colgroup>
                 <TableHead>
                   <TableRow>
-                    {headerGroups.map((group) => (
+                    {headerGroups.map((group, index) => (
                       <TableCell
-                        key={group.id}
+                        key={`${group.family}-${index}`}
                         colSpan={group.colSpan}
-                        align={group.id === 'occupation' ? 'left' : 'center'}
+                        align={group.family === 'occupation' ? 'left' : 'center'}
                         sx={{
                           top: 0,
                           zIndex: 4,
@@ -494,7 +570,7 @@ export function RiskInventoryTable({
                           lineHeight: 1.2,
                           whiteSpace: 'nowrap',
                           bgcolor: 'grey.50',
-                          ...(group.id === 'residual' ? residualDividerSx : {}),
+                          ...(group.family === 'residual' ? residualDividerSx : {}),
                         }}
                       >
                         {group.label}
@@ -502,37 +578,69 @@ export function RiskInventoryTable({
                     ))}
                   </TableRow>
                   <TableRow>
-                    {layouts.map((column) => (
-                      <TableCell
-                        key={column.id}
-                        align={column.id === 'type' ? 'left' : column.layout.align}
-                        sx={{
-                          top: INVENTORY_GROUP_HEADER_PX,
-                          zIndex: 3,
-                          verticalAlign: 'middle',
-                          ...(column.layout.role === 'text' ? {} : { px: 0.5 }),
-                          fontWeight: 700,
-                          fontSize: 12,
-                          ...(headerVertical(column.id) ? {} : { lineHeight: 1.15 }),
-                          bgcolor: 'background.paper',
-                          ...(headerVertical(column.id) || column.layout.role === 'text'
-                            ? {}
-                            : { whiteSpace: 'nowrap' }),
-                          ...(column.dividerBefore ? residualDividerSx : {}),
-                        }}
-                      >
-                        {headerVertical(column.id) ? (
-                          <VerticalText
-                            text={headerLabel(column.id, column.label)}
-                            linePx={inventoryVerticalHeaderBoxPx(headerLabel(column.id, column.label))}
-                            stackPx={column.layout.stackPx}
-                            align={column.id === 'type' ? 'left' : column.layout.align}
-                          />
-                        ) : (
-                          headerLabel(column.id, column.label)
-                        )}
-                      </TableCell>
-                    ))}
+                    {slots.map((slot) => {
+                      if (slot.kind === 'extra') {
+                        const column = slot.extra;
+                        return (
+                          <TableCell
+                            key={column.key}
+                            align={column.align}
+                            sx={{
+                              top: INVENTORY_GROUP_HEADER_PX,
+                              zIndex: 3,
+                              verticalAlign: 'middle',
+                              ...(column.align === 'center' ? { px: 0.5 } : {}),
+                              fontWeight: 700,
+                              fontSize: 12,
+                              bgcolor: 'background.paper',
+                              ...(column.headerVertical ? {} : { lineHeight: 1.15, whiteSpace: 'nowrap' }),
+                              ...(slot.dividerBefore ? residualDividerSx : {}),
+                            }}
+                          >
+                            {column.headerVertical ? (
+                              <VerticalText
+                                text={column.label}
+                                linePx={inventoryVerticalHeaderBoxPx(column.label)}
+                                stackPx={column.stackPx}
+                                align={column.align}
+                              />
+                            ) : (
+                              column.label
+                            )}
+                          </TableCell>
+                        );
+                      }
+                      const layout = columnLayout(columnPreference, slot.id);
+                      return (
+                        <TableCell
+                          key={slot.id}
+                          align={slot.id === 'type' ? 'left' : layout.align}
+                          sx={{
+                            top: INVENTORY_GROUP_HEADER_PX,
+                            zIndex: 3,
+                            verticalAlign: 'middle',
+                            ...(layout.role === 'text' ? {} : { px: 0.5 }),
+                            fontWeight: 700,
+                            fontSize: 12,
+                            ...(headerVertical(slot.id) ? {} : { lineHeight: 1.15 }),
+                            bgcolor: 'background.paper',
+                            ...(headerVertical(slot.id) || layout.role === 'text' ? {} : { whiteSpace: 'nowrap' }),
+                            ...(slot.dividerBefore ? residualDividerSx : {}),
+                          }}
+                        >
+                          {headerVertical(slot.id) ? (
+                            <VerticalText
+                              text={headerLabel(slot.id, slot.label)}
+                              linePx={inventoryVerticalHeaderBoxPx(headerLabel(slot.id, slot.label))}
+                              stackPx={layout.stackPx}
+                              align={slot.id === 'type' ? 'left' : layout.align}
+                            />
+                          ) : (
+                            headerLabel(slot.id, slot.label)
+                          )}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -540,7 +648,7 @@ export function RiskInventoryTable({
                     <InventoryRow
                       key={`${unit.id}-${row.riskFactorId}-${row.originHomogeneousGroupIds.join(',')}`}
                       row={row}
-                      columns={layouts}
+                      slots={slots}
                       columnPreference={columnPreference}
                     />
                   ))}

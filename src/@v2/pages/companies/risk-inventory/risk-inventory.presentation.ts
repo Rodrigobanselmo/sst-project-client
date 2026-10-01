@@ -1,9 +1,15 @@
+import { RISK_TECHNICAL_PHYSICAL_COLUMNS } from '@v2/pages/companies/risk-technical-data/risk-technical-data.presentation';
 import {
+  RISK_INVENTORY_EXTRA_COLUMN_KEYS,
   RiskInventoryColumnKey,
   RiskInventoryColumnOrientation,
   RiskInventoryColumnsPreference,
   RiskInventoryConfigurableColumnKey,
+  RiskInventoryColumnSetting,
   RiskInventoryEpi,
+  RiskInventoryExtraColumnKey,
+  RiskInventoryExtraColumnSetting,
+  RiskInventoryOrderKey,
   RiskInventoryPresentation,
   RiskInventoryRow,
 } from '@v2/services/security/risk-inventory/risk-inventory.types';
@@ -240,6 +246,255 @@ export function inventoryHeaderGroups(visibleColumnIds: readonly string[]) {
     label: group.label,
     colSpan: group.columns.filter((column) => visible.has(column)).length,
   })).filter((group) => group.colSpan > 0);
+}
+
+/** Physical/chemical Dados Técnicos defaults for the 12 inventory extras. exams is excluded. */
+export const INVENTORY_EXTRA_COLUMNS: Array<
+  Omit<(typeof RISK_TECHNICAL_PHYSICAL_COLUMNS)[number], 'key'> & { key: RiskInventoryExtraColumnKey }
+> = RISK_INVENTORY_EXTRA_COLUMN_KEYS.map((key) => {
+  const column = RISK_TECHNICAL_PHYSICAL_COLUMNS.find((item) => item.key === key);
+  if (!column) throw new Error(`Coluna extra sem catálogo: ${key}`);
+  if (key === 'symptoms') return { ...column, key, headerLabel: 'Efeitos e Sintomas' };
+  return { ...column, key };
+});
+
+const INVENTORY_EXTRA_COLUMN_BY_KEY = Object.fromEntries(
+  INVENTORY_EXTRA_COLUMNS.map((column) => [column.key, column]),
+) as Record<RiskInventoryExtraColumnKey, (typeof INVENTORY_EXTRA_COLUMNS)[number]>;
+
+export function inventoryExtraColumns(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+): RiskInventoryExtraColumnSetting[] {
+  return preference?.extraColumns ?? [];
+}
+
+export function inventoryVisibleExtraColumns(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+): RiskInventoryExtraColumnSetting[] {
+  return inventoryExtraColumns(preference).filter((column) => column.visible !== false);
+}
+
+export function inventoryExtraColumnLabel(column: RiskInventoryExtraColumnSetting): string {
+  return column.headerLabel || INVENTORY_EXTRA_COLUMN_BY_KEY[column.key].headerLabel;
+}
+
+export function inventoryExtraColumnWidthWeight(column: RiskInventoryExtraColumnSetting): number {
+  return column.widthWeight ?? INVENTORY_EXTRA_COLUMN_BY_KEY[column.key].widthWeight;
+}
+
+export function inventoryExtraColumnOrientation(
+  column: RiskInventoryExtraColumnSetting,
+): RiskInventoryColumnOrientation {
+  return column.orientation;
+}
+
+export function inventoryExtraColumnHeaderOrientation(
+  column: RiskInventoryExtraColumnSetting,
+): RiskInventoryColumnOrientation {
+  return column.headerOrientation ?? column.orientation;
+}
+
+export function inventoryExtraDefaultSetting(key: RiskInventoryExtraColumnKey): RiskInventoryExtraColumnSetting {
+  const column = INVENTORY_EXTRA_COLUMN_BY_KEY[key];
+  return {
+    key,
+    orientation: column.orientation,
+    ...(column.headerOrientation ? { headerOrientation: column.headerOrientation } : {}),
+    widthWeight: column.widthWeight,
+    visible: true,
+  };
+}
+
+/**
+ * Native bands stay as they are. DADOS TÉCNICOS is appended only when at least
+ * one extra column is visible, and it spans only those columns.
+ */
+export function inventoryTableHeaderGroups(
+  visibleColumnIds: readonly string[],
+  extraCount: number,
+) {
+  const groups: Array<{ id: string; label: string; colSpan: number }> = inventoryHeaderGroups(visibleColumnIds);
+  if (extraCount > 0) {
+    groups.push({ id: 'technical', label: 'DADOS TÉCNICOS', colSpan: extraCount });
+  }
+  return groups;
+}
+
+/** Organizable natives in the historical table order. The second residual S is not here. */
+export const INVENTORY_CANONICAL_COLUMN_ORDER = [
+  'TYPE',
+  'ORIGIN',
+  'HAZARD',
+  'DAMAGE',
+  'GENERATING_SOURCE',
+  'EPI',
+  'ENGINEERING',
+  'ADMINISTRATIVE',
+  'SEVERITY',
+  'PROBABILITY',
+  'REAL_RISK',
+  'RECOMMENDATIONS',
+  'PROBABILITY_RESIDUAL',
+  'RESIDUAL_RISK',
+] as const satisfies readonly RiskInventoryOrderKey[];
+
+const INVENTORY_NATIVE_ORDER_INDEX = new Map<string, number>(
+  INVENTORY_CANONICAL_COLUMN_ORDER.map((key, index) => [key, index]),
+);
+const INVENTORY_EXTRA_ORDER_KEYS = new Set<string>(RISK_INVENTORY_EXTRA_COLUMN_KEYS);
+
+export type InventoryColumnFamily = 'occupation' | 'real' | 'residual' | 'technical';
+
+const INVENTORY_OCCUPATION_KEYS = new Set<string>(['TYPE', 'ORIGIN', 'HAZARD', 'DAMAGE', 'GENERATING_SOURCE']);
+const INVENTORY_REAL_KEYS = new Set<string>([
+  'EPI',
+  'ENGINEERING',
+  'ADMINISTRATIVE',
+  'SEVERITY',
+  'PROBABILITY',
+  'REAL_RISK',
+]);
+const INVENTORY_RESIDUAL_KEYS = new Set<string>(['RECOMMENDATIONS', 'PROBABILITY_RESIDUAL', 'RESIDUAL_RISK']);
+
+const INVENTORY_FAMILY_LABEL: Record<InventoryColumnFamily, string> = {
+  occupation: INVENTORY_HEADER_GROUPS[0].label,
+  real: INVENTORY_HEADER_GROUPS[1].label,
+  residual: INVENTORY_HEADER_GROUPS[2].label,
+  technical: 'DADOS TÉCNICOS',
+};
+
+export function inventoryColumnFamily(key: string): InventoryColumnFamily {
+  if (INVENTORY_OCCUPATION_KEYS.has(key)) return 'occupation';
+  if (INVENTORY_REAL_KEYS.has(key)) return 'real';
+  if (INVENTORY_RESIDUAL_KEYS.has(key)) return 'residual';
+  return 'technical';
+}
+
+/**
+ * Logical order, including hidden columns. Without columnOrder the natives stay
+ * canonical and extras follow residual risk in extraColumns order. A missing
+ * native is inserted after the last placed native that canonically precedes it.
+ */
+export function resolveInventoryColumnOrder(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+): RiskInventoryOrderKey[] {
+  const extras = preference?.extraColumns ?? [];
+  const extraKeys = new Set(extras.map((column) => column.key));
+  const stored = preference?.columnOrder ?? [];
+  if (!stored.length) {
+    return [...INVENTORY_CANONICAL_COLUMN_ORDER, ...extras.map((column) => column.key)];
+  }
+
+  const seen = new Set<string>();
+  const ordered: RiskInventoryOrderKey[] = [];
+  stored.forEach((key) => {
+    if (typeof key !== 'string' || seen.has(key)) return;
+    const native = INVENTORY_NATIVE_ORDER_INDEX.has(key);
+    const extra = extraKeys.has(key as RiskInventoryExtraColumnKey);
+    if (!native && !extra) return;
+    seen.add(key);
+    ordered.push(key);
+  });
+
+  INVENTORY_CANONICAL_COLUMN_ORDER.forEach((native) => {
+    if (seen.has(native)) return;
+    const canonIndex = INVENTORY_NATIVE_ORDER_INDEX.get(native) ?? 0;
+    let insertAt = 0;
+    for (let index = 0; index < ordered.length; index += 1) {
+      const currentCanon = INVENTORY_NATIVE_ORDER_INDEX.get(ordered[index]);
+      if (currentCanon !== undefined && currentCanon < canonIndex) insertAt = index + 1;
+    }
+    ordered.splice(insertAt, 0, native);
+    seen.add(native);
+  });
+
+  extras.forEach((column) => {
+    if (seen.has(column.key)) return;
+    ordered.push(column.key);
+    seen.add(column.key);
+  });
+
+  return ordered;
+}
+
+export function inventoryOrderColumnVisible(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  key: string,
+): boolean {
+  if (INVENTORY_EXTRA_ORDER_KEYS.has(key)) {
+    const extra = preference?.extraColumns?.find((column) => column.key === key);
+    return Boolean(extra) && extra?.visible !== false;
+  }
+  if (!INVENTORY_NATIVE_ORDER_INDEX.has(key)) return false;
+  return inventoryColumnVisible(preference, key as RiskInventoryColumnKey);
+}
+
+export type InventoryHeaderRun = {
+  id: InventoryColumnFamily;
+  family: InventoryColumnFamily;
+  label: string;
+  colSpan: number;
+};
+
+/** Bands follow the visible sequence. The same family reopens after an interruption. */
+export function inventoryHeaderRuns(keys: readonly string[]): InventoryHeaderRun[] {
+  const runs: InventoryHeaderRun[] = [];
+  keys.forEach((key) => {
+    const family = inventoryColumnFamily(key);
+    const last = runs[runs.length - 1];
+    if (last && last.family === family) last.colSpan += 1;
+    else runs.push({ id: family, family, label: INVENTORY_FAMILY_LABEL[family], colSpan: 1 });
+  });
+  return runs;
+}
+
+/**
+ * Include/remove only. A missing order stays missing. A saved order drops removed
+ * extras and appends a newly included extra. It does not follow extraColumns order.
+ */
+export function reconcileInventoryColumnOrder(
+  columnOrder: readonly string[] | undefined,
+  extraKeys: readonly string[],
+): string[] | undefined {
+  if (!columnOrder?.length) return undefined;
+  const included = new Set(extraKeys);
+  const seen = new Set<string>();
+  const next: string[] = [];
+  columnOrder.forEach((key) => {
+    if (seen.has(key)) return;
+    const keepNative = INVENTORY_NATIVE_ORDER_INDEX.has(key);
+    const keepExtra = INVENTORY_EXTRA_ORDER_KEYS.has(key) && included.has(key);
+    if (!keepNative && !keepExtra) return;
+    seen.add(key);
+    next.push(key);
+  });
+  extraKeys.forEach((key) => {
+    if (seen.has(key) || !INVENTORY_EXTRA_ORDER_KEYS.has(key)) return;
+    seen.add(key);
+    next.push(key);
+  });
+  return next;
+}
+
+/** The 13 native columns plus Origem, in the shape the system snapshot requires. */
+export function inventoryNativeColumnSettings(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+): RiskInventoryColumnSetting[] {
+  return INVENTORY_DIALOG_COLUMNS.map((column) => {
+    const orientation = inventoryColumnDraftOrientation(preference, column.key);
+    const title = inventoryColumnDraftHeaderChoice(preference, column.key);
+    const headerLabel = inventoryColumnDraftHeaderLabel(preference, column.key).trim();
+    const widthWeight = inventoryColumnWidthWeight(preference, column.key);
+    const setting = {
+      key: column.key,
+      orientation,
+      widthWeight,
+      ...(title === 'SAME' ? {} : { headerOrientation: title }),
+      ...(headerLabel ? { headerLabel } : {}),
+    };
+    if (!inventoryColumnCanHide(column.key)) return setting;
+    return { ...setting, visible: inventoryColumnVisible(preference, column.key) };
+  });
 }
 
 const SCREEN_COLUMN_KEY = {

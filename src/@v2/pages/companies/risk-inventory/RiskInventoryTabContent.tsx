@@ -6,7 +6,9 @@ import { STableEmpty } from '@v2/components/organisms/STable/addons/addons-table
 import { useFetchBrowseRiskInventory } from '@v2/services/security/risk-inventory/useFetchBrowseRiskInventory';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
+import { RiskInventoryColumnOrderDialog } from './RiskInventoryColumnOrderDialog';
 import { RiskInventoryColumnsDialog } from './RiskInventoryColumnsDialog';
+import { RiskInventoryExtraColumnsDialog } from './RiskInventoryExtraColumnsDialog';
 import { RiskInventoryTable } from './RiskInventoryTable';
 
 type RiskInventoryTabContentProps = {
@@ -20,6 +22,8 @@ export function RiskInventoryTabContent({
 }: RiskInventoryTabContentProps) {
   const { companyId } = useGetCompanyId();
   const [columnsOpen, setColumnsOpen] = useState(false);
+  const [extraColumnsOpen, setExtraColumnsOpen] = useState(false);
+  const [columnOrderOpen, setColumnOrderOpen] = useState(false);
   const { data, isLoading, isError } = useFetchBrowseRiskInventory(
     {
       companyId: companyId || '',
@@ -30,6 +34,8 @@ export function RiskInventoryTabContent({
 
   useEffect(() => {
     setColumnsOpen(false);
+    setExtraColumnsOpen(false);
+    setColumnOrderOpen(false);
   }, [workspaceId]);
 
   if (!workspaceId) {
@@ -60,13 +66,30 @@ export function RiskInventoryTabContent({
 
   return (
     <Box sx={{ px: 2, pb: 3, pt: 1 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 1.5 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+          mb: 1.5,
+          flexWrap: 'wrap',
+        }}
+      >
         <Typography variant="body2" color="text.secondary">
           Visão somente leitura do inventário atual. A composição segue o inventário do PGR por GSE.
         </Typography>
-        <Button variant="outlined" size="small" onClick={() => setColumnsOpen(true)} sx={{ flexShrink: 0 }}>
-          Configurar colunas
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button variant="outlined" size="small" onClick={() => setColumnsOpen(true)}>
+            Configurar colunas
+          </Button>
+          <Button variant="outlined" size="small" onClick={() => setExtraColumnsOpen(true)}>
+            Colunas extras
+          </Button>
+          <Button variant="outlined" size="small" onClick={() => setColumnOrderOpen(true)}>
+            Organizar colunas
+          </Button>
+        </Box>
       </Box>
       {data?.units.length ? (
         <RiskInventoryTable units={data.units} columnPreference={data.columnPreference} />
@@ -83,6 +106,26 @@ export function RiskInventoryTabContent({
           columnPreference={data?.columnPreference ?? null}
           columnPreferenceSource={data?.columnPreferenceSource ?? 'canonical'}
           onClose={() => setColumnsOpen(false)}
+        />
+      ) : null}
+      {companyId && workspaceId ? (
+        <RiskInventoryExtraColumnsDialog
+          open={extraColumnsOpen}
+          companyId={companyId}
+          workspaceId={workspaceId}
+          columnPreference={data?.columnPreference ?? null}
+          columnPreferenceSource={data?.columnPreferenceSource ?? 'canonical'}
+          onClose={() => setExtraColumnsOpen(false)}
+        />
+      ) : null}
+      {companyId && workspaceId ? (
+        <RiskInventoryColumnOrderDialog
+          open={columnOrderOpen}
+          companyId={companyId}
+          workspaceId={workspaceId}
+          columnPreference={data?.columnPreference ?? null}
+          columnPreferenceSource={data?.columnPreferenceSource ?? 'canonical'}
+          onClose={() => setColumnOrderOpen(false)}
         />
       ) : null}
     </Box>

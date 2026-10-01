@@ -55,6 +55,8 @@ export type RiskInventoryRow = {
     vibrationWholeBody: boolean;
     vibrationHandArm: boolean;
   } | null;
+  /** Display text resolved from the risk catalog. Missing text is shown as an em dash. */
+  technicalValues?: Partial<Record<RiskInventoryExtraColumnKey, string>>;
 };
 
 export type RiskInventoryUnit = {
@@ -104,9 +106,41 @@ export type RiskInventoryColumnSetting = {
   visible?: boolean;
 };
 
+export const RISK_INVENTORY_EXTRA_COLUMN_KEYS = [
+  'cas',
+  'propagation',
+  'unit',
+  'nr15lt',
+  'twa',
+  'stel',
+  'ipvs',
+  'pv',
+  'pe',
+  'carnogenicityACGIH',
+  'carnogenicityLinach',
+  'symptoms',
+] as const;
+
+export type RiskInventoryExtraColumnKey = (typeof RISK_INVENTORY_EXTRA_COLUMN_KEYS)[number];
+
+export type RiskInventoryExtraColumnSetting = {
+  key: RiskInventoryExtraColumnKey;
+  orientation: RiskInventoryColumnOrientation;
+  headerOrientation?: RiskInventoryColumnOrientation;
+  headerLabel?: string;
+  widthWeight?: number;
+  /** Absent means visible. `false` hides only this extra column. */
+  visible?: boolean;
+};
+
+export type RiskInventoryOrderKey = RiskInventoryColumnKey | RiskInventoryExtraColumnKey;
+
 export type RiskInventoryColumnsPreference = {
   version: 1;
   columns: RiskInventoryColumnSetting[];
+  extraColumns?: RiskInventoryExtraColumnSetting[];
+  /** Keys only. Absent means canonical natives, then extras. */
+  columnOrder?: RiskInventoryOrderKey[];
 };
 
 export type RiskInventoryColumnsSource = 'workspace' | 'global' | 'canonical';

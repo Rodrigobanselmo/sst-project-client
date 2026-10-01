@@ -113,13 +113,25 @@ export function RiskInventoryColumnsDialog({
     });
   const save = (columns: RiskInventoryColumnSetting[] | null) => {
     mutation.mutate(
-      { companyId, workspaceId, columns },
+      {
+        companyId,
+        workspaceId,
+        columns,
+        extraColumns: columns === null ? undefined : (columnPreference?.extraColumns ?? []),
+        columnOrder: columns === null ? undefined : columnPreference?.columnOrder,
+      },
       { onSuccess: () => onClose() },
     );
   };
   const defineSystemDefault = () => {
     systemMutation.mutate(
-      { companyId, workspaceId, columns: currentColumns() },
+      {
+        companyId,
+        workspaceId,
+        columns: currentColumns(),
+        extraColumns: columnPreference?.extraColumns ?? [],
+        columnOrder: columnPreference?.columnOrder,
+      },
       {
         onSuccess: () => {
           const message =

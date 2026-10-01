@@ -138,6 +138,16 @@ assert.equal(
   true,
 );
 assert.equal(
+  RISK_TECHNICAL_PHYSICAL_COLUMNS.find((column) => column.key === 'symptoms')?.headerLabel,
+  'Efeitos e Sintomas',
+);
+assert.equal(RISK_TECHNICAL_PHYSICAL_COLUMNS.find((column) => column.key === 'effects')?.headerLabel, 'Risco');
+assert.equal(
+  RISK_TECHNICAL_OTHER_COLUMNS.find((column) => column.key === 'symptoms')?.headerLabel,
+  'Efeitos e Sintomas',
+);
+assert.equal(RISK_TECHNICAL_OTHER_COLUMNS.find((column) => column.key === 'effects')?.headerLabel, 'Risco');
+assert.equal(
   RISK_TECHNICAL_PHYSICAL_COLUMNS.some((column) => column.key === 'type' && column.headerLabel === 'Tipo'),
   true,
 );

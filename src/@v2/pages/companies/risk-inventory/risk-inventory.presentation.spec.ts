@@ -7,6 +7,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { RISK_TECHNICAL_PHYSICAL_COLUMNS } from '@v2/pages/companies/risk-technical-data/risk-technical-data.presentation';
+
 import {
   formatInventoryEpis,
   formatInventoryLines,
@@ -14,7 +16,15 @@ import {
   inventoryDefaultColumnLabel,
   inventoryColumnCanHide,
   inventoryColumnVisible,
+  inventoryColumnFamily,
+  inventoryExtraColumnLabel,
   inventoryHeaderGroups,
+  inventoryHeaderRuns,
+  inventoryTableHeaderGroups,
+  reconcileInventoryColumnOrder,
+  resolveInventoryColumnOrder,
+  inventoryVisibleExtraColumns,
+  INVENTORY_EXTRA_COLUMNS,
   inventoryOriginText,
   inventoryOriginVisible,
   INVENTORY_HIDEABLE_COLUMN_KEYS,
@@ -137,14 +147,17 @@ assert.equal(INVENTORY_VERTICAL_LINE_PX > 0 && INVENTORY_VERTICAL_LINE_PX < 200,
 assert.equal(INVENTORY_VERTICAL_STACK_PX > 0 && INVENTORY_VERTICAL_STACK_PX < INVENTORY_VERTICAL_LINE_PX, true);
 assert.equal(tableSource.includes('inventoryScreenColumnLayout'), true);
 assert.equal(tableSource.includes('<colgroup>'), true);
-assert.equal(tableSource.includes('inventoryWidthPercent(column.layout.weight, totalWeight)'), true);
+assert.equal(
+  /inventoryWidthPercent\(\s*slot\.kind === 'native' \? slot\.weight : slot\.extra\.weight,\s*totalWeight,/.test(tableSource),
+  true,
+);
 assert.equal(tableSource.includes('inventoryTableMinWidth'), true);
 assert.equal(tableSource.includes('totalWeight * INVENTORY_WIDTH_FLOOR_PX'), false);
 assert.equal(tableSource.includes("verticalAlign: 'middle'"), true);
 assert.equal(tableSource.includes('lineHeight: 1.15'), true);
 assert.equal(tableSource.includes('contentAlignY="top"'), true);
-assert.equal(tableSource.includes("align={column.id === 'type' ? 'left' : column.layout.align}"), true);
-assert.equal(tableSource.includes("align={column.id === 'type' ? 'left' : layout(column.id).align}"), true);
+assert.equal(tableSource.includes("align={slot.id === 'type' ? 'left' : layout.align}"), true);
+assert.equal(tableSource.includes("align={slot.id === 'type' ? 'left' : layout(slot.id).align}"), true);
 assert.equal(tableSource.includes("columnId === 'type' ? 'left'"), true);
 assert.equal(
   tableSource.includes("alignItems:\n            contentAlignY === 'top' ? (align === 'left' ? 'flex-start' : 'center') : undefined"),
@@ -153,7 +166,7 @@ assert.equal(
 assert.equal(tableSource.includes("justifyContent: contentAlignY === 'top' ? 'flex-end' : undefined"), true);
 assert.equal(tableSource.includes("verticalAlign: 'top'"), true);
 assert.equal(tableSource.includes("display: 'inline-block'"), true);
-assert.equal(tableSource.includes('layout(column.id).align'), true);
+assert.equal(tableSource.includes('layout(slot.id).align'), true);
 assert.equal(tableSource.includes('minWidth: 1480'), false);
 
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.length, 13);
@@ -263,9 +276,10 @@ assert.deepEqual(
     { id: 'residual', colSpan: 3, label: 'RISCO RESIDUAL' },
   ],
 );
-assert.equal(tableSource.includes('inventoryHeaderGroups'), true);
+assert.equal(tableSource.includes('inventoryHeaderRuns'), true);
+assert.equal(tableSource.includes('resolveInventoryColumnOrder'), true);
 assert.equal(tableSource.includes("id: 'origin'"), true);
-assert.equal(tableSource.includes('inventoryColumnVisible'), true);
+assert.equal(tableSource.includes('inventoryOrderColumnVisible'), true);
 assert.equal(tableSource.includes('inventoryOriginText(unit)'), false);
 assert.equal(tableSource.includes('row.originText'), true);
 assert.equal(tableSource.includes('unit.originSliceLabel'), false);
@@ -273,9 +287,9 @@ assert.equal(tableSource.includes('useState<ReadonlySet<string>>(() => new Set()
 assert.equal(tableSource.includes('expandedUnitIds.has(unit.id)'), true);
 assert.equal(tableSource.includes("rotate(-90deg)"), true);
 assert.equal(tableSource.includes('originHomogeneousGroupIds.join'), true);
-assert.equal(tableSource.includes('headerLabel(column.id, column.label)'), true);
+assert.equal(tableSource.includes('headerLabel(slot.id, slot.label)'), true);
 assert.equal(tableSource.includes("borderLeft: '2px solid'"), true);
-assert.equal(tableSource.includes('dividerBefore: column.id === firstResidualId'), true);
+assert.equal(tableSource.includes("inventoryColumnFamily(key) === 'residual'"), true);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'ORIGIN'), false);
 assert.equal(INVENTORY_CONFIGURABLE_COLUMNS.some((column) => column.key === 'SEVERITY_RESIDUAL'), false);
 assert.equal(INVENTORY_DIALOG_COLUMNS[0].key, 'TYPE');
@@ -596,7 +610,7 @@ assert.equal(inventoryDefaultColumnLabel('PROBABILITY_RESIDUAL'), 'P');
 assert.equal(inventoryDefaultColumnLabel('RESIDUAL_RISK'), 'RO');
 assert.equal(tableSource.includes('inventoryDefaultColumnLabel'), true);
 assert.equal(tableSource.includes('Fator de risco'), false);
-assert.equal(tableSource.includes('headerLabel(column.id, column.label)'), true);
+assert.equal(tableSource.includes('headerLabel(slot.id, slot.label)'), true);
 
 const dialogSource = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryColumnsDialog.tsx'),
@@ -670,5 +684,199 @@ assert.equal(caSwitch.includes('isHideOriginColumn'), false);
 assert.equal(switches.some((block) => block.includes('isHideOriginColumn')), false);
 assert.equal(pgrStep.includes('Não mostrar coluna de origem na APR por cargo'), false);
 assert.equal(pgrStep.includes("Não mostrar coluna de origem nas APR's"), false);
+
+const screenIds = ['type', 'hazard', 'damage', 'source', 'epi', 'epc', 'adm', 'severity', 'probability', 'real', 'recs', 'pAfter', 'residual'];
+const nativeBands = inventoryHeaderGroups(screenIds);
+const withTechnical = inventoryTableHeaderGroups(screenIds, 1);
+assert.equal(withTechnical[1].id, 'real');
+assert.equal(withTechnical[1].colSpan, nativeBands[1].colSpan);
+assert.equal(withTechnical[2].id, 'residual');
+assert.equal(withTechnical[2].colSpan, nativeBands[2].colSpan);
+assert.equal(withTechnical[3].label, 'DADOS TÉCNICOS');
+assert.equal(withTechnical[3].colSpan, 1);
+assert.equal(inventoryTableHeaderGroups(screenIds, 0).some((group) => group.id === 'technical'), false);
+assert.deepEqual(
+  INVENTORY_EXTRA_COLUMNS.map((column) => column.key),
+  ['cas', 'propagation', 'unit', 'nr15lt', 'twa', 'stel', 'ipvs', 'pv', 'pe', 'carnogenicityACGIH', 'carnogenicityLinach', 'symptoms'],
+);
+assert.equal(INVENTORY_EXTRA_COLUMNS.some((column) => column.key === 'exams' || column.key === 'severity'), false);
+const extraPreference = {
+  version: 1 as const,
+  columns: [],
+  extraColumns: [
+    { key: 'cas' as const, orientation: 'VERTICAL' as const, widthWeight: 2, visible: false },
+    { key: 'symptoms' as const, orientation: 'HORIZONTAL' as const, widthWeight: 16 },
+  ],
+};
+assert.deepEqual(inventoryVisibleExtraColumns(extraPreference).map((column) => column.key), ['symptoms']);
+const nativeWeight = INVENTORY_DIALOG_COLUMNS.reduce((sum, column) => {
+  if (!inventoryColumnVisible(null, column.key)) return sum;
+  return sum + inventoryColumnWidthWeight(null, column.key);
+}, 0);
+const shownWeight = nativeWeight + 16;
+assert.equal(
+  Math.round(
+    (inventoryWidthPercent(16, shownWeight) +
+      INVENTORY_DIALOG_COLUMNS.reduce((sum, column) => {
+        if (!inventoryColumnVisible(null, column.key)) return sum;
+        return sum + inventoryWidthPercent(inventoryColumnWidthWeight(null, column.key), shownWeight);
+      }, 0)) *
+      10,
+  ),
+  1000,
+);
+assert.equal(tableSource.includes('inventoryHeaderRuns'), true);
+assert.equal(tableSource.includes('technicalValues'), true);
+assert.equal(tableSource.includes("id: 'severity'"), true);
+
+const symptomsCatalog = INVENTORY_EXTRA_COLUMNS.find((column) => column.key === 'symptoms');
+const symptomsTechnical = RISK_TECHNICAL_PHYSICAL_COLUMNS.find((column) => column.key === 'symptoms');
+assert.equal(symptomsCatalog?.headerLabel, 'Efeitos e Sintomas');
+assert.equal(symptomsTechnical?.headerLabel, 'Efeitos e Sintomas');
+assert.equal(
+  inventoryExtraColumnLabel({ key: 'symptoms', orientation: 'HORIZONTAL', headerLabel: 'Local' }),
+  'Local',
+);
+assert.equal(
+  inventoryExtraColumnLabel({ key: 'symptoms', orientation: 'HORIZONTAL' }),
+  'Efeitos e Sintomas',
+);
+
+const canonicalOrder = [
+  'TYPE',
+  'ORIGIN',
+  'HAZARD',
+  'DAMAGE',
+  'GENERATING_SOURCE',
+  'EPI',
+  'ENGINEERING',
+  'ADMINISTRATIVE',
+  'SEVERITY',
+  'PROBABILITY',
+  'REAL_RISK',
+  'RECOMMENDATIONS',
+  'PROBABILITY_RESIDUAL',
+  'RESIDUAL_RISK',
+] as const;
+const withoutOrder = {
+  version: 1 as const,
+  columns: [] as [],
+  extraColumns: [
+    { key: 'cas' as const, orientation: 'VERTICAL' as const },
+    { key: 'symptoms' as const, orientation: 'HORIZONTAL' as const },
+  ],
+};
+assert.deepEqual(resolveInventoryColumnOrder(withoutOrder), [...canonicalOrder, 'cas', 'symptoms']);
+assert.deepEqual(
+  inventoryHeaderRuns(resolveInventoryColumnOrder(withoutOrder).filter((key) => key !== 'ORIGIN')).map((run) => [
+    run.family,
+    run.colSpan,
+  ]),
+  [
+    ['occupation', 4],
+    ['real', 6],
+    ['residual', 3],
+    ['technical', 2],
+  ],
+);
+assert.equal(reconcileInventoryColumnOrder(undefined, ['symptoms']), undefined);
+assert.deepEqual(
+  reconcileInventoryColumnOrder(['TYPE', 'cas', 'HAZARD'], ['cas', 'symptoms']),
+  ['TYPE', 'cas', 'HAZARD', 'symptoms'],
+);
+assert.deepEqual(reconcileInventoryColumnOrder(['TYPE', 'cas', 'symptoms'], ['symptoms']), ['TYPE', 'symptoms']);
+
+const interleaved = {
+  version: 1 as const,
+  columns: [] as [],
+  extraColumns: [
+    { key: 'symptoms' as const, orientation: 'HORIZONTAL' as const },
+    { key: 'cas' as const, orientation: 'VERTICAL' as const },
+  ],
+  columnOrder: [
+    'TYPE',
+    'ORIGIN',
+    'HAZARD',
+    'DAMAGE',
+    'symptoms',
+    'GENERATING_SOURCE',
+    'EPI',
+    'cas',
+    'ENGINEERING',
+    'ADMINISTRATIVE',
+    'SEVERITY',
+    'PROBABILITY',
+    'REAL_RISK',
+    'RECOMMENDATIONS',
+    'PROBABILITY_RESIDUAL',
+    'RESIDUAL_RISK',
+  ],
+};
+const visibleInterleaved = resolveInventoryColumnOrder(interleaved).filter((key) => key !== 'ORIGIN');
+assert.deepEqual(inventoryHeaderRuns(visibleInterleaved).map((run) => [run.family, run.colSpan]), [
+  ['occupation', 3],
+  ['technical', 1],
+  ['occupation', 1],
+  ['real', 1],
+  ['technical', 1],
+  ['real', 5],
+  ['residual', 3],
+]);
+assert.equal(inventoryColumnFamily('symptoms'), 'technical');
+assert.equal(inventoryColumnFamily('SEVERITY'), 'real');
+assert.equal(inventoryColumnFamily('RECOMMENDATIONS'), 'residual');
+
+const hiddenSlot = {
+  version: 1 as const,
+  columns: [{ key: 'GENERATING_SOURCE' as const, orientation: 'HORIZONTAL' as const, visible: false }],
+  extraColumns: [{ key: 'symptoms' as const, orientation: 'HORIZONTAL' as const, visible: false }],
+  columnOrder: ['TYPE', 'HAZARD', 'symptoms', 'GENERATING_SOURCE', 'DAMAGE'] as const,
+};
+const logicalHidden = resolveInventoryColumnOrder(hiddenSlot);
+assert.ok(logicalHidden.indexOf('symptoms') > logicalHidden.indexOf('HAZARD'));
+assert.ok(logicalHidden.indexOf('symptoms') < logicalHidden.indexOf('DAMAGE'));
+assert.ok(logicalHidden.includes('GENERATING_SOURCE'));
+const visibleHidden = logicalHidden.filter((key) => key !== 'GENERATING_SOURCE' && key !== 'symptoms' && key !== 'ORIGIN');
+assert.equal(inventoryHeaderRuns(visibleHidden).some((run) => run.family === 'technical'), false);
+
+const partial = resolveInventoryColumnOrder({
+  version: 1,
+  columns: [],
+  extraColumns: [
+    { key: 'symptoms', orientation: 'HORIZONTAL' },
+    { key: 'cas', orientation: 'VERTICAL' },
+  ],
+  columnOrder: ['HAZARD', 'symptoms', 'EPI', 'not-a-column' as 'TYPE', 'HAZARD'],
+});
+assert.equal(partial.filter((key) => key === 'HAZARD').length, 1);
+assert.equal(partial.includes('not-a-column' as 'TYPE'), false);
+assert.equal(partial.at(-1), 'cas');
+assert.ok(partial.indexOf('TYPE') < partial.indexOf('HAZARD'));
+
+const tabSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryTabContent.tsx'),
+  'utf8',
+);
+const orderDialogSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryColumnOrderDialog.tsx'),
+  'utf8',
+);
+const columnsDialogSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryColumnsDialog.tsx'),
+  'utf8',
+);
+const serviceSource = readFileSync(
+  join(
+    dirname(fileURLToPath(import.meta.url)),
+    '../../../services/security/risk-inventory/update-risk-inventory-columns.service.ts',
+  ),
+  'utf8',
+);
+assert.equal(tabSource.includes('Organizar colunas'), true);
+assert.equal(orderDialogSource.includes('columnOrder: draft'), true);
+assert.equal(orderDialogSource.includes('Subir'), true);
+assert.equal(columnsDialogSource.includes('columnPreference?.columnOrder'), true);
+assert.equal(serviceSource.includes('columnOrder'), true);
+assert.equal(serviceSource.includes('columns: null'), true);
 
 console.log('risk-inventory.presentation.spec.ts OK');

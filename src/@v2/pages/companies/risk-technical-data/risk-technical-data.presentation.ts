@@ -60,8 +60,8 @@ export const RISK_TECHNICAL_PHYSICAL_COLUMNS: RiskTechnicalColumn[] = [
   column('carnogenicityLinach', 'Carcinogenicidade LINACH', 2, 'VERTICAL'),
   column('exams', 'Exames', 10, 'HORIZONTAL'),
   column('severity', 'Severidade', 2, 'HORIZONTAL', 'VERTICAL'),
-  column('symptoms', 'Riscos', 16, 'HORIZONTAL'),
-  column('effects', 'Efeitos', 16, 'HORIZONTAL'),
+  column('symptoms', 'Efeitos e Sintomas', 16, 'HORIZONTAL'),
+  column('effects', 'Risco', 16, 'HORIZONTAL'),
 ];
 
 export const RISK_TECHNICAL_OTHER_COLUMNS: RiskTechnicalColumn[] = [
@@ -70,8 +70,8 @@ export const RISK_TECHNICAL_OTHER_COLUMNS: RiskTechnicalColumn[] = [
   column('propagation', 'Propagação', 2, 'HORIZONTAL', 'VERTICAL'),
   column('exams', 'Exames', 10, 'HORIZONTAL'),
   column('severity', 'Severidade', 2, 'HORIZONTAL', 'VERTICAL'),
-  column('symptoms', 'Riscos', 21, 'HORIZONTAL'),
-  column('effects', 'Efeitos', 21, 'HORIZONTAL'),
+  column('symptoms', 'Efeitos e Sintomas', 21, 'HORIZONTAL'),
+  column('effects', 'Risco', 21, 'HORIZONTAL'),
 ];
 
 const RISK_TECHNICAL_CENTERED_COLUMNS = new Set<RiskTechnicalColumnKey>([

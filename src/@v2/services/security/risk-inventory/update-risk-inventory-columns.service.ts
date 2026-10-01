@@ -5,12 +5,15 @@ import { api } from 'core/services/apiClient';
 import {
   RiskInventoryColumnSetting,
   RiskInventoryColumnsPreference,
+  RiskInventoryExtraColumnSetting,
 } from './risk-inventory.types';
 
 export async function updateRiskInventoryColumns(params: {
   companyId: string;
   workspaceId: string;
   columns: RiskInventoryColumnSetting[] | null;
+  extraColumns?: RiskInventoryExtraColumnSetting[];
+  columnOrder?: string[];
 }): Promise<{ columnPreference: RiskInventoryColumnsPreference | null }> {
   const response = await api.patch<{ columnPreference: RiskInventoryColumnsPreference | null }>(
     bindUrlParams({
@@ -20,7 +23,13 @@ export async function updateRiskInventoryColumns(params: {
         workspaceId: params.workspaceId,
       },
     }),
-    { columns: params.columns },
+    params.columns === null
+      ? { columns: null }
+      : {
+          columns: params.columns,
+          extraColumns: params.extraColumns ?? [],
+          ...(params.columnOrder?.length ? { columnOrder: params.columnOrder } : {}),
+        },
   );
 
   return response.data;
