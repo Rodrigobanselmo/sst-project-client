@@ -66,9 +66,9 @@ import {
   INVENTORY_SCOPE_LABEL,
 } from './risk-inventory.presentation';
 
+/** Screen-only (visible, not in Word): mute text, keep normal table background. */
 const screenOnlySx = {
-  opacity: 0.72,
-  bgcolor: 'action.hover',
+  color: 'text.disabled',
 } as const;
 
 const columns = [
@@ -701,7 +701,7 @@ export function RiskInventoryTable({
                             sx={{
                               top: INVENTORY_GROUP_HEADER_PX,
                               zIndex: 3,
-                              verticalAlign: 'middle',
+                              verticalAlign: 'bottom',
                               ...(column.align === 'center' ? { px: 0.5 } : {}),
                               fontWeight: 700,
                               fontSize: 12,
@@ -741,7 +741,7 @@ export function RiskInventoryTable({
                             sx={{
                               top: INVENTORY_GROUP_HEADER_PX,
                               zIndex: 3,
-                              verticalAlign: 'middle',
+                              verticalAlign: 'bottom',
                               fontWeight: 700,
                               fontSize: 12,
                               bgcolor: 'background.paper',
@@ -767,6 +767,7 @@ export function RiskInventoryTable({
                       }
                       const layout = columnLayout(columnPreference, slot.id);
                       const title = headerLabel(slot.id, slot.label);
+                      const isHeaderVertical = headerVertical(slot.id);
                       return (
                         <TableCell
                           key={slot.id}
@@ -776,19 +777,19 @@ export function RiskInventoryTable({
                           sx={{
                             top: INVENTORY_GROUP_HEADER_PX,
                             zIndex: 3,
-                            verticalAlign: 'middle',
+                            verticalAlign: 'bottom',
                             ...(layout.role === 'text' ? {} : { px: 0.5 }),
                             fontWeight: 700,
                             fontSize: 12,
-                            ...(headerVertical(slot.id) ? {} : { lineHeight: 1.15 }),
+                            ...(isHeaderVertical ? {} : { lineHeight: 1.15 }),
                             bgcolor: 'background.paper',
-                            ...(headerVertical(slot.id) || layout.role === 'text' ? {} : { whiteSpace: 'nowrap' }),
+                            ...(isHeaderVertical || layout.role === 'text' ? {} : { whiteSpace: 'nowrap' }),
                             ...(slot.dividerBefore ? residualDividerSx : {}),
                             ...(screenOnly ? screenOnlySx : {}),
                           }}
                         >
                           {wrapHeader(
-                            headerVertical(slot.id) ? (
+                            isHeaderVertical ? (
                               <VerticalText
                                 text={title}
                                 linePx={inventoryVerticalHeaderBoxPx(title)}

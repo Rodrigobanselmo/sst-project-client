@@ -160,7 +160,7 @@ assert.equal(tableSource.includes('inventoryWidthPercent('), true);
 assert.equal(tableSource.includes("slot.kind === 'optional'"), true);
 assert.equal(tableSource.includes('inventoryTableMinWidth'), true);
 assert.equal(tableSource.includes('totalWeight * INVENTORY_WIDTH_FLOOR_PX'), false);
-assert.equal(tableSource.includes("verticalAlign: 'middle'"), true);
+assert.equal(tableSource.includes("verticalAlign: 'middle'"), false);
 assert.equal(tableSource.includes('lineHeight: 1.15'), true);
 assert.equal(tableSource.includes('contentAlignY="top"'), true);
 assert.equal(tableSource.includes("align={slot.id === 'type' ? 'left' : layout.align}"), true);
@@ -172,6 +172,7 @@ assert.equal(
 );
 assert.equal(tableSource.includes("justifyContent: contentAlignY === 'top' ? 'flex-end' : undefined"), true);
 assert.equal(tableSource.includes("verticalAlign: 'top'"), true);
+assert.equal(tableSource.includes("verticalAlign: 'bottom'"), true);
 assert.equal(tableSource.includes("display: 'inline-block'"), true);
 assert.equal(tableSource.includes('layout(slot.id).align'), true);
 assert.equal(tableSource.includes('minWidth: 1480'), false);
@@ -1141,5 +1142,16 @@ const tableSourceForScreenOnly = readFileSync(
 assert.equal(tableSourceForScreenOnly.includes('INVENTORY_SCREEN_ONLY_HINT'), true);
 assert.equal(tableSourceForScreenOnly.includes('inventoryOrderColumnScreenOnly'), true);
 assert.equal(tableSourceForScreenOnly.includes('kind: \'optional\''), true);
+assert.equal(tableSourceForScreenOnly.includes("color: 'text.disabled'"), true);
+assert.equal(tableSourceForScreenOnly.includes("bgcolor: 'action.hover'"), false);
+assert.equal(tableSourceForScreenOnly.includes('opacity: 0.72'), false);
+assert.equal(tableSourceForScreenOnly.includes('DescriptionOutlinedIcon'), false);
+assert.equal(tableSourceForScreenOnly.includes('HeaderWordMark'), false);
+assert.equal(tableSourceForScreenOnly.includes('HeaderWordInactiveMark'), false);
+assert.equal(tableSourceForScreenOnly.includes('HeaderCellWithWordMark'), false);
+assert.equal(tableSourceForScreenOnly.includes('HEADER_WORD_MARK_SLOT_PX'), false);
+assert.equal(tableSourceForScreenOnly.includes('Coluna ativa no Word'), false);
+assert.equal(tableSourceForScreenOnly.includes('Coluna inativa no Word'), false);
+assert.equal(tableSourceForScreenOnly.includes("verticalAlign: 'bottom'"), true);
 
 console.log('risk-inventory.presentation.spec.ts OK');
