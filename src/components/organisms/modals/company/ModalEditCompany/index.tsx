@@ -17,6 +17,7 @@ import { FourthModalCompanyStep } from './components/4-logo';
 import { DocumentModalCompanyStep } from './components/5-documents';
 import { ContactModalCompanyStep } from './components/6-contacts';
 import { CoverModalCompanyStep } from './components/7-cover';
+import { JourneysModalCompanyStep } from './components/8-journeys';
 import { useEditCompany } from './hooks/useEditCompany';
 
 export const ModalEditCompany = () => {
@@ -55,6 +56,7 @@ export const ModalEditCompany = () => {
                   // { label: 'Documentos' },
                   { label: 'Contato' },
                   { label: 'Capa do Documento' },
+                  { label: 'Jornadas de trabalho' },
                 ]}
               />
             ) : null
@@ -69,6 +71,7 @@ export const ModalEditCompany = () => {
           {/* <DocumentModalCompanyStep {...props} /> */}
           <ContactModalCompanyStep {...props} />
           <CoverModalCompanyStep {...props} />
+          {isEdit && <JourneysModalCompanyStep {...props} />}
         </Wizard>
       </SModalPaper>
     </SModal>
