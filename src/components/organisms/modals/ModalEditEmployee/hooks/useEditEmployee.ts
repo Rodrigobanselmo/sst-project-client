@@ -46,7 +46,7 @@ export const initialEditEmployeeState = {
   isPCD: false,
   sex: undefined as SexTypeEnum | undefined,
   cids: [] as ICid[],
-  shiftId: undefined as number | undefined,
+  shiftId: undefined as number | null | undefined,
   birthday: undefined as Date | undefined,
   subOffices: undefined as IHierarchy[] | undefined,
   onCreate: (employee: IEmployee, close: () => void) => {

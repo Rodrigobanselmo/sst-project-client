@@ -28,6 +28,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   isDeleteLoading,
 }) => {
   const risk = useAppSelector(selectRisk);
+  const viewData = useAppSelector((state) => state.riskAdd.viewData);
   const { query } = useRouter();
   const planWorkspaceId = useMemo(() => {
     const fromQuery = query.workspaceId as string | undefined;
@@ -142,7 +143,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
         handleDeleteRiskData?.(riskData?.id as string, gho)
       }
       planWorkspaceId={planWorkspaceId}
-      probabilityCountSource={buildProbabilityCountSource(gho)}
+      probabilityCountSource={buildProbabilityCountSource(gho, viewData)}
     />
   );
 };

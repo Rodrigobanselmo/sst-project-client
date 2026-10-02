@@ -47,6 +47,7 @@ export interface IEmployee {
   sex: SexTypeEnum;
   cidId: string;
   shiftId: number;
+  shift?: { id: number; name: string } | null;
   birthday: Date;
   admissionDate: Date;
   subOffices?: IHierarchy[];

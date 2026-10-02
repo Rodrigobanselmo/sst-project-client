@@ -13,8 +13,10 @@ import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/compa
 import { useQueryHierarchy } from 'core/services/hooks/queries/useQueryHierarchy';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
+import { useApplicableJourneys } from '../use-applicable-journeys';
 import {
   criteriaFromForm,
+  journeyMinutesForModalOpen,
   medsImplementedForModalOpen,
   ProbabilityEstimateResult,
   QualitativeProbabilityCriteria,
@@ -40,6 +42,7 @@ export const initialProbState = {
   medsImplemented: '',
 
   hierarchyId: '',
+  homogeneousGroupId: '',
   adoptedCriteria: null as QualitativeProbabilityCriteria | null,
   controls: null as RealControlLists | null,
 
@@ -79,6 +82,27 @@ export const useProbability = () => {
   const { data: hierarchy, isLoading: hierarchyLoading } = useQueryHierarchy(
     probabilityData.hierarchyId,
   );
+  const journeys = useApplicableJourneys({
+    hierarchyId: probabilityData.hierarchyId || undefined,
+    homogeneousGroupId: probabilityData.homogeneousGroupId || undefined,
+  });
+
+  useEffect(() => {
+    const minutes = journeyMinutesForModalOpen({
+      adopted: probabilityData.adoptedCriteria,
+      suggestedMinutes: journeys.ready ? journeys.suggestedMinutes : null,
+    });
+    if (probabilityData.adoptedCriteria || minutes == null) return;
+    const current = getValues('minDurationJT');
+    if (current !== '' && current != null) return;
+    setValue('minDurationJT', minutes);
+  }, [
+    getValues,
+    journeys.ready,
+    journeys.suggestedMinutes,
+    probabilityData.adoptedCriteria,
+    setValue,
+  ]);
 
   useEffect(() => {
     if (probabilityData.adoptedCriteria) return;
@@ -195,6 +219,10 @@ export const useProbability = () => {
     modalName,
     setValue,
     hierarchyLoading,
+    journeyStatus: journeys.ready ? journeys.status : 'DESCONHECIDO',
+    journeyOptions: journeys.ready ? journeys.options : [],
+    knownJourneyCount: journeys.ready ? journeys.knownJourneyCount : 0,
+    coveredEmployeeCount: journeys.ready ? journeys.coveredEmployeeCount : 0,
   };
 };
 

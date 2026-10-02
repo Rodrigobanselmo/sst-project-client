@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { Box, CircularProgress } from '@mui/material';
 import { RiskToolV2 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/RiskTool';
+import { normalizeChildrenIds } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/normalizeChildrenIds';
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/view-data-type.constant';
 import SText from 'components/atoms/SText';
 import { useRouter } from 'next/router';
@@ -13,6 +14,7 @@ import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IGho } from 'core/interfaces/api/IGho';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { GSE_WIZARD_STEP_QUERY_KEY } from 'components/organisms/modals/ModalAddGHO/gse-wizard-steps';
 import {
@@ -35,6 +37,7 @@ export const RiskToolForGse = ({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const didSyncUrlRef = useRef(false);
+  const { data: ghoAll } = useQueryGHOAll();
 
   const { data: riskGroupData, isLoading: isLoadingRiskGroup } =
     useQueryRiskGroupData(companyId);
@@ -54,7 +57,11 @@ export const RiskToolForGse = ({
       }),
     );
 
+    // Prefer /all (tem employeeCount + workspaceIds), igual ao Elemento Caracterizado.
+    // Não inventar workspaceIds; só o que já veio do GHO listado.
+    const ghoFromAll = ghoAll?.find((item) => item.id === ghoId);
     const ghoRecord =
+      ghoFromAll ||
       gho ||
       ({
         id: ghoId,
@@ -73,8 +80,8 @@ export const RiskToolForGse = ({
     );
     dispatch(
       setGhoSelectedId({
-        childrenIds: (ghoRecord as any)?.children?.map((i: any) => i?.id),
         ...ghoRecord,
+        childrenIds: normalizeChildrenIds((ghoRecord as any)?.children),
       } as any),
     );
 
@@ -120,7 +127,7 @@ export const RiskToolForGse = ({
       );
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ghoId, ghoName, gho, dispatch]);
+  }, [ghoId, ghoName, gho, ghoAll, dispatch]);
 
   if (isLoadingRiskGroup) {
     return (
@@ -171,7 +178,7 @@ export const RiskToolForGse = ({
           embedded
           lockedViewData={ViewsDataEnum.GSE}
           lockedGhoId={ghoId}
-          lockedGhoName={ghoName || gho?.name}
+          lockedGhoName={ghoName || gho?.name || ghoAll?.find((item) => item.id === ghoId)?.name}
           hideViewSwitcher
           hideGhoPicker
           disableEditGho

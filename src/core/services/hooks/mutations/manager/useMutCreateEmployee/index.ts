@@ -23,6 +23,7 @@ export interface ICreateEmployee {
   status?: StatusEnum;
   companyId?: string;
   cidIds?: string[];
+  shiftId?: number | null;
 }
 
 export async function upsertRiskDocs(

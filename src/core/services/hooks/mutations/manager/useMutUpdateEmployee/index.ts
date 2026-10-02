@@ -27,6 +27,7 @@ export interface IUpdateEmployee {
   id?: number;
   birthday?: Date | null;
   cidIds?: string[];
+  shiftId?: number | null;
 }
 
 export async function updateEmployee(

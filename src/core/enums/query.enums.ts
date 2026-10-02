@@ -30,6 +30,8 @@ export enum QueryEnum {
   ESTABLISHMENT_GROUPS = 'establishment-groups',
   USERS_HISTORY = 'USERS_HISTORY',
   CONTACTS = 'contacts',
+  COMPANY_SHIFTS = 'company-shifts',
+  COMPANY_SHIFT_JOURNEYS = 'company-shift-journeys',
   PCMSO_ATTENDANCE_SERVICES = 'pcmso-attendance-services',
   PCMSO_EXAMINING_PHYSICIANS = 'pcmso-examining-physicians',
   PCMSO_EXAMINING_PHYSICIANS_RESOLVED = 'pcmso-examining-physicians-resolved',

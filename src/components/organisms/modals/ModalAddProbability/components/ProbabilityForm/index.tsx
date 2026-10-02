@@ -170,6 +170,27 @@ export const ProbabilityForm = (props: IUseProbability) => {
         <SText mb={4} color="text.label" fontSize={12}>
           {probabilityQuestionsMap[ProbabilityQuestionEnum.DURATION].text}
         </SText>
+        {props.journeyStatus === 'CONFLITANTE' ? (
+          <SFlex direction="column" gap={1} mt={2} mb={2}>
+            <SText fontSize={13} fontWeight={600} color="error.main">
+              Jornadas diferentes identificadas
+            </SText>
+            <SText fontSize={12} color="text.label">
+              Existem trabalhadores abrangidos por esta ocorrência com
+              durações de jornada distintas. Revise os turnos/jornadas
+              cadastrados ou segregue os trabalhadores em grupos/elementos
+              distintos quando as jornadas forem realmente diferentes.
+            </SText>
+            <SText fontSize={12} color="text.secondary">
+              Preencher este campo manualmente não corrige o cadastro.
+            </SText>
+            {props.journeyOptions.map((option) => (
+              <SText key={option.durationMinutes} fontSize={12} color="text.secondary">
+                {`${option.shiftNames.join(', ') || 'Turno'} — ${option.durationMinutes} min (${option.employeeCount} trabalhador${option.employeeCount === 1 ? '' : 'es'})`}
+              </SText>
+            ))}
+          </SFlex>
+        ) : null}
         <SFlex
           sx={{
             display: 'grid',
@@ -179,18 +200,36 @@ export const ProbabilityForm = (props: IUseProbability) => {
             mt: 5,
           }}
         >
-          <InputForm
-            sx={{ legend: { width: '240px' } }}
-            defaultValue={probabilityData.minDurationJT}
-            label="Duração da jornada de trabalho (minutos)"
-            labelPosition="center"
-            control={control}
-            setValue={setValue}
-            placeholder={'nome do estabelecimento de trabalho...'}
-            name="minDurationJT"
-            autoComplete="off"
-            size="small"
-          />
+          <SFlex direction="column" gap={1}>
+            <InputForm
+              sx={{ legend: { width: '240px' } }}
+              defaultValue={probabilityData.minDurationJT}
+              label="Duração da jornada de trabalho (minutos)"
+              labelPosition="center"
+              control={control}
+              setValue={setValue}
+              placeholder={'nome do estabelecimento de trabalho...'}
+              name="minDurationJT"
+              autoComplete="off"
+              size="small"
+            />
+            {props.journeyStatus === 'CONSISTENTE_INCOMPLETO' ? (
+              <SText
+                fontSize={12}
+                color="common.black"
+                sx={{
+                  lineHeight: 1.4,
+                  bgcolor: '#FFF8E1',
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: 1,
+                }}
+              >
+                <strong>Atenção:</strong>
+                {` jornada identificada para apenas ${props.knownJourneyCount} de ${props.coveredEmployeeCount} trabalhadores abrangidos. Verifique os trabalhadores sem jornada definida. Diferenças de jornada dentro do mesmo grupo também podem indicar que o grupo precisa ser revisto quanto à homogeneidade da exposição.`}
+              </SText>
+            ) : null}
+          </SFlex>
           <InputForm
             sx={{ legend: { width: '250px' } }}
             defaultValue={probabilityData.minDurationEO}

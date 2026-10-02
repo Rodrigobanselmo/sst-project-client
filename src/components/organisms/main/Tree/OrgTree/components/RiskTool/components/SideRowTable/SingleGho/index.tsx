@@ -28,6 +28,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   isDeleteLoading,
 }) => {
   const risk = useAppSelector(selectRisk);
+  const viewData = useAppSelector((state) => state.riskAdd.viewData);
   const {
     onHandleSelectSave,
     enqueueSnackbar,
@@ -127,7 +128,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
       handleEditEpi={handleEditEpi}
       handleEditEngs={handleEditEngs}
       handleEditExams={handleEditExams}
-      probabilityCountSource={buildProbabilityCountSource(gho)}
+      probabilityCountSource={buildProbabilityCountSource(gho, viewData)}
       isRepresentAll={risk?.representAll}
       showEndDate
       isDeleteLoading={isDeleteLoading}

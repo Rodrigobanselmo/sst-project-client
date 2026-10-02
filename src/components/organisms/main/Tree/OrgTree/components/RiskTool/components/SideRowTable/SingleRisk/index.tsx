@@ -22,6 +22,7 @@ export const RiskToolSingleRiskRow: FC<
   { children?: any } & RiskToolSingleRiskRowProps
 > = ({ risk, riskData, hide, riskGroupId, isRepresentAll }) => {
   const gho = useAppSelector((state) => state.gho.selected);
+  const viewData = useAppSelector((state) => state.riskAdd.viewData);
   const {
     onHandleSelectSave,
     enqueueSnackbar,
@@ -126,7 +127,7 @@ export const RiskToolSingleRiskRow: FC<
       handleEditEpi={handleEditEpi}
       handleEditEngs={handleEditEngs}
       isRepresentAll={isRepresentAll}
-      probabilityCountSource={buildProbabilityCountSource(gho)}
+      probabilityCountSource={buildProbabilityCountSource(gho, viewData)}
     />
   );
 };

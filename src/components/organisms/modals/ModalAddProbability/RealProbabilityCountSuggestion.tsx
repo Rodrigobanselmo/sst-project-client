@@ -11,6 +11,7 @@ import {
   ProbabilityCountSource,
   resolveCountSuggestion,
 } from './qualitative-probability.util';
+import { useApplicableJourneys } from './use-applicable-journeys';
 import { useLiveEmployeeCounts } from './use-live-employee-counts';
 
 type Props = {
@@ -25,6 +26,7 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
   handleSelect,
 }) => {
   const counts = useLiveEmployeeCounts(countSource);
+  const journeys = useApplicableJourneys(countSource);
   const currentMedsImplemented = data
     ? classifyMedsImplemented({
         engs: data.engs,
@@ -40,6 +42,7 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
         currentTotal: counts.total,
         currentGho: counts.gho,
         currentMedsImplemented,
+        currentJourneyMinutes: journeys.ready ? journeys.suggestedMinutes : undefined,
         isQuantity: !!data?.isQuantity,
       }),
     [
@@ -49,12 +52,14 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
       data?.isQuantity,
       data?.probability,
       data?.probabilityCriteria,
+      journeys.ready,
+      journeys.suggestedMinutes,
     ],
   );
   const trackingRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!counts.ready || data?.isQuantity) return;
+    if (!counts.ready || !journeys.ready || data?.isQuantity) return;
 
     const action = countSuggestionEffectAction(trackingRef.current, decision);
     trackingRef.current = countSuggestionSignature(decision);
@@ -66,7 +71,7 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
     });
     // handleSelect é recriado a cada render; o residual também o omite.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [counts.ready, data?.isQuantity, decision]);
+  }, [counts.ready, data?.isQuantity, decision, journeys.ready]);
 
   if (decision.kind === 'none' || data?.isQuantity) return null;
 

@@ -20,6 +20,7 @@ export enum ApiRoutesEnum {
   COMPANY_GROUP = '/company/:companyId/group',
   ESTABLISHMENT_GROUPS = '/establishment-groups/:companyId',
   CONTACTS = '/company/:companyId/contact',
+  COMPANY_SHIFTS = '/company/:companyId/shifts',
   PCMSO_ATTENDANCE_SERVICES = '/company/:companyId/workspace/:workspaceId/pcmso-attendance-services',
   PCMSO_EXAMINING_PHYSICIANS = '/company/:companyId/pcmso-examining-physicians',
   PCMSO_EXAMINING_PHYSICIANS_WORKSPACE = '/company/:companyId/workspace/:workspaceId/pcmso-examining-physicians',

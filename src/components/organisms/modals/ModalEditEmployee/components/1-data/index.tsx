@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box, Divider } from '@mui/material';
+import { Box, Divider, MenuItem, TextField } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSelectedTag } from 'components/atoms/SSelectedTag/SSelectedTag';
 import { SSwitch } from 'components/atoms/SSwitch';
@@ -19,6 +19,7 @@ import dayjs from 'dayjs';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { useQueryCompanyShifts } from 'core/services/hooks/queries/useQueryCompanyShifts';
 import { ICid } from 'core/interfaces/api/ICid';
 import { dateToDate } from 'core/utils/date/date-format';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
@@ -37,6 +38,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
     setData,
     setValue,
   } = usePersonalData(props);
+  const { data: shifts } = useQueryCompanyShifts();
 
   const buttons = [
     {},
@@ -333,6 +335,31 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               />
             </Box>
           </SFlex>
+          <Box mt={5} width={400}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Turno"
+              value={data.shiftId ? String(data.shiftId) : ''}
+              onChange={(event) => {
+                const value = event.target.value;
+                setData((current) => ({
+                  ...current,
+                  shiftId: value === '' ? null : Number(value),
+                }));
+              }}
+            >
+              <MenuItem value="">Sem turno</MenuItem>
+              {shifts.map((shift) => (
+                <MenuItem key={shift.id} value={String(shift.id)}>
+                  {shift.durationMinutes
+                    ? `${shift.name} — ${shift.durationMinutes} min`
+                    : shift.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
         </Box>
       </AnimatedStep>
       <SModalButtons

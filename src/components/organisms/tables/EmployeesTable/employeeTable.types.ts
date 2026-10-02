@@ -3,12 +3,15 @@ export type EmployeeListSortBy =
   | 'HIERARCHY'
   | 'EXPIRED_DATE_EXAM'
   | 'LAST_EXAM'
-  | 'STATUS';
+  | 'STATUS'
+  | 'SHIFT';
 
 export type EmployeeTableColumnId =
   | 'employee'
   | 'company'
+  | 'setor'
   | 'cargo'
+  | 'turno'
   | 'establishments'
   | 'validity'
   | 'lastExam'

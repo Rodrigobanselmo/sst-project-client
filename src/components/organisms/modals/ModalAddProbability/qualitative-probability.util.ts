@@ -17,6 +17,7 @@ export type ProbabilityEstimateResult = {
 
 export type ProbabilityCountSource = {
   hierarchyId?: string;
+  homogeneousGroupId?: string;
   workspaceIds?: string[];
   ghoEmployeeCount?: number;
   allWorkspaces?: boolean;
@@ -64,6 +65,21 @@ export function classifyMedsImplemented(lists: RealControlLists): 1 | 2 | 3 | 4 
   if (hasEpc && hasAdm && hasEpi) return 1;
   if (hasEpc && hasAdm) return 2;
   return 3;
+}
+
+/**
+ * Jornada a mostrar na abertura. Com critérios adotados, preserva o snapshot.
+ * Sem adoção, preenche só quando há uma única duração conhecida.
+ */
+export function journeyMinutesForModalOpen(params: {
+  adopted?: QualitativeProbabilityCriteria | null;
+  suggestedMinutes?: number | null;
+}): number | null {
+  if (params.adopted) return params.adopted.minDurationJT ?? null;
+  if (params.suggestedMinutes != null && params.suggestedMinutes > 0) {
+    return params.suggestedMinutes;
+  }
+  return null;
 }
 
 /** Na primeira abertura sugere a classificação. Com critérios adotados, preserva o valor salvo. */
@@ -159,7 +175,7 @@ export function qualitativeProbabilityPreview(
 
 export function countSuggestionSignature(decision: CountSuggestionDecision): string {
   if (decision.kind === 'none') return 'none';
-  return `${decision.kind}:${decision.probability}:${decision.criteria.employeeCountTotal}:${decision.criteria.employeeCountGho}:${decision.criteria.medsImplemented}`;
+  return `${decision.kind}:${decision.probability}:${decision.criteria.employeeCountTotal}:${decision.criteria.employeeCountGho}:${decision.criteria.medsImplemented}:${decision.criteria.minDurationJT}`;
 }
 
 /**
@@ -184,6 +200,12 @@ export function resolveCountSuggestion(params: {
   currentGho?: number | null;
   /** Classificação atual dos controles. Ausente mantém o medsImplemented adotado. */
   currentMedsImplemented?: number | null;
+  /**
+   * Duração única conhecida, em minutos.
+   * `undefined` = ainda carregando; `null` = nenhuma sugestão única.
+   * Nos dois casos o snapshot adotado permanece.
+   */
+  currentJourneyMinutes?: number | null;
   isQuantity?: boolean;
 }): CountSuggestionDecision {
   if (params.isQuantity || !params.adopted) return { kind: 'none' };
@@ -195,16 +217,21 @@ export function resolveCountSuggestion(params: {
   const savedTotal = params.adopted.employeeCountTotal ?? null;
   const savedGho = params.adopted.employeeCountGho ?? null;
   const savedMeds = params.adopted.medsImplemented ?? null;
+  const savedJourney = params.adopted.minDurationJT ?? null;
   const nextMeds = params.currentMedsImplemented ?? savedMeds;
+  const nextJourney =
+    params.currentJourneyMinutes != null ? params.currentJourneyMinutes : savedJourney;
   const countsSame = params.currentTotal === savedTotal && params.currentGho === savedGho;
   const medsSame = nextMeds === savedMeds;
-  if (countsSame && medsSame) return { kind: 'none' };
+  const journeySame = nextJourney === savedJourney;
+  if (countsSame && medsSame && journeySame) return { kind: 'none' };
 
   const nextCriteria: QualitativeProbabilityCriteria = {
     ...params.adopted,
     employeeCountTotal: params.currentTotal,
     employeeCountGho: params.currentGho,
     medsImplemented: nextMeds,
+    minDurationJT: nextJourney,
   };
   const suggested = qualitativeProbabilityFromCriteria(nextCriteria);
   if (suggested == null || suggested === params.adoptedProbability) return { kind: 'none' };

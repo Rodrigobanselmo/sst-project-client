@@ -3,6 +3,7 @@ import { FC, useCallback, useMemo, useState } from 'react';
 import BadgeIcon from '@mui/icons-material/Badge';
 import { Box, BoxProps, useTheme } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import {
   STable,
@@ -20,6 +21,7 @@ import { useFilterTable } from 'components/atoms/STable/components/STableFilter/
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import SText from 'components/atoms/SText';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 import { StackModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
@@ -36,10 +38,16 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useImportExport } from 'core/hooks/useImportExport';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import {
+  TableCheckSelect,
+  TableCheckSelectAll,
+  useTableSelect,
+} from 'core/hooks/useTableSelect';
 import { useThrottle } from 'core/hooks/useThrottle';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { GetCompanyStructureResponse } from 'core/services/hooks/mutations/general/useMutUploadFile/types';
+import { useMutBulkUpdateEmployeeShift } from 'core/services/hooks/mutations/manager/useMutBulkUpdateEmployeeShift';
 import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
@@ -50,6 +58,7 @@ import { queryClient } from 'core/services/queryClient';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { getEmployeeRowExamData } from '../HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
+import { BulkDefineEmployeeShiftModal } from './BulkDefineEmployeeShiftModal';
 import { EmployeesTableSortHeader } from './components/EmployeesTableSortHeader';
 import {
   DEFAULT_EMPLOYEES_PAGE_SIZE,
@@ -143,6 +152,19 @@ export const EmployeesTable: FC<
     refetch,
   } = useQueryEmployees(page, queryWithSort, pageSize);
 
+  const {
+    selectedData: selectedIds,
+    onToggleSelected,
+    onToggleAll,
+    onIsSelected,
+    setSelectedData: setSelectedIds,
+  } = useTableSelect();
+  const pageIds = useMemo(() => employees.map((row) => row.id), [employees]);
+  const isAllPageSelected =
+    pageIds.length > 0 && pageIds.every((id) => onIsSelected(id));
+  const [bulkShiftOpen, setBulkShiftOpen] = useState(false);
+  const bulkShiftMutation = useMutBulkUpdateEmployeeShift();
+
   const { onStackOpenModal } = useModal();
   const { push } = useRouter();
   const { handleUploadTable } = useImportExport();
@@ -234,14 +256,25 @@ export const EmployeesTable: FC<
       });
     }
     list.push({
+      id: 'setor',
+      column: 'minmax(140px, 1.25fr)',
+      label: 'Setor',
+    });
+    list.push({
       id: 'cargo',
-      column: 'minmax(260px, 2fr)',
+      column: 'minmax(200px, 1.75fr)',
       label: 'Cargo',
       sortField: 'HIERARCHY',
     });
     list.push({
+      id: 'turno',
+      column: 'minmax(120px, 1fr)',
+      label: 'Turno',
+      sortField: 'SHIFT',
+    });
+    list.push({
       id: 'establishments',
-      column: 'minmax(220px, 2.25fr)',
+      column: 'minmax(180px, 1.75fr)',
       label: 'Estab.',
     });
     if (isSchedule) {
@@ -300,9 +333,22 @@ export const EmployeesTable: FC<
   );
 
   const gridTemplate = useMemo(
-    () => visibleColumns.map((c) => c.column).join(' '),
+    () => `40px ${visibleColumns.map((c) => c.column).join(' ')}`,
     [visibleColumns],
   );
+
+  const onClearSelection = () => setSelectedIds([]);
+
+  const onConfirmBulkShift = async (shiftId: number | null) => {
+    if (!selectedIds.length) return;
+    await bulkShiftMutation.mutateAsync({
+      ids: selectedIds,
+      shiftId,
+      companyId: company.id,
+    });
+    setBulkShiftOpen(false);
+    onClearSelection();
+  };
 
   const onSort = useCallback(
     (field: EmployeeListSortBy, order: 'asc' | 'desc') => {
@@ -373,12 +419,31 @@ export const EmployeesTable: FC<
         return (
           <TextCompanyRow key="company" company={employee.company} />
         );
+      case 'setor':
+        return (
+          <TextIconRow
+            key="setor"
+            text={employee.sectorHierarchy?.name || '—'}
+            fontSize={12}
+            mr={3}
+          />
+        );
       case 'cargo':
         return (
           <TextIconRow
             key="cargo"
             text={employee.hierarchy?.name}
             fontSize={12}
+            mr={3}
+          />
+        );
+      case 'turno':
+        return (
+          <TextIconRow
+            key="turno"
+            text={employee.shift?.name || 'Sem turno'}
+            fontSize={12}
+            color={employee.shift?.name ? undefined : 'text.secondary'}
             mr={3}
           />
         );
@@ -485,12 +550,60 @@ export const EmployeesTable: FC<
         filterProps={{ filters: employeeFilterList, ...filterProps }}
       />
       <FilterTagList filterProps={filterProps} />
+      {selectedIds.length > 0 ? (
+        <SFlex
+          align="center"
+          gap={8}
+          mt={2}
+          mb={1}
+          sx={{
+            backgroundColor: 'grey.100',
+            borderRadius: 1,
+            px: 6,
+            py: 3,
+            flexWrap: 'wrap',
+          }}
+        >
+          <SText fontSize={14} fontWeight={600}>
+            {`${selectedIds.length} selecionado(s)`}
+          </SText>
+          <SButton
+            xsmall
+            variant="contained"
+            onClick={() => setBulkShiftOpen(true)}
+            sx={{ width: 'auto' }}
+          >
+            Definir turno
+          </SButton>
+          <SButton
+            xsmall
+            variant="text"
+            onClick={onClearSelection}
+            sx={{ width: 'auto' }}
+          >
+            Limpar seleção
+          </SButton>
+          <SText fontSize={12} color="text.secondary">
+            “Selecionar todos” atua somente na página atual.
+          </SText>
+        </SFlex>
+      ) : (
+        <SText fontSize={12} color="text.secondary" mt={1} mb={1}>
+          Use os checkboxes para selecionar funcionários. “Selecionar todos” atua somente na página atual.
+        </SText>
+      )}
       <STable
         loading={loadEmployees || loadCompany}
         rowsNumber={pageSize}
         columns={gridTemplate}
       >
         <STableHeader>
+          <STableHRow>
+            <TableCheckSelectAll
+              isSelected={isAllPageSelected}
+              onToggleAll={() => onToggleAll(pageIds)}
+            />
+          </STableHRow>
           {visibleColumns.map((col) =>
             col.id === 'edit' ? (
               <STableHRow key={col.id} justifyContent={col.justifyContent}>
@@ -523,6 +636,12 @@ export const EmployeesTable: FC<
                 clickable
                 key={row.id}
               >
+                <Box onClick={(e) => e.stopPropagation()}>
+                  <TableCheckSelect
+                    isSelected={onIsSelected(row.id)}
+                    onToggleSelected={() => onToggleSelected(row.id)}
+                  />
+                </Box>
                 {visibleColumns.map((col) => renderCell(col, row, examRow))}
               </STableRow>
             );
@@ -539,6 +658,13 @@ export const EmployeesTable: FC<
           pageSizeOptions: EMPLOYEES_TABLE_PAGE_SIZES,
           onRegistersPerPageChange,
         })}
+      />
+      <BulkDefineEmployeeShiftModal
+        open={bulkShiftOpen}
+        count={selectedIds.length}
+        isSaving={bulkShiftMutation.isLoading}
+        onClose={() => setBulkShiftOpen(false)}
+        onConfirm={onConfirmBulkShift}
       />
       {!hideModal && (
         <>

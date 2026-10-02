@@ -12,6 +12,7 @@ import {
   countSuggestionEffectAction,
   countSuggestionSignature,
   criteriaFromForm,
+  journeyMinutesForModalOpen,
   medsImplementedForModalOpen,
   qualitativeProbabilityFromCriteria,
   qualitativeProbabilityPreview,
@@ -266,9 +267,131 @@ assert.equal(countSuggestionEffectAction('none', controlDrift), 'auto');
 assert.equal(countSuggestionEffectAction(null, manualMeds), 'baseline');
 assert.equal(countSuggestionEffectAction('none', manualMeds), 'ignore');
 
+assert.equal(journeyMinutesForModalOpen({}), null);
+assert.equal(journeyMinutesForModalOpen({ suggestedMinutes: null }), null);
+assert.equal(journeyMinutesForModalOpen({ suggestedMinutes: 480 }), 480);
+assert.equal(
+  journeyMinutesForModalOpen({
+    adopted: { minDurationJT: 360 },
+    suggestedMinutes: 480,
+  }),
+  360,
+);
+assert.equal(
+  journeyMinutesForModalOpen({
+    adopted: { minDurationJT: null },
+    suggestedMinutes: 480,
+  }),
+  null,
+);
+
+const journeyBase = {
+  employeeCountTotal: 100,
+  employeeCountGho: 5,
+  minDurationJT: null as number | null,
+  minDurationEO: null as number | null,
+  chancesOfHappening: null,
+  frequency: 1,
+  history: null,
+  medsImplemented: null,
+};
+const fromJourneyBase = qualitativeProbabilityFromCriteria(journeyBase);
+assert.equal(
+  resolveCountSuggestion({
+    adopted: journeyBase,
+    adoptedProbability: fromJourneyBase,
+    currentTotal: 100,
+    currentGho: 5,
+    currentJourneyMinutes: 480,
+  }).kind,
+  'none',
+);
+assert.equal(qualitativeProbabilityPreview({ minDurationJT: 480 }), null);
+assert.equal(
+  qualitativeProbabilityPreview({ minDurationJT: 480, minDurationEO: 120 })?.criteriaCount,
+  1,
+);
+
+const adoptedWithExposure = { ...journeyBase, minDurationEO: 120 };
+const fromExposureOnly = qualitativeProbabilityFromCriteria(adoptedWithExposure);
+const journeyAuto = resolveCountSuggestion({
+  adopted: adoptedWithExposure,
+  adoptedProbability: fromExposureOnly,
+  currentTotal: 100,
+  currentGho: 5,
+  currentJourneyMinutes: 480,
+});
+assert.equal(journeyAuto.kind, 'auto');
+if (journeyAuto.kind === 'auto') {
+  assert.equal(journeyAuto.criteria.minDurationJT, 480);
+  assert.equal(journeyAuto.criteria.minDurationEO, 120);
+  assert.notEqual(journeyAuto.probability, fromExposureOnly);
+}
+
+const journeyManual = resolveCountSuggestion({
+  adopted: { ...adoptedWithExposure, minDurationJT: 360 },
+  adoptedProbability: 5,
+  currentTotal: 100,
+  currentGho: 5,
+  currentJourneyMinutes: 480,
+});
+assert.equal(journeyManual.kind, 'hint');
+if (journeyManual.kind === 'hint') {
+  assert.equal(journeyManual.criteria.minDurationJT, 480);
+  assert.equal(journeyManual.criteria.minDurationEO, 120);
+}
+
+assert.equal(
+  resolveCountSuggestion({
+    adopted: { ...adoptedWithExposure, minDurationJT: 360 },
+    adoptedProbability: qualitativeProbabilityFromCriteria({
+      ...adoptedWithExposure,
+      minDurationJT: 360,
+    }),
+    currentTotal: 100,
+    currentGho: 5,
+    currentJourneyMinutes: null,
+  }).kind,
+  'none',
+);
+assert.equal(
+  resolveCountSuggestion({
+    adopted: { ...adoptedWithExposure, minDurationJT: 360 },
+    adoptedProbability: qualitativeProbabilityFromCriteria({
+      ...adoptedWithExposure,
+      minDurationJT: 360,
+    }),
+    currentTotal: 100,
+    currentGho: 5,
+  }).kind,
+  'none',
+);
+assert.equal(
+  resolveCountSuggestion({
+    adopted: adoptedWithExposure,
+    adoptedProbability: fromExposureOnly,
+    currentTotal: 100,
+    currentGho: 5,
+    currentJourneyMinutes: 480,
+    isQuantity: true,
+  }).kind,
+  'none',
+);
+assert.equal(countSuggestionEffectAction(null, journeyAuto), 'baseline');
+assert.equal(countSuggestionEffectAction('none', journeyAuto), 'auto');
+assert.equal(countSuggestionEffectAction('none', journeyManual), 'ignore');
+
 const hook = readFileSync(join(dir, 'hooks/useProbability.ts'), 'utf8');
 assert.match(hook, /criteriaFromForm\(values\)/);
 assert.match(hook, /medsImplementedForModalOpen/);
+assert.match(hook, /journeyMinutesForModalOpen/);
+assert.match(hook, /journeyStatus/);
+assert.doesNotMatch(hook, /journeyOptions\.length > 1/);
+const journeyEffect = hook.slice(
+  hook.indexOf('const minutes = journeyMinutesForModalOpen'),
+  hook.indexOf('const onClose'),
+);
+assert.doesNotMatch(journeyEffect, /onCreate/);
 assert.match(hook, /probabilityData\.onCreate\?\.\(/);
 const openEffect = hook.slice(hook.indexOf('const medsForOpen'), hook.indexOf('const onClose'));
 assert.doesNotMatch(openEffect, /onCreate/);
@@ -350,9 +473,23 @@ assert.doesNotMatch(form, /useMutUpsertRiskData/);
 assert.match(form, /bgcolor: 'primary.main'/);
 assert.match(form, /variant="outlined"/);
 assert.match(form, /borderColor: 'common.black'/);
-assert.doesNotMatch(form, /warning\.main/);
 assert.match(form, /type="submit"/);
+assert.match(form, /Jornadas diferentes identificadas/);
+assert.match(form, /Atenção: jornada identificada para apenas|<strong>Atenção:<\/strong>/);
+assert.match(form, /homogeneidade da exposição/);
+assert.match(form, /#FFF8E1/);
+assert.match(form, /common\.black/);
+assert.match(form, /journeyStatus === 'CONFLITANTE'/);
+assert.match(form, /journeyStatus === 'CONSISTENTE_INCOMPLETO'/);
+assert.doesNotMatch(form, /Escolha a duração a adotar/);
+assert.doesNotMatch(form, /setValue\('minDurationJT', option\.durationMinutes\)/);
 assert.match(form, />\s*Aplicar\s*</);
+
+const journeysHook = readFileSync(join(dir, 'use-applicable-journeys.ts'), 'utf8');
+assert.match(journeysHook, /normalizeApplicableJourneys/);
+const journeysUtil = readFileSync(join(dir, 'applicable-journeys.util.ts'), 'utf8');
+assert.match(journeysUtil, /CONSISTENTE_INCOMPLETO/);
+assert.match(journeysUtil, /knownJourneyCount < coveredEmployeeCount/);
 assert.doesNotMatch(form, /Cancelar/);
 assert.match(util, /qualitativeProbabilityFromCriteria\(criteria\)/);
 assert.match(modal, /onClose=\{onCloseUnsaved\}/);
@@ -364,8 +501,11 @@ assert.doesNotMatch(modal, /Criar/);
 const suggestion = readFileSync(join(dir, 'RealProbabilityCountSuggestion.tsx'), 'utf8');
 assert.match(suggestion, /Sugestão atual/);
 assert.match(suggestion, /currentMedsImplemented/);
+assert.match(suggestion, /currentJourneyMinutes/);
+assert.match(suggestion, /journeys\.ready/);
 assert.match(suggestion, /action !== 'auto'/);
 assert.match(suggestion, /probabilityCriteria: decision\.criteria/);
 assert.doesNotMatch(suggestion, /calculateSuggestedResidualProbability/);
+assert.doesNotMatch(util, /calculateSuggestedResidualProbability/);
 
 console.log('qualitative-probability.util.spec: ok');

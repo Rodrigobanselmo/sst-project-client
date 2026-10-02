@@ -185,7 +185,7 @@ export const RiskToolSingleRiskRow: FC<
       handleEditEpi={handleEditEpi}
       handleEditEngs={handleEditEngs}
       isRepresentAll={isRepresentAll}
-      probabilityCountSource={buildProbabilityCountSource(gho)}
+      probabilityCountSource={buildProbabilityCountSource(gho, viewData)}
       planWorkspaceId={planWorkspaceId}
       readOnly={readOnly}
     />

@@ -6,35 +6,10 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useQueryHierarchy } from 'core/services/hooks/queries/useQueryHierarchy';
 
-import { getEmbeddedWorkspaceIdFromTreeId } from 'components/organisms/main/Tree/OrgTree/utils/get-org-workspace-id';
-
 import { ProbabilityCountSource } from './qualitative-probability.util';
 
-type CountGho = {
-  id?: string;
-  employeeCount?: number;
-  workspaceIds?: string[];
-};
-
-export function buildProbabilityCountSource(
-  gho?: CountGho | null,
-): ProbabilityCountSource | undefined {
-  if (!gho?.id) return undefined;
-
-  const isHierarchy = !('employeeCount' in gho);
-  if (isHierarchy) {
-    const workspaceId = getEmbeddedWorkspaceIdFromTreeId(gho.id);
-    return {
-      hierarchyId: String(gho.id).split('//')[0],
-      workspaceIds: workspaceId ? [workspaceId] : [],
-    };
-  }
-
-  return {
-    workspaceIds: gho.workspaceIds ?? [],
-    ghoEmployeeCount: gho.employeeCount ?? 0,
-  };
-}
+export type { ProbabilityEntityRef } from './probability-count-context.util';
+export { buildProbabilityCountSource } from './probability-count-context.util';
 
 export const allWorkspacesCountSource: ProbabilityCountSource = {
   allWorkspaces: true,

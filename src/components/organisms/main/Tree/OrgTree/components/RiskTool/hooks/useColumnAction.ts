@@ -1,4 +1,5 @@
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
+import { resolveProbabilityEntityContext } from 'components/organisms/modals/ModalAddProbability/probability-count-context.util';
 import { ProbabilityEstimateResult, QualitativeProbabilityCriteria, RealControlLists } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
@@ -8,6 +9,7 @@ import { useSnackbar } from 'notistack';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
@@ -29,13 +31,13 @@ import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { IHierarchyTreeMapObject } from '../components/RiskToolViews/RiskToolRiskView/types';
-import { getEmbeddedWorkspaceIdFromTreeId } from '../../../utils/get-org-workspace-id';
 
 export const useColumnAction = () => {
   const upsertRiskData = useMutUpsertRiskData();
   const { companyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
   const { onStackOpenModal } = useModal();
+  const viewData = useAppSelector((state) => state.riskAdd.viewData);
 
   const onHandleSelectSave = async (
     {
@@ -175,14 +177,8 @@ export const useColumnAction = () => {
   }) => {
     if (!gho?.id) return;
 
-    const isHierarchy = !('employeeCount' in gho);
-    let workspaceIds = [] as string[];
-
-    if (isHierarchy) {
-      const workspaceId = getEmbeddedWorkspaceIdFromTreeId(gho.id);
-      workspaceIds = workspaceId ? [workspaceId] : [];
-    }
-    else workspaceIds = gho.workspaceIds;
+    const entity = resolveProbabilityEntityContext({ gho, viewData });
+    if (!entity) return;
 
     const company = queryClient.getQueryData<ICompany>([
       QueryEnum.COMPANY,
@@ -194,7 +190,7 @@ export const useColumnAction = () => {
     const workspaceEmployeesCount =
       company.workspace?.reduce(
         (acc, workspace) =>
-          workspaceIds.includes(workspace.id)
+          entity.workspaceIds.includes(workspace.id)
             ? acc + (workspace?.employeeCount ?? 0)
             : acc,
         0,
@@ -214,8 +210,9 @@ export const useColumnAction = () => {
     };
 
     onStackOpenModal(ModalEnum.PROBABILITY_ADD, {
-      employeeCountGho: isHierarchy ? 0 : gho.employeeCount,
-      hierarchyId: isHierarchy ? gho.id.split('//')[0] : '',
+      employeeCountGho: entity.employeeCountGho,
+      hierarchyId: entity.hierarchyId,
+      homogeneousGroupId: entity.homogeneousGroupId,
       riskType: risk?.type,
       employeeCountTotal: workspaceEmployeesCount,
       adoptedCriteria: adoptedCriteria ?? null,
