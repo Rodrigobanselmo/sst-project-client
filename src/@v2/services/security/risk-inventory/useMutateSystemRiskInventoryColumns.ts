@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { RiskInventoryColumnSetting, RiskInventoryExtraColumnSetting } from './risk-inventory.types';
+import {
+  RiskInventoryColumnSetting,
+  RiskInventoryExtraColumnSetting,
+  RiskInventoryOptionalColumnSetting,
+} from './risk-inventory.types';
 import { updateSystemRiskInventoryColumns } from './update-system-risk-inventory-columns.service';
 import { RISK_INVENTORY_QUERY_KEY } from './useFetchBrowseRiskInventory';
 
@@ -13,11 +17,13 @@ export function useMutateSystemRiskInventoryColumns() {
       workspaceId: string;
       columns: RiskInventoryColumnSetting[];
       extraColumns?: RiskInventoryExtraColumnSetting[];
+      optionalColumns?: RiskInventoryOptionalColumnSetting[];
       columnOrder?: string[];
     }) =>
       updateSystemRiskInventoryColumns({
         columns: params.columns,
         extraColumns: params.extraColumns,
+        optionalColumns: params.optionalColumns,
         columnOrder: params.columnOrder,
       }),
     onSuccess: (_result, variables) => {

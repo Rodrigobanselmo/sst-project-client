@@ -21,6 +21,15 @@ import {
   inventoryHeaderGroups,
   inventoryHeaderRuns,
   inventoryTableHeaderGroups,
+  inventoryOptionalColumnHeaderOrientation,
+  inventoryOptionalColumnOrientation,
+  inventoryOptionalColumnWidthWeight,
+  inventoryOptionalCriteriaText,
+  inventoryOptionalDefaultSetting,
+  inventoryOrderColumnIncludedInDocx,
+  inventoryOrderColumnScreenOnly,
+  inventoryOrderColumnVisible,
+  inventoryVisibleOptionalColumns,
   reconcileInventoryColumnOrder,
   resolveInventoryColumnOrder,
   inventoryVisibleExtraColumns,
@@ -147,10 +156,8 @@ assert.equal(INVENTORY_VERTICAL_LINE_PX > 0 && INVENTORY_VERTICAL_LINE_PX < 200,
 assert.equal(INVENTORY_VERTICAL_STACK_PX > 0 && INVENTORY_VERTICAL_STACK_PX < INVENTORY_VERTICAL_LINE_PX, true);
 assert.equal(tableSource.includes('inventoryScreenColumnLayout'), true);
 assert.equal(tableSource.includes('<colgroup>'), true);
-assert.equal(
-  /inventoryWidthPercent\(\s*slot\.kind === 'native' \? slot\.weight : slot\.extra\.weight,\s*totalWeight,/.test(tableSource),
-  true,
-);
+assert.equal(tableSource.includes('inventoryWidthPercent('), true);
+assert.equal(tableSource.includes("slot.kind === 'optional'"), true);
 assert.equal(tableSource.includes('inventoryTableMinWidth'), true);
 assert.equal(tableSource.includes('totalWeight * INVENTORY_WIDTH_FLOOR_PX'), false);
 assert.equal(tableSource.includes("verticalAlign: 'middle'"), true);
@@ -632,11 +639,13 @@ assert.equal(dialogSource.includes('widthWeight'), true);
 assert.equal(dialogSource.includes('Largura'), true);
 assert.equal(dialogSource.includes('placeholder="Título personalizado"'), true);
 assert.equal(dialogSource.includes('placeholder="Padrão"'), false);
-assert.equal(dialogSource.includes('Word:'), false);
-assert.equal(dialogSource.includes('wordLabel'), false);
+assert.equal(dialogSource.includes("aria-label': `Word:"), true);
+assert.equal(dialogSource.includes('label="Word"'), true);
+assert.equal(dialogSource.includes('label="Tela"'), true);
+assert.equal(dialogSource.includes('includeInDocx: docxDraft[column.key]'), true);
 assert.equal(dialogSource.includes('headerLabel'), true);
 assert.equal(dialogSource.includes('INVENTORY_DIALOG_COLUMNS'), true);
-assert.equal(dialogSource.includes('label="Mostrar conteúdo"'), true);
+assert.equal(dialogSource.includes('label="Mostrar conteúdo"'), false);
 assert.equal(dialogSource.includes('label="Mostrar"'), false);
 assert.equal(dialogSource.includes('inventoryColumnCanHide(column.key)'), true);
 assert.equal(dialogSource.includes('visible: visibleDraft[column.key]'), true);
@@ -873,10 +882,264 @@ const serviceSource = readFileSync(
   'utf8',
 );
 assert.equal(tabSource.includes('Organizar colunas'), true);
+assert.equal(tabSource.includes('Colunas opcionais'), true);
 assert.equal(orderDialogSource.includes('columnOrder: draft'), true);
 assert.equal(orderDialogSource.includes('Subir'), true);
+assert.equal(orderDialogSource.includes('só Word'), true);
+assert.equal(orderDialogSource.includes('só tela'), true);
 assert.equal(columnsDialogSource.includes('columnPreference?.columnOrder'), true);
 assert.equal(serviceSource.includes('columnOrder'), true);
+assert.equal(serviceSource.includes('optionalColumns'), true);
 assert.equal(serviceSource.includes('columns: null'), true);
+
+const optionalDialogSource = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryOptionalColumnsDialog.tsx'),
+  'utf8',
+);
+assert.equal(optionalDialogSource.includes('label="Tela"'), true);
+assert.equal(optionalDialogSource.includes('label="Word"'), true);
+assert.equal(optionalDialogSource.includes('Disponível em breve'), false);
+assert.equal(optionalDialogSource.includes('includeInDocx: event.target.checked'), true);
+assert.equal(optionalDialogSource.includes('RISK_INVENTORY_OPTIONAL_DOCX_RENDERERS_READY'), true);
+assert.equal(optionalDialogSource.includes('Conteúdo'), true);
+assert.equal(optionalDialogSource.includes('Largura'), true);
+assert.equal(optionalDialogSource.includes('inventoryOptionalColumnWidthWeight'), true);
+assert.equal(optionalDialogSource.includes('headerOrientation'), true);
+assert.equal(optionalDialogSource.includes('widthWeight: next'), true);
+assert.equal(tableSource.includes('inventoryOptionalColumnOrientation'), true);
+assert.equal(tableSource.includes('inventoryOptionalColumnHeaderOrientation'), true);
+assert.equal(tableSource.includes('column.headerVertical'), true);
+assert.equal(inventoryOptionalDefaultSetting('frequency').includeInDocx, false);
+assert.equal(inventoryOptionalDefaultSetting('frequency').visible, true);
+assert.equal(inventoryOptionalDefaultSetting('employeeCountGho').widthWeight, 2);
+assert.equal(inventoryOptionalDefaultSetting('employeeCountGho').headerOrientation, 'VERTICAL');
+assert.equal(inventoryOptionalDefaultSetting('medsImplemented').widthWeight, 10);
+assert.equal(inventoryOptionalDefaultSetting('frequency').widthWeight, 8);
+assert.equal(inventoryOptionalColumnOrientation({ key: 'frequency', orientation: 'VERTICAL' }), 'VERTICAL');
+assert.equal(
+  inventoryOptionalColumnHeaderOrientation({
+    key: 'frequency',
+    orientation: 'HORIZONTAL',
+    headerOrientation: 'VERTICAL',
+  }),
+  'VERTICAL',
+);
+assert.equal(
+  inventoryOptionalColumnWidthWeight({ key: 'frequency', orientation: 'HORIZONTAL', widthWeight: 12 }),
+  12,
+);
+assert.equal(inventoryOptionalColumnWidthWeight({ key: 'frequency', orientation: 'HORIZONTAL' }), 8);
+
+const legacyNoOptionals = {
+  version: 1 as const,
+  columns: [{ key: 'EPI' as const, orientation: 'HORIZONTAL' as const, visible: true }],
+  extraColumns: [{ key: 'cas' as const, orientation: 'VERTICAL' as const }],
+};
+assert.equal(inventoryVisibleOptionalColumns(legacyNoOptionals).length, 0);
+assert.equal(inventoryOrderColumnVisible(legacyNoOptionals, 'frequency'), false);
+assert.equal(inventoryOrderColumnIncludedInDocx(legacyNoOptionals, 'frequency'), false);
+assert.equal(resolveInventoryColumnOrder(legacyNoOptionals).includes('frequency'), false);
+assert.equal(resolveInventoryColumnOrder(legacyNoOptionals).includes('employeeCountGho'), false);
+
+assert.equal(
+  inventoryOrderColumnVisible(
+    {
+      version: 1 as const,
+      columns: [],
+      optionalColumns: [{ key: 'frequency' as const, orientation: 'HORIZONTAL' as const, visible: true }],
+    },
+    'frequency',
+  ),
+  true,
+);
+assert.equal(
+  inventoryOrderColumnVisible(
+    {
+      version: 1 as const,
+      columns: [],
+      optionalColumns: [{ key: 'frequency' as const, orientation: 'HORIZONTAL' as const, visible: false }],
+    },
+    'frequency',
+  ),
+  false,
+);
+assert.equal(
+  inventoryOrderColumnVisible(
+    {
+      version: 1 as const,
+      columns: [],
+      optionalColumns: [{ key: 'frequency' as const, orientation: 'HORIZONTAL' as const }],
+    },
+    'frequency',
+  ),
+  false,
+);
+
+const screenOnlyPref = {
+  version: 1 as const,
+  columns: [{ key: 'EPI' as const, orientation: 'HORIZONTAL' as const, visible: true, includeInDocx: false }],
+};
+assert.equal(inventoryOrderColumnVisible(screenOnlyPref, 'EPI'), true);
+assert.equal(inventoryOrderColumnIncludedInDocx(screenOnlyPref, 'EPI'), false);
+assert.equal(inventoryOrderColumnScreenOnly(screenOnlyPref, 'EPI'), true);
+
+const wordOnlyPref = {
+  version: 1 as const,
+  columns: [{ key: 'EPI' as const, orientation: 'HORIZONTAL' as const, visible: false, includeInDocx: true }],
+};
+assert.equal(inventoryOrderColumnVisible(wordOnlyPref, 'EPI'), false);
+assert.equal(inventoryOrderColumnIncludedInDocx(wordOnlyPref, 'EPI'), true);
+assert.equal(inventoryOrderColumnScreenOnly(wordOnlyPref, 'EPI'), false);
+
+const legacyPref = {
+  version: 1 as const,
+  columns: [{ key: 'EPI' as const, orientation: 'HORIZONTAL' as const, visible: false }],
+};
+assert.equal(inventoryOrderColumnIncludedInDocx(legacyPref, 'EPI'), false);
+
+const optionalPref = {
+  version: 1 as const,
+  columns: [] as [],
+  optionalColumns: [{ key: 'frequency' as const, orientation: 'HORIZONTAL' as const, visible: true, includeInDocx: true }],
+};
+assert.equal(inventoryOrderColumnVisible(optionalPref, 'frequency'), true);
+assert.equal(inventoryOrderColumnIncludedInDocx(optionalPref, 'frequency'), true);
+assert.equal(inventoryOrderColumnScreenOnly(optionalPref, 'frequency'), false);
+
+const optionalScreenOnly = {
+  version: 1 as const,
+  columns: [] as [],
+  optionalColumns: [{ key: 'frequency' as const, orientation: 'HORIZONTAL' as const, visible: true, includeInDocx: false }],
+};
+assert.equal(inventoryOrderColumnIncludedInDocx(optionalScreenOnly, 'frequency'), false);
+assert.equal(inventoryOrderColumnScreenOnly(optionalScreenOnly, 'frequency'), true);
+
+assert.equal(
+  inventoryOptionalCriteriaText(
+    {
+      isQuantity: false,
+      probabilityCriteria: {
+        employeeCountTotal: 10,
+        employeeCountGho: 3,
+        minDurationJT: 480,
+        minDurationEO: 120,
+        chancesOfHappening: 3,
+        frequency: 2,
+        history: 1,
+        medsImplemented: 4,
+      },
+    },
+    'minDurationEO',
+  ),
+  '120 min',
+);
+assert.equal(
+  inventoryOptionalCriteriaText(
+    {
+      isQuantity: false,
+      probabilityCriteria: {
+        employeeCountTotal: 10,
+        employeeCountGho: 3,
+        minDurationJT: 480,
+        minDurationEO: 120,
+        chancesOfHappening: 3,
+        frequency: 2,
+        history: 1,
+        medsImplemented: 4,
+      },
+    },
+    'minDurationJT',
+  ),
+  '480 min',
+);
+assert.equal(
+  inventoryOptionalCriteriaText(
+    {
+      isQuantity: false,
+      probabilityCriteria: {
+        employeeCountTotal: null,
+        employeeCountGho: null,
+        minDurationJT: null,
+        minDurationEO: null,
+        chancesOfHappening: 3,
+        frequency: 2,
+        history: 1,
+        medsImplemented: 5,
+      },
+    },
+    'frequency',
+  ),
+  'Exporádica (Quizenal)',
+);
+assert.equal(
+  inventoryOptionalCriteriaText(
+    {
+      isQuantity: false,
+      probabilityCriteria: {
+        employeeCountTotal: null,
+        employeeCountGho: null,
+        minDurationJT: null,
+        minDurationEO: null,
+        chancesOfHappening: 3,
+        frequency: 2,
+        history: 1,
+        medsImplemented: 5,
+      },
+    },
+    'chancesOfHappening',
+  ),
+  'Possível',
+);
+assert.equal(
+  inventoryOptionalCriteriaText(
+    {
+      isQuantity: false,
+      probabilityCriteria: {
+        employeeCountTotal: null,
+        employeeCountGho: null,
+        minDurationJT: null,
+        minDurationEO: null,
+        chancesOfHappening: 3,
+        frequency: 2,
+        history: 1,
+        medsImplemented: 5,
+      },
+    },
+    'history',
+  ),
+  'Sem Registro de Ocorrências',
+);
+assert.equal(
+  inventoryOptionalCriteriaText(
+    {
+      isQuantity: false,
+      probabilityCriteria: {
+        employeeCountTotal: null,
+        employeeCountGho: null,
+        minDurationJT: null,
+        minDurationEO: null,
+        chancesOfHappening: 3,
+        frequency: 2,
+        history: 1,
+        medsImplemented: 5,
+      },
+    },
+    'medsImplemented',
+  ),
+  'Sem Medidas de Prevenção',
+);
+assert.equal(
+  inventoryOptionalCriteriaText({ isQuantity: true, probabilityCriteria: { employeeCountTotal: 1, employeeCountGho: 1, minDurationJT: 1, minDurationEO: 1, chancesOfHappening: 1, frequency: 1, history: 1, medsImplemented: 1 } }, 'frequency'),
+  '—',
+);
+assert.equal(inventoryOptionalCriteriaText({ isQuantity: false, probabilityCriteria: null }, 'history'), '—');
+
+const tableSourceForScreenOnly = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'RiskInventoryTable.tsx'),
+  'utf8',
+);
+assert.equal(tableSourceForScreenOnly.includes('INVENTORY_SCREEN_ONLY_HINT'), true);
+assert.equal(tableSourceForScreenOnly.includes('inventoryOrderColumnScreenOnly'), true);
+assert.equal(tableSourceForScreenOnly.includes('kind: \'optional\''), true);
 
 console.log('risk-inventory.presentation.spec.ts OK');

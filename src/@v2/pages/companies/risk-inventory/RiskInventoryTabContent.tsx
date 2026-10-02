@@ -9,6 +9,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { RiskInventoryColumnOrderDialog } from './RiskInventoryColumnOrderDialog';
 import { RiskInventoryColumnsDialog } from './RiskInventoryColumnsDialog';
 import { RiskInventoryExtraColumnsDialog } from './RiskInventoryExtraColumnsDialog';
+import { RiskInventoryOptionalColumnsDialog } from './RiskInventoryOptionalColumnsDialog';
 import { RiskInventoryTable } from './RiskInventoryTable';
 
 type RiskInventoryTabContentProps = {
@@ -22,6 +23,7 @@ export function RiskInventoryTabContent({
 }: RiskInventoryTabContentProps) {
   const { companyId } = useGetCompanyId();
   const [columnsOpen, setColumnsOpen] = useState(false);
+  const [optionalColumnsOpen, setOptionalColumnsOpen] = useState(false);
   const [extraColumnsOpen, setExtraColumnsOpen] = useState(false);
   const [columnOrderOpen, setColumnOrderOpen] = useState(false);
   const { data, isLoading, isError } = useFetchBrowseRiskInventory(
@@ -34,6 +36,7 @@ export function RiskInventoryTabContent({
 
   useEffect(() => {
     setColumnsOpen(false);
+    setOptionalColumnsOpen(false);
     setExtraColumnsOpen(false);
     setColumnOrderOpen(false);
   }, [workspaceId]);
@@ -83,6 +86,9 @@ export function RiskInventoryTabContent({
           <Button variant="outlined" size="small" onClick={() => setColumnsOpen(true)}>
             Configurar colunas
           </Button>
+          <Button variant="outlined" size="small" onClick={() => setOptionalColumnsOpen(true)}>
+            Colunas opcionais
+          </Button>
           <Button variant="outlined" size="small" onClick={() => setExtraColumnsOpen(true)}>
             Colunas extras
           </Button>
@@ -106,6 +112,16 @@ export function RiskInventoryTabContent({
           columnPreference={data?.columnPreference ?? null}
           columnPreferenceSource={data?.columnPreferenceSource ?? 'canonical'}
           onClose={() => setColumnsOpen(false)}
+        />
+      ) : null}
+      {companyId && workspaceId ? (
+        <RiskInventoryOptionalColumnsDialog
+          open={optionalColumnsOpen}
+          companyId={companyId}
+          workspaceId={workspaceId}
+          columnPreference={data?.columnPreference ?? null}
+          columnPreferenceSource={data?.columnPreferenceSource ?? 'canonical'}
+          onClose={() => setOptionalColumnsOpen(false)}
         />
       ) : null}
       {companyId && workspaceId ? (

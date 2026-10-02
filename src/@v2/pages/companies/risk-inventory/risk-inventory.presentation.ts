@@ -1,6 +1,8 @@
 import { RISK_TECHNICAL_PHYSICAL_COLUMNS } from '@v2/pages/companies/risk-technical-data/risk-technical-data.presentation';
 import {
   RISK_INVENTORY_EXTRA_COLUMN_KEYS,
+  RISK_INVENTORY_OPTIONAL_COLUMN_KEYS,
+  RISK_INVENTORY_OPTIONAL_DOCX_RENDERERS_READY,
   RiskInventoryColumnKey,
   RiskInventoryColumnOrientation,
   RiskInventoryColumnsPreference,
@@ -9,10 +11,19 @@ import {
   RiskInventoryEpi,
   RiskInventoryExtraColumnKey,
   RiskInventoryExtraColumnSetting,
+  RiskInventoryOptionalColumnKey,
+  RiskInventoryOptionalColumnSetting,
   RiskInventoryOrderKey,
   RiskInventoryPresentation,
+  RiskInventoryProbabilityCriteria,
   RiskInventoryRow,
 } from '@v2/services/security/risk-inventory/risk-inventory.types';
+
+import { chanceOfContactMap } from 'core/constants/maps/probability/chance-of-contact.map';
+import { frequencyMap } from 'core/constants/maps/probability/frequency.map';
+import { historyOccurrencesMap } from 'core/constants/maps/probability/history-occurrences.map';
+import { measuresMap } from 'core/constants/maps/probability/measures.map';
+import { SeverityEnum } from 'project/enum/severity.enums';
 
 export const INVENTORY_EMPTY = '—';
 
@@ -302,7 +313,145 @@ export function inventoryExtraDefaultSetting(key: RiskInventoryExtraColumnKey): 
     ...(column.headerOrientation ? { headerOrientation: column.headerOrientation } : {}),
     widthWeight: column.widthWeight,
     visible: true,
+    includeInDocx: true,
   };
+}
+
+export const INVENTORY_OPTIONAL_COLUMNS: Array<{
+  key: RiskInventoryOptionalColumnKey;
+  headerLabel: string;
+  widthWeight: number;
+  orientation: RiskInventoryColumnOrientation;
+  headerOrientation?: RiskInventoryColumnOrientation;
+}> = [
+  {
+    key: 'employeeCountGho',
+    headerLabel: 'Trabalhadores abrangidos',
+    widthWeight: 2,
+    orientation: 'HORIZONTAL',
+    headerOrientation: 'VERTICAL',
+  },
+  {
+    key: 'employeeCountTotal',
+    headerLabel: 'Trabalhadores no estabelecimento',
+    widthWeight: 2,
+    orientation: 'HORIZONTAL',
+    headerOrientation: 'VERTICAL',
+  },
+  {
+    key: 'minDurationEO',
+    headerLabel: 'Duração da exposição',
+    widthWeight: 3,
+    orientation: 'HORIZONTAL',
+    headerOrientation: 'VERTICAL',
+  },
+  {
+    key: 'minDurationJT',
+    headerLabel: 'Duração da jornada',
+    widthWeight: 3,
+    orientation: 'HORIZONTAL',
+    headerOrientation: 'VERTICAL',
+  },
+  { key: 'frequency', headerLabel: 'Frequência da exposição', widthWeight: 8, orientation: 'HORIZONTAL' },
+  { key: 'chancesOfHappening', headerLabel: 'Possibilidade de ocorrência', widthWeight: 5, orientation: 'HORIZONTAL' },
+  { key: 'history', headerLabel: 'Histórico de ocorrências', widthWeight: 7, orientation: 'HORIZONTAL' },
+  {
+    key: 'medsImplemented',
+    headerLabel: 'Medidas de prevenção implementadas',
+    widthWeight: 10,
+    orientation: 'HORIZONTAL',
+  },
+];
+
+const INVENTORY_OPTIONAL_COLUMN_BY_KEY = Object.fromEntries(
+  INVENTORY_OPTIONAL_COLUMNS.map((column) => [column.key, column]),
+) as Record<RiskInventoryOptionalColumnKey, (typeof INVENTORY_OPTIONAL_COLUMNS)[number]>;
+
+export function inventoryOptionalColumns(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+): RiskInventoryOptionalColumnSetting[] {
+  return preference?.optionalColumns ?? [];
+}
+
+export function inventoryVisibleOptionalColumns(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+): RiskInventoryOptionalColumnSetting[] {
+  return inventoryOptionalColumns(preference).filter((column) => column.visible === true);
+}
+
+export function inventoryOptionalColumnLabel(column: RiskInventoryOptionalColumnSetting): string {
+  return column.headerLabel || INVENTORY_OPTIONAL_COLUMN_BY_KEY[column.key].headerLabel;
+}
+
+export function inventoryOptionalColumnWidthWeight(column: RiskInventoryOptionalColumnSetting): number {
+  return column.widthWeight ?? INVENTORY_OPTIONAL_COLUMN_BY_KEY[column.key].widthWeight;
+}
+
+export function inventoryOptionalColumnOrientation(
+  column: RiskInventoryOptionalColumnSetting,
+): RiskInventoryColumnOrientation {
+  return column.orientation;
+}
+
+export function inventoryOptionalColumnHeaderOrientation(
+  column: RiskInventoryOptionalColumnSetting,
+): RiskInventoryColumnOrientation {
+  return column.headerOrientation ?? column.orientation;
+}
+
+export function inventoryOptionalDefaultSetting(
+  key: RiskInventoryOptionalColumnKey,
+): RiskInventoryOptionalColumnSetting {
+  const column = INVENTORY_OPTIONAL_COLUMN_BY_KEY[key];
+  return {
+    key,
+    orientation: column.orientation,
+    ...(column.headerOrientation ? { headerOrientation: column.headerOrientation } : {}),
+    widthWeight: column.widthWeight,
+    visible: true,
+    includeInDocx: false,
+  };
+}
+
+const SEVERITY_LABEL_MAPS: Record<
+  'frequency' | 'chancesOfHappening' | 'history' | 'medsImplemented',
+  Record<SeverityEnum, { value: SeverityEnum; name: string }>
+> = {
+  frequency: frequencyMap,
+  chancesOfHappening: chanceOfContactMap,
+  history: historyOccurrencesMap,
+  medsImplemented: measuresMap,
+};
+
+function severityLabel(
+  map: Record<SeverityEnum, { value: SeverityEnum; name: string }>,
+  value: number | null | undefined,
+): string {
+  if (value == null) return INVENTORY_EMPTY;
+  const option = map[value as SeverityEnum];
+  if (!option) return INVENTORY_EMPTY;
+  return option.name.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export function inventoryOptionalCriteriaText(
+  row: Pick<RiskInventoryRow, 'isQuantity' | 'probabilityCriteria'>,
+  key: RiskInventoryOptionalColumnKey,
+): string {
+  if (row.isQuantity) return INVENTORY_EMPTY;
+  const criteria = row.probabilityCriteria;
+  if (!criteria) return INVENTORY_EMPTY;
+
+  if (key === 'employeeCountGho' || key === 'employeeCountTotal') {
+    const value = criteria[key];
+    if (value == null) return INVENTORY_EMPTY;
+    return String(value);
+  }
+  if (key === 'minDurationEO' || key === 'minDurationJT') {
+    const value = criteria[key];
+    if (value == null) return INVENTORY_EMPTY;
+    return `${value} min`;
+  }
+  return severityLabel(SEVERITY_LABEL_MAPS[key], criteria[key]);
 }
 
 /**
@@ -343,7 +492,7 @@ const INVENTORY_NATIVE_ORDER_INDEX = new Map<string, number>(
 );
 const INVENTORY_EXTRA_ORDER_KEYS = new Set<string>(RISK_INVENTORY_EXTRA_COLUMN_KEYS);
 
-export type InventoryColumnFamily = 'occupation' | 'real' | 'residual' | 'technical';
+export type InventoryColumnFamily = 'occupation' | 'real' | 'residual' | 'criteria' | 'technical';
 
 const INVENTORY_OCCUPATION_KEYS = new Set<string>(['TYPE', 'ORIGIN', 'HAZARD', 'DAMAGE', 'GENERATING_SOURCE']);
 const INVENTORY_REAL_KEYS = new Set<string>([
@@ -355,11 +504,13 @@ const INVENTORY_REAL_KEYS = new Set<string>([
   'REAL_RISK',
 ]);
 const INVENTORY_RESIDUAL_KEYS = new Set<string>(['RECOMMENDATIONS', 'PROBABILITY_RESIDUAL', 'RESIDUAL_RISK']);
+const INVENTORY_OPTIONAL_ORDER_KEYS = new Set<string>(RISK_INVENTORY_OPTIONAL_COLUMN_KEYS);
 
 const INVENTORY_FAMILY_LABEL: Record<InventoryColumnFamily, string> = {
   occupation: INVENTORY_HEADER_GROUPS[0].label,
   real: INVENTORY_HEADER_GROUPS[1].label,
   residual: INVENTORY_HEADER_GROUPS[2].label,
+  criteria: 'CRITÉRIOS DE PROBABILIDADE',
   technical: 'DADOS TÉCNICOS',
 };
 
@@ -367,22 +518,29 @@ export function inventoryColumnFamily(key: string): InventoryColumnFamily {
   if (INVENTORY_OCCUPATION_KEYS.has(key)) return 'occupation';
   if (INVENTORY_REAL_KEYS.has(key)) return 'real';
   if (INVENTORY_RESIDUAL_KEYS.has(key)) return 'residual';
+  if (INVENTORY_OPTIONAL_ORDER_KEYS.has(key)) return 'criteria';
   return 'technical';
 }
 
 /**
  * Logical order, including hidden columns. Without columnOrder the natives stay
- * canonical and extras follow residual risk in extraColumns order. A missing
- * native is inserted after the last placed native that canonically precedes it.
+ * canonical, then optionals, then extras. A missing native is inserted after the
+ * last placed native that canonically precedes it.
  */
 export function resolveInventoryColumnOrder(
   preference: RiskInventoryColumnsPreference | null | undefined,
 ): RiskInventoryOrderKey[] {
   const extras = preference?.extraColumns ?? [];
+  const optionals = preference?.optionalColumns ?? [];
   const extraKeys = new Set(extras.map((column) => column.key));
+  const optionalKeys = new Set(optionals.map((column) => column.key));
   const stored = preference?.columnOrder ?? [];
   if (!stored.length) {
-    return [...INVENTORY_CANONICAL_COLUMN_ORDER, ...extras.map((column) => column.key)];
+    return [
+      ...INVENTORY_CANONICAL_COLUMN_ORDER,
+      ...optionals.map((column) => column.key),
+      ...extras.map((column) => column.key),
+    ];
   }
 
   const seen = new Set<string>();
@@ -390,8 +548,9 @@ export function resolveInventoryColumnOrder(
   stored.forEach((key) => {
     if (typeof key !== 'string' || seen.has(key)) return;
     const native = INVENTORY_NATIVE_ORDER_INDEX.has(key);
+    const optional = optionalKeys.has(key as RiskInventoryOptionalColumnKey);
     const extra = extraKeys.has(key as RiskInventoryExtraColumnKey);
-    if (!native && !extra) return;
+    if (!native && !optional && !extra) return;
     seen.add(key);
     ordered.push(key);
   });
@@ -408,6 +567,12 @@ export function resolveInventoryColumnOrder(
     seen.add(native);
   });
 
+  optionals.forEach((column) => {
+    if (seen.has(column.key)) return;
+    ordered.push(column.key);
+    seen.add(column.key);
+  });
+
   extras.forEach((column) => {
     if (seen.has(column.key)) return;
     ordered.push(column.key);
@@ -421,6 +586,10 @@ export function inventoryOrderColumnVisible(
   preference: RiskInventoryColumnsPreference | null | undefined,
   key: string,
 ): boolean {
+  if (INVENTORY_OPTIONAL_ORDER_KEYS.has(key)) {
+    const optional = preference?.optionalColumns?.find((column) => column.key === key);
+    return Boolean(optional) && optional?.visible === true;
+  }
   if (INVENTORY_EXTRA_ORDER_KEYS.has(key)) {
     const extra = preference?.extraColumns?.find((column) => column.key === key);
     return Boolean(extra) && extra?.visible !== false;
@@ -428,6 +597,42 @@ export function inventoryOrderColumnVisible(
   if (!INVENTORY_NATIVE_ORDER_INDEX.has(key)) return false;
   return inventoryColumnVisible(preference, key as RiskInventoryColumnKey);
 }
+
+/**
+ * Effective Word inclusion for UI/tooltips. Mirrors API legacy fallback.
+ * Optional DOCX capacity stays false while renderers are not ready.
+ */
+export function inventoryOrderColumnIncludedInDocx(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  key: string,
+): boolean {
+  if (INVENTORY_OPTIONAL_ORDER_KEYS.has(key)) {
+    if (!RISK_INVENTORY_OPTIONAL_DOCX_RENDERERS_READY) return false;
+    const optional = preference?.optionalColumns?.find((column) => column.key === key);
+    if (!optional) return false;
+    return optional.includeInDocx === true;
+  }
+  if (INVENTORY_EXTRA_ORDER_KEYS.has(key)) {
+    const extra = preference?.extraColumns?.find((column) => column.key === key);
+    if (!extra) return false;
+    if (typeof extra.includeInDocx === 'boolean') return extra.includeInDocx;
+    return extra.visible !== false;
+  }
+  if (!INVENTORY_NATIVE_ORDER_INDEX.has(key)) return false;
+  const native = preference?.columns.find((column) => column.key === key);
+  if (typeof native?.includeInDocx === 'boolean') return native.includeInDocx;
+  return inventoryColumnVisible(preference, key as RiskInventoryColumnKey);
+}
+
+/** Screen-visible column that is excluded from Word. */
+export function inventoryOrderColumnScreenOnly(
+  preference: RiskInventoryColumnsPreference | null | undefined,
+  key: string,
+): boolean {
+  return inventoryOrderColumnVisible(preference, key) && !inventoryOrderColumnIncludedInDocx(preference, key);
+}
+
+export const INVENTORY_SCREEN_ONLY_HINT = 'Visível na tela · Não incluída no Word';
 
 export type InventoryHeaderRun = {
   id: InventoryColumnFamily;
@@ -450,21 +655,29 @@ export function inventoryHeaderRuns(keys: readonly string[]): InventoryHeaderRun
 
 /**
  * Include/remove only. A missing order stays missing. A saved order drops removed
- * extras and appends a newly included extra. It does not follow extraColumns order.
+ * extras/optionals and appends newly included ones. It does not follow list order.
  */
 export function reconcileInventoryColumnOrder(
   columnOrder: readonly string[] | undefined,
   extraKeys: readonly string[],
+  optionalKeys: readonly string[] = [],
 ): string[] | undefined {
   if (!columnOrder?.length) return undefined;
-  const included = new Set(extraKeys);
+  const includedExtras = new Set(extraKeys);
+  const includedOptionals = new Set(optionalKeys);
   const seen = new Set<string>();
   const next: string[] = [];
   columnOrder.forEach((key) => {
     if (seen.has(key)) return;
     const keepNative = INVENTORY_NATIVE_ORDER_INDEX.has(key);
-    const keepExtra = INVENTORY_EXTRA_ORDER_KEYS.has(key) && included.has(key);
-    if (!keepNative && !keepExtra) return;
+    const keepOptional = INVENTORY_OPTIONAL_ORDER_KEYS.has(key) && includedOptionals.has(key);
+    const keepExtra = INVENTORY_EXTRA_ORDER_KEYS.has(key) && includedExtras.has(key);
+    if (!keepNative && !keepOptional && !keepExtra) return;
+    seen.add(key);
+    next.push(key);
+  });
+  optionalKeys.forEach((key) => {
+    if (seen.has(key) || !INVENTORY_OPTIONAL_ORDER_KEYS.has(key)) return;
     seen.add(key);
     next.push(key);
   });

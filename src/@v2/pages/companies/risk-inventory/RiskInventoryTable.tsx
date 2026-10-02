@@ -1,10 +1,22 @@
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Box, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
-import { useState } from 'react';
+import {
+  Box,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material';
+import { useState, type ReactNode } from 'react';
 
 import {
   RiskInventoryColumnsPreference,
   RiskInventoryExtraColumnSetting,
+  RiskInventoryOptionalColumnSetting,
   RiskInventoryPresentation,
   RiskInventoryRow,
   RiskInventoryUnit,
@@ -19,6 +31,11 @@ import {
   inventoryExtraColumnLabel,
   inventoryExtraColumnOrientation,
   inventoryExtraColumnWidthWeight,
+  inventoryOptionalColumnLabel,
+  inventoryOptionalColumnOrientation,
+  inventoryOptionalColumnHeaderOrientation,
+  inventoryOptionalColumnWidthWeight,
+  inventoryOptionalCriteriaText,
   inventoryPresentationColor,
   inventoryPresentationText,
   inventoryProbabilityHint,
@@ -32,12 +49,15 @@ import {
   inventoryWidthPercent,
   inventoryColumnFamily,
   inventoryHeaderRuns,
+  inventoryOrderColumnScreenOnly,
   inventoryOrderColumnVisible,
   inventoryScreenColumnOrientation,
   resolveInventoryColumnOrder,
   inventoryUnitScopeText,
   inventoryVerticalRiskText,
   inventoryVisibleExtraColumns,
+  inventoryVisibleOptionalColumns,
+  INVENTORY_SCREEN_ONLY_HINT,
   INVENTORY_VERTICAL_LINE_PX,
   INVENTORY_VERTICAL_ROTATION,
   INVENTORY_VERTICAL_STACK_PX,
@@ -45,6 +65,11 @@ import {
   INVENTORY_EXPOSED_LABEL,
   INVENTORY_SCOPE_LABEL,
 } from './risk-inventory.presentation';
+
+const screenOnlySx = {
+  opacity: 0.72,
+  bgcolor: 'action.hover',
+} as const;
 
 const columns = [
   { id: 'type', key: 'TYPE', label: inventoryDefaultColumnLabel('TYPE') },
@@ -66,8 +91,9 @@ const columns = [
 type InventoryColumnId = (typeof columns)[number]['id'];
 
 type InventorySlot =
-  | { kind: 'native'; id: InventoryColumnId; label: string; dividerBefore: boolean; weight: number }
-  | { kind: 'extra'; extra: ExtraLayout; dividerBefore: boolean };
+  | { kind: 'native'; id: InventoryColumnId; label: string; dividerBefore: boolean; weight: number; screenOnly: boolean }
+  | { kind: 'extra'; extra: ExtraLayout; dividerBefore: boolean }
+  | { kind: 'optional'; optional: OptionalLayout; dividerBefore: boolean };
 
 const cellSx = {
   verticalAlign: 'top',
@@ -247,6 +273,18 @@ type ExtraLayout = {
   vertical: boolean;
   headerVertical: boolean;
   stackPx: number;
+  screenOnly: boolean;
+};
+
+type OptionalLayout = {
+  key: RiskInventoryOptionalColumnSetting['key'];
+  label: string;
+  weight: number;
+  align: 'left' | 'center';
+  vertical: boolean;
+  headerVertical: boolean;
+  stackPx: number;
+  screenOnly: boolean;
 };
 
 function extraLayoutsFor(preference: RiskInventoryColumnsPreference | null): ExtraLayout[] {
@@ -258,6 +296,20 @@ function extraLayoutsFor(preference: RiskInventoryColumnsPreference | null): Ext
     vertical: inventoryExtraColumnOrientation(column) === 'VERTICAL',
     headerVertical: inventoryExtraColumnHeaderOrientation(column) === 'VERTICAL',
     stackPx: column.key === 'symptoms' || column.key === 'propagation' ? INVENTORY_VERTICAL_STACK_PX : 44,
+    screenOnly: inventoryOrderColumnScreenOnly(preference, column.key),
+  }));
+}
+
+function optionalLayoutsFor(preference: RiskInventoryColumnsPreference | null): OptionalLayout[] {
+  return inventoryVisibleOptionalColumns(preference).map((column) => ({
+    key: column.key,
+    label: inventoryOptionalColumnLabel(column),
+    weight: inventoryOptionalColumnWidthWeight(column),
+    align: 'left' as const,
+    vertical: inventoryOptionalColumnOrientation(column) === 'VERTICAL',
+    headerVertical: inventoryOptionalColumnHeaderOrientation(column) === 'VERTICAL',
+    stackPx: INVENTORY_VERTICAL_STACK_PX,
+    screenOnly: inventoryOrderColumnScreenOnly(preference, column.key),
   }));
 }
 
@@ -342,6 +394,28 @@ function InventoryRow({
                 ...cellSx,
                 ...(column.align === 'center' ? { px: 0.5 } : {}),
                 ...(slot.dividerBefore ? residualDividerSx : {}),
+                ...(column.screenOnly ? screenOnlySx : {}),
+              }}
+            >
+              {column.vertical ? (
+                <VerticalText text={text} title={text} stackPx={column.stackPx} align={column.align} />
+              ) : (
+                text
+              )}
+            </TableCell>
+          );
+        }
+        if (slot.kind === 'optional') {
+          const column = slot.optional;
+          const text = inventoryOptionalCriteriaText(row, column.key);
+          return (
+            <TableCell
+              key={column.key}
+              align={column.align}
+              sx={{
+                ...cellSx,
+                ...(slot.dividerBefore ? residualDividerSx : {}),
+                ...(column.screenOnly ? screenOnlySx : {}),
               }}
             >
               {column.vertical ? (
@@ -367,6 +441,7 @@ function InventoryRow({
                 ? { ...(vertical(slot.id) ? { verticalAlign: 'top' } : {}) }
                 : {}),
               ...(slot.dividerBefore ? residualDividerSx : {}),
+              ...(slot.screenOnly ? screenOnlySx : {}),
             }}
           >
             {content(slot.id)}
@@ -463,6 +538,7 @@ export function RiskInventoryTable({
 }) {
   const nativeByKey = new Map(columns.map((column) => [column.key, column]));
   const extrasByKey = new Map(extraLayoutsFor(columnPreference).map((column) => [column.key, column]));
+  const optionalsByKey = new Map(optionalLayoutsFor(columnPreference).map((column) => [column.key, column]));
   const logicalOrder = resolveInventoryColumnOrder(columnPreference);
   const visibleKeys = logicalOrder.filter((key) => inventoryOrderColumnVisible(columnPreference, key));
   const slots: InventorySlot[] = visibleKeys.flatMap((key, index): InventorySlot[] => {
@@ -477,9 +553,12 @@ export function RiskInventoryTable({
           label: native.label,
           dividerBefore,
           weight: columnLayout(columnPreference, native.id).weight,
+          screenOnly: inventoryOrderColumnScreenOnly(columnPreference, key),
         },
       ];
     }
+    const optional = optionalsByKey.get(key as RiskInventoryOptionalColumnSetting['key']);
+    if (optional) return [{ kind: 'optional' as const, optional, dividerBefore }];
     const extra = extrasByKey.get(key as RiskInventoryExtraColumnSetting['key']);
     return extra ? [{ kind: 'extra' as const, extra, dividerBefore }] : [];
   });
@@ -488,10 +567,11 @@ export function RiskInventoryTable({
     inventoryScreenColumnHeaderOrientation(columnPreference, columnId) === 'VERTICAL';
   const headerLabel = (columnId: InventoryColumnId, fallback: string) =>
     inventoryScreenColumnHeaderLabel(columnPreference, columnId, fallback);
-  const totalWeight = slots.reduce(
-    (sum, slot) => sum + (slot.kind === 'native' ? slot.weight : slot.extra.weight),
-    0,
-  );
+  const totalWeight = slots.reduce((sum, slot) => {
+    if (slot.kind === 'native') return sum + slot.weight;
+    if (slot.kind === 'optional') return sum + slot.optional.weight;
+    return sum + slot.extra.weight;
+  }, 0);
   const tableMinWidth = inventoryTableMinWidth(
     slots.flatMap((slot) => (slot.kind === 'native' ? [slot.weight] : [])),
   );
@@ -542,10 +622,20 @@ export function RiskInventoryTable({
                 <colgroup>
                   {slots.map((slot) => (
                     <col
-                      key={slot.kind === 'native' ? slot.id : slot.extra.key}
+                      key={
+                        slot.kind === 'native'
+                          ? slot.id
+                          : slot.kind === 'optional'
+                            ? slot.optional.key
+                            : slot.extra.key
+                      }
                       style={{
                         width: `${inventoryWidthPercent(
-                          slot.kind === 'native' ? slot.weight : slot.extra.weight,
+                          slot.kind === 'native'
+                            ? slot.weight
+                            : slot.kind === 'optional'
+                              ? slot.optional.weight
+                              : slot.extra.weight,
                           totalWeight,
                         )}%`,
                       }}
@@ -579,12 +669,35 @@ export function RiskInventoryTable({
                   </TableRow>
                   <TableRow>
                     {slots.map((slot) => {
+                      const screenOnly =
+                        slot.kind === 'native'
+                          ? slot.screenOnly
+                          : slot.kind === 'optional'
+                            ? slot.optional.screenOnly
+                            : slot.extra.screenOnly;
+                      const wrapHeader = (node: ReactNode) =>
+                        screenOnly ? (
+                          <Tooltip title={INVENTORY_SCREEN_ONLY_HINT}>
+                            <Box component="span" sx={{ display: 'inline-block', maxWidth: '100%' }}>
+                              {node}
+                            </Box>
+                          </Tooltip>
+                        ) : (
+                          node
+                        );
+
                       if (slot.kind === 'extra') {
                         const column = slot.extra;
                         return (
                           <TableCell
                             key={column.key}
                             align={column.align}
+                            title={screenOnly ? INVENTORY_SCREEN_ONLY_HINT : undefined}
+                            aria-label={
+                              screenOnly
+                                ? `${column.label}. ${INVENTORY_SCREEN_ONLY_HINT}`
+                                : column.label
+                            }
                             sx={{
                               top: INVENTORY_GROUP_HEADER_PX,
                               zIndex: 3,
@@ -595,26 +708,71 @@ export function RiskInventoryTable({
                               bgcolor: 'background.paper',
                               ...(column.headerVertical ? {} : { lineHeight: 1.15, whiteSpace: 'nowrap' }),
                               ...(slot.dividerBefore ? residualDividerSx : {}),
+                              ...(screenOnly ? screenOnlySx : {}),
                             }}
                           >
-                            {column.headerVertical ? (
-                              <VerticalText
-                                text={column.label}
-                                linePx={inventoryVerticalHeaderBoxPx(column.label)}
-                                stackPx={column.stackPx}
-                                align={column.align}
-                              />
-                            ) : (
-                              column.label
+                            {wrapHeader(
+                              column.headerVertical ? (
+                                <VerticalText
+                                  text={column.label}
+                                  linePx={inventoryVerticalHeaderBoxPx(column.label)}
+                                  stackPx={column.stackPx}
+                                  align={column.align}
+                                />
+                              ) : (
+                                column.label
+                              ),
+                            )}
+                          </TableCell>
+                        );
+                      }
+                      if (slot.kind === 'optional') {
+                        const column = slot.optional;
+                        return (
+                          <TableCell
+                            key={column.key}
+                            align={column.align}
+                            title={screenOnly ? INVENTORY_SCREEN_ONLY_HINT : undefined}
+                            aria-label={
+                              screenOnly
+                                ? `${column.label}. ${INVENTORY_SCREEN_ONLY_HINT}`
+                                : column.label
+                            }
+                            sx={{
+                              top: INVENTORY_GROUP_HEADER_PX,
+                              zIndex: 3,
+                              verticalAlign: 'middle',
+                              fontWeight: 700,
+                              fontSize: 12,
+                              bgcolor: 'background.paper',
+                              ...(column.headerVertical ? {} : { lineHeight: 1.15, whiteSpace: 'nowrap' }),
+                              ...(slot.dividerBefore ? residualDividerSx : {}),
+                              ...(screenOnly ? screenOnlySx : {}),
+                            }}
+                          >
+                            {wrapHeader(
+                              column.headerVertical ? (
+                                <VerticalText
+                                  text={column.label}
+                                  linePx={inventoryVerticalHeaderBoxPx(column.label)}
+                                  stackPx={column.stackPx}
+                                  align={column.align}
+                                />
+                              ) : (
+                                column.label
+                              ),
                             )}
                           </TableCell>
                         );
                       }
                       const layout = columnLayout(columnPreference, slot.id);
+                      const title = headerLabel(slot.id, slot.label);
                       return (
                         <TableCell
                           key={slot.id}
                           align={slot.id === 'type' ? 'left' : layout.align}
+                          title={screenOnly ? INVENTORY_SCREEN_ONLY_HINT : undefined}
+                          aria-label={screenOnly ? `${title}. ${INVENTORY_SCREEN_ONLY_HINT}` : title}
                           sx={{
                             top: INVENTORY_GROUP_HEADER_PX,
                             zIndex: 3,
@@ -626,17 +784,20 @@ export function RiskInventoryTable({
                             bgcolor: 'background.paper',
                             ...(headerVertical(slot.id) || layout.role === 'text' ? {} : { whiteSpace: 'nowrap' }),
                             ...(slot.dividerBefore ? residualDividerSx : {}),
+                            ...(screenOnly ? screenOnlySx : {}),
                           }}
                         >
-                          {headerVertical(slot.id) ? (
-                            <VerticalText
-                              text={headerLabel(slot.id, slot.label)}
-                              linePx={inventoryVerticalHeaderBoxPx(headerLabel(slot.id, slot.label))}
-                              stackPx={layout.stackPx}
-                              align={slot.id === 'type' ? 'left' : layout.align}
-                            />
-                          ) : (
-                            headerLabel(slot.id, slot.label)
+                          {wrapHeader(
+                            headerVertical(slot.id) ? (
+                              <VerticalText
+                                text={title}
+                                linePx={inventoryVerticalHeaderBoxPx(title)}
+                                stackPx={layout.stackPx}
+                                align={slot.id === 'type' ? 'left' : layout.align}
+                              />
+                            ) : (
+                              title
+                            ),
                           )}
                         </TableCell>
                       );

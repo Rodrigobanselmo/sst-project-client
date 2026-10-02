@@ -6,6 +6,7 @@ import {
   RiskInventoryColumnSetting,
   RiskInventoryColumnsPreference,
   RiskInventoryExtraColumnSetting,
+  RiskInventoryOptionalColumnSetting,
 } from './risk-inventory.types';
 
 export async function updateRiskInventoryColumns(params: {
@@ -13,6 +14,7 @@ export async function updateRiskInventoryColumns(params: {
   workspaceId: string;
   columns: RiskInventoryColumnSetting[] | null;
   extraColumns?: RiskInventoryExtraColumnSetting[];
+  optionalColumns?: RiskInventoryOptionalColumnSetting[];
   columnOrder?: string[];
 }): Promise<{ columnPreference: RiskInventoryColumnsPreference | null }> {
   const response = await api.patch<{ columnPreference: RiskInventoryColumnsPreference | null }>(
@@ -28,6 +30,7 @@ export async function updateRiskInventoryColumns(params: {
       : {
           columns: params.columns,
           extraColumns: params.extraColumns ?? [],
+          optionalColumns: params.optionalColumns ?? [],
           ...(params.columnOrder?.length ? { columnOrder: params.columnOrder } : {}),
         },
   );

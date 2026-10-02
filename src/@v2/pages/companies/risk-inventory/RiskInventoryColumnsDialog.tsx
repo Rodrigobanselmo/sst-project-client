@@ -38,6 +38,7 @@ import {
   inventoryColumnDraftOrientation,
   inventoryColumnVisible,
   inventoryColumnWidthWeight,
+  inventoryOrderColumnIncludedInDocx,
   inventoryWidthPercent,
   INVENTORY_WIDTH_WEIGHT_MAX,
   INVENTORY_WIDTH_WEIGHT_MIN,
@@ -68,6 +69,7 @@ export function RiskInventoryColumnsDialog({
   const { showSnackBar } = useSystemSnackbar();
   const [systemNotice, setSystemNotice] = useState<string | null>(null);
   const [visibleDraft, setVisibleDraft] = useState(() => visibleDraftFrom(columnPreference));
+  const [docxDraft, setDocxDraft] = useState(() => docxDraftFrom(columnPreference));
   const [draft, setDraft] = useState<Record<RiskInventoryColumnKey, RiskInventoryColumnOrientation>>(
     () => draftFrom(columnPreference),
   );
@@ -84,6 +86,7 @@ export function RiskInventoryColumnsDialog({
   useEffect(() => {
     if (!open) return;
     setVisibleDraft(visibleDraftFrom(columnPreference));
+    setDocxDraft(docxDraftFrom(columnPreference));
     setDraft(draftFrom(columnPreference));
     setTitleDraft(titleDraftFrom(columnPreference));
     setLabelDraft(labelDraftFrom(columnPreference));
@@ -108,8 +111,11 @@ export function RiskInventoryColumnsDialog({
         labelDraft[column.key],
         weightDraft[column.key],
       );
-      if (!inventoryColumnCanHide(column.key)) return setting;
-      return { ...setting, visible: visibleDraft[column.key] };
+      return {
+        ...setting,
+        ...(inventoryColumnCanHide(column.key) ? { visible: visibleDraft[column.key] } : {}),
+        includeInDocx: docxDraft[column.key],
+      };
     });
   const save = (columns: RiskInventoryColumnSetting[] | null) => {
     mutation.mutate(
@@ -118,6 +124,7 @@ export function RiskInventoryColumnsDialog({
         workspaceId,
         columns,
         extraColumns: columns === null ? undefined : (columnPreference?.extraColumns ?? []),
+        optionalColumns: columns === null ? undefined : (columnPreference?.optionalColumns ?? []),
         columnOrder: columns === null ? undefined : columnPreference?.columnOrder,
       },
       { onSuccess: () => onClose() },
@@ -130,6 +137,7 @@ export function RiskInventoryColumnsDialog({
         workspaceId,
         columns: currentColumns(),
         extraColumns: columnPreference?.extraColumns ?? [],
+        optionalColumns: columnPreference?.optionalColumns ?? [],
         columnOrder: columnPreference?.columnOrder,
       },
       {
@@ -154,10 +162,10 @@ export function RiskInventoryColumnsDialog({
           Sem personalização deste estabelecimento, a tela e o próximo PGR usam o padrão do sistema,
           quando existir; caso contrário, o padrão canônico: Tipo com título e conteúdo verticais; EPI e
           os dois RO com título horizontal e conteúdo vertical; as demais colunas horizontais. Origem fica
-          oculta até ser marcada. Fonte geradora, EPI, EPC/ENG., ADM, Recomendações e a probabilidade
-          residual podem ser ocultadas; as demais colunas permanecem. A largura é um peso relativo; o
-          percentual ao lado fecha nas colunas que serão exibidas. Salvar aplica a escolha abaixo somente
-          neste estabelecimento.
+          oculta na tela até ser marcada. Fonte geradora, EPI, EPC/ENG., ADM, Recomendações e a probabilidade
+          residual podem sair da tela; as demais colunas permanecem na tabela. Tela e Word são decisões
+          independentes. A largura é um peso relativo; o percentual ao lado fecha nas colunas que serão
+          exibidas na tela. Salvar aplica a escolha abaixo somente neste estabelecimento.
         </Typography>
         {columnPreferenceSource === 'workspace' ? (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -197,12 +205,28 @@ export function RiskInventoryColumnsDialog({
                             [column.key]: event.target.checked,
                           }))
                         }
-                        inputProps={{ 'aria-label': `Mostrar conteúdo de ${column.label}` }}
+                        inputProps={{ 'aria-label': `Tela: ${column.label}` }}
                       />
                     }
-                    label="Mostrar conteúdo"
+                    label="Tela"
                   />
                 ) : null}
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={docxDraft[column.key]}
+                      onChange={(event) =>
+                        setDocxDraft((current) => ({
+                          ...current,
+                          [column.key]: event.target.checked,
+                        }))
+                      }
+                      inputProps={{ 'aria-label': `Word: ${column.label}` }}
+                    />
+                  }
+                  label="Word"
+                />
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                   <Typography variant="caption" color="text.secondary">
                     Conteúdo
@@ -311,6 +335,15 @@ function visibleDraftFrom(preference: RiskInventoryColumnsPreference | null) {
   return Object.fromEntries(
     INVENTORY_HIDEABLE_COLUMN_KEYS.map((key) => [key, inventoryColumnVisible(preference, key)]),
   ) as Record<(typeof INVENTORY_HIDEABLE_COLUMN_KEYS)[number], boolean>;
+}
+
+function docxDraftFrom(preference: RiskInventoryColumnsPreference | null) {
+  return Object.fromEntries(
+    INVENTORY_DIALOG_COLUMNS.map((column) => [
+      column.key,
+      inventoryOrderColumnIncludedInDocx(preference, column.key),
+    ]),
+  ) as Record<RiskInventoryColumnKey, boolean>;
 }
 
 function draftFrom(preference: RiskInventoryColumnsPreference | null) {

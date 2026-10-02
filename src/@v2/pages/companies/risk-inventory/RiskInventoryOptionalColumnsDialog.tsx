@@ -24,26 +24,27 @@ import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import { useMutateRiskInventoryColumns } from '@v2/services/security/risk-inventory/useMutateRiskInventoryColumns';
 import { useMutateSystemRiskInventoryColumns } from '@v2/services/security/risk-inventory/useMutateSystemRiskInventoryColumns';
 import {
+  RISK_INVENTORY_OPTIONAL_DOCX_RENDERERS_READY,
   RiskInventoryColumnOrientation,
   RiskInventoryColumnsPreference,
   RiskInventoryColumnsSource,
-  RiskInventoryExtraColumnKey,
-  RiskInventoryExtraColumnSetting,
+  RiskInventoryOptionalColumnKey,
+  RiskInventoryOptionalColumnSetting,
 } from '@v2/services/security/risk-inventory/risk-inventory.types';
 
 import {
-  INVENTORY_EXTRA_COLUMNS,
+  INVENTORY_OPTIONAL_COLUMNS,
   INVENTORY_WIDTH_WEIGHT_MAX,
   INVENTORY_WIDTH_WEIGHT_MIN,
   InventoryTitleChoice,
-  inventoryExtraColumnWidthWeight,
-  inventoryExtraDefaultSetting,
   inventoryNativeColumnSettings,
-  reconcileInventoryColumnOrder,
+  inventoryOptionalColumnWidthWeight,
+  inventoryOptionalDefaultSetting,
   inventoryWidthPercent,
+  reconcileInventoryColumnOrder,
 } from './risk-inventory.presentation';
 
-type RiskInventoryExtraColumnsDialogProps = {
+type RiskInventoryOptionalColumnsDialogProps = {
   open: boolean;
   companyId: string;
   workspaceId: string;
@@ -52,23 +53,25 @@ type RiskInventoryExtraColumnsDialogProps = {
   onClose: () => void;
 };
 
-export function RiskInventoryExtraColumnsDialog({
+export function RiskInventoryOptionalColumnsDialog({
   open,
   companyId,
   workspaceId,
   columnPreference,
   columnPreferenceSource,
   onClose,
-}: RiskInventoryExtraColumnsDialogProps) {
+}: RiskInventoryOptionalColumnsDialogProps) {
   const mutation = useMutateRiskInventoryColumns();
   const systemMutation = useMutateSystemRiskInventoryColumns();
   const { showSnackBar } = useSystemSnackbar();
   const [systemNotice, setSystemNotice] = useState<string | null>(null);
-  const [draft, setDraft] = useState<RiskInventoryExtraColumnSetting[]>(() => columnPreference?.extraColumns ?? []);
+  const [draft, setDraft] = useState<RiskInventoryOptionalColumnSetting[]>(
+    () => columnPreference?.optionalColumns ?? [],
+  );
 
   useEffect(() => {
     if (!open) return;
-    setDraft(columnPreference?.extraColumns ?? []);
+    setDraft(columnPreference?.optionalColumns ?? []);
   }, [open, columnPreference, workspaceId]);
 
   useEffect(() => {
@@ -76,43 +79,48 @@ export function RiskInventoryExtraColumnsDialog({
   }, [open, workspaceId]);
 
   const busy = mutation.isPending || systemMutation.isPending;
-  const selected = new Set(draft.map((column) => column.key));
+
   const nativeWeight = inventoryNativeColumnSettings(columnPreference)
     .filter((column) => column.visible !== false || !('visible' in column))
     .reduce((sum, column) => sum + (column.widthWeight ?? 0), 0);
-  const visibleExtraWeight = draft.reduce((sum, column) => {
-    if (column.visible === false) return sum;
-    return sum + inventoryExtraColumnWidthWeight(column);
+  const visibleOptionalWeight = draft.reduce((sum, column) => {
+    if (column.visible !== true) return sum;
+    return sum + inventoryOptionalColumnWidthWeight(column);
   }, 0);
-  const weightTotal = nativeWeight + visibleExtraWeight;
+  const weightTotal = Math.max(nativeWeight + visibleOptionalWeight, 1);
 
-  const columnOrderFor = (extraColumns: RiskInventoryExtraColumnSetting[]) =>
+  const columnOrderFor = (optionalColumns: RiskInventoryOptionalColumnSetting[]) =>
     reconcileInventoryColumnOrder(
       columnPreference?.columnOrder,
-      extraColumns.map((column) => column.key),
-      (columnPreference?.optionalColumns ?? []).map((column) => column.key),
+      (columnPreference?.extraColumns ?? []).map((column) => column.key),
+      optionalColumns.map((column) => column.key),
     );
-  const save = (columns: RiskInventoryColumnsPreference['columns'] | null, extraColumns?: RiskInventoryExtraColumnSetting[]) => {
+
+  const save = (
+    columns: RiskInventoryColumnsPreference['columns'] | null,
+    optionalColumns?: RiskInventoryOptionalColumnSetting[],
+  ) => {
     mutation.mutate(
       {
         companyId,
         workspaceId,
         columns,
-        extraColumns,
-        optionalColumns: columns === null ? undefined : (columnPreference?.optionalColumns ?? []),
-        columnOrder: columns === null ? undefined : columnOrderFor(extraColumns ?? []),
+        extraColumns: columns === null ? undefined : (columnPreference?.extraColumns ?? []),
+        optionalColumns,
+        columnOrder: columns === null ? undefined : columnOrderFor(optionalColumns ?? []),
       },
       { onSuccess: () => onClose() },
     );
   };
+
   const defineSystemDefault = () => {
     systemMutation.mutate(
       {
         companyId,
         workspaceId,
         columns: inventoryNativeColumnSettings(columnPreference),
-        extraColumns: draft,
-        optionalColumns: columnPreference?.optionalColumns ?? [],
+        extraColumns: columnPreference?.extraColumns ?? [],
+        optionalColumns: draft,
         columnOrder: columnOrderFor(draft),
       },
       {
@@ -129,46 +137,33 @@ export function RiskInventoryExtraColumnsDialog({
     );
   };
 
-  const include = (key: RiskInventoryExtraColumnKey, checked: boolean) => {
+  const include = (key: RiskInventoryOptionalColumnKey, checked: boolean) => {
     setDraft((current) => {
       if (!checked) return current.filter((column) => column.key !== key);
       if (current.some((column) => column.key === key)) return current;
-      return [...current, inventoryExtraDefaultSetting(key)];
+      return [...current, inventoryOptionalDefaultSetting(key)];
     });
   };
-  const move = (key: RiskInventoryExtraColumnKey, delta: number) => {
-    setDraft((current) => {
-      const index = current.findIndex((column) => column.key === key);
-      const next = index + delta;
-      if (index < 0 || next < 0 || next >= current.length) return current;
-      const copy = current.slice();
-      const [item] = copy.splice(index, 1);
-      copy.splice(next, 0, item);
-      return copy;
-    });
-  };
-  const patch = (key: RiskInventoryExtraColumnKey, partial: Partial<RiskInventoryExtraColumnSetting>) => {
+
+  const patch = (key: RiskInventoryOptionalColumnKey, partial: Partial<RiskInventoryOptionalColumnSetting>) => {
     setDraft((current) => current.map((column) => (column.key === key ? { ...column, ...partial } : column)));
   };
 
-  const rows = [
-    ...draft.map((column) => ({ key: column.key, included: true as const, column })),
-    ...INVENTORY_EXTRA_COLUMNS.filter((column) => !selected.has(column.key)).map((column) => ({
-      key: column.key,
-      included: false as const,
-      column,
-    })),
-  ];
+  const rows = INVENTORY_OPTIONAL_COLUMNS.map((catalog) => {
+    const setting = draft.find((column) => column.key === catalog.key) ?? null;
+    return { catalog, setting, included: Boolean(setting) };
+  });
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
-      <DialogTitle>Colunas extras</DialogTitle>
+      <DialogTitle>Colunas opcionais</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Estas colunas vêm dos Dados Técnicos do fator de risco. A escolha guarda só a referência; o valor
-          continua no cadastro do fator. Sem uma ordem salva, elas entram depois do Risco Residual. A posição
-          entre as demais colunas fica em Organizar colunas. Tela e Word são decisões independentes. Tipo,
-          fator, severidade e efeitos permanecem nas colunas nativas.
+          Critérios da estimativa qualitativa de probabilidade adotados na avaliação. Os valores vêm do snapshot
+          persistido do risco — não são recalculados ao abrir o inventário. São opt-in: sem configuração, nenhuma
+          aparece na tela nem no Word. Marque Incluir e ative Tela e/ou Word conforme necessário. Orientação, título
+          e largura usam o mesmo mecanismo das demais colunas. A posição entre as demais fica em Organizar colunas.
+          Não se misturam com as Colunas extras.
         </Typography>
         {columnPreferenceSource === 'workspace' ? (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -177,7 +172,8 @@ export function RiskInventoryExtraColumnsDialog({
         ) : null}
         {columnPreferenceSource === 'global' ? (
           <Alert severity="info" sx={{ mb: 2 }}>
-            Este estabelecimento está usando o padrão do sistema. Salvar passa a guardá-lo como personalização própria.
+            Este estabelecimento está usando o padrão do sistema. Salvar passa a guardá-lo como personalização
+            própria.
           </Alert>
         ) : null}
         {systemNotice ? (
@@ -186,32 +182,25 @@ export function RiskInventoryExtraColumnsDialog({
           </Alert>
         ) : null}
         <Stack spacing={1.5}>
-          {rows.map((row) => {
-            const catalog = INVENTORY_EXTRA_COLUMNS.find((column) => column.key === row.key)!;
-            const setting = row.included ? row.column : null;
+          {rows.map(({ catalog, setting, included }) => {
             const titleChoice: InventoryTitleChoice = setting?.headerOrientation ?? 'SAME';
-            const shown = setting ? setting.visible !== false : false;
-            const inDocx = setting
-              ? typeof setting.includeInDocx === 'boolean'
-                ? setting.includeInDocx
-                : setting.visible !== false
-              : false;
+            const onScreen = setting?.visible === true;
             return (
-              <Stack key={row.key} spacing={0.5}>
+              <Stack key={catalog.key} spacing={0.5}>
                 <Stack
                   direction="row"
                   spacing={2}
                   sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}
                 >
-                  <Typography variant="body2" sx={{ fontWeight: 700, flex: '1 1 220px' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, flex: '1 1 260px' }}>
                     {catalog.headerLabel}
                   </Typography>
                   <FormControlLabel
                     control={
                       <Switch
                         size="small"
-                        checked={row.included}
-                        onChange={(event) => include(row.key, event.target.checked)}
+                        checked={included}
+                        onChange={(event) => include(catalog.key, event.target.checked)}
                         inputProps={{ 'aria-label': `Incluir ${catalog.headerLabel}` }}
                       />
                     }
@@ -223,8 +212,8 @@ export function RiskInventoryExtraColumnsDialog({
                         control={
                           <Switch
                             size="small"
-                            checked={shown}
-                            onChange={(event) => patch(row.key, { visible: event.target.checked })}
+                            checked={onScreen}
+                            onChange={(event) => patch(catalog.key, { visible: event.target.checked })}
                             inputProps={{ 'aria-label': `Tela: ${catalog.headerLabel}` }}
                           />
                         }
@@ -234,25 +223,16 @@ export function RiskInventoryExtraColumnsDialog({
                         control={
                           <Switch
                             size="small"
-                            checked={inDocx}
-                            onChange={(event) => patch(row.key, { includeInDocx: event.target.checked })}
+                            checked={setting.includeInDocx === true}
+                            disabled={!RISK_INVENTORY_OPTIONAL_DOCX_RENDERERS_READY}
+                            onChange={(event) =>
+                              patch(catalog.key, { includeInDocx: event.target.checked })
+                            }
                             inputProps={{ 'aria-label': `Word: ${catalog.headerLabel}` }}
                           />
                         }
                         label="Word"
                       />
-                      <Stack direction="row" spacing={1}>
-                        <Button size="small" disabled={draft[0]?.key === row.key} onClick={() => move(row.key, -1)}>
-                          Subir
-                        </Button>
-                        <Button
-                          size="small"
-                          disabled={draft[draft.length - 1]?.key === row.key}
-                          onClick={() => move(row.key, 1)}
-                        >
-                          Descer
-                        </Button>
-                      </Stack>
                     </>
                   ) : null}
                 </Stack>
@@ -266,7 +246,9 @@ export function RiskInventoryExtraColumnsDialog({
                         row
                         value={setting.orientation}
                         onChange={(event) =>
-                          patch(row.key, { orientation: event.target.value as RiskInventoryColumnOrientation })
+                          patch(catalog.key, {
+                            orientation: event.target.value as RiskInventoryColumnOrientation,
+                          })
                         }
                       >
                         <FormControlLabel value="HORIZONTAL" control={<Radio size="small" />} label="Horizontal" />
@@ -280,7 +262,7 @@ export function RiskInventoryExtraColumnsDialog({
                         value={titleChoice}
                         onChange={(event) => {
                           const title = event.target.value as InventoryTitleChoice;
-                          patch(row.key, {
+                          patch(catalog.key, {
                             headerOrientation: title === 'SAME' ? undefined : title,
                           });
                         }}
@@ -296,7 +278,7 @@ export function RiskInventoryExtraColumnsDialog({
                       <TextField
                         size="small"
                         type="number"
-                        value={inventoryExtraColumnWidthWeight(setting)}
+                        value={inventoryOptionalColumnWidthWeight(setting)}
                         inputProps={{
                           min: INVENTORY_WIDTH_WEIGHT_MIN,
                           max: INVENTORY_WIDTH_WEIGHT_MAX,
@@ -307,14 +289,17 @@ export function RiskInventoryExtraColumnsDialog({
                           const next = Number(event.target.value);
                           if (!Number.isInteger(next)) return;
                           if (next < INVENTORY_WIDTH_WEIGHT_MIN || next > INVENTORY_WIDTH_WEIGHT_MAX) return;
-                          patch(row.key, { widthWeight: next });
+                          patch(catalog.key, { widthWeight: next });
                         }}
                         sx={{ width: 72 }}
                       />
                       <Typography variant="caption" sx={{ minWidth: 52 }}>
-                        {shown
-                          ? `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1, minimumFractionDigits: 1 }).format(
-                              inventoryWidthPercent(inventoryExtraColumnWidthWeight(setting), weightTotal),
+                        {onScreen
+                          ? `${new Intl.NumberFormat('pt-BR', {
+                              maximumFractionDigits: 1,
+                              minimumFractionDigits: 1,
+                            }).format(
+                              inventoryWidthPercent(inventoryOptionalColumnWidthWeight(setting), weightTotal),
                             )}%`
                           : 'oculta'}
                       </Typography>
@@ -326,8 +311,10 @@ export function RiskInventoryExtraColumnsDialog({
                       value={setting.headerLabel ?? ''}
                       inputProps={{ maxLength: 80, 'aria-label': `Título de ${catalog.headerLabel}` }}
                       onChange={(event) =>
-                        patch(row.key, {
-                          headerLabel: event.target.value.replace(/[\u0000-\u001F\u007F\u2028\u2029]/g, '').slice(0, 80),
+                        patch(catalog.key, {
+                          headerLabel: event.target.value
+                            .replace(/[\u0000-\u001F\u007F\u2028\u2029]/g, '')
+                            .slice(0, 80),
                         })
                       }
                     />

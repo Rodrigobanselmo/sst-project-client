@@ -18,6 +18,8 @@ import {
   inventoryDefaultColumnLabel,
   inventoryExtraColumnLabel,
   inventoryNativeColumnSettings,
+  inventoryOptionalColumnLabel,
+  inventoryOrderColumnIncludedInDocx,
   inventoryOrderColumnVisible,
   resolveInventoryColumnOrder,
   INVENTORY_CANONICAL_COLUMN_ORDER,
@@ -60,6 +62,7 @@ export function RiskInventoryColumnOrderDialog({
         workspaceId,
         columns,
         extraColumns: columns === null ? undefined : (columnPreference?.extraColumns ?? []),
+        optionalColumns: columns === null ? undefined : (columnPreference?.optionalColumns ?? []),
         columnOrder,
       },
       { onSuccess: () => onClose() },
@@ -72,6 +75,7 @@ export function RiskInventoryColumnOrderDialog({
         workspaceId,
         columns: inventoryNativeColumnSettings(columnPreference),
         extraColumns: columnPreference?.extraColumns ?? [],
+        optionalColumns: columnPreference?.optionalColumns ?? [],
         columnOrder: draft,
       },
       {
@@ -99,6 +103,8 @@ export function RiskInventoryColumnOrderDialog({
     });
   };
   const labelFor = (key: RiskInventoryOrderKey) => {
+    const optional = columnPreference?.optionalColumns?.find((column) => column.key === key);
+    if (optional) return inventoryOptionalColumnLabel(optional);
     const extra = columnPreference?.extraColumns?.find((column) => column.key === key);
     if (extra) return inventoryExtraColumnLabel(extra);
     if ((INVENTORY_CANONICAL_COLUMN_ORDER as readonly string[]).includes(key)) {
@@ -113,8 +119,9 @@ export function RiskInventoryColumnOrderDialog({
       <DialogTitle>Organizar colunas</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          A lista reúne as colunas nativas e as extras já incluídas. Subir e Descer mudam somente a ordem.
-          Visibilidade, título, orientação, largura e a inclusão da extra continuam nos outros diálogos.
+          A lista reúne as colunas nativas, as opcionais e as extras já incluídas — inclusive as que ficam só
+          na tela ou só no Word. Subir e Descer mudam somente a ordem. Visibilidade na tela, inclusão no Word,
+          título, orientação e largura continuam nos outros diálogos.
         </Typography>
         {columnPreferenceSource === 'workspace' ? (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -133,7 +140,15 @@ export function RiskInventoryColumnOrderDialog({
         ) : null}
         <Stack spacing={0.75}>
           {draft.map((key) => {
-            const hidden = !inventoryOrderColumnVisible(columnPreference, key);
+            const onScreen = inventoryOrderColumnVisible(columnPreference, key);
+            const inDocx = inventoryOrderColumnIncludedInDocx(columnPreference, key);
+            const surfaceLabel = onScreen && inDocx
+              ? null
+              : onScreen
+                ? 'só tela'
+                : inDocx
+                  ? 'só Word'
+                  : 'oculta';
             return (
               <Stack
                 key={key}
@@ -143,9 +158,9 @@ export function RiskInventoryColumnOrderDialog({
               >
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
                   {labelFor(key)}
-                  {hidden ? (
+                  {surfaceLabel ? (
                     <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      oculta
+                      {surfaceLabel}
                     </Typography>
                   ) : null}
                 </Typography>
