@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
+import { useWatch } from 'react-hook-form';
 
+import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
@@ -13,6 +15,10 @@ import {
 } from 'core/constants/maps/probability/probability-questions.constant';
 
 import { IUseProbability } from '../../hooks/useProbability';
+import {
+  criteriaFromForm,
+  qualitativeProbabilityPreview,
+} from '../../qualitative-probability.util';
 
 export const RadioInput = ({
   control,
@@ -52,10 +58,70 @@ export const RadioInput = ({
 };
 
 export const ProbabilityForm = (props: IUseProbability) => {
-  const { control, probabilityData, setValue } = props;
+  const { control, probabilityData, setValue, loading } = props;
+  const watched = useWatch({ control });
+  const preview = qualitativeProbabilityPreview(criteriaFromForm(watched ?? {}));
+  const criteriaLabel = !preview
+    ? ''
+    : preview.criteriaCount === 1
+      ? 'Calculada com 1 critério informado.'
+      : `Calculada com ${preview.criteriaCount} critérios informados.`;
 
   return (
     <SFlex gap={19} direction="column" mt={8}>
+      <SFlex
+        sx={{
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          justifyContent: 'space-between',
+          gap: 3,
+          px: 5,
+          py: 4,
+          borderRadius: 1,
+          bgcolor: 'primary.main',
+        }}
+      >
+        <SFlex direction="column" sx={{ flex: '1 1 auto', minWidth: 0 }}>
+          {preview ? (
+            <>
+              <SText color="text.dark" fontSize={16} fontWeight={600}>
+                {`Probabilidade estimada: P${preview.probability}`}
+              </SText>
+              <SText color="text.dark" fontSize={13}>
+                {criteriaLabel}
+              </SText>
+            </>
+          ) : (
+            <SText color="text.dark" fontSize={14}>
+              Preencha os critérios para visualizar a probabilidade estimada.
+            </SText>
+          )}
+        </SFlex>
+        <SButton
+          type="submit"
+          variant="outlined"
+          color="inherit"
+          loading={loading}
+          sx={{
+            alignSelf: { xs: 'flex-end', sm: 'center' },
+            flexShrink: 0,
+            color: 'common.black',
+            borderColor: 'common.black',
+            bgcolor: 'transparent',
+            '&:hover': {
+              color: 'common.black',
+              borderColor: 'common.black',
+              bgcolor: 'action.hover',
+            },
+            '&.Mui-focusVisible': {
+              color: 'common.black',
+              borderColor: 'common.black',
+            },
+          }}
+        >
+          Aplicar
+        </SButton>
+      </SFlex>
       <div>
         <SText color="text.light" fontSize={14}>
           {probabilityQuestionsMap[ProbabilityQuestionEnum.EMPLOYEES].title}

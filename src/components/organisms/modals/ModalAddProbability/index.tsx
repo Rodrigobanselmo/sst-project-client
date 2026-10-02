@@ -1,38 +1,15 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import SModal, {
-  SModalButtons,
-  SModalHeader,
-  SModalPaper,
-} from 'components/molecules/SModal';
-import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import SModal, { SModalHeader, SModalPaper } from 'components/molecules/SModal';
 
 import { ProbabilityForm } from './components/ProbabilityForm';
 import { useProbability } from './hooks/useProbability';
 
 export const ModalAddProbability = () => {
   const props = useProbability();
-  const {
-    onSubmit,
-    registerModal,
-    handleSubmit,
-    onCloseUnsaved,
-    probabilityData,
-    loading,
-    modalName,
-  } = props;
-
-  const buttons = [
-    {},
-    {
-      text: probabilityData.id ? 'Salvar' : 'Criar',
-      variant: 'contained',
-      type: 'submit',
-      onClick: () => {},
-    },
-  ] as IModalButton[];
+  const { onSubmit, registerModal, handleSubmit, onCloseUnsaved, probabilityData, modalName } =
+    props;
 
   return (
     <SModal
@@ -56,12 +33,6 @@ export const ModalAddProbability = () => {
         />
 
         <ProbabilityForm {...props} />
-
-        <SModalButtons
-          loading={loading}
-          onClose={onCloseUnsaved}
-          buttons={buttons}
-        />
       </SModalPaper>
     </SModal>
   );

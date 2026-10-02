@@ -83,6 +83,11 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
       gho,
       risk,
       adoptedCriteria: riskData?.probabilityCriteria,
+      controls: {
+        engs: riskData?.engs,
+        adms: riskData?.adms,
+        epis: riskData?.epis,
+      },
       handleSelect: (value: ProbabilityEstimateResult) =>
         handleSelect({
           ...data,

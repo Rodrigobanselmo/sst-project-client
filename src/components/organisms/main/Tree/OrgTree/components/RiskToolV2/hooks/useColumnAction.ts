@@ -1,5 +1,5 @@
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
-import { ProbabilityEstimateResult, QualitativeProbabilityCriteria } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
+import { ProbabilityEstimateResult, QualitativeProbabilityCriteria, RealControlLists } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
 import { RiskEnum } from 'project/enum/risk.enums';
@@ -169,11 +169,13 @@ export const useColumnAction = () => {
     risk,
     handleSelect,
     adoptedCriteria,
+    controls,
   }: {
     risk?: IRiskFactors;
     handleSelect: (value: ProbabilityEstimateResult) => void;
     gho: IGho | IHierarchyTreeMapObject | IHierarchy | null;
     adoptedCriteria?: QualitativeProbabilityCriteria | null;
+    controls?: RealControlLists | null;
   }) => {
     if (!gho?.id) return;
 
@@ -221,6 +223,7 @@ export const useColumnAction = () => {
       riskType: risk?.type,
       employeeCountTotal: workspaceEmployeesCount,
       adoptedCriteria: adoptedCriteria ?? null,
+      controls: controls ?? null,
       onCreate: handleSelectSync,
     } as typeof initialProbState);
   };

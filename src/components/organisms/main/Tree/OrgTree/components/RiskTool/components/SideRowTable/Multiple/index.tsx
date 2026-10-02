@@ -187,6 +187,11 @@ export const SideRowTableMulti: FC<
       riskType: selectedRiskStore.type,
       employeeCountTotal: workspaceEmployeesCount,
       adoptedCriteria: riskData?.probabilityCriteria ?? null,
+      controls: {
+        engs: riskData?.engs,
+        adms: riskData?.adms,
+        epis: riskData?.epis,
+      },
       onCreate: handleSelectSync,
     } as typeof initialProbState);
   };

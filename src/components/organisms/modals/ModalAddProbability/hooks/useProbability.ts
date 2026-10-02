@@ -15,9 +15,11 @@ import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
 import {
   criteriaFromForm,
+  medsImplementedForModalOpen,
   ProbabilityEstimateResult,
   QualitativeProbabilityCriteria,
   qualitativeProbabilityFromCriteria,
+  RealControlLists,
 } from '../qualitative-probability.util';
 
 export const initialProbState = {
@@ -39,6 +41,7 @@ export const initialProbState = {
 
   hierarchyId: '',
   adoptedCriteria: null as QualitativeProbabilityCriteria | null,
+  controls: null as RealControlLists | null,
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCreate: (_value: ProbabilityEstimateResult) => {},
@@ -102,6 +105,10 @@ export const useProbability = () => {
       !(initialData as any).passBack
     ) {
       const adopted = initialData.adoptedCriteria;
+      const medsForOpen = medsImplementedForModalOpen({
+        adopted,
+        controls: initialData.controls,
+      });
       if (adopted) {
         reset({
           employeeCountTotal: adopted.employeeCountTotal ?? '',
@@ -113,6 +120,8 @@ export const useProbability = () => {
           history: adopted.history ?? '',
           medsImplemented: adopted.medsImplemented ?? '',
         });
+      } else if (medsForOpen != null) {
+        reset({ medsImplemented: medsForOpen });
       }
 
       setProbabilityData((oldData) => {
@@ -130,7 +139,9 @@ export const useProbability = () => {
                 history: adopted.history ?? '',
                 medsImplemented: adopted.medsImplemented ?? '',
               }
-            : {}),
+            : medsForOpen != null
+              ? { medsImplemented: medsForOpen }
+              : {}),
         };
 
         initialDataRef.current = newData;

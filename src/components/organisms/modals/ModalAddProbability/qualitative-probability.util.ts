@@ -38,6 +38,44 @@ export const percentageCheck = (value: number, limit: number) => {
   return 5;
 };
 
+/** Listas de controles existentes do Risco Real. Treinamento entra por `adms`. */
+export type RealControlLists = {
+  engs?: readonly unknown[] | null;
+  adms?: readonly unknown[] | null;
+  epis?: readonly unknown[] | null;
+};
+
+function hasControlItem(list?: readonly unknown[] | null): boolean {
+  return !!list?.some((item) => item != null);
+}
+
+/**
+ * Matriz canônica de medsImplemented a partir dos controles existentes.
+ * 1 EPC+ADM+EPI, 2 EPC+ADM, 3 EPC+EPI ou ADM+EPI, 4 uma medida, 5 nenhuma.
+ */
+export function classifyMedsImplemented(lists: RealControlLists): 1 | 2 | 3 | 4 | 5 {
+  const hasEpc = hasControlItem(lists.engs);
+  const hasAdm = hasControlItem(lists.adms);
+  const hasEpi = hasControlItem(lists.epis);
+  const count = Number(hasEpc) + Number(hasAdm) + Number(hasEpi);
+
+  if (count === 0) return 5;
+  if (count === 1) return 4;
+  if (hasEpc && hasAdm && hasEpi) return 1;
+  if (hasEpc && hasAdm) return 2;
+  return 3;
+}
+
+/** Na primeira abertura sugere a classificação. Com critérios adotados, preserva o valor salvo. */
+export function medsImplementedForModalOpen(params: {
+  adopted?: QualitativeProbabilityCriteria | null;
+  controls?: RealControlLists | null;
+}): number | null {
+  if (params.adopted) return params.adopted.medsImplemented ?? null;
+  if (!params.controls) return null;
+  return classifyMedsImplemented(params.controls);
+}
+
 export function adoptedCriteriaInt(value: unknown): number | null {
   if (value == null || value === '') return null;
   const parsed = Number(value);
@@ -67,10 +105,11 @@ export function criteriaFromForm(values: {
   };
 }
 
-export function qualitativeProbabilityFromCriteria(
+/** Componentes que entram na média. Cada rádio vale um. Cada par completo vale um. */
+function qualitativeProbabilityComponents(
   criteria: QualitativeProbabilityCriteria,
-): number | null {
-  const probabilities = [
+): number[] {
+  const probabilities: Array<number | null | undefined> = [
     criteria.frequency,
     criteria.history,
     criteria.chancesOfHappening,
@@ -87,7 +126,13 @@ export function qualitativeProbabilityFromCriteria(
     probabilities.push(percentageCheck(Number(criteria.minDurationEO), Number(criteria.minDurationJT)));
   }
 
-  const finalProbabilities = probabilities.filter((value) => value);
+  return probabilities.filter((value): value is number => !!value);
+}
+
+export function qualitativeProbabilityFromCriteria(
+  criteria: QualitativeProbabilityCriteria,
+): number | null {
+  const finalProbabilities = qualitativeProbabilityComponents(criteria);
   if (!finalProbabilities.length) return null;
 
   const result =
@@ -97,9 +142,24 @@ export function qualitativeProbabilityFromCriteria(
   return Math.ceil(result);
 }
 
+export type QualitativeProbabilityPreview = {
+  probability: number;
+  criteriaCount: number;
+};
+
+/** Mesma média do Create. N é o tamanho da lista que a média usa. */
+export function qualitativeProbabilityPreview(
+  criteria: QualitativeProbabilityCriteria,
+): QualitativeProbabilityPreview | null {
+  const criteriaCount = qualitativeProbabilityComponents(criteria).length;
+  const probability = qualitativeProbabilityFromCriteria(criteria);
+  if (!criteriaCount || probability == null) return null;
+  return { probability, criteriaCount };
+}
+
 export function countSuggestionSignature(decision: CountSuggestionDecision): string {
   if (decision.kind === 'none') return 'none';
-  return `${decision.kind}:${decision.probability}:${decision.criteria.employeeCountTotal}:${decision.criteria.employeeCountGho}`;
+  return `${decision.kind}:${decision.probability}:${decision.criteria.employeeCountTotal}:${decision.criteria.employeeCountGho}:${decision.criteria.medsImplemented}`;
 }
 
 /**
@@ -122,6 +182,8 @@ export function resolveCountSuggestion(params: {
   adoptedProbability?: number | null;
   currentTotal?: number | null;
   currentGho?: number | null;
+  /** Classificação atual dos controles. Ausente mantém o medsImplemented adotado. */
+  currentMedsImplemented?: number | null;
   isQuantity?: boolean;
 }): CountSuggestionDecision {
   if (params.isQuantity || !params.adopted) return { kind: 'none' };
@@ -132,12 +194,17 @@ export function resolveCountSuggestion(params: {
 
   const savedTotal = params.adopted.employeeCountTotal ?? null;
   const savedGho = params.adopted.employeeCountGho ?? null;
-  if (params.currentTotal === savedTotal && params.currentGho === savedGho) return { kind: 'none' };
+  const savedMeds = params.adopted.medsImplemented ?? null;
+  const nextMeds = params.currentMedsImplemented ?? savedMeds;
+  const countsSame = params.currentTotal === savedTotal && params.currentGho === savedGho;
+  const medsSame = nextMeds === savedMeds;
+  if (countsSame && medsSame) return { kind: 'none' };
 
   const nextCriteria: QualitativeProbabilityCriteria = {
     ...params.adopted,
     employeeCountTotal: params.currentTotal,
     employeeCountGho: params.currentGho,
+    medsImplemented: nextMeds,
   };
   const suggested = qualitativeProbabilityFromCriteria(nextCriteria);
   if (suggested == null || suggested === params.adoptedProbability) return { kind: 'none' };

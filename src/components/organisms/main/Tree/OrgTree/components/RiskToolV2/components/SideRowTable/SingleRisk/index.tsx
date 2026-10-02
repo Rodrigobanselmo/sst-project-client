@@ -113,6 +113,11 @@ export const RiskToolSingleRiskRow: FC<
       gho,
       risk,
       adoptedCriteria: riskData?.probabilityCriteria,
+      controls: {
+        engs: riskData?.engs,
+        adms: riskData?.adms,
+        epis: riskData?.epis,
+      },
       handleSelect: (value: ProbabilityEstimateResult) =>
         handleSelect({
           ...data,

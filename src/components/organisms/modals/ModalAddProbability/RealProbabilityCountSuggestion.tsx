@@ -5,6 +5,7 @@ import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 import {
+  classifyMedsImplemented,
   countSuggestionEffectAction,
   countSuggestionSignature,
   ProbabilityCountSource,
@@ -24,6 +25,13 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
   handleSelect,
 }) => {
   const counts = useLiveEmployeeCounts(countSource);
+  const currentMedsImplemented = data
+    ? classifyMedsImplemented({
+        engs: data.engs,
+        adms: data.adms,
+        epis: data.epis,
+      })
+    : undefined;
   const decision = useMemo(
     () =>
       resolveCountSuggestion({
@@ -31,11 +39,13 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
         adoptedProbability: data?.probability,
         currentTotal: counts.total,
         currentGho: counts.gho,
+        currentMedsImplemented,
         isQuantity: !!data?.isQuantity,
       }),
     [
       counts.gho,
       counts.total,
+      currentMedsImplemented,
       data?.isQuantity,
       data?.probability,
       data?.probabilityCriteria,
@@ -72,7 +82,7 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
         })
       }
     >
-      {`Sugestão pela contagem atual: P${decision.probability}`}
+      {`Sugestão atual: P${decision.probability}`}
     </SText>
   );
 };

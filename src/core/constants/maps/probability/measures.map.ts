@@ -9,19 +9,19 @@ interface IMeasuresOptions extends Record<SeverityEnum, IMeasuresOption> {}
 export const measuresMap = {
   [SeverityEnum.LOW]: {
     value: SeverityEnum.LOW,
-    name: 'EPC + ADM + EPI \n + Treinamentos',
+    name: 'EPC + ADM + EPI',
   },
   [SeverityEnum.MEDIUM_LOW]: {
     value: SeverityEnum.MEDIUM_LOW,
-    name: 'EPC + ADM \n + Treinamentos',
+    name: 'EPC + ADM',
   },
   [SeverityEnum.MEDIUM]: {
     value: SeverityEnum.MEDIUM,
-    name: 'EPC + EPI \n + Treinamentos',
+    name: 'EPC + EPI ou ADM + EPI',
   },
   [SeverityEnum.MEDIUM_HIGH]: {
     value: SeverityEnum.MEDIUM_HIGH,
-    name: 'EPI + Treinamentos',
+    name: 'Apenas uma medida de controle: EPC, ADM ou EPI',
   },
   [SeverityEnum.HIGH]: {
     value: SeverityEnum.HIGH,
