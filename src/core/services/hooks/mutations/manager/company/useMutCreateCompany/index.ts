@@ -31,6 +31,10 @@ interface ICreateCompany
   legal_nature_code?: string;
   cadastral_situation_description?: string;
   isClinic?: boolean;
+  mission?: string | null;
+  vision?: string | null;
+  values?: string | null;
+  healthSafetyEnvironmentPolicy?: string | null;
 }
 
 export async function createCompany(data: ICreateCompany, companyId?: string) {

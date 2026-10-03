@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box, styled } from '@mui/material';
+import { Box, Button, styled } from '@mui/material';
 import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -41,6 +41,7 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
     onSubmit,
     loading,
     onCloseUnsaved,
+    handleApplyInstitutionalPreset,
     handleAddPhoto,
     handleAddCustomLogo,
     handleAddLightLogo,
@@ -117,6 +118,70 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             sx={{ minWidth: ['100%', 600] }}
             placeholder={'observação opcional sobre a empresa...'}
             name="description"
+            size="small"
+          />
+
+          <SFlex
+            align="center"
+            justify="space-between"
+            flexWrap="wrap"
+            gap={2}
+            mt={2}
+            mb={-1}
+          >
+            <SText color="text.label" fontSize={14}>
+              Informações institucionais
+            </SText>
+            <Button
+              type="button"
+              size="small"
+              variant="text"
+              onClick={handleApplyInstitutionalPreset}
+              sx={{ textTransform: 'none', px: 1, minWidth: 0 }}
+            >
+              Usar sugestão do SimpleSST
+            </Button>
+          </SFlex>
+          <InputForm
+            setValue={setValue}
+            multiline
+            defaultValue={companyData.mission || ''}
+            minRows={3}
+            maxRows={8}
+            labelPosition="center"
+            label="Missão"
+            control={control}
+            sx={{ minWidth: ['100%', 600] }}
+            placeholder={'missão da empresa...'}
+            name="mission"
+            size="small"
+          />
+          <InputForm
+            setValue={setValue}
+            multiline
+            defaultValue={companyData.vision || ''}
+            minRows={3}
+            maxRows={8}
+            labelPosition="center"
+            label="Visão"
+            control={control}
+            sx={{ minWidth: ['100%', 600] }}
+            placeholder={'visão da empresa...'}
+            name="vision"
+            size="small"
+          />
+          <InputForm
+            setValue={setValue}
+            multiline
+            defaultValue={companyData.values || ''}
+            minRows={3}
+            maxRows={8}
+            labelPosition="center"
+            label="Valores"
+            control={control}
+            sx={{ minWidth: ['100%', 600] }}
+            placeholder={'valores da empresa...'}
+            name="values"
             size="small"
           />
 

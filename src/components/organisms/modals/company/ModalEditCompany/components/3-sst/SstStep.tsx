@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SHelp } from 'components/atoms/SHelp';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { InputForm } from 'components/molecules/form/input';
 import { SRadio } from 'components/molecules/form/radio';
 import { SelectForm } from 'components/molecules/form/select';
 import { SModalButtons } from 'components/molecules/SModal';
@@ -14,8 +15,6 @@ import { ProfessionalInputSelect } from 'components/organisms/inputSelect/Profes
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { ProfessionalResponsibleTable } from 'components/organisms/tables/ProfessionalResponsibleTable/ProfessionalResponsibleTable';
 import { PcmsoExaminingPhysiciansTable } from 'components/organisms/tables/PcmsoExaminingPhysiciansTable/PcmsoExaminingPhysiciansTable';
-import dayjs from 'dayjs';
-import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
 import { dateToDate } from 'core/utils/date/date-format';
 
@@ -31,8 +30,8 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
     onSubmit,
     onCloseUnsaved,
     previousStep,
-    onChangeCep,
     setValue,
+    handleApplyHsePolicyPreset,
   } = useCompanyEdit(props);
   const { companyData, setCompanyData, loading, isEdit } = props;
 
@@ -151,31 +150,6 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             </Box>
           </SFlex>
 
-          {/* <SFlex mt={8} flexWrap="wrap" gap={5}>
-            <Box flex={6}>
-              <ProfessionalInputSelect
-                onChange={(prof) => {
-                  setCompanyData({
-                    ...companyData,
-                    tecResponsible: prof,
-                  });
-                }}
-                query={{ byCouncil: true }}
-                type={[
-                  ProfessionalTypeEnum.ENGINEER,
-                  ProfessionalTypeEnum.TECHNICIAN,
-                ]}
-                inputProps={{
-                  labelPosition: 'top',
-                  placeholder: 'Técnico ou Engenheiro responsavel',
-                }}
-                defaultValue={companyData.tecResponsible}
-                name="tecResponsible"
-                label="Téc. / Eng."
-                control={control}
-              />
-            </Box>
-          </SFlex> */}
           <SFlex gap={2} ml={7} mt={5}>
             <SSwitch
               onChange={() => {
@@ -217,6 +191,45 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             }}
           />
         )}
+
+        <SFlex
+          align="center"
+          justify="space-between"
+          flexWrap="wrap"
+          gap={2}
+          mt={16}
+          mb={1}
+        >
+          <SText color="text.label" fontSize={14}>
+            Política de Saúde, Segurança e Meio Ambiente
+          </SText>
+          <Button
+            type="button"
+            size="small"
+            variant="text"
+            onClick={handleApplyHsePolicyPreset}
+            sx={{ textTransform: 'none', px: 1, minWidth: 0 }}
+          >
+            Usar sugestão do SimpleSST
+          </Button>
+        </SFlex>
+        <InputForm
+          setValue={setValue}
+          multiline
+          defaultValue={companyData.healthSafetyEnvironmentPolicy || ''}
+          minRows={4}
+          maxRows={12}
+          labelPosition="center"
+          label="Política de Saúde, Segurança e Meio Ambiente"
+          control={control}
+          sx={{ minWidth: ['100%', 600] }}
+          placeholder={
+            'política de saúde, segurança e meio ambiente da empresa...'
+          }
+          name="healthSafetyEnvironmentPolicy"
+          size="small"
+        />
+
         {companyData.id && (
           <Box mt={20}>
             <PcmsoExaminingPhysiciansTable

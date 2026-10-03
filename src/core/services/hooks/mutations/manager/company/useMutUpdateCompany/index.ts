@@ -39,6 +39,22 @@ export interface IUpdateCompany
   doctorResponsibleId?: number | null;
   logoUrl?: string;
   metadata?: Record<string, any>;
+  mission?: string | null;
+  vision?: string | null;
+  values?: string | null;
+  healthSafetyEnvironmentPolicy?: string | null;
+  operationTime?: string;
+  responsibleName?: string;
+  email?: string;
+  initials?: string;
+  unit?: string;
+  responsibleNit?: string;
+  responsibleCpf?: string;
+  blockResignationExam?: boolean;
+  numAsos?: number;
+  esocialStart?: Date | null;
+  esocialSend?: boolean;
+  isConsulting?: boolean;
 }
 
 export async function updateCompany(data: IUpdateCompany, companyId?: string) {

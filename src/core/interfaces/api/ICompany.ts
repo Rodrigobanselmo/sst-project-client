@@ -43,6 +43,12 @@ export interface ICompany {
   cadastral_situation_description: string;
   responsibleName: string;
   operationTime: string;
+  /** Textos institucionais (Missão / Visão / Valores). */
+  mission?: string | null;
+  vision?: string | null;
+  values?: string | null;
+  /** Política de Saúde, Segurança e Meio Ambiente (Company; aba SST). */
+  healthSafetyEnvironmentPolicy?: string | null;
   riskDegree?: number;
   primary_activity: ICnae[];
   secondary_activity: ICnae[];

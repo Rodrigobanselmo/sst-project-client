@@ -5,11 +5,16 @@ import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto'
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useMutAddCompanyPhoto } from 'core/services/hooks/mutations/manager/company/useMutAddCompanyPhoto';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { stripFrpsPrivacyFromCompanyMetadata } from 'core/utils/company/strip-frps-privacy-from-metadata';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
+import {
+  INSTITUTIONAL_PRESET_OVERWRITE_MESSAGE,
+  resolveInstitutionalPresetApplication,
+} from '../../../company-institutional-preset';
 
 export const useCompanyEdit = ({
   companyData,
@@ -20,6 +25,7 @@ export const useCompanyEdit = ({
   const { trigger, getValues, control, reset, setValue } = useFormContext();
   const { previousStep, nextStep } = useWizard();
   const { onStackOpenModal } = useModal();
+  const { preventWarn } = usePreventAction();
   const addPhotoMutation = useMutAddCompanyPhoto();
 
   const updateCompany = useMutUpdateCompany();
@@ -27,6 +33,9 @@ export const useCompanyEdit = ({
   const fields = [
     'description',
     'operationTime',
+    'mission',
+    'vision',
+    'values',
     'metadata.shortName',
     'metadata.primaryColor',
     'metadata.visualIdentityEnabled',
@@ -37,6 +46,53 @@ export const useCompanyEdit = ({
     'metadata.interfaceTheme',
   ];
 
+  const applyPresetToForm = (preset: {
+    mission: string;
+    vision: string;
+    values: string;
+  }) => {
+    setValue('mission', preset.mission, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setValue('vision', preset.vision, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setValue('values', preset.values, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const handleApplyInstitutionalPreset = () => {
+    const current = {
+      mission: getValues('mission'),
+      vision: getValues('vision'),
+      values: getValues('values'),
+    };
+
+    const resolved = resolveInstitutionalPresetApplication({
+      current,
+      confirmedOverwrite: false,
+    });
+
+    if (resolved === 'needs-confirmation') {
+      preventWarn(INSTITUTIONAL_PRESET_OVERWRITE_MESSAGE, () => {
+        const confirmed = resolveInstitutionalPresetApplication({
+          current,
+          confirmedOverwrite: true,
+        });
+        if (confirmed !== 'needs-confirmation') {
+          applyPresetToForm(confirmed);
+        }
+      });
+      return;
+    }
+
+    applyPresetToForm(resolved);
+  };
+
   const onCloseUnsaved = async () => {
     rest.onCloseUnsaved(() => reset());
   };
@@ -45,7 +101,8 @@ export const useCompanyEdit = ({
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { description, operationTime, metadata } = getValues();
+      const { description, operationTime, mission, vision, values, metadata } =
+        getValues();
 
       // Merge metadata do formulário com metadata do companyData (visualIdentity etc.).
       // Nunca reenviar frpsPrivacy — só o endpoint dedicado altera essa chave.
@@ -58,6 +115,9 @@ export const useCompanyEdit = ({
         ...companyData,
         description,
         operationTime,
+        mission: mission ?? '',
+        vision: vision ?? '',
+        values: values ?? '',
         metadata: mergedMetadata,
         companyId: companyData.id,
       };
@@ -165,6 +225,7 @@ export const useCompanyEdit = ({
     previousStep,
     onCloseUnsaved,
     setValue,
+    handleApplyInstitutionalPreset,
     handleAddPhoto,
     handleAddCustomLogo,
     handleAddLightLogo,
