@@ -14,6 +14,8 @@ import {
   Link,
   Paper,
   TextField,
+  SxProps,
+  Theme,
   Typography,
 } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -46,6 +48,15 @@ import { HoMethodImportPdfModal } from './HoMethodImportPdfModal';
 
 const ROWS_PER_PAGE = 10;
 const AGENT_PREVIEW_LIMIT = 4;
+
+/** A cor da marca pode ser clara (ex.: amarelo) e sem contraste sobre fundo branco. */
+const linkSx: SxProps<Theme> = {
+  color: (theme) =>
+    theme.palette.mode === 'dark'
+      ? theme.palette.primary.main
+      : theme.palette.secondary.main,
+  textDecorationColor: 'currentColor',
+};
 
 export const HoMethodsPageContent: FC = () => {
   const [page, setPage] = useState(1);
@@ -188,7 +199,7 @@ export const HoMethodsPageContent: FC = () => {
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       <Box>
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h5" gutterBottom color="text.primary">
           Cadastro de Métodos de HO — Agentes Químicos
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -224,6 +235,16 @@ export const HoMethodsPageContent: FC = () => {
             <Typography variant="caption" color="text.secondary">
               Extração automática de métodos NIOSH/NMAM a partir de PDF
             </Typography>
+            <Link
+              href="https://www.cdc.gov/niosh/nmam/default.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="caption"
+              display="block"
+              sx={linkSx}
+            >
+              Consultar métodos no NIOSH NMAM ↗
+            </Link>
           </Box>
         </Box>
 
@@ -441,7 +462,9 @@ export const HoMethodsPageContent: FC = () => {
                       />
                     )}
                   </Box>
-                  <Typography variant="subtitle1">{method.displayName}</Typography>
+                  <Typography variant="subtitle1" color="text.primary">
+                    {method.displayName}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {HO_METHOD_SOURCE_LABELS[method.institution]} ·{' '}
                     {method.methodCode}
@@ -485,7 +508,11 @@ export const HoMethodsPageContent: FC = () => {
                             gap={0.5}
                             mb={0.75}
                           >
-                            <Typography variant="body2" component="span">
+                            <Typography
+                              variant="body2"
+                              component="span"
+                              color="text.primary"
+                            >
                               {agent.agentName || '—'}
                               {agent.cas ? ` (CAS ${agent.cas})` : ''}:
                             </Typography>
@@ -541,7 +568,7 @@ export const HoMethodsPageContent: FC = () => {
                       </Box>
                     );
                   })()}
-                  <Typography variant="body2">
+                  <Typography variant="body2" color="text.primary">
                     Amostrador: {method.samplerName || '—'} · Analítico:{' '}
                     {method.analyticalMethod || '—'}
                   </Typography>
@@ -570,12 +597,17 @@ export const HoMethodsPageContent: FC = () => {
                   {(method.originalDocumentDownloadPath ||
                     method.originalDocumentUrl ||
                     method.originalDocumentName) && (
-                    <Typography variant="caption" display="block">
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      color="text.secondary"
+                    >
                       {resolveHoMethodDocumentUrl(method) ? (
                         <Link
                           href={resolveHoMethodDocumentUrl(method) ?? undefined}
                           target="_blank"
                           rel="noopener"
+                          sx={linkSx}
                         >
                           Visualizar método original
                           {method.originalDocumentName
@@ -618,7 +650,7 @@ export const HoMethodsPageContent: FC = () => {
             >
               Anterior
             </Button>
-            <Typography variant="body2" alignSelf="center">
+            <Typography variant="body2" alignSelf="center" color="text.primary">
               Página {page} de {totalPages}
             </Typography>
             <Button
@@ -653,7 +685,7 @@ export const HoMethodsPageContent: FC = () => {
       >
         <DialogTitle>Inativar método de HO</DialogTitle>
         <DialogContent>
-          <Typography>
+          <Typography color="text.primary">
             Deseja inativar o método &quot;{deleteTarget?.displayName}&quot;?
           </Typography>
         </DialogContent>
