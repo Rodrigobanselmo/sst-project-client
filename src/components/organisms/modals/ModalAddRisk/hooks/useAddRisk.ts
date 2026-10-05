@@ -41,6 +41,8 @@ import {
   getRiskEditorSnapshot,
   isRiskEditorDirty,
 } from './risk-editor-dirty';
+import { resolveRiskFormHydrationSource } from './risk-form-hydration';
+import { toRiskFormSeverity } from './risk-form-severity';
 
 export const initialAddRiskState = {
   status: StatusEnum.ACTIVE,
@@ -458,7 +460,10 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   }, [getModalData, getFieldState, options?.initialData]);
 
   useEffect(() => {
-    const initialData = options?.initialData;
+    const initialData = resolveRiskFormHydrationSource(
+      options?.initialData,
+      getModalData<any>(ModalEnum.RISK_ADD),
+    );
     if (!initialData) return;
     if (!isHydratingRef.current) return;
 
@@ -469,6 +474,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     };
 
     syncField('type', initialData.type);
+    syncField('severity', toRiskFormSeverity(initialData.severity));
+    syncField('subType', resolveLinkedRiskSubTypeId(initialData));
     syncField('unit', initialData.unit);
     syncField('propagation', initialData.propagation);
     syncField('method', initialData.method);
@@ -489,7 +496,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     syncField('aihaWeelCeiling', initialData.aihaWeelCeiling);
     syncField('breather', initialData.breather);
     syncField('coments', initialData.coments);
-  }, [options?.initialData, getFieldState, setValue]);
+  }, [options?.initialData, getModalData, getFieldState, setValue]);
 
   const onSubmit: SubmitHandler<
     IRiskSchema & Partial<typeof initialAddRiskState> & { synonymous?: string }
