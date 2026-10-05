@@ -42,7 +42,7 @@ export function SidebarDrawerProvider({
   const isTablet = !useMediaQuery('(min-width:1100px)');
   const isDesktop = !useMediaQuery('(min-width:5000px)');
 
-  const disclosure = useDisclosure(true);
+  const disclosure = useDisclosure(false);
   const router = useRouter();
 
   const [urlRouter, setUrlRouter] = useState(router.asPath);
