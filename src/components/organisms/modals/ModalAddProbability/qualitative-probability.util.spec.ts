@@ -131,10 +131,7 @@ assert.equal(
 assert.equal(countSuggestionEffectAction(null, drifted), 'baseline');
 const signature = countSuggestionSignature(drifted);
 assert.equal(countSuggestionEffectAction(signature, drifted), 'ignore');
-assert.equal(
-  countSuggestionEffectAction('none', drifted),
-  'auto',
-);
+assert.equal(countSuggestionEffectAction('none', drifted), 'auto');
 assert.equal(countSuggestionEffectAction(null, manual), 'baseline');
 assert.equal(countSuggestionEffectAction('none', manual), 'ignore');
 
@@ -164,7 +161,10 @@ assert.equal(classifyMedsImplemented({ engs: [null], adms: [], epis: [] }), 5);
 
 const allControls = { engs: present, adms: present, epis: present };
 assert.equal(medsImplementedForModalOpen({ controls: allControls }), 1);
-assert.equal(medsImplementedForModalOpen({ controls: { engs: [], adms: [], epis: [] } }), 5);
+assert.equal(
+  medsImplementedForModalOpen({ controls: { engs: [], adms: [], epis: [] } }),
+  5,
+);
 assert.equal(medsImplementedForModalOpen({}), null);
 assert.equal(
   medsImplementedForModalOpen({ adopted: saved, controls: allControls }),
@@ -191,49 +191,73 @@ const medsBase = {
 const fromMeds = qualitativeProbabilityFromCriteria(medsBase);
 assert.equal(fromMeds, 3);
 
-const controlDrift = resolveCountSuggestion({
-  adopted: medsBase,
-  adoptedProbability: fromMeds,
-  currentTotal: 100,
-  currentGho: 5,
-  currentMedsImplemented: 1,
-});
-assert.equal(controlDrift.kind, 'auto');
-if (controlDrift.kind === 'auto') {
-  assert.equal(controlDrift.probability, 1);
-  assert.equal(controlDrift.criteria.medsImplemented, 1);
-  assert.equal(controlDrift.criteria.frequency, 1);
-  assert.equal(controlDrift.criteria.employeeCountGho, 5);
-}
+const epcOnly = { engs: present, adms: [] as unknown[], epis: [] as unknown[] };
+const epcAndAdm = { engs: present, adms: present, epis: [] as unknown[] };
+assert.equal(classifyMedsImplemented(epcOnly), 4);
+assert.equal(classifyMedsImplemented(epcAndAdm), 2);
 
-const manualMeds = resolveCountSuggestion({
-  adopted: medsBase,
-  adoptedProbability: 5,
-  currentTotal: 100,
-  currentGho: 5,
-  currentMedsImplemented: 1,
-});
-assert.equal(manualMeds.kind, 'hint');
-if (manualMeds.kind === 'hint') {
-  assert.equal(manualMeds.probability, 1);
-  assert.equal(manualMeds.criteria.medsImplemented, 1);
-  assert.equal(manualMeds.criteria.frequency, 1);
-}
+const manualSelection = { ...medsBase, medsImplemented: 5 };
+assert.equal(manualSelection.medsImplemented, 5);
+assert.equal(
+  medsImplementedForModalOpen({ adopted: manualSelection, controls: epcOnly }),
+  5,
+);
+assert.equal(classifyMedsImplemented(epcOnly), 4);
 
-const joint = resolveCountSuggestion({
-  adopted: medsBase,
-  adoptedProbability: fromMeds,
+assert.equal(
+  medsImplementedForModalOpen({
+    adopted: manualSelection,
+    controls: epcAndAdm,
+  }),
+  5,
+);
+assert.equal(classifyMedsImplemented(epcAndAdm), 2);
+
+assert.equal(
+  resolveCountSuggestion({
+    adopted: manualSelection,
+    adoptedProbability: qualitativeProbabilityFromCriteria(manualSelection),
+    currentTotal: 100,
+    currentGho: 5,
+  }).kind,
+  'none',
+);
+
+const countUpdate = resolveCountSuggestion({
+  adopted: manualSelection,
+  adoptedProbability: qualitativeProbabilityFromCriteria(manualSelection),
   currentTotal: 100,
   currentGho: 80,
-  currentMedsImplemented: 1,
 });
-assert.equal(joint.kind, 'auto');
-if (joint.kind === 'auto') {
-  assert.equal(joint.probability, 2);
-  assert.equal(joint.criteria.employeeCountGho, 80);
-  assert.equal(joint.criteria.medsImplemented, 1);
-  assert.equal(joint.criteria.frequency, 1);
+assert.equal(countUpdate.kind, 'auto');
+if (countUpdate.kind === 'auto') {
+  assert.equal(countUpdate.probability, 4);
+  assert.equal(countUpdate.criteria.employeeCountGho, 80);
+  assert.equal(countUpdate.criteria.medsImplemented, 5);
+  assert.equal(countUpdate.criteria.frequency, 1);
 }
+
+const journeySelection = {
+  ...manualSelection,
+  minDurationJT: 480,
+  minDurationEO: 120,
+};
+const journeyUpdate = resolveCountSuggestion({
+  adopted: journeySelection,
+  adoptedProbability: qualitativeProbabilityFromCriteria(journeySelection),
+  currentTotal: 100,
+  currentGho: 5,
+  currentJourneyMinutes: 2000,
+});
+assert.equal(journeyUpdate.kind, 'auto');
+if (journeyUpdate.kind === 'auto') {
+  assert.equal(journeyUpdate.criteria.medsImplemented, 5);
+  assert.equal(journeyUpdate.criteria.minDurationJT, 2000);
+  assert.equal(journeyUpdate.criteria.frequency, 1);
+}
+
+assert.equal(medsImplementedForModalOpen({ controls: epcOnly }), 4);
+assert.equal(medsImplementedForModalOpen({ controls: epcAndAdm }), 2);
 
 assert.equal(
   resolveCountSuggestion({
@@ -245,7 +269,6 @@ assert.equal(
     adoptedProbability: 4,
     currentTotal: 100,
     currentGho: 5,
-    currentMedsImplemented: 4,
   }).kind,
   'none',
 );
@@ -256,16 +279,15 @@ assert.equal(
     adoptedProbability: fromMeds,
     currentTotal: 100,
     currentGho: 5,
-    currentMedsImplemented: 1,
     isQuantity: true,
   }).kind,
   'none',
 );
 
-assert.equal(countSuggestionEffectAction(null, controlDrift), 'baseline');
-assert.equal(countSuggestionEffectAction('none', controlDrift), 'auto');
-assert.equal(countSuggestionEffectAction(null, manualMeds), 'baseline');
-assert.equal(countSuggestionEffectAction('none', manualMeds), 'ignore');
+assert.equal(countSuggestionEffectAction(null, countUpdate), 'baseline');
+assert.equal(countSuggestionEffectAction('none', countUpdate), 'auto');
+assert.equal(countSuggestionEffectAction(null, manual), 'baseline');
+assert.equal(countSuggestionEffectAction('none', manual), 'ignore');
 
 assert.equal(journeyMinutesForModalOpen({}), null);
 assert.equal(journeyMinutesForModalOpen({ suggestedMinutes: null }), null);
@@ -308,12 +330,14 @@ assert.equal(
 );
 assert.equal(qualitativeProbabilityPreview({ minDurationJT: 480 }), null);
 assert.equal(
-  qualitativeProbabilityPreview({ minDurationJT: 480, minDurationEO: 120 })?.criteriaCount,
+  qualitativeProbabilityPreview({ minDurationJT: 480, minDurationEO: 120 })
+    ?.criteriaCount,
   1,
 );
 
 const adoptedWithExposure = { ...journeyBase, minDurationEO: 120 };
-const fromExposureOnly = qualitativeProbabilityFromCriteria(adoptedWithExposure);
+const fromExposureOnly =
+  qualitativeProbabilityFromCriteria(adoptedWithExposure);
 const journeyAuto = resolveCountSuggestion({
   adopted: adoptedWithExposure,
   adoptedProbability: fromExposureOnly,
@@ -384,6 +408,8 @@ assert.equal(countSuggestionEffectAction('none', journeyManual), 'ignore');
 const hook = readFileSync(join(dir, 'hooks/useProbability.ts'), 'utf8');
 assert.match(hook, /criteriaFromForm\(values\)/);
 assert.match(hook, /medsImplementedForModalOpen/);
+assert.match(hook, /classifyMedsImplemented\(probabilityData\.controls\)/);
+assert.match(hook, /suggestedMedsImplemented/);
 assert.match(hook, /journeyMinutesForModalOpen/);
 assert.match(hook, /journeyStatus/);
 assert.doesNotMatch(hook, /journeyOptions\.length > 1/);
@@ -393,7 +419,10 @@ const journeyEffect = hook.slice(
 );
 assert.doesNotMatch(journeyEffect, /onCreate/);
 assert.match(hook, /probabilityData\.onCreate\?\.\(/);
-const openEffect = hook.slice(hook.indexOf('const medsForOpen'), hook.indexOf('const onClose'));
+const openEffect = hook.slice(
+  hook.indexOf('const medsForOpen'),
+  hook.indexOf('const onClose'),
+);
 assert.doesNotMatch(openEffect, /onCreate/);
 assert.doesNotMatch(hook, /probabilityData\.employeeCountGho/);
 assert.doesNotMatch(hook, /useMutUpsertRiskData/);
@@ -404,6 +433,7 @@ assert.doesNotMatch(modal, /useMutUpsertRiskData/);
 const util = readFileSync(join(dir, 'qualitative-probability.util.ts'), 'utf8');
 assert.doesNotMatch(util, /calculateSuggestedResidualProbability/);
 assert.doesNotMatch(util, /1\.25/);
+assert.doesNotMatch(util, /currentMedsImplemented/);
 assert.doesNotMatch(util, /trainingCheck/);
 assert.doesNotMatch(util, /efficientlyCheck/);
 assert.doesNotMatch(util, /epcCheck/);
@@ -426,10 +456,16 @@ const onlyMeds = { medsImplemented: 4 };
 const onlyMedsPreview = qualitativeProbabilityPreview(onlyMeds);
 assert.equal(onlyMedsPreview?.probability, 4);
 assert.equal(onlyMedsPreview?.criteriaCount, 1);
-assert.equal(onlyMedsPreview?.probability, qualitativeProbabilityFromCriteria(onlyMeds));
+assert.equal(
+  onlyMedsPreview?.probability,
+  qualitativeProbabilityFromCriteria(onlyMeds),
+);
 
 assert.equal(
-  qualitativeProbabilityPreview({ employeeCountTotal: 100, employeeCountGho: null }),
+  qualitativeProbabilityPreview({
+    employeeCountTotal: 100,
+    employeeCountGho: null,
+  }),
   null,
 );
 assert.equal(
@@ -440,13 +476,19 @@ assert.equal(
 const countsOnly = { employeeCountTotal: 100, employeeCountGho: 5 };
 const countsPreview = qualitativeProbabilityPreview(countsOnly);
 assert.equal(countsPreview?.criteriaCount, 1);
-assert.equal(countsPreview?.probability, qualitativeProbabilityFromCriteria(countsOnly));
+assert.equal(
+  countsPreview?.probability,
+  qualitativeProbabilityFromCriteria(countsOnly),
+);
 assert.equal(countsPreview?.probability, 1);
 
 const durationOnly = { minDurationJT: 480, minDurationEO: 120 };
 const durationPreview = qualitativeProbabilityPreview(durationOnly);
 assert.equal(durationPreview?.criteriaCount, 1);
-assert.equal(durationPreview?.probability, qualitativeProbabilityFromCriteria(durationOnly));
+assert.equal(
+  durationPreview?.probability,
+  qualitativeProbabilityFromCriteria(durationOnly),
+);
 
 const partialThenMore = {
   medsImplemented: 4,
@@ -456,16 +498,25 @@ const partialThenMore = {
 };
 const partialPreview = qualitativeProbabilityPreview(partialThenMore);
 assert.equal(partialPreview?.criteriaCount, 3);
-assert.equal(partialPreview?.probability, qualitativeProbabilityFromCriteria(partialThenMore));
+assert.equal(
+  partialPreview?.probability,
+  qualitativeProbabilityFromCriteria(partialThenMore),
+);
 assert.equal(partialPreview?.probability, Math.ceil((4 + 2 + 1) / 3));
 
 assert.equal(qualitativeProbabilityPreview({}), null);
 
-const form = readFileSync(join(dir, 'components/ProbabilityForm/index.tsx'), 'utf8');
-assert.match(form, /qualitativeProbabilityPreview\(criteriaFromForm/);
+const form = readFileSync(
+  join(dir, 'components/ProbabilityForm/index.tsx'),
+  'utf8',
+);
+assert.match(form, /qualitativeProbabilityPreview\(\s*criteriaFromForm/);
 assert.match(form, /Probabilidade estimada: P/);
 assert.match(form, /Calculada com 1 critério informado/);
-assert.match(form, /Preencha os critérios para visualizar a probabilidade estimada/);
+assert.match(
+  form,
+  /Preencha os critérios para visualizar a probabilidade estimada/,
+);
 assert.doesNotMatch(form, /Math\.ceil/);
 assert.doesNotMatch(form, /percentageCheck/);
 assert.doesNotMatch(form, /onCreate/);
@@ -475,19 +526,38 @@ assert.match(form, /variant="outlined"/);
 assert.match(form, /borderColor: 'common.black'/);
 assert.match(form, /type="submit"/);
 assert.match(form, /Jornadas diferentes identificadas/);
-assert.match(form, /Atenção: jornada identificada para apenas|<strong>Atenção:<\/strong>/);
+assert.match(
+  form,
+  /Atenção: jornada identificada para apenas|<strong>Atenção:<\/strong>/,
+);
 assert.match(form, /homogeneidade da exposição/);
 assert.match(form, /#FFF8E1/);
 assert.match(form, /common\.black/);
 assert.match(form, /journeyStatus === 'CONFLITANTE'/);
 assert.match(form, /journeyStatus === 'CONSISTENTE_INCOMPLETO'/);
 assert.doesNotMatch(form, /Escolha a duração a adotar/);
-assert.doesNotMatch(form, /setValue\('minDurationJT', option\.durationMinutes\)/);
+assert.doesNotMatch(
+  form,
+  /setValue\('minDurationJT', option\.durationMinutes\)/,
+);
 assert.match(form, />\s*Aplicar\s*</);
+assert.match(form, /suggestedValue=\{props\.suggestedMedsImplemented\}/);
+assert.match(
+  form,
+  /Sugestão do sistema com base nas medidas de prevenção atualmente cadastradas\. A seleção manual do usuário será preservada\./,
+);
+assert.match(form, /data-suggested/);
+assert.match(form, /info\.main/);
 
-const journeysHook = readFileSync(join(dir, 'use-applicable-journeys.ts'), 'utf8');
+const journeysHook = readFileSync(
+  join(dir, 'use-applicable-journeys.ts'),
+  'utf8',
+);
 assert.match(journeysHook, /normalizeApplicableJourneys/);
-const journeysUtil = readFileSync(join(dir, 'applicable-journeys.util.ts'), 'utf8');
+const journeysUtil = readFileSync(
+  join(dir, 'applicable-journeys.util.ts'),
+  'utf8',
+);
 assert.match(journeysUtil, /CONSISTENTE_INCOMPLETO/);
 assert.match(journeysUtil, /knownJourneyCount < coveredEmployeeCount/);
 assert.doesNotMatch(form, /Cancelar/);
@@ -498,9 +568,13 @@ assert.doesNotMatch(modal, /SModalButtons/);
 assert.doesNotMatch(modal, /Cancelar/);
 assert.doesNotMatch(modal, /Criar/);
 
-const suggestion = readFileSync(join(dir, 'RealProbabilityCountSuggestion.tsx'), 'utf8');
+const suggestion = readFileSync(
+  join(dir, 'RealProbabilityCountSuggestion.tsx'),
+  'utf8',
+);
 assert.match(suggestion, /Sugestão atual/);
-assert.match(suggestion, /currentMedsImplemented/);
+assert.doesNotMatch(suggestion, /currentMedsImplemented/);
+assert.doesNotMatch(suggestion, /classifyMedsImplemented/);
 assert.match(suggestion, /currentJourneyMinutes/);
 assert.match(suggestion, /journeys\.ready/);
 assert.match(suggestion, /action !== 'auto'/);

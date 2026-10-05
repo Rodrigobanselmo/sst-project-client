@@ -101,7 +101,7 @@ export const ModalAddRecMed = () => {
                       'Procedimentos de Trabalho e Controles Administrativos',
                   },
                   {
-                    content: 'Engenharia',
+                    content: 'EPC / ENG',
                     value: RecTypeEnum.ENG,
                     tooltip: 'Medidas de Controle de Engenharia/Coletivas',
                   },

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { InputHTMLAttributes } from 'react';
 import { useWatch } from 'react-hook-form';
 
 import { SButton } from 'components/atoms/SButton';
@@ -20,17 +20,41 @@ import {
   qualitativeProbabilityPreview,
 } from '../../qualitative-probability.util';
 
+const MEDS_SUGGESTION_TOOLTIP =
+  'Sugestão do sistema com base nas medidas de prevenção atualmente cadastradas. A seleção manual do usuário será preservada.';
+
 export const RadioInput = ({
   control,
   setValue,
   name,
   data,
   defaultValue,
+  suggestedValue,
 }: IUseProbability & {
   name: string;
   data: IProbabilityQuestion;
   defaultValue: string;
+  suggestedValue?: number | null;
 }) => {
+  const selected = useWatch({ control, name });
+  const selectedNumber =
+    selected === '' || selected == null || Number.isNaN(Number(selected))
+      ? null
+      : Number(selected);
+  const diverges =
+    suggestedValue != null &&
+    selectedNumber != null &&
+    selectedNumber !== suggestedValue;
+  const options = (
+    (data.data as unknown as
+      | Array<{ value: number; name: string }>
+      | undefined) ?? []
+  ).map((option) =>
+    diverges && Number(option.value) === suggestedValue
+      ? { ...option, tooltip: MEDS_SUGGESTION_TOOLTIP }
+      : option,
+  );
+
   return (
     <div>
       <SText color="text.light" fontSize={14}>
@@ -48,10 +72,28 @@ export const RadioInput = ({
           optionsFieldName: { contentField: 'name' },
           itemProps: { sx: { fontSize: 12 } },
         }}
-        options={data.data as any}
+        inputPropsFunc={(option) =>
+          diverges && Number(option?.value) === suggestedValue
+            ? ({
+                'data-suggested': 'true',
+              } as InputHTMLAttributes<HTMLInputElement>)
+            : {}
+        }
+        options={options}
         name={name}
         columns={5}
         reset={() => setValue(name, '')}
+        {...(suggestedValue !== undefined
+          ? {
+              sx: {
+                '& input[data-suggested="true"]:not(:checked) + span': {
+                  borderColor: 'info.main',
+                  boxShadow: (theme) =>
+                    `inset 0 0 0 1px ${theme.palette.info.main}`,
+                },
+              },
+            }
+          : {})}
       />
     </div>
   );
@@ -60,7 +102,9 @@ export const RadioInput = ({
 export const ProbabilityForm = (props: IUseProbability) => {
   const { control, probabilityData, setValue, loading } = props;
   const watched = useWatch({ control });
-  const preview = qualitativeProbabilityPreview(criteriaFromForm(watched ?? {}));
+  const preview = qualitativeProbabilityPreview(
+    criteriaFromForm(watched ?? {}),
+  );
   const criteriaLabel = !preview
     ? ''
     : preview.criteriaCount === 1
@@ -176,16 +220,20 @@ export const ProbabilityForm = (props: IUseProbability) => {
               Jornadas diferentes identificadas
             </SText>
             <SText fontSize={12} color="text.label">
-              Existem trabalhadores abrangidos por esta ocorrência com
-              durações de jornada distintas. Revise os turnos/jornadas
-              cadastrados ou segregue os trabalhadores em grupos/elementos
-              distintos quando as jornadas forem realmente diferentes.
+              Existem trabalhadores abrangidos por esta ocorrência com durações
+              de jornada distintas. Revise os turnos/jornadas cadastrados ou
+              segregue os trabalhadores em grupos/elementos distintos quando as
+              jornadas forem realmente diferentes.
             </SText>
             <SText fontSize={12} color="text.secondary">
               Preencher este campo manualmente não corrige o cadastro.
             </SText>
             {props.journeyOptions.map((option) => (
-              <SText key={option.durationMinutes} fontSize={12} color="text.secondary">
+              <SText
+                key={option.durationMinutes}
+                fontSize={12}
+                color="text.secondary"
+              >
                 {`${option.shiftNames.join(', ') || 'Turno'} — ${option.durationMinutes} min (${option.employeeCount} trabalhador${option.employeeCount === 1 ? '' : 'es'})`}
               </SText>
             ))}
@@ -267,6 +315,7 @@ export const ProbabilityForm = (props: IUseProbability) => {
         {...props}
         defaultValue={String(probabilityData.medsImplemented)}
         name={'medsImplemented'}
+        suggestedValue={props.suggestedMedsImplemented}
         data={probabilityQuestionsMap[ProbabilityQuestionEnum.MEASURE] as any}
       />
     </SFlex>

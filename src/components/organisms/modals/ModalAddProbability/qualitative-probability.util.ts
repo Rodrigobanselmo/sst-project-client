@@ -25,8 +25,16 @@ export type ProbabilityCountSource = {
 
 export type CountSuggestionDecision =
   | { kind: 'none' }
-  | { kind: 'auto'; probability: number; criteria: QualitativeProbabilityCriteria }
-  | { kind: 'hint'; probability: number; criteria: QualitativeProbabilityCriteria };
+  | {
+      kind: 'auto';
+      probability: number;
+      criteria: QualitativeProbabilityCriteria;
+    }
+  | {
+      kind: 'hint';
+      probability: number;
+      criteria: QualitativeProbabilityCriteria;
+    };
 
 export const percentageCheck = (value: number, limit: number) => {
   if (!value || !limit) return 0;
@@ -54,7 +62,9 @@ function hasControlItem(list?: readonly unknown[] | null): boolean {
  * Matriz canônica de medsImplemented a partir dos controles existentes.
  * 1 EPC+ADM+EPI, 2 EPC+ADM, 3 EPC+EPI ou ADM+EPI, 4 uma medida, 5 nenhuma.
  */
-export function classifyMedsImplemented(lists: RealControlLists): 1 | 2 | 3 | 4 | 5 {
+export function classifyMedsImplemented(
+  lists: RealControlLists,
+): 1 | 2 | 3 | 4 | 5 {
   const hasEpc = hasControlItem(lists.engs);
   const hasAdm = hasControlItem(lists.adms);
   const hasEpi = hasControlItem(lists.epis);
@@ -82,7 +92,12 @@ export function journeyMinutesForModalOpen(params: {
   return null;
 }
 
-/** Na primeira abertura sugere a classificação. Com critérios adotados, preserva o valor salvo. */
+/**
+ * Valor do rádio na abertura.
+ * Com critérios adotados, preserva a escolha.
+ * Sem adoção, pré-seleciona a classificação atual dos controles.
+ * A sugestão contínua continua sendo `classifyMedsImplemented`.
+ */
 export function medsImplementedForModalOpen(params: {
   adopted?: QualitativeProbabilityCriteria | null;
   controls?: RealControlLists | null;
@@ -134,12 +149,20 @@ function qualitativeProbabilityComponents(
 
   if (criteria.employeeCountGho && criteria.employeeCountTotal) {
     probabilities.push(
-      percentageCheck(Number(criteria.employeeCountGho), Number(criteria.employeeCountTotal)),
+      percentageCheck(
+        Number(criteria.employeeCountGho),
+        Number(criteria.employeeCountTotal),
+      ),
     );
   }
 
   if (criteria.minDurationEO && criteria.minDurationJT) {
-    probabilities.push(percentageCheck(Number(criteria.minDurationEO), Number(criteria.minDurationJT)));
+    probabilities.push(
+      percentageCheck(
+        Number(criteria.minDurationEO),
+        Number(criteria.minDurationJT),
+      ),
+    );
   }
 
   return probabilities.filter((value): value is number => !!value);
@@ -152,8 +175,10 @@ export function qualitativeProbabilityFromCriteria(
   if (!finalProbabilities.length) return null;
 
   const result =
-    finalProbabilities.reduce<number>((acc, curr) => Number(acc) + Number(curr), 0) /
-    finalProbabilities.length;
+    finalProbabilities.reduce<number>(
+      (acc, curr) => Number(acc) + Number(curr),
+      0,
+    ) / finalProbabilities.length;
   if (!result) return null;
   return Math.ceil(result);
 }
@@ -173,7 +198,9 @@ export function qualitativeProbabilityPreview(
   return { probability, criteriaCount };
 }
 
-export function countSuggestionSignature(decision: CountSuggestionDecision): string {
+export function countSuggestionSignature(
+  decision: CountSuggestionDecision,
+): string {
   if (decision.kind === 'none') return 'none';
   return `${decision.kind}:${decision.probability}:${decision.criteria.employeeCountTotal}:${decision.criteria.employeeCountGho}:${decision.criteria.medsImplemented}:${decision.criteria.minDurationJT}`;
 }
@@ -198,8 +225,6 @@ export function resolveCountSuggestion(params: {
   adoptedProbability?: number | null;
   currentTotal?: number | null;
   currentGho?: number | null;
-  /** Classificação atual dos controles. Ausente mantém o medsImplemented adotado. */
-  currentMedsImplemented?: number | null;
   /**
    * Duração única conhecida, em minutos.
    * `undefined` = ainda carregando; `null` = nenhuma sugestão única.
@@ -212,29 +237,33 @@ export function resolveCountSuggestion(params: {
 
   const fromSaved = qualitativeProbabilityFromCriteria(params.adopted);
   if (fromSaved == null) return { kind: 'none' };
-  if (params.currentTotal == null || params.currentGho == null) return { kind: 'none' };
+  if (params.currentTotal == null || params.currentGho == null)
+    return { kind: 'none' };
 
   const savedTotal = params.adopted.employeeCountTotal ?? null;
   const savedGho = params.adopted.employeeCountGho ?? null;
   const savedMeds = params.adopted.medsImplemented ?? null;
   const savedJourney = params.adopted.minDurationJT ?? null;
-  const nextMeds = params.currentMedsImplemented ?? savedMeds;
   const nextJourney =
-    params.currentJourneyMinutes != null ? params.currentJourneyMinutes : savedJourney;
-  const countsSame = params.currentTotal === savedTotal && params.currentGho === savedGho;
-  const medsSame = nextMeds === savedMeds;
+    params.currentJourneyMinutes != null
+      ? params.currentJourneyMinutes
+      : savedJourney;
+  const countsSame =
+    params.currentTotal === savedTotal && params.currentGho === savedGho;
   const journeySame = nextJourney === savedJourney;
-  if (countsSame && medsSame && journeySame) return { kind: 'none' };
+  if (countsSame && journeySame) return { kind: 'none' };
 
   const nextCriteria: QualitativeProbabilityCriteria = {
     ...params.adopted,
     employeeCountTotal: params.currentTotal,
     employeeCountGho: params.currentGho,
-    medsImplemented: nextMeds,
+    // A classificação ao vivo dos controles não substitui a escolha adotada.
+    medsImplemented: savedMeds,
     minDurationJT: nextJourney,
   };
   const suggested = qualitativeProbabilityFromCriteria(nextCriteria);
-  if (suggested == null || suggested === params.adoptedProbability) return { kind: 'none' };
+  if (suggested == null || suggested === params.adoptedProbability)
+    return { kind: 'none' };
 
   const stillAutomatic = params.adoptedProbability === fromSaved;
   return stillAutomatic

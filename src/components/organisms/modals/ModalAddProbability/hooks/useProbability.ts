@@ -15,6 +15,7 @@ import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
 import { useApplicableJourneys } from '../use-applicable-journeys';
 import {
+  classifyMedsImplemented,
   criteriaFromForm,
   journeyMinutesForModalOpen,
   medsImplementedForModalOpen,
@@ -205,6 +206,10 @@ export const useProbability = () => {
     onClose();
   };
 
+  const suggestedMedsImplemented = probabilityData.controls
+    ? classifyMedsImplemented(probabilityData.controls)
+    : null;
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -223,6 +228,7 @@ export const useProbability = () => {
     journeyOptions: journeys.ready ? journeys.options : [],
     knownJourneyCount: journeys.ready ? journeys.knownJourneyCount : 0,
     coveredEmployeeCount: journeys.ready ? journeys.coveredEmployeeCount : 0,
+    suggestedMedsImplemented,
   };
 };
 

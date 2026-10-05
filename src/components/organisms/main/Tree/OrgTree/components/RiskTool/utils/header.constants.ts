@@ -43,7 +43,7 @@ export const headerRowColumnsMap: IColumnOptionsMap = {
     grid: 'minmax(100px, 1fr)',
   },
   [RowColumnsTypeEnum.MED]: {
-    label: 'Outras Medidas',
+    label: 'Medidas Administrativas',
     tooltip: 'Medidas administrativas e organizacionais',
     filterKey: 'adms',
     filterValues: ['desc', 'asc', 'none'],
