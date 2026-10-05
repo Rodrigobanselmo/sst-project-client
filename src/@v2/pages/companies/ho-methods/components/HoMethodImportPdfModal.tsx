@@ -7,12 +7,14 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Grid,
   MenuItem,
   Paper,
@@ -37,6 +39,7 @@ import type {
   HoMethodImportConfidence,
   HoMethodImportParseResult,
   HoMethodRiskFactorSnapshot,
+  HoMethodRiskLinkReason,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 import { HoMethodSourceEnum } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 import { useDebouncedCallback } from 'use-debounce';
@@ -59,12 +62,12 @@ import {
   buildImportSubmitPayload,
   importAgentsFromParseResult,
   importFormFromParseResult,
+  refreshImportConfirmState,
   type HoMethodImportFormState,
 } from '../utils/ho-method-import.util';
 import {
   buildHoMethodAgentSearchTerm,
   buildHoMethodCreateRiskInitialData,
-  HO_METHOD_MATCH_CONFIDENCE_LABELS,
   shouldOfferCreateRiskAction,
 } from '../utils/ho-method-create-risk.util';
 import {
@@ -123,8 +126,24 @@ const ImportField: FC<ImportFieldProps> = ({
         ? `Confiança da extração: ${IMPORT_CONFIDENCE_LABELS[confidence]}`
         : undefined)
     }
-    color={confidence === 'low' ? 'warning' : undefined}
-    focused={confidence === 'low'}
+    sx={{
+      '& .MuiInputLabel-root': {
+        color: 'text.primary',
+      },
+      '& .MuiInputLabel-root.Mui-focused': {
+        color: 'primary.main',
+      },
+      '& .MuiFormHelperText-root': {
+        color: 'text.secondary',
+      },
+      ...(confidence === 'low'
+        ? {
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'warning.main',
+            },
+          }
+        : {}),
+    }}
     InputProps={{
       endAdornment: confidence ? (
         <Chip
@@ -170,9 +189,10 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     null,
   );
   const [createRiskDialogOpen, setCreateRiskDialogOpen] = useState(false);
-  const [complementAgentIndex, setComplementAgentIndex] = useState<number | null>(
-    null,
-  );
+  const [complementTarget, setComplementTarget] = useState<{
+    index: number;
+    riskFactorId: string;
+  } | null>(null);
   const [aiReviewing, setAiReviewing] = useState(false);
   const [aiReviewResult, setAiReviewResult] = useState<HoMethodAiReviewResult | null>(
     null,
@@ -205,7 +225,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     setDebouncedAgentSearch('');
     setCreateRiskAgentIndex(null);
     setCreateRiskDialogOpen(false);
-    setComplementAgentIndex(null);
+    setComplementTarget(null);
     setAiReviewing(false);
     setAiReviewResult(null);
     setAiReviewOpen(false);
@@ -293,39 +313,105 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     setForm((current) => (current ? { ...current, ...patch } : current));
   };
 
-  const updateAgentMatch = (
+  const updateAgentSampling = (
     index: number,
-    risk: HoMethodRiskFactorSnapshot | null,
+    patch: Partial<NonNullable<HoMethodImportAgentSuggestion['sampling']>>,
   ) => {
     setParseResult((current) => {
       if (!current) return current;
+      const agents = current.agents.map((agent, agentIndex) => {
+        if (agentIndex !== index) return agent;
+        return {
+          ...agent,
+          sampling: {
+            minimumFlowRate: null,
+            maximumFlowRate: null,
+            flowRateUnit: null,
+            minimumVolume: null,
+            maximumVolume: null,
+            volumeUnit: null,
+            ...agent.sampling,
+            ...patch,
+          },
+        };
+      });
+      return refreshImportConfirmState({ ...current, agents });
+    });
+  };
 
-      const agents = [...current.agents];
-      agents[index] = {
-        ...agents[index],
-        matchedRiskFactor: risk,
-        found: Boolean(risk),
-        matchConfidence: risk ? 'high' : 'none',
-      };
+  const commitAgents = (
+    agents: HoMethodImportAgentSuggestion[],
+  ) => {
+    setParseResult((current) => {
+      if (!current) return current;
+      return refreshImportConfirmState({
+        ...current,
+        fields: {
+          ...current.fields,
+          methodCode: {
+            ...current.fields.methodCode,
+            value: form?.methodCode.trim() || current.fields.methodCode.value,
+          },
+        },
+        agents,
+      });
+    });
+  };
 
-      const unmatched = agents.filter((agent) => !agent.found);
-      const canConfirm =
-        current.isSupportedMethod &&
-        Boolean(current.fields.methodCode.value ?? form?.methodCode) &&
-        agents.length > 0 &&
-        unmatched.length === 0;
+  const toggleRiskLink = (index: number, riskFactorId: string, selected: boolean) => {
+    if (!parseResult) return;
+    const agents = parseResult.agents.map((agent, agentIndex) => {
+      if (agentIndex !== index) return agent;
+      const link = agent.riskLinks.find((item) => item.riskFactor.id === riskFactorId);
+      if (!link) return agent;
+
+      if (!selected && link.reasons.length === 0) {
+        return {
+          ...agent,
+          riskLinks: agent.riskLinks.filter((item) => item.riskFactor.id !== riskFactorId),
+          approximateCandidates: [
+            ...agent.approximateCandidates.filter((item) => item.id !== riskFactorId),
+            link.riskFactor,
+          ],
+        };
+      }
 
       return {
-        ...current,
-        agents,
-        canConfirm,
-        confirmBlockReason: canConfirm
-          ? null
-          : unmatched.length > 0
-            ? 'Vincule todos os agentes a fatores de risco químicos cadastrados antes de confirmar.'
-            : current.confirmBlockReason,
+        ...agent,
+        riskLinks: agent.riskLinks.map((item) =>
+          item.riskFactor.id === riskFactorId ? { ...item, selected } : item,
+        ),
       };
     });
+    commitAgents(agents);
+  };
+
+  const addSelectedRisk = (index: number, risk: HoMethodRiskFactorSnapshot) => {
+    if (!parseResult) return;
+    const agents = parseResult.agents.map((agent, agentIndex) => {
+      if (agentIndex !== index) return agent;
+      const existing = agent.riskLinks.find((link) => link.riskFactor.id === risk.id);
+      return {
+        ...agent,
+        riskLinks: existing
+          ? agent.riskLinks.map((link) =>
+              link.riskFactor.id === risk.id
+                ? { ...link, selected: true, riskFactor: risk }
+                : link,
+            )
+          : [
+              ...agent.riskLinks,
+              {
+                riskFactor: risk,
+                reasons: [] as HoMethodRiskLinkReason[],
+                coverageTerms: [],
+                selected: true,
+              },
+            ],
+        approximateCandidates: agent.approximateCandidates.filter((item) => item.id !== risk.id),
+      };
+    });
+    commitAgents(agents);
   };
 
   const canConfirmImport =
@@ -355,6 +441,14 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     searchResults: IRiskFactors[],
   ) => {
     const map = new Map<string, IRiskFactors>();
+
+    agent.riskLinks.forEach((link) => {
+      map.set(link.riskFactor.id, mapRiskSnapshotToRiskFactors(link.riskFactor));
+    });
+
+    agent.approximateCandidates.forEach((item) => {
+      map.set(item.id, mapRiskSnapshotToRiskFactors(item));
+    });
 
     agent.candidateRiskFactors.forEach((item) => {
       map.set(item.id, mapRiskSnapshotToRiskFactors(item));
@@ -394,7 +488,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
           'Já existe fator de risco com este CAS. Vinculando o cadastro existente.',
           { type: 'success' },
         );
-        updateAgentMatch(index, existing);
+        addSelectedRisk(index, existing);
         return;
       }
     }
@@ -409,7 +503,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     queryClient.invalidateQueries({
       queryKey: [...hoMethodQueryKeys.all, 'risk-search'],
     });
-    updateAgentMatch(
+    addSelectedRisk(
       createRiskAgentIndex,
       mapRiskFactorsToHoMethodSnapshot(risk),
     );
@@ -420,6 +514,23 @@ export const HoMethodImportPdfModal: FC<Props> = ({
   const createRiskAgent =
     createRiskAgentIndex != null
       ? parseResult?.agents[createRiskAgentIndex] ?? null
+      : null;
+
+  const complementLink =
+    complementTarget != null
+      ? parseResult?.agents[complementTarget.index]?.riskLinks.find(
+          (link) => link.riskFactor.id === complementTarget.riskFactorId,
+        ) ?? null
+      : null;
+
+  const complementAgent =
+    complementTarget != null && parseResult && complementLink
+      ? {
+          ...parseResult.agents[complementTarget.index],
+          matchedRiskFactor: complementLink.riskFactor,
+          matchConfidence: 'high' as const,
+          synonyms: parseResult.agents[complementTarget.index].synonyms,
+        }
       : null;
 
   const handleConfirm = async () => {
@@ -464,6 +575,17 @@ export const HoMethodImportPdfModal: FC<Props> = ({
   };
 
   const fields = parseResult?.fields;
+  const methodHasGeneralFlowVolume = Boolean(
+    form &&
+      [form.minimumFlowRate, form.maximumFlowRate, form.minimumVolume, form.maximumVolume].some(
+        (value) => value.trim() !== '',
+      ),
+  );
+  const agentsHaveSpecificSampling = Boolean(
+    parseResult?.agents.some((agent) => agentHasEditableSampling(agent.sampling)),
+  );
+  const showAgentSpecificSamplingNotice =
+    !methodHasGeneralFlowVolume && agentsHaveSpecificSampling;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
@@ -627,30 +749,37 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                       cas: agent.cas,
                       synonyms: agent.synonyms,
                     })}
+                    methodCode={form?.methodCode}
+                    methodInstitution={form?.institution}
                     onSearch={(value) => {
                       setDebouncedAgentSearch(value);
                       debouncedSearch(value);
                     }}
-                    onSelectRisk={(risk) =>
-                      updateAgentMatch(
-                        index,
-                        risk ? mapRiskFactorsToHoMethodSnapshot(risk) : null,
-                      )
+                    onToggleLink={(riskFactorId, selected) =>
+                      toggleRiskLink(index, riskFactorId, selected)
                     }
+                    onSelectRisk={(risk) => {
+                      if (!risk) return;
+                      addSelectedRisk(index, mapRiskFactorsToHoMethodSnapshot(risk));
+                    }}
                     onCreateRisk={() => void handleOpenCreateRisk(index)}
-                    showComplementAction={hasRiskComplementSuggestions(
-                      agent,
-                      form?.methodCode,
-                      form?.institution,
-                    )}
-                    onComplement={() => setComplementAgentIndex(index)}
+                    onComplement={(riskFactorId) =>
+                      setComplementTarget({ index, riskFactorId })
+                    }
+                    onSamplingChange={(patch) => updateAgentSampling(index, patch)}
                   />
                 ))}
               </Section>
 
               <Section title="Amostragem permitida pelo método">
+                {showAgentSpecificSamplingNotice && (
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    Este método possui condições de coleta específicas por agente.
+                    Consulte ou edite as condições nos agentes acima.
+                  </Alert>
+                )}
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} md={showAgentSpecificSamplingNotice ? 8 : 12}>
                     <ImportField
                       label="Amostrador sugerido (SAMPLER)"
                       value={form.samplerName}
@@ -658,35 +787,39 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                       onChange={(value) => updateForm({ samplerName: value })}
                     />
                   </Grid>
-                  <Grid item xs={12} md={3}>
-                    <ImportField
-                      label="Vazão mínima"
-                      value={form.minimumFlowRate}
-                      confidence={fields.minimumFlowRate.confidence}
-                      onChange={(value) =>
-                        updateForm({ minimumFlowRate: value })
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <ImportField
-                      label="Vazão máxima"
-                      value={form.maximumFlowRate}
-                      confidence={fields.maximumFlowRate.confidence}
-                      onChange={(value) =>
-                        updateForm({ maximumFlowRate: value })
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <ImportField
-                      label="Unidade de vazão"
-                      value={form.flowRateUnit}
-                      confidence={fields.flowRateUnit.confidence}
-                      onChange={(value) => updateForm({ flowRateUnit: value })}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
+                  {!showAgentSpecificSamplingNotice && (
+                    <>
+                      <Grid item xs={12} md={3}>
+                        <ImportField
+                          label="Vazão mínima"
+                          value={form.minimumFlowRate}
+                          confidence={fields.minimumFlowRate.confidence}
+                          onChange={(value) =>
+                            updateForm({ minimumFlowRate: value })
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <ImportField
+                          label="Vazão máxima"
+                          value={form.maximumFlowRate}
+                          confidence={fields.maximumFlowRate.confidence}
+                          onChange={(value) =>
+                            updateForm({ maximumFlowRate: value })
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <ImportField
+                          label="Unidade de vazão"
+                          value={form.flowRateUnit}
+                          confidence={fields.flowRateUnit.confidence}
+                          onChange={(value) => updateForm({ flowRateUnit: value })}
+                        />
+                      </Grid>
+                    </>
+                  )}
+                  <Grid item xs={12} md={showAgentSpecificSamplingNotice ? 4 : 3}>
                     <ImportField
                       label="Envio (SHIPMENT)"
                       value={form.shipment}
@@ -694,34 +827,38 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                       onChange={(value) => updateForm({ shipment: value })}
                     />
                   </Grid>
-                  <Grid item xs={12} md={3}>
-                    <ImportField
-                      label="Volume mínimo (VOL-MIN)"
-                      value={form.minimumVolume}
-                      confidence={fields.minimumVolume.confidence}
-                      onChange={(value) =>
-                        updateForm({ minimumVolume: value })
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <ImportField
-                      label="Volume máximo (MAX)"
-                      value={form.maximumVolume}
-                      confidence={fields.maximumVolume.confidence}
-                      onChange={(value) =>
-                        updateForm({ maximumVolume: value })
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <ImportField
-                      label="Unidade de volume"
-                      value={form.volumeUnit}
-                      confidence={fields.volumeUnit.confidence}
-                      onChange={(value) => updateForm({ volumeUnit: value })}
-                    />
-                  </Grid>
+                  {!showAgentSpecificSamplingNotice && (
+                    <>
+                      <Grid item xs={12} md={3}>
+                        <ImportField
+                          label="Volume mínimo (VOL-MIN)"
+                          value={form.minimumVolume}
+                          confidence={fields.minimumVolume.confidence}
+                          onChange={(value) =>
+                            updateForm({ minimumVolume: value })
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <ImportField
+                          label="Volume máximo (MAX)"
+                          value={form.maximumVolume}
+                          confidence={fields.maximumVolume.confidence}
+                          onChange={(value) =>
+                            updateForm({ maximumVolume: value })
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <ImportField
+                          label="Unidade de volume"
+                          value={form.volumeUnit}
+                          confidence={fields.volumeUnit.confidence}
+                          onChange={(value) => updateForm({ volumeUnit: value })}
+                        />
+                      </Grid>
+                    </>
+                  )}
                 </Grid>
               </Section>
 
@@ -933,18 +1070,26 @@ export const HoMethodImportPdfModal: FC<Props> = ({
         />
       )}
       <HoMethodComplementRiskDialog
-        open={complementAgentIndex != null}
-        agent={
-          complementAgentIndex != null
-            ? parseResult?.agents[complementAgentIndex] ?? null
-            : null
-        }
+        open={complementTarget != null}
+        agent={complementAgent}
+        linkReasons={complementLink?.reasons}
         methodCode={form?.methodCode}
         methodInstitution={form?.institution}
-        onClose={() => setComplementAgentIndex(null)}
+        onClose={() => setComplementTarget(null)}
         onApplied={(updatedRisk) => {
-          if (complementAgentIndex != null && updatedRisk) {
-            updateAgentMatch(complementAgentIndex, updatedRisk);
+          if (complementTarget && updatedRisk && parseResult) {
+            const agents = parseResult.agents.map((agent, index) => {
+              if (index !== complementTarget.index) return agent;
+              return {
+                ...agent,
+                riskLinks: agent.riskLinks.map((link) =>
+                  link.riskFactor.id === complementTarget.riskFactorId
+                    ? { ...link, riskFactor: updatedRisk }
+                    : link,
+                ),
+              };
+            });
+            commitAgents(agents);
           }
           void queryClient.invalidateQueries({
             queryKey: hoMethodQueryKeys.all,
@@ -983,16 +1128,159 @@ const Section: FC<{ title: string; children: ReactNode }> = ({
   </Box>
 );
 
+const RISK_LINK_REASON_LABEL: Record<HoMethodRiskLinkReason, string> = {
+  'exact-cas': 'CAS',
+  'exact-name': 'nome',
+  'explicit-coverage': 'cobertura',
+};
+
+const formatSamplingNumber = (value: number | null | undefined) => {
+  if (value == null) return '';
+  return String(value).replace('.', ',');
+};
+
+const parseSamplingNumber = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const normalized = trimmed.replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return undefined;
+  return Number(normalized);
+};
+
+const agentHasEditableSampling = (
+  sampling: HoMethodImportAgentSuggestion['sampling'],
+) =>
+  Boolean(
+    sampling &&
+      [
+        sampling.minimumFlowRate,
+        sampling.maximumFlowRate,
+        sampling.minimumVolume,
+        sampling.maximumVolume,
+      ].some((value) => value != null),
+  );
+
+type AgentSamplingDraft = {
+  minimumFlowRate: string;
+  maximumFlowRate: string;
+  flowRateUnit: string;
+  minimumVolume: string;
+  maximumVolume: string;
+  volumeUnit: string;
+};
+
+const samplingDraftFromAgent = (
+  sampling: HoMethodImportAgentSuggestion['sampling'],
+): AgentSamplingDraft => ({
+  minimumFlowRate: formatSamplingNumber(sampling?.minimumFlowRate),
+  maximumFlowRate: formatSamplingNumber(sampling?.maximumFlowRate),
+  flowRateUnit: sampling?.flowRateUnit ?? '',
+  minimumVolume: formatSamplingNumber(sampling?.minimumVolume),
+  maximumVolume: formatSamplingNumber(sampling?.maximumVolume),
+  volumeUnit: sampling?.volumeUnit ?? '',
+});
+
+const AgentSamplingFields: FC<{
+  sampling: HoMethodImportAgentSuggestion['sampling'];
+  onChange: (patch: Partial<NonNullable<HoMethodImportAgentSuggestion['sampling']>>) => void;
+}> = ({ sampling, onChange }) => {
+  const [draft, setDraft] = useState<AgentSamplingDraft>(() => samplingDraftFromAgent(sampling));
+
+  const updateNumber = (
+    key: 'minimumFlowRate' | 'maximumFlowRate' | 'minimumVolume' | 'maximumVolume',
+    value: string,
+  ) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    const parsed = parseSamplingNumber(value);
+    if (parsed === undefined) return;
+    onChange({ [key]: parsed });
+  };
+
+  const updateUnit = (key: 'flowRateUnit' | 'volumeUnit', value: string) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    onChange({ [key]: value.trim() ? value : null });
+  };
+
+  return (
+    <Box mt={1.5}>
+      <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+        Condição de coleta
+      </Typography>
+      <Grid container spacing={1.5}>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Vazão mínima"
+            value={draft.minimumFlowRate}
+            onChange={(event) => updateNumber('minimumFlowRate', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Vazão máxima"
+            value={draft.maximumFlowRate}
+            onChange={(event) => updateNumber('maximumFlowRate', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Unidade"
+            value={draft.flowRateUnit}
+            onChange={(event) => updateUnit('flowRateUnit', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Volume mínimo"
+            value={draft.minimumVolume}
+            onChange={(event) => updateNumber('minimumVolume', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Volume máximo"
+            value={draft.maximumVolume}
+            onChange={(event) => updateNumber('maximumVolume', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Unidade"
+            value={draft.volumeUnit}
+            onChange={(event) => updateUnit('volumeUnit', event.target.value)}
+          />
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
 type AgentRowProps = {
   agent: HoMethodImportAgentSuggestion;
   riskOptions: IRiskFactors[];
   loadingRisks: boolean;
   defaultSearchTerm: string;
+  methodCode?: string;
+  methodInstitution?: string;
   onSearch: (value: string) => void;
+  onToggleLink: (riskFactorId: string, selected: boolean) => void;
   onSelectRisk: (risk: IRiskFactors | null) => void;
   onCreateRisk: () => void;
-  showComplementAction?: boolean;
-  onComplement?: () => void;
+  onComplement: (riskFactorId: string) => void;
+  onSamplingChange: (
+    patch: Partial<NonNullable<HoMethodImportAgentSuggestion['sampling']>>,
+  ) => void;
 };
 
 const AgentRow: FC<AgentRowProps> = ({
@@ -1000,16 +1288,15 @@ const AgentRow: FC<AgentRowProps> = ({
   riskOptions,
   loadingRisks,
   defaultSearchTerm,
+  methodCode,
+  methodInstitution,
   onSearch,
+  onToggleLink,
   onSelectRisk,
   onCreateRisk,
-  showComplementAction,
   onComplement,
+  onSamplingChange,
 }) => {
-  const selectedRisk = agent.matchedRiskFactor
-    ? mapRiskSnapshotToRiskFactors(agent.matchedRiskFactor)
-    : null;
-
   useEffect(() => {
     if (!defaultSearchTerm) return;
     onSearch(defaultSearchTerm);
@@ -1023,83 +1310,134 @@ const AgentRow: FC<AgentRowProps> = ({
 
   return (
     <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} md={4}>
-          <Typography variant="body2" fontWeight={600}>
-            {agent.substanceName}
+      <Typography variant="body2" fontWeight={600}>
+        {agent.substanceName}
+      </Typography>
+      <Typography variant="caption" display="block" color="text.secondary">
+        CAS extraído: {agent.cas || 'não informado no documento'}
+      </Typography>
+      {agent.synonyms.length > 0 && (
+        <Typography variant="caption" display="block" color="text.secondary">
+          Sinônimos: {agent.synonyms.join(', ')}
+        </Typography>
+      )}
+      {agent.explicitCoverage.length > 0 && (
+        <Typography variant="caption" display="block" color="text.secondary">
+          Método cobre: {agent.explicitCoverage.join(', ')}
+        </Typography>
+      )}
+      {agentHasEditableSampling(agent.sampling) && (
+        <AgentSamplingFields sampling={agent.sampling} onChange={onSamplingChange} />
+      )}
+      {agent.coverageWarnings.map((warning) => (
+        <Alert key={warning} severity="info" sx={{ mt: 1, py: 0.25 }}>
+          {warning}
+        </Alert>
+      ))}
+
+      <Typography variant="caption" display="block" sx={{ mt: 1.5 }}>
+        Fatores de risco encontrados
+      </Typography>
+      {agent.riskLinks.length === 0 && (
+        <Typography variant="caption" color="text.secondary">
+          Nenhum fator forte encontrado para esta entrada.
+        </Typography>
+      )}
+      {agent.riskLinks.map((link) => {
+        const canComplement = hasRiskComplementSuggestions(
+          { ...agent, matchConfidence: 'high', matchedRiskFactor: link.riskFactor },
+          methodCode,
+          methodInstitution,
+          link.riskFactor,
+          link.reasons,
+        );
+
+        return (
+          <Box key={link.riskFactor.id} display="flex" alignItems="center" gap={1}>
+            <FormControlLabel
+              sx={{ mr: 0, flex: 1 }}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={link.selected}
+                  onChange={(_, checked) => onToggleLink(link.riskFactor.id, checked)}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  {link.riskFactor.name}
+                  {' · '}
+                  CAS do catálogo: {link.riskFactor.cas || 'não informado'}
+                  {' · '}
+                  {link.reasons.length
+                    ? link.reasons.map((reason) => RISK_LINK_REASON_LABEL[reason]).join(', ')
+                    : 'seleção manual'}
+                </Typography>
+              }
+            />
+            {canComplement && (
+              <Button size="small" onClick={() => onComplement(link.riskFactor.id)}>
+                Complementar cadastro
+              </Button>
+            )}
+          </Box>
+        );
+      })}
+
+      {agent.approximateCandidates.length > 0 && (
+        <Box mt={1}>
+          <Typography variant="caption" display="block">
+            Candidatos aproximados
           </Typography>
-          {agent.cas && (
-            <Typography variant="caption" color="text.secondary">
-              CAS {agent.cas}
-            </Typography>
-          )}
-          {agent.synonyms.length > 0 && (
-            <Typography variant="caption" display="block" color="text.secondary">
-              Sinônimos: {agent.synonyms.join(', ')}
-            </Typography>
-          )}
-          {agent.technicalNotes?.map((note) => (
-            <Typography
-              key={note}
-              variant="caption"
-              display="block"
-              color="text.secondary"
-            >
-              {note}
-            </Typography>
+          {agent.approximateCandidates.map((candidate) => (
+            <FormControlLabel
+              key={candidate.id}
+              control={
+                <Checkbox
+                  size="small"
+                  checked={false}
+                  onChange={() => onSelectRisk(mapRiskSnapshotToRiskFactors(candidate))}
+                />
+              }
+              label={
+                <Typography variant="body2" color="text.secondary">
+                  {candidate.name}
+                  {' · '}
+                  CAS do catálogo: {candidate.cas || 'não informado'}
+                  {' · '}
+                  aproximado
+                </Typography>
+              }
+            />
           ))}
-          {showComplementAction && (
-            <Alert severity="info" sx={{ mt: 1, py: 0.25 }}>
-              Há informações novas disponíveis para este fator de risco.
-            </Alert>
-          )}
-          {agent.matchConfidence && agent.matchConfidence !== 'high' && (
-            <Typography variant="caption" display="block" color="warning.main">
-              {HO_METHOD_MATCH_CONFIDENCE_LABELS[agent.matchConfidence ?? 'none']}
-            </Typography>
-          )}
-        </Grid>
-        <Grid item xs={12} md={8}>
-          <SAutocompleteSelect
-            label="Fator de risco químico"
-            options={riskOptions}
-            loading={loadingRisks}
-            value={selectedRisk}
-            getOptionLabel={(option) => buildRiskOptionLabel(option)}
-            isOptionEqualToValue={(a, b) => a.id === b.id}
-            filterOptions={(options) => options}
-            openOnFocus
-            onInputChange={(_, value) => onSearch(value)}
-            onChange={(_, value) => onSelectRisk(value)}
-            placeholder="Buscar por nome, sinônimo ou CAS"
-            errorMessage={
-              agent.found
-                ? undefined
-                : 'Agente não vinculado — selecione um fator existente ou crie um novo.'
-            }
-          />
-          {showCreateAction && (
-            <Button
-              size="small"
-              variant="outlined"
-              sx={{ mt: 1 }}
-              onClick={onCreateRisk}
-            >
-              Criar fator de risco químico
-            </Button>
-          )}
-          {showComplementAction && onComplement && (
-            <Button
-              size="small"
-              variant="outlined"
-              sx={{ mt: 1, ml: showCreateAction ? 1 : 0 }}
-              onClick={onComplement}
-            >
-              Complementar cadastro
-            </Button>
-          )}
-        </Grid>
-      </Grid>
+        </Box>
+      )}
+
+      <Box mt={1}>
+        <SAutocompleteSelect
+          label="Adicionar fator de risco"
+          options={riskOptions}
+          loading={loadingRisks}
+          value={null}
+          getOptionLabel={(option) => buildRiskOptionLabel(option)}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          filterOptions={(options) => options}
+          openOnFocus
+          onInputChange={(_, value) => onSearch(value)}
+          onChange={(_, value) => onSelectRisk(value)}
+          placeholder="Buscar por nome, sinônimo ou CAS"
+          errorMessage={
+            agent.found
+              ? undefined
+              : 'Entrada sem vínculo — selecione ao menos um fator existente.'
+          }
+        />
+        {showCreateAction && (
+          <Button size="small" variant="outlined" sx={{ mt: 1 }} onClick={onCreateRisk}>
+            Criar fator de risco químico
+          </Button>
+        )}
+      </Box>
     </Paper>
   );
 };

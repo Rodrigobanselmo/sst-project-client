@@ -302,12 +302,35 @@ export type HoMethodImportField<T> = {
 
 export type HoMethodRiskMatchConfidence = 'high' | 'low' | 'none';
 
+export type HoMethodImportAgentSampling = {
+  minimumFlowRate: number | null;
+  maximumFlowRate: number | null;
+  flowRateUnit: string | null;
+  minimumVolume: number | null;
+  maximumVolume: number | null;
+  volumeUnit: string | null;
+};
+
+export type HoMethodRiskLinkReason = 'exact-cas' | 'exact-name' | 'explicit-coverage';
+
+export type HoMethodImportRiskLink = {
+  riskFactor: HoMethodRiskFactorSnapshot;
+  reasons: HoMethodRiskLinkReason[];
+  coverageTerms: string[];
+  selected: boolean;
+};
+
 export type HoMethodImportAgentSuggestion = {
   substanceName: string;
   cas: string | null;
   synonyms: string[];
+  explicitCoverage: string[];
   occupationalLimits?: HoMethodImportOccupationalLimitSuggestions;
   technicalNotes?: string[];
+  sampling?: HoMethodImportAgentSampling;
+  riskLinks: HoMethodImportRiskLink[];
+  approximateCandidates: HoMethodRiskFactorSnapshot[];
+  coverageWarnings: string[];
   matchedRiskFactor: HoMethodRiskFactorSnapshot | null;
   found: boolean;
   matchConfidence: HoMethodRiskMatchConfidence;
@@ -389,12 +412,15 @@ export type HoMethodAiReviewAgent = {
   name: string;
   cas?: string | null;
   synonyms?: string[];
+  explicitCoverage?: string[];
   translatedNamePtBr?: string | null;
   technicalNotes?: string[];
   occupationalLimits?: Record<string, string | null | undefined> | null;
   sourceTrace?: HoMethodAiReviewSourceTrace[];
   confidence: HoMethodAiReviewConfidence;
   warnings?: string[];
+  riskLinks?: HoMethodImportRiskLink[];
+  approximateCandidates?: HoMethodRiskFactorSnapshot[];
   matchedRiskFactor?: HoMethodRiskFactorSnapshot | null;
   matchConfidence?: 'high' | 'low' | 'none';
   candidateRiskFactors?: HoMethodRiskFactorSnapshot[];

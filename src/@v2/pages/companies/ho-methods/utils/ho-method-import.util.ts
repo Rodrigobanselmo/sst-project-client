@@ -103,6 +103,7 @@ function buildImportNotes(result: HoMethodImportParseResult) {
     parts.push(`Desorption: ${f.extractionSolvent.value}`);
   }
   if (f.stabilityText.value) parts.push(`Stability: ${f.stabilityText.value}`);
+  if (f.shipment.value) parts.push(`Shipment: ${f.shipment.value}`);
   if (f.lod.value) parts.push(`LOD: ${f.lod.value}`);
   if (f.range.value) parts.push(`Range: ${f.range.value}`);
   if (f.applicability.value) parts.push(`Applicability: ${f.applicability.value}`);
@@ -112,48 +113,156 @@ function buildImportNotes(result: HoMethodImportParseResult) {
   return parts.join('\n');
 }
 
+const hasSpecificSampling = (
+  sampling: HoMethodImportParseResult['agents'][number]['sampling'],
+) =>
+  Boolean(
+    sampling &&
+      [
+        sampling.minimumFlowRate,
+        sampling.maximumFlowRate,
+        sampling.minimumVolume,
+        sampling.maximumVolume,
+      ].some((value) => value != null),
+  );
+
+const applyCollectedSampling = (
+  condition: MethodAgentFormItem['evaluationConditions'][number],
+  result: HoMethodImportParseResult,
+  sampling: HoMethodImportParseResult['agents'][number]['sampling'],
+) => {
+  if (hasSpecificSampling(sampling) && sampling) {
+    return {
+      ...condition,
+      minimumFlowRate: sampling.minimumFlowRate,
+      maximumFlowRate: sampling.maximumFlowRate,
+      minimumVolume: sampling.minimumVolume,
+      maximumVolume: sampling.maximumVolume,
+      flowRateUnit: sampling.flowRateUnit ?? condition.flowRateUnit ?? 'L/min',
+      volumeUnit: sampling.volumeUnit ?? condition.volumeUnit ?? 'L',
+    };
+  }
+
+  return {
+    ...condition,
+    minimumFlowRate: condition.minimumFlowRate ?? result.fields.minimumFlowRate.value,
+    maximumFlowRate: condition.maximumFlowRate ?? result.fields.maximumFlowRate.value,
+    minimumVolume: condition.minimumVolume ?? result.fields.minimumVolume.value,
+    maximumVolume: condition.maximumVolume ?? result.fields.maximumVolume.value,
+    flowRateUnit: condition.flowRateUnit ?? result.fields.flowRateUnit.value ?? 'L/min',
+    volumeUnit: condition.volumeUnit ?? result.fields.volumeUnit.value ?? 'L',
+  };
+};
+
+const materializeAgent = (
+  result: HoMethodImportParseResult,
+  agent: HoMethodImportParseResult['agents'][number],
+  risk: ReturnType<typeof mapRiskSnapshotToRiskFactors>,
+) => {
+  const item = createMethodAgentFromRisk(risk);
+  const sampling = agent.sampling;
+
+  if (item.evaluationConditions.length === 0) {
+    item.evaluationConditions = [
+      applyCollectedSampling(
+        {
+          evaluationType: HoMethodEvaluationTypeEnum.OTHER,
+          notes: result.fields.evaluation.value
+            ? `NIOSH evaluation: ${result.fields.evaluation.value}`
+            : 'Importado de PDF NIOSH/NMAM',
+          flowRateUnit: 'L/min',
+          volumeUnit: 'L',
+        },
+        result,
+        sampling,
+      ),
+    ];
+  } else {
+    item.evaluationConditions = item.evaluationConditions.map((condition) =>
+      applyCollectedSampling(condition, result, sampling),
+    );
+  }
+
+  return item;
+};
+
+export function agentHasSelectedRiskLink(
+  agent: Pick<HoMethodImportParseResult['agents'][number], 'riskLinks' | 'matchedRiskFactor'>,
+) {
+  if (agent.riskLinks?.some((link) => link.selected)) return true;
+  return Boolean(agent.matchedRiskFactor) && !agent.riskLinks?.length;
+}
+
+export function refreshImportConfirmState(
+  result: HoMethodImportParseResult,
+): HoMethodImportParseResult {
+  const agents = result.agents.map((agent) => {
+    const selected = (agent.riskLinks ?? []).filter((link) => link.selected);
+    return {
+      ...agent,
+      found: agentHasSelectedRiskLink(agent),
+      matchedRiskFactor: selected[0]?.riskFactor ?? (agent.riskLinks?.length ? null : agent.matchedRiskFactor),
+      matchConfidence: agentHasSelectedRiskLink(agent)
+        ? 'high'
+        : agent.approximateCandidates?.length
+          ? 'low'
+          : 'none',
+    } as HoMethodImportParseResult['agents'][number];
+  });
+  const unmatched = agents.filter((agent) => !agent.found);
+  const canConfirm =
+    result.isSupportedMethod &&
+    Boolean(result.fields.methodCode.value) &&
+    agents.length > 0 &&
+    unmatched.length === 0;
+
+  return {
+    ...result,
+    agents,
+    canConfirm,
+    confirmBlockReason: !result.isSupportedMethod
+      ? 'O PDF não parece ser um método NIOSH/NMAM suportado.'
+      : !result.fields.methodCode.value
+        ? 'Informe ou confirme o código do método antes de importar.'
+        : agents.length === 0
+          ? 'Nenhum agente identificado para importação.'
+          : unmatched.length > 0
+            ? 'Vincule todos os agentes a fatores de risco químicos cadastrados antes de confirmar.'
+            : null,
+  };
+}
+
 export function importAgentsFromParseResult(
   result: HoMethodImportParseResult,
 ): MethodAgentFormItem[] {
-  return result.agents
-    .filter((agent) => agent.matchedRiskFactor)
-    .map((agent) => {
-      const risk = mapRiskSnapshotToRiskFactors(agent.matchedRiskFactor!);
-      const item = createMethodAgentFromRisk(risk);
+  const seen = new Set<string>();
+  const items: MethodAgentFormItem[] = [];
 
-      if (item.evaluationConditions.length === 0) {
-        item.evaluationConditions = [
-          {
-            evaluationType: HoMethodEvaluationTypeEnum.OTHER,
-            notes: result.fields.evaluation.value
-              ? `NIOSH evaluation: ${result.fields.evaluation.value}`
-              : 'Importado de PDF NIOSH/NMAM',
-            flowRateUnit: result.fields.flowRateUnit.value ?? 'L/min',
-            volumeUnit: result.fields.volumeUnit.value ?? 'L',
-            minimumFlowRate: result.fields.minimumFlowRate.value,
-            maximumFlowRate: result.fields.maximumFlowRate.value,
-            minimumVolume: result.fields.minimumVolume.value,
-            maximumVolume: result.fields.maximumVolume.value,
-          },
-        ];
-      } else {
-        item.evaluationConditions = item.evaluationConditions.map((condition) => ({
-          ...condition,
-          minimumFlowRate:
-            condition.minimumFlowRate ?? result.fields.minimumFlowRate.value,
-          maximumFlowRate:
-            condition.maximumFlowRate ?? result.fields.maximumFlowRate.value,
-          minimumVolume:
-            condition.minimumVolume ?? result.fields.minimumVolume.value,
-          maximumVolume:
-            condition.maximumVolume ?? result.fields.maximumVolume.value,
-          flowRateUnit: condition.flowRateUnit ?? result.fields.flowRateUnit.value ?? 'L/min',
-          volumeUnit: condition.volumeUnit ?? result.fields.volumeUnit.value ?? 'L',
-        }));
-      }
+  result.agents.forEach((agent) => {
+    const selectedLinks = (agent.riskLinks ?? []).filter((link) => link.selected);
+    const links = selectedLinks.length
+      ? selectedLinks
+      : agent.matchedRiskFactor && !agent.riskLinks?.length
+        ? [
+            {
+              riskFactor: agent.matchedRiskFactor,
+              reasons: [],
+              coverageTerms: [],
+              selected: true,
+            },
+          ]
+        : [];
 
-      return item;
+    links.forEach((link) => {
+      if (seen.has(link.riskFactor.id)) return;
+      seen.add(link.riskFactor.id);
+      items.push(
+        materializeAgent(result, agent, mapRiskSnapshotToRiskFactors(link.riskFactor)),
+      );
     });
+  });
+
+  return items;
 }
 
 export const parseOptionalNumber = (value: string) => {
@@ -212,7 +321,7 @@ export function buildImportSubmitPayload(params: {
 export function allImportAgentsLinked(result: HoMethodImportParseResult) {
   return (
     result.agents.length > 0 &&
-    result.agents.every((agent) => Boolean(agent.matchedRiskFactor))
+    result.agents.every((agent) => agentHasSelectedRiskLink(agent))
   );
 }
 

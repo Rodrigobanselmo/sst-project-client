@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 import CloseIcon from '@mui/icons-material/Close';
 import {
@@ -23,6 +23,13 @@ import {
 } from '../utils/ho-method-evaluation.util';
 import { HO_METHOD_MATCH_CONFIDENCE_LABELS } from '../utils/ho-method-create-risk.util';
 import type { MethodAgentFormItem } from '../utils/ho-method-agents.util';
+import {
+  applyAgentCollection,
+  deriveAgentCollection,
+  formatAgentCollectionLine,
+  parseAgentCollectionNumber,
+  type AgentCollectionSampling,
+} from '../utils/ho-method-agent-sampling.util';
 
 type Props = {
   methodAgents: MethodAgentFormItem[];
@@ -37,6 +44,10 @@ type Props = {
   onSelectAgentToAdd: (risk: IRiskFactors | null) => void;
   onCasChange: (value: string) => void;
   onCreateRisk?: () => void;
+  onChangeAgentCollection?: (
+    localId: string,
+    conditions: MethodAgentFormItem['evaluationConditions'],
+  ) => void;
   matchConfidence?: HoMethodRiskMatchConfidence;
   riskFactorError?: string;
 };
@@ -54,6 +65,7 @@ export const HoMethodAgentsSection: FC<Props> = ({
   onSelectAgentToAdd,
   onCasChange,
   onCreateRisk,
+  onChangeAgentCollection,
   matchConfidence,
   riskFactorError,
 }) => {
@@ -147,11 +159,12 @@ export const HoMethodAgentsSection: FC<Props> = ({
                     sx={{ cursor: 'pointer' }}
                   >
                     <Typography variant="body2">{agent.agentName}</Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" display="block">
                       {agent.cas ? `CAS ${agent.cas}` : 'CAS não informado no cadastro'}
                       {' · '}
                       {agent.evaluationConditions.length} condição(ões)
                     </Typography>
+                    <AgentCollectionSummary agent={agent} />
                   </Box>
                   <Chip
                     size="small"
@@ -168,6 +181,18 @@ export const HoMethodAgentsSection: FC<Props> = ({
                     <CloseIcon fontSize="small" />
                   </IconButton>
                 </Box>
+                {isActive && onChangeAgentCollection && (
+                  <AgentCollectionEditor
+                    key={agent.localId}
+                    agent={agent}
+                    onChange={(patch) =>
+                      onChangeAgentCollection(
+                        agent.localId,
+                        applyAgentCollection(agent.evaluationConditions, patch),
+                      )
+                    }
+                  />
+                )}
               </Paper>
             );
           })}
@@ -186,5 +211,174 @@ export const HoMethodAgentsSection: FC<Props> = ({
         </Alert>
       )}
     </>
+  );
+};
+
+const AgentCollectionSummary = ({ agent }: { agent: MethodAgentFormItem }) => {
+  const derived = deriveAgentCollection(agent.evaluationConditions);
+  if (derived.kind === 'absent') return null;
+
+  return (
+    <Typography variant="caption" color="text.secondary" display="block">
+      {derived.kind === 'uniform'
+        ? `Coleta: ${formatAgentCollectionLine(derived.sampling)}`
+        : 'Coleta diferente entre as condições ocupacionais'}
+    </Typography>
+  );
+};
+
+type CollectionDraft = {
+  minimumFlowRate: string;
+  maximumFlowRate: string;
+  flowRateUnit: string;
+  minimumVolume: string;
+  maximumVolume: string;
+  volumeUnit: string;
+};
+
+const formatDraftNumber = (value: number | null) =>
+  value == null ? '' : String(value).replace('.', ',');
+
+const AgentCollectionEditor = ({
+  agent,
+  onChange,
+}: {
+  agent: MethodAgentFormItem;
+  onChange: (patch: Partial<AgentCollectionSampling>) => void;
+}) => {
+  const derived = deriveAgentCollection(agent.evaluationConditions);
+  const sampling = derived.kind === 'absent' ? null : derived.sampling;
+  const [draft, setDraft] = useState<CollectionDraft>(() => ({
+    minimumFlowRate: formatDraftNumber(sampling?.minimumFlowRate ?? null),
+    maximumFlowRate: formatDraftNumber(sampling?.maximumFlowRate ?? null),
+    flowRateUnit: sampling?.flowRateUnit ?? '',
+    minimumVolume: formatDraftNumber(sampling?.minimumVolume ?? null),
+    maximumVolume: formatDraftNumber(sampling?.maximumVolume ?? null),
+    volumeUnit: sampling?.volumeUnit ?? '',
+  }));
+
+  const samplingKey = sampling
+    ? [
+        sampling.minimumFlowRate,
+        sampling.maximumFlowRate,
+        sampling.minimumVolume,
+        sampling.maximumVolume,
+        sampling.flowRateUnit,
+        sampling.volumeUnit,
+      ].join('|')
+    : '';
+
+  useEffect(() => {
+    if (!sampling) return;
+    setDraft((current) => {
+      const parsed = {
+        minimumFlowRate: parseAgentCollectionNumber(current.minimumFlowRate),
+        maximumFlowRate: parseAgentCollectionNumber(current.maximumFlowRate),
+        minimumVolume: parseAgentCollectionNumber(current.minimumVolume),
+        maximumVolume: parseAgentCollectionNumber(current.maximumVolume),
+      };
+      const incomplete = Object.values(parsed).some((value) => value === undefined);
+      if (incomplete) return current;
+      const same =
+        parsed.minimumFlowRate === sampling.minimumFlowRate &&
+        parsed.maximumFlowRate === sampling.maximumFlowRate &&
+        parsed.minimumVolume === sampling.minimumVolume &&
+        parsed.maximumVolume === sampling.maximumVolume &&
+        current.flowRateUnit === (sampling.flowRateUnit ?? '') &&
+        current.volumeUnit === (sampling.volumeUnit ?? '');
+      if (same) return current;
+      return {
+        minimumFlowRate: formatDraftNumber(sampling.minimumFlowRate),
+        maximumFlowRate: formatDraftNumber(sampling.maximumFlowRate),
+        flowRateUnit: sampling.flowRateUnit ?? '',
+        minimumVolume: formatDraftNumber(sampling.minimumVolume),
+        maximumVolume: formatDraftNumber(sampling.maximumVolume),
+        volumeUnit: sampling.volumeUnit ?? '',
+      };
+    });
+  }, [sampling, samplingKey]);
+
+  if (!sampling || derived.kind === 'absent') return null;
+
+  const updateNumber = (
+    key: 'minimumFlowRate' | 'maximumFlowRate' | 'minimumVolume' | 'maximumVolume',
+    value: string,
+  ) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    const parsed = parseAgentCollectionNumber(value);
+    if (parsed === undefined) return;
+    onChange({ [key]: parsed });
+  };
+
+  const updateUnit = (key: 'flowRateUnit' | 'volumeUnit', value: string) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    onChange({ [key]: value.trim() ? value : null });
+  };
+
+  return (
+    <Box mt={1.5}>
+      <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+        Condição de coleta
+        {derived.kind === 'mixed'
+          ? ' — os valores diferem entre as condições ocupacionais. Editar aplica a mesma coleta a todas elas.'
+          : ' — vale para todas as condições ocupacionais deste agente.'}
+      </Typography>
+      <Grid container spacing={1.5}>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Vazão mínima"
+            value={draft.minimumFlowRate}
+            onChange={(event) => updateNumber('minimumFlowRate', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Vazão máxima"
+            value={draft.maximumFlowRate}
+            onChange={(event) => updateNumber('maximumFlowRate', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Unidade de vazão"
+            value={draft.flowRateUnit}
+            onChange={(event) => updateUnit('flowRateUnit', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Volume mínimo"
+            value={draft.minimumVolume}
+            onChange={(event) => updateNumber('minimumVolume', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Volume máximo"
+            value={draft.maximumVolume}
+            onChange={(event) => updateNumber('maximumVolume', event.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Unidade de volume"
+            value={draft.volumeUnit}
+            onChange={(event) => updateUnit('volumeUnit', event.target.value)}
+          />
+        </Grid>
+      </Grid>
+    </Box>
   );
 };

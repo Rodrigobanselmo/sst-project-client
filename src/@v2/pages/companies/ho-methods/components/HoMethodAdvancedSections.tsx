@@ -30,6 +30,7 @@ import {
   HO_METHOD_TEMPERATURE_UNIT_OPTIONS,
   normalizeHoMethodTemperatureUnit,
 } from '../maps/ho-method.maps';
+import { deriveAgentCollection } from '../utils/ho-method-agent-sampling.util';
 import { InferredEvaluationOption } from '../utils/ho-method-evaluation.util';
 import {
   buildLabNumericInputKey,
@@ -147,6 +148,8 @@ export const HoMethodAdvancedSections: FC<Props> = ({
     checked: boolean,
   ) => {
     if (checked) {
+      const derived = deriveAgentCollection(selectedConditions);
+      const sampling = derived.kind === 'uniform' ? derived.sampling : null;
       onChangeConditions([
         ...selectedConditions.filter(
           (item) => item.evaluationType !== option.evaluationType,
@@ -155,8 +158,12 @@ export const HoMethodAdvancedSections: FC<Props> = ({
           evaluationType: option.evaluationType,
           limitValue: option.limitValue,
           limitUnit: option.limitUnit,
-          flowRateUnit: 'L/min',
-          volumeUnit: 'L',
+          minimumFlowRate: sampling?.minimumFlowRate ?? null,
+          maximumFlowRate: sampling?.maximumFlowRate ?? null,
+          minimumVolume: sampling?.minimumVolume ?? null,
+          maximumVolume: sampling?.maximumVolume ?? null,
+          flowRateUnit: sampling?.flowRateUnit ?? 'L/min',
+          volumeUnit: sampling?.volumeUnit ?? 'L',
         },
       ]);
       return;

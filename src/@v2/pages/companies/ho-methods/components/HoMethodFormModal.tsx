@@ -65,6 +65,7 @@ import {
   buildDefaultDisplayName,
   normalizeHoMethodTemperatureUnit,
 } from '../maps/ho-method.maps';
+import { shouldShowMethodLevelFlowFields } from '../utils/ho-method-agent-sampling.util';
 import { getHoMethodApiErrorMessage } from '../utils/ho-method-error.util';
 import {
   buildHoMethodSubmitPayload,
@@ -583,6 +584,29 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     syncAgentsToForm(nextAgents);
   };
 
+  const handleChangeAgentCollection = (
+    localId: string,
+    conditions: MethodAgentFormItem['evaluationConditions'],
+  ) => {
+    const nextAgents = methodAgents.map((agent) =>
+      agent.localId === localId
+        ? { ...agent, evaluationConditions: conditions }
+        : agent,
+    );
+    setMethodAgents(nextAgents);
+    syncAgentsToForm(nextAgents);
+  };
+
+  const showMethodLevelFlowFields = shouldShowMethodLevelFlowFields({
+    methodFlowValues: [
+      numericInputs.minimumFlowRate,
+      numericInputs.maximumFlowRate,
+      numericInputs.minimumVolume,
+      numericInputs.maximumVolume,
+    ],
+    agents: methodAgents,
+  });
+
   const handleCasSearch = (value: string) => {
     setCasInput(value);
     debouncedCasSearch(value);
@@ -1052,6 +1076,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
           onSelectAgentToAdd={handleSelectAgentToAdd}
           onCasChange={handleCasSearch}
           onCreateRisk={() => void handleOpenCreateRisk()}
+          onChangeAgentCollection={handleChangeAgentCollection}
           riskFactorError={fieldErrors.riskFactorId}
         />
 
@@ -1156,74 +1181,85 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
               </Button>
             </Box>
           </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              inputMode="decimal"
-              label="Vazão mínima permitida"
-              value={numericInputs.minimumFlowRate}
-              error={Boolean(fieldErrors.minimumFlowRate)}
-              helperText={fieldErrors.minimumFlowRate}
-              onChange={(e) =>
-                updateNumericInput('minimumFlowRate', e.target.value)
-              }
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              inputMode="decimal"
-              label="Vazão máxima permitida"
-              value={numericInputs.maximumFlowRate}
-              error={Boolean(fieldErrors.maximumFlowRate)}
-              helperText={fieldErrors.maximumFlowRate}
-              onChange={(e) =>
-                updateNumericInput('maximumFlowRate', e.target.value)
-              }
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Unidade de vazão"
-              value={form.flowRateUnit ?? ''}
-              onChange={(e) => updateField('flowRateUnit', e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              inputMode="decimal"
-              label="Volume mínimo permitido"
-              value={numericInputs.minimumVolume}
-              error={Boolean(fieldErrors.minimumVolume)}
-              helperText={fieldErrors.minimumVolume}
-              onChange={(e) =>
-                updateNumericInput('minimumVolume', e.target.value)
-              }
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              inputMode="decimal"
-              label="Volume máximo permitido"
-              value={numericInputs.maximumVolume}
-              error={Boolean(fieldErrors.maximumVolume)}
-              helperText={fieldErrors.maximumVolume}
-              onChange={(e) =>
-                updateNumericInput('maximumVolume', e.target.value)
-              }
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              fullWidth
-              label="Unidade de volume"
-              value={form.volumeUnit ?? ''}
-              onChange={(e) => updateField('volumeUnit', e.target.value)}
-            />
-          </Grid>
+          {showMethodLevelFlowFields ? (
+            <>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  inputMode="decimal"
+                  label="Vazão mínima permitida"
+                  value={numericInputs.minimumFlowRate}
+                  error={Boolean(fieldErrors.minimumFlowRate)}
+                  helperText={fieldErrors.minimumFlowRate}
+                  onChange={(e) =>
+                    updateNumericInput('minimumFlowRate', e.target.value)
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  inputMode="decimal"
+                  label="Vazão máxima permitida"
+                  value={numericInputs.maximumFlowRate}
+                  error={Boolean(fieldErrors.maximumFlowRate)}
+                  helperText={fieldErrors.maximumFlowRate}
+                  onChange={(e) =>
+                    updateNumericInput('maximumFlowRate', e.target.value)
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Unidade de vazão"
+                  value={form.flowRateUnit ?? ''}
+                  onChange={(e) => updateField('flowRateUnit', e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  inputMode="decimal"
+                  label="Volume mínimo permitido"
+                  value={numericInputs.minimumVolume}
+                  error={Boolean(fieldErrors.minimumVolume)}
+                  helperText={fieldErrors.minimumVolume}
+                  onChange={(e) =>
+                    updateNumericInput('minimumVolume', e.target.value)
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  inputMode="decimal"
+                  label="Volume máximo permitido"
+                  value={numericInputs.maximumVolume}
+                  error={Boolean(fieldErrors.maximumVolume)}
+                  helperText={fieldErrors.maximumVolume}
+                  onChange={(e) =>
+                    updateNumericInput('maximumVolume', e.target.value)
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  label="Unidade de volume"
+                  value={form.volumeUnit ?? ''}
+                  onChange={(e) => updateField('volumeUnit', e.target.value)}
+                />
+              </Grid>
+            </>
+          ) : (
+            <Grid item xs={12}>
+              <Alert severity="info">
+                Este método possui condições de coleta específicas por agente.
+                Consulte ou edite as condições nos agentes acima.
+              </Alert>
+            </Grid>
+          )}
           <Grid item xs={12}>
             <Box display="flex" gap={1}>
               <Box flex={1}>

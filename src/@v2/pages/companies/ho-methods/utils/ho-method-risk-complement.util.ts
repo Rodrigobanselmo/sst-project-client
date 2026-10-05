@@ -132,11 +132,16 @@ const inferSuggestedUnit = (agent: HoMethodImportAgentSuggestion) => {
 
 export function buildRiskComplementSuggestions(params: {
   agent: HoMethodImportAgentSuggestion;
+  riskFactor?: HoMethodRiskFactorSnapshot | null;
+  linkReasons?: Array<'exact-cas' | 'exact-name' | 'explicit-coverage'>;
   methodCode?: string;
   methodInstitution?: string;
 }): RiskComplementSuggestion[] {
   const { agent, methodCode, methodInstitution } = params;
-  const risk = agent.matchedRiskFactor;
+  const risk = params.riskFactor ?? agent.matchedRiskFactor;
+  const reasons = params.linkReasons ?? [];
+  const canSuggestExtractedCas =
+    reasons.includes('exact-cas') || reasons.includes('exact-name');
 
   if (!risk || agent.matchConfidence !== 'high') return [];
 
@@ -190,7 +195,7 @@ export function buildRiskComplementSuggestions(params: {
     });
   }
 
-  if (agent.cas && !risk.cas?.trim()) {
+  if (agent.cas && !risk.cas?.trim() && canSuggestExtractedCas) {
     suggestions.push({
       key: 'cas',
       label: 'CAS',
@@ -202,14 +207,19 @@ export function buildRiskComplementSuggestions(params: {
     });
   }
 
-  const newSynonyms = agent.synonyms.filter(
-    (synonym) =>
-      synonym &&
-      !risk.synonymous?.some(
-        (existing) =>
-          normalizeCompareValue(existing) === normalizeCompareValue(synonym),
-      ),
-  );
+  const canSuggestLiteralSynonyms =
+    reasons.includes('exact-cas') || reasons.includes('exact-name');
+
+  const newSynonyms = canSuggestLiteralSynonyms
+    ? agent.synonyms.filter(
+        (synonym) =>
+          synonym &&
+          !risk.synonymous?.some(
+            (existing) =>
+              normalizeCompareValue(existing) === normalizeCompareValue(synonym),
+          ),
+      )
+    : [];
 
   if (newSynonyms.length) {
     const merged = [...(risk.synonymous ?? []), ...newSynonyms].join(', ');
@@ -260,6 +270,14 @@ export function hasRiskComplementSuggestions(
   agent: HoMethodImportAgentSuggestion,
   methodCode?: string,
   methodInstitution?: string,
+  riskFactor?: HoMethodRiskFactorSnapshot | null,
+  linkReasons?: Array<'exact-cas' | 'exact-name' | 'explicit-coverage'>,
 ) {
-  return buildRiskComplementSuggestions({ agent, methodCode, methodInstitution }).length > 0;
+  return buildRiskComplementSuggestions({
+    agent,
+    riskFactor,
+    linkReasons,
+    methodCode,
+    methodInstitution,
+  }).length > 0;
 }

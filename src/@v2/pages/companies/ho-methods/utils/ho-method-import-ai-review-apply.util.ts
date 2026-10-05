@@ -4,7 +4,7 @@ import type {
   HoMethodImportParseResult,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 
-import { parseOptionalNumber } from './ho-method-import.util';
+import { parseOptionalNumber, refreshImportConfirmState } from './ho-method-import.util';
 
 const toImportField = <T>(value: T | null | undefined, confidence: 'high' | 'medium' | 'low' = 'medium') => ({
   value: value ?? null,
@@ -13,33 +13,47 @@ const toImportField = <T>(value: T | null | undefined, confidence: 'high' | 'med
 
 const mapAiAgentToSuggestion = (
   agent: HoMethodAiReviewResult['agents'][number],
-): HoMethodImportAgentSuggestion => ({
-  substanceName: agent.translatedNamePtBr?.trim() || agent.name,
-  cas: agent.cas ?? null,
-  synonyms: agent.synonyms ?? [],
-  technicalNotes: agent.technicalNotes ?? [],
-  occupationalLimits: agent.occupationalLimits
-    ? {
-        acgihTwa: toImportField(agent.occupationalLimits.acgihTwa),
-        acgihStel: toImportField(agent.occupationalLimits.acgihStel),
-        acgihCeiling: toImportField(agent.occupationalLimits.acgihCeiling),
-        aihaWeel: toImportField(agent.occupationalLimits.aihaWeel),
-        aihaWeelStel: toImportField(agent.occupationalLimits.aihaWeelStel),
-        aihaWeelCeiling: toImportField(agent.occupationalLimits.aihaWeelCeiling),
-        oshaPel: toImportField(agent.occupationalLimits.oshaPel),
-        oshaStel: toImportField(agent.occupationalLimits.oshaStel),
-        oshaCeiling: toImportField(agent.occupationalLimits.oshaCeiling),
-        nioshRel: toImportField(agent.occupationalLimits.nioshRel),
-        nioshStel: toImportField(agent.occupationalLimits.nioshStel),
-        nioshCeiling: toImportField(agent.occupationalLimits.nioshCeiling),
-        nioshIdlh: toImportField(null),
-      }
-    : undefined,
-  matchedRiskFactor: agent.matchedRiskFactor ?? null,
-  found: Boolean(agent.matchedRiskFactor && agent.matchConfidence === 'high'),
-  matchConfidence: agent.matchConfidence ?? 'none',
-  candidateRiskFactors: agent.candidateRiskFactors ?? [],
-});
+): HoMethodImportAgentSuggestion => {
+  const riskLinks = agent.riskLinks ?? [];
+  const selected = riskLinks.filter((link) => link.selected);
+  const matchConfidence: 'high' | 'low' | 'none' = selected.length
+    ? 'high'
+    : (agent.approximateCandidates ?? []).length
+      ? 'low'
+      : 'none';
+
+  return {
+    substanceName: agent.translatedNamePtBr?.trim() || agent.name,
+    cas: agent.cas ?? null,
+    synonyms: agent.synonyms ?? [],
+    explicitCoverage: agent.explicitCoverage ?? [],
+    technicalNotes: agent.technicalNotes ?? [],
+    occupationalLimits: agent.occupationalLimits
+      ? {
+          acgihTwa: toImportField(agent.occupationalLimits.acgihTwa),
+          acgihStel: toImportField(agent.occupationalLimits.acgihStel),
+          acgihCeiling: toImportField(agent.occupationalLimits.acgihCeiling),
+          aihaWeel: toImportField(agent.occupationalLimits.aihaWeel),
+          aihaWeelStel: toImportField(agent.occupationalLimits.aihaWeelStel),
+          aihaWeelCeiling: toImportField(agent.occupationalLimits.aihaWeelCeiling),
+          oshaPel: toImportField(agent.occupationalLimits.oshaPel),
+          oshaStel: toImportField(agent.occupationalLimits.oshaStel),
+          oshaCeiling: toImportField(agent.occupationalLimits.oshaCeiling),
+          nioshRel: toImportField(agent.occupationalLimits.nioshRel),
+          nioshStel: toImportField(agent.occupationalLimits.nioshStel),
+          nioshCeiling: toImportField(agent.occupationalLimits.nioshCeiling),
+          nioshIdlh: toImportField(null),
+        }
+      : undefined,
+    riskLinks,
+    approximateCandidates: agent.approximateCandidates ?? [],
+    coverageWarnings: [],
+    matchedRiskFactor: selected[0]?.riskFactor ?? null,
+    found: selected.length > 0,
+    matchConfidence,
+    candidateRiskFactors: agent.approximateCandidates ?? agent.candidateRiskFactors ?? [],
+  };
+};
 
 export function applyHoMethodAiReviewSelection(params: {
   parserResult: HoMethodImportParseResult;
@@ -128,21 +142,5 @@ export function applyHoMethodAiReviewSelection(params: {
     next.warnings.push('Lista de agentes atualizada com base na análise assistida por IA.');
   }
 
-  const unmatchedAgents = next.agents.filter((agent) => !agent.found);
-  next.canConfirm =
-    next.isSupportedMethod &&
-    Boolean(next.fields.methodCode.value) &&
-    next.agents.length > 0 &&
-    unmatchedAgents.length === 0;
-  next.confirmBlockReason = !next.isSupportedMethod
-    ? 'O PDF não parece ser um método NIOSH/NMAM suportado.'
-    : !next.fields.methodCode.value
-      ? 'Informe ou confirme o código do método antes de importar.'
-      : next.agents.length === 0
-        ? 'Nenhum agente identificado para importação.'
-        : unmatchedAgents.length > 0
-          ? 'Vincule todos os agentes a fatores de risco químicos cadastrados antes de confirmar.'
-          : null;
-
-  return next;
+  return refreshImportConfirmState(next);
 }

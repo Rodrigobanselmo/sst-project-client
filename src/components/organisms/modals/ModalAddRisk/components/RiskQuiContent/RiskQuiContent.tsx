@@ -21,6 +21,7 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
   getValues,
   watch,
   isCatalogReadOnly,
+  riskEditorLayout,
 }) => {
   const ipvsMeta = extractRiskFactorIpvsMeta(riskData.json);
   const ipvsUnitLabel = ipvsMeta?.unit || '';
@@ -28,7 +29,13 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
   return (
     <>
       <SFlex mt={8}>
-        <Box>
+        <Box
+          sx={
+            riskEditorLayout === 'inline'
+              ? { width: '100%', minWidth: 0 }
+              : { width: '100%', maxWidth: 760, minWidth: 0 }
+          }
+        >
           <InputForm
             setValue={setValue}
             defaultValue={riskData.cas}

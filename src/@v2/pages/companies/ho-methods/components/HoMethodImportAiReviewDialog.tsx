@@ -182,9 +182,17 @@ export const HoMethodImportAiReviewDialog: FC<Props> = ({
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   Confiança: {agent.confidence}
-                  {agent.matchedRiskFactor
-                    ? ` · Match: ${agent.matchedRiskFactor.name}`
+                  {agent.explicitCoverage?.length
+                    ? ` · Método cobre: ${agent.explicitCoverage.join(', ')}`
                     : ''}
+                  {agent.riskLinks?.length
+                    ? ` · Vínculos: ${agent.riskLinks
+                        .filter((link) => link.selected)
+                        .map((link) => link.riskFactor.name)
+                        .join(', ')}`
+                    : agent.matchedRiskFactor
+                      ? ` · Match: ${agent.matchedRiskFactor.name}`
+                      : ''}
                   {agent.warnings?.length ? ` · ${agent.warnings.join(' | ')}` : ''}
                 </Typography>
                 {agent.sourceTrace?.length ? (

@@ -42,6 +42,7 @@ import { mapRiskFactorsToHoMethodSnapshot } from '../utils/ho-method-evaluation.
 type Props = {
   open: boolean;
   agent: HoMethodImportAgentSuggestion | null;
+  linkReasons?: Array<'exact-cas' | 'exact-name' | 'explicit-coverage'>;
   methodCode?: string;
   methodInstitution?: string;
   onClose: () => void;
@@ -51,6 +52,7 @@ type Props = {
 export const HoMethodComplementRiskDialog: FC<Props> = ({
   open,
   agent,
+  linkReasons,
   methodCode,
   methodInstitution,
   onClose,
@@ -81,13 +83,15 @@ export const HoMethodComplementRiskDialog: FC<Props> = ({
   const suggestions = useMemo(
     () =>
       effectiveAgent
-        ? buildRiskComplementSuggestions({
+        ?         buildRiskComplementSuggestions({
             agent: effectiveAgent,
+            riskFactor: effectiveAgent.matchedRiskFactor,
+            linkReasons,
             methodCode,
             methodInstitution,
           })
         : [],
-    [effectiveAgent, methodCode, methodInstitution],
+    [effectiveAgent, linkReasons, methodCode, methodInstitution],
   );
 
   useEffect(() => {
