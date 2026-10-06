@@ -102,6 +102,8 @@ import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
 import { RecoverFormAiAnalysisModal } from './RecoverFormAiAnalysisModal';
 import { FrpsMatrixEquation } from './FrpsMatrixEquation';
 import { FrpsOccupationalLevelDots } from './FrpsOccupationalLevelDots';
+import { FrpsOccupationalDistributionSummary } from './FrpsOccupationalDistributionSummary';
+import { aggregateFrpsOccupationalDistribution } from './frps-occupational-distribution.util';
 import { FrpsOccupationalRiskFilter } from './FrpsOccupationalRiskFilter';
 import { HierarchyGroupRiskAnalysisCard } from './HierarchyGroupRiskAnalysisCard';
 import {
@@ -1352,6 +1354,38 @@ export const FormRisksAnalysis = ({
     getEffectiveProbability,
   ]);
 
+  const occupationalDistribution = useMemo(
+    () =>
+      aggregateFrpsOccupationalDistribution({
+        risks: risksWithData.map((riskId) => {
+          const partitions = buildRiskAnalysisDisplayPartitions({
+            entityIds: getEntitiesWithRisk(riskId),
+            hierarchyGroups,
+            entityMap,
+          });
+          return {
+            riskId,
+            severity: riskMap[riskId]?.severity,
+            groups: partitions.groups.map((group) => ({
+              memberEntityIds: group.memberEntityIds,
+            })),
+            ungroupedEntityIds: partitions.ungrouped,
+          };
+        }),
+        analysisResults: formQuestionsAnswersAnalysis?.results ?? [],
+        getEffectiveProbability,
+      }),
+    [
+      entityMap,
+      formQuestionsAnswersAnalysis?.results,
+      getEffectiveProbability,
+      getEntitiesWithRisk,
+      hierarchyGroups,
+      riskMap,
+      risksWithData,
+    ],
+  );
+
   const visibleRiskIds = useMemo(
     () =>
       risksWithData.filter((riskId) =>
@@ -2157,6 +2191,7 @@ export const FormRisksAnalysis = ({
         <SFlex gap={2}>
           <AiActionButtonGroup
             variant="s-button-shade"
+            configureIconOnly
             label={generalAnalyzeButtonLabel}
             loading={isAnalyzing || hasProcessingAnalyses}
             disabled={hasProcessingAnalyses}
@@ -2203,6 +2238,9 @@ export const FormRisksAnalysis = ({
       />
 
       <SFlex direction="column" gap={2} mb={2}>
+        <FrpsOccupationalDistributionSummary
+          distribution={occupationalDistribution}
+        />
         <FrpsOccupationalRiskFilter
           selectedLevels={selectedOccupationalLevels}
           onChange={setSelectedOccupationalLevels}

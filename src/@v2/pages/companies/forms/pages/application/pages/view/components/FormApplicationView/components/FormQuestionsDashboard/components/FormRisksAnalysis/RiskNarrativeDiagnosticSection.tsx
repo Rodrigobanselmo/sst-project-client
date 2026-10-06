@@ -168,12 +168,22 @@ export const RiskNarrativeDiagnosticSection = ({
         expanded={expanded}
         onChange={(_, nextExpanded) => setExpanded(nextExpanded)}
         title={
-          <SText fontSize={16} fontWeight="bold" component="span">
+          <SText
+            fontSize={16}
+            fontWeight="bold"
+            component="p"
+            sx={{ m: 0, lineHeight: 1.3 }}
+          >
             Diagnóstico narrativo com IA
           </SText>
         }
         subtitle={
-          <SText fontSize={13} color="text.secondary" component="span">
+          <SText
+            fontSize={13}
+            color="text.secondary"
+            component="p"
+            sx={{ m: 0, lineHeight: 1.35 }}
+          >
             Síntese em texto do recorte atual da análise de riscos (matriz, níveis e
             análises já concluídas). A geração só ocorre quando você solicitar.
           </SText>
@@ -186,6 +196,7 @@ export const RiskNarrativeDiagnosticSection = ({
           >
             <AiActionButtonGroup
               variant="s-button-shade"
+              configureIconOnly
               label={generateButtonLabel}
               loading={isGenerating}
               disabled={showProcessing || isGenerating}
@@ -209,16 +220,24 @@ export const RiskNarrativeDiagnosticSection = ({
             overflow: 'hidden',
             '& .MuiAccordionSummary-root': {
               px: 3,
-              py: 1.5,
+              py: 1,
               minHeight: 0,
               alignItems: 'center',
               gap: 1,
             },
             '& .MuiAccordionSummary-content': {
-              my: 1,
+              my: 0.5,
               mr: 1,
               flexGrow: 1,
               minWidth: 0,
+              alignItems: 'center',
+            },
+            '& .MuiAccordionSummary-content > :first-child': {
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '1 1 auto',
+              minWidth: 0,
+              gap: 0.25,
             },
             '& .MuiAccordionDetails-root': {
               px: 3,
