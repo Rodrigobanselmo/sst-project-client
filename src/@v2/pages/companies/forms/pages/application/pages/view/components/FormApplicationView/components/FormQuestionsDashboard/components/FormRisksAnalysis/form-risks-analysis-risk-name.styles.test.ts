@@ -57,15 +57,15 @@ describe('FormRisksAnalysis risk name wiring', () => {
     assert.match(source, /Risco adicionado a todos os setores/);
   });
 
-  it('7 styles apply only to the risk name title, not sector badges', () => {
+  it('7 styles apply only to the risk name title, not the classification chips', () => {
     assert.match(source, /riskFactorNameTypographySx/);
-    assert.equal(source.includes('sectorRowBadgeTextSx'), true);
-    // Nome do risco não reutiliza estilos de badge de setor.
+    assert.match(source, /FrpsMatrixEquation/);
     const titleBlockStart = source.indexOf('title={');
     const titleBlockEnd = source.indexOf('</SFlex>', titleBlockStart);
     const titleBlock = source.slice(titleBlockStart, titleBlockEnd);
     assert.match(titleBlock, /riskFactorNameTypographySx/);
-    assert.equal(titleBlock.includes('sectorRowBadgeTextSx'), false);
+    assert.equal(titleBlock.includes('FrpsMatrixEquation'), false);
+    assert.equal(titleBlock.includes('FrpsOccupationalLevelDots'), false);
     assert.equal(titleBlock.includes('whiteSpace: \'normal\''), false);
     assert.equal(titleBlock.includes('wordBreak'), false);
   });

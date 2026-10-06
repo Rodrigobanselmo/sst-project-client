@@ -100,7 +100,15 @@ import {
 } from './frps-explainability';
 import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
 import { RecoverFormAiAnalysisModal } from './RecoverFormAiAnalysisModal';
+import { FrpsMatrixEquation } from './FrpsMatrixEquation';
+import { FrpsOccupationalLevelDots } from './FrpsOccupationalLevelDots';
+import { FrpsOccupationalRiskFilter } from './FrpsOccupationalRiskFilter';
 import { HierarchyGroupRiskAnalysisCard } from './HierarchyGroupRiskAnalysisCard';
+import {
+  collectDistinctFrpsOccupationalLevels,
+  FRPS_OCCUPATIONAL_FILTER_LEVELS,
+  frpsPassesOccupationalFilter,
+} from './frps-occupational-summary.util';
 import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
 import { buildAnalysisItemCodeRegistry } from '../../helpers/analysis-item-codes.utils';
 import type { AnalysisItemCodeEntry } from '../../helpers/analysis-item-codes.utils';
@@ -230,155 +238,8 @@ interface FormRisksAnalysisProps {
   selectedGroupingLabel?: string | null;
 }
 
-export const probabilityMap: Record<number, { label: string; color: string }> =
-  {
-    1: { label: 'Desprezível', color: '#3cbe7d' },
-    2: { label: 'Pequena', color: '#8fa728' },
-    3: { label: 'Moderada', color: '#d9d10b' },
-    4: { label: 'Significativa', color: '#d96c2f' },
-    5: { label: 'Excessiva', color: '#F44336' },
-    0: { label: 'não contabilizar', color: '#eeeeee' },
-  };
-
-const severityMap: Record<number, { label: string; color: string }> = {
-  1: { label: 'Desprezível', color: '#3cbe7d' },
-  2: { label: 'Pequena', color: '#8fa728' },
-  3: { label: 'Moderada', color: '#d9d10b' },
-  4: { label: 'Significante', color: '#d96c2f' },
-  5: { label: 'Excessiva', color: '#F44336' },
-  0: { label: 'Não informado', color: '#eeeeee' },
-};
-
-const occupationalRiskColorMap: Record<string, string> = {
-  'Muito Baixo': '#3cbe7d',
-  Baixo: '#8fa728',
-  Moderado: '#d9d10b',
-  Alto: '#d96c2f',
-  'Muito Alto': '#F44336',
-  'Não informado': '#eeeeee',
-};
-
-const formatTwoDigits = (n: number) => String(n).padStart(2, '0');
-
-const isValidMatrixValue = (n: unknown): n is number =>
+const isMatrixAxisValue = (n: unknown): n is number =>
   typeof n === 'number' && Number.isFinite(n) && n >= 1 && n <= 5;
-
-const CLASSIFICATION_BADGE_WIDTH_SCALE = 0.76;
-const SECTOR_ROW_WIDTH_REDUCTION = 0.83;
-const SECTOR_ROW_WIDTH_ADJUSTMENT = 1.59;
-
-const SECTOR_ROW_ELEMENT_LABELS = [
-  'Adicionar risco a este setor',
-  'Analisar IA novamente deste setor',
-  'Analisar IA deste setor',
-  'Analisando IA...',
-  'Processamento interrompido',
-  'Probabilidade: 04 Significativa',
-  'Severidade: 05 Excessiva',
-  'Risco Ocupacional: Não informado',
-];
-
-const buildSectorRowElementWidth = () => {
-  const longestBadgeLabelLength = Math.max(
-    'Probabilidade: 04 Significativa'.length,
-    'Severidade: 05 Excessiva'.length,
-    'Risco Ocupacional: Não informado'.length,
-  );
-  const currentMaxBadgeWidthCh = Math.ceil(
-    longestBadgeLabelLength * CLASSIFICATION_BADGE_WIDTH_SCALE,
-  );
-  const reducedBadgeWidthCh = Math.ceil(
-    currentMaxBadgeWidthCh * SECTOR_ROW_WIDTH_REDUCTION,
-  );
-  const longestLabelLength = Math.max(
-    ...SECTOR_ROW_ELEMENT_LABELS.map((label) => label.length),
-  );
-  const widthForCompactControlsCh = Math.ceil(longestLabelLength * 0.62);
-  const baseWidthCh = Math.max(
-    reducedBadgeWidthCh,
-    widthForCompactControlsCh,
-  );
-
-  return `${Math.ceil(baseWidthCh * SECTOR_ROW_WIDTH_ADJUSTMENT)}ch`;
-};
-
-const SECTOR_ROW_ELEMENT_WIDTH = buildSectorRowElementWidth();
-const SECTOR_ROW_ELEMENT_HEIGHT = 32;
-const SECTOR_ROW_STACK_GAP = 4;
-const SECTOR_ROW_OCCUPATIONAL_BADGE_HEIGHT =
-  SECTOR_ROW_ELEMENT_HEIGHT * 2 + SECTOR_ROW_STACK_GAP;
-
-const sectorRowStackSx = {
-  flexShrink: 0,
-  display: 'flex',
-  flexDirection: 'column' as const,
-  gap: `${SECTOR_ROW_STACK_GAP}px`,
-};
-
-const sectorRowElementBaseSx = {
-  boxSizing: 'border-box' as const,
-  flexShrink: 0,
-  width: SECTOR_ROW_ELEMENT_WIDTH,
-  minWidth: SECTOR_ROW_ELEMENT_WIDTH,
-  maxWidth: SECTOR_ROW_ELEMENT_WIDTH,
-  minHeight: SECTOR_ROW_ELEMENT_HEIGHT,
-  height: SECTOR_ROW_ELEMENT_HEIGHT,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  textAlign: 'center' as const,
-  whiteSpace: 'nowrap' as const,
-  px: 0.5,
-  fontSize: '0.7rem',
-  lineHeight: 1.2,
-};
-
-const sectorActionButtonSx = {
-  ...sectorRowElementBaseSx,
-  py: 0,
-  fontWeight: 600,
-};
-
-const badgeSx = (bg: string) => ({
-  ...sectorRowElementBaseSx,
-  backgroundColor: bg,
-  borderRadius: 1,
-  border: '1px solid',
-  borderColor: 'grey.200',
-});
-
-const occupationalRiskBadgeSx = (bg: string) => ({
-  ...badgeSx(bg),
-  position: 'relative' as const,
-  height: SECTOR_ROW_OCCUPATIONAL_BADGE_HEIGHT,
-  minHeight: SECTOR_ROW_OCCUPATIONAL_BADGE_HEIGHT,
-  borderColor: 'grey.400',
-});
-
-const sectorRowClassificationDotsSx = {
-  position: 'absolute' as const,
-  top: 4,
-  left: 4,
-  display: 'flex',
-  gap: '3px',
-  pointerEvents: 'none' as const,
-};
-
-const sectorRowClassificationDotSx = (color: string) => ({
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
-  backgroundColor: color,
-  border: '1px solid #fff',
-  flexShrink: 0,
-});
-
-const sectorRowBadgeTextSx = {
-  fontSize: '0.7rem',
-  lineHeight: 1.2,
-  textAlign: 'center',
-  width: '100%',
-};
 
 export const FormRisksAnalysis = ({
   formApplication,
@@ -393,6 +254,9 @@ export const FormRisksAnalysis = ({
   const [expandedRisks, setExpandedRisks] = useState<Record<string, boolean>>(
     {},
   );
+  const [selectedOccupationalLevels, setSelectedOccupationalLevels] = useState<
+    Set<number>
+  >(() => new Set(FRPS_OCCUPATIONAL_FILTER_LEVELS));
 
   const [expandedAnalysis, setExpandedAnalysis] = useState<
     Record<string, boolean>
@@ -1456,6 +1320,49 @@ export const FormRisksAnalysis = ({
     [riskMap, getEntitiesWithRisk],
   );
 
+  const occupationalLevelsByRiskId = useMemo(() => {
+    const levelsByRiskId = new Map<string, ReturnType<typeof collectDistinctFrpsOccupationalLevels>>();
+    for (const riskId of risksWithData) {
+      const partitions = buildRiskAnalysisDisplayPartitions({
+        entityIds: getEntitiesWithRisk(riskId),
+        hierarchyGroups,
+        entityMap,
+      });
+      levelsByRiskId.set(
+        riskId,
+        collectDistinctFrpsOccupationalLevels({
+          severity: riskMap[riskId]?.severity,
+          groupProbabilities: partitions.groups.flatMap((entry) => {
+            const entityId = entry.memberEntityIds[0];
+            return entityId ? [getEffectiveProbability(entityId, riskId)] : [];
+          }),
+          ungroupedProbabilities: partitions.ungrouped.map((entityId) =>
+            getEffectiveProbability(entityId, riskId),
+          ),
+        }),
+      );
+    }
+    return levelsByRiskId;
+  }, [
+    risksWithData,
+    getEntitiesWithRisk,
+    hierarchyGroups,
+    entityMap,
+    riskMap,
+    getEffectiveProbability,
+  ]);
+
+  const visibleRiskIds = useMemo(
+    () =>
+      risksWithData.filter((riskId) =>
+        frpsPassesOccupationalFilter({
+          levels: occupationalLevelsByRiskId.get(riskId) ?? [],
+          selectedLevels: selectedOccupationalLevels,
+        }),
+      ),
+    [risksWithData, occupationalLevelsByRiskId, selectedOccupationalLevels],
+  );
+
   const clearAiRiskOptions = useMemo(
     () =>
       risksWithData.map((riskId) => ({
@@ -2295,10 +2202,23 @@ export const FormRisksAnalysis = ({
         isMaster={isMaster}
       />
 
+      <SFlex direction="column" gap={2} mb={2}>
+        <FrpsOccupationalRiskFilter
+          selectedLevels={selectedOccupationalLevels}
+          onChange={setSelectedOccupationalLevels}
+        />
+      </SFlex>
+
       <SFlex direction="column" gap={2}>
-        {risksWithData.map((riskId) => {
+        {visibleRiskIds.length === 0 && (
+          <Typography variant="body2" color="text.secondary">
+            Nenhum FRPS com os níveis de risco ocupacional selecionados.
+          </Typography>
+        )}
+        {visibleRiskIds.map((riskId) => {
           const risk = riskMap[riskId];
           const isExpanded = expandedRisks[riskId] || false;
+          const collapsedLevels = occupationalLevelsByRiskId.get(riskId) ?? [];
 
           const entitiesWithRisk = getEntitiesWithRisk(riskId);
           const riskPartitions = buildRiskAnalysisDisplayPartitions({
@@ -2326,15 +2246,32 @@ export const FormRisksAnalysis = ({
               onChange={() => handleAccordionChange(riskId)}
               accordionProps={{ sx: riskFactorAccordionSummarySx }}
               endComponent={
-                <>
-                  {entitiesWithRisk.every((entityId) =>
-                    isRiskInInventory(riskId, entityId),
-                  ) && (
-                    <SText color="success.main" fontSize={12} ml="auto" mr={5}>
-                      Risco adicionado a todos os setores
-                    </SText>
-                  )}
-                </>
+                entitiesWithRisk.every((entityId) =>
+                  isRiskInInventory(riskId, entityId),
+                ) ||
+                (!isExpanded && collapsedLevels.length > 0) ? (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      flexShrink: 0,
+                      pointerEvents: 'none',
+                      ml: 1,
+                    }}
+                  >
+                    {entitiesWithRisk.every((entityId) =>
+                      isRiskInInventory(riskId, entityId),
+                    ) && (
+                      <SText color="success.main" fontSize={12}>
+                        Risco adicionado a todos os setores
+                      </SText>
+                    )}
+                    {!isExpanded && (
+                      <FrpsOccupationalLevelDots levels={collapsedLevels} />
+                    )}
+                  </Box>
+                ) : undefined
               }
               title={
                 <SFlex alignItems="center" gap={2} sx={riskFactorNameRowSx}>
@@ -2471,23 +2408,16 @@ export const FormRisksAnalysis = ({
                       const entity = entityMap[entityId];
                       const severity = risk?.severity;
                       const probability = getEffectiveProbability(entityId, riskId);
-
-                      const hasValidSeverity = isValidMatrixValue(severity);
-                      const hasValidProbability = isValidMatrixValue(probability);
-
+                      const hasValidSeverity = isMatrixAxisValue(severity);
+                      const hasValidProbability = isMatrixAxisValue(probability);
                       const matriz =
                         hasValidSeverity && hasValidProbability
                           ? getMatrizRisk(severity, probability)
                           : null;
-
-                      // UX: a matriz tem nível 6 ("Interromper"), mas a padronização desta tela
-                      // exige no máximo "Muito Alto".
-                      const occupationalRiskLabel =
-                        !matriz || matriz.level === 0
-                          ? 'Não informado'
-                          : matriz.level >= 5
-                            ? 'Muito Alto'
-                            : matriz.label;
+                      const occupationalLevel = resolveOccupationalRiskLevel(
+                        severity,
+                        probability,
+                      );
 
                       return (
                         <Box
@@ -2534,42 +2464,28 @@ export const FormRisksAnalysis = ({
                                 {entity.name}
                               </Typography>
                             </SFlex>
-                            <SFlex sx={sectorRowStackSx}>
+                            <SFlex alignItems="center" gap={1} flexWrap="wrap">
                               {isRiskInInventory(riskId, entityId) ? (
-                                <Box
-                                  sx={{
-                                    ...sectorRowElementBaseSx,
-                                    border: '1px solid',
-                                    borderColor: 'grey.200',
-                                    borderRadius: 1,
-                                    color: 'success.main',
-                                    gap: 0.5,
-                                  }}
-                                >
-                                  <CheckIcon sx={{ fontSize: 14 }} />
-                                  <SText
-                                    color="success.main"
-                                    fontSize={11}
-                                    sx={{ lineHeight: 1.2 }}
-                                  >
+                                <SFlex alignItems="center" gap={0.5}>
+                                  <CheckIcon sx={{ fontSize: 14, color: 'success.main' }} />
+                                  <SText color="success.main" fontSize={12}>
                                     Risco adicionado
                                   </SText>
-                                </Box>
+                                </SFlex>
                               ) : (
                                 <SButton
                                   variant="shade"
                                   color="paper"
+                                  size="s"
                                   text="Adicionar risco a este setor"
                                   onClick={() =>
                                     handleAddRiskToEntity(riskId, entityId)
                                   }
-                                  buttonProps={{
-                                    sx: sectorActionButtonSx,
-                                  }}
                                 />
                               )}
                               <AiActionButtonGroup
                                 variant="s-button-shade"
+                                configureIconOnly
                                 label={
                                   isTargetAnalysisProcessing(riskId, entityId)
                                     ? 'Analisando IA...'
@@ -2586,79 +2502,16 @@ export const FormRisksAnalysis = ({
                                 }
                                 onConfigure={() => setAiConfigDialogOpen(true)}
                                 isMaster={isMaster}
-                                sButtonProps={{
-                                  color: 'primary',
-                                  buttonProps: { sx: sectorActionButtonSx },
-                                }}
+                                sButtonProps={{ color: 'primary' }}
+                              />
+                              <FrpsMatrixEquation
+                                probability={probability}
+                                severity={severity}
+                                resultLevel={occupationalLevel}
+                                riskType={risk?.type}
+                                riskSubTypes={risk?.subTypes}
                               />
                             </SFlex>
-                            <SFlex sx={sectorRowStackSx}>
-                              <Box
-                                sx={badgeSx(
-                                  probabilityMap[probability || 0].color,
-                                )}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  color="text.main"
-                                  sx={sectorRowBadgeTextSx}
-                                >
-                                  Probabilidade:{' '}
-                                  {hasValidProbability
-                                    ? `${formatTwoDigits(probability)} ${probabilityMap[probability].label}`
-                                    : 'Não informado'}
-                                </Typography>
-                              </Box>
-
-                              <Box
-                                sx={badgeSx(
-                                  hasValidSeverity
-                                    ? severityMap[severity].color
-                                    : severityMap[0].color,
-                                )}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  color="text.main"
-                                  sx={sectorRowBadgeTextSx}
-                                >
-                                  Severidade:{' '}
-                                  {hasValidSeverity
-                                    ? `${formatTwoDigits(severity)} ${severityMap[severity].label}`
-                                    : 'Não informado'}
-                                </Typography>
-                              </Box>
-                            </SFlex>
-
-                            <Box
-                              sx={occupationalRiskBadgeSx(
-                                occupationalRiskColorMap[occupationalRiskLabel] ??
-                                  occupationalRiskColorMap['Não informado'],
-                              )}
-                            >
-                              <Box sx={sectorRowClassificationDotsSx}>
-                                <Box
-                                  sx={sectorRowClassificationDotSx(
-                                    probabilityMap[probability || 0].color,
-                                  )}
-                                />
-                                <Box
-                                  sx={sectorRowClassificationDotSx(
-                                    hasValidSeverity
-                                      ? severityMap[severity].color
-                                      : severityMap[0].color,
-                                  )}
-                                />
-                              </Box>
-                              <Typography
-                                variant="body2"
-                                color="text.main"
-                                fontWeight={600}
-                                sx={sectorRowBadgeTextSx}
-                              >
-                                Risco Ocupacional: {occupationalRiskLabel}
-                              </Typography>
-                            </Box>
                           </SFlex>
                           {/* AI Analysis Results for this specific risk-entity combination */}
                           {formQuestionsAnswersAnalysis?.results &&

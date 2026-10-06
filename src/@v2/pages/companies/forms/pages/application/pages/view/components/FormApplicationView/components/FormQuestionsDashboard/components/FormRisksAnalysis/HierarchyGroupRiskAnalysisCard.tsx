@@ -14,6 +14,7 @@ import type {
   AnalysisItemInventoryEntry,
 } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse.model';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import { resolveOccupationalRiskLevel } from 'core/utils/helpers/occupational-risk-level.util';
 import type { IRiskData } from 'core/interfaces/api/IRiskData';
 
 import type { HierarchyGroupForRiskAnalysis } from '../../helpers/expandRiskAnalysisEntitiesForHierarchyGroups';
@@ -33,23 +34,7 @@ import {
 } from '../../helpers/group-risk-analysis-display.utils';
 import { isOccupationalRiskEligibleForAiAnalysis } from './form-ai-analysis.utils';
 import { getFormAiAnalysisErrorMessage } from './form-ai-analysis.utils';
-import {
-  badgeSx,
-  formatTwoDigits,
-  isValidMatrixValue,
-  occupationalRiskBadgeSx,
-  occupationalRiskColorMap,
-  probabilityMap,
-  resolveOccupationalRiskLabel,
-  groupCollectiveRiskButtonSx,
-  groupAnalyzeButtonSx,
-  sectorRowElementBaseSx,
-  sectorRowBadgeTextSx,
-  sectorRowClassificationDotSx,
-  sectorRowClassificationDotsSx,
-  sectorRowStackSx,
-  severityMap,
-} from './form-risks-analysis-sector.styles';
+import { FrpsMatrixEquation } from './FrpsMatrixEquation';
 import { RiskEntityAiAnalysisPanel } from './RiskEntityAiAnalysisPanel';
 import { MemberPendingItemCodeChip } from './MemberPendingItemCodeChip';
 import {
@@ -64,7 +49,12 @@ type AnalysisItemType =
 
 export type HierarchyGroupRiskAnalysisCardProps = {
   riskId: string;
-  risk: { severity?: number; name?: string };
+  risk: {
+    severity?: number;
+    name?: string;
+    type?: string | null;
+    subTypes?: ReadonlyArray<{ sub_type: { id: number; name: string } }>;
+  };
   group: HierarchyGroupForRiskAnalysis;
   memberEntityIds: string[];
   entityMap: Record<
@@ -208,13 +198,15 @@ export function HierarchyGroupRiskAnalysisCard({
 
   const probability = getEffectiveProbability(displayCanonicalId, riskId);
   const severity = risk?.severity;
-  const hasValidSeverity = isValidMatrixValue(severity);
-  const hasValidProbability = isValidMatrixValue(probability);
   const matriz =
-    hasValidSeverity && hasValidProbability
+    typeof severity === 'number' &&
+    severity >= 1 &&
+    severity <= 5 &&
+    probability >= 1 &&
+    probability <= 5
       ? getMatrizRisk(severity, probability)
       : null;
-  const occupationalRiskLabel = resolveOccupationalRiskLabel(severity, probability);
+  const occupationalLevel = resolveOccupationalRiskLevel(severity, probability);
 
   const isProcessing = isGroupRiskAnalysisProcessing({
     riskId,
@@ -394,72 +386,68 @@ export function HierarchyGroupRiskAnalysisCard({
         borderColor: 'grey.300',
       }}
     >
-      <Box mb={2}>
-        <Typography variant="body1" fontWeight="medium">
-          Agrupamento: {group.name}
-        </Typography>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ fontStyle: 'italic', fontSize: 12, mt: 0.5 }}
-        >
-          Análise aplicada pelo agrupamento de setores
-        </Typography>
-        <SFlex gap={1} flexWrap="wrap" mt={1.5}>
-          {sortedMemberEntityIds.map((entityId) => (
-            <Chip
-              key={entityId}
-              label={formatRiskAnalysisMemberLabel({
-                entityId,
-                entityMap,
-                entityEstablishmentMap,
-              })}
-              size="small"
-              variant="outlined"
-            />
-          ))}
-        </SFlex>
-        {hasMisalignedAnalyses && (
-          <Typography variant="caption" color="warning.dark" sx={{ mt: 1, display: 'block' }}>
-            Possível desalinhamento entre análises antigas dos membros. Limpe ou
-            reanalise o agrupamento para uniformizar.
+      <SFlex
+        alignItems="flex-start"
+        justifyContent="space-between"
+        gap={2}
+        mb={2}
+        flexWrap="wrap"
+      >
+        <Box sx={{ minWidth: 0, flex: '1 1 240px' }}>
+          <Typography variant="body1" fontWeight="medium">
+            Agrupamento: {group.name}
           </Typography>
-        )}
-      </Box>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontStyle: 'italic', fontSize: 12, mt: 0.5 }}
+          >
+            Análise aplicada pelo agrupamento de setores
+          </Typography>
+          <SFlex gap={0.75} flexWrap="wrap" mt={1}>
+            {sortedMemberEntityIds.map((entityId) => (
+              <Chip
+                key={entityId}
+                label={formatRiskAnalysisMemberLabel({
+                  entityId,
+                  entityMap,
+                  entityEstablishmentMap,
+                })}
+                size="small"
+                variant="outlined"
+              />
+            ))}
+          </SFlex>
+          {hasMisalignedAnalyses && (
+            <Typography variant="caption" color="warning.dark" sx={{ mt: 1, display: 'block' }}>
+              Possível desalinhamento entre análises antigas dos membros. Limpe ou
+              reanalise o agrupamento para uniformizar.
+            </Typography>
+          )}
+        </Box>
 
-      <SFlex alignItems="center" gap={2} mb={2} flexWrap="wrap">
-        <SFlex flex={1} minWidth={0} />
-
-        <SFlex sx={sectorRowStackSx}>
+        <SFlex alignItems="center" gap={1} flexWrap="wrap" sx={{ flexShrink: 0 }}>
           {allMembersHaveRisk ? (
-            <Box
-              sx={{
-                ...sectorRowElementBaseSx,
-                border: '1px solid',
-                borderColor: 'grey.200',
-                borderRadius: 1,
-                color: 'success.main',
-                gap: 0.5,
-              }}
-            >
-              <CheckIcon sx={{ fontSize: 14 }} />
-              <SText color="success.main" fontSize={11} sx={{ lineHeight: 1.2 }}>
+            <SFlex alignItems="center" gap={0.5}>
+              <CheckIcon sx={{ fontSize: 14, color: 'success.main' }} />
+              <SText color="success.main" fontSize={12}>
                 Risco adicionado
               </SText>
-            </Box>
+            </SFlex>
           ) : (
             <SButton
               variant="shade"
               color="paper"
-              text={'Adicionar risco a todos os setores\ndeste agrupamento'}
+              size="s"
+              text="Adicionar risco a todos os setores deste agrupamento"
               onClick={() =>
                 onAddRiskToAllGroupMembers(riskId, sortedMemberEntityIds)
               }
-              buttonProps={{ sx: groupCollectiveRiskButtonSx }}
             />
           )}
           <AiActionButtonGroup
             variant="s-button-shade"
+            configureIconOnly
             label={
               isProcessing
                 ? 'Analisando IA...'
@@ -474,63 +462,16 @@ export function HierarchyGroupRiskAnalysisCard({
             onExecute={() => onAnalyzeGroup(riskId, memberEntityIds)}
             onConfigure={onConfigureAi}
             isMaster={isMaster}
-            sButtonProps={{
-              color: 'primary',
-              buttonProps: { sx: groupAnalyzeButtonSx },
-            }}
+            sButtonProps={{ color: 'primary' }}
+          />
+          <FrpsMatrixEquation
+            probability={probability}
+            severity={severity}
+            resultLevel={occupationalLevel}
+            riskType={risk?.type}
+            riskSubTypes={risk?.subTypes}
           />
         </SFlex>
-
-        <SFlex sx={sectorRowStackSx}>
-          <Box sx={badgeSx(probabilityMap[probability || 0].color)}>
-            <Typography variant="body2" color="text.main" sx={sectorRowBadgeTextSx}>
-              Probabilidade:{' '}
-              {hasValidProbability
-                ? `${formatTwoDigits(probability)} ${probabilityMap[probability].label}`
-                : 'Não informado'}
-            </Typography>
-          </Box>
-          <Box
-            sx={badgeSx(
-              hasValidSeverity ? severityMap[severity].color : severityMap[0].color,
-            )}
-          >
-            <Typography variant="body2" color="text.main" sx={sectorRowBadgeTextSx}>
-              Severidade:{' '}
-              {hasValidSeverity
-                ? `${formatTwoDigits(severity)} ${severityMap[severity].label}`
-                : 'Não informado'}
-            </Typography>
-          </Box>
-        </SFlex>
-
-        <Box
-          sx={occupationalRiskBadgeSx(
-            occupationalRiskColorMap[occupationalRiskLabel] ??
-              occupationalRiskColorMap['Não informado'],
-          )}
-        >
-          <Box sx={sectorRowClassificationDotsSx}>
-            <Box
-              sx={sectorRowClassificationDotSx(
-                probabilityMap[probability || 0].color,
-              )}
-            />
-            <Box
-              sx={sectorRowClassificationDotSx(
-                hasValidSeverity ? severityMap[severity].color : severityMap[0].color,
-              )}
-            />
-          </Box>
-          <Typography
-            variant="body2"
-            color="text.main"
-            fontWeight={600}
-            sx={sectorRowBadgeTextSx}
-          >
-            Risco Ocupacional: {occupationalRiskLabel}
-          </Typography>
-        </Box>
       </SFlex>
 
       {analysisResults.length > 0 && (

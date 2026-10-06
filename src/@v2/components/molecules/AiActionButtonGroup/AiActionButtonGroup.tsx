@@ -6,6 +6,7 @@ import { Box, Button, CircularProgress } from '@mui/material';
 
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import type { SButtonProps } from '@v2/components/atoms/SButton/SButton.types';
+import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 
 export type AiActionButtonGroupVariant = 'mui-outlined' | 's-button-shade' | 's-button-contained';
 
@@ -16,6 +17,8 @@ type AiActionButtonGroupProps = {
   onExecute: () => void;
   onConfigure?: () => void;
   configureLabel?: string;
+  /** Ícone de engrenagem, sem o texto do botão de configuração. */
+  configureIconOnly?: boolean;
   isMaster?: boolean;
   variant?: AiActionButtonGroupVariant;
   size?: 'small' | 'medium';
@@ -29,12 +32,48 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
   onExecute,
   onConfigure,
   configureLabel = 'Configurar prompt/modelo',
+  configureIconOnly = false,
   isMaster = false,
   variant = 'mui-outlined',
   size = 'small',
   sButtonProps,
 }) => {
   const isDisabled = disabled || loading;
+  const configureTooltip = 'Configurar prompt/modelo da análise de IA';
+  const configureControl =
+    isMaster && onConfigure ? (
+      configureIconOnly ? (
+        <SIconButton
+          size="small"
+          tooltip={configureTooltip}
+          disabled={loading}
+          onClick={onConfigure}
+          iconButtonProps={{ 'aria-label': configureTooltip }}
+        >
+          <SettingsOutlinedIcon sx={{ fontSize: 18 }} />
+        </SIconButton>
+      ) : variant === 'mui-outlined' ? (
+        <Button
+          size={size}
+          variant="text"
+          startIcon={<SettingsOutlinedIcon />}
+          onClick={onConfigure}
+          disabled={loading}
+        >
+          {configureLabel}
+        </Button>
+      ) : (
+        <SButton
+          variant="text"
+          color="primary"
+          text={configureLabel}
+          disabled={loading}
+          onClick={onConfigure}
+          icon={<SettingsOutlinedIcon sx={{ fontSize: 18 }} />}
+          size="s"
+        />
+      )
+    ) : null;
 
   if (variant === 's-button-shade' || variant === 's-button-contained') {
     return (
@@ -51,17 +90,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
           buttonProps={sButtonProps?.buttonProps}
           icon={<AutoFixHighOutlinedIcon sx={{ fontSize: 18 }} />}
         />
-        {isMaster && onConfigure && (
-          <SButton
-            variant="text"
-            color="primary"
-            text={configureLabel}
-            disabled={loading}
-            onClick={onConfigure}
-            icon={<SettingsOutlinedIcon sx={{ fontSize: 18 }} />}
-            size="s"
-          />
-        )}
+        {configureControl}
       </Box>
     );
   }
@@ -80,17 +109,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
       >
         {label}
       </Button>
-      {isMaster && onConfigure && (
-        <Button
-          size={size}
-          variant="text"
-          startIcon={<SettingsOutlinedIcon />}
-          onClick={onConfigure}
-          disabled={loading}
-        >
-          {configureLabel}
-        </Button>
-      )}
+      {configureControl}
     </Box>
   );
 };
