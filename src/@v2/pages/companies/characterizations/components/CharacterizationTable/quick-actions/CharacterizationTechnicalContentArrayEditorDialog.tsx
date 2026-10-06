@@ -1,18 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import { CharacterizationContentEditor } from 'components/organisms/characterization-content-editor/CharacterizationContentEditor';
+import { sameCharacterizationContent } from 'components/organisms/characterization-content-editor/characterization-content.adapter';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 export type TechnicalContentArrayField =
@@ -30,102 +20,44 @@ type Props = {
   saving?: boolean;
 };
 
-type DraftLine = { text: string; type: ParagraphEnum };
-
-function parseLines(values: string[], defaultType: ParagraphEnum): DraftLine[] {
-  if (!values.length) return [{ text: '', type: defaultType }];
-  return values.map((raw) => {
-    const [text, type] = String(raw).split('{type}=');
-    return {
-      text: text || '',
-      type: (type as ParagraphEnum) || defaultType,
-    };
-  });
-}
-
-function toStored(lines: DraftLine[]): string[] {
-  return lines
-    .map((line) => ({
-      text: line.text.trim(),
-      type: line.type,
-    }))
-    .filter((line) => line.text.length > 0)
-    .map((line) => `${line.text}{type}=${line.type}`);
-}
-
 /**
  * Editor compacto de um único campo-array (Descrição / Processos / Considerações).
+ * `defaultType` permanece na assinatura para os chamadores atuais; o mini editor
+ * não usa um tipo padrão por linha — o tipo sai da toolbar e do conteúdo já salvo.
  */
 export function CharacterizationTechnicalContentArrayEditorDialog({
   open,
   title,
   values,
-  defaultType,
+  defaultType: _defaultType,
   onClose,
   onSave,
   saving = false,
 }: Props) {
-  const [lines, setLines] = useState<DraftLine[]>(() =>
-    parseLines(values, defaultType),
-  );
+  const [draft, setDraft] = useState(values);
 
   useEffect(() => {
     if (!open) return;
-    setLines(parseLines(values, defaultType));
-  }, [open, values, defaultType]);
+    setDraft(values);
+  }, [open, values]);
 
-  const canSave = useMemo(
-    () => toStored(lines).join('\0') !== (values || []).join('\0'),
-    [lines, values],
-  );
+  const changed = !sameCharacterizationContent(draft, values || []);
 
   const handleSave = async () => {
-    await onSave(toStored(lines));
+    await onSave(changed ? draft : values);
   };
 
   return (
-    <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="md">
       <DialogTitle>{title}</DialogTitle>
       <DialogContent dividers>
-        <Box display="flex" flexDirection="column" gap={1.5}>
-          {lines.map((line, index) => (
-            <Box key={index} display="flex" gap={1} alignItems="flex-start">
-              <TextField
-                fullWidth
-                multiline
-                minRows={2}
-                value={line.text}
-                disabled={saving}
-                onChange={(e) => {
-                  const text = e.target.value;
-                  setLines((prev) =>
-                    prev.map((item, i) => (i === index ? { ...item, text } : item)),
-                  );
-                }}
-                placeholder="Escreva o conteúdo…"
-              />
-              <IconButton
-                size="small"
-                disabled={saving || lines.length <= 1}
-                onClick={() =>
-                  setLines((prev) => prev.filter((_, i) => i !== index))
-                }
-                aria-label="Remover item"
-              >
-                <DeleteOutlineIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          ))}
-          <Button
-            startIcon={<AddIcon />}
-            onClick={() =>
-              setLines((prev) => [...prev, { text: '', type: defaultType }])
-            }
+        <Box display="flex" flexDirection="column" gap={1}>
+          <CharacterizationContentEditor
+            key={title}
+            value={values || []}
             disabled={saving}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            Adicionar
-          </Button>
+            onChange={setDraft}
+          />
           <Typography variant="caption" color="text.secondary">
             Salvar aplica imediatamente e atualiza a tabela. Cancelar descarta
             alterações não salvas deste campo.
@@ -139,7 +71,7 @@ export function CharacterizationTechnicalContentArrayEditorDialog({
         <Button
           variant="contained"
           onClick={() => void handleSave()}
-          disabled={saving || !canSave}
+          disabled={saving || !changed}
         >
           {saving ? 'Salvando…' : 'Salvar'}
         </Button>

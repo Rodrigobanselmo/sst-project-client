@@ -11,18 +11,15 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioFormText } from 'components/molecules/form/radio-text';
-import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { STagSelect } from 'components/molecules/STagSelect';
+import { CharacterizationContentEditor } from 'components/organisms/characterization-content-editor/CharacterizationContentEditor';
 import { ModalAddHierarchyRisk } from 'components/organisms/modals/ModalAddCharacterization/components/ModalAddHierarchyRisk';
 import { ModalParametersContentBasic } from 'components/organisms/modals/ModalAddCharacterization/components/ModalParametersBasic';
-import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
-import { ParagraphSelect } from 'components/organisms/tagSelects/ParagraphSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import {
   CharacterizationTypeEnum,
   getIsEnvironment,
 } from 'project/enum/characterization-type.enum';
-import { ParagraphEnum } from 'project/enum/paragraph.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
@@ -76,8 +73,6 @@ export const ModalCharacterizationContent = (
     setData: setCharacterizationData,
     handlePhotoRemove,
     loadingDelete,
-    onAddArray,
-    onDeleteArray,
     filterQuery: characterizationsQuery,
     handleEditPhoto,
     onAddProfile,
@@ -89,7 +84,6 @@ export const ModalCharacterizationContent = (
     photos,
     setValue,
     onRemove,
-    onEditArray,
     onEditArrayContent,
     isEdit,
     hasUnsavedChanges,
@@ -400,59 +394,16 @@ export const ModalCharacterizationContent = (
               </SButton>
             </SFlex>
 
-            <SDisplaySimpleArray
-              values={(characterizationData.paragraphs ?? []).map((paragraph) => ({
-                type: paragraph.split('{type}=')[1],
-                name: paragraph.split('{type}=')[0],
-              }))}
-              type={TypeInputModal.TEXT_AREA}
-              valueField="name"
-              onAdd={(value, _, index) =>
-                onAddArray(value, 'paragraphs', index)
+            <CharacterizationContentEditor
+              label="Descrição"
+              placeholder="Descreva..."
+              value={characterizationData.paragraphs ?? []}
+              onChange={(paragraphs) =>
+                setCharacterizationData((current) => ({
+                  ...current,
+                  paragraphs,
+                }))
               }
-              onDelete={(value, _, index) =>
-                onDeleteArray(value, 'paragraphs', index)
-              }
-              onEdit={(v, values) =>
-                onEditArrayContent(
-                  values,
-                  'paragraphs',
-                  ParagraphEnum.PARAGRAPH,
-                )
-              }
-              label={'Descrição'}
-              buttonLabel={'Adicionar Parágrafo de Descrição'}
-              placeholder="descreva..."
-              modalLabel="Adicionar Descrição"
-              onRenderStartElement={(value, index) => (
-                <ParagraphSelect
-                  handleSelectMenu={(option) => {
-                    onEditArray(
-                      (value as any).name,
-                      option.value,
-                      'paragraphs',
-                      index,
-                    );
-                  }}
-                  selected={
-                    (typeof value !== 'string' &&
-                      'type' in value &&
-                      (value as any).type) ||
-                    ParagraphEnum.PARAGRAPH
-                  }
-                  sx={{
-                    boxShadow: 'none',
-                    borderRightColor: 'grey.300',
-                    borderRadius: '4px 5px 5px 4px',
-                  }}
-                  paragraphOptions={[
-                    ParagraphEnum.PARAGRAPH,
-                    ParagraphEnum.BULLET_0,
-                    ParagraphEnum.BULLET_1,
-                    ParagraphEnum.BULLET_2,
-                  ]}
-                />
-              )}
             />
             <SFlex direction="column" gap={2} mt={2}>
               <SFlex
@@ -521,63 +472,24 @@ export const ModalCharacterizationContent = (
                 {riskInventorySummaryLength}/{RISK_INVENTORY_SUMMARY_MAX_LENGTH}
               </SText>
             </SFlex>
-            <SDisplaySimpleArray
-              values={(characterizationData.activities ?? []).map((activity) => ({
-                type: activity.split('{type}=')[1],
-                name: activity.split('{type}=')[0],
-              }))}
-              valueField="name"
-              type={TypeInputModal.TEXT_AREA}
-              onEdit={(v, values) =>
-                onEditArrayContent(values, 'activities', ParagraphEnum.BULLET_0)
+            <CharacterizationContentEditor
+              label={
+                isEnvironment
+                  ? 'Processos de Trabalho'
+                  : 'Atividades ou tarefas realizadas'
               }
-              onAdd={(value, _, index) =>
-                onAddArray(value, 'activities', index)
+              placeholder={
+                isEnvironment
+                  ? 'Descreva o processo...'
+                  : 'Descreva a atividade...'
               }
-              onDelete={(value, _, index) =>
-                onDeleteArray(value, 'activities', index)
+              value={characterizationData.activities ?? []}
+              onChange={(activities) =>
+                setCharacterizationData((current) => ({
+                  ...current,
+                  activities,
+                }))
               }
-              label={'Atividades ou tarefas realizadas'}
-              buttonLabel={'Adicionar Atividade'}
-              placeholder="descreva a atividade..."
-              modalLabel="Adicionar Atividade"
-              onRenderStartElement={(value, index) => (
-                <ParagraphSelect
-                  handleSelectMenu={(option) => {
-                    onEditArray(
-                      (value as any).name,
-                      option.value,
-                      'activities',
-                      index,
-                    );
-                  }}
-                  selected={
-                    (typeof value !== 'string' &&
-                      'type' in value &&
-                      (value as any).type) ||
-                    ParagraphEnum.BULLET_0
-                  }
-                  sx={{
-                    boxShadow: 'none',
-                    borderRightColor: 'grey.300',
-                    borderRadius: '4px 5px 5px 4px',
-                  }}
-                  paragraphOptions={[
-                    ParagraphEnum.PARAGRAPH,
-                    ParagraphEnum.BULLET_0,
-                    ParagraphEnum.BULLET_1,
-                    ParagraphEnum.BULLET_2,
-                  ]}
-                />
-              )}
-              {...(isEnvironment
-                ? ({
-                    label: 'Processos de Trabalho',
-                    buttonLabel: 'Adicionar Processo de Trabalho',
-                    placeholder: 'descreva o processos...',
-                    modalLabel: 'Adicionar Processo de Trabalho',
-                  } as any)
-                : {})}
             />
             <SFlex justify="end">
               <STagSelect
@@ -680,61 +592,16 @@ export const ModalCharacterizationContent = (
                 </SFlex>
               ))}
             </SFlex>
-            <SDisplaySimpleArray
-              values={(characterizationData.considerations ?? []).map(
-                (consideration) => ({
-                  type: consideration.split('{type}=')[1],
-                  name: consideration.split('{type}=')[0],
-                }),
-              )}
-              type={TypeInputModal.TEXT_AREA}
-              valueField="name"
-              onEdit={(v, values) =>
-                onEditArrayContent(
-                  values,
-                  'considerations',
-                  ParagraphEnum.BULLET_0,
-                )
+            <CharacterizationContentEditor
+              label="Considerações"
+              placeholder="Descreva sua consideração..."
+              value={characterizationData.considerations ?? []}
+              onChange={(considerations) =>
+                setCharacterizationData((current) => ({
+                  ...current,
+                  considerations,
+                }))
               }
-              onAdd={(value, _, index) =>
-                onAddArray(value, 'considerations', index)
-              }
-              onDelete={(value, _, index) =>
-                onDeleteArray(value, 'considerations', index)
-              }
-              label={'Considerações'}
-              buttonLabel={'Adicionar Consideração'}
-              placeholder="descreva sua consideração..."
-              modalLabel={'Adicionar Consideração'}
-              onRenderStartElement={(value, index) => (
-                <ParagraphSelect
-                  handleSelectMenu={(option) => {
-                    onEditArray(
-                      (value as any).name,
-                      option.value,
-                      'considerations',
-                      index,
-                    );
-                  }}
-                  selected={
-                    (typeof value !== 'string' &&
-                      'type' in value &&
-                      (value as any).type) ||
-                    ParagraphEnum.BULLET_0
-                  }
-                  sx={{
-                    boxShadow: 'none',
-                    borderRightColor: 'grey.300',
-                    borderRadius: '4px 5px 5px 4px',
-                  }}
-                  paragraphOptions={[
-                    ParagraphEnum.PARAGRAPH,
-                    ParagraphEnum.BULLET_0,
-                    ParagraphEnum.BULLET_1,
-                    ParagraphEnum.BULLET_2,
-                  ]}
-                />
-              )}
             />
           </>
         )}
