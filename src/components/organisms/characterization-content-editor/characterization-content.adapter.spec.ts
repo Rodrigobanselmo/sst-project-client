@@ -16,6 +16,7 @@ import {
   setCharacterizationItemType,
   tiptapToCharacterizationContent,
   toggleBoldRange,
+  toggleSuperscriptRange,
 } from './characterization-content.adapter';
 
 const dir = dirname(fileURLToPath(import.meta.url));
@@ -32,6 +33,12 @@ function textNodes(raw: string) {
 function boldText(raw: string): string[] {
   return textNodes(raw)
     .filter((node) => node.marks?.some((mark) => mark.type === 'bold'))
+    .map((node) => node.text || '');
+}
+
+function superscriptText(raw: string): string[] {
+  return textNodes(raw)
+    .filter((node) => node.marks?.some((mark) => mark.type === 'superscript'))
     .map((node) => node.text || '');
 }
 
@@ -152,6 +159,80 @@ assert.equal(
   indentCharacterizationItem('outro legado{type}=BULLET-4', 'out'),
   'outro legado{type}=BULLET-3',
 );
+
+assert.equal(
+  toggleSuperscriptRange('m2{type}=PARAGRAPH', 1, 2),
+  'm^^2^^{type}=PARAGRAPH',
+);
+assert.equal(
+  toggleSuperscriptRange('m3{type}=BULLET-0', 1, 2),
+  'm^^3^^{type}=BULLET-0',
+);
+assert.equal(
+  toggleSuperscriptRange('cm2{type}=BULLET-1', 2, 3),
+  'cm^^2^^{type}=BULLET-1',
+);
+
+for (const item of ['m^^2^^{type}=PARAGRAPH', 'm^^3^^{type}=BULLET-2', 'cm^^2^^{type}=BULLET-4']) {
+  assert.deepEqual(superscriptText(item), [item.includes('cm') ? '2' : item.includes('3') ? '3' : '2']);
+  assert.equal(textNodes(item).some((node) => node.text?.includes('^^')), false);
+  assertRoundTrip([item]);
+}
+
+const severalSuperscripts = 'm^^2^^ e cm^^3^^{type}=PARAGRAPH';
+assert.deepEqual(superscriptText(severalSuperscripts), ['2', '3']);
+assertRoundTrip([severalSuperscripts]);
+
+const malformedSuperscript = 'm^^2{type}=PARAGRAPH';
+assert.deepEqual(superscriptText(malformedSuperscript), []);
+assert.equal(textNodes(malformedSuperscript).map((node) => node.text).join(''), 'm^^2');
+assertRoundTrip([malformedSuperscript]);
+
+assertRoundTrip(['m²{type}=PARAGRAPH', 'm³{type}=BULLET-0', 'H₂S{type}=PARAGRAPH']);
+assert.deepEqual(superscriptText('m²{type}=PARAGRAPH'), []);
+
+assertRoundTrip(['**negrito antigo**{type}=PARAGRAPH']);
+assert.deepEqual(boldText('**negrito antigo**{type}=PARAGRAPH'), ['negrito antigo']);
+
+const separateMarks = [
+  '**negrito**{type}=PARAGRAPH',
+  'm^^2^^{type}=BULLET-0',
+];
+assertRoundTrip(separateMarks);
+assert.deepEqual(boldText(separateMarks[0]), ['negrito']);
+assert.deepEqual(superscriptText(separateMarks[1]), ['2']);
+
+const sideBySide = '**negrito** e m^^2^^{type}=PARAGRAPH';
+assert.deepEqual(boldText(sideBySide), ['negrito']);
+assert.deepEqual(superscriptText(sideBySide), ['2']);
+assert.equal(textNodes(sideBySide).some((node) => node.text?.includes('^^')), false);
+assertRoundTrip([sideBySide]);
+
+const nestedMarks = '**m^^2^^**{type}=PARAGRAPH';
+assertRoundTrip([nestedMarks]);
+assert.equal(
+  textNodes(nestedMarks).map((node) => node.text).join(''),
+  '**m^^2^^**',
+);
+assert.deepEqual(superscriptText(nestedMarks), []);
+assert.deepEqual(boldText(nestedMarks), []);
+
+for (const level of ['BULLET-0', 'BULLET-1', 'BULLET-2', 'BULLET-3', 'BULLET-4']) {
+  assertRoundTrip([`item m^^2^^{type}=${level}`]);
+}
+
+const untouched = [
+  'm^^2^^{type}=PARAGRAPH',
+  'vizinho{type}=BULLET-3',
+];
+const editedDoc = characterizationContentToTiptap(untouched);
+const second = editedDoc.content?.[1];
+if (!second?.attrs) throw new Error('missing second paragraph');
+second.attrs.sourceItem = null;
+second.content = [{ type: 'text', text: 'vizinhoX' }];
+const edited = tiptapToCharacterizationContent(editedDoc);
+assert.equal(edited[0], untouched[0]);
+assert.equal(edited[1], 'vizinhoX{type}=BULLET-3');
 
 assert.deepEqual(roundTripCharacterizationContent([]), []);
 assert.deepEqual(

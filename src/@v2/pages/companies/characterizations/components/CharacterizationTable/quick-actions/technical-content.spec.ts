@@ -140,6 +140,46 @@ assert.equal(
   'Primeiro\n\nSegundo',
 );
 assert.equal(formatPlainContent('  resumo  '), 'resumo');
+
+/** Preview plain text: pares ^^ completos somem; ** e Unicode ficam. */
+assert.equal(
+  previewCharacterizationArray(['m^^2^^{type}=PARAGRAPH']),
+  'm2',
+);
+assert.equal(
+  previewCharacterizationArray(['cm^^2^^{type}=BULLET-0']),
+  'cm2',
+);
+assert.equal(
+  formatCharacterizationArrayContent([
+    'm^^2^^ e cm^^3^^{type}=PARAGRAPH',
+  ]),
+  'm2 e cm3',
+);
+assert.equal(
+  previewCharacterizationArray(['m^^2{type}=PARAGRAPH']),
+  'm^^2',
+);
+assert.equal(
+  previewCharacterizationArray(['Ambiente climatizado{type}=PARAGRAPH']),
+  'Ambiente climatizado',
+);
+assert.equal(
+  previewCharacterizationArray(['m² m³ H₂S{type}=PARAGRAPH']),
+  'm² m³ H₂S',
+);
+assert.equal(
+  previewCharacterizationArray(['**negrito**{type}=PARAGRAPH']),
+  '**negrito**',
+);
+assert.equal(
+  formatCharacterizationArrayContent(['**área** m^^2^^{type}=PARAGRAPH']),
+  '**área** m2',
+);
+assert.equal(
+  stripCharacterizationArrayItem('m^^2^^{type}=PARAGRAPH'),
+  'm^^2^^',
+);
 assert.ok(COCKPIT_FIELD_COLLAPSED_LINES >= 5 && COCKPIT_FIELD_COLLAPSED_LINES <= 8);
 
 /** Fase 2D — estados vazios do Resumo (contrato de copy). */

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import FormatBoldIcon from '@mui/icons-material/FormatBold';
+import SuperscriptIcon from '@mui/icons-material/Superscript';
 import FormatIndentDecreaseIcon from '@mui/icons-material/FormatIndentDecrease';
 import FormatIndentIncreaseIcon from '@mui/icons-material/FormatIndentIncrease';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
@@ -10,6 +11,7 @@ import { markInputRule, markPasteRule } from '@tiptap/core';
 import Bold from '@tiptap/extension-bold';
 import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
+import Superscript from '@tiptap/extension-superscript';
 import { Editor, EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
@@ -82,6 +84,7 @@ function createExtensions(placeholder: string) {
     }),
     CharacterizationParagraph,
     CharacterizationBold,
+    Superscript,
     Placeholder.configure({ placeholder }),
   ];
 }
@@ -225,6 +228,9 @@ export function CharacterizationContentEditor({
       ? currentBlockType(editor)
       : ParagraphEnum.PARAGRAPH;
   const boldActive = Boolean(ready && editor && !editor.isDestroyed && editor.isActive('bold'));
+  const superscriptActive = Boolean(
+    ready && editor && !editor.isDestroyed && editor.isActive('superscript'),
+  );
   const canIndent =
     indentBlockType(blockType, 'in') !== blockType;
   const canOutdent =
@@ -274,6 +280,18 @@ export function CharacterizationContentEditor({
             }
           >
             <FormatBoldIcon fontSize="small" />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Sobrescrito"
+            active={superscriptActive}
+            disabled={disabled || !ready}
+            onClick={() =>
+              run((current) => {
+                current.chain().focus().toggleSuperscript().run();
+              })
+            }
+          >
+            <SuperscriptIcon fontSize="small" />
           </ToolbarButton>
           <ToolbarButton
             label="Parágrafo"
@@ -356,6 +374,10 @@ export function CharacterizationContentEditor({
             },
             '& .ProseMirror strong': {
               fontWeight: 700,
+            },
+            '& .ProseMirror sup': {
+              fontSize: '0.75em',
+              verticalAlign: 'super',
             },
             ...bulletStyles,
           }}

@@ -17,11 +17,29 @@ export function canGenerateInventorySummary(flags: {
   );
 }
 
+const SUPERSCRIPT_DELIMITER = '^^';
+
 /** Texto limpo de item `texto{type}=PARAGRAPH`. */
 export function stripCharacterizationArrayItem(raw: string): string {
   return String(raw || '')
     .split('{type}=')[0]
     .trim();
+}
+
+/**
+ * Preview em texto puro: pares ^^ completos perdem o delimitador.
+ * Quantidade ímpar permanece literal, como no adaptador.
+ */
+function stripCompleteSuperscriptDelimiters(text: string): string {
+  if (!text.includes(SUPERSCRIPT_DELIMITER)) return text;
+  const parts = text.split(SUPERSCRIPT_DELIMITER);
+  const delimiterCount = parts.length - 1;
+  if (delimiterCount % 2 !== 0) return text;
+  return parts.join('');
+}
+
+function displayCharacterizationArrayItem(raw: string): string {
+  return stripCompleteSuperscriptDelimiters(stripCharacterizationArrayItem(raw));
 }
 
 export function hasCharacterizationArrayContent(
@@ -35,7 +53,7 @@ export function previewCharacterizationArray(
   max = 120,
 ): string {
   const first = (items || [])
-    .map(stripCharacterizationArrayItem)
+    .map(displayCharacterizationArrayItem)
     .find((text) => text.length > 0);
   if (!first) return '';
   return first.length > max ? `${first.slice(0, max)}…` : first;
@@ -46,7 +64,7 @@ export function formatCharacterizationArrayContent(
   items: string[] | undefined | null,
 ): string {
   return (items || [])
-    .map(stripCharacterizationArrayItem)
+    .map(displayCharacterizationArrayItem)
     .filter((text) => text.length > 0)
     .join('\n\n');
 }
