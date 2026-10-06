@@ -7,7 +7,8 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { ConsolidatedViewRiskAnalysisItemModel } from '@v2/models/enterprise/company-group/consolidated-view-risk-analysis.model';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
-import { buildSectorRiskClassificationPdf } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/riskAnalysisMatrixLabels';
+import { FrpsMatrixEquation } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/FrpsMatrixEquation';
+import { resolveOccupationalRiskLevel } from 'core/utils/helpers/occupational-risk-level.util';
 
 import { ConsolidatedRiskAiAnalysisPanel } from './ConsolidatedRiskAiAnalysisPanel';
 
@@ -15,29 +16,11 @@ type Props = {
   item: ConsolidatedViewRiskAnalysisItemModel;
 };
 
-const badgeSx = (color: string) => ({
-  px: 1.5,
-  py: 0.75,
-  borderRadius: 1,
-  border: '1px solid',
-  borderColor: 'grey.200',
-  backgroundColor: `${color}22`,
-  minWidth: 140,
-});
-
-const occupationalRiskBadgeSx = (color: string) => ({
-  ...badgeSx(color),
-  minWidth: 180,
-  display: 'flex',
-  alignItems: 'center',
-  gap: 1,
-});
-
 export function ConsolidatedRiskSectorCard({ item }: Props) {
   const [showAiAnalysis, setShowAiAnalysis] = useState(false);
-  const classification = buildSectorRiskClassificationPdf(
-    item.severity ?? 0,
-    item.probability ?? 0,
+  const occupationalLevel = resolveOccupationalRiskLevel(
+    item.severity ?? undefined,
+    item.probability ?? undefined,
   );
   const hasAiAnalysis =
     Boolean(item.aiAnalysis) &&
@@ -99,22 +82,13 @@ export function ConsolidatedRiskSectorCard({ item }: Props) {
           </Typography>
         </SFlex>
 
-        <SFlex gap={1} flexWrap="wrap" alignItems="stretch">
-          <Box sx={badgeSx(classification.probabilityColor)}>
-            <Typography variant="body2" fontSize={12}>
-              Probabilidade: {classification.probabilityLabel}
-            </Typography>
-          </Box>
-          <Box sx={badgeSx(classification.severityColor)}>
-            <Typography variant="body2" fontSize={12}>
-              Severidade: {classification.severityLabel}
-            </Typography>
-          </Box>
-          <Box sx={occupationalRiskBadgeSx(classification.occupationalRiskColor)}>
-            <Typography variant="body2" fontSize={12} fontWeight={600}>
-              Risco Ocupacional: {classification.occupationalRiskLabel}
-            </Typography>
-          </Box>
+        <SFlex gap={1} flexWrap="wrap" alignItems="center">
+          <FrpsMatrixEquation
+            probability={item.probability}
+            severity={item.severity}
+            resultLevel={occupationalLevel}
+            riskType={item.riskType}
+          />
         </SFlex>
       </SFlex>
 

@@ -15,6 +15,7 @@ import { buildParticipantGroupingEnrichmentContext } from './buildParticipantGro
 import { buildHierarchyIdToWorkspaceNameFromParticipants } from './buildHierarchyIdToWorkspaceNameFromParticipants';
 import { buildRiskAnalysisViewContext } from './buildRiskAnalysisViewContext';
 import { buildRiskNarrativeDiagnosticScope } from './buildRiskNarrativeDiagnosticScope';
+import { loadSystemRiskMatrixPresentationForPdf } from './riskAnalysisMatrixLabels';
 
 /**
  * Gera o PDF de Análise de Riscos no navegador (`buildRiskAnalysisPdfDataset` + `PdfFormRiskAnalysis`).
@@ -51,21 +52,23 @@ export async function exportFormRiskAnalysisPdfInBrowser(
   onProgress?.('Carregando dados de riscos...');
   await yieldToUI();
 
-  const [risksData, analysisData, formParticipants] = await Promise.all([
-    browseFormQuestionsAnswersRisks({
-      companyId: params.accessCompanyId,
-      applicationId: params.formApplication.id,
-    }),
-    browseFormQuestionsAnswersAnalysis({
-      companyId: params.accessCompanyId,
-      applicationId: params.formApplication.id,
-    }),
-    browseFormParticipants({
-      companyId: params.accessCompanyId,
-      applicationId: params.formApplication.id,
-      pagination: { page: 1, limit: 10_000 },
-    }),
-  ]);
+  const [risksData, analysisData, formParticipants, systemPresentation] =
+    await Promise.all([
+      browseFormQuestionsAnswersRisks({
+        companyId: params.accessCompanyId,
+        applicationId: params.formApplication.id,
+      }),
+      browseFormQuestionsAnswersAnalysis({
+        companyId: params.accessCompanyId,
+        applicationId: params.formApplication.id,
+      }),
+      browseFormParticipants({
+        companyId: params.accessCompanyId,
+        applicationId: params.formApplication.id,
+        pagination: { page: 1, limit: 10_000 },
+      }),
+      loadSystemRiskMatrixPresentationForPdf(params.accessCompanyId),
+    ]);
 
   if (!risksData) {
     throw new Error('Não foi possível carregar os dados de análise de riscos.');
@@ -141,6 +144,7 @@ export async function exportFormRiskAnalysisPdfInBrowser(
     narrativeDiagnosticMarkdown,
     hierarchyIdToWorkspaceName,
     applicationWorkspaceNames,
+    systemPresentation,
   });
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {

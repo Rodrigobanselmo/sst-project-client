@@ -19,8 +19,11 @@ import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 import { useAccess } from 'core/hooks/useAccess';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useFetchConsolidatedViewRiskAnalysis } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewRiskAnalysis';
 import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewSummary';
+import { FrpsOccupationalRiskFilter } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/FrpsOccupationalRiskFilter';
+import { FRPS_OCCUPATIONAL_FILTER_LEVELS } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/frps-occupational-summary.util';
 import { buildConsolidatedRiskNarrativeScopeFromView } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-risk-narrative.scope';
 import SText from 'components/atoms/SText';
 
@@ -33,6 +36,7 @@ import {
   CONSOLIDATED_RISK_GROUP_BY_LABELS,
   ConsolidatedRiskGroupByMode,
   filterConsolidatedRiskItems,
+  toConsolidatedRiskLevelFilterLabel,
   toNarrativeGroupingMode,
 } from './consolidated-risk-analysis.utils';
 import { FormConsolidatedRiskNarrativeSection } from './FormConsolidatedRiskNarrativeSection';
@@ -47,11 +51,14 @@ export function FormConsolidatedRiskAnalysisSection({
   applicationIds,
 }: Props) {
   const { isMaster } = useAccess();
+  const { companyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
   const [search, setSearch] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [applicationFilter, setApplicationFilter] = useState('');
-  const [riskLevelFilter, setRiskLevelFilter] = useState('');
+  const [selectedRiskLevels, setSelectedRiskLevels] = useState<Set<number>>(
+    () => new Set(FRPS_OCCUPATIONAL_FILTER_LEVELS),
+  );
   const [statusFilter, setStatusFilter] = useState('');
   const [groupBy, setGroupBy] = useState<ConsolidatedRiskGroupByMode>('none');
   const [isExportingRiskAnalysisPdf, setIsExportingRiskAnalysisPdf] =
@@ -68,21 +75,26 @@ export function FormConsolidatedRiskAnalysisSection({
     { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
   );
 
+  const riskLevelFilter = useMemo(
+    () => toConsolidatedRiskLevelFilterLabel(selectedRiskLevels),
+    [selectedRiskLevels],
+  );
+
   const filteredItems = useMemo(
     () =>
       filterConsolidatedRiskItems(riskAnalysisData?.items ?? [], {
         search,
         companyFilter,
         applicationFilter,
-        riskLevelFilter,
+        selectedRiskLevels,
         statusFilter,
       }),
     [
       applicationFilter,
       companyFilter,
       riskAnalysisData?.items,
-      riskLevelFilter,
       search,
+      selectedRiskLevels,
       statusFilter,
     ],
   );
@@ -127,16 +139,6 @@ export function FormConsolidatedRiskAnalysisSection({
     });
     return Array.from(map.entries()).map(([id, label]) => ({ id, label }));
   }, [riskAnalysisData?.items]);
-
-  const riskLevelOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          (riskAnalysisData?.items ?? []).map((item) => item.occupationalRisk),
-        ),
-      ).sort((left, right) => left.localeCompare(right, 'pt-BR')),
-    [riskAnalysisData?.items],
-  );
 
   const statusOptions = useMemo(
     () =>
@@ -251,6 +253,7 @@ export function FormConsolidatedRiskAnalysisSection({
                         applicationLabel: applicationOptions.find(
                           (option) => option.id === applicationFilter,
                         )?.label,
+                        companyId,
                       },
                       (message) => setPdfLoadingMessage(message),
                     );
@@ -387,25 +390,6 @@ export function FormConsolidatedRiskAnalysisSection({
               </FormControl>
 
               <FormControl size="small">
-                <InputLabel id="consolidated-risk-level-filter">
-                  Nível de risco
-                </InputLabel>
-                <Select
-                  labelId="consolidated-risk-level-filter"
-                  label="Nível de risco"
-                  value={riskLevelFilter}
-                  onChange={(event) => setRiskLevelFilter(event.target.value)}
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  {riskLevelOptions.map((option) => (
-                    <MenuItem key={option} value={option}>
-                      {option}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl size="small">
                 <InputLabel id="consolidated-risk-status-filter">
                   Status
                 </InputLabel>
@@ -445,6 +429,12 @@ export function FormConsolidatedRiskAnalysisSection({
                   )}
                 </Select>
               </FormControl>
+            </Box>
+            <Box mt={2}>
+              <FrpsOccupationalRiskFilter
+                selectedLevels={selectedRiskLevels}
+                onChange={setSelectedRiskLevels}
+              />
             </Box>
           </SPaper>
 

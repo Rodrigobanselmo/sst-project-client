@@ -5,6 +5,7 @@ import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-
 import { ConsolidatedViewRiskAnalysisModel } from '@v2/models/enterprise/company-group/consolidated-view-risk-analysis.model';
 import { readConsolidatedRiskNarrativeDiagnostic } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-risk-narrative.service';
 import { ConsolidatedRiskNarrativeScope } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-risk-narrative.types';
+import { loadSystemRiskMatrixPresentationForPdf } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/riskAnalysisMatrixLabels';
 
 import { ConsolidatedRiskGroupByMode } from '../components/FormConsolidatedRiskAnalysisSection/consolidated-risk-analysis.utils';
 import {
@@ -29,6 +30,7 @@ export async function exportConsolidatedRiskAnalysisPdfInBrowser(
     search: string;
     companyLabel?: string | null;
     applicationLabel?: string | null;
+    companyId?: string | null;
   },
   onProgress?: (message: string) => void,
 ): Promise<void> {
@@ -45,11 +47,20 @@ export async function exportConsolidatedRiskAnalysisPdfInBrowser(
   onProgress?.('Carregando diagnóstico narrativo salvo...');
   await yieldToUI();
 
-  const narrativeDiagnostic = await readConsolidatedRiskNarrativeDiagnostic({
-    companyGroupId: params.companyGroupId,
-    applicationIds: params.applicationIds,
-    scope: params.narrativeScope,
-  });
+  const companyId =
+    params.companyId ||
+    params.filteredItems.find((item) => item.companyId)?.companyId ||
+    params.riskAnalysisData.items.find((item) => item.companyId)?.companyId ||
+    null;
+
+  const [narrativeDiagnostic, systemPresentation] = await Promise.all([
+    readConsolidatedRiskNarrativeDiagnostic({
+      companyGroupId: params.companyGroupId,
+      applicationIds: params.applicationIds,
+      scope: params.narrativeScope,
+    }),
+    loadSystemRiskMatrixPresentationForPdf(companyId),
+  ]);
 
   const narrativeDiagnosticMarkdown =
     narrativeDiagnostic?.status === FormAiAnalysisStatusEnum.DONE
@@ -76,6 +87,7 @@ export async function exportConsolidatedRiskAnalysisPdfInBrowser(
     groupBy: params.groupBy,
     recorteLabel,
     narrativeDiagnosticMarkdown,
+    systemPresentation,
   });
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {

@@ -51,14 +51,16 @@ function Badge({
   label,
   value,
   color,
+  textColor,
 }: {
   label: string;
   value: string;
   color: string;
+  textColor: string;
 }) {
   return (
     <View style={[s.badge, { backgroundColor: color }]}>
-      <Text style={s.badgeText}>
+      <Text style={[s.badgeText, { color: textColor }]}>
         {label}: {value}
       </Text>
     </View>
@@ -452,16 +454,21 @@ export default function PdfFormRiskAnalysis({
                           label="Probabilidade"
                           value={sector.classification.probabilityLabel}
                           color={sector.classification.probabilityColor}
+                          textColor={sector.classification.probabilityTextColor}
                         />
                         <Badge
                           label="Severidade"
                           value={sector.classification.severityLabel}
                           color={sector.classification.severityColor}
+                          textColor={sector.classification.severityTextColor}
                         />
                         <Badge
                           label="Risco Ocupacional"
                           value={sector.classification.occupationalRiskLabel}
                           color={sector.classification.occupationalRiskColor}
+                          textColor={
+                            sector.classification.occupationalRiskTextColor
+                          }
                         />
                       </View>
 

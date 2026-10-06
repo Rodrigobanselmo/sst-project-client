@@ -1,4 +1,8 @@
 import { ConsolidatedViewRiskAnalysisItemModel } from '@v2/models/enterprise/company-group/consolidated-view-risk-analysis.model';
+import {
+  FRPS_OCCUPATIONAL_FILTER_LEVELS,
+  frpsOccupationalLevelLabel,
+} from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/frps-occupational-summary.util';
 
 export type ConsolidatedRiskGroupByMode =
   | 'none'
@@ -57,17 +61,45 @@ export function getConsolidatedRiskGroupKey(
   }
 }
 
+/** Cinco níveis ativos equivalem ao "Todos" do select: nenhuma restrição por risco. */
+export function isConsolidatedRiskLevelFilterUnrestricted(
+  selectedLevels: ReadonlySet<number>,
+): boolean {
+  return FRPS_OCCUPATIONAL_FILTER_LEVELS.every((level) =>
+    selectedLevels.has(level),
+  );
+}
+
+/**
+ * Rótulo único derivado das pílulas, para o PDF e o diagnóstico narrativo.
+ * Vazio somente quando não há restrição. Seleção vazia não volta a significar "Todos".
+ */
+export function toConsolidatedRiskLevelFilterLabel(
+  selectedLevels: ReadonlySet<number>,
+): string {
+  if (isConsolidatedRiskLevelFilterUnrestricted(selectedLevels)) return '';
+
+  const labels = FRPS_OCCUPATIONAL_FILTER_LEVELS.filter((level) =>
+    selectedLevels.has(level),
+  ).map((level) => frpsOccupationalLevelLabel(level));
+
+  return labels.length > 0 ? labels.join(', ') : 'nenhum nível';
+}
+
 export function filterConsolidatedRiskItems(
   items: ConsolidatedViewRiskAnalysisItemModel[],
   params: {
     search: string;
     companyFilter: string;
     applicationFilter: string;
-    riskLevelFilter: string;
+    selectedRiskLevels: ReadonlySet<number>;
     statusFilter: string;
   },
 ) {
   const normalizedSearch = params.search.trim().toLowerCase();
+  const restrictRiskLevel = !isConsolidatedRiskLevelFilterUnrestricted(
+    params.selectedRiskLevels,
+  );
 
   return items.filter((item) => {
     if (params.companyFilter && item.companyId !== params.companyFilter) {
@@ -80,8 +112,8 @@ export function filterConsolidatedRiskItems(
       return false;
     }
     if (
-      params.riskLevelFilter &&
-      item.occupationalRisk !== params.riskLevelFilter
+      restrictRiskLevel &&
+      (item.riskLevel == null || !params.selectedRiskLevels.has(item.riskLevel))
     ) {
       return false;
     }

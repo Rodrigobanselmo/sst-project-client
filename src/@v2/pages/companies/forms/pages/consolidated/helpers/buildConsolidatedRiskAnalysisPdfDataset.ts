@@ -11,6 +11,7 @@ import type {
   RiskAnalysisPdfSector,
 } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildRiskAnalysisPdfDataset';
 import { buildSectorRiskClassificationPdf } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/riskAnalysisMatrixLabels';
+import type { AcceptedSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
 import {
   buildConsolidatedRiskFactorGroups,
@@ -21,10 +22,12 @@ import {
 
 function mapConsolidatedItemToSector(
   item: ConsolidatedViewRiskAnalysisItemModel,
+  presentation: AcceptedSystemRiskMatrixPresentation | null,
 ): RiskAnalysisPdfSector {
   const classification = buildSectorRiskClassificationPdf(
     item.severity ?? 0,
     item.probability ?? 0,
+    presentation,
   );
   const aiAnalysis = item.aiAnalysis;
 
@@ -72,6 +75,7 @@ function mapConsolidatedItemToSector(
 
 function buildFactorsFromConsolidatedItems(
   items: ConsolidatedViewRiskAnalysisItemModel[],
+  presentation: AcceptedSystemRiskMatrixPresentation | null,
 ): RiskAnalysisPdfFactor[] {
   return buildConsolidatedRiskFactorGroups(items).map((group) => {
     const establishmentMap = new Map<
@@ -92,7 +96,9 @@ function buildFactorsFromConsolidatedItems(
       establishmentMap.entries(),
     ).map(([establishment, entries]) => ({
       establishment,
-      sectors: entries.map(mapConsolidatedItemToSector),
+      sectors: entries.map((entry) =>
+        mapConsolidatedItemToSector(entry, presentation),
+      ),
     }));
 
     return {
@@ -151,14 +157,19 @@ export function buildConsolidatedRiskAnalysisPdfDataset(params: {
   groupBy: ConsolidatedRiskGroupByMode;
   recorteLabel: string;
   narrativeDiagnosticMarkdown?: string | null;
+  systemPresentation?: AcceptedSystemRiskMatrixPresentation | null;
 }): RiskAnalysisPdfDataset {
+  const systemPresentation = params.systemPresentation ?? null;
   const viewSections = buildConsolidatedRiskViewSections(
     params.filteredItems,
     params.groupBy,
   ).map((section) => ({
     label: section.label,
     itemCount: section.items.length,
-    factors: buildFactorsFromConsolidatedItems(section.items),
+    factors: buildFactorsFromConsolidatedItems(
+      section.items,
+      systemPresentation,
+    ),
   }));
 
   const factors = viewSections.flatMap((section) => section.factors);

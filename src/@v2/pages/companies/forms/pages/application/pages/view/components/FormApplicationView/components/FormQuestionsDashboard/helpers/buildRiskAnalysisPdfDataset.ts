@@ -3,6 +3,7 @@ import { FormQuestionsAnswersAnalysisBrowseModel } from '@v2/models/form/models/
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import type { Result as RisksBrowseResult } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/service/browse-form-questions-answers-risks.service';
+import type { AcceptedSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 
 import type { ParticipantGroupForIndicators } from './buildParticipantGroupsForIndicators';
 import {
@@ -93,6 +94,7 @@ export function buildRiskAnalysisPdfDataset(params: {
   narrativeDiagnosticMarkdown?: string | null;
   hierarchyIdToWorkspaceName?: Map<string, string>;
   applicationWorkspaceNames?: string[];
+  systemPresentation?: AcceptedSystemRiskMatrixPresentation | null;
 }): RiskAnalysisPdfDataset {
   const {
     risksData,
@@ -104,6 +106,7 @@ export function buildRiskAnalysisPdfDataset(params: {
     narrativeDiagnosticMarkdown,
     hierarchyIdToWorkspaceName,
     applicationWorkspaceNames,
+    systemPresentation = null,
   } = params;
 
   const {
@@ -184,6 +187,7 @@ export function buildRiskAnalysisPdfDataset(params: {
           const classification = buildSectorRiskClassificationPdf(
             risk.severity,
             probability,
+            systemPresentation,
           );
 
           const resolved =

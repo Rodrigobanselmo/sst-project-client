@@ -1,32 +1,48 @@
+import {
+  acceptSystemRiskMatrixPresentation,
+  resolveSystemAxisLevelChipColors,
+  resolveSystemOccupationalChipColors,
+  type AcceptedSystemRiskMatrixPresentation,
+} from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
+import palette from 'configs/theme/palette';
+import { lightSurfaceTokens } from 'configs/theme/semantic-surfaces';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 
-export const probabilityMap: Record<number, { label: string; color: string }> =
-  {
-    1: { label: 'Desprezível', color: '#3cbe7d' },
-    2: { label: 'Pequena', color: '#8fa728' },
-    3: { label: 'Moderada', color: '#d9d10b' },
-    4: { label: 'Significativa', color: '#d96c2f' },
-    5: { label: 'Excessiva', color: '#F44336' },
-    0: { label: 'não contabilizar', color: '#eeeeee' },
-  };
-
-export const severityMap: Record<number, { label: string; color: string }> = {
-  1: { label: 'Desprezível', color: '#3cbe7d' },
-  2: { label: 'Pequena', color: '#8fa728' },
-  3: { label: 'Moderada', color: '#d9d10b' },
-  4: { label: 'Significante', color: '#d96c2f' },
-  5: { label: 'Excessiva', color: '#F44336' },
-  0: { label: 'Não informado', color: '#eeeeee' },
+const probabilityLabels: Record<number, string> = {
+  1: 'Desprezível',
+  2: 'Pequena',
+  3: 'Moderada',
+  4: 'Significativa',
+  5: 'Excessiva',
 };
 
-export const occupationalRiskColorMap: Record<string, string> = {
-  'Muito Baixo': '#3cbe7d',
-  Baixo: '#8fa728',
-  Moderado: '#d9d10b',
-  Alto: '#d96c2f',
-  'Muito Alto': '#F44336',
-  'Não informado': '#eeeeee',
+const severityLabels: Record<number, string> = {
+  1: 'Desprezível',
+  2: 'Pequena',
+  3: 'Moderada',
+  4: 'Significante',
+  5: 'Excessiva',
 };
+
+/**
+ * Tokens que o fallback oficial (`getSimpleSstScaleChipColors`) devolve.
+ * O PDF não consome token de tema: materializa o mesmo palette da tela clara.
+ */
+const PDF_THEME_COLOR: Record<string, string> = {
+  'scale.low': palette.scale.low,
+  'scale.mediumLow': palette.scale.mediumLow,
+  'scale.medium': palette.scale.medium,
+  'scale.mediumHigh': palette.scale.mediumHigh,
+  'scale.high': palette.scale.high,
+  'scale.veryHigh': palette.scale.veryHigh,
+  'common.white': '#FFFFFF',
+  'common.black': '#000000',
+  'text.dark': palette.text.dark,
+  'text.secondary': lightSurfaceTokens.text.secondary,
+  'grey.300': palette.grey[300],
+};
+
+const CONCRETE_COLOR = /^(?:#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|rgba?\()/;
 
 const formatTwoDigits = (n: number) => String(n).padStart(2, '0');
 
@@ -36,18 +52,52 @@ const isValidMatrixValue = (n: unknown): n is number =>
 export type SectorRiskClassificationPdf = {
   probabilityLabel: string;
   probabilityColor: string;
+  probabilityTextColor: string;
   severityLabel: string;
   severityColor: string;
+  severityTextColor: string;
   occupationalRiskLabel: string;
   occupationalRiskColor: string;
+  occupationalRiskTextColor: string;
 };
+
+function materializePdfColor(value: string): string {
+  if (CONCRETE_COLOR.test(value)) return value;
+  return PDF_THEME_COLOR[value] ?? palette.grey[300];
+}
+
+function materializePdfChip(colors: { bgcolor: string; color: string }) {
+  return {
+    backgroundColor: materializePdfColor(colors.bgcolor),
+    textColor: materializePdfColor(colors.color),
+  };
+}
+
+export async function loadSystemRiskMatrixPresentationForPdf(
+  companyId: string | null | undefined,
+): Promise<AcceptedSystemRiskMatrixPresentation | null> {
+  if (!companyId) return null;
+
+  try {
+    const { readSystemRiskMatrixPresentation } = await import(
+      '@v2/services/security/risk-matrix/service/risk-matrix.service'
+    );
+    return acceptSystemRiskMatrixPresentation(
+      await readSystemRiskMatrixPresentation(companyId),
+    );
+  } catch {
+    return null;
+  }
+}
 
 export function buildSectorRiskClassificationPdf(
   severity: number,
   probability: number,
+  presentation?: AcceptedSystemRiskMatrixPresentation | null,
 ): SectorRiskClassificationPdf {
   const hasValidSeverity = isValidMatrixValue(severity);
   const hasValidProbability = isValidMatrixValue(probability);
+  const acceptedPresentation = presentation ?? null;
 
   const matriz =
     hasValidSeverity && hasValidProbability
@@ -61,21 +111,38 @@ export function buildSectorRiskClassificationPdf(
         ? 'Muito Alto'
         : matriz.label;
 
-  const probabilityEntry = probabilityMap[hasValidProbability ? probability : 0];
-  const severityEntry = severityMap[hasValidSeverity ? severity : 0];
+  const occupationalLevel =
+    !matriz || matriz.level === 0 ? null : matriz.level;
+
+  const probabilityChip = materializePdfChip(
+    resolveSystemAxisLevelChipColors(
+      hasValidProbability ? probability : null,
+      acceptedPresentation,
+    ),
+  );
+  const severityChip = materializePdfChip(
+    resolveSystemAxisLevelChipColors(
+      hasValidSeverity ? severity : null,
+      acceptedPresentation,
+    ),
+  );
+  const occupationalChip = materializePdfChip(
+    resolveSystemOccupationalChipColors(occupationalLevel, acceptedPresentation),
+  );
 
   return {
     probabilityLabel: hasValidProbability
-      ? `${formatTwoDigits(probability)} ${probabilityEntry.label}`
+      ? `${formatTwoDigits(probability)} ${probabilityLabels[probability]}`
       : 'Não informado',
-    probabilityColor: probabilityEntry.color,
+    probabilityColor: probabilityChip.backgroundColor,
+    probabilityTextColor: probabilityChip.textColor,
     severityLabel: hasValidSeverity
-      ? `${formatTwoDigits(severity)} ${severityEntry.label}`
+      ? `${formatTwoDigits(severity)} ${severityLabels[severity]}`
       : 'Não informado',
-    severityColor: severityEntry.color,
+    severityColor: severityChip.backgroundColor,
+    severityTextColor: severityChip.textColor,
     occupationalRiskLabel,
-    occupationalRiskColor:
-      occupationalRiskColorMap[occupationalRiskLabel] ??
-      occupationalRiskColorMap['Não informado'],
+    occupationalRiskColor: occupationalChip.backgroundColor,
+    occupationalRiskTextColor: occupationalChip.textColor,
   };
 }
