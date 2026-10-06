@@ -1,5 +1,22 @@
 import { AiRiskAnalysisResponse } from '@v2/services/forms/ai-analyze-risks/service/ai-analyze-risks.types';
 
+export type FormAiAnalysisItemReviewCommentModel = {
+  id: string;
+  body: string;
+  authorId: number;
+  authorName: string | null;
+  createdAt: string | Date;
+};
+
+export type FormAiAnalysisItemReviewModel = {
+  itemKind: string;
+  itemAnchor: string;
+  acceptedBy: number | null;
+  acceptedByName: string | null;
+  acceptedAt: string | Date | null;
+  comments: FormAiAnalysisItemReviewCommentModel[];
+};
+
 export enum FormAiAnalysisStatusEnum {
   FAILED = 'FAILED',
   PROCESSING = 'PROCESSING',
@@ -21,6 +38,7 @@ export type IFormQuestionsAnswersAnalysisBrowseResultModel = {
   processingTimeMs?: number;
   createdAt: Date;
   updatedAt: Date;
+  itemReviews?: FormAiAnalysisItemReviewModel[];
 };
 
 export class FormQuestionsAnswersAnalysisBrowseResultModel {
@@ -38,6 +56,7 @@ export class FormQuestionsAnswersAnalysisBrowseResultModel {
   processingTimeMs?: number;
   createdAt: Date;
   updatedAt: Date;
+  itemReviews: FormAiAnalysisItemReviewModel[];
 
   constructor(params: IFormQuestionsAnswersAnalysisBrowseResultModel) {
     this.id = params.id;
@@ -54,5 +73,6 @@ export class FormQuestionsAnswersAnalysisBrowseResultModel {
     this.processingTimeMs = params.processingTimeMs;
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
+    this.itemReviews = params.itemReviews ?? [];
   }
 }

@@ -37,6 +37,10 @@ export const FormRoutes = {
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/recover-stuck',
     EDIT_ANALYSIS:
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId',
+    ACCEPT_ANALYSIS_ITEM:
+      'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId/item-reviews/accept',
+    COMMENT_ANALYSIS_ITEM:
+      'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId/item-reviews/comments',
     EXPLAIN_ITEM:
       'v2/companies/:companyId/forms/applications/:applicationId/questions-answers-analysis/:analysisId/explain-item',
     EXPLAIN_ITEM_GENERATE:

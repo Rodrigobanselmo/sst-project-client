@@ -112,6 +112,10 @@ import {
   frpsPassesOccupationalFilter,
 } from './frps-occupational-summary.util';
 import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
+import {
+  FrpsAnalysisItemReviewActions,
+  useCanEditFrpsAnalysisContent,
+} from './FrpsAnalysisItemReviewActions';
 import { buildAnalysisItemCodeRegistry } from '../../helpers/analysis-item-codes.utils';
 import type { AnalysisItemCodeEntry } from '../../helpers/analysis-item-codes.utils';
 import { extractApiError } from '@v2/utils/extract-api-error';
@@ -805,6 +809,8 @@ export const FormRisksAnalysis = ({
     onEditItem?: (newName: string) => void | Promise<boolean | void>;
     onRemoveItem?: () => void | Promise<void>;
   }) => {
+    const canEditAnalysisContent = useCanEditFrpsAnalysisContent();
+    const allowContentEdit = !readOnly && canEditAnalysisContent;
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(item.nome);
 
@@ -914,16 +920,16 @@ export const FormRisksAnalysis = ({
                 <Box
                   flex={1}
                   minWidth={0}
-                  onClick={readOnly ? undefined : () => setIsEditing(true)}
+                  onClick={allowContentEdit ? () => setIsEditing(true) : undefined}
                   sx={{
-                    cursor: readOnly ? 'default' : 'pointer',
-                    '&:hover': readOnly
-                      ? undefined
-                      : {
+                    cursor: allowContentEdit ? 'pointer' : 'default',
+                    '&:hover': allowContentEdit
+                      ? {
                           '& .item-name': {
                             color: 'primary.main',
                           },
-                        },
+                        }
+                      : undefined,
                   }}
                 >
                   <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
@@ -951,7 +957,16 @@ export const FormRisksAnalysis = ({
                   flexWrap="wrap"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  {!readOnly && (
+                  <FrpsAnalysisItemReviewActions
+                    companyId={accessCompanyId}
+                    applicationId={formApplication.id}
+                    analysisId={analysisId}
+                    itemType={itemType}
+                    itemIndex={itemIndex}
+                    item={item}
+                    reviews={analysis?.itemReviews}
+                  />
+                  {allowContentEdit && (
                     <SFlex
                       className="analysis-item-edit-actions"
                       gap={0.5}
@@ -2389,6 +2404,7 @@ export const FormRisksAnalysis = ({
                         onAnalyzeGroup={handleGroupTargetAnalyze}
                         onConfigureAi={() => setAiConfigDialogOpen(true)}
                         isMaster={isMaster}
+                        reviewCompanyId={accessCompanyId}
                         onAddRiskToEntity={handleAddRiskToEntity}
                         onAddRiskToAllGroupMembers={handleAddRiskToGroupMembers}
                         onAddAnalysisAsRiskData={handleAddAnalysisAsRiskData}

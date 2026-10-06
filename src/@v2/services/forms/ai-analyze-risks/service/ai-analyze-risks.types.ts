@@ -22,6 +22,8 @@ export type AiRiskAnalysisItem = {
   origem: 'sistema' | 'ia';
   /** Identidade system do catálogo (enriquecida no browse). */
   catalogId?: string | null;
+  /** Identidade estável da validação do cliente, gravada no JSON da análise. */
+  reviewItemId?: string | null;
 };
 
 export type AiRiskAnalysisResponse = {

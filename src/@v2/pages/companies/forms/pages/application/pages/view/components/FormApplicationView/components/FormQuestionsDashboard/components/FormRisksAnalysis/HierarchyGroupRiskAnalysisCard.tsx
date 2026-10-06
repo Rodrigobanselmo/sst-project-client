@@ -71,6 +71,7 @@ export type HierarchyGroupRiskAnalysisCardProps = {
   onAnalyzeGroup: (riskId: string, memberEntityIds: string[]) => void;
   onConfigureAi?: () => void;
   isMaster?: boolean;
+  reviewCompanyId?: string;
   onAddRiskToEntity: (riskId: string, entityId: string) => void;
   onAddRiskToAllGroupMembers: (riskId: string, memberEntityIds: string[]) => void;
   entityEstablishmentMap?: Map<string, string>;
@@ -169,6 +170,7 @@ export function HierarchyGroupRiskAnalysisCard({
   onAnalyzeGroup,
   onConfigureAi,
   isMaster,
+  reviewCompanyId,
   onAddRiskToEntity,
   onAddRiskToAllGroupMembers,
   entityEstablishmentMap,
@@ -505,6 +507,7 @@ export function HierarchyGroupRiskAnalysisCard({
               displayAnalysisContent={displayAnalysisContent}
               isHierarchyGroupFallback={isHierarchyGroupFallback}
               showInheritedBanner={false}
+              reviewCompanyId={reviewCompanyId}
               groupPerItemAdd={{
                 label: 'Adicionar ao agrupamento',
                 applyingKey: applyingGroupItemKey,

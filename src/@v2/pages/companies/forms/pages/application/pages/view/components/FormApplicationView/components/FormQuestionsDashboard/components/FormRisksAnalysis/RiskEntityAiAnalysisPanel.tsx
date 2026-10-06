@@ -12,6 +12,10 @@ import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
 import { useEffect, useMemo, useState } from 'react';
 
 import { AnalysisItemStatusBadges } from './AnalysisItemStatusBadges';
+import {
+  FrpsAnalysisItemReviewActions,
+  useCanEditFrpsAnalysisContent,
+} from './FrpsAnalysisItemReviewActions';
 import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
 import {
   ExplainFrpsItemButton,
@@ -26,7 +30,13 @@ import {
 type AnalysisItemType = AnalysisItemCodeType;
 
 type EditableAnalysisItemProps = {
-  item: { nome: string; justificativa?: string; catalogId?: string | null };
+  item: {
+    nome: string;
+    justificativa?: string;
+    catalogId?: string | null;
+    reviewItemId?: string | null;
+  };
+  reviewCompanyId?: string;
   itemIndex: number;
   analysisId: string;
   itemType: AnalysisItemType;
@@ -74,7 +84,10 @@ function EditableAnalysisItem({
   onRemoveItem,
   onEditAnalysisItem,
   onRemoveAnalysisItem,
+  reviewCompanyId,
 }: EditableAnalysisItemProps) {
+  const canEditAnalysisContent = useCanEditFrpsAnalysisContent();
+  const allowContentEdit = !readOnly && canEditAnalysisContent;
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(item.nome);
 
@@ -178,16 +191,16 @@ function EditableAnalysisItem({
             <Box
               flex={1}
               minWidth={0}
-              onClick={readOnly ? undefined : () => setIsEditing(true)}
+              onClick={allowContentEdit ? () => setIsEditing(true) : undefined}
               sx={{
-                cursor: readOnly ? 'default' : 'pointer',
-                '&:hover': readOnly
-                  ? undefined
-                  : {
+                cursor: allowContentEdit ? 'pointer' : 'default',
+                '&:hover': allowContentEdit
+                  ? {
                       '& .item-name': {
                         color: 'primary.main',
                       },
-                    },
+                    }
+                  : undefined,
               }}
             >
               <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
@@ -215,7 +228,16 @@ function EditableAnalysisItem({
               flexWrap="wrap"
               onClick={(event) => event.stopPropagation()}
             >
-              {!readOnly && (
+              <FrpsAnalysisItemReviewActions
+                companyId={reviewCompanyId || analysis.companyId}
+                applicationId={analysis.formApplicationId}
+                analysisId={analysisId}
+                itemType={itemType}
+                itemIndex={itemIndex}
+                item={item}
+                reviews={analysis.itemReviews}
+              />
+              {allowContentEdit && (
                 <SFlex
                   className="analysis-item-edit-actions"
                   gap={0.5}
@@ -381,6 +403,7 @@ export type RiskEntityAiAnalysisPanelProps = {
     itemIndex: number,
   ) => () => Promise<void>;
   fallbackApplyOptions?: { skipMarkAnalysisApplied?: boolean };
+  reviewCompanyId?: string;
   groupPerItemAdd?: {
     label: string;
     applyingKey: string | null;
@@ -423,6 +446,7 @@ export function RiskEntityAiAnalysisPanel({
   createInheritedAnalysisItemEditHandler,
   createInheritedAnalysisItemRemoveHandler,
   fallbackApplyOptions,
+  reviewCompanyId,
   groupPerItemAdd,
 }: RiskEntityAiAnalysisPanelProps) {
   const itemCodeRegistry = useMemo(
@@ -554,6 +578,7 @@ export function RiskEntityAiAnalysisPanel({
                         itemType="fontesGeradoras"
                         itemCode={itemCodeRegistry.getCode('fontesGeradoras', index)}
                         analysis={sourceAnalysis}
+                        reviewCompanyId={reviewCompanyId}
                         backgroundColor="grey.50"
                         borderColor="grey.200"
                         itemStatus={itemStatus}
@@ -619,6 +644,7 @@ export function RiskEntityAiAnalysisPanel({
                             index,
                           )}
                           analysis={sourceAnalysis}
+                          reviewCompanyId={reviewCompanyId}
                           backgroundColor="grey.50"
                           borderColor="grey.200"
                           itemStatus={itemStatus}
@@ -686,6 +712,7 @@ export function RiskEntityAiAnalysisPanel({
                             index,
                           )}
                           analysis={sourceAnalysis}
+                          reviewCompanyId={reviewCompanyId}
                           backgroundColor="grey.50"
                           borderColor="grey.200"
                           itemStatus={itemStatus}
