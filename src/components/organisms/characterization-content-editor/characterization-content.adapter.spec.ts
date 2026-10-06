@@ -18,6 +18,7 @@ import {
   setCharacterizationItemType,
   tiptapToCharacterizationContent,
   toggleBoldRange,
+  toggleSubscriptRange,
   toggleSuperscriptRange,
 } from './characterization-content.adapter';
 
@@ -41,6 +42,12 @@ function boldText(raw: string): string[] {
 function superscriptText(raw: string): string[] {
   return textNodes(raw)
     .filter((node) => node.marks?.some((mark) => mark.type === 'superscript'))
+    .map((node) => node.text || '');
+}
+
+function subscriptText(raw: string): string[] {
+  return textNodes(raw)
+    .filter((node) => node.marks?.some((mark) => mark.type === 'subscript'))
     .map((node) => node.text || '');
 }
 
@@ -219,6 +226,100 @@ assert.equal(
 assert.deepEqual(superscriptText(nestedMarks), []);
 assert.deepEqual(boldText(nestedMarks), []);
 
+for (const item of [
+  'CO~~2~~{type}=PARAGRAPH',
+  'H~~2~~S{type}=BULLET-0',
+  'O~~2~~{type}=BULLET-4',
+]) {
+  assert.deepEqual(subscriptText(item), ['2']);
+  assert.equal(textNodes(item).some((node) => node.text?.includes('~~')), false);
+  assertRoundTrip([item]);
+}
+
+const severalSubscripts = 'CO~~2~~ e H~~2~~S{type}=PARAGRAPH';
+assert.deepEqual(subscriptText(severalSubscripts), ['2', '2']);
+assertRoundTrip([severalSubscripts]);
+
+const openSubscript = 'CO~~2{type}=PARAGRAPH';
+assert.deepEqual(subscriptText(openSubscript), []);
+assert.equal(textNodes(openSubscript).map((node) => node.text).join(''), 'CO~~2');
+assertRoundTrip([openSubscript]);
+
+const singleTilde = '~5 m{type}=BULLET-1';
+assert.deepEqual(subscriptText(singleTilde), []);
+assert.equal(textNodes(singleTilde).map((node) => node.text).join(''), '~5 m');
+assertRoundTrip([singleTilde]);
+
+assertRoundTrip(['CO₂{type}=PARAGRAPH', 'H₂S{type}=BULLET-2']);
+assert.deepEqual(subscriptText('CO₂{type}=PARAGRAPH'), []);
+assert.equal(textNodes('CO₂{type}=PARAGRAPH').map((node) => node.text).join(''), 'CO₂');
+
+const boldAndSubscript = '**texto** e CO~~2~~{type}=PARAGRAPH';
+assert.deepEqual(boldText(boldAndSubscript), ['texto']);
+assert.deepEqual(subscriptText(boldAndSubscript), ['2']);
+assertRoundTrip([boldAndSubscript]);
+
+const superAndSubscript = 'm^^2^^ e CO~~2~~{type}=BULLET-0{spacing}=SIMPLE';
+assert.deepEqual(superscriptText(superAndSubscript), ['2']);
+assert.deepEqual(subscriptText(superAndSubscript), ['2']);
+assertRoundTrip([superAndSubscript]);
+
+const nestedSubscript = '**CO~~2~~**{type}=PARAGRAPH';
+assertRoundTrip([nestedSubscript]);
+assert.equal(textNodes(nestedSubscript).map((node) => node.text).join(''), '**CO~~2~~**');
+assert.deepEqual(subscriptText(nestedSubscript), []);
+assert.deepEqual(boldText(nestedSubscript), []);
+
+const crossedSubscript = 'CO~~2^^~~{type}=PARAGRAPH';
+assertRoundTrip([crossedSubscript]);
+assert.deepEqual(subscriptText(crossedSubscript), []);
+assert.deepEqual(superscriptText(crossedSubscript), []);
+assert.equal(textNodes(crossedSubscript).map((node) => node.text).join(''), 'CO~~2^^~~');
+
+assert.equal(
+  toggleSubscriptRange('CO2{type}=PARAGRAPH', 2, 3),
+  'CO~~2~~{type}=PARAGRAPH',
+);
+assert.equal(
+  toggleSubscriptRange('CO~~2~~{type}=PARAGRAPH', 2, 3),
+  'CO2{type}=PARAGRAPH',
+);
+assert.equal(
+  toggleSubscriptRange('H2S{type}=BULLET-0{spacing}=SIMPLE', 1, 2),
+  'H~~2~~S{type}=BULLET-0{spacing}=SIMPLE',
+);
+assert.equal(
+  indentCharacterizationItem('CO~~2~~{type}=BULLET-0', 'in'),
+  'CO~~2~~{type}=BULLET-1',
+);
+assert.equal(
+  indentCharacterizationItem('O~~2~~{type}=BULLET-1{spacing}=SIMPLE', 'out'),
+  'O~~2~~{type}=BULLET-0{spacing}=SIMPLE',
+);
+
+const shifted = tiptapToCharacterizationContent({
+  type: 'doc',
+  content: [
+    {
+      type: 'paragraph',
+      attrs: {
+        blockType: ParagraphEnum.PARAGRAPH,
+        spacing: 'normal',
+        sourceItem: null,
+        synthetic: false,
+      },
+      content: [
+        { type: 'text', text: 'CO' },
+        { type: 'text', text: '2', marks: [{ type: 'subscript' }] },
+        { type: 'hardBreak' },
+        { type: 'text', text: 'linha' },
+      ],
+    },
+  ],
+});
+assert.equal(shifted[0], 'CO~~2\n~~linha{type}=PARAGRAPH');
+assertRoundTrip([shifted[0]]);
+
 for (const level of ['BULLET-0', 'BULLET-1', 'BULLET-2', 'BULLET-3', 'BULLET-4']) {
   assertRoundTrip([`item m^^2^^{type}=${level}`]);
 }
@@ -340,6 +441,14 @@ assert.deepEqual(
 
 const editorSource = readFileSync(join(dir, 'CharacterizationContentEditor.tsx'), 'utf8');
 assert.match(editorSource, /spacing:\s*\{[\s\S]*?keepOnSplit:\s*true/);
+assert.match(editorSource, /@tiptap\/extension-subscript/);
+assert.match(editorSource, /label="Subscrito"/);
+assert.match(editorSource, /isActive\('subscript'\)/);
+assert.match(editorSource, /toggleSubscript\(\)/);
+assert.match(editorSource, /strike:\s*false/);
+assert.doesNotMatch(editorSource, /extension-strike/);
+assert.doesNotMatch(editorSource, /extension-italic/);
+assert.doesNotMatch(editorSource, /extension-underline/);
 
 const adapterSource = readFileSync(join(dir, 'characterization-content.adapter.ts'), 'utf8');
 assert.doesNotMatch(adapterSource, /@tiptap/);

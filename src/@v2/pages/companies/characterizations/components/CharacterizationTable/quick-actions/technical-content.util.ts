@@ -18,6 +18,19 @@ export function canGenerateInventorySummary(flags: {
 }
 
 const SUPERSCRIPT_DELIMITER = '^^';
+const SUBSCRIPT_DELIMITER = '~~';
+
+function stripCompleteDelimiter(text: string, delimiter: string): string {
+  if (!text.includes(delimiter)) return text;
+  const parts = text.split(delimiter);
+  if ((parts.length - 1) % 2 !== 0) return text;
+  return parts.join('');
+}
+
+/** Pares ~~ completos saem do texto exibido. Par incompleto permanece literal. */
+export function stripCompleteSubscriptDelimiters(text: string): string {
+  return stripCompleteDelimiter(text, SUBSCRIPT_DELIMITER);
+}
 
 /** Texto limpo de item `texto{type}=PARAGRAPH`. */
 export function stripCharacterizationArrayItem(raw: string): string {
@@ -31,15 +44,13 @@ export function stripCharacterizationArrayItem(raw: string): string {
  * Quantidade ímpar permanece literal, como no adaptador.
  */
 function stripCompleteSuperscriptDelimiters(text: string): string {
-  if (!text.includes(SUPERSCRIPT_DELIMITER)) return text;
-  const parts = text.split(SUPERSCRIPT_DELIMITER);
-  const delimiterCount = parts.length - 1;
-  if (delimiterCount % 2 !== 0) return text;
-  return parts.join('');
+  return stripCompleteDelimiter(text, SUPERSCRIPT_DELIMITER);
 }
 
 function displayCharacterizationArrayItem(raw: string): string {
-  return stripCompleteSuperscriptDelimiters(stripCharacterizationArrayItem(raw));
+  return stripCompleteSubscriptDelimiters(
+    stripCompleteSuperscriptDelimiters(stripCharacterizationArrayItem(raw)),
+  );
 }
 
 export function hasCharacterizationArrayContent(

@@ -8,6 +8,7 @@ import { CharacterizationBrowseResultModel } from '@v2/models/security/models/ch
 import {
   canGenerateInventorySummary,
   INVENTORY_SUMMARY_DISABLED_TOOLTIP,
+  stripCompleteSubscriptDelimiters,
 } from './technical-content.util';
 import { INACTIVE_ACTION_TOOLTIP } from './invalidate-characterization-inventory';
 
@@ -19,8 +20,9 @@ type IndicatorProps = {
 
 function TechnicalIndicator({ label, filled, preview }: IndicatorProps) {
   const mark = filled ? '✓' : '○';
+  const shownPreview = preview ? stripCompleteSubscriptDelimiters(preview) : preview;
   const title = filled
-    ? `${label}\n\n${preview || '(sem prévia)'}`
+    ? `${label}\n\n${shownPreview || '(sem prévia)'}`
     : `${label}\n\n(vazio)`;
 
   return (

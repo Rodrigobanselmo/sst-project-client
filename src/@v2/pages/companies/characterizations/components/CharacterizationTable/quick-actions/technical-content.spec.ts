@@ -16,6 +16,7 @@ import {
   previewCharacterizationArray,
   previewPlainText,
   stripCharacterizationArrayItem,
+  stripCompleteSubscriptDelimiters,
 } from './technical-content.util';
 
 assert.equal(
@@ -188,6 +189,27 @@ assert.equal(
   formatCharacterizationArrayContent(['item{type}=BULLET-0{spacing}=SIMPLE']),
   'item',
 );
+assert.equal(previewCharacterizationArray(['CO~~2~~{type}=PARAGRAPH']), 'CO2');
+assert.equal(previewCharacterizationArray(['H~~2~~S{type}=BULLET-0']), 'H2S');
+assert.equal(previewCharacterizationArray(['O~~2~~{type}=BULLET-2']), 'O2');
+assert.equal(
+  formatCharacterizationArrayContent(['CO~~2~~ e H~~2~~S{type}=PARAGRAPH']),
+  'CO2 e H2S',
+);
+assert.equal(previewCharacterizationArray(['CO~~2{type}=PARAGRAPH']), 'CO~~2');
+assert.equal(
+  previewCharacterizationArray(['**texto** e CO~~2~~{type}=PARAGRAPH']),
+  '**texto** e CO2',
+);
+assert.equal(
+  previewCharacterizationArray(['m^^2^^ e CO~~2~~{type}=PARAGRAPH']),
+  'm2 e CO2',
+);
+assert.equal(
+  stripCompleteSubscriptDelimiters('CO~~2~~ e m^^2^^'),
+  'CO2 e m^^2^^',
+);
+assert.equal(stripCompleteSubscriptDelimiters('CO~~2'), 'CO~~2');
 assert.ok(COCKPIT_FIELD_COLLAPSED_LINES >= 5 && COCKPIT_FIELD_COLLAPSED_LINES <= 8);
 
 /** Fase 2D — estados vazios do Resumo (contrato de copy). */

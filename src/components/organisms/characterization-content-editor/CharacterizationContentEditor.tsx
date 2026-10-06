@@ -12,6 +12,7 @@ import { markInputRule, markPasteRule } from '@tiptap/core';
 import Bold from '@tiptap/extension-bold';
 import Paragraph from '@tiptap/extension-paragraph';
 import Placeholder from '@tiptap/extension-placeholder';
+import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import { Editor, EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -96,6 +97,7 @@ function createExtensions(placeholder: string) {
     CharacterizationParagraph,
     CharacterizationBold,
     Superscript,
+    Subscript,
     Placeholder.configure({ placeholder }),
   ];
 }
@@ -286,6 +288,9 @@ export function CharacterizationContentEditor({
   const superscriptActive = Boolean(
     ready && editor && !editor.isDestroyed && editor.isActive('superscript'),
   );
+  const subscriptActive = Boolean(
+    ready && editor && !editor.isDestroyed && editor.isActive('subscript'),
+  );
   const spacing =
     ready && editor && !editor.isDestroyed ? currentSpacing(editor) : 'normal';
   const canIndent =
@@ -349,6 +354,23 @@ export function CharacterizationContentEditor({
             }
           >
             <SuperscriptIcon fontSize="small" />
+          </ToolbarButton>
+          <ToolbarButton
+            label="Subscrito"
+            active={subscriptActive}
+            disabled={disabled || !ready}
+            onClick={() =>
+              run((current) => {
+                current.chain().focus().toggleSubscript().run();
+              })
+            }
+          >
+            <Box
+              component="span"
+              sx={{ fontSize: 13, fontWeight: 700, lineHeight: 1, px: 0.25 }}
+            >
+              X₂
+            </Box>
           </ToolbarButton>
           <ToolbarButton
             label="Parágrafo"
@@ -468,6 +490,10 @@ export function CharacterizationContentEditor({
             '& .ProseMirror sup': {
               fontSize: '0.75em',
               verticalAlign: 'super',
+            },
+            '& .ProseMirror sub': {
+              fontSize: '0.75em',
+              verticalAlign: 'sub',
             },
             ...bulletStyles,
           }}

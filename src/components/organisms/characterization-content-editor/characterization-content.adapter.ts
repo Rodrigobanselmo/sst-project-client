@@ -7,6 +7,7 @@ import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 const BOLD_DELIMITER = '**';
 const SUPERSCRIPT_DELIMITER = '^^';
+const SUBSCRIPT_DELIMITER = '~~';
 const SIMPLE_SPACING_SUFFIX = '{spacing}=SIMPLE';
 const TYPE_SUFFIX =
   /\{type\}=(PARAGRAPH|BULLET-[0-4])(\{spacing\}=SIMPLE)?$/;
@@ -26,6 +27,7 @@ export type CharacterizationRun = {
   text: string;
   bold: boolean;
   superscript: boolean;
+  subscript: boolean;
 };
 
 type ParsedItem = {
@@ -65,7 +67,7 @@ export function sameCharacterizationContent(
 }
 
 function plainRun(text: string): CharacterizationRun {
-  return { text, bold: false, superscript: false };
+  return { text, bold: false, superscript: false, subscript: false };
 }
 
 function splitEvenDelimiter(text: string, delimiter: string): string[] | null {
@@ -76,6 +78,26 @@ function splitEvenDelimiter(text: string, delimiter: string): string[] | null {
   return parts;
 }
 
+function parseSubscriptPieces(
+  text: string,
+  bold: boolean,
+  superscript: boolean,
+): CharacterizationRun[] | null {
+  const parts = splitEvenDelimiter(text, SUBSCRIPT_DELIMITER);
+  if (!parts) return null;
+
+  const runs: CharacterizationRun[] = [];
+  parts.forEach((part, index) => {
+    const subscript = index % 2 === 1;
+    if (part.length === 0) {
+      if (subscript) runs.push({ text: '', bold, superscript, subscript: true });
+      return;
+    }
+    runs.push({ text: part, bold, superscript, subscript });
+  });
+  return runs;
+}
+
 function parseSuperscriptPieces(
   text: string,
   bold: boolean,
@@ -84,14 +106,24 @@ function parseSuperscriptPieces(
   if (!parts) return null;
 
   const runs: CharacterizationRun[] = [];
+  let malformed = false;
   parts.forEach((part, index) => {
+    if (malformed) return;
     const superscript = index % 2 === 1;
     if (part.length === 0) {
-      if (superscript) runs.push({ text: '', bold, superscript: true });
+      if (superscript) {
+        runs.push({ text: '', bold, superscript: true, subscript: false });
+      }
       return;
     }
-    runs.push({ text: part, bold, superscript });
+    const pieces = parseSubscriptPieces(part, bold, superscript);
+    if (!pieces) {
+      malformed = true;
+      return;
+    }
+    runs.push(...pieces);
   });
+  if (malformed) return null;
   return runs;
 }
 
@@ -106,7 +138,7 @@ export function textToRuns(text: string): CharacterizationRun[] {
     if (malformed) return;
     const bold = index % 2 === 1;
     if (part.length === 0) {
-      if (bold) runs.push({ text: '', bold: true, superscript: false });
+      if (bold) runs.push({ text: '', bold: true, superscript: false, subscript: false });
       return;
     }
     const pieces = parseSuperscriptPieces(part, bold);
@@ -119,6 +151,9 @@ export function textToRuns(text: string): CharacterizationRun[] {
 
   if (malformed) return literal;
   const parsed = runs.length ? runs : [plainRun('')];
+  if (parsed.some((run) => run.subscript && (run.bold || run.superscript))) {
+    return literal;
+  }
   if (runsToText(parsed) !== text) return literal;
   return parsed;
 }
@@ -126,10 +161,15 @@ export function textToRuns(text: string): CharacterizationRun[] {
 export function runsToText(runs: CharacterizationRun[]): string {
   return runs
     .map((run) => {
-      const body = run.superscript
-        ? `${SUPERSCRIPT_DELIMITER}${run.text}${SUPERSCRIPT_DELIMITER}`
-        : run.text;
-      return run.bold ? `${BOLD_DELIMITER}${body}${BOLD_DELIMITER}` : body;
+      let body = run.text;
+      if (run.subscript) {
+        body = `${SUBSCRIPT_DELIMITER}${body}${SUBSCRIPT_DELIMITER}`;
+      }
+      if (run.superscript) {
+        body = `${SUPERSCRIPT_DELIMITER}${body}${SUPERSCRIPT_DELIMITER}`;
+      }
+      if (run.bold) body = `${BOLD_DELIMITER}${body}${BOLD_DELIMITER}`;
+      return body;
     })
     .join('');
 }
@@ -137,17 +177,23 @@ export function runsToText(runs: CharacterizationRun[]): string {
 function mergeAdjacentRuns(runs: CharacterizationRun[]): CharacterizationRun[] {
   const merged: CharacterizationRun[] = [];
   runs.forEach((run) => {
-    if (!run.text && !run.bold && !run.superscript) return;
+    if (!run.text && !run.bold && !run.superscript && !run.subscript) return;
     const previous = merged[merged.length - 1];
     if (
       previous &&
       previous.bold === run.bold &&
-      previous.superscript === run.superscript
+      previous.superscript === run.superscript &&
+      previous.subscript === run.subscript
     ) {
       previous.text += run.text;
       return;
     }
-    merged.push({ text: run.text, bold: run.bold, superscript: run.superscript });
+    merged.push({
+      text: run.text,
+      bold: run.bold,
+      superscript: run.superscript,
+      subscript: run.subscript,
+    });
   });
   return merged.length ? merged : [plainRun('')];
 }
@@ -286,14 +332,16 @@ export function rebuildCharacterizationItems(
 
 function runsToChars(
   runs: CharacterizationRun[],
-): { ch: string; bold: boolean; superscript: boolean }[] {
-  const chars: { ch: string; bold: boolean; superscript: boolean }[] = [];
+): { ch: string; bold: boolean; superscript: boolean; subscript: boolean }[] {
+  const chars: { ch: string; bold: boolean; superscript: boolean; subscript: boolean }[] =
+    [];
   runs.forEach((run) => {
     for (let index = 0; index < run.text.length; index += 1) {
       chars.push({
         ch: run.text[index],
         bold: run.bold,
         superscript: run.superscript,
+        subscript: run.subscript,
       });
     }
   });
@@ -301,7 +349,7 @@ function runsToChars(
 }
 
 function charsToRuns(
-  chars: { ch: string; bold: boolean; superscript: boolean }[],
+  chars: { ch: string; bold: boolean; superscript: boolean; subscript: boolean }[],
 ): CharacterizationRun[] {
   const runs: CharacterizationRun[] = [];
   chars.forEach((char) => {
@@ -309,7 +357,8 @@ function charsToRuns(
     if (
       previous &&
       previous.bold === char.bold &&
-      previous.superscript === char.superscript
+      previous.superscript === char.superscript &&
+      previous.subscript === char.subscript
     ) {
       previous.text += char.ch;
       return;
@@ -318,20 +367,21 @@ function charsToRuns(
       text: char.ch,
       bold: char.bold,
       superscript: char.superscript,
+      subscript: char.subscript,
     });
   });
   return runs.length ? runs : [plainRun('')];
 }
 
 /**
- * Índices no texto visual: `**` e `^^` válidos não entram na contagem.
+ * Índices no texto visual: `**`, `^^` e `~~` válidos não entram na contagem.
  * Delimitadores incompletos permanecem como caracteres literais.
  */
 function toggleMarkRange(
   raw: string,
   start: number,
   end: number,
-  mark: 'bold' | 'superscript',
+  mark: 'bold' | 'superscript' | 'subscript',
 ): string {
   if (start === end) return raw;
   const parsed = parseCharacterizationItem(raw);
@@ -366,17 +416,32 @@ export function toggleSuperscriptRange(
   return toggleMarkRange(raw, start, end, 'superscript');
 }
 
+export function toggleSubscriptRange(
+  raw: string,
+  start: number,
+  end: number,
+): string {
+  return toggleMarkRange(raw, start, end, 'subscript');
+}
+
 function runsToInline(runs: CharacterizationRun[]): CharacterizationEditorNode[] {
   const content: CharacterizationEditorNode[] = [];
   runs.forEach((run) => {
-    if (run.bold && run.text.length === 0 && !run.superscript) {
+    if (run.bold && run.text.length === 0 && !run.superscript && !run.subscript) {
       content.push({ type: 'text', text: BOLD_DELIMITER + BOLD_DELIMITER });
       return;
     }
-    if (run.superscript && run.text.length === 0 && !run.bold) {
+    if (run.superscript && run.text.length === 0 && !run.bold && !run.subscript) {
       content.push({
         type: 'text',
         text: SUPERSCRIPT_DELIMITER + SUPERSCRIPT_DELIMITER,
+      });
+      return;
+    }
+    if (run.subscript && run.text.length === 0 && !run.bold && !run.superscript) {
+      content.push({
+        type: 'text',
+        text: SUBSCRIPT_DELIMITER + SUBSCRIPT_DELIMITER,
       });
       return;
     }
@@ -388,6 +453,7 @@ function runsToInline(runs: CharacterizationRun[]): CharacterizationEditorNode[]
       const marks: { type: string }[] = [];
       if (run.bold) marks.push({ type: 'bold' });
       if (run.superscript) marks.push({ type: 'superscript' });
+      if (run.subscript) marks.push({ type: 'subscript' });
       if (marks.length) node.marks = marks;
       content.push(node);
     });
@@ -403,19 +469,25 @@ function inlineToRuns(
   const runs: CharacterizationRun[] = [];
   let activeBold = false;
   let activeSuperscript = false;
-  const push = (text: string, bold: boolean, superscript: boolean) => {
+  let activeSubscript = false;
+  const push = (text: string, bold: boolean, superscript: boolean, subscript: boolean) => {
     if (!text) return;
     const previous = runs[runs.length - 1];
-    if (previous && previous.bold === bold && previous.superscript === superscript) {
+    if (
+      previous &&
+      previous.bold === bold &&
+      previous.superscript === superscript &&
+      previous.subscript === subscript
+    ) {
       previous.text += text;
       return;
     }
-    runs.push({ text, bold, superscript });
+    runs.push({ text, bold, superscript, subscript });
   };
 
   content.forEach((node) => {
     if (node.type === 'hardBreak') {
-      push('\n', activeBold, activeSuperscript);
+      push('\n', activeBold, activeSuperscript, activeSubscript);
       return;
     }
     if (node.type !== 'text') return;
@@ -423,7 +495,8 @@ function inlineToRuns(
     activeSuperscript = Boolean(
       node.marks?.some((mark) => mark.type === 'superscript'),
     );
-    push(node.text || '', activeBold, activeSuperscript);
+    activeSubscript = Boolean(node.marks?.some((mark) => mark.type === 'subscript'));
+    push(node.text || '', activeBold, activeSuperscript, activeSubscript);
   });
 
   return runs.length ? runs : [plainRun('')];
