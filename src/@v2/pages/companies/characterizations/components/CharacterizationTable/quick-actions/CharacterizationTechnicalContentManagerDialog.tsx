@@ -25,6 +25,7 @@ import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/mana
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
+import { rebuildCharacterizationItems } from 'components/organisms/characterization-content-editor/characterization-content.adapter';
 
 import { CharacterizationTechnicalContentArrayEditorDialog } from './CharacterizationTechnicalContentArrayEditorDialog';
 import { CharacterizationTechnicalContentFieldCard } from './CharacterizationTechnicalContentFieldCard';
@@ -170,9 +171,10 @@ export function CharacterizationTechnicalContentManagerDialog({
     ) => {
       setDraft((old) => {
         if (!old) return old;
-        const nextValues = values.map(
-          ({ name, type: paragraphType }) =>
-            `${name}{type}=${paragraphType || defaultValue}`,
+        const nextValues = rebuildCharacterizationItems(
+          old[type],
+          values,
+          defaultValue,
         );
         const next = { ...old, [type]: nextValues };
         void persist(next);

@@ -17,6 +17,11 @@ import {
   getIsEnvironment,
 } from 'project/enum/characterization-type.enum';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
+import {
+  parseCharacterizationItem,
+  rebuildCharacterizationItems,
+  setCharacterizationItemType,
+} from 'components/organisms/characterization-content-editor/characterization-content.adapter';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { IdsEnum } from 'core/enums/ids.enums';
@@ -1203,9 +1208,12 @@ export const useEditCharacterization = (
     setCharacterizationData((oldData) => ({
       ...oldData,
       [type]: (oldData[type] || []).map((item: string, index?: number) => {
-        return i != index || item.split('{type}=')[0] !== value.split('{type}=')[0]
-          ? item
-          : item.split('{type}=')[0] + '{type}=' + paragraphType;
+        if (i != index || item.split('{type}=')[0] !== value.split('{type}=')[0]) {
+          return item;
+        }
+        const parsed = parseCharacterizationItem(item);
+        if (parsed.opaque) return item.split('{type}=')[0] + '{type}=' + paragraphType;
+        return setCharacterizationItemType(item, paragraphType);
       }),
     }));
   };
@@ -1216,8 +1224,10 @@ export const useEditCharacterization = (
     defaultValue = ParagraphEnum.BULLET_0,
   ) => {
     setCharacterizationData((oldData) => {
-      const nextValues = values.map(
-        ({ name, type }) => name + '{type}=' + (type || defaultValue),
+      const nextValues = rebuildCharacterizationItems(
+        oldData[type],
+        values,
+        defaultValue,
       );
       return {
         ...oldData,

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import FormatBoldIcon from '@mui/icons-material/FormatBold';
+import FormatLineSpacingIcon from '@mui/icons-material/FormatLineSpacing';
 import SuperscriptIcon from '@mui/icons-material/Superscript';
 import FormatIndentDecreaseIcon from '@mui/icons-material/FormatIndentDecrease';
 import FormatIndentIncreaseIcon from '@mui/icons-material/FormatIndentIncrease';
@@ -18,6 +19,7 @@ import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 import {
   CharacterizationEditorDoc,
+  asCharacterizationSpacing,
   asParagraphType,
   characterizationContentToTiptap,
   indentBlockType,
@@ -48,6 +50,15 @@ const CharacterizationParagraph = Paragraph.extend({
           element.getAttribute('data-block-type') || ParagraphEnum.PARAGRAPH,
         renderHTML: (attributes: { blockType?: string }) => ({
           'data-block-type': attributes.blockType,
+        }),
+      },
+      spacing: {
+        default: 'normal',
+        keepOnSplit: true,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-spacing') === 'simple' ? 'simple' : 'normal',
+        renderHTML: (attributes: { spacing?: string }) => ({
+          'data-spacing': attributes.spacing === 'simple' ? 'simple' : 'normal',
         }),
       },
       sourceItem: {
@@ -98,6 +109,50 @@ function currentBlockType(editor: Editor): ParagraphEnum {
     }
   }
   return ParagraphEnum.PARAGRAPH;
+}
+
+function currentSpacing(editor: Editor): 'normal' | 'simple' {
+  const { $from } = editor.state.selection;
+  for (let depth = $from.depth; depth > 0; depth -= 1) {
+    const node = $from.node(depth);
+    if (node.type.name === 'paragraph') {
+      return asCharacterizationSpacing(node.attrs.spacing);
+    }
+  }
+  return 'normal';
+}
+
+function applySpacing(editor: Editor, spacing: 'normal' | 'simple') {
+  const { state } = editor;
+  const positions: { pos: number; attrs: Record<string, unknown> }[] = [];
+  state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+    if (node.type.name === 'paragraph') {
+      positions.push({ pos, attrs: { ...node.attrs } });
+    }
+  });
+
+  if (!positions.length) {
+    const { $from } = state.selection;
+    for (let depth = $from.depth; depth > 0; depth -= 1) {
+      const node = $from.node(depth);
+      if (node.type.name === 'paragraph') {
+        positions.push({ pos: $from.before(depth), attrs: { ...node.attrs } });
+        break;
+      }
+    }
+  }
+
+  let transaction = state.tr;
+  positions.forEach(({ pos, attrs }) => {
+    if (asCharacterizationSpacing(attrs.spacing) === spacing) return;
+    transaction = transaction.setNodeMarkup(pos, undefined, {
+      ...attrs,
+      spacing,
+      synthetic: false,
+    });
+  });
+
+  if (transaction.docChanged) editor.view.dispatch(transaction);
 }
 
 function applyBlockType(
@@ -231,6 +286,8 @@ export function CharacterizationContentEditor({
   const superscriptActive = Boolean(
     ready && editor && !editor.isDestroyed && editor.isActive('superscript'),
   );
+  const spacing =
+    ready && editor && !editor.isDestroyed ? currentSpacing(editor) : 'normal';
   const canIndent =
     indentBlockType(blockType, 'in') !== blockType;
   const canOutdent =
@@ -324,6 +381,35 @@ export function CharacterizationContentEditor({
             <FormatListBulletedIcon fontSize="small" />
           </ToolbarButton>
           <ToolbarButton
+            label="Simples"
+            active={spacing === 'simple'}
+            disabled={disabled || !ready}
+            onClick={() =>
+              run((current) => {
+                const positions: { spacing?: unknown }[] = [];
+                current.state.doc.nodesBetween(
+                  current.state.selection.from,
+                  current.state.selection.to,
+                  (node) => {
+                    if (node.type.name === 'paragraph') positions.push(node.attrs);
+                  },
+                );
+                const selected = positions.length
+                  ? positions
+                  : [{ spacing: currentSpacing(current) }];
+                const next = selected.every(
+                  (attrs) => asCharacterizationSpacing(attrs.spacing) === 'simple',
+                )
+                  ? 'normal'
+                  : 'simple';
+                applySpacing(current, next);
+                current.commands.focus();
+              })
+            }
+          >
+            <FormatLineSpacingIcon fontSize="small" />
+          </ToolbarButton>
+          <ToolbarButton
             label="Diminuir recuo"
             disabled={disabled || !ready || !canOutdent}
             onClick={() =>
@@ -364,6 +450,10 @@ export function CharacterizationContentEditor({
             },
             '& .ProseMirror p': {
               margin: '0 0 4px',
+            },
+            '& .ProseMirror p[data-spacing="simple"]': {
+              lineHeight: 1,
+              marginBottom: 0,
             },
             '& .ProseMirror p.is-empty.is-editor-empty:first-of-type::before': {
               content: 'attr(data-placeholder)',

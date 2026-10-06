@@ -13,6 +13,8 @@ import {
   characterizationContentToTiptap,
   indentCharacterizationItem,
   roundTripCharacterizationContent,
+  rebuildCharacterizationItems,
+  setCharacterizationItemSpacing,
   setCharacterizationItemType,
   tiptapToCharacterizationContent,
   toggleBoldRange,
@@ -234,11 +236,110 @@ const edited = tiptapToCharacterizationContent(editedDoc);
 assert.equal(edited[0], untouched[0]);
 assert.equal(edited[1], 'vizinhoX{type}=BULLET-3');
 
+assertRoundTrip(['legado{type}=PARAGRAPH']);
+for (const level of ['BULLET-0', 'BULLET-1', 'BULLET-2', 'BULLET-3', 'BULLET-4']) {
+  assertRoundTrip([`legado{type}=${level}`]);
+}
+
+assert.equal(
+  setCharacterizationItemSpacing('texto{type}=PARAGRAPH', 'simple'),
+  'texto{type}=PARAGRAPH{spacing}=SIMPLE',
+);
+assert.equal(
+  setCharacterizationItemSpacing('texto{type}=PARAGRAPH{spacing}=SIMPLE', 'normal'),
+  'texto{type}=PARAGRAPH',
+);
+assert.equal(
+  setCharacterizationItemSpacing('item{type}=BULLET-0', 'simple'),
+  'item{type}=BULLET-0{spacing}=SIMPLE',
+);
+assert.equal(
+  setCharacterizationItemSpacing('item{type}=BULLET-1', 'simple'),
+  'item{type}=BULLET-1{spacing}=SIMPLE',
+);
+assert.equal(
+  setCharacterizationItemSpacing('item{type}=BULLET-2', 'simple'),
+  'item{type}=BULLET-2{spacing}=SIMPLE',
+);
+assertRoundTrip(['**negrito**{type}=PARAGRAPH{spacing}=SIMPLE']);
+assert.deepEqual(boldText('**negrito**{type}=PARAGRAPH{spacing}=SIMPLE'), ['negrito']);
+assertRoundTrip(['m^^2^^{type}=BULLET-0{spacing}=SIMPLE']);
+assert.deepEqual(superscriptText('m^^2^^{type}=BULLET-0{spacing}=SIMPLE'), ['2']);
+
+const unknownSpacing = 'legado{type}=BULLET-0{spacing}=OUTRO';
+assert.equal(roundTripCharacterizationContent([unknownSpacing])[0], unknownSpacing);
+
+const spacingPair = characterizationContentToTiptap([
+  'fica{type}=PARAGRAPH',
+  'muda{type}=BULLET-3',
+]);
+const spacingTarget = spacingPair.content?.[1];
+if (!spacingTarget?.attrs) throw new Error('missing spacing target');
+spacingTarget.attrs.spacing = 'simple';
+const spacingEdited = tiptapToCharacterizationContent(spacingPair);
+assert.equal(spacingEdited[0], 'fica{type}=PARAGRAPH');
+assert.equal(spacingEdited[1], 'muda{type}=BULLET-3{spacing}=SIMPLE');
+
+const splitSource = characterizationContentToTiptap([
+  'origem{type}=BULLET-1{spacing}=SIMPLE',
+]);
+const origin = splitSource.content?.[0];
+if (!origin?.attrs) throw new Error('missing split origin');
+const splitDoc = {
+  type: 'doc',
+  content: [
+    origin,
+    {
+      type: 'paragraph',
+      attrs: {
+        blockType: origin.attrs.blockType,
+        spacing: origin.attrs.spacing,
+        sourceItem: null,
+        synthetic: false,
+      },
+      content: [{ type: 'text', text: 'novo' }],
+    },
+  ],
+};
+const splitItems = tiptapToCharacterizationContent(splitDoc);
+assert.equal(splitItems[0], 'origem{type}=BULLET-1{spacing}=SIMPLE');
+assert.equal(splitItems[1], 'novo{type}=BULLET-1{spacing}=SIMPLE');
+
+assert.equal(
+  indentCharacterizationItem('tarefa{type}=BULLET-0{spacing}=SIMPLE', 'in'),
+  'tarefa{type}=BULLET-1{spacing}=SIMPLE',
+);
+assert.equal(
+  indentCharacterizationItem('tarefa{type}=BULLET-1{spacing}=SIMPLE', 'out'),
+  'tarefa{type}=BULLET-0{spacing}=SIMPLE',
+);
+assert.equal(
+  setCharacterizationItemType('tarefa{type}=BULLET-0{spacing}=SIMPLE', ParagraphEnum.PARAGRAPH),
+  'tarefa{type}=PARAGRAPH{spacing}=SIMPLE',
+);
+
+assert.deepEqual(
+  rebuildCharacterizationItems(
+    ['tarefa{type}=BULLET-0{spacing}=SIMPLE', 'outro{type}=PARAGRAPH'],
+    [
+      { name: 'tarefa', type: ParagraphEnum.BULLET_0 },
+      { name: 'novo texto', type: ParagraphEnum.PARAGRAPH },
+    ],
+  ),
+  [
+    'tarefa{type}=BULLET-0{spacing}=SIMPLE',
+    'novo texto{type}=PARAGRAPH',
+  ],
+);
+
 assert.deepEqual(roundTripCharacterizationContent([]), []);
 assert.deepEqual(
   tiptapToCharacterizationContent(characterizationContentToTiptap([])),
   [],
 );
+
+const editorSource = readFileSync(join(dir, 'CharacterizationContentEditor.tsx'), 'utf8');
+assert.match(editorSource, /spacing:\s*\{[\s\S]*?keepOnSplit:\s*true/);
 
 const adapterSource = readFileSync(join(dir, 'characterization-content.adapter.ts'), 'utf8');
 assert.doesNotMatch(adapterSource, /@tiptap/);

@@ -180,6 +180,14 @@ assert.equal(
   stripCharacterizationArrayItem('m^^2^^{type}=PARAGRAPH'),
   'm^^2^^',
 );
+assert.equal(
+  previewCharacterizationArray(['texto{type}=PARAGRAPH{spacing}=SIMPLE']),
+  'texto',
+);
+assert.equal(
+  formatCharacterizationArrayContent(['item{type}=BULLET-0{spacing}=SIMPLE']),
+  'item',
+);
 assert.ok(COCKPIT_FIELD_COLLAPSED_LINES >= 5 && COCKPIT_FIELD_COLLAPSED_LINES <= 8);
 
 /** Fase 2D — estados vazios do Resumo (contrato de copy). */

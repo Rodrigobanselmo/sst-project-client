@@ -7,7 +7,9 @@ import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 const BOLD_DELIMITER = '**';
 const SUPERSCRIPT_DELIMITER = '^^';
-const TYPE_SUFFIX = /\{type\}=(PARAGRAPH|BULLET-[0-4])$/;
+const SIMPLE_SPACING_SUFFIX = '{spacing}=SIMPLE';
+const TYPE_SUFFIX =
+  /\{type\}=(PARAGRAPH|BULLET-[0-4])(\{spacing\}=SIMPLE)?$/;
 
 const KNOWN_TYPES = new Set<string>(Object.values(ParagraphEnum));
 
@@ -18,6 +20,8 @@ const CREATABLE_TYPES: ParagraphEnum[] = [
   ParagraphEnum.BULLET_2,
 ];
 
+export type CharacterizationSpacing = 'normal' | 'simple';
+
 export type CharacterizationRun = {
   text: string;
   bold: boolean;
@@ -27,17 +31,19 @@ export type CharacterizationRun = {
 type ParsedItem = {
   type: ParagraphEnum;
   runs: CharacterizationRun[];
+  spacing: CharacterizationSpacing;
   opaque: boolean;
 };
 
 export type CharacterizationEditorNode = {
   type?: string;
   text?: string;
-  attrs?: {
-    blockType?: string | null;
-    sourceItem?: string | null;
-    synthetic?: boolean | null;
-  };
+    attrs?: {
+      blockType?: string | null;
+      spacing?: string | null;
+      sourceItem?: string | null;
+      synthetic?: boolean | null;
+    };
   marks?: { type: string }[];
   content?: CharacterizationEditorNode[];
 };
@@ -150,28 +156,53 @@ function textSignature(runs: CharacterizationRun[]): string {
   return runsToText(mergeAdjacentRuns(runs));
 }
 
+function itemSuffix(type: ParagraphEnum, spacing: CharacterizationSpacing): string {
+  const typeSuffix = `{type}=${type}`;
+  return spacing === 'simple' ? `${typeSuffix}${SIMPLE_SPACING_SUFFIX}` : typeSuffix;
+}
+
+export function formatCharacterizationItem(
+  text: string,
+  type: ParagraphEnum,
+  spacing: CharacterizationSpacing = 'normal',
+): string {
+  return `${text}${itemSuffix(type, spacing)}`;
+}
+
+function storedBody(raw: string, parsed: ParsedItem): string {
+  const suffix = itemSuffix(parsed.type, parsed.spacing);
+  return raw.endsWith(suffix) ? raw.slice(0, -suffix.length) : runsToText(parsed.runs);
+}
+
+export function asCharacterizationSpacing(value: unknown): CharacterizationSpacing {
+  return value === 'simple' ? 'simple' : 'normal';
+}
+
 export function parseCharacterizationItem(raw: string): ParsedItem {
   const match = TYPE_SUFFIX.exec(raw);
   if (!match || !KNOWN_TYPES.has(match[1])) {
     return {
       type: ParagraphEnum.PARAGRAPH,
       runs: [plainRun(raw)],
+      spacing: 'normal',
       opaque: true,
     };
   }
 
   const text = raw.slice(0, match.index);
   const type = match[1] as ParagraphEnum;
+  const spacing: CharacterizationSpacing = match[2] ? 'simple' : 'normal';
   const runs = textToRuns(text);
   if (runsToText(runs) !== text) {
     return {
       type: ParagraphEnum.PARAGRAPH,
       runs: [plainRun(raw)],
+      spacing: 'normal',
       opaque: true,
     };
   }
 
-  return { type, runs, opaque: false };
+  return { type, runs, spacing, opaque: false };
 }
 
 export function asParagraphType(value: unknown): ParagraphEnum {
@@ -208,7 +239,7 @@ export function indentCharacterizationItem(
   if (parsed.opaque) return raw;
   const nextType = indentBlockType(parsed.type, direction);
   if (nextType === parsed.type) return raw;
-  return `${runsToText(parsed.runs)}{type}=${nextType}`;
+  return formatCharacterizationItem(storedBody(raw, parsed), nextType, parsed.spacing);
 }
 
 export function setCharacterizationItemType(
@@ -216,9 +247,41 @@ export function setCharacterizationItemType(
   nextType: ParagraphEnum,
 ): string {
   const parsed = parseCharacterizationItem(raw);
-  if (!parsed.opaque && parsed.type === nextType) return raw;
   if (parsed.opaque) return raw;
-  return `${runsToText(parsed.runs)}{type}=${nextType}`;
+  if (parsed.type === nextType) return raw;
+  return formatCharacterizationItem(storedBody(raw, parsed), nextType, parsed.spacing);
+}
+
+export function setCharacterizationItemSpacing(
+  raw: string,
+  spacing: CharacterizationSpacing,
+): string {
+  const parsed = parseCharacterizationItem(raw);
+  if (parsed.opaque || parsed.spacing === spacing) return raw;
+  return formatCharacterizationItem(storedBody(raw, parsed), parsed.type, spacing);
+}
+
+export function rebuildCharacterizationItems(
+  previous: string[] | undefined,
+  next: { name: string; type: ParagraphEnum }[],
+  defaultType: ParagraphEnum = ParagraphEnum.BULLET_0,
+): string[] {
+  return next.map(({ name, type }) => {
+    const resolved = type || defaultType;
+    const matches = (previous || []).filter((item) => {
+      const parsed = parseCharacterizationItem(item);
+      return (
+        !parsed.opaque &&
+        parsed.type === resolved &&
+        storedBody(item, parsed) === name
+      );
+    });
+    const spacings = new Set(matches.map((item) => parseCharacterizationItem(item).spacing));
+    const spacing: CharacterizationSpacing = spacings.size === 1
+      ? [...spacings][0]
+      : 'normal';
+    return formatCharacterizationItem(name, resolved, spacing);
+  });
 }
 
 function runsToChars(
@@ -286,10 +349,9 @@ function toggleMarkRange(
   const text = runsToText(charsToRuns(chars));
   if (parsed.opaque) return text === raw ? raw : text;
 
-  const suffix = `{type}=${parsed.type}`;
-  const originalText = raw.endsWith(suffix) ? raw.slice(0, -suffix.length) : raw;
+  const originalText = storedBody(raw, parsed);
   if (text === originalText) return raw;
-  return `${text}{type}=${parsed.type}`;
+  return formatCharacterizationItem(text, parsed.type, parsed.spacing);
 }
 
 export function toggleBoldRange(raw: string, start: number, end: number): string {
@@ -379,6 +441,7 @@ function paragraphNode(
     type: 'paragraph',
     attrs: {
       blockType: parsed.opaque ? ParagraphEnum.PARAGRAPH : parsed.type,
+      spacing: parsed.opaque ? 'normal' : parsed.spacing,
       sourceItem: raw,
       synthetic,
     },
@@ -399,6 +462,7 @@ export function characterizationContentToTiptap(
           {
             type: ParagraphEnum.PARAGRAPH,
             runs: [plainRun('')],
+            spacing: 'normal',
             opaque: false,
           },
           true,
@@ -417,6 +481,7 @@ export function characterizationContentToTiptap(
 
 function paragraphToItem(node: CharacterizationEditorNode): string | null {
   const type = asParagraphType(node.attrs?.blockType);
+  const spacing = asCharacterizationSpacing(node.attrs?.spacing);
   const runs = inlineToRuns(node.content);
   const source =
     typeof node.attrs?.sourceItem === 'string' ? node.attrs.sourceItem : null;
@@ -426,22 +491,29 @@ function paragraphToItem(node: CharacterizationEditorNode): string | null {
   if (source != null) {
     const parsed = parseCharacterizationItem(source);
     if (parsed.opaque) {
-      if (currentText === source && type === ParagraphEnum.PARAGRAPH) return source;
+      if (
+        currentText === source &&
+        type === ParagraphEnum.PARAGRAPH &&
+        spacing === 'normal'
+      ) {
+        return source;
+      }
     } else if (currentText === textSignature(parsed.runs)) {
-      if (type === parsed.type) return source;
-      const suffix = `{type}=${parsed.type}`;
-      const originalText = source.endsWith(suffix)
-        ? source.slice(0, -suffix.length)
-        : textSignature(parsed.runs);
-      return `${originalText}{type}=${type}`;
+      if (type === parsed.type && spacing === parsed.spacing) return source;
+      return formatCharacterizationItem(storedBody(source, parsed), type, spacing);
     }
   }
 
-  if (synthetic && currentText === '' && type === ParagraphEnum.PARAGRAPH) {
+  if (
+    synthetic &&
+    currentText === '' &&
+    type === ParagraphEnum.PARAGRAPH &&
+    spacing === 'normal'
+  ) {
     return null;
   }
 
-  return `${currentText}{type}=${type}`;
+  return formatCharacterizationItem(currentText, type, spacing);
 }
 
 export function tiptapToCharacterizationContent(
