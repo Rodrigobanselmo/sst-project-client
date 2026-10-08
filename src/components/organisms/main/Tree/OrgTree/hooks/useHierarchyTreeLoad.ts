@@ -1,13 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useStore } from 'react-redux';
 
 import { filterTreeMapByWorkspace } from 'components/organisms/main/Tree/OrgTree/utils/filter-tree-map-by-workspace';
+import {
+  explicitGhoSelectionTreeIds,
+  sameGhoSelectionTreeIds,
+} from 'components/organisms/main/Tree/OrgTree/utils/explicit-gho-selection-tree-ids.util';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { parseOrgWorkspaceFilterIds } from 'core/utils/org-workspace-query';
+import { IGhoState, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 export type UseHierarchyTreeLoadOptions = {
   /**
@@ -18,9 +23,7 @@ export type UseHierarchyTreeLoadOptions = {
   enabled?: boolean;
 };
 
-export const useHierarchyTreeLoad = (
-  options?: UseHierarchyTreeLoadOptions,
-) => {
+export const useHierarchyTreeLoad = (options?: UseHierarchyTreeLoadOptions) => {
   const enabled = options?.enabled ?? true;
   const router = useRouter();
   const pathname = router.pathname || '';
@@ -45,6 +48,7 @@ export const useHierarchyTreeLoad = (
   } = useQueryGHOAll(undefined, undefined, { enabled });
   const { data: company, isLoading: isCompanyLoading } = useQueryCompany();
   const store = useStore<any>();
+  const syncedGho = useRef(gho);
 
   const { setTree, transformToTreeMap, searchFilterNodes } =
     useHierarchyTreeActions();
@@ -63,6 +67,21 @@ export const useHierarchyTreeLoad = (
       setTree(nextMap);
       if (search) searchFilterNodes(search);
     }
+
+    if (!gho || gho === syncedGho.current) return;
+    syncedGho.current = gho;
+
+    const selected = store.getState().gho as IGhoState;
+    const selectedId = selected.data?.id;
+    if (!selectedId) return;
+
+    const serverGho = gho.find((item) => item.id === selectedId);
+    if (!serverGho) return;
+
+    const nextHierarchies = explicitGhoSelectionTreeIds(serverGho);
+    if (sameGhoSelectionTreeIds(selected.hierarchies, nextHierarchies)) return;
+
+    store.dispatch(setGhoState({ hierarchies: nextHierarchies }));
   }, [
     enabled,
     setTree,

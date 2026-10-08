@@ -3,12 +3,10 @@ import { useMutation } from 'react-query';
 import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
-import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
-import { setMapHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
-import { queryClient } from 'core/services/queryClient';
+import { invalidateGhoAndHierarchyFamilies } from 'core/services/hooks/mutations/checklist/gho/invalidate-gho-queries.util';
 
 import { IErrorResp } from '../../../../../errors/types';
 
@@ -37,19 +35,7 @@ export function useMutDeleteHierarchy() {
         return;
       }
 
-      if (resp) {
-        const actualData = queryClient.getQueryData<Record<string, IHierarchy>>(
-          // eslint-disable-next-line prettier/prettier
-          [QueryEnum.HIERARCHY, resp.companyId],
-        );
-        if (actualData) {
-          delete actualData[resp.id];
-          queryClient.setQueryData(
-            [QueryEnum.HIERARCHY, resp.companyId],
-            setMapHierarchies([...Object.values(actualData), resp]),
-          );
-        }
-      }
+      await invalidateGhoAndHierarchyFamilies(resp?.companyId || companyId);
 
       enqueueSnackbar('Hierarquia deletado com sucesso', {
         variant: 'success',

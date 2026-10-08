@@ -8,7 +8,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
-import { setMapHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
+import { invalidateGhoAndHierarchyFamilies } from 'core/services/hooks/mutations/checklist/gho/invalidate-gho-queries.util';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
@@ -72,22 +72,7 @@ export function useMutUpdateSimpleManyHierarchy() {
           return;
         }
 
-        // if (resp) queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
-        if (resp) {
-          const actualData = queryClient.getQueryData<
-            Record<string, IHierarchy>
-          >([QueryEnum.HIERARCHY, companyId]);
-          if (actualData) {
-            resp.forEach((item) => {
-              actualData[item.id] = item;
-            });
-
-            queryClient.setQueryData(
-              [QueryEnum.HIERARCHY, companyId],
-              setMapHierarchies([...Object.values(actualData)]),
-            );
-          }
-        }
+        await invalidateGhoAndHierarchyFamilies(companyId);
 
         enqueueSnackbar('Editado com sucesso', {
           variant: 'success',

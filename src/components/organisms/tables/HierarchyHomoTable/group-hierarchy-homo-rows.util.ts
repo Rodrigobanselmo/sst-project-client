@@ -50,6 +50,53 @@ export function sortHierarchyHomoRowsByWorkspaceGroup<
   });
 }
 
+export function insertEstablishmentSectorHeaders<
+  T extends HierarchyHomoGroupableRow & {
+    sectorGroupId: string;
+    sectorGroupName: string;
+  },
+>(
+  rows: T[],
+): (
+  | { kind: 'group'; id: string; workspaceGroupName: string }
+  | { kind: 'sector'; id: string; sectorGroupName: string }
+  | (T & { kind: 'cargo' })
+)[] {
+  const result: (
+    | { kind: 'group'; id: string; workspaceGroupName: string }
+    | { kind: 'sector'; id: string; sectorGroupName: string }
+    | (T & { kind: 'cargo' })
+  )[] = [];
+  let lastWorkspaceId = '';
+  let lastSectorKey = '';
+
+  rows.forEach((row) => {
+    if (row.workspaceGroupId !== lastWorkspaceId) {
+      lastWorkspaceId = row.workspaceGroupId;
+      lastSectorKey = '';
+      result.push({
+        kind: 'group',
+        id: `group:${row.workspaceGroupId}`,
+        workspaceGroupName: row.workspaceGroupName,
+      });
+    }
+
+    const sectorKey = `${row.workspaceGroupId}//${row.sectorGroupId}`;
+    if (sectorKey !== lastSectorKey) {
+      lastSectorKey = sectorKey;
+      result.push({
+        kind: 'sector',
+        id: `sector:${sectorKey}`,
+        sectorGroupName: row.sectorGroupName,
+      });
+    }
+
+    result.push({ ...row, kind: 'cargo' });
+  });
+
+  return result;
+}
+
 export function insertWorkspaceGroupHeaders<T extends HierarchyHomoGroupableRow>(
   rows: T[],
 ): HierarchyHomoGroupedRow<T>[] {

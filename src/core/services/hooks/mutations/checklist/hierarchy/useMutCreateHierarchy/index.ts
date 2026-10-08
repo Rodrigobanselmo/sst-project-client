@@ -5,11 +5,9 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
-import { QueryEnum } from 'core/enums/query.enums';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
-import { setMapHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
-import { queryClient } from 'core/services/queryClient';
+import { invalidateGhoAndHierarchyFamilies } from 'core/services/hooks/mutations/checklist/gho/invalidate-gho-queries.util';
 
 import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../../errors/types';
@@ -46,20 +44,9 @@ export function useMutCreateHierarchy() {
       createHierarchy(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
-        if (resp) {
-          const actualData = queryClient.getQueryData<
-            Record<string, IHierarchy>
-          >(
-            // eslint-disable-next-line prettier/prettier
-            [QueryEnum.HIERARCHY, resp.companyId],
-          );
-
-          if (actualData)
-            queryClient.setQueryData(
-              [QueryEnum.HIERARCHY, resp.companyId],
-              setMapHierarchies([...Object.values(actualData), resp]),
-            );
-        }
+        await invalidateGhoAndHierarchyFamilies(
+          resp?.companyId || user?.companyId,
+        );
 
         enqueueSnackbar('Hierarquia criado com sucesso', {
           variant: 'success',

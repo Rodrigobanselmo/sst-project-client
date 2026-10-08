@@ -8,6 +8,7 @@ import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearch
 import {
   selectHierarchySearch,
   selectModalSelectIds,
+  markGseCargoSelectionTouched,
   setAddModalId,
   setHierarchySearch,
   setModalIds,
@@ -24,6 +25,7 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 import {
   IListHierarchyQuery,
   useListHierarchyQuery,
@@ -60,6 +62,7 @@ import { ModalItemHierarchy } from './ModalItemHierarchy';
 import { ModalListGHO } from './ModalListGHO';
 import { STGridBox } from './styles';
 import { IGho } from 'core/interfaces/api/IGho';
+import { buildGseCargoModalView } from 'core/utils/gse-effective-office-membership.util';
 
 export const ModalSelectHierarchyData: FC<
   { children?: any } & {
@@ -107,6 +110,11 @@ export const ModalSelectHierarchyData: FC<
   const isCharacterizationCargoSelect = !!selectedData.characterizationCargoSelect;
   const isGseCargoSelect = !!selectedData.gseCargoSelect;
 
+  const noteGseCargoUserEdit = () => {
+    if (!isGseCargoSelect) return;
+    dispatch(markGseCargoSelectionTouched());
+  };
+
   const [filter, setFilter] = useState<HierarchyEnum | 'GHO'>(
     forceCargoFilter ? HierarchyEnum.OFFICE : showGho ? 'GHO' : HierarchyEnum.OFFICE,
   );
@@ -125,8 +133,14 @@ export const ModalSelectHierarchyData: FC<
   }, [dispatch, forceCargoFilter, isCharacterizationCargoSelect]);
 
   useEffect(() => {
+    if (selectedData.gseCargoSelect && !selectedData.gseCargoHydrated) return;
     dispatch(setModalIds(selectedData.hierarchiesIds));
-  }, [dispatch, selectedData.hierarchiesIds]);
+  }, [
+    dispatch,
+    selectedData.gseCargoHydrated,
+    selectedData.gseCargoSelect,
+    selectedData.hierarchiesIds,
+  ]);
 
   useEffect(() => {
     if (selectedData.gseCargoSelect || selectedData.characterizationCargoSelect) return;
@@ -140,6 +154,7 @@ export const ModalSelectHierarchyData: FC<
   ]);
 
   const { hierarchyListData } = useListHierarchyQuery();
+  const hierarchyTypeLabels = useHierarchyTypeLabels();
 
   const hierarchyList = useMemo((): IListHierarchyQuery[] => {
     const typesSelected: Record<HierarchyEnum, boolean> = {} as Record<
@@ -206,49 +221,49 @@ export const ModalSelectHierarchyData: FC<
     );
   }, [ghoQueryRaw, isCharacterizationCargoSelect, workspaceSelected?.id]);
 
-  const currentWorkspaceSelectedIds = useMemo(() => {
-    if (!workspaceSelected?.id) return new Set<string>();
-    return new Set(
-      filterModalIdsByWorkspace(modalSelectIds, workspaceSelected.id),
-    );
-  }, [modalSelectIds, workspaceSelected?.id]);
+  const gseModalView = useMemo(() => {
+    if (!isGseCargoSelect || !workspaceSelected?.id) {
+      return {
+        explicitModalIds: modalSelectIds,
+        availableOfficeModalIds: [] as string[],
+        selected: [],
+        groups: [],
+        orphanExplicitModalIds: [] as string[],
+      };
+    }
 
-  const gseSelectedList = useMemo(() => {
-    if (!isGseCargoSelect || !workspaceSelected?.id) return [];
-
-    return filterModalIdsByWorkspace(
+    return buildGseCargoModalView({
+      workspaceId: workspaceSelected.id,
       modalSelectIds,
-      workspaceSelected.id,
-    ).flatMap((modalId) => {
-      const { hierarchyId, workspaceId } = splitHierarchyModalId(modalId);
-      const hierarchy = hierarchyById.get(hierarchyId);
-      if (!hierarchy) return [];
-
-      const workspaceName =
-        company?.workspace?.find((workspace) => workspace.id === workspaceId)
-          ?.name || workspaceSelected.name;
-
-      return [
-        {
-          ...toSectorGroupedCargoModalRow(hierarchy, { workspaceName }),
-          id: modalId,
-        },
-      ];
+      typeLabels: hierarchyTypeLabels,
+      nodes: hierarchyListData().map((hierarchy) => ({
+        id: String(hierarchy.id).split('//')[0],
+        parentId: hierarchy.parentId
+          ? String(hierarchy.parentId).split('//')[0]
+          : null,
+        type: hierarchy.type,
+        name: hierarchy.name,
+        workspaceIds: hierarchy.workspaceIds || [],
+      })),
     });
   }, [
-    company?.workspace,
-    hierarchyById,
+    hierarchyListData,
+    hierarchyTypeLabels,
     isGseCargoSelect,
     modalSelectIds,
     workspaceSelected?.id,
-    workspaceSelected?.name,
   ]);
+
+  const gseAvailableOfficeIds = useMemo(
+    () => new Set(gseModalView.availableOfficeModalIds),
+    [gseModalView.availableOfficeModalIds],
+  );
 
   const gseAvailableGrouped = useMemo(() => {
     if (!isGseCargoSelect || filter !== HierarchyEnum.OFFICE) return [];
     return groupModalHierarchyItemsBySector(
       hierarchyList
-        .filter((hierarchy) => !currentWorkspaceSelectedIds.has(hierarchy.id))
+        .filter((hierarchy) => gseAvailableOfficeIds.has(hierarchy.id))
         .map((hierarchy) =>
           toSectorGroupedCargoModalRow(hierarchy, {
             workspaceName: workspaceSelected?.name,
@@ -256,17 +271,24 @@ export const ModalSelectHierarchyData: FC<
         ),
     );
   }, [
-    currentWorkspaceSelectedIds,
     filter,
+    gseAvailableOfficeIds,
     hierarchyList,
     isGseCargoSelect,
     workspaceSelected?.name,
   ]);
 
-  const gseSelectedGrouped = useMemo(() => {
+  const gseSelectedGroups = gseModalView.groups;
+
+  const gseOrphanExplicit = useMemo(() => {
     if (!isGseCargoSelect) return [];
-    return groupModalHierarchyItemsBySector(gseSelectedList);
-  }, [gseSelectedList, isGseCargoSelect]);
+    return gseModalView.orphanExplicitModalIds.flatMap((modalId) => {
+      const { hierarchyId } = splitHierarchyModalId(modalId);
+      const hierarchy = hierarchyById.get(hierarchyId);
+      if (!hierarchy) return [];
+      return [{ ...hierarchy, id: modalId }];
+    });
+  }, [gseModalView.orphanExplicitModalIds, hierarchyById, isGseCargoSelect]);
 
   const characterizationSelectedList = useMemo(() => {
     if (!isCharacterizationCargoSelect || !workspaceSelected?.id) return [];
@@ -306,7 +328,17 @@ export const ModalSelectHierarchyData: FC<
   }, [characterizationSelectedList, isCharacterizationCargoSelect]);
 
   const onSelectAll = () => {
-    if (isGseCargoSelect || isCharacterizationCargoSelect) {
+    if (isGseCargoSelect) {
+      const visibleAvailable = hierarchyList
+        .map((hierarchy) => hierarchy.id)
+        .filter((id) => gseAvailableOfficeIds.has(id));
+      noteGseCargoUserEdit();
+      return dispatch(
+        setModalIds(uniqueModalIds([...modalSelectIds, ...visibleAvailable])),
+      );
+    }
+
+    if (isCharacterizationCargoSelect) {
       return dispatch(
         setModalIds(
           uniqueModalIds([
@@ -506,11 +538,14 @@ export const ModalSelectHierarchyData: FC<
                   return (
                     <Box key={hierarchy.id} sx={{ pl: 3 }}>
                       <ModalItemHierarchy
-                        onClick={() =>
-                          selectedData.singleSelect
-                            ? handleSingleSelect(hierarchy)
-                            : dispatch(setAddModalId(hierarchy.id))
-                        }
+                        onClick={() => {
+                          if (selectedData.singleSelect) {
+                            handleSingleSelect(hierarchy);
+                            return;
+                          }
+                          noteGseCargoUserEdit();
+                          dispatch(setAddModalId(hierarchy.id));
+                        }}
                         id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
                           ':id',
                           hierarchy.id.split('//')[0],
@@ -611,7 +646,8 @@ export const ModalSelectHierarchyData: FC<
                 text={'remover todos'}
                 iconProps={{ sx: { color: 'error.main' } }}
                 icon={SCloseIcon}
-                onClick={() =>
+                onClick={() => {
+                  if (isGseCargoSelect) noteGseCargoUserEdit();
                   dispatch(
                     setModalIds(
                       isGseCargoSelect || isCharacterizationCargoSelect
@@ -621,56 +657,114 @@ export const ModalSelectHierarchyData: FC<
                           )
                         : [],
                     ),
-                  )
-                }
+                  );
+                }}
               />
             </SFlex>
             <Divider sx={{ mb: 10, mt: 7 }} />
             <SFlex direction="column" gap={5} mb={10}>
               {isGseCargoSelect
-                ? gseSelectedGrouped.map((row) => {
-                    if (row.kind === 'group') {
-                      return (
-                        <Box key={row.id} sx={{ pt: 1 }}>
-                          <SText fontWeight="600" fontSize={13}>
-                            {row.sectorGroupName}
-                          </SText>
-                        </Box>
-                      );
-                    }
+                ? (
+                    <>
+                      {gseSelectedGroups.map((group) => {
+                        if (group.kind === 'direct') {
+                          const hierarchy = hierarchyById.get(group.officeId);
+                          if (!hierarchy) return null;
+                          const data = { ...hierarchy, id: group.sourceModalId };
+                          return (
+                            <ModalItemHierarchy
+                              key={group.sourceModalId}
+                              onClick={() => {
+                                noteGseCargoUserEdit();
+                                dispatch(setRemoveModalId(group.sourceModalId));
+                              }}
+                              active
+                              selectedOverride
+                              data={data}
+                              activeRemove
+                              text={hierarchy.name}
+                              textNoBreak
+                              gseLabelContrast
+                              endIcon={
+                                <GseCargoMembershipIcons
+                                  memberships={gseMembershipByHierarchyId.get(
+                                    group.officeId,
+                                  )}
+                                />
+                              }
+                            />
+                          );
+                        }
 
-                    const hierarchy = row.item;
-
-                    return (
-                      <Box key={hierarchy.id} sx={{ pl: 3 }}>
+                        const source = hierarchyById.get(group.sourceHierarchyId);
+                        if (!source) return null;
+                        const sourceData = { ...source, id: group.sourceModalId };
+                        return (
+                          <Box key={group.sourceModalId}>
+                            <ModalItemHierarchy
+                              onClick={() => {
+                                noteGseCargoUserEdit();
+                                dispatch(setRemoveModalId(group.sourceModalId));
+                              }}
+                              active
+                              selectedOverride
+                              data={sourceData}
+                              activeRemove
+                              text={source.name}
+                              textNoBreak
+                              gseLabelContrast
+                              endIcon={
+                                <GseCargoMembershipIcons
+                                  memberships={gseMembershipByHierarchyId.get(
+                                    group.sourceHierarchyId,
+                                  )}
+                                />
+                              }
+                            />
+                            {group.offices.map((office) => {
+                              const hierarchy = hierarchyById.get(office.officeId);
+                              if (!hierarchy) return null;
+                              return (
+                                <Box
+                                  key={office.modalId}
+                                  sx={{ pl: 4, opacity: 0.72, mt: 0.5 }}
+                                >
+                                  <ModalItemHierarchy
+                                    active
+                                    selectedOverride
+                                    hideCheckbox
+                                    data={{ ...hierarchy, id: office.modalId }}
+                                    activeRemove={false}
+                                    text={office.officeName}
+                                    tooltipText={office.originLabel}
+                                    textNoBreak
+                                    gseLabelContrast
+                                  />
+                                  <SText fontSize={11} color="text.secondary" sx={{ pl: 1 }}>
+                                    {office.originLabel}
+                                  </SText>
+                                </Box>
+                              );
+                            })}
+                          </Box>
+                        );
+                      })}
+                      {gseOrphanExplicit.map((hierarchy) => (
                         <ModalItemHierarchy
-                          onClick={() =>
-                            dispatch(setRemoveModalId(hierarchy.id))
-                          }
+                          key={hierarchy.id}
+                          onClick={() => {
+                            noteGseCargoUserEdit();
+                            dispatch(setRemoveModalId(hierarchy.id));
+                          }}
                           active
                           data={hierarchy}
-                          activeRemove={true}
-                          text={hierarchy.displayName}
-                          tooltipText=""
+                          activeRemove
                           textNoBreak
                           gseLabelContrast
-                          startContent={
-                            <GseCargoRowContextIcons
-                              workspaceTooltip={hierarchy.workspaceTooltip}
-                              sectorTooltip={hierarchy.sectorTooltip}
-                            />
-                          }
-                          endIcon={
-                            <GseCargoMembershipIcons
-                              memberships={gseMembershipByHierarchyId.get(
-                                splitHierarchyModalId(hierarchy.id).hierarchyId,
-                              )}
-                            />
-                          }
                         />
-                      </Box>
-                    );
-                  })
+                      ))}
+                    </>
+                  )
                 : isCharacterizationCargoSelect
                   ? characterizationSelectedGrouped.map((row) => {
                       if (row.kind === 'group') {

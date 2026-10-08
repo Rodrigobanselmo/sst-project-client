@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Wizard } from 'react-use-wizard';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
@@ -17,7 +17,10 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { getSaveActionColor } from 'core/utils/save-action-color';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { resolveHierarchyTypeLabelsFromCompany } from 'core/constants/maps/hierarchy-type-labels';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
+import { buildGseCargoTabRows } from 'core/utils/gse-effective-office-membership.util';
 import {
   Control,
   SubmitHandler,
@@ -60,6 +63,8 @@ type GhoFormContentProps = {
   loading: boolean;
   isDirty?: boolean;
   setSaveIntent?: (intent: GhoSaveIntent) => void;
+  createWorkspaceError?: string;
+  onWorkspaceEdited?: () => void;
 };
 
 export const GhoFormContent = ({
@@ -79,14 +84,35 @@ export const GhoFormContent = ({
   loading,
   isDirty = false,
   setSaveIntent,
+  createWorkspaceError,
+  onWorkspaceEdited,
 }: GhoFormContentProps) => {
   const router = useRouter();
   const { data: company } = useQueryCompany();
+  const hierarchyQuery = useQueryHierarchies();
   const companyId = router.query.companyId as string;
   const preferredWorkspaceId = String(
     router.query.tabWorkspaceId || router.query.workspaceId || '',
   );
   const gseWorkspaceIds = getGseLinkedWorkspaceIds(ghoData, ghoQuery);
+  const coverageRows = useMemo(
+    () =>
+      buildGseCargoTabRows({
+        nodes: Object.values(hierarchyQuery.data || {}),
+        hierarchies,
+        gseWorkspaceIds,
+        workspaceNamesById: (company?.workspace || []).reduce(
+          (acc, workspace) => {
+            acc[workspace.id] = workspace.name;
+            return acc;
+          },
+          {} as Record<string, string>,
+        ),
+        companyId,
+        typeLabels: resolveHierarchyTypeLabelsFromCompany(company),
+      }),
+    [company, companyId, gseWorkspaceIds, hierarchies, hierarchyQuery.data],
+  );
   const workspaceNamesById = (company?.workspace || []).reduce(
     (acc, workspace) => {
       acc[workspace.id] = workspace.name;
@@ -186,6 +212,8 @@ export const GhoFormContent = ({
             ghoQuery={ghoQuery}
             ghoData={ghoData}
             setGhoData={setGhoData}
+            workspaceError={ghoData.id ? undefined : createWorkspaceError}
+            onWorkspaceEdited={onWorkspaceEdited}
           />
         </SFlex>
       </Box>
@@ -193,8 +221,9 @@ export const GhoFormContent = ({
       <Box sx={{ px: isPage ? 0 : 2, pt: 6, pb: 4 }}>
         <HierarchyHomoTable
           onAdd={onAddHierarchy}
-          loading={loadingQuery}
+          loading={loadingQuery || hierarchyQuery.isLoading}
           hierarchies={hierarchies as any}
+          coverageRows={coverageRows}
           groupByWorkspace
           preferredWorkspaceId={preferredWorkspaceId || undefined}
           gseWorkspaceIds={gseWorkspaceIds}

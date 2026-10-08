@@ -34,6 +34,10 @@ import {
   insertWorkspaceGroupHeaders,
   sortHierarchyHomoRowsByWorkspaceGroup,
 } from './group-hierarchy-homo-rows.util';
+import {
+  GseCargoTabRow,
+  layoutGseCargoTabRows,
+} from 'core/utils/gse-effective-office-membership.util';
 import { paginateHierarchyHomoRows } from './paginate-hierarchy-homo-rows.util';
 import {
   canUnlinkGseHierarchyRow,
@@ -72,6 +76,11 @@ export const HierarchyHomoTable: FC<
       preferredWorkspaceId?: string;
       gseWorkspaceIds?: string[];
       workspaceNamesById?: Record<string, string>;
+      /**
+       * Cargos OFFICE abrangidos. Quando informado, substitui a lista de
+       * vínculos explícitos na apresentação e não grava descendentes.
+       */
+      coverageRows?: GseCargoTabRow[];
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
@@ -88,6 +97,7 @@ export const HierarchyHomoTable: FC<
   preferredWorkspaceId,
   gseWorkspaceIds,
   workspaceNamesById,
+  coverageRows,
 }) => {
   const [pageSize, setPageSize] = useState(() =>
     typeof fixedRowsPerPage === 'number'
@@ -117,11 +127,16 @@ export const HierarchyHomoTable: FC<
     // onStackOpenModal(ModalEnum.EXAMS_ADD, {} as typeof initialExamState);
   };
 
-  const onEdit = (h: IHierarchy & IHierarchyOnHomogeneous) => {
+  const linkIdOf = (h: { id?: number | string; linkId?: number | null }) =>
+    h.linkId ?? h.id;
+
+  const onEdit = (h: IHierarchy & IHierarchyOnHomogeneous & { linkId?: number | null }) => {
+    const linkId = linkIdOf(h);
+    if (linkId == null || linkId === '') return;
     selectStartEndDate(
       (data) => {
         updateMutation.mutate({
-          ids: [h.id],
+          ids: [Number(linkId)],
           endDate: data.endDate,
           startDate: data.startDate,
           companyId: h.companyId,
@@ -135,6 +150,8 @@ export const HierarchyHomoTable: FC<
   };
 
   const data = useMemo(() => {
+    if (coverageRows) return coverageRows;
+
     const rows = hierarchies.reduce((acc, curr) => {
       const newData = curr.hierarchyOnHomogeneous?.map((h) => ({
         ...curr,
@@ -200,6 +217,7 @@ export const HierarchyHomoTable: FC<
     groupByWorkspace,
     gseWorkspaceIds,
     hierarchies,
+    coverageRows,
     preferredWorkspaceId,
     workspaceNamesById,
   ]);
@@ -213,19 +231,22 @@ export const HierarchyHomoTable: FC<
     );
   }, [data, groupBySector, groupByWorkspace, preferredWorkspaceId]);
 
-  const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
+  const onDelete = (
+    h: IHierarchy & IHierarchyOnHomogeneous & { linkId?: number | null },
+  ) => {
     if (isCreate) {
       return;
     }
 
+    const removedId = linkIdOf(h);
     const remainingActiveBefore = data.filter(
-      (row: IHierarchy & IHierarchyOnHomogeneous) =>
-        !row.endDate && row.id !== h.id,
+      (row: IHierarchy & IHierarchyOnHomogeneous & { linkId?: number | null }) =>
+        !row.endDate && linkIdOf(row) !== removedId && row.id !== h.id,
     ).length;
 
     deleteMutation.mutate(
       {
-        ids: [h.id],
+        ids: [Number(removedId)],
         companyId: h.companyId,
       },
       {
@@ -297,10 +318,10 @@ export const HierarchyHomoTable: FC<
         .sort((a, b) => sortString(a?.name, b?.name));
     }
 
-    return insertWorkspaceGroupHeaders(
-      paginateHierarchyHomoRows(results, page, pageSize),
-    );
-  }, [groupBySector, groupByWorkspace, page, pageSize, results]);
+    const pageRows = paginateHierarchyHomoRows(results, page, pageSize);
+    if (coverageRows) return layoutGseCargoTabRows(pageRows);
+    return insertWorkspaceGroupHeaders(pageRows);
+  }, [coverageRows, groupBySector, groupByWorkspace, page, pageSize, results]);
 
   return (
     <>
@@ -330,12 +351,108 @@ export const HierarchyHomoTable: FC<
           }
           hideLoadMore
           renderRow={(row) => {
-            if (row.kind === 'group') {
+            if (row.kind === 'group' || row.kind === 'workspace') {
               return (
                 <STableRow key={row.id} clickable={false}>
                   <Box sx={{ gridColumn: '1 / -1', py: 1 }}>
                     <SText fontWeight="600" fontSize={13}>
                       {row.workspaceGroupName}
+                    </SText>
+                  </Box>
+                </STableRow>
+              );
+            }
+
+            if (row.kind === 'link') {
+              const canUnlink = canUnlinkGseHierarchyRow({
+                groupByWorkspace,
+                preferredWorkspaceId,
+                rowWorkspaceGroupId: row.workspaceGroupId,
+              });
+              const isAncestorLink = row.origin === 'inherited';
+              return (
+                <STableRow
+                  key={row.id}
+                  clickable
+                  onClick={() => onSelectRow(row)}
+                >
+                  <Box sx={{ pl: 2 }}>
+                    <TextIconRow
+                      clickable
+                      textProps={{ fontWeight: 600 }}
+                      text={row.displayName || row.name}
+                    />
+                    <SText fontSize={11} color="text.secondary" sx={{ pl: 1 }}>
+                      {isAncestorLink
+                        ? `${row.typeLabel || 'Vínculo'} · vínculo explícito`
+                        : 'Vínculo direto'}
+                    </SText>
+                  </Box>
+                  <TextIconRow
+                    clickable
+                    text={`inicio: ${dateToString(row.startDate)}`}
+                  />
+                  <TextIconRow
+                    clickable
+                    text={`fim: ${dateToString(row.endDate)}`}
+                  />
+                  {!isCreate && (
+                    <IconButtonRow
+                      icon={<SDeleteIcon />}
+                      disabled={!canUnlink || row.linkId == null}
+                      tooltipTitle={
+                        !canUnlink
+                          ? formatGseUnlinkOtherWorkspaceTooltip(row.workspaceGroupName)
+                          : isAncestorLink
+                            ? `Remover o vínculo com ${row.displayName}`
+                            : 'deletar'
+                      }
+                      sx={{ svg: { fontSize: 18 }, height: 20 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!canUnlink || isCreate || row.linkId == null) return;
+                        const texts = CHARACTERIZATION_LINK_CLEANUP_TEXTS.quickUnlink;
+                        const body = isAncestorLink
+                          ? `A exclusão remove o vínculo com ${row.displayName}. Os cargos abrangidos só por esse vínculo deixam de aparecer. Não será criada uma exceção por cargo.`
+                          : `${texts.body}\n\nCargo: ${row.name || '-'}`;
+                        preventDelete(() => onDelete(row), body, {
+                          title: isAncestorLink ? 'Remover vínculo ancestral' : texts.title,
+                          confirmText: texts.confirm,
+                          confirmCancel: texts.cancel,
+                        });
+                      }}
+                    />
+                  )}
+                </STableRow>
+              );
+            }
+
+            if (row.kind === 'covered') {
+              return (
+                <STableRow key={row.id} clickable={false}>
+                  <Box sx={{ pl: 5, opacity: 0.72 }}>
+                    <TextIconRow
+                      clickable={false}
+                      tooltipTitle={row.originLabel}
+                      text={row.displayName || row.name}
+                    />
+                    <SText fontSize={11} color="text.secondary" sx={{ pl: 1 }}>
+                      {row.originLabel}
+                    </SText>
+                  </Box>
+                  <Box />
+                  <Box />
+                  <Box />
+                </STableRow>
+              );
+            }
+
+            if (row.kind === 'sector') {
+              return (
+                <STableRow key={row.id} clickable={false}>
+                  <Box sx={{ gridColumn: '1 / -1', py: 0.5, pl: 2 }}>
+                    <SText fontWeight="600" fontSize={13}>
+                      {row.sectorGroupName}
                     </SText>
                   </Box>
                 </STableRow>
@@ -365,12 +482,22 @@ export const HierarchyHomoTable: FC<
               rowWorkspaceGroupId: cargoRow.workspaceGroupId,
             });
 
-            const indentSx = groupByWorkspace || groupBySector ? { pl: 3 } : undefined;
+            const isInherited = cargoRow.origin === 'inherited';
+            const isCoverageRow = cargoRow.origin === 'direct' || isInherited;
+            const indentSx =
+              coverageRows
+                ? { pl: 5 }
+                : groupByWorkspace || groupBySector
+                  ? { pl: 3 }
+                  : undefined;
 
             return (
               <STableRow
-                onClick={() => onSelectRow(cargoRow)}
-                clickable
+                onClick={() => {
+                  if (isInherited) return;
+                  onSelectRow(cargoRow);
+                }}
+                clickable={!isInherited}
                 key={cargoRow.id}
                 status={cargoRow.endDate ? 'inactive' : 'none'}
               >
@@ -380,31 +507,42 @@ export const HierarchyHomoTable: FC<
                     checked={!!selectedData.find((exam) => exam.id === cargoRow.id)}
                   />
                 )}
-                <TextIconRow
-                  clickable
-                  tooltipTitle={
-                    <Box>
-                      {groupByWorkspace && contextLabel && (
-                        <SText fontSize={12} color="white" mb={1}>
-                          {contextLabel}
-                        </SText>
-                      )}
-                      {fullPath.map((p: IHierarchy) => (
-                        <SText fontSize={10} color="white" key={p.name}>
-                          {originRiskMap[p.type]?.name || p.type}:{' '}
-                          <SText color="white" component="span" fontSize={12}>
-                            {p.name}
+                <Box sx={indentSx}>
+                  <TextIconRow
+                    clickable={!isInherited}
+                    tooltipTitle={
+                      <Box>
+                        {groupByWorkspace && contextLabel && (
+                          <SText fontSize={12} color="white" mb={1}>
+                            {contextLabel}
                           </SText>
-                        </SText>
-                      ))}
-                    </Box>
-                  }
-                  text={displayName || '-'}
-                  tooltipProps={{
-                    minLength: 10,
-                  }}
-                  sx={indentSx}
-                />
+                        )}
+                        {cargoRow.originLabel && (
+                          <SText fontSize={12} color="white" mb={1}>
+                            {cargoRow.originLabel}
+                          </SText>
+                        )}
+                        {fullPath.map((p: IHierarchy) => (
+                          <SText fontSize={10} color="white" key={p.name}>
+                            {originRiskMap[p.type]?.name || p.type}:{' '}
+                            <SText color="white" component="span" fontSize={12}>
+                              {p.name}
+                            </SText>
+                          </SText>
+                        ))}
+                      </Box>
+                    }
+                    text={displayName || '-'}
+                    tooltipProps={{
+                      minLength: 10,
+                    }}
+                  />
+                  {cargoRow.originLabel && (
+                    <SText fontSize={11} color="text.secondary" sx={{ pl: 1 }}>
+                      {cargoRow.originLabel}
+                    </SText>
+                  )}
+                </Box>
                 <TextIconRow
                   clickable
                   text={`inicio: ${dateToString(cargoRow.startDate)}`}
@@ -413,34 +551,39 @@ export const HierarchyHomoTable: FC<
                   clickable
                   text={`fim: ${dateToString(cargoRow.endDate)}`}
                 />
-                {!isCreate && (
+                {!isCreate && (!isCoverageRow || cargoRow.canUnlinkSource) && (
                   <IconButtonRow
                     icon={<SDeleteIcon />}
-                    disabled={!canUnlink}
+                    disabled={!canUnlink || (isCoverageRow && cargoRow.linkId == null)}
                     tooltipTitle={
-                      canUnlink
-                        ? 'deletar'
-                        : formatGseUnlinkOtherWorkspaceTooltip(
+                      !canUnlink
+                        ? formatGseUnlinkOtherWorkspaceTooltip(
                             cargoRow.workspaceGroupName,
                           )
+                        : isInherited
+                          ? `Remover o vínculo ancestral. ${cargoRow.originLabel}`
+                          : 'deletar'
                     }
                     sx={{ svg: { fontSize: 18 }, height: 20 }}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (!canUnlink || isCreate) return;
+                      if (isCoverageRow && cargoRow.linkId == null) return;
                       const texts = CHARACTERIZATION_LINK_CLEANUP_TEXTS.quickUnlink;
-                      preventDelete(
-                        () => onDelete(cargoRow),
-                        `${texts.body}\n\nCargo: ${cargoRow.name || '-'}`,
-                        {
-                          title: texts.title,
-                          confirmText: texts.confirm,
-                          confirmCancel: texts.cancel,
-                        },
-                      );
+                      const body = isInherited
+                        ? `Este cargo é abrangido por um vínculo ancestral (${cargoRow.originLabel}). A exclusão remove esse vínculo e os cargos que dependem só dele. Não será criada uma exceção para este cargo.`
+                        : `${texts.body}\n\nCargo: ${cargoRow.name || '-'}`;
+                      preventDelete(() => onDelete(cargoRow), body, {
+                        title: isInherited
+                          ? 'Remover vínculo ancestral'
+                          : texts.title,
+                        confirmText: texts.confirm,
+                        confirmCancel: texts.cancel,
+                      });
                     }}
                   />
                 )}
+                {!isCreate && isCoverageRow && !cargoRow.canUnlinkSource && <Box />}
               </STableRow>
             );
           }}

@@ -4,9 +4,16 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { useStore } from 'react-redux';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
+import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import {
+  resetGseCargoSelectionTouched,
+  setModalIds,
+} from 'store/reducers/hierarchy/hierarchySlice';
+
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -17,6 +24,7 @@ import {
   IUpdateGho,
   useMutUpdateGho,
 } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryGho } from 'core/services/hooks/queries/useQueryGho/useQueryGho';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { ghoSchema } from 'core/utils/schemas/gho.schema';
@@ -40,6 +48,15 @@ import {
   resolveGhoSaveIntent,
   shouldStayAfterGhoSave,
 } from '../gho-save-intent.util';
+import {
+  nextGseCargoBaseline,
+  resolveGseCargoPersist,
+} from '../resolve-gse-cargo-persist.util';
+import {
+  buildGseCreateWorkspacePayload,
+  firstRouteWorkspaceId,
+  resolveGseCreateWorkspaceIds,
+} from '../resolve-gse-create-workspaces.util';
 
 export type GhoAddLayout = 'modal' | 'page';
 
@@ -62,7 +79,10 @@ export const initialAddGhoState = {
 export const useAddGho = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onStackOpenModal } = useModal();
+  const { enqueueSnackbar } = useSnackbar();
+  const dispatch = useAppDispatch();
   const router = useRouter();
+  const { data: company } = useQueryCompany();
   const { selectStartEndDate } = useStartEndDate();
   const store = useStore<any>();
   const initialDataRef = useRef(
@@ -71,6 +91,8 @@ export const useAddGho = () => {
   const saveIntentRef = useRef<GhoSaveIntent>('exit');
   const absorbedQueryKeyRef = useRef('');
   const isHydratingRef = useRef(true);
+  const cargoSeededForRef = useRef('');
+  const [createWorkspaceError, setCreateWorkspaceError] = useState('');
 
   const { handleSubmit, control, reset, getValues, setValue, watch } =
     useForm<any>({
@@ -144,6 +166,50 @@ export const useAddGho = () => {
     }
   }, [getModalData, reset]);
 
+  const companyWorkspaceIds = useMemo(
+    () => (company?.workspace || []).map((workspace) => workspace.id).filter(Boolean),
+    [company?.workspace],
+  );
+  const tabWorkspaceId = firstRouteWorkspaceId(
+    router.query.tabWorkspaceId as string | string[] | undefined,
+  );
+  const routeWorkspaceId = firstRouteWorkspaceId(
+    router.query.workspaceId as string | string[] | undefined,
+  );
+
+  useEffect(() => {
+    if (ghoData.id) return;
+    if (ghoData.workspaceIdsTouched) return;
+    if (ghoData.workspaceIds.length) return;
+
+    const ids = resolveGseCreateWorkspaceIds({
+      tabWorkspaceId,
+      routeWorkspaceId,
+      companyWorkspaceIds,
+    });
+    if (!ids.length) return;
+
+    setGhoData((current) => {
+      if (current.id || current.workspaceIdsTouched || current.workspaceIds.length) {
+        return current;
+      }
+      return { ...current, workspaceIds: ids, workspaceIdsTouched: false };
+    });
+    initialDataRef.current = {
+      ...initialDataRef.current,
+      workspaceIds: [...ids].sort(),
+      workspaceIdsTouched: false,
+    };
+    setCreateWorkspaceError('');
+  }, [
+    companyWorkspaceIds,
+    ghoData.id,
+    ghoData.workspaceIds.length,
+    ghoData.workspaceIdsTouched,
+    routeWorkspaceId,
+    tabWorkspaceId,
+  ]);
+
   useEffect(() => {
     if (!ghoQuery?.id || !ghoData.id || ghoQuery.id !== ghoData.id) return;
 
@@ -193,6 +259,8 @@ export const useAddGho = () => {
   const onClose = (data?: any) => {
     saveIntentRef.current = 'exit';
     onCloseModal(ModalEnum.GHO_ADD, data);
+    setCreateWorkspaceError('');
+    cargoSeededForRef.current = '';
     setGhoData(initialAddGhoState);
     reset();
     isHydratingRef.current = true;
@@ -272,14 +340,22 @@ export const useAddGho = () => {
     };
 
     if (ghoData.id == '') {
+      const createWorkspaceIds = buildGseCreateWorkspacePayload(ghoData.workspaceIds);
+      if (!createWorkspaceIds) {
+        setCreateWorkspaceError('Selecione ao menos um estabelecimento');
+        enqueueSnackbar('Selecione ao menos um estabelecimento', {
+          variant: 'error',
+        });
+        return;
+      }
+
+      setCreateWorkspaceError('');
       await createGhoMut
         .mutateAsync({
           ...submitData,
           startDate: ghoData.startDate,
           endDate: ghoData.endDate,
-          ...(ghoData.workspaceIds.length && {
-            workspaceIds: ghoData.workspaceIds,
-          }),
+          workspaceIds: createWorkspaceIds,
           hierarchies: ghoData.hierarchies.reduce(
             (acc, hierarchy) => {
               acc = [
@@ -442,35 +518,56 @@ export const useAddGho = () => {
     onClose();
   };
 
+  const cargoBaseline = useMemo(() => {
+    const querySettled =
+      !!ghoData.id && !loadingQuery && ghoQuery?.id === ghoData.id;
+    return nextGseCargoBaseline({
+      openGseId: ghoData.id,
+      querySettled,
+      queryGseId: ghoQuery?.id,
+      loadedIds: querySettled
+        ? mapGhoHierarchiesToModalSelectIds(
+            (ghoQuery.hierarchies || []) as unknown as IHierarchy[],
+          )
+        : null,
+    });
+  }, [ghoData.id, ghoQuery?.hierarchies, ghoQuery?.id, loadingQuery]);
+  const cargoBaselineRef = useRef(cargoBaseline);
+  cargoBaselineRef.current = cargoBaseline;
+
+  useEffect(() => {
+    if (!cargoBaseline) {
+      cargoSeededForRef.current = '';
+      return;
+    }
+    if (cargoSeededForRef.current === cargoBaseline.gseId) return;
+
+    const openModals = [
+      ...(store.getState().modal?.pileModal || []),
+      ...(store.getState().modal?.currentModal || []),
+    ];
+    const cargoModal = [...openModals].reverse().find(
+      (modal) =>
+        modal?.name === ModalEnum.HIERARCHY_SELECT &&
+        modal?.data?.gseCargoSelect &&
+        modal?.data?.gseCargoGseId === cargoBaseline.gseId,
+    );
+    if (!cargoModal) return;
+
+    cargoSeededForRef.current = cargoBaseline.gseId;
+    dispatch(resetGseCargoSelectionTouched());
+    dispatch(setModalIds(cargoBaseline.ids));
+  }, [cargoBaseline, dispatch, store]);
+
   const onAddHierarchy = () => {
+    const openedForGseId = ghoData.id;
     const handleSelect = (
       hierarchiesSelected: IHierarchy[],
       startDate: Date,
       endDate: Date,
       close?: () => void,
     ) => {
-      const modalSelectIds = store.getState().hierarchy
-        .modalSelectIds as string[];
-      const fallbackWorkspaceId = ghoQuery.workspaceIds?.[0];
-      const selectedLinks = mapModalSelectIdsToGhoLinks(
-        modalSelectIds,
-        fallbackWorkspaceId,
-      );
-
-      if (isEdit) {
-        const submitData: IUpdateGho = {
-          companyId: ghoData.companyId,
-          id: ghoData.id,
-          startDate,
-          endDate,
-          hierarchies: selectedLinks,
-        };
-
-        updateGhoMut
-          .mutateAsync(submitData)
-          .then(() => close?.())
-          .catch(() => {});
-      } else {
+      if (!openedForGseId) {
         const newHierarchies = hierarchiesSelected.map((h) => ({
           ...h,
           id: String(h.id).split('//')[0],
@@ -487,13 +584,58 @@ export const useAddGho = () => {
           endDate,
         }));
         close?.();
+        return;
       }
+
+      const baseline = cargoBaselineRef.current;
+      const hierarchyState = store.getState().hierarchy;
+      const decision = resolveGseCargoPersist({
+        hydrated: baseline?.gseId === openedForGseId,
+        baselineGseId: baseline?.gseId ?? null,
+        openGseId: openedForGseId,
+        baselineIds:
+          baseline?.gseId === openedForGseId ? baseline.ids : null,
+        finalIds: hierarchyState.modalSelectIds || [],
+        selectionTouched: !!hierarchyState.gseCargoSelectionTouched,
+        startDate,
+        endDate,
+      });
+
+      if (decision.action === 'block') {
+        enqueueSnackbar(
+          'Os cargos deste GSE ainda estão carregando. Nenhum vínculo foi alterado.',
+          { variant: 'info' },
+        );
+        return;
+      }
+
+      const selectedLinks = mapModalSelectIdsToGhoLinks(
+        decision.hierarchyModalIds,
+        ghoQuery.workspaceIds?.[0],
+      );
+      const submitData: IUpdateGho = {
+        companyId: ghoData.companyId,
+        id: openedForGseId,
+        startDate: decision.startDate as Date,
+        endDate: decision.endDate as Date,
+        hierarchies: selectedLinks,
+      };
+
+      updateGhoMut
+        .mutateAsync(submitData)
+        .then(() => close?.())
+        .catch(() => {});
     };
 
     const linkedWorkspaceIds = getGseLinkedWorkspaceIds(ghoData, ghoQuery);
-    const persistedModalIds = mapGhoHierarchiesToModalSelectIds(
-      hierarchies as IHierarchy[],
-    );
+    const baselineNow =
+      cargoBaselineRef.current?.gseId === openedForGseId
+        ? cargoBaselineRef.current
+        : null;
+    const persistedModalIds = baselineNow ? baselineNow.ids : [];
+    dispatch(resetGseCargoSelectionTouched());
+    dispatch(setModalIds(persistedModalIds));
+    cargoSeededForRef.current = baselineNow ? openedForGseId : '';
     const headerWorkspaceId = String(
       router.query.tabWorkspaceId || router.query.workspaceId || '',
     );
@@ -513,6 +655,8 @@ export const useAddGho = () => {
       workspaceIdsFilter: linkedWorkspaceIds,
       workspaceId: initialWorkspaceId,
       gseCargoSelect: true,
+      gseCargoHydrated: !!baselineNow,
+      gseCargoGseId: openedForGseId,
       title: buildGseCargoModalTitle(gseName),
       hierarchiesIds: persistedModalIds,
       allHierarchiesIds: persistedModalIds,
@@ -537,5 +681,7 @@ export const useAddGho = () => {
     ghoQuery,
     setValue,
     setSaveIntent,
+    createWorkspaceError,
+    clearCreateWorkspaceError: () => setCreateWorkspaceError(''),
   };
 };

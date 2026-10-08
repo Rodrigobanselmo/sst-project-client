@@ -40,8 +40,26 @@ export interface IGho {
   riskData?: IRiskData;
   characterization?: IGhoCharacterizationRef;
   environment?: IGhoEnvironmentRef;
-  /** Listagem paginada: vínculos ativos de cargo. */
+  /**
+   * Listagem paginada: quantidade de vínculos ativos em
+   * HierarchyOnHomogeneous, de qualquer nível. Não é a coluna Cargos.
+   */
   hierarchyCount?: number;
+  /**
+   * Listagem paginada: cargos OFFICE distintos abrangidos pelo GSE.
+   * Não substitui hierarchyCount.
+   */
+  effectiveOfficeCount?: number;
+  /** OFFICE com vínculo explícito no próprio cargo. */
+  directOfficeCount?: number;
+  /** OFFICE abrangidos só por ancestral, já sem os que têm vínculo direto. */
+  inheritedOfficeCount?: number;
+  inheritedOfficeOrigins?: {
+    sourceHierarchyId: string;
+    sourceType: string;
+    sourceName: string;
+    count: number;
+  }[];
   /** Listagem paginada: RiskFactorData ativos do GSE. */
   riskCount?: number;
 }
@@ -56,4 +74,5 @@ export interface IHierarchyOnHomogeneous {
   homogeneousGroup?: IGho;
   endDate: Date;
   startDate: Date;
+  deletedAt?: Date | string | null;
 }

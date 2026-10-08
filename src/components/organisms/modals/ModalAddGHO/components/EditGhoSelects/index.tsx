@@ -19,12 +19,16 @@ interface IEditGhoSelects {
   ghoQuery: IGho;
   ghoData: typeof initialAddGhoState;
   setGhoData: React.Dispatch<any>;
+  workspaceError?: string;
+  onWorkspaceEdited?: () => void;
 }
 
 export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
   setGhoData,
   ghoData,
   ghoQuery,
+  workspaceError,
+  onWorkspaceEdited,
 }) => {
   const { data: company, isLoading } = useQueryCompany();
   const theme = useTheme();
@@ -61,6 +65,7 @@ export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
 
   const handleWorkspaceChange = (selected: IWorkspace[]) => {
     hasChangedWorkspaceSelectionRef.current = true;
+    onWorkspaceEdited?.();
     const ids = selected.map((w) => w.id);
     setGhoData((d: any) => ({
       ...d,
@@ -78,6 +83,7 @@ export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
           loading={isLoading}
           label="Estabelecimentos"
           placeholder="Selecionar estabelecimentos..."
+          errorMessage={workspaceError}
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => option.id}
           onChange={(option) => handleWorkspaceChange(option)}

@@ -3,13 +3,12 @@ import { useMutation } from 'react-query';
 import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
-import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IGho } from 'core/interfaces/api/IGho';
 import { api } from 'core/services/apiClient';
-import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { invalidateGhoFamily } from '../invalidate-gho-queries.util';
 
 export interface IUpdateGho extends Partial<Pick<IGho, 'name' | 'status'>> {
   id: string;
@@ -40,28 +39,9 @@ export function useMutUpdateGho() {
     async (data: IUpdateGho) => updateGho(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp?.companyId) {
-          // Só atualizar caches cujo dado é lista (ex.: useQueryGHOAll). Chaves como [GHO, companyId, ghoId] guardam um único IGho — chamar .map nelas quebrava o onSuccess e a persistência parecia falhar.
-          queryClient.setQueriesData(
-            {
-              queryKey: [QueryEnum.GHO, resp.companyId],
-              predicate: (query) => Array.isArray(query.state.data),
-            },
-            (oldData: unknown) => {
-              if (!Array.isArray(oldData)) return oldData;
-              return (oldData as IGho[]).map((gho) => {
-                if (gho.id != resp.id) return gho;
-                return {
-                  ...gho,
-                  ...resp,
-                  hierarchies: resp.hierarchies ?? gho.hierarchies,
-                };
-              });
-            },
-          );
-
-          void queryClient.invalidateQueries([QueryEnum.GHO, resp.companyId]);
-        }
+        // O PATCH pode omitir hierarchies. Listagem paginada, detalhe e /all
+        // convergem pelo refetch da família gho.
+        await invalidateGhoFamily();
 
         enqueueSnackbar('Grupo homogênio de exposição editado com sucesso', {
           variant: 'success',

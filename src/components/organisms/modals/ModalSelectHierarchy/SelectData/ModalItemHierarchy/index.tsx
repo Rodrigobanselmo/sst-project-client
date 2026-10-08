@@ -17,6 +17,7 @@ interface IItem extends BoxProps {
   text?: string;
   tooltipText?: string;
   selectedOverride?: boolean;
+  hideCheckbox?: boolean;
   startContent?: ReactNode;
   endIcon?: ReactNode;
   textNoBreak?: boolean;
@@ -30,6 +31,7 @@ export const ModalItemHierarchy: FC<{ children?: any } & IItem> = ({
   text,
   tooltipText,
   selectedOverride,
+  hideCheckbox,
   startContent,
   endIcon,
   textNoBreak,
@@ -57,6 +59,7 @@ export const ModalItemHierarchy: FC<{ children?: any } & IItem> = ({
       startContent={startContent}
       endIcon={endIcon}
       textNoBreak={textNoBreak}
+      hideCheckbox={hideCheckbox}
       labelSx={
         gseLabelContrast ? getGseCargoBadgeSx(theme.palette.mode) : undefined
       }

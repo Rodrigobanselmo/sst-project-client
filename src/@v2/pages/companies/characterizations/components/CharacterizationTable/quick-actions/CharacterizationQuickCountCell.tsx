@@ -1,4 +1,4 @@
-import { MouseEvent } from 'react';
+import { MouseEvent, ReactNode } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
@@ -11,7 +11,7 @@ type CharacterizationQuickCountCellProps = {
   disabledReason?: string;
   emptyLabel?: string;
   emptyTooltip: string;
-  countTooltip: string;
+  countTooltip: ReactNode;
   addTooltip: string;
   onOpen: () => void;
   onAdd: () => void;

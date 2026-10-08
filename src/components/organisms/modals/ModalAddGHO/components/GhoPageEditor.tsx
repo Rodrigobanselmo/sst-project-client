@@ -28,6 +28,8 @@ export const GhoPageEditor = () => {
     loadingQuery,
     setSaveIntent,
     isDirty,
+    createWorkspaceError,
+    clearCreateWorkspaceError,
   } = ghoProps;
 
   const isOpen = registerModal(ModalEnum.GHO_ADD).open;
@@ -59,6 +61,8 @@ export const GhoPageEditor = () => {
         loading={loading}
         isDirty={isDirty}
         setSaveIntent={setSaveIntent}
+        createWorkspaceError={createWorkspaceError}
+        onWorkspaceEdited={clearCreateWorkspaceError}
       />
     </Box>
   );

@@ -38,6 +38,8 @@ export const ModalAddGhoView = () => {
     ghoQuery,
     setValue,
     loadingQuery,
+    createWorkspaceError,
+    clearCreateWorkspaceError,
   } = useGhoEditor();
 
   const modalProps = registerModal(ModalEnum.GHO_ADD);
@@ -59,6 +61,8 @@ export const ModalAddGhoView = () => {
     hierarchies: hierarchies as any,
     loadingQuery,
     loading,
+    createWorkspaceError,
+    onWorkspaceEdited: clearCreateWorkspaceError,
   };
 
   const buttons = [

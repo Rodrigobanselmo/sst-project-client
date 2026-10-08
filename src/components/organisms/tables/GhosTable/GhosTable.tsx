@@ -1,6 +1,6 @@
 import { FC, useCallback, useState } from 'react';
 
-import { BoxProps, useTheme } from '@mui/material';
+import { Box, BoxProps, useTheme } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
@@ -46,6 +46,8 @@ import {
 import { resolveGseTableOpenStep } from 'components/organisms/modals/ModalAddGHO/gse-wizard-steps';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useGseImportFlow } from './useGseImportFlow';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
+import { formatGseOfficeCountLines } from 'core/utils/gse-effective-office-membership.util';
 
 const GHO_TABLE_PAGE_SIZES = [15, 25, 50, 100] as const;
 const DEFAULT_GHO_TABLE_PAGE_SIZE = 15;
@@ -81,6 +83,7 @@ export const GhosTable: FC<
 
   const isSelect = !!onSelectData;
   const isDark = useTheme().palette.mode === 'dark';
+  const hierarchyTypeLabels = useHierarchyTypeLabels();
 
   const {
     data: risks,
@@ -205,10 +208,31 @@ export const GhosTable: FC<
           <TextIconRow clickable text={row.name || '-'} />
           {pageGhoLayout && (
             <CharacterizationQuickCountCell
-              count={row.hierarchyCount ?? 0}
+              count={row.effectiveOfficeCount ?? 0}
               showZeroCount
               emptyTooltip="Abrir cargos do GSE"
-              countTooltip="Abrir cargos do GSE"
+              countTooltip={
+                <Box>
+                  {(row.directOfficeCount != null &&
+                  row.inheritedOfficeCount != null
+                    ? formatGseOfficeCountLines({
+                        effectiveOfficeCount: row.effectiveOfficeCount ?? 0,
+                        directOfficeCount: row.directOfficeCount,
+                        inheritedOfficeCount: row.inheritedOfficeCount,
+                        inheritedOfficeOrigins: row.inheritedOfficeOrigins,
+                        typeLabels: hierarchyTypeLabels,
+                      })
+                    : [
+                        (row.effectiveOfficeCount ?? 0) === 1
+                          ? '1 cargo abrangido'
+                          : `${row.effectiveOfficeCount ?? 0} cargos abrangidos`,
+                      ]
+                  ).map((line, index) => (
+                    <Box key={`${index}-${line}`}>{line}</Box>
+                  ))}
+                  <Box>Abrir cargos do GSE</Box>
+                </Box>
+              }
               addTooltip="Adicionar cargo ao GSE"
               onOpen={() => onEditGHO(row, 'cargos')}
               onAdd={() => onEditGHO(row, 'cargos')}

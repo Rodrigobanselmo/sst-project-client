@@ -22,6 +22,8 @@ interface IHierarchySlice {
   selectItem: ITreeSelectedItem | null;
   workspaceId: string | null;
   modalSelectIds: string[];
+  /** Edição de cargos do GSE: o usuário mudou a seleção depois da hidratação. */
+  gseCargoSelectionTouched: boolean;
   search: string;
   selectionMode: boolean;
   selectedNodeIds: string[];
@@ -41,6 +43,7 @@ const initialState: IHierarchySlice = {
     },
   },
   modalSelectIds: [],
+  gseCargoSelectionTouched: false,
   search: '',
   dragItem: null,
   copyItem: null,
@@ -142,6 +145,12 @@ export const hierarchySlice = createSlice({
     setModalIds: (state, action: PayloadAction<string[]>) => {
       state.modalSelectIds = action.payload;
     },
+    markGseCargoSelectionTouched: (state) => {
+      state.gseCargoSelectionTouched = true;
+    },
+    resetGseCargoSelectionTouched: (state) => {
+      state.gseCargoSelectionTouched = false;
+    },
     setHierarchySearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
     },
@@ -235,6 +244,8 @@ export const {
   setAddModalId,
   setHierarchySearch,
   setModalIds,
+  markGseCargoSelectionTouched,
+  resetGseCargoSelectionTouched,
   setSelectionMode,
   setSelectedNodeIds,
   toggleSelectedNodeId,

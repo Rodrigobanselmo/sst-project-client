@@ -4,10 +4,9 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
-import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { api } from 'core/services/apiClient';
-import { queryClient } from 'core/services/queryClient';
+import { invalidateGhoAndHierarchyFamilies } from 'core/services/hooks/mutations/checklist/gho/invalidate-gho-queries.util';
 
 import { IErrorResp } from '../../../../../errors/types';
 
@@ -69,7 +68,7 @@ export function useMutBulkDeleteHierarchy() {
         }
 
         if (resp && !resp.dryRun && variables.confirm) {
-          await queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
+          await invalidateGhoAndHierarchyFamilies(companyId);
 
           const blockedCount = resp.blocked?.length || 0;
           if (resp.deleted > 0 && blockedCount === 0) {
