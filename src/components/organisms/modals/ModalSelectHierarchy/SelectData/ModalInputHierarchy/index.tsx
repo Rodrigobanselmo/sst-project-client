@@ -7,7 +7,12 @@ import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { hierarchyList } from 'core/constants/maps/hierarchy.constant';
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import {
+  STRUCTURE_COVERAGE_TOOLTIP,
+  STRUCTURE_FILTER,
+} from '../../structure-hierarchy-selection.util';
 
 import { initialHierarchySelectState } from '../..';
 import { STSInput } from './styles';
@@ -55,12 +60,32 @@ export const ModalInputHierarchy = React.forwardRef<
           {...props}
         />
         <SFlex gap={4} align="center">
+          {(selectedData.gseCargoSelect ||
+            selectedData.characterizationCargoSelect) && (
+            <STagButton
+              active={filter === STRUCTURE_FILTER}
+              tooltipTitle={STRUCTURE_COVERAGE_TOOLTIP}
+              text="Estrutura"
+              large
+              onClick={() => {
+                dispatch(setHierarchySearch(''));
+                setFilter(STRUCTURE_FILTER);
+              }}
+            />
+          )}
           {hierarchyList
-            .filter(
-              (hierarchy) =>
+            .filter((hierarchy) => {
+              if (
+                selectedData.gseCargoSelect ||
+                selectedData.characterizationCargoSelect
+              ) {
+                return hierarchy.value === HierarchyEnum.OFFICE;
+              }
+              return (
                 listFilter[hierarchy.value] &&
-                selectedData.selectionHierarchy.includes(hierarchy.value),
-            )
+                selectedData.selectionHierarchy.includes(hierarchy.value)
+              );
+            })
             .map((hierarchy) => (
               <STagButton
                 active={filter === hierarchy.value}

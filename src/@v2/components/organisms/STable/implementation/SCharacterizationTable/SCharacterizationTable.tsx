@@ -2,6 +2,10 @@ import { FC, MouseEvent } from 'react';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { Box, IconButton, Tooltip, useTheme } from '@mui/material';
+import {
+  CharacterizationOfficeCoverageSummary,
+  formatCharacterizationCargoTooltipLines,
+} from '@v2/pages/companies/characterizations/components/CharacterizationTable/characterization-office-coverage.util';
 import { brandIdentityGlyphDarkSx } from 'configs/theme/brand-identity-fill';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { CharacterizationQuickCountCell } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationQuickCountCell';
@@ -32,6 +36,42 @@ import { CharacterizationColumnMap as columnMap } from './maps/characterization-
 import { CharacterizationTypeMap } from './maps/characterization-type-map';
 import { HirarchyTypeMap } from './maps/hierarchy-type-map';
 import { ICharacterizationTableTableProps } from './SCharacterizationTable.types';
+
+const hierarchyTypeLabels = Object.fromEntries(
+  Object.entries(HirarchyTypeMap).map(([type, value]) => [type, value.label]),
+);
+
+function characterizationCargoPresentation(
+  row: CharacterizationBrowseResultModel,
+  officeCoverageById?: Record<string, CharacterizationOfficeCoverageSummary>,
+) {
+  const explicit = row.hierarchies ?? [];
+  const coverage = officeCoverageById?.[row.id];
+  const explicitLines = explicit.map(
+    (hierarchy) =>
+      `(${HirarchyTypeMap[hierarchy.type]?.label || hierarchy.type}) ${hierarchy.name}`,
+  );
+
+  if (!coverage) {
+    return {
+      count: explicit.length,
+      showZeroCount: false,
+      lines: explicitLines.length
+        ? explicitLines
+        : ['Gerenciar cargos vinculados'],
+    };
+  }
+
+  return {
+    count: coverage.effectiveOfficeCount,
+    showZeroCount: coverage.effectiveOfficeCount === 0 && explicit.length > 0,
+    lines: formatCharacterizationCargoTooltipLines({
+      summary: coverage,
+      explicitHierarchies: explicit,
+      typeLabels: hierarchyTypeLabels,
+    }),
+  };
+}
 
 export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   data = [],
@@ -67,6 +107,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   pageSizeOptions,
   onPageSizeChange,
   part = 'full',
+  officeCoverageById,
 }) => {
   const isDark = useTheme().palette.mode === 'dark';
   const orderByMap = mapOrderByTable(filters.orderBy);
@@ -412,23 +453,27 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           }
           field={CharacterizationOrderByEnum.HIERARCHY}
           text={columnMap[columnsEnum.HIERARCHY].label}
+          orderDisabled
         />
       ),
-      row: (row) =>
-        onQuickCargos ? (
+      row: (row) => {
+        const cargo = characterizationCargoPresentation(row, officeCoverageById);
+        const tooltip = (
+          <div>
+            {cargo.lines.map((line, index) => (
+              <div key={`${row.id}-${index}`}>{line}</div>
+            ))}
+          </div>
+        );
+
+        return onQuickCargos ? (
           <CharacterizationQuickCountCell
-            count={(row.hierarchies ?? []).length}
+            count={cargo.count}
+            showZeroCount={cargo.showZeroCount}
             disabled={row.isInactive}
             disabledReason={INACTIVE_ACTION_TOOLTIP}
             emptyTooltip="Adicionar cargo ao elemento"
-            countTooltip={
-              (row.hierarchies ?? [])
-                .map(
-                  (hierarchy) =>
-                    `(${HirarchyTypeMap[hierarchy.type]?.label || hierarchy.type}) ${hierarchy.name}`,
-                )
-                .join('\n') || 'Gerenciar cargos vinculados'
-            }
+            countTooltip={tooltip}
             addTooltip="Adicionar cargo ao elemento"
             onOpen={() => onQuickCargos(row, false)}
             onAdd={() => onQuickCargos(row, true)}
@@ -447,19 +492,13 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         ) : (
           <STextRow
             justify="center"
-            text={(row.hierarchies ?? []).length || '-'}
-            tooltipTitle={
-              <div>
-                {(row.hierarchies ?? []).map((hierarchy) => (
-                  <p key={hierarchy.id}>
-                    ({HirarchyTypeMap[hierarchy.type]?.label || hierarchy.type}){' '}
-                    {hierarchy.name}
-                  </p>
-                ))}
-              </div>
+            text={
+              cargo.showZeroCount ? '0' : cargo.count || '-'
             }
+            tooltipTitle={tooltip}
           />
-        ),
+        );
+      },
     },
     {
       column: '180px',

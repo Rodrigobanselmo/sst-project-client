@@ -1,3 +1,4 @@
+import { CharacterizationOfficeCoverageSummary } from '@v2/pages/companies/characterizations/components/CharacterizationTable/characterization-office-coverage.util';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
@@ -19,6 +20,8 @@ export interface ICharacterizationFilterProps {
 
 export interface ICharacterizationTableTableProps {
   data?: CharacterizationBrowseResultModel[];
+  /** Cobertura efetiva de cargos, calculada uma vez para a página a partir da árvore do estabelecimento. */
+  officeCoverageById?: Record<string, CharacterizationOfficeCoverageSummary>;
   table: TablesSelectEnum;
   hiddenColumns: Record<CharacterizationColumnsEnum, boolean>;
   filterColumns: Partial<Record<CharacterizationColumnsEnum, ReactNode>>;

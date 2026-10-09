@@ -7,4 +7,6 @@ export interface ICharacterizationHeaderMenuProps {
   onClean?: () => void;
   onHidden?: () => void;
   filters?: React.ReactNode;
+  /** A coluna exibe cobertura calculada no client; o SQL ainda ordena por vínculos explícitos. */
+  orderDisabled?: boolean;
 }

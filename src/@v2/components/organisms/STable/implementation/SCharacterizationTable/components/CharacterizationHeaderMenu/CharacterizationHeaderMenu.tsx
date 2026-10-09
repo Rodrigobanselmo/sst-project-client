@@ -10,22 +10,26 @@ import { SPopperMenuItemClean } from '@v2/components/organisms/SPopper/addons/SP
 
 export const CharacterizationHeaderMenu: FC<
   ICharacterizationHeaderMenuProps
-> = ({ close, setOrderBy, onClean, onHidden, filters }) => {
+> = ({ close, setOrderBy, onClean, onHidden, filters, orderDisabled }) => {
   return (
     <SPopperMenu>
       {filters}
-      <SPopperMenuItemAscending
-        onClick={() => {
-          setOrderBy('asc');
-          close();
-        }}
-      />
-      <SPopperMenuItemDesceding
-        onClick={() => {
-          setOrderBy('desc');
-          close();
-        }}
-      />
+      {!orderDisabled && (
+        <SPopperMenuItemAscending
+          onClick={() => {
+            setOrderBy('asc');
+            close();
+          }}
+        />
+      )}
+      {!orderDisabled && (
+        <SPopperMenuItemDesceding
+          onClick={() => {
+            setOrderBy('desc');
+            close();
+          }}
+        />
+      )}
       <SPopperMenuItemHideColumn
         disabled={!onHidden}
         onClick={() => {

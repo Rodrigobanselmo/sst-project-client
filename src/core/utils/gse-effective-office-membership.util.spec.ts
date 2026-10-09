@@ -327,9 +327,17 @@ const characterizationSource = readFileSync(
   ),
   'utf8',
 );
-assert.equal(characterizationSource.includes('gse-effective-office-membership'), false);
+assert.equal(characterizationSource.includes('buildGseCargoTabRows'), true);
+assert.equal(characterizationSource.includes('coverageRows'), true);
 assert.equal(characterizationSource.includes('characterizationCargoSelect: true'), true);
 assert.equal(characterizationSource.includes('forceCargoFilter: true'), true);
+assert.equal(characterizationSource.includes('gseCargoSelect'), false);
+assert.equal(
+  characterizationSource.includes(
+    "hierarchyIds: selected.map((h) => String(h.id).split('//')[0])",
+  ),
+  true,
+);
 
 const selectSource = readFileSync(
   resolve('src/components/organisms/modals/ModalSelectHierarchy/SelectData/index.tsx'),
@@ -340,5 +348,7 @@ assert.equal(
   true,
 );
 assert.equal(selectSource.includes('buildGseCargoModalView'), true);
+assert.equal(selectSource.includes('if (!isGseCargoSelect || !workspaceSelected?.id)'), true);
+assert.equal(selectSource.includes('characterizationAvailableOfficeIds'), true);
 
 console.log('gse-effective-office-membership.util.spec.ts ok');

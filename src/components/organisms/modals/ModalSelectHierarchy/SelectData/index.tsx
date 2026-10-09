@@ -45,11 +45,9 @@ import {
   toCharacterizationCargoModalRow,
   toSectorGroupedCargoModalRow,
 } from '../characterization-cargo-modal-row.util';
-import { getGseCargoRowPresentation } from '../gse-cargo-row-presentation.util';
 import { buildGseMembershipByHierarchyId } from '../gse-cargo-membership.util';
 import { groupModalHierarchyItemsBySector } from '../group-modal-hierarchy-by-sector.util';
 import {
-  filterModalIdsByWorkspace,
   keepModalIdsOutsideWorkspace,
   splitHierarchyModalId,
   uniqueModalIds,
@@ -63,6 +61,15 @@ import { ModalListGHO } from './ModalListGHO';
 import { STGridBox } from './styles';
 import { IGho } from 'core/interfaces/api/IGho';
 import { buildGseCargoModalView } from 'core/utils/gse-effective-office-membership.util';
+import {
+  indexStructureNodes,
+  isOrganizationalStructure,
+  pruneRedundantHierarchyModalIds,
+  STRUCTURE_COVERAGE_TOOLTIP,
+  STRUCTURE_FILTER,
+  structureAppliesToWorkspace,
+  structureBlockedByAncestor,
+} from '../structure-hierarchy-selection.util';
 
 export const ModalSelectHierarchyData: FC<
   { children?: any } & {
@@ -115,7 +122,7 @@ export const ModalSelectHierarchyData: FC<
     dispatch(markGseCargoSelectionTouched());
   };
 
-  const [filter, setFilter] = useState<HierarchyEnum | 'GHO'>(
+  const [filter, setFilter] = useState<HierarchyEnum | 'GHO' | 'STRUCTURE'>(
     forceCargoFilter ? HierarchyEnum.OFFICE : showGho ? 'GHO' : HierarchyEnum.OFFICE,
   );
   const [allTypes, setAllTypes] = useState<Record<HierarchyEnum, boolean>>(
@@ -177,6 +184,7 @@ export const ModalSelectHierarchyData: FC<
           });
 
         if (filter === 'GHO') return !isToFilter && isWorkspace;
+        if (filter === STRUCTURE_FILTER) return false;
         return (hierarchy as any).type === filter && !isToFilter && isWorkspace;
       })
       .map((hierarchy) => ({
@@ -280,6 +288,46 @@ export const ModalSelectHierarchyData: FC<
 
   const gseSelectedGroups = gseModalView.groups;
 
+  const characterizationModalView = useMemo(() => {
+    if (!isCharacterizationCargoSelect || !workspaceSelected?.id) {
+      return {
+        explicitModalIds: modalSelectIds,
+        availableOfficeModalIds: [] as string[],
+        selected: [],
+        groups: [],
+        orphanExplicitModalIds: [] as string[],
+      };
+    }
+
+    return buildGseCargoModalView({
+      workspaceId: workspaceSelected.id,
+      modalSelectIds,
+      typeLabels: hierarchyTypeLabels,
+      nodes: hierarchyListData().map((hierarchy) => ({
+        id: String(hierarchy.id).split('//')[0],
+        parentId: hierarchy.parentId
+          ? String(hierarchy.parentId).split('//')[0]
+          : null,
+        type: hierarchy.type,
+        name: hierarchy.name,
+        workspaceIds: hierarchy.workspaceIds || [],
+      })),
+    });
+  }, [
+    hierarchyListData,
+    hierarchyTypeLabels,
+    isCharacterizationCargoSelect,
+    modalSelectIds,
+    workspaceSelected?.id,
+  ]);
+
+  const characterizationAvailableOfficeIds = useMemo(
+    () => new Set(characterizationModalView.availableOfficeModalIds),
+    [characterizationModalView.availableOfficeModalIds],
+  );
+
+  const characterizationSelectedGroups = characterizationModalView.groups;
+
   const gseOrphanExplicit = useMemo(() => {
     if (!isGseCargoSelect) return [];
     return gseModalView.orphanExplicitModalIds.flatMap((modalId) => {
@@ -290,44 +338,97 @@ export const ModalSelectHierarchyData: FC<
     });
   }, [gseModalView.orphanExplicitModalIds, hierarchyById, isGseCargoSelect]);
 
-  const characterizationSelectedList = useMemo(() => {
-    if (!isCharacterizationCargoSelect || !workspaceSelected?.id) return [];
-
-    return filterModalIdsByWorkspace(
-      modalSelectIds,
-      workspaceSelected.id,
-    ).flatMap((modalId) => {
+  const characterizationOrphanExplicit = useMemo(() => {
+    if (!isCharacterizationCargoSelect) return [];
+    return characterizationModalView.orphanExplicitModalIds.flatMap((modalId) => {
       const { hierarchyId } = splitHierarchyModalId(modalId);
       const hierarchy = hierarchyById.get(hierarchyId);
       if (!hierarchy) return [];
-
-      return [
-        {
-          ...toCharacterizationCargoModalRow(hierarchy),
-          id: modalId,
-        },
-      ];
+      return [{ ...hierarchy, id: modalId }];
     });
   }, [
+    characterizationModalView.orphanExplicitModalIds,
     hierarchyById,
     isCharacterizationCargoSelect,
-    modalSelectIds,
-    workspaceSelected?.id,
   ]);
 
   const characterizationAvailableGrouped = useMemo(() => {
     if (!isCharacterizationCargoSelect) return [];
     return groupModalHierarchyItemsBySector(
-      hierarchyList.map((hierarchy) => toCharacterizationCargoModalRow(hierarchy)),
+      hierarchyList
+        .filter((hierarchy) =>
+          characterizationAvailableOfficeIds.has(hierarchy.id),
+        )
+        .map((hierarchy) => toCharacterizationCargoModalRow(hierarchy)),
     );
-  }, [hierarchyList, isCharacterizationCargoSelect]);
+  }, [
+    characterizationAvailableOfficeIds,
+    hierarchyList,
+    isCharacterizationCargoSelect,
+  ]);
 
-  const characterizationSelectedGrouped = useMemo(() => {
-    if (!isCharacterizationCargoSelect) return [];
-    return groupModalHierarchyItemsBySector(characterizationSelectedList);
-  }, [characterizationSelectedList, isCharacterizationCargoSelect]);
+  const structureList = useMemo(() => {
+    if (filter !== STRUCTURE_FILTER || !workspaceSelected?.id) return [];
+
+    const nodes = hierarchyListData();
+    const indexed = indexStructureNodes(nodes);
+    const explicit = new Set(
+      modalSelectIds
+        .filter((modalId) => modalId.split('//')[1] === workspaceSelected.id)
+        .map((modalId) => modalId.split('//')[0]),
+    );
+
+    return nodes
+      .filter((hierarchy) => {
+        if (!isOrganizationalStructure(hierarchy.type)) return false;
+        if (
+          !structureAppliesToWorkspace(
+            hierarchy.id,
+            indexed.byId,
+            indexed.childrenById,
+            workspaceSelected.id,
+          )
+        ) {
+          return false;
+        }
+        if (structureBlockedByAncestor(hierarchy.id, explicit, indexed.byId)) {
+          return false;
+        }
+        return (
+          !search ||
+          hierarchyMatchesSectorGroupedSearch(hierarchy, search, {
+            includeSectorPath: true,
+          })
+        );
+      })
+      .map((hierarchy) => ({
+        ...hierarchy,
+        id: `${hierarchy.id}//${workspaceSelected.id}`,
+      }));
+  }, [
+    filter,
+    hierarchyListData,
+    modalSelectIds,
+    search,
+    workspaceSelected?.id,
+  ]);
+
+  const selectStructures = (modalIds: string[]) => {
+    if (!workspaceSelected?.id || !modalIds.length) return;
+    const next = pruneRedundantHierarchyModalIds(
+      uniqueModalIds([...modalSelectIds, ...modalIds]),
+      hierarchyListData(),
+    );
+    if (isGseCargoSelect) noteGseCargoUserEdit();
+    dispatch(setModalIds(next));
+  };
 
   const onSelectAll = () => {
+    if (filter === STRUCTURE_FILTER && (isGseCargoSelect || isCharacterizationCargoSelect)) {
+      selectStructures(structureList.map((hierarchy) => hierarchy.id));
+      return;
+    }
+
     if (isGseCargoSelect) {
       const visibleAvailable = hierarchyList
         .map((hierarchy) => hierarchy.id)
@@ -339,13 +440,11 @@ export const ModalSelectHierarchyData: FC<
     }
 
     if (isCharacterizationCargoSelect) {
+      const visibleAvailable = hierarchyList
+        .map((hierarchy) => hierarchy.id)
+        .filter((id) => characterizationAvailableOfficeIds.has(id));
       return dispatch(
-        setModalIds(
-          uniqueModalIds([
-            ...modalSelectIds,
-            ...hierarchyList.map((hierarchy) => hierarchy.id),
-          ]),
-        ),
+        setModalIds(uniqueModalIds([...modalSelectIds, ...visibleAvailable])),
       );
     }
 
@@ -465,7 +564,9 @@ export const ModalSelectHierarchyData: FC<
               placeholder={
                 filter === 'GHO'
                   ? 'Nome do GSE...'
-                  : hierarchyConstant[filter].placeholder
+                  : filter === STRUCTURE_FILTER
+                    ? 'Nome da estrutura...'
+                    : hierarchyConstant[filter].placeholder
               }
               setFilter={(value) => setFilter(value)}
               filter={filter}
@@ -473,7 +574,45 @@ export const ModalSelectHierarchyData: FC<
               selectedData={selectedData}
             />
             <SFlex direction="column" gap={5} mb={10}>
-              {filter !== 'GHO' &&
+              {filter === STRUCTURE_FILTER &&
+                (isGseCargoSelect || isCharacterizationCargoSelect) &&
+                structureList.map((hierarchy) => (
+                  <ModalItemHierarchy
+                    key={hierarchy.id}
+                    onClick={() => {
+                      if (selectedData.singleSelect) {
+                        handleSingleSelect(hierarchy);
+                        return;
+                      }
+                      selectStructures([hierarchy.id]);
+                    }}
+                    id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
+                      ':id',
+                      hierarchy.id.split('//')[0],
+                    )}
+                    data={hierarchy}
+                    text={hierarchy.name}
+                    tooltipText={STRUCTURE_COVERAGE_TOOLTIP}
+                    textNoBreak
+                    gseLabelContrast={isGseCargoSelect}
+                    endIcon={
+                      isCharacterizationCargoSelect ? (
+                        <CharacterizationCargoMembershipIcons
+                          memberships={characterizationMembershipByHierarchyId.get(
+                            hierarchy.id.split('//')[0],
+                          )}
+                        />
+                      ) : (
+                        <GseCargoMembershipIcons
+                          memberships={gseMembershipByHierarchyId.get(
+                            hierarchy.id.split('//')[0],
+                          )}
+                        />
+                      )
+                    }
+                  />
+                ))}
+              {filter === HierarchyEnum.OFFICE &&
                 isCharacterizationCargoSelect &&
                 characterizationAvailableGrouped.map((row) => {
                   if (row.kind === 'group') {
@@ -570,49 +709,6 @@ export const ModalSelectHierarchyData: FC<
                         }
                       />
                     </Box>
-                  );
-                })}
-              {filter !== 'GHO' &&
-                filter !== HierarchyEnum.OFFICE &&
-                isGseCargoSelect &&
-                hierarchyList.map((hierarchy) => {
-                  const presentation = getGseCargoRowPresentation({
-                    workspaceName: workspaceSelected.name,
-                    cargoName: hierarchy.name,
-                    parents: hierarchy.parents,
-                  });
-
-                  return (
-                    <ModalItemHierarchy
-                      onClick={() =>
-                        selectedData.singleSelect
-                          ? handleSingleSelect(hierarchy)
-                          : dispatch(setAddModalId(hierarchy.id))
-                      }
-                      key={hierarchy.id}
-                      id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
-                        ':id',
-                        hierarchy.id.split('//')[0],
-                      )}
-                      data={hierarchy}
-                      text={presentation.cargoName}
-                      tooltipText=""
-                      textNoBreak
-                      gseLabelContrast
-                      startContent={
-                        <GseCargoRowContextIcons
-                          workspaceTooltip={presentation.workspaceTooltip}
-                          sectorTooltip={presentation.sectorTooltip}
-                        />
-                      }
-                      endIcon={
-                        <GseCargoMembershipIcons
-                          memberships={gseMembershipByHierarchyId.get(
-                            hierarchy.id.split('//')[0],
-                          )}
-                        />
-                      }
-                    />
                   );
                 })}
               {filter !== 'GHO' &&
@@ -766,47 +862,111 @@ export const ModalSelectHierarchyData: FC<
                     </>
                   )
                 : isCharacterizationCargoSelect
-                  ? characterizationSelectedGrouped.map((row) => {
-                      if (row.kind === 'group') {
+                  ? (
+                    <>
+                      {characterizationSelectedGroups.map((group) => {
+                        if (group.kind === 'direct') {
+                          const hierarchy = hierarchyById.get(group.officeId);
+                          if (!hierarchy) return null;
+                          const data = { ...hierarchy, id: group.sourceModalId };
+                          return (
+                            <ModalItemHierarchy
+                              key={group.sourceModalId}
+                              onClick={() =>
+                                dispatch(setRemoveModalId(group.sourceModalId))
+                              }
+                              active
+                              selectedOverride
+                              data={data}
+                              activeRemove
+                              text={hierarchy.name}
+                              textNoBreak
+                              endIcon={
+                                <CharacterizationCargoMembershipIcons
+                                  memberships={characterizationMembershipByHierarchyId.get(
+                                    group.officeId,
+                                  )}
+                                />
+                              }
+                            />
+                          );
+                        }
+
+                        const source = hierarchyById.get(group.sourceHierarchyId);
+                        if (!source) return null;
+                        const sourceData = { ...source, id: group.sourceModalId };
                         return (
-                          <Box key={row.id} sx={{ pt: 1 }}>
-                            <SText fontWeight="600" fontSize={13}>
-                              {row.sectorGroupName}
-                            </SText>
+                          <Box key={group.sourceModalId}>
+                            <ModalItemHierarchy
+                              onClick={() =>
+                                dispatch(setRemoveModalId(group.sourceModalId))
+                              }
+                              active
+                              selectedOverride
+                              data={sourceData}
+                              activeRemove
+                              text={source.name}
+                              textNoBreak
+                              endIcon={
+                                <CharacterizationCargoMembershipIcons
+                                  memberships={characterizationMembershipByHierarchyId.get(
+                                    group.sourceHierarchyId,
+                                  )}
+                                />
+                              }
+                            />
+                            {group.offices.map((office) => {
+                              const hierarchy = hierarchyById.get(office.officeId);
+                              if (!hierarchy) return null;
+                              return (
+                                <Box
+                                  key={office.modalId}
+                                  sx={{ pl: 4, opacity: 0.72, mt: 0.5 }}
+                                >
+                                  <ModalItemHierarchy
+                                    active
+                                    selectedOverride
+                                    hideCheckbox
+                                    data={{ ...hierarchy, id: office.modalId }}
+                                    activeRemove={false}
+                                    text={office.officeName}
+                                    tooltipText={office.originLabel}
+                                    textNoBreak
+                                  />
+                                  <SText
+                                    fontSize={11}
+                                    color="text.secondary"
+                                    sx={{ pl: 1 }}
+                                  >
+                                    {office.originLabel}
+                                  </SText>
+                                </Box>
+                              );
+                            })}
                           </Box>
                         );
-                      }
-
-                      const hierarchy = row.item;
-
-                      return (
-                        <Box key={hierarchy.id} sx={{ pl: 3 }}>
-                          <ModalItemHierarchy
-                            onClick={() =>
-                              dispatch(setRemoveModalId(hierarchy.id))
-                            }
-                            active
-                            data={hierarchy}
-                            activeRemove={true}
-                            text={hierarchy.displayName}
-                            tooltipText=""
-                            textNoBreak
-                            startContent={
-                              <GseCargoRowContextIcons
-                                sectorTooltip={hierarchy.sectorTooltip}
-                              />
-                            }
-                            endIcon={
-                              <CharacterizationCargoMembershipIcons
-                                memberships={characterizationMembershipByHierarchyId.get(
-                                  splitHierarchyModalId(hierarchy.id).hierarchyId,
-                                )}
-                              />
-                            }
-                          />
-                        </Box>
-                      );
-                    })
+                      })}
+                      {characterizationOrphanExplicit.map((hierarchy) => (
+                        <ModalItemHierarchy
+                          key={hierarchy.id}
+                          onClick={() =>
+                            dispatch(setRemoveModalId(hierarchy.id))
+                          }
+                          active
+                          data={hierarchy}
+                          activeRemove
+                          textNoBreak
+                          endIcon={
+                            <CharacterizationCargoMembershipIcons
+                              memberships={characterizationMembershipByHierarchyId.get(
+                                splitHierarchyModalId(hierarchy.id).hierarchyId,
+                              )}
+                            />
+                          }
+                        />
+                      ))}
+                    </>
+                  )
                   : hierarchyListSelected.map((hierarchy) => {
                       return (
                         <ModalItemHierarchy

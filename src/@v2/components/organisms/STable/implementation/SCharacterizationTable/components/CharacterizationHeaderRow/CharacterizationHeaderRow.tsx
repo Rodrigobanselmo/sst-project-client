@@ -14,6 +14,7 @@ export const CharacterizationHeaderRow: FC<ICharacterizationHeaderRowrops> = ({
   onHidden,
   justify,
   filters,
+  orderDisabled,
 }) => {
   return (
     <STableActionHRow
@@ -26,6 +27,7 @@ export const CharacterizationHeaderRow: FC<ICharacterizationHeaderRowrops> = ({
           close={close}
           onHidden={onHidden}
           onClean={onClean}
+          orderDisabled={orderDisabled}
           setOrderBy={(direction) =>
             setOrderBy({
               field: field,

@@ -15,4 +15,5 @@ export interface ICharacterizationHeaderRowrops {
   isFiltered?: boolean;
   onClean?: () => void;
   filters?: ReactNode;
+  orderDisabled?: boolean;
 }

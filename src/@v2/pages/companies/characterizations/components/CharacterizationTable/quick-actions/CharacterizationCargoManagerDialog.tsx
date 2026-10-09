@@ -14,13 +14,21 @@ import { CharacterizationBrowseResultModel } from '@v2/models/security/models/ch
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
 import { initialHierarchySelectState } from 'components/organisms/modals/ModalSelectHierarchy';
+import { resolveHierarchyTypeLabelsFromCompany } from 'core/constants/maps/hierarchy-type-labels';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
 import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
+import { buildGseCargoTabRows } from 'core/utils/gse-effective-office-membership.util';
 
+import {
+  hierarchyMapToCoverageNodes,
+  officesForSelectedEstablishment,
+} from '../characterization-office-coverage.util';
 import { invalidateCharacterizationInventory } from './invalidate-characterization-inventory';
 
 type CharacterizationCargoManagerDialogProps = {
@@ -45,6 +53,8 @@ export function CharacterizationCargoManagerDialog({
   const { selectStartEndDate } = useStartEndDate();
   const upsertMutation = useMutUpsertCharacterization();
   const { data: ghoQuery } = useQueryGHOAll();
+  const { data: company } = useQueryCompany();
+  const hierarchyQuery = useQueryHierarchies(companyId);
   const didAutoAddRef = useRef(false);
   const closingAfterLastUnlinkRef = useRef(false);
 
@@ -59,6 +69,40 @@ export function CharacterizationCargoManagerDialog({
   });
 
   const hierarchies = useMemo(() => detail?.hierarchies || [], [detail]);
+
+  const cargoCoverageRows = useMemo(() => {
+    const nodes = officesForSelectedEstablishment(
+      hierarchyMapToCoverageNodes(hierarchyQuery.data),
+      workspaceId,
+    );
+    if (!hierarchyQuery.isSuccess || !nodes.length || !hierarchies.length) {
+      return [];
+    }
+
+    const workspaceNamesById = (company?.workspace || []).reduce(
+      (acc, workspace) => {
+        acc[workspace.id] = workspace.name;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    return buildGseCargoTabRows({
+      nodes,
+      hierarchies,
+      gseWorkspaceIds: workspaceId ? [workspaceId] : [],
+      workspaceNamesById,
+      companyId,
+      typeLabels: resolveHierarchyTypeLabelsFromCompany(company),
+    });
+  }, [
+    company,
+    companyId,
+    hierarchies,
+    hierarchyQuery.data,
+    hierarchyQuery.isSuccess,
+    workspaceId,
+  ]);
 
   const refresh = useCallback(async () => {
     await refetch();
@@ -214,6 +258,13 @@ export function CharacterizationCargoManagerDialog({
             isCreate={false}
             fixedRowsPerPage={15}
             groupBySector
+            preferredWorkspaceId={workspaceId}
+            gseWorkspaceIds={workspaceId ? [workspaceId] : []}
+            coverageRows={
+              hierarchyQuery.isSuccess && cargoCoverageRows.length
+                ? cargoCoverageRows
+                : undefined
+            }
             onUnlinkSuccess={onUnlinkSuccess}
           />
         )}

@@ -31,6 +31,11 @@ import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
+import {
+  hierarchyMapToCoverageNodes,
+  summarizeEffectiveOfficeCoverage,
+} from './characterization-office-coverage.util';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
@@ -47,7 +52,7 @@ import { CharacterizationTableFilter } from './components/CharacterizationTableF
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
 import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
 import { CompanyFlowV2StickySection } from 'components/organisms/main/CompanyFlow/CompanyFlowV2StickySection';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
 import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 import { CharacterizationCargoManagerDialog } from './quick-actions/CharacterizationCargoManagerDialog';
@@ -194,6 +199,57 @@ export const CharacterizationTable = ({
   const characterizationResults = hasWorkspaceSelected
     ? characterizations?.results || []
     : [];
+  const hierarchyQuery = useQueryHierarchies(companyId);
+  const officeCoverageById = useMemo(() => {
+    if (
+      !hasWorkspaceSelected ||
+      !workspaceId ||
+      !hierarchyQuery.isSuccess
+    ) {
+      return undefined;
+    }
+
+    const nodes = hierarchyMapToCoverageNodes(hierarchyQuery.data);
+    const coverage: Record<
+      string,
+      ReturnType<typeof summarizeEffectiveOfficeCoverage>
+    > = {};
+
+    (characterizations?.results || []).forEach((row) => {
+      coverage[row.id] = summarizeEffectiveOfficeCoverage({
+        nodes,
+        workspaceId,
+        links: (row.hierarchies ?? []).map((hierarchy) => ({
+          hierarchyId: hierarchy.id,
+        })),
+      });
+    });
+
+    return coverage;
+  }, [
+    characterizations?.results,
+    hasWorkspaceSelected,
+    hierarchyQuery.data,
+    hierarchyQuery.isSuccess,
+    workspaceId,
+  ]);
+
+  useEffect(() => {
+    const current = queryParams.orderBy || [];
+    if (
+      !current.some(
+        (item) => item.field === CharacterizationOrderByEnum.HIERARCHY,
+      )
+    ) {
+      return;
+    }
+
+    setQueryParams({
+      orderBy: current.filter(
+        (item) => item.field !== CharacterizationOrderByEnum.HIERARCHY,
+      ),
+    });
+  }, [queryParams.orderBy, setQueryParams]);
   const searchUiState = resolveCharacterizationSearchUiState({
     hasWorkspaceSelected,
     searchTerm,
@@ -561,6 +617,7 @@ export const CharacterizationTable = ({
       setEnvironmentalParamsRow(row);
     },
     data: showSearchError ? [] : characterizationResults,
+    officeCoverageById,
     isLoading: showInitialLoading,
     hideEmpty:
       showSearchError ||
