@@ -66,6 +66,8 @@ const risk = (patch: Partial<RiskTechnicalDataRisk> & Pick<RiskTechnicalDataRisk
   exams: [],
   severity: 0,
   symptoms: null,
+  affectedRegion: null,
+  absorptionRoutes: null,
   healthRisk: null,
   ...patch,
 });
@@ -130,6 +132,8 @@ assert.deepEqual(
     'exams',
     'severity',
     'symptoms',
+    'affectedRegion',
+    'absorptionRoutes',
     'effects',
   ],
 );
@@ -161,7 +165,7 @@ assert.ok(physicalEffects.widthWeight > physicalCas.widthWeight);
 
 assert.deepEqual(
   RISK_TECHNICAL_OTHER_COLUMNS.map((column) => column.key),
-  ['type', 'factor', 'propagation', 'exams', 'severity', 'symptoms', 'effects'],
+  ['type', 'factor', 'propagation', 'exams', 'severity', 'symptoms', 'affectedRegion', 'absorptionRoutes', 'effects'],
 );
 assert.equal(RISK_TECHNICAL_OTHER_COLUMNS[0]?.key, 'type');
 assert.equal(RISK_TECHNICAL_OTHER_COLUMNS[1]?.key, 'factor');
@@ -425,8 +429,11 @@ const hiddenPe: RiskTechnicalColumnsPreference = {
   })),
 };
 assert.equal(riskTechnicalColumnVisible(null, 'pe'), true);
+assert.equal(riskTechnicalColumnVisible(null, 'affectedRegion'), false);
+assert.equal(riskTechnicalColumnVisible(null, 'absorptionRoutes'), false);
 assert.equal(riskTechnicalColumnVisible(hiddenPe, 'factor'), true);
 assert.equal(riskTechnicalColumnVisible(hiddenPe, 'pe'), false);
+assert.equal(riskTechnicalColumnVisible(hiddenPe, 'affectedRegion'), true);
 const hiddenLayouts = riskTechnicalLayouts('PHYSICAL_CHEMICAL', hiddenPe);
 assert.equal(hiddenLayouts.some((column) => column.key === 'pe'), false);
 assert.equal(hiddenLayouts.length, RISK_TECHNICAL_PHYSICAL_COLUMNS.length - 1);
@@ -435,8 +442,61 @@ assert.equal(hiddenPe.columns.find((column) => column.key === 'pe')?.widthWeight
 assert.equal(hiddenPe.columns.find((column) => column.key === 'factor')?.widthWeight, 10);
 assert.equal(hiddenLayouts.find((column) => column.key === 'factor')?.weight, 10);
 const otherUntouched = riskTechnicalLayouts('OTHER', null);
-assert.equal(otherUntouched.length, RISK_TECHNICAL_OTHER_COLUMNS.length);
+assert.equal(otherUntouched.length, RISK_TECHNICAL_OTHER_COLUMNS.length - 2);
 assert.equal(otherUntouched.some((column) => column.key === 'propagation'), true);
+assert.equal(otherUntouched.some((column) => column.key === 'affectedRegion'), false);
+assert.equal(otherUntouched.some((column) => column.key === 'absorptionRoutes'), false);
+assert.equal(riskTechnicalLayouts('PHYSICAL_CHEMICAL', null).some((column) => column.key === 'affectedRegion'), false);
+
+const enabledPhysical: RiskTechnicalColumnsPreference = {
+  version: 1,
+  columns: [
+    { key: 'affectedRegion', orientation: 'HORIZONTAL', widthWeight: 8, visible: true },
+    {
+      key: 'absorptionRoutes',
+      orientation: 'VERTICAL',
+      headerOrientation: 'HORIZONTAL',
+      widthWeight: 9,
+      visible: true,
+    },
+  ],
+};
+const enabledLayouts = riskTechnicalLayouts('PHYSICAL_CHEMICAL', enabledPhysical);
+const enabledKeys = enabledLayouts.map((column) => column.key);
+assert.ok(enabledKeys.indexOf('symptoms') < enabledKeys.indexOf('affectedRegion'));
+assert.ok(enabledKeys.indexOf('affectedRegion') < enabledKeys.indexOf('absorptionRoutes'));
+assert.ok(enabledKeys.indexOf('absorptionRoutes') < enabledKeys.indexOf('effects'));
+assert.equal(enabledLayouts.find((column) => column.key === 'affectedRegion')?.weight, 8);
+assert.equal(enabledLayouts.find((column) => column.key === 'affectedRegion')?.contentOrientation, 'HORIZONTAL');
+assert.equal(enabledLayouts.find((column) => column.key === 'affectedRegion')?.headerOrientation, 'HORIZONTAL');
+assert.equal(enabledLayouts.find((column) => column.key === 'affectedRegion')?.align, 'left');
+assert.equal(enabledLayouts.find((column) => column.key === 'absorptionRoutes')?.contentOrientation, 'VERTICAL');
+assert.equal(enabledLayouts.find((column) => column.key === 'absorptionRoutes')?.headerOrientation, 'HORIZONTAL');
+assert.equal(riskTechnicalLayouts('OTHER', null).some((column) => column.key === 'absorptionRoutes'), false);
+assert.equal(
+  riskTechnicalCellText(
+    risk({ id: 'blank', name: 'Vazio', type: 'QUI', affectedRegion: '   ', absorptionRoutes: null }),
+    'affectedRegion',
+  ),
+  '',
+);
+assert.equal(
+  riskTechnicalCellText(
+    risk({ id: 'blank', name: 'Vazio', type: 'QUI', affectedRegion: '', absorptionRoutes: '  Inalação  ' }),
+    'absorptionRoutes',
+  ),
+  'Inalação',
+);
+assert.equal(
+  RISK_TECHNICAL_PHYSICAL_COLUMNS.find((column) => column.key === 'affectedRegion')?.headerLabel,
+  'Região atingida',
+);
+assert.equal(
+  RISK_TECHNICAL_OTHER_COLUMNS.find((column) => column.key === 'absorptionRoutes')?.headerLabel,
+  'Vias de absorção / entrada no organismo',
+);
+assert.equal(RISK_TECHNICAL_PHYSICAL_COLUMNS.find((column) => column.key === 'affectedRegion')?.widthWeight, 8);
+assert.equal(RISK_TECHNICAL_OTHER_COLUMNS.find((column) => column.key === 'absorptionRoutes')?.widthWeight, 8);
 
 const restoredPe = riskTechnicalLayouts('PHYSICAL_CHEMICAL', {
   version: 1,

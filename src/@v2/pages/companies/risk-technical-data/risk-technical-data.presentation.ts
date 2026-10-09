@@ -61,6 +61,8 @@ export const RISK_TECHNICAL_PHYSICAL_COLUMNS: RiskTechnicalColumn[] = [
   column('exams', 'Exames', 10, 'HORIZONTAL'),
   column('severity', 'Severidade', 2, 'HORIZONTAL', 'VERTICAL'),
   column('symptoms', 'Efeitos e Sintomas', 16, 'HORIZONTAL'),
+  column('affectedRegion', 'Região atingida', 8, 'HORIZONTAL'),
+  column('absorptionRoutes', 'Vias de absorção / entrada no organismo', 8, 'HORIZONTAL'),
   column('effects', 'Risco', 16, 'HORIZONTAL'),
 ];
 
@@ -71,6 +73,8 @@ export const RISK_TECHNICAL_OTHER_COLUMNS: RiskTechnicalColumn[] = [
   column('exams', 'Exames', 10, 'HORIZONTAL'),
   column('severity', 'Severidade', 2, 'HORIZONTAL', 'VERTICAL'),
   column('symptoms', 'Efeitos e Sintomas', 21, 'HORIZONTAL'),
+  column('affectedRegion', 'Região atingida', 8, 'HORIZONTAL'),
+  column('absorptionRoutes', 'Vias de absorção / entrada no organismo', 8, 'HORIZONTAL'),
   column('effects', 'Risco', 21, 'HORIZONTAL'),
 ];
 
@@ -156,6 +160,10 @@ export function riskTechnicalCellText(
       return risk.severity > 0 ? String(risk.severity) : '';
     case 'symptoms':
       return text(risk.symptoms);
+    case 'affectedRegion':
+      return text(risk.affectedRegion);
+    case 'absorptionRoutes':
+      return text(risk.absorptionRoutes);
     case 'effects':
       return text(risk.healthRisk);
     default:
@@ -176,11 +184,16 @@ export type RiskTechnicalColumnLayout = {
 const savedColumn = (preference: RiskTechnicalColumnsPreference | null | undefined, key: RiskTechnicalColumnKey) =>
   preference?.columns.find((column) => column.key === key);
 
+/** Ausentes no padrão canônico. Uma preferência que as declara continua valendo. */
+const HIDDEN_WHEN_ABSENT = new Set<RiskTechnicalColumnKey>(['affectedRegion', 'absorptionRoutes']);
+
 export function riskTechnicalColumnVisible(
   preference: RiskTechnicalColumnsPreference | null | undefined,
   key: RiskTechnicalColumnKey,
 ): boolean {
-  return savedColumn(preference, key)?.visible !== false;
+  const saved = savedColumn(preference, key);
+  if (saved) return saved.visible !== false;
+  return !HIDDEN_WHEN_ABSENT.has(key);
 }
 
 export function riskTechnicalColumnWeight(

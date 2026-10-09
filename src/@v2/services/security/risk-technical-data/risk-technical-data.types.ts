@@ -23,6 +23,8 @@ export type RiskTechnicalColumnKey =
   | 'exams'
   | 'severity'
   | 'symptoms'
+  | 'affectedRegion'
+  | 'absorptionRoutes'
   | 'effects';
 
 export type RiskTechnicalColumnSetting = {
@@ -68,6 +70,8 @@ export type RiskTechnicalDataRisk = {
   exams: string[];
   severity: number;
   symptoms: string | null;
+  affectedRegion: string | null;
+  absorptionRoutes: string | null;
   healthRisk: string | null;
 };
 
