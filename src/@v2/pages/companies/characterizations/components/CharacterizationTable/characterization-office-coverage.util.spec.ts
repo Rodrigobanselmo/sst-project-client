@@ -12,6 +12,7 @@ import {
   buildGseCargoModalView,
   buildGseCargoTabRows,
   GseCoverageNode,
+  layoutGseCargoTabRows,
 } from 'core/utils/gse-effective-office-membership.util';
 
 import {
@@ -228,6 +229,49 @@ assert.equal(
   tabRows.some((row) => row.name.includes('TURNO')),
   false,
 );
+const sectorLayout = layoutGseCargoTabRows(tabRows);
+const sectorLinks = sectorLayout.filter((row) => row.kind === 'link');
+const sectorCovered = sectorLayout.filter((row) => row.kind === 'covered');
+assert.equal(sectorLinks.length, 1);
+assert.equal(sectorLinks[0].kind === 'link' && sectorLinks[0].name, 'PINTURA');
+assert.equal(
+  sectorLinks[0].kind === 'link' && sectorLinks[0].type,
+  HierarchyEnum.SECTOR,
+);
+assert.equal(sectorCovered.length, 4);
+assert.equal(
+  sectorCovered.every(
+    (row) =>
+      row.kind === 'covered' &&
+      row.originLabel === 'Abrangido pelo vínculo com o Setor PINTURA',
+  ),
+  true,
+);
+
+const directOfficeRows = buildGseCargoTabRows({
+  nodes: officesForSelectedEstablishment(pintura, 'matriz'),
+  hierarchies: [
+    {
+      id: 'soldador',
+      hierarchyOnHomogeneous: [
+        { id: 21, hierarchyId: 'soldador', endDate: null },
+      ],
+    },
+  ],
+  gseWorkspaceIds: ['matriz'],
+  workspaceNamesById: { matriz: 'Matriz' },
+});
+const directLayout = layoutGseCargoTabRows(directOfficeRows);
+assert.equal(directOfficeRows.length, 1);
+assert.equal(directOfficeRows[0].origin, 'direct');
+assert.equal(
+  directLayout.filter((row) => row.kind === 'covered').length,
+  0,
+);
+assert.equal(
+  directLayout.filter((row) => row.kind === 'link').length,
+  1,
+);
 
 const tooltip = formatCharacterizationCargoTooltipLines({
   summary: sectorSummary,
@@ -246,6 +290,15 @@ const dialogSource = readFileSync(
   'utf8',
 );
 assert.equal(dialogSource.includes('buildGseCargoTabRows'), true);
+const editorCargoSource = readFileSync(
+  resolve(
+    'src/components/organisms/modals/ModalAddCharacterization/components/ModalAddHierarchyRisk/index.tsx',
+  ),
+  'utf8',
+);
+assert.equal(editorCargoSource.includes('buildGseCargoTabRows'), true);
+assert.equal(editorCargoSource.includes('coverageRows'), true);
+assert.equal(editorCargoSource.includes('officesForSelectedEstablishment'), true);
 assert.equal(dialogSource.includes('invalidateCharacterizationInventory'), true);
 assert.equal(dialogSource.includes('gseCargoSelect'), false);
 assert.equal(

@@ -33,6 +33,8 @@ export const queryCharacterizations = async (
     : [];
 };
 
+const EMPTY_CHARACTERIZATION_LIST: ICharacterization[] = [];
+
 export function useQueryCharacterizations(
   page = 1,
   query = {} as IQueryCharacterization,
@@ -59,5 +61,5 @@ export function useQueryCharacterizations(
     },
   );
 
-  return { ...queryData, data: data || [] };
+  return { ...queryData, data: data ?? EMPTY_CHARACTERIZATION_LIST };
 }

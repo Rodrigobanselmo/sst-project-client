@@ -52,9 +52,12 @@ import {
   splitHierarchyModalId,
   uniqueModalIds,
 } from '../gse-workspace-modal-selection.util';
+import { buildHierarchyLinkMembershipByHierarchyId } from '../hierarchy-link-membership.util';
 import { GseCargoMembershipIcons } from './GseCargoMembershipIcons';
+import { HierarchyLinkMembershipIcons } from './HierarchyLinkMembershipIcons';
 import { GseCargoRowContextIcons } from './GseCargoRowContextIcons';
 import { CharacterizationCargoMembershipIcons } from './CharacterizationCargoMembershipIcons';
+import { HierarchyLinkTree } from '../HierarchyLinkTree';
 import { ModalInputHierarchy } from './ModalInputHierarchy';
 import { ModalItemHierarchy } from './ModalItemHierarchy';
 import { ModalListGHO } from './ModalListGHO';
@@ -116,6 +119,7 @@ export const ModalSelectHierarchyData: FC<
   const forceCargoFilter = !!selectedData.forceCargoFilter;
   const isCharacterizationCargoSelect = !!selectedData.characterizationCargoSelect;
   const isGseCargoSelect = !!selectedData.gseCargoSelect;
+  const isUnifiedHierarchyTree = isGseCargoSelect || isCharacterizationCargoSelect;
 
   const noteGseCargoUserEdit = () => {
     if (!isGseCargoSelect) return;
@@ -226,8 +230,31 @@ export const ModalSelectHierarchyData: FC<
     return buildCharacterizationMembershipByHierarchyId(
       ghoQueryRaw,
       workspaceSelected.id,
+      selectedData.characterizationId || undefined,
     );
-  }, [ghoQueryRaw, isCharacterizationCargoSelect, workspaceSelected?.id]);
+  }, [
+    ghoQueryRaw,
+    isCharacterizationCargoSelect,
+    selectedData.characterizationId,
+    workspaceSelected?.id,
+  ]);
+
+  const hierarchyLinkMembershipByHierarchyId = useMemo(() => {
+    if (!isUnifiedHierarchyTree || !workspaceSelected?.id) {
+      return new Map();
+    }
+    return buildHierarchyLinkMembershipByHierarchyId(ghoQueryRaw, {
+      workspaceId: workspaceSelected.id,
+      excludeGseId: selectedData.gseCargoGseId || undefined,
+      excludeCharacterizationId: selectedData.characterizationId || undefined,
+    });
+  }, [
+    ghoQueryRaw,
+    isUnifiedHierarchyTree,
+    selectedData.characterizationId,
+    selectedData.gseCargoGseId,
+    workspaceSelected?.id,
+  ]);
 
   const gseModalView = useMemo(() => {
     if (!isGseCargoSelect || !workspaceSelected?.id) {
@@ -423,6 +450,20 @@ export const ModalSelectHierarchyData: FC<
     dispatch(setModalIds(next));
   };
 
+  const removeUnifiedExplicitLink = (modalId: string) => {
+    if (!modalId) return;
+    if (isGseCargoSelect) noteGseCargoUserEdit();
+    dispatch(setModalIds(modalSelectIds.filter((id) => id !== modalId)));
+  };
+
+  const clearUnifiedWorkspaceSelection = () => {
+    if (!workspaceSelected?.id) return;
+    if (isGseCargoSelect) noteGseCargoUserEdit();
+    dispatch(
+      setModalIds(keepModalIdsOutsideWorkspace(modalSelectIds, workspaceSelected.id)),
+    );
+  };
+
   const onSelectAll = () => {
     if (filter === STRUCTURE_FILTER && (isGseCargoSelect || isCharacterizationCargoSelect)) {
       selectStructures(structureList.map((hierarchy) => hierarchy.id));
@@ -487,6 +528,13 @@ export const ModalSelectHierarchyData: FC<
   const onEmployeeAdd = () => {
     return onStackOpenModal(ModalEnum.AUTOMATE_SUB_OFFICE, {
       callback: (hierarchy) => {
+        if (isUnifiedHierarchyTree) {
+          const hierarchyId = String(hierarchy?.id || '').split('//')[0];
+          if (hierarchyId && workspaceSelected?.id) {
+            selectStructures([`${hierarchyId}//${workspaceSelected.id}`]);
+          }
+          return;
+        }
         setTimeout(() => {
           setFilter(HierarchyEnum.SUB_OFFICE);
           setTimeout(() => {
@@ -504,6 +552,20 @@ export const ModalSelectHierarchyData: FC<
       },
     } as typeof initialAutomateSubOfficeState);
   };
+
+  const unifiedHierarchyNodes = useMemo(
+    () =>
+      hierarchyListData().map((hierarchy) => ({
+        id: String(hierarchy.id).split('//')[0],
+        parentId: hierarchy.parentId
+          ? String(hierarchy.parentId).split('//')[0]
+          : null,
+        type: hierarchy.type,
+        name: hierarchy.name,
+        workspaceIds: hierarchy.workspaceIds || [],
+      })),
+    [hierarchyListData],
+  );
 
   if (workspaceSelected === undefined) return null;
 
@@ -535,6 +597,38 @@ export const ModalSelectHierarchyData: FC<
             }}
           />
         </Box>
+        {isUnifiedHierarchyTree && workspaceSelected?.id && (
+          <HierarchyLinkTree
+            nodes={unifiedHierarchyNodes}
+            modalSelectIds={modalSelectIds}
+            workspaceId={workspaceSelected.id}
+            typeLabels={hierarchyTypeLabels}
+            onToggle={(nodeId, visualState) => {
+              if (visualState === 'inherited' || visualState === 'contained') return;
+              const modalId = `${nodeId}//${workspaceSelected.id}`;
+              if (visualState === 'explicit') {
+                removeUnifiedExplicitLink(modalId);
+                return;
+              }
+              if (visualState === 'available' || visualState === 'partial') {
+                selectStructures([modalId]);
+              }
+            }}
+            onEmployeeAdd={selectedData.addSubOffice ? onEmployeeAdd : undefined}
+            onClearWorkspace={clearUnifiedWorkspaceSelection}
+            onRestoreSelection={
+              isGseCargoSelect && !isCharacterizationCargoSelect
+                ? onSelectEditALl
+                : undefined
+            }
+            renderRowEnd={(nodeId) => (
+              <HierarchyLinkMembershipIcons
+                memberships={hierarchyLinkMembershipByHierarchyId.get(nodeId)}
+              />
+            )}
+          />
+        )}
+        {!isUnifiedHierarchyTree && (
         <SFlex gap={10} mt={10}>
           <Box flex={1}>
             <SFlex gap={4} align="center">
@@ -981,6 +1075,7 @@ export const ModalSelectHierarchyData: FC<
             </SFlex>
           </Box>
         </SFlex>
+        )}
       </SFlex>
     </Box>
   );

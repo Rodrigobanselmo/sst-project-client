@@ -5,10 +5,14 @@
  *     src/components/organisms/modals/ModalAddCharacterization/hooks/characterization-editor-dirty.spec.ts
  */
 import assert from 'assert';
+import deepEqual from 'deep-equal';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-import { isCharacterizationEditorDirty } from './characterization-editor-dirty';
+import {
+  getCharacterizationEditorSnapshot,
+  isCharacterizationEditorDirty,
+} from './characterization-editor-dirty';
 
 function run(name: string, fn: () => void) {
   try {
@@ -240,6 +244,37 @@ const hookSource = readFileSync(
   ),
   'utf8',
 );
+run('date-like description stays a string and the baseline settles', () => {
+  const current = {
+    ...baseline,
+    name: 'AGE — Auditoria Geral do Estado',
+    description: 'Referência interna 2024-13-40 do processo',
+  };
+  const form = {
+    name: '',
+    description: current.description,
+    type: 'OFFICE',
+  };
+  const first = getCharacterizationEditorSnapshot({ current, form });
+  const second = getCharacterizationEditorSnapshot({ current, form });
+
+  assert.equal(
+    typeof (first as { description?: unknown }).description,
+    'string',
+  );
+  assert.equal(deepEqual(first, second), true);
+
+  let updates = 0;
+  let prev: object = {};
+  for (let i = 0; i < 8; i += 1) {
+    const next = getCharacterizationEditorSnapshot({ current, form });
+    if (deepEqual(prev, next)) break;
+    prev = next;
+    updates += 1;
+  }
+  assert.equal(updates, 1);
+});
+
 run('hook uses useWatch and freezes baseline after hydration', () => {
   assert.equal(hookSource.includes('useWatch({ control })'), true);
   assert.equal(hookSource.includes('isCharacterizationEditorDirty'), true);

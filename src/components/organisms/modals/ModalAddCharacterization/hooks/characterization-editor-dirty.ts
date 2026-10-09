@@ -1,7 +1,5 @@
 import deepEqual from 'deep-equal';
 
-import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
-
 type CharacterizationDirtyForm = {
   name?: unknown;
   description?: unknown;
@@ -33,6 +31,17 @@ const resolvePhotoCount = (
   return Array.isArray(data.photos) ? data.photos.length : 0;
 };
 
+/** Omite vazio sem converter texto com data em `Date`. `Invalid Date` nunca é igual a outro. */
+function omitBlankSnapshotFields(value: Record<string, unknown>) {
+  const next: Record<string, unknown> = {};
+  Object.entries(value).forEach(([key, field]) => {
+    if (field == null || field === '') return;
+    if (typeof field === 'function') return;
+    next[key] = field;
+  });
+  return next;
+}
+
 export function getCharacterizationEditorSnapshot(params: {
   current: object;
   form?: CharacterizationDirtyForm;
@@ -42,7 +51,7 @@ export function getCharacterizationEditorSnapshot(params: {
   const form = params.form || {};
   const profiles = Array.isArray(data.profiles) ? data.profiles : [];
 
-  return cleanObjectValues({
+  return omitBlankSnapshotFields({
     name: pickFormOrData(form, data, 'name'),
     description: pickFormOrData(form, data, 'description'),
     type: pickFormOrData(form, data, 'type'),

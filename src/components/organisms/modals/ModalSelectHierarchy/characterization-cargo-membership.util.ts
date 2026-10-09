@@ -60,6 +60,7 @@ function hierarchyIdsOfCharacterizableElement(
 export function buildCharacterizationMembershipByHierarchyId(
   ghos: IGho[],
   workspaceId: string,
+  excludeCharacterizationId?: string,
 ): Map<string, CharacterizationMembershipIndicator[]> {
   const byHierarchy = new Map<
     string,
@@ -68,6 +69,12 @@ export function buildCharacterizationMembershipByHierarchyId(
 
   ghos.filter(isCharacterizableElementGho).forEach((gho) => {
     if (!ghoLinkedToWorkspace(gho, workspaceId)) return;
+    if (
+      excludeCharacterizationId &&
+      gho.characterization!.id === excludeCharacterizationId
+    ) {
+      return;
+    }
 
     const indicator: CharacterizationMembershipIndicator = {
       id: gho.characterization!.id,
@@ -114,6 +121,8 @@ export function formatCharacterizationMembershipIconTooltip(
   membership: CharacterizationMembershipIndicator,
   overflowNames: string[] = [],
 ): string {
-  if (!overflowNames.length) return membership.name;
-  return `${membership.name}\n+ ${overflowNames.length} outros: ${overflowNames.join(', ')}`;
+  const body = !overflowNames.length
+    ? membership.name
+    : `${membership.name}\n+ ${overflowNames.length} outros: ${overflowNames.join(', ')}`;
+  return `Também vinculado em: ${body}`;
 }

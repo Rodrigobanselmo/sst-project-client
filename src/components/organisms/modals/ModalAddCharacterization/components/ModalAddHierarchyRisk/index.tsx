@@ -12,8 +12,16 @@ import { IUseEditCharacterization } from 'components/organisms/modals/ModalAddCh
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 import SText from 'components/atoms/SText';
 import SFlex from 'components/atoms/SFlex';
+import { resolveHierarchyTypeLabelsFromCompany } from 'core/constants/maps/hierarchy-type-labels';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import { buildGseCargoTabRows } from 'core/utils/gse-effective-office-membership.util';
+import {
+  hierarchyMapToCoverageNodes,
+  officesForSelectedEstablishment,
+} from '@v2/pages/companies/characterizations/components/CharacterizationTable/characterization-office-coverage.util';
 import {
   inlineRiskToolHeightSx,
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
@@ -149,6 +157,42 @@ export const ModalAddHierarchyRisk = (
     () => getCurrentRiskGroupId(riskGroupData),
     [riskGroupData],
   );
+  const { data: company } = useQueryCompany();
+  const hierarchyQuery = useQueryHierarchies(data.companyId || undefined);
+  const cargoWorkspaceId = data.workspaceId || '';
+  const cargoCoverageRows = useMemo(() => {
+    const nodes = officesForSelectedEstablishment(
+      hierarchyMapToCoverageNodes(hierarchyQuery.data),
+      cargoWorkspaceId,
+    );
+    if (!hierarchyQuery.isSuccess || !nodes.length || !hierarchies?.length) {
+      return [];
+    }
+
+    const workspaceNamesById = (company?.workspace || []).reduce(
+      (acc, workspace) => {
+        acc[workspace.id] = workspace.name;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    return buildGseCargoTabRows({
+      nodes,
+      hierarchies,
+      gseWorkspaceIds: cargoWorkspaceId ? [cargoWorkspaceId] : [],
+      workspaceNamesById,
+      companyId: data.companyId,
+      typeLabels: resolveHierarchyTypeLabelsFromCompany(company),
+    });
+  }, [
+    cargoWorkspaceId,
+    company,
+    data.companyId,
+    hierarchies,
+    hierarchyQuery.data,
+    hierarchyQuery.isSuccess,
+  ]);
 
   const requestedStep = clampCharacterizationWizardStep(initialWizardStep);
   const stepGate = canApplyCharacterizationWizardStep({
@@ -248,10 +292,17 @@ export const ModalAddHierarchyRisk = (
         >
           <HierarchyHomoTable
             onAdd={onAddHierarchy}
-            loading={characterizationLoading}
+            loading={characterizationLoading || hierarchyQuery.isLoading}
             hierarchies={hierarchies as any}
             isCreate={!isEdit}
             groupBySector
+            preferredWorkspaceId={cargoWorkspaceId || undefined}
+            gseWorkspaceIds={cargoWorkspaceId ? [cargoWorkspaceId] : []}
+            coverageRows={
+              hierarchyQuery.isSuccess && cargoCoverageRows.length
+                ? cargoCoverageRows
+                : undefined
+            }
           />
         </Box>
         <Box sx={{ px: 5, pb: 10 }}>

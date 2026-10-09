@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useSnackbar } from 'notistack';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
@@ -18,6 +19,11 @@ import { resolveHierarchyTypeLabelsFromCompany } from 'core/constants/maps/hiera
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
+import {
+  CharacterizationHierarchyUnlinkError,
+  commitCharacterizationHierarchySelection,
+} from 'components/organisms/modals/ModalAddCharacterization/hooks/commit-characterization-hierarchy-selection';
+import { deleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteHierarchyGho/useMutDeleteHierarchyGho';
 import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
@@ -50,6 +56,7 @@ export function CharacterizationCargoManagerDialog({
 }: CharacterizationCargoManagerDialogProps) {
   const characterizationId = row?.id || '';
   const { onStackOpenModal } = useModal();
+  const { enqueueSnackbar } = useSnackbar();
   const { selectStartEndDate } = useStartEndDate();
   const upsertMutation = useMutUpsertCharacterization();
   const { data: ghoQuery } = useQueryGHOAll();
@@ -152,22 +159,38 @@ export function CharacterizationCargoManagerDialog({
       endDate: Date,
       close?: () => void,
     ) => {
-      void upsertMutation
-        .mutateAsync({
-          id: detail.id,
-          name: detail.name,
-          type: detail.type,
-          companyId,
-          workspaceId,
-          startDate,
-          endDate,
-          hierarchyIds: selected.map((h) => String(h.id).split('//')[0]),
-        })
+      void commitCharacterizationHierarchySelection({
+        hierarchies,
+        confirmedHierarchyIds: selected.map((h) =>
+          String(h.id).split('//')[0],
+        ),
+        workspaceId,
+        unlink: (ids) => deleteGho({ ids, companyId }, companyId),
+        upsert: () =>
+          upsertMutation.mutateAsync({
+            id: detail.id,
+            name: detail.name,
+            type: detail.type,
+            companyId,
+            workspaceId,
+            startDate,
+            endDate,
+            hierarchyIds: selected.map((h) => String(h.id).split('//')[0]),
+          }),
+        refreshAfterPartialFailure: refresh,
+      })
         .then(async () => {
           close?.();
           await refresh();
         })
-        .catch(() => {});
+        .catch((error) => {
+          if (error instanceof CharacterizationHierarchyUnlinkError) {
+            enqueueSnackbar(
+              'Não foi possível remover os vínculos. A seleção não foi salva.',
+              { variant: 'error' },
+            );
+          }
+        });
     };
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
@@ -181,6 +204,7 @@ export function CharacterizationCargoManagerDialog({
       addSubOffice: true,
       forceCargoFilter: true,
       characterizationCargoSelect: true,
+      characterizationId: detail.id,
       hierarchiesIds: hierarchies
         .filter((h) =>
           (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
@@ -210,6 +234,7 @@ export function CharacterizationCargoManagerDialog({
     selectStartEndDate,
     upsertMutation,
     refresh,
+    enqueueSnackbar,
   ]);
 
   useEffect(() => {

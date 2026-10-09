@@ -52,6 +52,8 @@ export const initialHierarchySelectState = {
   forceCargoFilter: false,
   /** Aplica metadados visuais de Setor (sem Estabelecimento) no modo de Elemento Caracterizável. */
   characterizationCargoSelect: false,
+  /** Elemento em edição; não entra na lista dos outros vínculos do cargo. */
+  characterizationId: '' as string,
 };
 
 const modalName = ModalEnum.HIERARCHY_SELECT;

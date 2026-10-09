@@ -59,6 +59,7 @@ import { useMutateMarkSavedCharacterizationAiAssistTrace } from '@v2/services/se
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import { deleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteHierarchyGho/useMutDeleteHierarchyGho';
 import { queryClient } from 'core/services/queryClient';
 import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -77,6 +78,11 @@ import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { getCurrentRiskGroupId } from '../utils/get-current-risk-group-id.util';
+import { decideCharacterizationPropsHydration } from './characterization-props-hydration';
+import {
+  CharacterizationHierarchyUnlinkError,
+  commitCharacterizationHierarchySelection,
+} from './commit-characterization-hierarchy-selection';
 import { useStartEndDate } from './useStartEndDate';
 import { useCharacterizationAiRiskAnalysisState } from './useCharacterizationAiRiskAnalysisState';
 import {
@@ -171,10 +177,10 @@ export const useEditCharacterization = (
           strictContext: true,
         }
       : undefined;
-  const { data: characterizationsQuery } = useQueryCharacterizations(
-    1,
-    characterizationListQuery ?? {},
-  );
+  const {
+    data: characterizationsQuery,
+    isFetched: characterizationsFetched,
+  } = useQueryCharacterizations(1, characterizationListQuery ?? {});
   const { enqueueSnackbar } = useSnackbar();
 
   const {
@@ -334,65 +340,57 @@ export const useEditCharacterization = (
       getModalData<Partial<typeof initialCharacterizationState>>(modalName);
     const hasInitialData = !!Object.keys(cleanObjectNullValues(initialData || {}))
       .length;
-    const propsHydrationKey = [
-      (propsInitialData as any)?.id || '',
-      (propsInitialData as any)?.companyId || '',
-      (propsInitialData as any)?.workspaceId || '',
-    ].join('::');
     const foundCharacterization =
       characterizationsQuery?.find((c) => c.id === initialData?.id) || null;
+    const decision = decideCharacterizationPropsHydration({
+      hasInitialData,
+      profileParentId: characterizationData.profileParentId,
+      listFetched: characterizationsFetched,
+      hydrationMark: didHydratePropsInitialDataRef.current,
+      initialData,
+      foundId: foundCharacterization?.id,
+    });
 
-    if (
-      hasInitialData &&
-      !characterizationData.profileParentId &&
-      !(initialData as any).passBack
-    ) {
-      if (
-        propsInitialData &&
-        didHydratePropsInitialDataRef.current === propsHydrationKey &&
-        (!!(initialData as any)?.id ? !!characterizationData.type : true)
-      ) {
-        return;
-      }
+    if (decision.action === 'ignore' || decision.action === 'skip') return;
 
-      let nextType: CharacterizationTypeEnum | undefined;
-      setCharacterizationData((oldData) => {
-        const newData = {
-          ...oldData,
-          ...cleanObjectNullValues(initialData),
-          ...(foundCharacterization || {}),
-          profileParentId: '',
-        };
+    didHydratePropsInitialDataRef.current = decision.nextMark;
+    if (decision.action === 'settle') return;
 
-        nextType = newData.type;
-        return newData;
-      });
+    let nextType: CharacterizationTypeEnum | undefined;
+    setCharacterizationData((oldData) => {
+      const newData = {
+        ...oldData,
+        ...cleanObjectNullValues(initialData),
+        ...(foundCharacterization || {}),
+        profileParentId: '',
+      };
 
-      if (propsInitialData) {
-        const needsExistingData = !!(initialData as any)?.id;
-        const hasExistingData = !!foundCharacterization?.id;
-        if (!needsExistingData || hasExistingData) {
-          didHydratePropsInitialDataRef.current = propsHydrationKey;
-        }
-      }
+      nextType = newData.type;
+      return newData;
+    });
 
-      if (nextType !== undefined) {
-        setValue('type', nextType);
-      }
-      const mergedName = (initialData as any)?.name || foundCharacterization?.name || '';
-      if (mergedName) setValue('name', mergedName);
-      if ((initialData as any)?.description || foundCharacterization?.description) {
-        setValue(
-          'description',
-          (initialData as any)?.description || foundCharacterization?.description || '',
-        );
-      }
+    if (nextType !== undefined) {
+      setValue('type', nextType);
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const mergedName =
+      (initialData as any)?.name || foundCharacterization?.name || '';
+    if (mergedName) setValue('name', mergedName);
+    if ((initialData as any)?.description || foundCharacterization?.description) {
+      setValue(
+        'description',
+        (initialData as any)?.description ||
+          foundCharacterization?.description ||
+          '',
+      );
+    }
+    // setValue muda de identidade a cada render do React Hook Form.
+    // A decisão acima retorna skip/settle antes de nova gravação, então
+    // essa identidade não reabre o ciclo. Ela permanece nas dependências
+    // para o efeito ver o método atual na única gravação.
   }, [
     getModalData,
     characterizationsQuery,
+    characterizationsFetched,
     propsInitialData,
     modalName,
     characterizationData.profileParentId,
@@ -1056,13 +1054,17 @@ export const useEditCharacterization = (
   };
 
   const onAddHierarchy = () => {
+    const currentHierarchies = hierarchies;
     const handleSelect = (
-      hierarchies: IHierarchyChildren[],
+      selected: IHierarchyChildren[],
       startDate: Date,
       endDate: Date,
       close?: () => void,
     ) => {
       const values = getValues();
+      const confirmedHierarchyIds = selected.map(
+        (hierarchy) => String(hierarchy.id).split('//')[0],
+      );
       if (isEdit) {
         const submitData: IUpsertCharacterization = {
           ...values,
@@ -1077,19 +1079,44 @@ export const useEditCharacterization = (
           riskInventorySummary: values.riskInventorySummary ?? '',
           startDate,
           endDate,
-          hierarchyIds: hierarchies.map(
-            (hierarchy) => String(hierarchy.id).split('//')[0],
-          ),
+          hierarchyIds: confirmedHierarchyIds,
         };
         if (isEdit) delete submitData.photos;
-        upsertMutation
-          .mutateAsync(submitData)
-          .then(() => close?.())
-          .catch(() => {});
+        const refreshLinks = () =>
+          queryClient.invalidateQueries([
+            QueryEnum.CHARACTERIZATION,
+            characterizationData.companyId,
+            characterizationData.workspaceId,
+            characterizationData.id,
+          ]);
+        void commitCharacterizationHierarchySelection({
+          hierarchies: currentHierarchies,
+          confirmedHierarchyIds,
+          workspaceId: characterizationData.workspaceId,
+          unlink: (ids) =>
+            deleteGho(
+              { ids, companyId: characterizationData.companyId },
+              characterizationData.companyId,
+            ),
+          upsert: () => upsertMutation.mutateAsync(submitData),
+          refreshAfterPartialFailure: refreshLinks,
+        })
+          .then(async () => {
+            await refreshLinks();
+            close?.();
+          })
+          .catch((error) => {
+            if (error instanceof CharacterizationHierarchyUnlinkError) {
+              enqueueSnackbar(
+                'Não foi possível remover os vínculos. A seleção não foi salva.',
+                { variant: 'error' },
+              );
+            }
+          });
       } else {
         setCharacterizationData((oldData) => ({
           ...oldData,
-          hierarchies: hierarchies.map((h) => ({
+          hierarchies: selected.map((h) => ({
             ...h,
             hierarchyOnHomogeneous: [{ startDate, endDate } as any],
           })),
@@ -1121,6 +1148,7 @@ export const useEditCharacterization = (
       addSubOffice: true,
       forceCargoFilter: true,
       characterizationCargoSelect: true,
+      characterizationId: characterizationData.id || '',
       hierarchiesIds: activeHierarchyModalIds,
       allHierarchiesIds: activeHierarchyModalIds,
     } as typeof initialHierarchySelectState);
