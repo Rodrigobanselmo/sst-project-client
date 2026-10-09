@@ -118,6 +118,10 @@ export interface IRiskFactors {
   deleted_at?: string | Date | null;
   exame?: string;
   symptoms?: string;
+  /** Órgãos-alvo ou partes do corpo potencialmente afetadas. */
+  affectedRegion?: string;
+  /** Vias de absorção / entrada no organismo. */
+  absorptionRoutes?: string;
   method?: string;
   unit?: string;
   cas?: string;

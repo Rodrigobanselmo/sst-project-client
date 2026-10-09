@@ -41,7 +41,9 @@ import {
   getRiskEditorSnapshot,
   isRiskEditorDirty,
 } from './risk-editor-dirty';
+import { hydrateRiskFactorFromDetail } from './hydrate-risk-factor-detail.util';
 import { resolveRiskFormHydrationSource } from './risk-form-hydration';
+import { replaceRiskEditorWithDraft } from './risk-add-draft-replacement.util';
 import { toRiskFormSeverity } from './risk-form-severity';
 
 export const initialAddRiskState = {
@@ -66,6 +68,8 @@ export const initialAddRiskState = {
   isPPP: true,
   risk: undefined as string | undefined,
   symptoms: undefined as string | undefined,
+  affectedRegion: undefined as string | undefined,
+  absorptionRoutes: undefined as string | undefined,
   method: undefined as string | undefined,
   propagation: undefined as string | undefined,
   esocial: undefined as IEsocialTable24 | undefined,
@@ -122,6 +126,11 @@ type IUseAddRiskOptions = {
    * Cadastro legado / demais telas não passam esta opção.
    */
   suppressCreateSuccessSnackbar?: boolean;
+  /**
+   * Só o ModalAddRisk aplica a troca de rascunho quando Duplicar ou
+   * Criar cópia reabre o mesmo modal. O editor da página permanece no fator original.
+   */
+  listenRiskAddSession?: boolean;
   /** Transforma/valida o payload imediatamente antes do POST create (somente criação). */
   beforeCreate?: (
     payload: Record<string, unknown>,
@@ -208,12 +217,11 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       id: riskData.id,
       companyId: riskData.companyId,
     },
-    options?.riskEditorLayout === 'inline'
-      ? { refetchOnMount: 'always' }
-      : undefined,
+    { refetchOnMount: 'always' },
   );
 
-  const catalogRiskSource = risk ?? riskData;
+  const catalogRiskSource =
+    risk?.id && risk.id === riskData.id ? risk : riskData;
 
   const isCatalogReadOnly = useMemo(
     () =>
@@ -253,6 +261,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       const severityDirty = getFieldState('severity').isDirty;
       const riskDirty = getFieldState('risk').isDirty;
       const symptomsDirty = getFieldState('symptoms').isDirty;
+      const affectedRegionDirty = getFieldState('affectedRegion').isDirty;
+      const absorptionRoutesDirty = getFieldState('absorptionRoutes').isDirty;
 
       const newData = {
         ...oldData,
@@ -271,6 +281,14 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
 
       if (symptomsDirty) {
         newData.symptoms = oldData.symptoms;
+      }
+
+      if (affectedRegionDirty) {
+        newData.affectedRegion = oldData.affectedRegion;
+      }
+
+      if (absorptionRoutesDirty) {
+        newData.absorptionRoutes = oldData.absorptionRoutes;
       }
 
       return newData;
@@ -432,6 +450,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
         const severityDirty = getFieldState('severity').isDirty;
         const riskDirty = getFieldState('risk').isDirty;
         const symptomsDirty = getFieldState('symptoms').isDirty;
+        const affectedRegionDirty = getFieldState('affectedRegion').isDirty;
+        const absorptionRoutesDirty = getFieldState('absorptionRoutes').isDirty;
 
         const newData = {
           ...oldData,
@@ -450,6 +470,14 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
           newData.symptoms = oldData.symptoms;
         }
 
+        if (affectedRegionDirty) {
+          newData.affectedRegion = oldData.affectedRegion;
+        }
+
+        if (absorptionRoutesDirty) {
+          newData.absorptionRoutes = oldData.absorptionRoutes;
+        }
+
         if (isHydratingRef.current) {
           initialDataRef.current = getRiskEditorSnapshot(newData, getValues());
         }
@@ -458,6 +486,63 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       });
     }
   }, [getModalData, getFieldState, options?.initialData]);
+
+  const appliedRiskAddSessionRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    const modalData =
+      getModalData<Record<string, unknown>>(ModalEnum.RISK_ADD) || {};
+    const riskAddSession = modalData.riskAddSession;
+    if (!options?.listenRiskAddSession) return;
+    if (typeof riskAddSession !== 'number') return;
+    if (appliedRiskAddSessionRef.current === riskAddSession) return;
+    appliedRiskAddSessionRef.current = riskAddSession;
+
+    const next = replaceRiskEditorWithDraft(initialAddRiskState, modalData);
+    isHydratingRef.current = false;
+    setRiskData(next);
+    reset({
+      name: next.name || '',
+      type: next.type || '',
+      severity: toRiskFormSeverity(next.severity) || '',
+      subType: next.subType || '',
+      risk: next.risk || '',
+      symptoms: next.symptoms || '',
+      affectedRegion: next.affectedRegion || '',
+      absorptionRoutes: next.absorptionRoutes || '',
+      synonymous: Array.isArray(next.synonymous)
+        ? next.synonymous.join('; ')
+        : next.synonymous || '',
+      cas: next.cas || '',
+      unit: next.unit || '',
+      method: next.method || '',
+      propagation: Array.isArray(next.propagation)
+        ? next.propagation.join(', ')
+        : next.propagation || '',
+      activities: next.activities || [],
+    });
+    initialDataRef.current = getRiskEditorSnapshot(next, {});
+  }, [getModalData, options?.listenRiskAddSession, reset]);
+
+  useEffect(() => {
+    const modalData = getModalData<Record<string, unknown>>(ModalEnum.RISK_ADD);
+    const hydrated = hydrateRiskFactorFromDetail(
+      riskData,
+      risk,
+      (name) => getFieldState(name).isDirty,
+      modalData,
+    );
+    if (!hydrated.changed) return;
+
+    setRiskData(hydrated.editor);
+    Object.entries(hydrated.formValues).forEach(([name, value]) => {
+      setValue(name as keyof IRiskSchema, value as never, { shouldDirty: false });
+    });
+    initialDataRef.current = getRiskEditorSnapshot(hydrated.editor, {
+      ...getValues(),
+      ...hydrated.formValues,
+    });
+  }, [getFieldState, getModalData, getValues, risk, riskData, setValue]);
 
   useEffect(() => {
     const initialData = resolveRiskFormHydrationSource(
@@ -475,6 +560,10 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
 
     syncField('type', initialData.type);
     syncField('severity', toRiskFormSeverity(initialData.severity));
+    syncField('risk', initialData.risk);
+    syncField('symptoms', initialData.symptoms);
+    syncField('affectedRegion', initialData.affectedRegion);
+    syncField('absorptionRoutes', initialData.absorptionRoutes);
     syncField('subType', resolveLinkedRiskSubTypeId(initialData));
     syncField('unit', initialData.unit);
     syncField('propagation', initialData.propagation);
@@ -506,6 +595,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     severity,
     risk: riskHealth,
     symptoms,
+    affectedRegion,
+    absorptionRoutes,
     method,
     propagation,
     unit,
@@ -575,6 +666,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       severity,
       risk: riskHealth,
       symptoms,
+      affectedRegion,
+      absorptionRoutes,
       subTypesIds: [subType].filter(Boolean),
       isEmergency,
       isAso,

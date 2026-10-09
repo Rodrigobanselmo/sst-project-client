@@ -252,15 +252,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           multiline
           minRows={2}
           maxRows={5}
-          label={
-            <>
-              Risco{' '}
-              <span style={{ fontSize: 11 }}>
-                (Órgãos Alvo ou Maior Parte do Corpo Prejudicada - Resumo de
-                Sintomas)
-              </span>
-            </>
-          }
+          label="Risco"
           control={control}
           sx={{ ...longTextFieldSx, mb: 8 }}
           placeholder={'descrião do risco...'}
@@ -280,6 +272,39 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           placeholder={'descrião dos sintomas...'}
           setValue={setValue}
           name="symptoms"
+          size="small"
+          firstLetterCapitalize
+        />
+        <InputForm
+          defaultValue={riskData.affectedRegion}
+          multiline
+          minRows={2}
+          maxRows={5}
+          label={
+            <>
+              Região atingida{' '}
+              <span style={{ fontSize: 11 }}>
+                (Órgãos-alvo ou partes do corpo potencialmente afetadas)
+              </span>
+            </>
+          }
+          control={control}
+          sx={{ ...longTextFieldSx, mb: 8 }}
+          setValue={setValue}
+          name="affectedRegion"
+          size="small"
+          firstLetterCapitalize
+        />
+        <InputForm
+          defaultValue={riskData.absorptionRoutes}
+          multiline
+          minRows={2}
+          maxRows={5}
+          label="Vias de absorção / entrada no organismo"
+          control={control}
+          sx={{ ...longTextFieldSx, mb: 8 }}
+          setValue={setValue}
+          name="absorptionRoutes"
           size="small"
           firstLetterCapitalize
         />

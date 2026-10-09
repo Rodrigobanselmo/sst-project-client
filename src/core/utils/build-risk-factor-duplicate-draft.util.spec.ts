@@ -33,6 +33,8 @@ const source = {
   cas: '71-43-2',
   risk: 'Leucemia',
   symptoms: 'Cefaleia',
+  affectedRegion: 'Medula óssea',
+  absorptionRoutes: 'Inalação; contato dérmico',
   method: 'CG',
   unit: 'ppm',
   twa: '0,5',
@@ -69,6 +71,8 @@ assert.equal(draft.name, 'Cópia de Benzeno');
 assert.equal(draft.subType, '12');
 assert.equal(draft.cas, '71-43-2');
 assert.equal(draft.risk, 'Leucemia');
+assert.equal(draft.affectedRegion, 'Medula óssea');
+assert.equal(draft.absorptionRoutes, 'Inalação; contato dérmico');
 assert.deepEqual(draft.activities, [
   {
     description: 'Manipulação',

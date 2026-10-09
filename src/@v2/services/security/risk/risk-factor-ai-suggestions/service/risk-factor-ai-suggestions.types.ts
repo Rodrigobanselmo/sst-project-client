@@ -26,6 +26,8 @@ export type RiskFactorAiSuggestionLimitsPayload = {
 export type RiskFactorAiSuggestionKnownDataPayload = {
   risk?: string;
   symptoms?: string;
+  affectedRegion?: string;
+  absorptionRoutes?: string;
   severity?: number;
   carcinogenicityAcgih?: string;
   carcinogenicityLinach?: string;
@@ -62,13 +64,17 @@ export type RiskFactorAiSuggestionPayload = {
 
 export type RiskFactorAiSuggestionSourceTraceItem = {
   source: string;
-  usedFor: Array<'risk' | 'symptoms' | 'severity' | 'organs'>;
+  usedFor: Array<
+    'risk' | 'symptoms' | 'severity' | 'affectedRegion' | 'absorptionRoutes' | 'organs'
+  >;
   note?: string;
 };
 
 export type RiskFactorAiSuggestionResult = {
   risk: string;
   symptoms: string;
+  affectedRegion: string;
+  absorptionRoutes: string;
   severity: number;
   severityAi?: number;
   severityAdjusted?: boolean;

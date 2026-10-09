@@ -14,6 +14,7 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { invalidateIdentifiedRiskList } from '../invalidate-identified-risk-list.util';
 
 interface ICreateRisk
   extends Partial<
@@ -67,6 +68,7 @@ export function useMutCreateRisk(options?: {
       onSuccess: async (resp) => {
         if (resp) {
           queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+          invalidateIdentifiedRiskList();
 
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier

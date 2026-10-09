@@ -13,6 +13,7 @@ import {
   STableHRow,
   STableRow,
 } from 'components/atoms/STable';
+import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
@@ -29,9 +30,12 @@ import { RiskTechnicalDataView } from '@v2/pages/companies/risk-technical-data/R
 import { SectorRiskPresenceView } from '@v2/pages/companies/sector-risk-presence/SectorRiskPresenceView';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 
+import EditIcon from 'assets/icons/SEditIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
+import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useModal } from 'core/hooks/useModal';
 import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { useThrottle } from 'core/hooks/useThrottle';
@@ -135,6 +139,7 @@ export const RiskCompanyTable: FC<
   const { handleOpenAddRiskModal } = usePushRoute();
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { onOpenRiskToolSelected } = useOpenRiskTool();
+  const { onStackOpenModal } = useModal();
 
   const isSelect = !!onSelectData;
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
@@ -305,6 +310,7 @@ export const RiskCompanyTable: FC<
   const tableColumns = [
     ...(selectedData ? ['15px'] : []),
     ...visibleColumns.map((c) => c.column),
+    ...(!isSelect ? ['44px'] : []),
   ].join(' ');
 
   const presenceToggle =
@@ -468,6 +474,7 @@ export const RiskCompanyTable: FC<
           onClearTable={onClearTablePreferences}
         />
       ))}
+      {!isSelect && <STableHRow key="edit-col" />}
     </STableHeader>
   );
 
@@ -515,6 +522,21 @@ export const RiskCompanyTable: FC<
                     />
                   )}
                   {renderMainCells(row)}
+                  {!isSelect && (
+                    <Box
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onStackOpenModal(ModalEnum.RISK_ADD, row);
+                      }}
+                      onMouseDown={(event) => event.stopPropagation()}
+                    >
+                      <IconButtonRow
+                        icon={<EditIcon />}
+                        tooltipTitle="Editar fator de risco"
+                        aria-label="Editar fator de risco"
+                      />
+                    </Box>
+                  )}
                   {isOpen && !!row.riskFactorData?.length && (
                     <Box gridColumn="1 / -1" mb={6} mt={-1}>
                       <RiskOriginsBulkRemoveMenu

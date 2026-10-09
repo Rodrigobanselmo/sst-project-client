@@ -91,10 +91,39 @@ run('both fields go through syncField, which skips user-changed fields', () => {
   );
   assert.equal(hookSource.includes("syncField('subType', resolveLinkedRiskSubTypeId(initialData));"), true);
   assert.equal(hookSource.includes('if (getFieldState(name).isDirty) return;'), true);
+  assert.equal(hookSource.includes("syncField('affectedRegion', initialData.affectedRegion);"), true);
+  assert.equal(hookSource.includes("syncField('absorptionRoutes', initialData.absorptionRoutes);"), true);
+  assert.equal(hookSource.includes('affectedRegion,'), true);
+  assert.equal(hookSource.includes('absorptionRoutes,'), true);
   assert.equal(
     hookSource.includes('}, [options?.initialData, getModalData, getFieldState, setValue]);'),
     true,
   );
+});
+
+const sharedFormSource = readFileSync(
+  resolve('src/components/organisms/modals/ModalAddRisk/components/RiskSharedContent/RiskSharedContent.tsx'),
+  'utf8',
+);
+
+run('shared form shows the short Risco label and the two optional fields', () => {
+  assert.equal(sharedFormSource.includes('label="Risco"'), true);
+  assert.equal(sharedFormSource.includes('name="risk"'), true);
+  assert.equal(
+    sharedFormSource.includes('Órgãos Alvo ou Maior Parte do Corpo Prejudicada'),
+    false,
+  );
+  assert.equal(sharedFormSource.includes('Região atingida'), true);
+  assert.equal(
+    sharedFormSource.includes('Órgãos-alvo ou partes do corpo potencialmente afetadas'),
+    true,
+  );
+  assert.equal(
+    sharedFormSource.includes('label="Vias de absorção / entrada no organismo"'),
+    true,
+  );
+  assert.equal(sharedFormSource.includes('name="affectedRegion"'), true);
+  assert.equal(sharedFormSource.includes('name="absorptionRoutes"'), true);
 });
 
 console.log('\nAll risk-form-hydration tests passed.');

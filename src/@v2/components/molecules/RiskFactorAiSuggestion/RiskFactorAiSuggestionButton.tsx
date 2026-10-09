@@ -76,6 +76,8 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
   const [pendingSuggestion, setPendingSuggestion] = useState<{
     risk: string;
     symptoms: string;
+    affectedRegion: string;
+    absorptionRoutes: string;
     severity: number;
     severityAi?: number;
     severityAdjusted?: boolean;
@@ -100,6 +102,8 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
     suggestion: {
       risk: string;
       symptoms: string;
+      affectedRegion: string;
+      absorptionRoutes: string;
       severity: number | string;
       severityAi?: number;
       severityAdjusted?: boolean;
@@ -113,6 +117,8 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
     const normalizedSuggestionSeverity = normalizeSuggestedSeverity(suggestion.severity);
     const normalizedSuggestion = {
       ...suggestion,
+      affectedRegion: suggestion.affectedRegion ?? '',
+      absorptionRoutes: suggestion.absorptionRoutes ?? '',
       severity: normalizedSuggestionSeverity ?? suggestion.severity,
     };
 
@@ -123,18 +129,26 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
     );
 
     const severityString = String(applied.severity);
+    const assignField = (name: string, next: string) => {
+      if (String(getValues(name) ?? '') === next) return;
+      setValue(name, next, {
+        shouldDirty: true,
+        shouldValidate: name === 'severity',
+      });
+    };
 
-    setValue('severity', severityString, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    setValue('risk', applied.risk, { shouldDirty: true });
-    setValue('symptoms', applied.symptoms, { shouldDirty: true });
+    assignField('severity', severityString);
+    assignField('risk', applied.risk);
+    assignField('symptoms', applied.symptoms);
+    assignField('affectedRegion', applied.affectedRegion);
+    assignField('absorptionRoutes', applied.absorptionRoutes);
 
     setRiskData((current) => ({
       ...(current as RiskFactorAiSuggestionFormSource),
       risk: applied.risk,
       symptoms: applied.symptoms,
+      affectedRegion: applied.affectedRegion,
+      absorptionRoutes: applied.absorptionRoutes,
       severity: applied.severity,
     }));
 
@@ -197,26 +211,25 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 
       const normalizedResult = {
         ...result,
+        affectedRegion: result.affectedRegion ?? '',
+        absorptionRoutes: result.absorptionRoutes ?? '',
         severity: normalizedSeverity ?? result.severity,
       };
 
       if (hasRiskFactorAiSuggestionFieldContent(currentForm)) {
-        if (normalizedSeverity != null) {
-          setPendingSuggestion({
-            risk: normalizedResult.risk,
-            symptoms: normalizedResult.symptoms,
-            severity: normalizedSeverity,
-            severityAi: result.severityAi,
-            severityAdjusted: result.severityAdjusted,
-            severityAdjustmentReason: result.severityAdjustmentReason,
-          });
-        } else {
-          setPendingSuggestion({
-            risk: normalizedResult.risk,
-            symptoms: normalizedResult.symptoms,
-            severity: normalizeSuggestedSeverity(currentForm.severity) ?? 0,
-          });
-        }
+        setPendingSuggestion({
+          risk: normalizedResult.risk,
+          symptoms: normalizedResult.symptoms,
+          affectedRegion: normalizedResult.affectedRegion,
+          absorptionRoutes: normalizedResult.absorptionRoutes,
+          severity:
+            normalizedSeverity ??
+            normalizeSuggestedSeverity(currentForm.severity) ??
+            0,
+          severityAi: result.severityAi,
+          severityAdjusted: result.severityAdjusted,
+          severityAdjustmentReason: result.severityAdjustmentReason,
+        });
         setApplyDialogOpen(true);
         return;
       }
@@ -228,7 +241,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
           severityAdjusted: result.severityAdjusted,
           severityAdjustmentReason: result.severityAdjustmentReason,
         },
-        'replace',
+        'replace-all',
       );
     } catch {
       // error state handled by hook

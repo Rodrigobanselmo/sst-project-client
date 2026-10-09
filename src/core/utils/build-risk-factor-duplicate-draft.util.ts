@@ -29,6 +29,8 @@ type RiskFactorDraftBase = {
   subType?: string;
   risk?: string;
   symptoms?: string;
+  affectedRegion?: string;
+  absorptionRoutes?: string;
   method?: string;
   unit?: string;
   propagation?: string[] | string;
@@ -142,6 +144,8 @@ const buildIntrinsicDraftFields = (
     subType: subType ?? undefined,
     risk: copyString(source.risk),
     symptoms: copyString(source.symptoms),
+    affectedRegion: copyString(source.affectedRegion),
+    absorptionRoutes: copyString(source.absorptionRoutes),
     method: copyString(source.method),
     unit: copyString(source.unit),
     propagation: copyStringArray(source.propagation),

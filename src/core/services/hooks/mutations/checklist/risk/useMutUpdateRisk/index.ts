@@ -10,6 +10,7 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { invalidateIdentifiedRiskList } from '../invalidate-identified-risk-list.util';
 
 interface IUpdateRisk
   extends Partial<Pick<IRiskFactors, 'name' | 'type' | 'status'>> {
@@ -46,6 +47,7 @@ export function useMutUpdateRisk() {
 
         queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
         queryClient.invalidateQueries([QueryEnum.RISK, resp.companyId]);
+        invalidateIdentifiedRiskList();
 
         const replace = (company: string) => {
           const actualData = queryClient.getQueryData(

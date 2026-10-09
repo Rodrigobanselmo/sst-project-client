@@ -17,7 +17,7 @@ import { RiskEditorFields } from './components/RiskEditorFields/RiskEditorFields
 import { useAddRisk } from './hooks/useAddRisk';
 
 export const ModalAddRisk = () => {
-  const props = useAddRisk();
+  const props = useAddRisk({ listenRiskAddSession: true });
   const { requestLocalCompanyCopy, canDuplicateRiskFactor } =
     useDuplicateRiskFactor();
 

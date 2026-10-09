@@ -10,6 +10,7 @@ import {
   setPileModalName,
 } from '../../store/reducers/modal/modalSlice';
 import { useAppDispatch } from './useAppDispatch';
+import { nextModalStack } from './modal-stack.util';
 
 /**
  * @deprecated
@@ -128,6 +129,19 @@ export const useModal = () => {
     [setCurrentModal, setPileModal, store],
   );
 
+  const onOpenOrReplaceModal = useCallback(
+    <T>(name: string, data?: T) => {
+      const registerStackModal = store.getState().modal
+        .pileModal as ICurrentModal[];
+      const currentModal = store.getState().modal
+        .currentModal as ICurrentModal[];
+      const next = nextModalStack(currentModal, registerStackModal, name, data);
+      setPileModal(next.pile);
+      setCurrentModal(next.current);
+    },
+    [setCurrentModal, setPileModal, store],
+  );
+
   const getIsOpenModal = useCallback(
     (name: string) => {
       const currentModal = store.getState().modal.currentModal as string[];
@@ -147,6 +161,7 @@ export const useModal = () => {
     onCloseModal,
     onCloseAllModals,
     onStackOpenModal,
+    onOpenOrReplaceModal,
     getStackModal,
   };
 };

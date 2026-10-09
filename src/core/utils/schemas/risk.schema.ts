@@ -24,6 +24,8 @@ export const riskSchema = {
     .oneOf([1, 2, 3, 4, 5], SEVERITY_REQUIRED_MESSAGE),
   risk: Yup.string(),
   symptoms: Yup.string(),
+  affectedRegion: Yup.string(),
+  absorptionRoutes: Yup.string(),
 };
 
 export type IRiskSchema = Record<keyof typeof riskSchema, string> & {

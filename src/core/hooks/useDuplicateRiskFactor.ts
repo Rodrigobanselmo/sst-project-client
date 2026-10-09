@@ -14,7 +14,7 @@ import {
 } from 'core/utils/build-risk-factor-duplicate-draft.util';
 
 export const useDuplicateRiskFactor = () => {
-  const { onStackOpenModal } = useModal();
+  const { onOpenOrReplaceModal } = useModal();
   const { preventWarn } = usePreventAction();
   const { companyId } = useGetCompanyId();
   const { isAuthSuccess } = useAuthShow();
@@ -24,13 +24,22 @@ export const useDuplicateRiskFactor = () => {
     cruds: 'c',
   });
 
+  const presentRiskAddDraft = useCallback(
+    (draft: object) => {
+      onOpenOrReplaceModal(ModalEnum.RISK_ADD, {
+        ...draft,
+        riskAddSession: Date.now(),
+      });
+    },
+    [onOpenOrReplaceModal],
+  );
+
   /** Duplicar: mesmo escopo da criação normal (+); só pré-preenche o formulário. */
   const openDuplicateForm = useCallback(
     (source: Partial<IRiskFactors>) => {
-      const draft = buildRiskFactorDuplicateDraft({ source });
-      onStackOpenModal(ModalEnum.RISK_ADD, draft);
+      presentRiskAddDraft(buildRiskFactorDuplicateDraft({ source }));
     },
-    [onStackOpenModal],
+    [presentRiskAddDraft],
   );
 
   /**
@@ -47,9 +56,9 @@ export const useDuplicateRiskFactor = () => {
         companyId: resolvedCompanyId,
       });
 
-      onStackOpenModal(ModalEnum.RISK_ADD, draft);
+      presentRiskAddDraft(draft);
     },
-    [companyId, onStackOpenModal],
+    [companyId, presentRiskAddDraft],
   );
 
   const requestDuplicateRiskFactor = useCallback(

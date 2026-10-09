@@ -67,6 +67,8 @@ const pickKnownData = (
   const knownData: RiskFactorAiSuggestionKnownDataPayload = {
     risk: pickString(form.risk),
     symptoms: pickString(form.symptoms),
+    affectedRegion: pickString(form.affectedRegion),
+    absorptionRoutes: pickString(form.absorptionRoutes),
     severity: form.severity && Number(form.severity) > 0 ? Number(form.severity) : undefined,
     carcinogenicityAcgih: pickString(form.carnogenicityACGIH),
     carcinogenicityLinach: pickString(form.carnogenicityLinach),
@@ -112,20 +114,9 @@ export function hasRiskFactorAiSuggestionFieldContent(
 ): boolean {
   const hasRisk = Boolean(form.risk?.trim());
   const hasSymptoms = Boolean(form.symptoms?.trim());
+  const hasAffectedRegion = Boolean(form.affectedRegion?.trim());
+  const hasAbsorptionRoutes = Boolean(form.absorptionRoutes?.trim());
   const hasSeverity = Boolean(form.severity && Number(form.severity) > 0);
 
-  return hasRisk || hasSymptoms || hasSeverity;
-}
-
-export function mergeRiskFactorAiSuggestionText(
-  current: string | undefined,
-  suggestion: string,
-): string {
-  const existing = current?.trim();
-  const incoming = suggestion.trim();
-
-  if (!existing) return incoming;
-  if (!incoming) return existing;
-
-  return `${existing}\n\n${incoming}`;
+  return hasRisk || hasSymptoms || hasAffectedRegion || hasAbsorptionRoutes || hasSeverity;
 }
