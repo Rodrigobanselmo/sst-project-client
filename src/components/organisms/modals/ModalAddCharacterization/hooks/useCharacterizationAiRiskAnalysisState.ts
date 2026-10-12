@@ -7,7 +7,10 @@ import {
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 
 import { mergeAiRiskSuggestions } from '../components/ModalAiAnalysisContent/merge-ai-risk-suggestions.util';
-import { mergeExistingRiskReviews } from '../components/ModalAiAnalysisContent/ai-risk-field-suggestion.util';
+import {
+  mergeExistingRiskReviews,
+  removeModularSuggestion,
+} from '../components/ModalAiAnalysisContent/ai-risk-field-suggestion.util';
 import {
   AiRiskAnalysisSessionKeyParams,
   AiRiskAnalysisSessionSnapshot,
@@ -239,6 +242,10 @@ export const useCharacterizationAiRiskAnalysisState = (
     );
   }, []);
 
+  const dismissModularSuggestion = useCallback((key: string) => {
+    setExistingRiskReviews((current) => removeModularSuggestion(current, key));
+  }, []);
+
   const dismissSuggestion = useCallback((riskId: string) => {
     setDismissedRiskIds((current) =>
       current.includes(riskId) ? current : [...current, riskId],
@@ -319,6 +326,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     reconcileWithExistingRiskIds,
     markRiskAdded,
     markModularSuggestionApplied,
+    dismissModularSuggestion,
     dismissSuggestion,
     setSuggestionExpanded,
     expandAllSuggestions,

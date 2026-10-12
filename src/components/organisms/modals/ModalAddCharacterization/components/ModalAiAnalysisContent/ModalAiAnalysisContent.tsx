@@ -35,12 +35,18 @@ import { filterNewAiRiskSuggestions } from './filter-new-ai-risk-suggestions.uti
 import {
   buildModularSuggestionKey,
   filterExistingRiskReviews,
+  isEquivalentApplyInFlight,
 } from './ai-risk-field-suggestion.util';
 import { AiExistingRiskReviewCard } from './AiExistingRiskReviewCard';
 import { AiRiskSuggestionCard } from './AiRiskSuggestionCard';
 import { useAiRiskSuggestionEdits } from './useAiRiskSuggestionEdits';
 import { isAiAnalyzeRequestCanceled } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/is-ai-analyze-request-canceled.util';
 import { buildModularRiskUpsert } from './build-modular-risk-upsert.util';
+import { riskDataAlreadyContainsFieldValue } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/risk-factors-ai-scope.util';
+import {
+  existenceConfirmationCopy,
+  resolveSuggestionApplyValue,
+} from './suggestion-apply-plan.util';
 import { useRiskToolCopyGhoImportFlow } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/hooks/useRiskToolCopyGhoImportFlow';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import {
@@ -117,6 +123,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   const { showConfirmation } = useConfirmationModal();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const applyingLock = useRef<string | null>(null);
   const [applyingSuggestionKey, setApplyingSuggestionKey] = useState<
     string | null
   >(null);
@@ -406,15 +413,40 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       return;
     }
 
+    if (params.suggestion.field === 'observation') {
+      return;
+    }
+
     const suggestionKey = buildModularSuggestionKey(
       params.review.riskId,
       params.suggestion.field,
       params.value,
     );
+    if (isEquivalentApplyInFlight(applyingLock.current, suggestionKey)) return;
+    applyingLock.current = suggestionKey;
+    setApplyingSuggestionKey(suggestionKey);
 
-    if (params.suggestion.field === 'observation') {
+    try {
+    if (
+      params.suggestion.field !== 'probability' &&
+      riskDataAlreadyContainsFieldValue(params.suggestion.field, params.value, riskData)
+    ) {
+      markModularSuggestionApplied(suggestionKey);
       return;
     }
+
+    const value = await resolveSuggestionApplyValue({
+      intent: params.suggestion.intent,
+      value: params.value,
+      confirmExistence: (measure) => showConfirmation(existenceConfirmationCopy(measure)),
+    });
+    if (value == null) return;
+
+    const confirmedKey = buildModularSuggestionKey(
+      params.review.riskId,
+      params.suggestion.field,
+      value,
+    );
 
     if (params.suggestion.field === 'probability') {
       const currentProbability =
@@ -423,7 +455,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
           : riskData.probability;
       const confirmed = await showConfirmation({
         title: 'Aplicar probabilidade sugerida?',
-        message: `A probabilidade atual (${currentProbability ?? 'não informada'}) será substituída pela sugerida (${params.value}). Esta ação sobrescreve o valor atual.`,
+        message: `A probabilidade atual (${currentProbability ?? 'não informada'}) será substituída pela sugerida (${value}). Esta ação sobrescreve o valor atual.`,
         confirmText: 'Aplicar probabilidade',
         cancelText: 'Cancelar',
         variant: 'warning',
@@ -433,7 +465,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
 
     const payload = buildModularRiskUpsert({
       field: params.suggestion.field,
-      value: params.value,
+      value,
       riskData,
       riskGroupId,
       companyId: characterizationData.companyId,
@@ -443,14 +475,24 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
 
     if (!payload) return;
 
-    try {
-      setApplyingSuggestionKey(suggestionKey);
       await upsertRiskDataMutation.mutateAsync(payload);
-      markModularSuggestionApplied(suggestionKey);
-      await refetchExistingRiskData();
+      const refreshed = await refetchExistingRiskData();
+      const rows = refreshed.data || [];
+      const saved =
+        rows.find((item) => item.riskId === params.review.riskId) ||
+        rows.find((item) => item.id === params.review.riskFactorDataId);
+      if (params.suggestion.field === 'probability') {
+        markModularSuggestionApplied(confirmedKey);
+      } else if (
+        saved &&
+        riskDataAlreadyContainsFieldValue(params.suggestion.field, value, saved)
+      ) {
+        markModularSuggestionApplied(confirmedKey);
+      }
     } catch (error) {
       console.error('Error applying modular AI suggestion:', error);
     } finally {
+      applyingLock.current = null;
       setApplyingSuggestionKey(null);
     }
   };
@@ -888,6 +930,12 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                               }
                               appliedKeys={appliedModularSuggestionKeysSet}
                               applyingKey={applyingSuggestionKey}
+                              riskData={
+                                existingRiskDataByRiskId.get(review.riskId) ||
+                                sortedExistingRiskData.find(
+                                  (item) => item.id === review.riskFactorDataId,
+                                )
+                              }
                               onApply={handleApplyModularSuggestion}
                             />
                           );

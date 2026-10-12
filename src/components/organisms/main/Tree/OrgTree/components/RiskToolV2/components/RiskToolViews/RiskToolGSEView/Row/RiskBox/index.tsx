@@ -30,6 +30,7 @@ import { GseEffectiveOriginActionButtons } from '../../GseEffectiveOriginActionB
 import { GseInheritedRiskEditModal } from '../../GseInheritedRiskEditModal';
 import { formatGseEffectiveOriginLabel } from '../../split-effective-gse-rows.util';
 import { MatrixEquation } from './MatrixEquation';
+import { RiskFactorRiskAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
 import { STBoxItem } from './styles';
 import { RiskToolGSEViewRowRiskBoxProps } from './types';
 
@@ -349,6 +350,9 @@ export const RiskToolGSEViewRowRiskBox: FC<
           sx={{ flexShrink: 0, maxWidth: { xs: '100%', md: '58%' } }}
           onClick={(e) => e.stopPropagation()}
         >
+          {!readOnly && !isRepresentAll && riskData?.canEditOnThisEntity !== false && (
+            <RiskFactorRiskAiButton riskId={data.id} riskName={riskName} />
+          )}
           {showCollapsedSummary ? (
             <SFlex
               align="center"

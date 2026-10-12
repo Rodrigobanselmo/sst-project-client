@@ -14,7 +14,9 @@ import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/Risk
 import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
 import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
+import { catalogControlDisplayName } from '../../../../../catalog-control-display-name.util';
 import { SelectedTableItem } from '../../SelectedTableItem';
+import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
 import { AdmColumnProps } from './types';
 import {
   getCharacterizationPlanItemTintSx,
@@ -33,12 +35,15 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
     return (data?.adms ?? [])
       .filter(
         (adm): adm is IRecMed =>
-          !!adm && typeof adm.id === 'string' && !!adm.id && !!adm.medName,
+          !!adm &&
+          typeof adm.id === 'string' &&
+          !!adm.id &&
+          !!catalogControlDisplayName(adm, 'measure'),
       )
       .map((adm) => ({
         kind: 'adm' as const,
         sourceRiskId: risk?.id || '',
-        name: adm.medName || '',
+        name: catalogControlDisplayName(adm, 'measure'),
         catalogId: adm.id,
         medType: adm.medType || MedTypeEnum.ADM,
       }));
@@ -88,6 +93,11 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
               handleSelect({ adms: ids });
             }}
           />
+          <RiskFactorFieldAiButton
+            riskId={risk?.id}
+            riskName={risk?.name}
+            field="existingAdministrativeMeasures"
+          />
           <RiskCatalogBulkAddButton
             kind="adm"
             risk={risk}
@@ -107,6 +117,7 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
                 !!adm && typeof adm.id === 'string' && !!adm.id,
             )
             .map((adm) => {
+              const measureName = catalogControlDisplayName(adm, 'measure');
               const planStatus = getDerivedMeasurePlanStatus(
                 data as IRiskData,
                 adm.id,
@@ -123,14 +134,14 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
                   item={{
                     kind: 'adm',
                     sourceRiskId: risk?.id || '',
-                    name: adm.medName || '',
+                    name: measureName,
                     catalogId: adm.id,
                     medType: adm.medType || MedTypeEnum.ADM,
                   }}
-                  disabled={!risk?.id || !adm.medName}
+                  disabled={!risk?.id || !measureName}
                 >
                   <SelectedTableItem
-                    name={adm.medName || 'Medida administrativa'}
+                    name={measureName}
                     planStatus={planStatus}
                     planTooltipStatus={planTooltipStatus}
                     itemTintSx={getCharacterizationPlanItemTintSx(

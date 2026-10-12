@@ -20,6 +20,7 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskDat
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { catalogControlDisplayName } from '../../../../../catalog-control-display-name.util';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { RecColumnProps } from './types';
 
@@ -39,6 +40,7 @@ import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/Risk
 import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
 import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
+import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
 
 const REC_DELETE_BLOCKED_HINT =
   'Não é possível excluir esta recomendação: o item no Plano de Ação já saiu do status Pendente (Iniciado, Concluído ou Cancelado).';
@@ -63,12 +65,15 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
     return (data?.recs ?? [])
       .filter(
         (rec): rec is IRecMed =>
-          !!rec && typeof rec.id === 'string' && !!rec.id && !!rec.recName,
+          !!rec &&
+          typeof rec.id === 'string' &&
+          !!rec.id &&
+          !!catalogControlDisplayName(rec, 'recommendation'),
       )
       .map((rec) => ({
         kind: 'rec' as const,
         sourceRiskId: risk?.id || '',
-        name: rec.recName || '',
+        name: catalogControlDisplayName(rec, 'recommendation'),
         catalogId: rec.id,
         recType: rec.recType || undefined,
       }));
@@ -179,6 +184,16 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
               );
             }}
           />
+          <RiskFactorFieldAiButton
+            riskId={risk?.id}
+            riskName={risk?.name}
+            field="recommendedEngineeringMeasures"
+          />
+          <RiskFactorFieldAiButton
+            riskId={risk?.id}
+            riskName={risk?.name}
+            field="recommendedAdministrativeMeasures"
+          />
           <RiskCatalogBulkAddButton
             kind="rec"
             risk={risk}
@@ -215,20 +230,21 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
               planWorkspaceId,
             );
           const missingType = isRecommendationRecTypeMissing(rec.recType);
+          const recommendationName = catalogControlDisplayName(rec, 'recommendation');
           return (
             <RiskCatalogDraggableItem
               key={rec.id}
               item={{
                 kind: 'rec',
                 sourceRiskId: risk?.id || '',
-                name: rec.recName || '',
+                name: recommendationName,
                 catalogId: rec.id,
                 recType: rec.recType || undefined,
               }}
-              disabled={!risk?.id || !rec.recName}
+              disabled={!risk?.id || !recommendationName}
             >
               <SelectedTableItem
-                name={rec.recName || 'Recomendação'}
+                name={recommendationName}
                 recType={rec.recType ?? null}
                 planStatus={planStatus}
                 planTooltipStatus={planTooltipStatus}

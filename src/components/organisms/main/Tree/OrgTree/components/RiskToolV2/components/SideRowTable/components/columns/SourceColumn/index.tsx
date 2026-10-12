@@ -12,6 +12,7 @@ import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCa
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
 import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
 import { SelectedTableItem } from '../../SelectedTableItem';
+import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
 import { SourceColumnProps } from './types';
 
 export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
@@ -72,6 +73,11 @@ export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
               if (!ids.length) return;
               handleSelect({ generateSources: ids });
             }}
+          />
+          <RiskFactorFieldAiButton
+            riskId={risk?.id}
+            riskName={risk?.name}
+            field="generateSource"
           />
           <RiskCatalogBulkAddButton
             kind="generateSource"

@@ -15,5 +15,13 @@ export interface AiAnalyzeGseParams {
   userGuidance?: string;
   temporaryDocumentSources?: AiTemporaryDocumentSource[];
   model?: string;
+  scope?: 'general' | 'risk' | 'field';
+  riskId?: string;
+  field?:
+    | 'fonteGeradora'
+    | 'medidasEngenhariaExistentes'
+    | 'medidasAdministrativasExistentes'
+    | 'medidasEngenhariaRecomendadas'
+    | 'medidasAdministrativasRecomendadas';
   signal?: AbortSignal;
 }

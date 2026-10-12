@@ -17,14 +17,21 @@ import type {
   AiRiskFieldSuggestion,
   ExistingRiskReview,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
+import type { IRiskData } from 'core/interfaces/api/IRiskData';
+
+import { riskDataAlreadyContainsFieldValue } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/risk-factors-ai-scope.util';
 
 import {
-  buildModularSuggestionKey,
   getFieldChipColor,
   getFieldLabel,
-  getSuggestionValues,
   groupReviewSuggestions,
+  isEquivalentApplyInFlight,
+  listUniqueReviewSuggestionValues,
 } from './ai-risk-field-suggestion.util';
+import {
+  suggestionApplyLabel,
+  suggestionIntentLabel,
+} from './suggestion-apply-plan.util';
 
 export type AiExistingRiskReviewCardProps = {
   review: ExistingRiskReview;
@@ -32,7 +39,14 @@ export type AiExistingRiskReviewCardProps = {
   onExpandedChange: (expanded: boolean) => void;
   appliedKeys: Set<string>;
   applyingKey: string | null;
+  /** Fator já carregado. "Aplicado" só aparece quando a medida está vinculada nele. */
+  riskData?: Pick<IRiskData, 'generateSources' | 'engs' | 'adms' | 'recs'> | null;
   onApply: (params: {
+    review: ExistingRiskReview;
+    suggestion: AiRiskFieldSuggestion;
+    value: string | number;
+  }) => void;
+  onDismiss?: (params: {
     review: ExistingRiskReview;
     suggestion: AiRiskFieldSuggestion;
     value: string | number;
@@ -45,7 +59,9 @@ export function AiExistingRiskReviewCard({
   onExpandedChange,
   appliedKeys,
   applyingKey,
+  riskData,
   onApply,
+  onDismiss,
 }: AiExistingRiskReviewCardProps) {
   const accordionId = `review:${review.riskId}`;
 
@@ -115,14 +131,23 @@ export function AiExistingRiskReviewCard({
                       sx={{ mb: 0.75 }}
                     />
                     <SFlex direction="column" gap={1}>
-                      {subgroup.suggestions.flatMap((suggestion) =>
-                        getSuggestionValues(suggestion).map((value) => {
-                          const key = buildModularSuggestionKey(
-                            review.riskId,
-                            suggestion.field,
-                            value,
-                          );
-                          const isApplied = appliedKeys.has(key);
+                      {listUniqueReviewSuggestionValues(
+                        review,
+                        subgroup.suggestions,
+                      ).map(({ suggestion, value, key }) => {
+                          const linked =
+                            suggestion.field !== 'probability' &&
+                            suggestion.field !== 'observation' &&
+                            !!riskData &&
+                            riskDataAlreadyContainsFieldValue(
+                              suggestion.field,
+                              value,
+                              riskData,
+                            );
+                          const isApplied =
+                            suggestion.field === 'probability'
+                              ? appliedKeys.has(key)
+                              : linked;
                           const isObservation =
                             suggestion.field === 'observation';
                           const isProbability =
@@ -164,6 +189,14 @@ export function AiExistingRiskReviewCard({
                                       sx={{ alignSelf: 'flex-start' }}
                                     />
                                   )}
+                                  {suggestionIntentLabel(suggestion.intent) && (
+                                    <Chip
+                                      size="small"
+                                      label={suggestionIntentLabel(suggestion.intent)}
+                                      variant="outlined"
+                                      sx={{ alignSelf: 'flex-start' }}
+                                    />
+                                  )}
                                   <SText
                                     variant="caption"
                                     color="text.secondary"
@@ -171,14 +204,23 @@ export function AiExistingRiskReviewCard({
                                     Valor atual: {String(currentLabel)}
                                   </SText>
                                   <SText variant="body2" color="text.primary">
-                                    Sugerido: {String(value)}
+                                    {suggestion.intent === 'implementar'
+                                      ? 'Recomendação'
+                                      : suggestion.intent
+                                        ? 'Medida'
+                                        : 'Sugerido'}
+                                    : {String(value)}
                                   </SText>
                                   {suggestion.rationale && (
                                     <SText
                                       variant="caption"
                                       color="text.secondary"
                                     >
-                                      {suggestion.rationale}
+                                      {suggestion.intent === 'verificar'
+                                        ? `Orientação: ${suggestion.rationale}`
+                                        : suggestion.intent
+                                          ? `Justificativa: ${suggestion.rationale}`
+                                          : suggestion.rationale}
                                     </SText>
                                   )}
                                   {isProbability && (
@@ -191,16 +233,18 @@ export function AiExistingRiskReviewCard({
                                     </SText>
                                   )}
                                 </SFlex>
+                                <SFlex direction="row" gap={1}>
                                 {!isObservation && (
                                   <SButton
-                                    text={isApplied ? 'Aplicado' : 'Aplicar'}
+                                    text={suggestionApplyLabel(suggestion.intent, isApplied)}
                                     variant={isApplied ? 'shade' : 'outlined'}
                                     color="primary"
                                     size="s"
                                     disabled={
-                                      isApplied || applyingKey === key
+                                      isApplied ||
+                                      isEquivalentApplyInFlight(applyingKey, key)
                                     }
-                                    loading={applyingKey === key}
+                                    loading={isEquivalentApplyInFlight(applyingKey, key)}
                                     onClick={() =>
                                       onApply({
                                         review,
@@ -211,11 +255,27 @@ export function AiExistingRiskReviewCard({
                                     buttonProps={{ sx: { minWidth: 'auto' } }}
                                   />
                                 )}
+                                {onDismiss && !isObservation && !isApplied && (
+                                  <SButton
+                                    text="Descartar"
+                                    variant="shade"
+                                    size="s"
+                                    disabled={isEquivalentApplyInFlight(applyingKey, key)}
+                                    onClick={() =>
+                                      onDismiss({
+                                        review,
+                                        suggestion,
+                                        value,
+                                      })
+                                    }
+                                    buttonProps={{ sx: { minWidth: 'auto' } }}
+                                  />
+                                )}
+                                </SFlex>
                               </SFlex>
                             </Box>
                           );
-                        }),
-                      )}
+                        })}
                     </SFlex>
                   </Box>
                 ))}

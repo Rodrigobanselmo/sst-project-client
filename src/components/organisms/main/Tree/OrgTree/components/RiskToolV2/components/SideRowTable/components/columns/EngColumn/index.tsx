@@ -15,7 +15,9 @@ import { RiskCatalogBatchCopyButton } from '../../../../../risk-catalog-dnd/Risk
 import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCatalogDraggableItem';
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
 import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
+import { catalogControlDisplayName } from '../../../../../catalog-control-display-name.util';
 import { SelectedTableItem } from '../../SelectedTableItem';
+import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
 import { EngColumnProps } from './types';
 import {
   getCharacterizationPlanItemTintSx,
@@ -35,12 +37,15 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
     return (data?.engs ?? [])
       .filter(
         (eng): eng is IRecMed =>
-          !!eng && typeof eng.id === 'string' && !!eng.id && !!eng.medName,
+          !!eng &&
+          typeof eng.id === 'string' &&
+          !!eng.id &&
+          !!catalogControlDisplayName(eng, 'measure'),
       )
       .map((eng) => ({
         kind: 'eng' as const,
         sourceRiskId: risk?.id || '',
-        name: eng.medName || '',
+        name: catalogControlDisplayName(eng, 'measure'),
         catalogId: eng.id,
         medType: eng.medType || MedTypeEnum.ENG,
       }));
@@ -92,6 +97,11 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
               });
             }}
           />
+          <RiskFactorFieldAiButton
+            riskId={risk?.id}
+            riskName={risk?.name}
+            field="existingEngineeringMeasures"
+          />
           <RiskCatalogBulkAddButton
             kind="eng"
             risk={risk}
@@ -111,6 +121,7 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
                 !!eng && typeof eng.id === 'string' && !!eng.id,
             )
             .map((eng) => {
+              const measureName = catalogControlDisplayName(eng, 'measure');
               const planStatus = getDerivedMeasurePlanStatus(
                 data as IRiskData,
                 eng.id,
@@ -127,14 +138,14 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
                   item={{
                     kind: 'eng',
                     sourceRiskId: risk?.id || '',
-                    name: eng.medName || '',
+                    name: measureName,
                     catalogId: eng.id,
                     medType: eng.medType || MedTypeEnum.ENG,
                   }}
-                  disabled={!risk?.id || !eng.medName}
+                  disabled={!risk?.id || !measureName}
                 >
                   <SelectedTableItem
-                    name={eng.medName || 'Medida de engenharia'}
+                    name={measureName}
                     planStatus={planStatus}
                     planTooltipStatus={planTooltipStatus}
                     itemTintSx={getCharacterizationPlanItemTintSx(

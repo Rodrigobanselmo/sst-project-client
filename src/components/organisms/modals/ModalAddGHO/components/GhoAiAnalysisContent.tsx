@@ -45,9 +45,15 @@ import { AiTemporaryPdfSourceField } from '../../ModalAddCharacterization/compon
 import { AiAnalyzeGuidanceAudioField } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/AiAnalyzeGuidanceAudioField';
 import { appendTranscribedGuidance } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/append-transcribed-guidance.util';
 import { buildModularRiskUpsert } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/build-modular-risk-upsert.util';
+import { riskDataAlreadyContainsFieldValue } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/risk-factors-ai-scope.util';
+import {
+  existenceConfirmationCopy,
+  resolveSuggestionApplyValue,
+} from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/suggestion-apply-plan.util';
 import { filterNewAiRiskSuggestions } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/filter-new-ai-risk-suggestions.util';
 import {
   buildModularSuggestionKey,
+  isEquivalentApplyInFlight,
 } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/ai-risk-field-suggestion.util';
 import { AiExistingRiskReviewCard } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/AiExistingRiskReviewCard';
 import { AiRiskSuggestionCard } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/AiRiskSuggestionCard';
@@ -148,6 +154,7 @@ export const GhoAiAnalysisContent = ({
 
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const applyingLock = useRef<string | null>(null);
   const [applyingSuggestionKey, setApplyingSuggestionKey] = useState<string | null>(
     null,
   );
@@ -322,6 +329,31 @@ export const GhoAiAnalysisContent = ({
       params.suggestion.field,
       params.value,
     );
+    if (isEquivalentApplyInFlight(applyingLock.current, suggestionKey)) return;
+    applyingLock.current = suggestionKey;
+    setApplyingSuggestionKey(suggestionKey);
+
+    try {
+    if (
+      params.suggestion.field !== 'probability' &&
+      riskDataAlreadyContainsFieldValue(params.suggestion.field, params.value, riskData)
+    ) {
+      markModularSuggestionApplied(suggestionKey);
+      return;
+    }
+
+    const value = await resolveSuggestionApplyValue({
+      intent: params.suggestion.intent,
+      value: params.value,
+      confirmExistence: (measure) => showConfirmation(existenceConfirmationCopy(measure)),
+    });
+    if (value == null) return;
+
+    const confirmedKey = buildModularSuggestionKey(
+      params.review.riskId,
+      params.suggestion.field,
+      value,
+    );
 
     if (params.suggestion.field === 'probability') {
       const currentProbability =
@@ -330,7 +362,7 @@ export const GhoAiAnalysisContent = ({
           : riskData.probability;
       const confirmed = await showConfirmation({
         title: 'Aplicar probabilidade sugerida?',
-        message: `A probabilidade atual (${currentProbability ?? 'não informada'}) será substituída pela sugerida (${params.value}). Esta ação sobrescreve o valor atual.`,
+        message: `A probabilidade atual (${currentProbability ?? 'não informada'}) será substituída pela sugerida (${value}). Esta ação sobrescreve o valor atual.`,
         confirmText: 'Aplicar probabilidade',
         cancelText: 'Cancelar',
         variant: 'warning',
@@ -340,7 +372,7 @@ export const GhoAiAnalysisContent = ({
 
     const payload = buildModularRiskUpsert({
       field: params.suggestion.field,
-      value: params.value,
+      value,
       riskData,
       riskGroupId,
       companyId,
@@ -349,12 +381,22 @@ export const GhoAiAnalysisContent = ({
     });
     if (!payload) return;
 
-    try {
-      setApplyingSuggestionKey(suggestionKey);
       await upsertRiskDataMutation.mutateAsync(payload);
-      markModularSuggestionApplied(suggestionKey);
-      await refetchExistingRiskData();
+      const refreshed = await refetchExistingRiskData();
+      const rows = refreshed.data || [];
+      const saved =
+        rows.find((item) => item.riskId === params.review.riskId) ||
+        rows.find((item) => item.id === params.review.riskFactorDataId);
+      if (params.suggestion.field === 'probability') {
+        markModularSuggestionApplied(confirmedKey);
+      } else if (
+        saved &&
+        riskDataAlreadyContainsFieldValue(params.suggestion.field, value, saved)
+      ) {
+        markModularSuggestionApplied(confirmedKey);
+      }
     } finally {
+      applyingLock.current = null;
       setApplyingSuggestionKey(null);
     }
   };
@@ -581,6 +623,12 @@ export const GhoAiAnalysisContent = ({
                     }
                     appliedKeys={appliedModularSuggestionKeysSet}
                     applyingKey={applyingSuggestionKey}
+                    riskData={
+                      existingRiskDataByRiskId.get(review.riskId) ||
+                      sortedExistingRiskData.find(
+                        (item) => item.id === review.riskFactorDataId,
+                      )
+                    }
                     onApply={(params) => {
                       void handleApplyModularSuggestion(params);
                     }}

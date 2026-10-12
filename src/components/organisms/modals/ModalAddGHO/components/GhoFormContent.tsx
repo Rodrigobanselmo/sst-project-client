@@ -28,6 +28,7 @@ import {
   UseFormSetValue,
 } from 'react-hook-form';
 
+import { RiskFactorsAiProvider } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/RiskFactorsAiProvider';
 import { EditGhoSelects } from './EditGhoSelects';
 import { GhoAiAnalysisContent } from './GhoAiAnalysisContent';
 import { RiskToolForGse } from './RiskToolForGse';
@@ -247,12 +248,29 @@ export const GhoFormContent = ({
               </SText>
             </Box>
           ) : (
-            <RiskToolForGse
-              companyId={companyId}
-              ghoId={ghoData.id}
-              ghoName={ghoData.name || ghoQuery.name}
-              gho={ghoQuery?.id ? (ghoQuery as IGho) : null}
-            />
+            <RiskFactorsAiProvider
+              target={{
+                kind: 'gse',
+                companyId,
+                gseId: ghoData.id,
+                ghoData,
+                ghoQuery: ghoQuery as IGho,
+              }}
+              renderGeneral={() => (
+                <GhoAiAnalysisContent
+                  companyId={companyId}
+                  ghoData={ghoData}
+                  ghoQuery={ghoQuery}
+                />
+              )}
+            >
+              <RiskToolForGse
+                companyId={companyId}
+                ghoId={ghoData.id}
+                ghoName={ghoData.name || ghoQuery.name}
+                gho={ghoQuery?.id ? (ghoQuery as IGho) : null}
+              />
+            </RiskFactorsAiProvider>
           )}
         </Box>
       )}

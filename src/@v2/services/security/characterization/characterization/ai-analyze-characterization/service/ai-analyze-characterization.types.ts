@@ -10,6 +10,15 @@ export interface AiAnalyzeCharacterizationParams {
   userGuidance?: string;
   temporaryDocumentSources?: AiTemporaryDocumentSource[];
   model?: string; // Optional AI model to use (e.g., 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo')
+  /** Ausente mantém a análise geral. */
+  scope?: 'general' | 'risk' | 'field';
+  riskId?: string;
+  field?:
+    | 'fonteGeradora'
+    | 'medidasEngenhariaExistentes'
+    | 'medidasAdministrativasExistentes'
+    | 'medidasEngenhariaRecomendadas'
+    | 'medidasAdministrativasRecomendadas';
   /** Optional abort signal to cancel an in-flight AI analysis request. */
   signal?: AbortSignal;
 }
@@ -42,12 +51,16 @@ export type AiRiskFieldSuggestionField =
   | 'probability'
   | 'observation';
 
+export type AiSuggestionIntent = 'identificado' | 'verificar' | 'implementar';
+
 export type AiRiskFieldSuggestion = {
   field: AiRiskFieldSuggestionField;
   currentValues?: string[] | number | null;
   suggestedValues: string[] | number;
   rationale?: string;
   applyMode: 'append' | 'replace-scalar';
+  /** Ausente na análise geral. Nos recortes, distingue controle identificado, verificação e recomendação. */
+  intent?: AiSuggestionIntent;
 };
 
 export type ExistingRiskCurrent = {
@@ -80,6 +93,7 @@ export type Result = {
   description: string; // Descrição extraída das fotos e informações
   workProcess: WorkProcessItem[]; // Processo de trabalho extraído
   metadata?: Record<string, any>;
+  emptyReason?: 'missing_generate_source' | 'insufficient_context' | 'exhausted';
   characterization: {
     id: string;
     name: string;

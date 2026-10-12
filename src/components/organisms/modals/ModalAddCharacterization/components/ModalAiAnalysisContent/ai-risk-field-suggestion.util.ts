@@ -4,19 +4,69 @@ import {
   ExistingRiskReview,
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 
-export const normalizeSuggestionText = (value: string): string =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+const TRAILING_PUNCTUATION_PATTERN = /[.,;:]+$/;
+
+function stripTrailingPunctuation(value: string): string {
+  let result = value;
+  while (TRAILING_PUNCTUATION_PATTERN.test(result)) {
+    result = result.replace(TRAILING_PUNCTUATION_PATTERN, '').trimEnd();
+  }
+  return result;
+}
+
+/** Equivale a normalizeInventoryItemName: caixa, acento, espaço e pontuação final. */
+export const normalizeSuggestionText = (value: string): string => {
+  const collapsed = value
+    .replace(/\r\n/g, '\n')
+    .replace(/[\n\r\t]+/g, ' ')
     .trim()
-    .toLowerCase()
     .replace(/\s+/g, ' ');
+  const lower = collapsed.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return stripTrailingPunctuation(lower);
+};
 
 export const buildModularSuggestionKey = (
   riskId: string,
   field: AiRiskFieldSuggestionField,
   suggestedValue: string | number,
 ): string => `${riskId}:${field}:${normalizeSuggestionText(String(suggestedValue))}`;
+
+export type ReviewSuggestionEntry = {
+  suggestion: AiRiskFieldSuggestion;
+  value: string | number;
+  key: string;
+};
+
+/**
+ * Uma ocorrência por medida normalizada no fator e no campo.
+ * Não altera a lista recebida: o histórico da sessão permanece intacto.
+ */
+export function listUniqueReviewSuggestionValues(
+  review: Pick<ExistingRiskReview, 'riskId'>,
+  suggestions: AiRiskFieldSuggestion[],
+): ReviewSuggestionEntry[] {
+  const seen = new Set<string>();
+  const entries: ReviewSuggestionEntry[] = [];
+
+  for (const suggestion of suggestions) {
+    for (const value of getSuggestionValues(suggestion)) {
+      const key = buildModularSuggestionKey(review.riskId, suggestion.field, value);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      entries.push({ suggestion, value, key });
+    }
+  }
+
+  return entries;
+}
+
+/** Há gravação em andamento para a mesma medida normalizada. */
+export function isEquivalentApplyInFlight(
+  currentLock: string | null,
+  nextKey: string,
+): boolean {
+  return !!currentLock && currentLock === nextKey;
+}
 
 export const getSuggestionValues = (
   suggestion: AiRiskFieldSuggestion,
@@ -364,3 +414,32 @@ export const mergeExistingRiskReviews = (params: {
 
   return Array.from(byRiskId.values());
 };
+
+/** Remove uma sugestão modular da sessão, sem gravar no cadastro. */
+export const removeModularSuggestion = (
+  reviews: ExistingRiskReview[],
+  suggestionKey: string,
+): ExistingRiskReview[] =>
+  reviews
+    .map((review) => {
+      const suggestions = (review.suggestions || [])
+        .map((suggestion) => {
+          const values = getSuggestionValues(suggestion).filter(
+            (value) =>
+              buildModularSuggestionKey(review.riskId, suggestion.field, value) !==
+              suggestionKey,
+          );
+          if (!values.length) return null;
+          return {
+            ...suggestion,
+            suggestedValues:
+              suggestion.field === 'probability'
+                ? Number(values[0])
+                : values.map(String),
+          };
+        })
+        .filter((suggestion): suggestion is AiRiskFieldSuggestion => suggestion != null);
+
+      return { ...review, suggestions };
+    })
+    .filter((review) => review.suggestions.length > 0);

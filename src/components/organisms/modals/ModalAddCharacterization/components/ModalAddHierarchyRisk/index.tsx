@@ -26,6 +26,7 @@ import {
   inlineRiskToolHeightSx,
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 import { getCurrentRiskGroupId } from '../../utils/get-current-risk-group-id.util';
+import { RiskFactorsAiProvider } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/RiskFactorsAiProvider';
 import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
 import { ModalAiTraceabilityContent } from '../ModalAiTraceabilityContent/ModalAiTraceabilityContent';
 import {
@@ -480,12 +481,24 @@ export const ModalAddHierarchyRisk = (
           )}
           {isEdit && !isDetailLoading && !isDetailError && !isLoadingRiskGroup && riskGroupId && (
             <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              <RiskToolForCharacterization
-                riskGroupId={riskGroupId}
-                characterizationId={data.id}
-                characterizationName={data.name}
-                riskContextCompanyId={data.companyId}
-              />
+              <RiskFactorsAiProvider
+                target={{
+                  kind: 'characterization',
+                  companyId: data.companyId || '',
+                  workspaceId: data.workspaceId || '',
+                  characterizationId: data.id,
+                  riskGroupId,
+                  analysis: props.aiRiskAnalysis,
+                }}
+                renderGeneral={() => <ModalAiAnalysisContent {...props} />}
+              >
+                <RiskToolForCharacterization
+                  riskGroupId={riskGroupId}
+                  characterizationId={data.id}
+                  characterizationName={data.name}
+                  riskContextCompanyId={data.companyId}
+                />
+              </RiskFactorsAiProvider>
             </Box>
           )}
         </Box>
