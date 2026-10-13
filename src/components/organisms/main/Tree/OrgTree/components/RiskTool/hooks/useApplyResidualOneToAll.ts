@@ -3,14 +3,22 @@ import { useCallback, useMemo, useState } from 'react';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 import { useSnackbar } from 'notistack';
 
-import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
+import { prepareWorkspaceProbabilityWrite } from 'core/utils/workspace-probability-evaluation.util';
 import { usePreventAction } from 'core/hooks/usePreventAction';
-import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import {
+  riskDataByRiskQueryKeyPrefix,
+  useQueryRiskData,
+} from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 
-import { getEligibleForBulkResidualOne } from '../utils/riskToolResidualEligibility.util';
+import {
+  BulkResidualOneItem,
+  getBulkResidualOneScope,
+} from '../utils/riskToolResidualEligibility.util';
 import { buildResidualOneUpsertPayload } from './build-residual-one-upsert-payload.util';
 import { useColumnAction } from './useColumnAction';
 
@@ -20,7 +28,8 @@ export const useApplyResidualOneToAll = (riskGroupId: string) => {
   const risk = useAppSelector(selectRisk);
   const viewDataType = useAppSelector((state) => state.riskAdd.viewData);
   const { companyId } = useGetCompanyId();
-  const { onHandleSelectSave } = useColumnAction();
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
+  const { upsertRiskData } = useColumnAction();
   const { preventDelete } = usePreventAction();
   const { enqueueSnackbar } = useSnackbar();
   const [isApplying, setIsApplying] = useState(false);
@@ -30,27 +39,65 @@ export const useApplyResidualOneToAll = (riskGroupId: string) => {
     risk?.id ?? '',
   );
 
+  const { data: groups = [] } = useQueryGHOAll();
+
   const eligibleItems = useMemo(
-    () => getEligibleForBulkResidualOne(riskDataList),
-    [riskDataList],
+    () =>
+      getBulkResidualOneScope({
+        riskDataList,
+        groups,
+        headerWorkspaceId,
+      }),
+    [groups, headerWorkspaceId, riskDataList],
+  );
+
+  const prepareItem = useCallback(
+    (item: BulkResidualOneItem, riskId: string) =>
+      prepareWorkspaceProbabilityWrite({
+        values: buildResidualOneUpsertPayload(
+          item.riskData,
+          riskId,
+          riskGroupId,
+          viewDataType,
+        ),
+        isQuantity: item.riskData.isQuantity,
+        originKind: item.isCharacterization
+          ? 'CHARACTERIZATION'
+          : item.riskData.originKind,
+        headerWorkspaceId,
+      }),
+    [headerWorkspaceId, riskGroupId, viewDataType],
   );
 
   const applyToAll = useCallback(async () => {
     if (!risk?.id || !riskGroupId || eligibleItems.length === 0) return;
 
+    const needsEstablishment = eligibleItems.some(
+      (item) => !prepareItem(item, risk.id).ok,
+    );
+    if (needsEstablishment) {
+      enqueueSnackbar(
+        'Selecione o estabelecimento no cabeçalho para gravar o residual deste GSE.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
     setIsApplying(true);
     let successCount = 0;
     let failureCount = 0;
 
-    for (const riskData of eligibleItems) {
+    for (const item of eligibleItems) {
       try {
-        const payload = buildResidualOneUpsertPayload(
-          riskData,
-          risk.id,
-          riskGroupId,
-          viewDataType,
-        );
-        await onHandleSelectSave(payload, riskData, { keepEmpty: true });
+        const prepared = prepareItem(item, risk.id);
+        if (!prepared.ok) {
+          failureCount += 1;
+          continue;
+        }
+        await upsertRiskData.mutateAsync({
+          ...prepared.values,
+          keepEmpty: true,
+        });
         successCount += 1;
       } catch {
         failureCount += 1;
@@ -58,12 +105,13 @@ export const useApplyResidualOneToAll = (riskGroupId: string) => {
     }
 
     if (companyId) {
-      await queryClient.invalidateQueries([
-        QueryEnum.RISK_DATA,
-        companyId,
-        riskGroupId,
-        risk.id,
-      ]);
+      await queryClient.invalidateQueries(
+        riskDataByRiskQueryKeyPrefix({
+          companyId,
+          riskGroupId,
+          riskId: risk.id,
+        }),
+      );
     }
 
     setIsApplying(false);
@@ -84,10 +132,10 @@ export const useApplyResidualOneToAll = (riskGroupId: string) => {
     companyId,
     eligibleItems,
     enqueueSnackbar,
-    onHandleSelectSave,
+    prepareItem,
+    upsertRiskData,
     risk?.id,
     riskGroupId,
-    viewDataType,
   ]);
 
   const openConfirmAndApply = useCallback(() => {

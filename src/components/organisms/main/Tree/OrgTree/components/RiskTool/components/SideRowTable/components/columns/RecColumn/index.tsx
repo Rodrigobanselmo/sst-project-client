@@ -10,7 +10,10 @@ import {
 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/existing-control-correspondence.util';
 import { RecSelect } from 'components/organisms/tagSelects/RecSelect';
 import { sortRecsByTypeHierarchy } from 'components/organisms/tagSelects/RecSelect/resolve-rec-type-visual-state.util';
-import { resolveResidualProbabilityAfterRecChange } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
+import {
+  resolveResidualProbabilityAfterRecChange,
+  withResidualOnlyWhenResolved,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import {
   isRecommendationRecTypeMissing,
   MISSING_REC_TYPE_TOOLTIP,
@@ -20,6 +23,7 @@ import { initialAddRecMedState } from 'components/organisms/modals/ModalAddRecMe
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpdateRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutUpdateRecMed';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
@@ -36,6 +40,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   planWorkspaceId,
 }) => {
   const { onStackOpenModal } = useModal();
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const updateRecMedMut = useMutUpdateRecMed();
   const [classifyingRecId, setClassifyingRecId] = useState<string | null>(null);
 
@@ -59,7 +64,10 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
     if (probabilityAfter !== undefined) {
       payload.probabilityAfter = probabilityAfter;
     }
-    return payload;
+    return withResidualOnlyWhenResolved(payload, {
+      headerWorkspaceId,
+      riskData: data,
+    });
   };
 
   const buildRemovePayload = (recId: string): Partial<IUpsertRiskData> => {
@@ -75,7 +83,10 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
     if (probabilityAfter !== undefined) {
       payload.probabilityAfter = probabilityAfter;
     }
-    return payload;
+    return withResidualOnlyWhenResolved(payload, {
+      headerWorkspaceId,
+      riskData: data,
+    });
   };
 
   const handleEditRec = (rec: IRecMed) => {

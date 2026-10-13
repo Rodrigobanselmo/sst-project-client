@@ -4,9 +4,13 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import {
   calculateSuggestedResidualProbability,
-  isResidualProbabilityEmpty,
-  shouldAutoApplySuggestedResidual,
+  decideResidualAutoApply,
+  isResidualRowResolvedForWorkspace,
+  ResidualAutoApplyTracking,
+  residualTrackingContextKey,
 } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
+import { residualSuggestionMessage } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/residualSuggestionMessage.util';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import {
   isRecommendationRecTypeMissing,
   MISSING_REC_TYPE_RESIDUAL_HINT,
@@ -40,51 +44,53 @@ export const ProbabilityAfterColumn: FC<
     [data?.probability, data?.recs],
   );
 
-  const trackingRef = useRef<{
-    signature: string;
-    realProbability?: number;
-    suggested?: number;
-  }>({ signature: '' });
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
+  const contextKey = residualTrackingContextKey({
+    riskDataId: data?.id,
+    workspaceId: headerWorkspaceId,
+  });
+  const trackingRef = useRef<ResidualAutoApplyTracking | null>(null);
+
+  const resolvedForWorkspace = isResidualRowResolvedForWorkspace({
+    headerWorkspaceId,
+    riskData: data,
+  });
 
   useEffect(() => {
-    const prev = trackingRef.current;
-    const hasBaseline = prev.signature !== '';
-    const signatureChanged = hasBaseline && prev.signature !== recSignature;
-    const realChanged =
-      hasBaseline && prev.realProbability !== data?.probability;
-
-    trackingRef.current = {
-      signature: recSignature,
-      realProbability: data?.probability,
-      suggested,
-    };
-
-    if (!hasBaseline) return;
-    if (!signatureChanged && !realChanged) return;
-    if (suggested == null) return;
-    if (
-      !shouldAutoApplySuggestedResidual(
-        data?.probabilityAfter,
-        prev.suggested,
-      )
-    ) {
+    if (!resolvedForWorkspace) {
+      trackingRef.current = null;
       return;
     }
-    if (data?.probabilityAfter === suggested) return;
+    const decision = decideResidualAutoApply({
+      previous: trackingRef.current,
+      contextKey,
+      signature: recSignature,
+      realProbability: data?.probability,
+      currentResidual: data?.probabilityAfter,
+      suggested,
+    });
+    trackingRef.current = decision.tracking;
+    if (decision.apply == null) return;
 
     handleSelect({
-      probabilityAfter: suggested,
-      ...(data?.probability ? { probability: data.probability } : {}),
+      probabilityAfter: decision.apply,
     });
     // handleSelect é recriado a cada render no RiskTool; não incluir nas deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recSignature, data?.probability, data?.probabilityAfter, suggested]);
+  }, [
+    contextKey,
+    recSignature,
+    data?.probability,
+    data?.probabilityAfter,
+    resolvedForWorkspace,
+    suggested,
+  ]);
 
-  const showSuggestionHint =
-    !disabled &&
-    suggested != null &&
-    (isResidualProbabilityEmpty(data?.probabilityAfter) ||
-      data?.probabilityAfter !== suggested);
+  const suggestionMessage = residualSuggestionMessage({
+    hasRecommendations: !disabled,
+    residual: data?.probabilityAfter,
+    suggested,
+  });
 
   const hasMissingRecType = useMemo(
     () => (data?.recs ?? []).some((rec) => isRecommendationRecTypeMissing(rec?.recType)),
@@ -97,7 +103,6 @@ export const ProbabilityAfterColumn: FC<
         handleSelect={(number) =>
           handleSelect({
             probabilityAfter: number,
-            ...(data?.probability ? { probability: data.probability } : {}),
           })
         }
         selectedNumber={data?.probabilityAfter}
@@ -108,19 +113,25 @@ export const ProbabilityAfterColumn: FC<
           hasCurrentProbability ? RESIDUAL_BLOCKED_REASON : undefined
         }
       />
-      {showSuggestionHint && (
+      {suggestionMessage && (
         <SText
           fontSize={11}
-          color="info.main"
-          sx={{ cursor: 'pointer', lineHeight: 1.3, maxWidth: 160 }}
-          onClick={() =>
-            handleSelect({
-              probabilityAfter: suggested,
-              ...(data?.probability ? { probability: data.probability } : {}),
-            })
+          color={suggestionMessage.color}
+          sx={{
+            cursor: suggestionMessage.canApplySuggestion ? 'pointer' : 'default',
+            lineHeight: 1.3,
+            maxWidth: 170,
+          }}
+          onClick={
+            suggestionMessage.canApplySuggestion && suggested != null
+              ? () =>
+                  handleSelect({
+                    probabilityAfter: suggested,
+                  })
+              : undefined
           }
         >
-          {`Sugestão pela hierarquia de controles: P${suggested}`}
+          {suggestionMessage.text}
         </SText>
       )}
       {!disabled && hasMissingRecType && (

@@ -108,6 +108,88 @@ export const shouldAutoApplySuggestedResidual = (
 };
 
 /**
+ * Com estabelecimento no cabeçalho, a API marca cada linha com
+ * `probabilityAuthority` (inclusive null). Sem a marca, a linha é o histórico
+ * compartilhado e não serve de base para recalcular o residual.
+ */
+export const isResidualRowResolvedForWorkspace = (params: {
+  headerWorkspaceId?: string | null;
+  riskData?: { probabilityAuthority?: unknown } | null;
+}): boolean => {
+  if (!params.headerWorkspaceId) return true;
+  return !!params.riskData && params.riskData.probabilityAuthority !== undefined;
+};
+
+/** Remove o residual recalculado quando a linha não é do estabelecimento do cabeçalho. */
+export const withResidualOnlyWhenResolved = <
+  T extends { probabilityAfter?: number | null },
+>(
+  payload: T,
+  params: {
+    headerWorkspaceId?: string | null;
+    riskData?: { probabilityAuthority?: unknown } | null;
+  },
+): T => {
+  if (isResidualRowResolvedForWorkspace(params)) return payload;
+  if (!('probabilityAfter' in payload)) return payload;
+  const rest = { ...payload };
+  delete rest.probabilityAfter;
+  return rest;
+};
+
+export type ResidualAutoApplyTracking = {
+  contextKey: string;
+  signature: string;
+  realProbability?: number | null;
+  suggested?: number;
+};
+
+/**
+ * O mesmo fator tem o mesmo id em todos os estabelecimentos.
+ * O estabelecimento do cabeçalho separa o acompanhamento de cada avaliação.
+ */
+export const residualTrackingContextKey = (params: {
+  riskDataId?: string | null;
+  workspaceId?: string | null;
+}): string => `${params.riskDataId ?? ''}|${params.workspaceId ?? ''}`;
+
+/**
+ * Decide se a sugestão automática do residual deve ser gravada.
+ * A troca de contexto cria nova referência e nunca grava.
+ * No mesmo contexto, segue a regra legada de mudança de recomendações ou da probabilidade real.
+ */
+export const decideResidualAutoApply = (params: {
+  previous: ResidualAutoApplyTracking | null;
+  contextKey: string;
+  signature: string;
+  realProbability?: number | null;
+  currentResidual?: number | null;
+  suggested?: number;
+}): { tracking: ResidualAutoApplyTracking; apply?: number } => {
+  const tracking: ResidualAutoApplyTracking = {
+    contextKey: params.contextKey,
+    signature: params.signature,
+    realProbability: params.realProbability,
+    suggested: params.suggested,
+  };
+  const previous = params.previous;
+
+  if (!previous || previous.signature === '') return { tracking };
+  if (previous.contextKey !== params.contextKey) return { tracking };
+
+  const signatureChanged = previous.signature !== params.signature;
+  const realChanged = previous.realProbability !== params.realProbability;
+  if (!signatureChanged && !realChanged) return { tracking };
+  if (params.suggested == null) return { tracking };
+  if (!shouldAutoApplySuggestedResidual(params.currentResidual, previous.suggested)) {
+    return { tracking };
+  }
+  if (params.currentResidual === params.suggested) return { tracking };
+
+  return { tracking, apply: params.suggested };
+};
+
+/**
  * Resolve o `probabilityAfter` a persistir após adicionar/remover recomendações.
  * - Sem recs restantes → `0` (preserva limpeza atual do RiskTool)
  * - Auto-aplicável → nova sugestão (ou `0` se não houver real válida)

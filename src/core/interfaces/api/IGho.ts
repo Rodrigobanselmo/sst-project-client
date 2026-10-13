@@ -34,6 +34,8 @@ export interface IGho {
   workspaces?: IWorkspace[];
   hierarchy?: IHierarchyGho;
   employeeCount: number;
+  /** Trabalhadores do GSE em cada estabelecimento do GSE (só na listagem `/all`). */
+  employeeCountByWorkspace?: Record<string, number>;
   hierarchyOnHomogeneous?: IHierarchyOnHomogeneous[];
   workspaceIds: string[];
   type?: HomoTypeEnum;

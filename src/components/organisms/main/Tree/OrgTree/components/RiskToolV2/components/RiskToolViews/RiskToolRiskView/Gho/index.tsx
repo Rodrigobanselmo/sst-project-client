@@ -16,7 +16,11 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
-import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
+import {
+  riskDataByRiskQueryKey,
+  useQueryRiskData,
+  useRiskDataOperationWorkspaceId,
+} from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
@@ -43,6 +47,7 @@ export const RiskToolRiskGhoView: FC<
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
 
   const { companyId } = useGetCompanyId();
+  const operationWorkspaceId = useRiskDataOperationWorkspaceId();
 
   const risk = useAppSelector(selectRisk);
 
@@ -73,12 +78,14 @@ export const RiskToolRiskGhoView: FC<
       return sortArray(ghoFilteredList, { by: ['description'] });
     }
 
-    const riskData = queryClient.getQueryData([
-      QueryEnum.RISK_DATA,
-      companyId,
-      riskGroupId,
-      risk?.id,
-    ]) as IRiskData[];
+    const riskData = queryClient.getQueryData(
+      riskDataByRiskQueryKey({
+        companyId,
+        riskGroupId,
+        riskId: risk?.id,
+        workspaceId: operationWorkspaceId,
+      }),
+    ) as IRiskData[];
 
     if (!riskData) return sortArray(ghoFilteredList, { by: ['description'] });
     if (riskData.length === 0)
@@ -114,6 +121,7 @@ export const RiskToolRiskGhoView: FC<
   }, [
     companyId,
     ghoQuery,
+    operationWorkspaceId,
     risk?.id,
     riskGroupId,
     selectedGhoFilter.key,

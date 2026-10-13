@@ -2,10 +2,6 @@ import { FC } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
-import {
-  calculateSuggestedResidualProbability,
-  shouldAutoApplySuggestedResidual,
-} from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import { initialQuantityState } from 'components/organisms/modals/ModalAddQuantity/hooks/useModalAddQuantity';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -19,6 +15,8 @@ import { ExposureTypeEnum, ExposureTypeMap } from 'core/enums/exposure.enum';
 import { SelectExposure } from './SelectExposure';
 import { StatusEnum } from 'project/enum/status.enum';
 import { RealProbabilityCountSuggestion } from 'components/organisms/modals/ModalAddProbability/RealProbabilityCountSuggestion';
+import SText from 'components/atoms/SText';
+import { workspaceProbabilityCaption } from 'core/utils/workspace-probability-evaluation.util';
 
 const CURRENT_PROBABILITY_LOCKED_REASON =
   'Como todas as recomendações aplicáveis a este risco foram concluídas com sucesso, o risco real deve ser igual ao risco residual. Para alterar essa probabilidade, adicione novas medidas de controle.';
@@ -124,6 +122,11 @@ export const ProbabilityColumn: FC<
 
   const selectedActivity = !!data?.activities?.activities?.length;
   const exposure = data?.exposure;
+  const probabilityCaption = workspaceProbabilityCaption({
+    authority: data?.probabilityAuthority,
+    origin: data?.probabilityOrigin,
+    isQuantity: data?.isQuantity,
+  });
 
   return (
     <SFlex gap={0} direction="column">
@@ -134,31 +137,6 @@ export const ProbabilityColumn: FC<
             probability: nextProbability,
             ...dataSelect,
           };
-
-          const previousSuggested = calculateSuggestedResidualProbability(
-            data?.probability,
-            data?.recs,
-          );
-          const nextSuggested = calculateSuggestedResidualProbability(
-            nextProbability || data?.probability,
-            data?.recs,
-          );
-
-          if (
-            nextSuggested != null &&
-            shouldAutoApplySuggestedResidual(
-              data?.probabilityAfter,
-              previousSuggested,
-            )
-          ) {
-            payload.probabilityAfter = nextSuggested;
-          } else if (
-            data?.probabilityAfter &&
-            nextProbability &&
-            nextProbability < data.probabilityAfter
-          ) {
-            payload.probabilityAfter = undefined;
-          }
 
           handleSelect(payload);
         }}
@@ -175,6 +153,11 @@ export const ProbabilityColumn: FC<
         }
         handleHelp={() => handleHelp && handleHelp(dataSelect)}
       />
+      {probabilityCaption ? (
+        <SText fontSize={10} color="text.secondary" sx={{ lineHeight: 1.3, maxWidth: 150, mt: 0.5 }}>
+          {probabilityCaption}
+        </SText>
+      ) : null}
       <RealProbabilityCountSuggestion
         data={data}
         countSource={probabilityCountSource}

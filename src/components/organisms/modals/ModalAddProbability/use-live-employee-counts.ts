@@ -6,6 +6,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useQueryHierarchy } from 'core/services/hooks/queries/useQueryHierarchy';
 
+import { sumWorkspaceEmployees } from './probability-count-context.util';
 import { ProbabilityCountSource } from './qualitative-probability.util';
 
 export type { ProbabilityEntityRef } from './probability-count-context.util';
@@ -29,11 +30,11 @@ export function useLiveEmployeeCounts(source?: ProbabilityCountSource) {
       return { total: null as number | null, gho: null as number | null, ready: false };
     }
 
-    const ids = new Set(source.workspaceIds ?? []);
-    const total = (company.workspace ?? []).reduce((acc, workspace) => {
-      if (!source.allWorkspaces && !ids.has(workspace.id)) return acc;
-      return acc + (workspace.employeeCount ?? 0);
-    }, 0);
+    const total = sumWorkspaceEmployees({
+      workspaces: company.workspace,
+      workspaceIds: source.workspaceIds,
+      allWorkspaces: source.allWorkspaces,
+    });
 
     if (source.hierarchyId) {
       if (isLoading || !isFetched) {

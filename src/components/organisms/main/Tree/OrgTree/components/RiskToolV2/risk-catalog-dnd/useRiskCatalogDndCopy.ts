@@ -4,9 +4,9 @@ import { useSnackbar } from 'notistack';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 
-import { resolveResidualProbabilityAfterRecChange } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { usePreventAction } from 'core/hooks/usePreventAction';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IEpi } from 'core/interfaces/api/IEpi';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
@@ -23,6 +23,11 @@ import {
   findCatalogItemByNormalizedName,
   isSameRiskCatalogDropForbidden,
 } from './find-risk-catalog-item-match.util';
+import {
+  buildRecAttachPayload,
+  validRiskDataRecs,
+  withRecAttachResidual,
+} from './rec-attach-residual.util';
 import {
   RISK_CATALOG_DND_KIND_LABEL,
   RiskCatalogBatchStats,
@@ -81,28 +86,6 @@ function alreadyAttached(
   }
 }
 
-function buildRecAttachPayload(
-  rec: IRecMed,
-  riskData?: IRiskData | null,
-): Partial<IUpsertRiskData> {
-  const validRecs = (riskData?.recs ?? []).filter(
-    (r): r is IRecMed => !!r && typeof r.id === 'string' && !!r.id,
-  );
-  const nextRecs = [...validRecs, rec];
-  const probabilityAfter = resolveResidualProbabilityAfterRecChange({
-    realProbability: riskData?.probability,
-    currentResidual: riskData?.probabilityAfter,
-    previousRecommendations: validRecs,
-    nextRecommendations: nextRecs,
-  });
-
-  const payload: Partial<IUpsertRiskData> = { recs: [rec.id] };
-  if (probabilityAfter !== undefined) {
-    payload.probabilityAfter = probabilityAfter;
-  }
-  return payload;
-}
-
 function emptyBatchStats(
   kind: RiskCatalogDndKind,
   totalItems: number,
@@ -121,6 +104,7 @@ function emptyBatchStats(
 
 export const useRiskCatalogDndCopy = () => {
   const { companyId } = useGetCompanyId();
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const { preventWarn } = usePreventAction();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -260,6 +244,7 @@ export const useRiskCatalogDndCopy = () => {
           buildRecAttachPayload(
             { ...(match as IRecMed), id: String(match.id) },
             dest.riskData,
+            headerWorkspaceId,
           ),
         );
         return;
@@ -271,7 +256,7 @@ export const useRiskCatalogDndCopy = () => {
         });
       }
     },
-    [],
+    [headerWorkspaceId],
   );
 
   const createAndAttach = useCallback(
@@ -344,7 +329,7 @@ export const useRiskCatalogDndCopy = () => {
     ) => {
       if (!companyId) return;
 
-      const payload: Partial<IUpsertRiskData> = {};
+      let payload: Partial<IUpsertRiskData> = {};
       let hasWork = false;
 
       if (kind === 'generateSource') {
@@ -430,11 +415,7 @@ export const useRiskCatalogDndCopy = () => {
           recType?: RecTypeEnum;
           companyId: string;
         }[] = [];
-        const nextRecsForProb: IRecMed[] = (
-          dest.riskData?.recs ?? []
-        ).filter(
-          (r): r is IRecMed => !!r && typeof r.id === 'string' && !!r.id,
-        );
+        const nextRecsForProb: IRecMed[] = validRiskDataRecs(dest.riskData);
 
         for (const { item, result } of pairs) {
           if (result.status === 'attach_existing') {
@@ -468,18 +449,12 @@ export const useRiskCatalogDndCopy = () => {
         }
 
         if (hasWork) {
-          const previousRecommendations = (dest.riskData?.recs ?? []).filter(
-            (r): r is IRecMed => !!r && typeof r.id === 'string' && !!r.id,
-          );
-          const probabilityAfter = resolveResidualProbabilityAfterRecChange({
-            realProbability: dest.riskData?.probability,
-            currentResidual: dest.riskData?.probabilityAfter,
-            previousRecommendations,
+          payload = withRecAttachResidual({
+            payload,
+            riskData: dest.riskData,
             nextRecommendations: nextRecsForProb,
+            headerWorkspaceId,
           });
-          if (probabilityAfter !== undefined) {
-            payload.probabilityAfter = probabilityAfter;
-          }
         }
       }
 
@@ -500,7 +475,7 @@ export const useRiskCatalogDndCopy = () => {
       if (!hasWork) return;
       await dest.handleSelect(payload);
     },
-    [companyId],
+    [companyId, headerWorkspaceId],
   );
 
   const onDropCatalogItem = useCallback(

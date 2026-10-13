@@ -1,5 +1,8 @@
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
-import { resolveProbabilityEntityContext } from 'components/organisms/modals/ModalAddProbability/probability-count-context.util';
+import {
+  resolveProbabilityEntityContext,
+  sumWorkspaceEmployees,
+} from 'components/organisms/modals/ModalAddProbability/probability-count-context.util';
 import { ProbabilityEstimateResult, QualitativeProbabilityCriteria, RealControlLists } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
@@ -12,6 +15,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi, IEpiRiskData } from 'core/interfaces/api/IEpi';
 import { IExam, IExamRiskData } from 'core/interfaces/api/IExam';
@@ -38,6 +42,7 @@ export const useColumnAction = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { onStackOpenModal } = useModal();
   const viewData = useAppSelector((state) => state.riskAdd.viewData);
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
 
   const onHandleSelectSave = async (
     {
@@ -168,16 +173,24 @@ export const useColumnAction = () => {
     handleSelect,
     adoptedCriteria,
     controls,
+    probabilityAuthority,
+    probabilityOrigin,
   }: {
     risk?: IRiskFactors;
     handleSelect: (value: ProbabilityEstimateResult) => void;
     gho: IGho | IHierarchyTreeMapObject | IHierarchy | null;
     adoptedCriteria?: QualitativeProbabilityCriteria | null;
     controls?: RealControlLists | null;
+    probabilityAuthority?: 'SHARED' | 'WORKSPACE' | null;
+    probabilityOrigin?: 'ESTIMATE' | 'MANUAL' | 'PROMOTION' | null;
   }) => {
     if (!gho?.id) return;
 
-    const entity = resolveProbabilityEntityContext({ gho, viewData });
+    const entity = resolveProbabilityEntityContext({
+      gho,
+      viewData,
+      headerWorkspaceId,
+    });
     if (!entity) return;
 
     const company = queryClient.getQueryData<ICompany>([
@@ -187,14 +200,10 @@ export const useColumnAction = () => {
 
     if (!company) return;
 
-    const workspaceEmployeesCount =
-      company.workspace?.reduce(
-        (acc, workspace) =>
-          entity.workspaceIds.includes(workspace.id)
-            ? acc + (workspace?.employeeCount ?? 0)
-            : acc,
-        0,
-      ) || 0;
+    const workspaceEmployeesCount = sumWorkspaceEmployees({
+      workspaces: company.workspace,
+      workspaceIds: entity.workspaceIds,
+    });
 
     const handleSelectSync = (value: ProbabilityEstimateResult) => {
       handleSelect(value);
@@ -210,13 +219,15 @@ export const useColumnAction = () => {
     };
 
     onStackOpenModal(ModalEnum.PROBABILITY_ADD, {
-      employeeCountGho: entity.employeeCountGho,
+      employeeCountGho: entity.employeeCountGho ?? '',
       hierarchyId: entity.hierarchyId,
       homogeneousGroupId: entity.homogeneousGroupId,
       riskType: risk?.type,
       employeeCountTotal: workspaceEmployeesCount,
       adoptedCriteria: adoptedCriteria ?? null,
       controls: controls ?? null,
+      probabilityAuthority: probabilityAuthority ?? null,
+      probabilityOrigin: probabilityOrigin ?? null,
       onCreate: handleSelectSync,
     } as typeof initialProbState);
   };

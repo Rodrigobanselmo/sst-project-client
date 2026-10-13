@@ -12,6 +12,10 @@ import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
+import {
+  controlsForProbabilityAssistant,
+  prepareWorkspaceProbabilityWrite,
+} from 'core/utils/workspace-probability-evaluation.util';
 import { buildProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 
 import { resolveOpenPlanWorkspaceId } from '../../../utils/existing-control-correspondence.util';
@@ -76,21 +80,41 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
       ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
     } as IUpsertRiskData;
 
-    await onHandleSelectSave({ ...submitData }, riskData);
+    const prepared = prepareWorkspaceProbabilityWrite({
+      values: submitData,
+      isQuantity: riskData?.isQuantity,
+      originKind: riskData?.originKind,
+      headerWorkspaceId,
+    });
+    if (!prepared.ok) {
+      enqueueSnackbar(prepared.message, { variant: 'warning' });
+      return;
+    }
+
+    await onHandleSelectSave({ ...prepared.values }, riskData);
   };
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
 
+    const assistantControls = controlsForProbabilityAssistant(riskData, {
+      requireWorkspaceControls:
+        !riskData?.isQuantity &&
+        riskData?.originKind !== 'CHARACTERIZATION' &&
+        !!headerWorkspaceId,
+    });
+    if (!assistantControls.available) {
+      enqueueSnackbar(assistantControls.message, { variant: 'warning' });
+      return;
+    }
+
     onHandleHelp({
       gho,
       risk,
       adoptedCriteria: riskData?.probabilityCriteria,
-      controls: {
-        engs: riskData?.engs,
-        adms: riskData?.adms,
-        epis: riskData?.epis,
-      },
+      controls: assistantControls.controls,
+      probabilityAuthority: riskData?.probabilityAuthority,
+      probabilityOrigin: riskData?.probabilityOrigin,
       handleSelect: (value: ProbabilityEstimateResult) =>
         handleSelect({
           ...data,
@@ -145,7 +169,11 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
         handleDeleteRiskData?.(riskData?.id as string, gho)
       }
       planWorkspaceId={planWorkspaceId}
-      probabilityCountSource={buildProbabilityCountSource(gho, viewData)}
+      probabilityCountSource={buildProbabilityCountSource(
+        gho,
+        viewData,
+        headerWorkspaceId,
+      )}
     />
   );
 };

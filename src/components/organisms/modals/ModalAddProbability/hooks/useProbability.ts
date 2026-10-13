@@ -18,8 +18,8 @@ import {
   classifyMedsImplemented,
   criteriaFromForm,
   journeyMinutesForModalOpen,
-  medsImplementedForModalOpen,
   ProbabilityEstimateResult,
+  probabilityModalOpenState,
   QualitativeProbabilityCriteria,
   qualitativeProbabilityFromCriteria,
   RealControlLists,
@@ -46,6 +46,8 @@ export const initialProbState = {
   homogeneousGroupId: '',
   adoptedCriteria: null as QualitativeProbabilityCriteria | null,
   controls: null as RealControlLists | null,
+  probabilityAuthority: null as 'SHARED' | 'WORKSPACE' | null,
+  probabilityOrigin: null as 'ESTIMATE' | 'MANUAL' | 'PROMOTION' | null,
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCreate: (_value: ProbabilityEstimateResult) => {},
@@ -129,44 +131,22 @@ export const useProbability = () => {
       Object.keys(initialData)?.length &&
       !(initialData as any).passBack
     ) {
-      const adopted = initialData.adoptedCriteria;
-      const medsForOpen = medsImplementedForModalOpen({
-        adopted,
+      const openState = probabilityModalOpenState({
+        adoptedCriteria: initialData.adoptedCriteria,
         controls: initialData.controls,
+        employeeCountTotal: initialData.employeeCountTotal,
+        employeeCountGho: initialData.employeeCountGho,
       });
-      if (adopted) {
-        reset({
-          employeeCountTotal: adopted.employeeCountTotal ?? '',
-          employeeCountGho: adopted.employeeCountGho ?? '',
-          minDurationJT: adopted.minDurationJT ?? '',
-          minDurationEO: adopted.minDurationEO ?? '',
-          chancesOfHappening: adopted.chancesOfHappening ?? '',
-          frequency: adopted.frequency ?? '',
-          history: adopted.history ?? '',
-          medsImplemented: adopted.medsImplemented ?? '',
-        });
-      } else if (medsForOpen != null) {
-        reset({ medsImplemented: medsForOpen });
+      if (Object.keys(openState.formValues).length) {
+        reset(openState.formValues);
       }
 
       setProbabilityData((oldData) => {
         const newData = {
           ...oldData,
           ...initialData,
-          ...(adopted
-            ? {
-                employeeCountTotal: adopted.employeeCountTotal ?? 0,
-                employeeCountGho: adopted.employeeCountGho ?? 0,
-                minDurationJT: adopted.minDurationJT ?? '',
-                minDurationEO: adopted.minDurationEO ?? '',
-                chancesOfHappening: adopted.chancesOfHappening ?? '',
-                frequency: adopted.frequency ?? '',
-                history: adopted.history ?? '',
-                medsImplemented: adopted.medsImplemented ?? '',
-              }
-            : medsForOpen != null
-              ? { medsImplemented: medsForOpen }
-              : {}),
+          ...openState.dataPatch,
+          adoptedCriteria: openState.adoptedCriteria,
         };
 
         initialDataRef.current = newData;

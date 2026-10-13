@@ -12,7 +12,11 @@ import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { QualitativeProbabilityCriteria } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { IEngsRiskData } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
-import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
+import {
+  riskDataByRiskQueryKey,
+  riskDataByRiskQueryKeyPrefix,
+  sortRiskData,
+} from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
@@ -20,10 +24,15 @@ import { ExposureTypeEnum } from 'core/enums/exposure.enum';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import {
+  isSameRiskFactorDataCacheRow,
   mergeRiskFactorDataCacheList,
   riskFactorDataByGhoQueryKey,
   riskFactorDataByGhoQueryKeyPrefix,
 } from '../merge-risk-factor-data-cache.util';
+import {
+  mergeProbabilityWriteIntoRiskRow,
+  touchesWorkspaceProbability,
+} from 'core/utils/workspace-probability-evaluation.util';
 
 export interface IUpsertRiskData {
   id?: string;
@@ -115,18 +124,27 @@ export function useMutUpsertRiskData() {
         data.workspaceId || operationWorkspaceId,
       ),
     {
-      onSuccess: async (resp) => {
+      onSuccess: async (resp, variables) => {
         const companyId = getCompanyId(resp?.companyId);
         const scopedWorkspace =
-          resp?.workspaceId || operationWorkspaceId || undefined;
+          variables?.workspaceId || resp?.workspaceId || operationWorkspaceId || undefined;
 
         if (resp?.id && resp.riskFactorGroupDataId && resp.homogeneousGroupId) {
           const incoming = {
             ...resp,
             workspaceId: scopedWorkspace || resp.workspaceId,
           };
-          const merge = (old: IRiskData[] | undefined) =>
-            mergeRiskFactorDataCacheList(old, incoming);
+          const merge = (old: IRiskData[] | undefined) => {
+            if (!touchesWorkspaceProbability(variables || {})) {
+              return mergeRiskFactorDataCacheList(old, incoming);
+            }
+            if (!Array.isArray(old)) return old;
+            return old.map((item) =>
+              isSameRiskFactorDataCacheRow(item, incoming)
+                ? mergeProbabilityWriteIntoRiskRow(item, incoming, variables)
+                : item,
+            );
+          };
 
           queryClient.setQueriesData<IRiskData[] | undefined>(
             riskFactorDataByGhoQueryKey({
@@ -146,6 +164,27 @@ export function useMutUpsertRiskData() {
               effective: true,
             }),
             merge,
+          );
+          if (resp.riskId) {
+            queryClient.setQueriesData<IRiskData[] | undefined>(
+              riskDataByRiskQueryKey({
+                companyId,
+                riskGroupId: resp.riskFactorGroupDataId,
+                riskId: resp.riskId,
+                workspaceId: scopedWorkspace,
+              }),
+              merge,
+            );
+          }
+        }
+
+        if (resp?.riskFactorGroupDataId && resp?.riskId) {
+          queryClient.invalidateQueries(
+            riskDataByRiskQueryKeyPrefix({
+              companyId,
+              riskGroupId: resp.riskFactorGroupDataId,
+              riskId: resp.riskId,
+            }),
           );
         }
 

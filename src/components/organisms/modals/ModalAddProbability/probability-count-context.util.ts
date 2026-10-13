@@ -6,6 +6,7 @@ import { ProbabilityCountSource } from './qualitative-probability.util';
 export type ProbabilityEntityRef = {
   id?: string;
   employeeCount?: number;
+  employeeCountByWorkspace?: Record<string, number>;
   workspaceIds?: string[];
 };
 
@@ -14,8 +15,41 @@ export type ProbabilityEntityContext = {
   hierarchyId: string;
   homogeneousGroupId: string;
   workspaceIds: string[];
-  employeeCountGho: number;
+  /** Null quando não há contagem confiável para o estabelecimento do cabeçalho. */
+  employeeCountGho: number | null;
 };
+
+/**
+ * Com estabelecimento no cabeçalho, o GSE conta só os trabalhadores daquele
+ * estabelecimento. Sem contagem por estabelecimento, só o GSE de
+ * estabelecimento único pode usar a contagem global; nos demais casos o
+ * resultado é null para não sugerir nem gravar com dados de outro estabelecimento.
+ */
+function resolveGhoCountsForHeader(
+  gho: ProbabilityEntityRef,
+  headerWorkspaceId: string,
+): { workspaceIds: string[]; employeeCountGho: number | null } {
+  const ghoWorkspaceIds = Array.isArray(gho.workspaceIds)
+    ? gho.workspaceIds
+    : [];
+  if (!ghoWorkspaceIds.includes(headerWorkspaceId)) {
+    return { workspaceIds: [headerWorkspaceId], employeeCountGho: null };
+  }
+
+  const byWorkspace = gho.employeeCountByWorkspace?.[headerWorkspaceId];
+  if (typeof byWorkspace === 'number') {
+    return { workspaceIds: [headerWorkspaceId], employeeCountGho: byWorkspace };
+  }
+
+  const singleWorkspace = new Set(ghoWorkspaceIds).size === 1;
+  return {
+    workspaceIds: [headerWorkspaceId],
+    employeeCountGho:
+      singleWorkspace && typeof gho.employeeCount === 'number'
+        ? gho.employeeCount
+        : null,
+  };
+}
 
 /**
  * Contexto de hierarquia no estimador segue o fluxo da tela (`riskAdd.viewData`),
@@ -31,6 +65,7 @@ export function isProbabilityHierarchyContext(params: {
 export function resolveProbabilityEntityContext(params: {
   gho?: ProbabilityEntityRef | null;
   viewData?: ViewsDataEnum | string | null;
+  headerWorkspaceId?: string | null;
 }): ProbabilityEntityContext | null {
   if (!params.gho?.id) return null;
 
@@ -50,6 +85,15 @@ export function resolveProbabilityEntityContext(params: {
     };
   }
 
+  if (params.headerWorkspaceId) {
+    return {
+      isHierarchy: false,
+      hierarchyId: '',
+      homogeneousGroupId: baseId,
+      ...resolveGhoCountsForHeader(params.gho, params.headerWorkspaceId),
+    };
+  }
+
   return {
     isHierarchy: false,
     hierarchyId: '',
@@ -61,11 +105,28 @@ export function resolveProbabilityEntityContext(params: {
   };
 }
 
+export function sumWorkspaceEmployees(params: {
+  workspaces?: { id: string; employeeCount?: number | null }[] | null;
+  workspaceIds?: string[] | null;
+  allWorkspaces?: boolean;
+}): number {
+  const ids = new Set(params.workspaceIds ?? []);
+  return (params.workspaces ?? []).reduce((acc, workspace) => {
+    if (!params.allWorkspaces && !ids.has(workspace.id)) return acc;
+    return acc + (workspace.employeeCount ?? 0);
+  }, 0);
+}
+
 export function buildProbabilityCountSource(
   gho?: ProbabilityEntityRef | null,
   viewData?: ViewsDataEnum | string | null,
+  headerWorkspaceId?: string | null,
 ): ProbabilityCountSource | undefined {
-  const ctx = resolveProbabilityEntityContext({ gho, viewData });
+  const ctx = resolveProbabilityEntityContext({
+    gho,
+    viewData,
+    headerWorkspaceId,
+  });
   if (!ctx) return undefined;
 
   if (ctx.isHierarchy) {

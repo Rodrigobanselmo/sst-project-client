@@ -8,7 +8,10 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
-import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
+import {
+  riskDataByRiskQueryKeyPrefix,
+  sortRiskData,
+} from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -130,6 +133,20 @@ export function useMutUpsertManyRiskData() {
               first.riskFactorGroupDataId,
             ]);
           }
+
+          const byRiskKeys = new Map<string, unknown[]>();
+          resp.flat().forEach((row) => {
+            if (!row?.riskFactorGroupDataId || !row?.riskId) return;
+            byRiskKeys.set(
+              `${row.riskFactorGroupDataId}|${row.riskId}`,
+              riskDataByRiskQueryKeyPrefix({
+                companyId,
+                riskGroupId: row.riskFactorGroupDataId,
+                riskId: row.riskId,
+              }),
+            );
+          });
+          byRiskKeys.forEach((key) => queryClient.invalidateQueries(key));
 
           return resp;
         }

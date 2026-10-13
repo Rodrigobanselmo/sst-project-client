@@ -1,12 +1,16 @@
 import { FC, useEffect, useMemo, useRef } from 'react';
 
 import SText from 'components/atoms/SText';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 import {
-  countSuggestionEffectAction,
-  countSuggestionSignature,
+  CountSuggestionTracking,
+  countSuggestionContextKey,
+  decideCountSuggestionAutoSave,
+} from './count-suggestion-auto-save.util';
+import {
   ProbabilityCountSource,
   resolveCountSuggestion,
 } from './qualitative-probability.util';
@@ -24,6 +28,7 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
   countSource,
   handleSelect,
 }) => {
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const counts = useLiveEmployeeCounts(countSource);
   const journeys = useApplicableJourneys(countSource);
   const decision = useMemo(
@@ -48,14 +53,31 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
       journeys.suggestedMinutes,
     ],
   );
-  const trackingRef = useRef<string | null>(null);
+  const trackingRef = useRef<CountSuggestionTracking | null>(null);
+  const contextKey = countSuggestionContextKey({
+    riskDataId: data?.id,
+    headerWorkspaceId,
+    countWorkspaceIds: countSource?.workspaceIds,
+    authority: data?.probabilityAuthority,
+    origin: data?.probabilityOrigin,
+    criteriaAdoptedAt: data?.criteriaAdoptedAt,
+  });
 
   useEffect(() => {
     if (!counts.ready || !journeys.ready || data?.isQuantity) return;
 
-    const action = countSuggestionEffectAction(trackingRef.current, decision);
-    trackingRef.current = countSuggestionSignature(decision);
-    if (action !== 'auto' || decision.kind !== 'auto') return;
+    const result = decideCountSuggestionAutoSave({
+      previous: trackingRef.current,
+      contextKey,
+      decision,
+      authority: data?.probabilityAuthority,
+      origin: data?.probabilityOrigin,
+      isGhoSource: !!countSource?.homogeneousGroupId,
+      headerWorkspaceId,
+      countWorkspaceIds: countSource?.workspaceIds,
+    });
+    trackingRef.current = result.tracking;
+    if (!result.save || decision.kind !== 'auto') return;
 
     handleSelect({
       probability: decision.probability,
@@ -63,7 +85,7 @@ export const RealProbabilityCountSuggestion: FC<Props> = ({
     });
     // handleSelect é recriado a cada render; o residual também o omite.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [counts.ready, data?.isQuantity, decision, journeys.ready]);
+  }, [contextKey, counts.ready, data?.isQuantity, decision, journeys.ready]);
 
   if (decision.kind === 'none' || data?.isQuantity) return null;
 

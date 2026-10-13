@@ -7,8 +7,11 @@ import { api } from 'core/services/apiClient';
 import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 import { sortString } from 'core/utils/sorts/string.sort';
 
-import { QueryEnum } from '../../../../enums/query.enums';
 import { IRiskData } from '../../../../interfaces/api/IRiskData';
+import {
+  riskDataByRiskQueryKey,
+  riskDataByRiskQueryKeyPrefix,
+} from '../../mutations/checklist/riskData/merge-risk-factor-data-cache.util';
 
 export const sortRiskData = (data: IRiskData[]) => {
   return data.map((riskData) => {
@@ -29,25 +32,42 @@ export const queryRiskData = async (
   companyId: string,
   riskGroupId: string,
   riskId: string,
+  workspaceId?: string,
 ): Promise<IRiskData[]> => {
   const response = await api.get<IRiskData[]>(
     `${ApiRoutesEnum.RISK_DATA}/${companyId}/${riskGroupId}/${riskId}`,
+    {
+      params: workspaceId ? { workspaceId } : undefined,
+    },
   );
 
   return sortRiskData(response.data);
 };
+
+export { riskDataByRiskQueryKey, riskDataByRiskQueryKeyPrefix };
+
+export function useRiskDataOperationWorkspaceId() {
+  const { workspaceId, router } = useGetCompanyId();
+  return workspaceId || (router.query.tabWorkspaceId as string | undefined);
+}
 
 export function useQueryRiskData(
   riskGroupId: string,
   riskId: string,
 ): IReactQuery<IRiskData[]> {
   const { companyId } = useGetCompanyId();
+  const operationWorkspaceId = useRiskDataOperationWorkspaceId();
 
   const { data, ...query } = useQuery(
-    [QueryEnum.RISK_DATA, companyId, riskGroupId, riskId],
+    riskDataByRiskQueryKey({
+      companyId,
+      riskGroupId,
+      riskId,
+      workspaceId: operationWorkspaceId,
+    }),
     () =>
       companyId
-        ? queryRiskData(companyId, riskGroupId, riskId)
+        ? queryRiskData(companyId, riskGroupId, riskId, operationWorkspaceId)
         : <Promise<IRiskData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

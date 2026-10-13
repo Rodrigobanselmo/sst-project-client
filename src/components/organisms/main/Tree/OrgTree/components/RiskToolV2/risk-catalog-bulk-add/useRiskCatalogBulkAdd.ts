@@ -6,6 +6,7 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
@@ -24,7 +25,7 @@ import {
   filterNamesAlreadyLinked,
   parseRiskCatalogBulkLines,
 } from './parse-risk-catalog-bulk-lines.util';
-import { applyRecBulkResidual } from './with-residual-probability-after-rec-change.util';
+import { applyRecBulkResidualForWorkspace } from './with-residual-probability-after-rec-change.util';
 
 type UseRiskCatalogBulkAddParams = {
   kind: RiskCatalogBulkAddKind;
@@ -56,6 +57,7 @@ export const useRiskCatalogBulkAdd = ({
   handleSelect,
 }: UseRiskCatalogBulkAddParams) => {
   const { companyId } = useGetCompanyId();
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = useState(false);
   const [rawText, setRawText] = useState('');
@@ -170,7 +172,8 @@ export const useRiskCatalogBulkAdd = ({
       }
 
       if (kind === 'rec') {
-        payload = applyRecBulkResidual({
+        payload = applyRecBulkResidualForWorkspace({
+          headerWorkspaceId,
           payload,
           currentRecs: (riskData?.recs ?? []).filter(
             (rec) => !!rec && typeof rec.id === 'string' && !!rec.id,
@@ -185,6 +188,7 @@ export const useRiskCatalogBulkAdd = ({
           recType,
           realProbability: riskData?.probability,
           currentResidual: riskData?.probabilityAfter,
+          riskData,
         });
       }
 
@@ -240,6 +244,7 @@ export const useRiskCatalogBulkAdd = ({
     enqueueSnackbar,
     fetchCatalog,
     handleSelect,
+    headerWorkspaceId,
     kind,
     preview.alreadyLinkedCount,
     preview.duplicateCount,

@@ -9,6 +9,10 @@ import { ITagActionColors } from 'components/atoms/STag/types';
 import { STagButton } from 'components/atoms/STagButton';
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
 import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
+import {
+  controlsForProbabilityAssistant,
+  prepareWorkspaceProbabilityWrite,
+} from 'core/utils/workspace-probability-evaluation.util';
 import { allWorkspacesCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
@@ -31,6 +35,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi } from 'core/interfaces/api/IEpi';
@@ -89,6 +94,7 @@ export const SideRowTableMulti: FC<
 
   const store = useStore<any>();
   const { companyId } = useGetCompanyId();
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const { query } = useRouter();
   const upsertManyMut = useMutUpsertManyRiskData();
   const deleteManyMut = useMutDeleteManyRiskData();
@@ -183,15 +189,25 @@ export const SideRowTableMulti: FC<
       });
     };
 
+    const assistantControls = controlsForProbabilityAssistant(riskData, {
+      requireWorkspaceControls:
+        (viewDataType === ViewsDataEnum.GSE ||
+          viewDataType === ViewsDataEnum.HIERARCHY) &&
+        !Boolean((riskData as { isQuantity?: boolean }).isQuantity) &&
+        !!headerWorkspaceId,
+    });
+    if (!assistantControls.available) {
+      enqueueSnackbar(assistantControls.message, { variant: 'warning' });
+      return;
+    }
+
     onStackOpenModal(ModalEnum.PROBABILITY_ADD, {
       riskType: selectedRiskStore.type,
       employeeCountTotal: workspaceEmployeesCount,
       adoptedCriteria: riskData?.probabilityCriteria ?? null,
-      controls: {
-        engs: riskData?.engs,
-        adms: riskData?.adms,
-        epis: riskData?.epis,
-      },
+      controls: assistantControls.controls,
+      probabilityAuthority: riskData?.probabilityAuthority,
+      probabilityOrigin: riskData?.probabilityOrigin,
       onCreate: handleSelectSync,
     } as typeof initialProbState);
   };
@@ -306,9 +322,23 @@ export const SideRowTableMulti: FC<
         ];
     });
 
+    const isGseProbabilityView =
+      viewDataType === ViewsDataEnum.GSE || viewDataType === ViewsDataEnum.HIERARCHY;
+    const prepared = prepareWorkspaceProbabilityWrite({
+      values: submitData,
+      isQuantity: Boolean((riskData as { isQuantity?: boolean }).isQuantity),
+      originKind: isGseProbabilityView ? 'GSE' : 'CHARACTERIZATION',
+      headerWorkspaceId,
+    });
+    if (!prepared.ok) {
+      enqueueSnackbar(prepared.message, { variant: 'warning' });
+      dispatch(setRiskAddState({ isSaving: false }));
+      return;
+    }
+
     try {
       await upsertManyMut.mutateAsync(
-        submitData as unknown as IUpsertManyRiskData,
+        prepared.values as unknown as IUpsertManyRiskData,
       );
       setRiskData({ id: '' } as IRiskData);
       dispatch(setRiskAddState({ isSaving: false, isEdited: false }));

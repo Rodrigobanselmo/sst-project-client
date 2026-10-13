@@ -15,6 +15,11 @@ import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
 import { IGenerateSource, IRecMed, IRiskFactors } from './IRiskFactors';
 import { ExposureTypeEnum } from 'core/enums/exposure.enum';
+import {
+  WorkspaceProbabilityAuthority,
+  WorkspaceProbabilityCriteria,
+  WorkspaceProbabilityOrigin,
+} from 'core/utils/workspace-probability-evaluation.util';
 
 /** Critérios de evidência quantitativa de ruído (API). */
 export type NoiseQuantityEvidenceCriterion =
@@ -58,15 +63,17 @@ export interface IRiskData {
   id: string;
   probability?: number;
   probabilityAfter?: number;
-  probabilityCriteria?: {
-    employeeCountTotal: number | null;
-    employeeCountGho: number | null;
-    minDurationJT: number | null;
-    minDurationEO: number | null;
-    chancesOfHappening: number | null;
-    frequency: number | null;
-    history: number | null;
-    medsImplemented: number | null;
+  probabilityCriteria?: WorkspaceProbabilityCriteria | null;
+  /** SHARED = histórico do GSE. WORKSPACE = avaliação do estabelecimento. Null fora do GSE qualitativo. */
+  probabilityAuthority?: WorkspaceProbabilityAuthority | null;
+  /** ESTIMATE, MANUAL ou PROMOTION. Nulo na avaliação histórica. */
+  probabilityOrigin?: WorkspaceProbabilityOrigin | null;
+  criteriaAdoptedAt?: string | Date | null;
+  /** Controles da próxima estimativa neste estabelecimento, já filtrados pela API. */
+  controlsForWorkspaceProbabilityEstimate?: {
+    adms?: IRecMed[] | null;
+    engs?: IRecMed[] | null;
+    epis?: IEpi[] | null;
   } | null;
   companyId: string;
   riskId: string;

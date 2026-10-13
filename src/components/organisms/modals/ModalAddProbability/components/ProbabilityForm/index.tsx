@@ -17,8 +17,10 @@ import {
 import { IUseProbability } from '../../hooks/useProbability';
 import {
   criteriaFromForm,
+  hasAdoptedCriteria,
   qualitativeProbabilityPreview,
 } from '../../qualitative-probability.util';
+import { workspaceProbabilityAssistantNote } from 'core/utils/workspace-probability-evaluation.util';
 
 const MEDS_SUGGESTION_TOOLTIP =
   'Sugestão do sistema com base nas medidas de prevenção atualmente cadastradas. A seleção manual do usuário será preservada.';
@@ -110,9 +112,19 @@ export const ProbabilityForm = (props: IUseProbability) => {
     : preview.criteriaCount === 1
       ? 'Calculada com 1 critério informado.'
       : `Calculada com ${preview.criteriaCount} critérios informados.`;
+  const evaluationNote = workspaceProbabilityAssistantNote({
+    authority: probabilityData.probabilityAuthority,
+    origin: probabilityData.probabilityOrigin,
+    hasAdoptedCriteria: hasAdoptedCriteria(probabilityData.adoptedCriteria),
+  });
 
   return (
     <SFlex gap={19} direction="column" mt={8}>
+      {evaluationNote ? (
+        <SText color="text.secondary" fontSize={12} sx={{ lineHeight: 1.35 }}>
+          {evaluationNote}
+        </SText>
+      ) : null}
       <SFlex
         sx={{
           flexDirection: { xs: 'column', sm: 'row' },

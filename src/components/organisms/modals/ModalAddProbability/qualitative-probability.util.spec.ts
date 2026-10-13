@@ -12,8 +12,10 @@ import {
   countSuggestionEffectAction,
   countSuggestionSignature,
   criteriaFromForm,
+  hasAdoptedCriteria,
   journeyMinutesForModalOpen,
   medsImplementedForModalOpen,
+  probabilityModalOpenState,
   qualitativeProbabilityFromCriteria,
   qualitativeProbabilityPreview,
   resolveCountSuggestion,
@@ -301,10 +303,17 @@ assert.equal(
 );
 assert.equal(
   journeyMinutesForModalOpen({
-    adopted: { minDurationJT: null },
+    adopted: { minDurationJT: null, frequency: 3 },
     suggestedMinutes: 480,
   }),
   null,
+);
+assert.equal(
+  journeyMinutesForModalOpen({
+    adopted: { minDurationJT: null },
+    suggestedMinutes: 480,
+  }),
+  480,
 );
 
 const journeyBase = {
@@ -407,7 +416,7 @@ assert.equal(countSuggestionEffectAction('none', journeyManual), 'ignore');
 
 const hook = readFileSync(join(dir, 'hooks/useProbability.ts'), 'utf8');
 assert.match(hook, /criteriaFromForm\(values\)/);
-assert.match(hook, /medsImplementedForModalOpen/);
+assert.match(hook, /probabilityModalOpenState/);
 assert.match(hook, /classifyMedsImplemented\(probabilityData\.controls\)/);
 assert.match(hook, /suggestedMedsImplemented/);
 assert.match(hook, /journeyMinutesForModalOpen/);
@@ -420,7 +429,7 @@ const journeyEffect = hook.slice(
 assert.doesNotMatch(journeyEffect, /onCreate/);
 assert.match(hook, /probabilityData\.onCreate\?\.\(/);
 const openEffect = hook.slice(
-  hook.indexOf('const medsForOpen'),
+  hook.indexOf('const openState'),
   hook.indexOf('const onClose'),
 );
 assert.doesNotMatch(openEffect, /onCreate/);
@@ -577,9 +586,102 @@ assert.doesNotMatch(suggestion, /currentMedsImplemented/);
 assert.doesNotMatch(suggestion, /classifyMedsImplemented/);
 assert.match(suggestion, /currentJourneyMinutes/);
 assert.match(suggestion, /journeys\.ready/);
-assert.match(suggestion, /action !== 'auto'/);
+assert.match(suggestion, /decideCountSuggestionAutoSave/);
+assert.match(suggestion, /!result\.save/);
 assert.match(suggestion, /probabilityCriteria: decision\.criteria/);
 assert.doesNotMatch(suggestion, /calculateSuggestedResidualProbability/);
 assert.doesNotMatch(util, /calculateSuggestedResidualProbability/);
+
+const allNullCriteria = {
+  employeeCountTotal: null,
+  employeeCountGho: null,
+  minDurationJT: null,
+  minDurationEO: null,
+  chancesOfHappening: null,
+  frequency: null,
+  history: null,
+  medsImplemented: null,
+};
+assert.equal(hasAdoptedCriteria(undefined), false);
+assert.equal(hasAdoptedCriteria(null), false);
+assert.equal(hasAdoptedCriteria(allNullCriteria), false);
+assert.equal(hasAdoptedCriteria({ ...allNullCriteria, employeeCountGho: 0 }), true);
+assert.equal(hasAdoptedCriteria({ ...allNullCriteria, frequency: 3 }), true);
+assert.equal(hasAdoptedCriteria(saved), true);
+
+const moeveControls = {
+  adms: [{ id: 'derived-aep' }, { id: 'derived-treinamento' }],
+  engs: [],
+  epis: [],
+};
+const refinariaControls = { adms: [], engs: [], epis: [] };
+
+const moeveOpen = probabilityModalOpenState({
+  adoptedCriteria: allNullCriteria,
+  controls: moeveControls,
+  employeeCountTotal: 120,
+  employeeCountGho: 8,
+});
+assert.equal(moeveOpen.adoptedCriteria, null);
+assert.equal(moeveOpen.formValues.medsImplemented, 4);
+assert.equal(moeveOpen.formValues.employeeCountTotal, 120);
+assert.equal(moeveOpen.formValues.employeeCountGho, 8);
+assert.equal(moeveOpen.dataPatch.employeeCountTotal, 120);
+assert.equal('minDurationJT' in moeveOpen.formValues, false);
+
+const refinariaOpen = probabilityModalOpenState({
+  adoptedCriteria: allNullCriteria,
+  controls: refinariaControls,
+  employeeCountTotal: 120,
+  employeeCountGho: 8,
+});
+assert.equal(refinariaOpen.formValues.medsImplemented, 5);
+
+const missingCriteriaOpen = probabilityModalOpenState({
+  adoptedCriteria: null,
+  controls: moeveControls,
+  employeeCountTotal: 0,
+  employeeCountGho: 0,
+});
+assert.equal(missingCriteriaOpen.formValues.medsImplemented, 4);
+assert.equal(missingCriteriaOpen.formValues.employeeCountTotal, 0);
+
+const zeroCriteriaOpen = probabilityModalOpenState({
+  adoptedCriteria: { ...allNullCriteria, employeeCountGho: 0 },
+  controls: moeveControls,
+  employeeCountTotal: 120,
+  employeeCountGho: 8,
+});
+assert.notEqual(zeroCriteriaOpen.adoptedCriteria, null);
+assert.equal(zeroCriteriaOpen.formValues.employeeCountGho, 0);
+assert.equal(zeroCriteriaOpen.formValues.medsImplemented, '');
+
+const adoptedOpen = probabilityModalOpenState({
+  adoptedCriteria: saved,
+  controls: refinariaControls,
+  employeeCountTotal: 999,
+  employeeCountGho: 999,
+});
+assert.equal(adoptedOpen.formValues.medsImplemented, saved.medsImplemented);
+assert.equal(adoptedOpen.formValues.employeeCountTotal, saved.employeeCountTotal);
+assert.equal(adoptedOpen.formValues.minDurationJT, saved.minDurationJT);
+
+assert.equal(medsImplementedForModalOpen({ adopted: allNullCriteria, controls: moeveControls }), 4);
+assert.equal(medsImplementedForModalOpen({ adopted: allNullCriteria, controls: refinariaControls }), 5);
+assert.equal(
+  journeyMinutesForModalOpen({ adopted: allNullCriteria, suggestedMinutes: 480 }),
+  480,
+);
+assert.equal(
+  journeyMinutesForModalOpen({ adopted: allNullCriteria, suggestedMinutes: null }),
+  null,
+);
+assert.equal(
+  journeyMinutesForModalOpen({ adopted: saved, suggestedMinutes: 480 }),
+  saved.minDurationJT,
+);
+
+assert.match(hook, /probabilityModalOpenState\(/);
+assert.match(hook, /adoptedCriteria: openState\.adoptedCriteria/);
 
 console.log('qualitative-probability.util.spec: ok');

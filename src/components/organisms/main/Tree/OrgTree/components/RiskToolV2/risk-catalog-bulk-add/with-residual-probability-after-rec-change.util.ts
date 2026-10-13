@@ -1,7 +1,10 @@
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import { resolveResidualProbabilityAfterRecChange } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
+import {
+  resolveResidualProbabilityAfterRecChange,
+  withResidualOnlyWhenResolved,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 
 export type ResidualRecLike = {
@@ -120,5 +123,19 @@ export function applyRecBulkResidual(params: {
       ...params.catalogMatches,
       ...createdStubs,
     ],
+  });
+}
+
+/** Residual só é enviado quando a linha já traz a avaliação do estabelecimento do cabeçalho. */
+export function applyRecBulkResidualForWorkspace(
+  params: Parameters<typeof applyRecBulkResidual>[0] & {
+    headerWorkspaceId?: string | null;
+    riskData?: { probabilityAuthority?: unknown } | null;
+  },
+): Partial<IUpsertRiskData> {
+  const { headerWorkspaceId, riskData, ...rest } = params;
+  return withResidualOnlyWhenResolved(applyRecBulkResidual(rest), {
+    headerWorkspaceId,
+    riskData,
   });
 }

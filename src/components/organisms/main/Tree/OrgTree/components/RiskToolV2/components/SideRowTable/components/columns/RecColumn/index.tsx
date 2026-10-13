@@ -3,7 +3,10 @@ import React, { FC, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { RecSelect } from 'components/organisms/tagSelects/RecSelect';
 import { sortRecsByTypeHierarchy } from 'components/organisms/tagSelects/RecSelect/resolve-rec-type-visual-state.util';
-import { resolveResidualProbabilityAfterRecChange } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
+import {
+  resolveResidualProbabilityAfterRecChange,
+  withResidualOnlyWhenResolved,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import {
   isRecommendationRecTypeMissing,
   MISSING_REC_TYPE_TOOLTIP,
@@ -13,6 +16,7 @@ import { initialAddRecMedState } from 'components/organisms/modals/ModalAddRecMe
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpdateRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutUpdateRecMed';
@@ -61,6 +65,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   planWorkspaceId,
 }) => {
   const { onStackOpenModal } = useModal();
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const updateRecMedMut = useMutUpdateRecMed();
   const [classifyingRecId, setClassifyingRecId] = useState<string | null>(null);
 
@@ -92,12 +97,15 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   }, [data?.recs, risk?.id]);
 
   const buildAddPayload = (rec: IRecMed): Partial<IUpsertRiskData> =>
-    buildRecsAttachPayload({
-      recsToAdd: [rec],
-      currentRecs: residualRecs,
-      realProbability: data?.probability,
-      currentResidual: data?.probabilityAfter,
-    });
+    withResidualOnlyWhenResolved(
+      buildRecsAttachPayload({
+        recsToAdd: [rec],
+        currentRecs: residualRecs,
+        realProbability: data?.probability,
+        currentResidual: data?.probabilityAfter,
+      }),
+      { headerWorkspaceId, riskData: data },
+    );
 
   const buildRemovePayload = (recId: string): Partial<IUpsertRiskData> => {
     const nextRecs = residualRecs.filter((rec) => rec.id !== recId);
@@ -112,7 +120,10 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
     if (probabilityAfter !== undefined) {
       payload.probabilityAfter = probabilityAfter;
     }
-    return payload;
+    return withResidualOnlyWhenResolved(payload, {
+      headerWorkspaceId,
+      riskData: data,
+    });
   };
 
   const handleEditRec = (rec: IRecMed) => {

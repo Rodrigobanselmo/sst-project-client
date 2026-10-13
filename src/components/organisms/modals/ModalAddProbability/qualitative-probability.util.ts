@@ -19,7 +19,7 @@ export type ProbabilityCountSource = {
   hierarchyId?: string;
   homogeneousGroupId?: string;
   workspaceIds?: string[];
-  ghoEmployeeCount?: number;
+  ghoEmployeeCount?: number | null;
   allWorkspaces?: boolean;
 };
 
@@ -77,6 +77,31 @@ export function classifyMedsImplemented(
   return 3;
 }
 
+const ADOPTED_CRITERIA_KEYS = [
+  'employeeCountTotal',
+  'employeeCountGho',
+  'minDurationJT',
+  'minDurationEO',
+  'chancesOfHappening',
+  'frequency',
+  'history',
+  'medsImplemented',
+] as const;
+
+/**
+ * Há estimativa anterior só quando algum critério foi preenchido.
+ * A avaliação manual do estabelecimento chega com os oito critérios nulos. Zero é preenchido.
+ */
+export function hasAdoptedCriteria(
+  criteria?: QualitativeProbabilityCriteria | null,
+): criteria is QualitativeProbabilityCriteria {
+  if (!criteria) return false;
+  return ADOPTED_CRITERIA_KEYS.some((key) => {
+    const value = criteria[key];
+    return typeof value === 'number' && Number.isFinite(value);
+  });
+}
+
 /**
  * Jornada a mostrar na abertura. Com critérios adotados, preserva o snapshot.
  * Sem adoção, preenche só quando há uma única duração conhecida.
@@ -85,7 +110,7 @@ export function journeyMinutesForModalOpen(params: {
   adopted?: QualitativeProbabilityCriteria | null;
   suggestedMinutes?: number | null;
 }): number | null {
-  if (params.adopted) return params.adopted.minDurationJT ?? null;
+  if (hasAdoptedCriteria(params.adopted)) return params.adopted.minDurationJT ?? null;
   if (params.suggestedMinutes != null && params.suggestedMinutes > 0) {
     return params.suggestedMinutes;
   }
@@ -102,9 +127,65 @@ export function medsImplementedForModalOpen(params: {
   adopted?: QualitativeProbabilityCriteria | null;
   controls?: RealControlLists | null;
 }): number | null {
-  if (params.adopted) return params.adopted.medsImplemented ?? null;
+  if (hasAdoptedCriteria(params.adopted)) return params.adopted.medsImplemented ?? null;
   if (!params.controls) return null;
   return classifyMedsImplemented(params.controls);
+}
+
+export type ProbabilityModalOpenState = {
+  adoptedCriteria: QualitativeProbabilityCriteria | null;
+  formValues: Record<string, number | string>;
+  dataPatch: Record<string, number | string>;
+};
+
+/**
+ * Estado inicial do assistente.
+ * Com estimativa anterior, preserva os critérios registrados.
+ * Sem ela, usa os trabalhadores recebidos e a classificação atual dos controles.
+ */
+export function probabilityModalOpenState(params: {
+  adoptedCriteria?: QualitativeProbabilityCriteria | null;
+  controls?: RealControlLists | null;
+  employeeCountTotal?: number | null;
+  employeeCountGho?: number | null;
+}): ProbabilityModalOpenState {
+  const adopted = hasAdoptedCriteria(params.adoptedCriteria)
+    ? params.adoptedCriteria
+    : null;
+
+  if (adopted) {
+    const formValues = {
+      employeeCountTotal: adopted.employeeCountTotal ?? '',
+      employeeCountGho: adopted.employeeCountGho ?? '',
+      minDurationJT: adopted.minDurationJT ?? '',
+      minDurationEO: adopted.minDurationEO ?? '',
+      chancesOfHappening: adopted.chancesOfHappening ?? '',
+      frequency: adopted.frequency ?? '',
+      history: adopted.history ?? '',
+      medsImplemented: adopted.medsImplemented ?? '',
+    };
+    return {
+      adoptedCriteria: adopted,
+      formValues,
+      dataPatch: {
+        ...formValues,
+        employeeCountTotal: adopted.employeeCountTotal ?? 0,
+        employeeCountGho: adopted.employeeCountGho ?? 0,
+      },
+    };
+  }
+
+  const values: Record<string, number> = {};
+  if (typeof params.employeeCountTotal === 'number') {
+    values.employeeCountTotal = params.employeeCountTotal;
+  }
+  if (typeof params.employeeCountGho === 'number') {
+    values.employeeCountGho = params.employeeCountGho;
+  }
+  const meds = medsImplementedForModalOpen({ controls: params.controls });
+  if (meds != null) values.medsImplemented = meds;
+
+  return { adoptedCriteria: null, formValues: values, dataPatch: values };
 }
 
 export function adoptedCriteriaInt(value: unknown): number | null {
