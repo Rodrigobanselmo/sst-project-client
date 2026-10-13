@@ -39,8 +39,10 @@ export const RiskToolSingleRiskRow: FC<
   readOnly = false,
   originHomogeneousGroupId,
   planWorkspaceIdOverride,
+  targetGho,
 }) => {
-  const gho = useAppSelector((state) => state.gho.selected);
+  const selectedGho = useAppSelector((state) => state.gho.selected);
+  const gho = targetGho ?? selectedGho;
   const viewData = useAppSelector((state) => state.riskAdd.viewData);
   const { query } = useRouter();
   const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();

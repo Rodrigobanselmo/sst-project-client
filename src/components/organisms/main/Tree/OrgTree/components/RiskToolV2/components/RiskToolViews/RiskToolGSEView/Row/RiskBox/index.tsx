@@ -55,6 +55,8 @@ export const RiskToolGSEViewRowRiskBox: FC<
   showOrigin = false,
   showOriginActions = true,
   showEditHereAction = false,
+  headerTitle,
+  hideRiskAiButton = false,
 }) => {
   const deleteMutation = useMutDeleteManyRiskData();
   const upsertMutation = useMutUpsertRiskData();
@@ -270,6 +272,23 @@ export const RiskToolGSEViewRowRiskBox: FC<
           flexWrap="wrap"
           sx={{ minWidth: 0, flex: 1 }}
         >
+          {headerTitle ? (
+            <STooltip
+              minLength={20}
+              placement="top"
+              enterDelay={800}
+              title={headerTitle}
+            >
+              <SText
+                fontSize={14}
+                fontWeight={600}
+                sx={{ wordBreak: 'break-word', lineHeight: 1.35, minWidth: 0 }}
+              >
+                {headerTitle}
+              </SText>
+            </STooltip>
+          ) : (
+          <>
           <Box
             sx={{
               flexShrink: 0,
@@ -329,7 +348,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
               minWidth: 0,
             }}
           >
-            {!readOnly && !isRepresentAll && riskData?.canEditOnThisEntity !== false && (
+            {!readOnly && !hideRiskAiButton && !isRepresentAll && riskData?.canEditOnThisEntity !== false && (
               <Box sx={{ flexShrink: 0, mt: '-2px' }}>
                 <RiskFactorRiskAiButton riskId={data.id} riskName={riskName} />
               </Box>
@@ -355,6 +374,8 @@ export const RiskToolGSEViewRowRiskBox: FC<
               </SText>
             </STooltip>
           </Box>
+          </>
+          )}
         </SFlex>
 
         <SFlex

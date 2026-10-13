@@ -11,12 +11,14 @@ import {
   useRiskCatalogDndOptional,
   useRiskCatalogDropLock,
 } from './RiskCatalogDndProvider';
+import { useRiskCatalogRecordScope } from './RiskCatalogRecordScope';
 import {
   RISK_CATALOG_DND_ITEM_TYPE,
   RISK_CATALOG_DND_KIND_LABEL_PLURAL,
   RiskCatalogDndDragItem,
   RiskCatalogDndKind,
 } from './risk-catalog-dnd.types';
+import { isRiskCatalogSourceSameAsDestination } from './risk-catalog-record-copy.util';
 import { useRiskCatalogDndCopy } from './useRiskCatalogDndCopy';
 
 type RiskCatalogDropColumnProps = {
@@ -36,7 +38,22 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
 }) => {
   const dnd = useRiskCatalogDndOptional();
   const dropLocked = useRiskCatalogDropLock();
+  const recordScope = useRiskCatalogRecordScope();
   const { onDropCatalogItem, onBatchCopyToDestination } = useRiskCatalogDndCopy();
+
+  const recordScoped = !!recordScope;
+  const destinationRiskDataId = recordScoped
+    ? recordScope.riskData.id
+    : riskData?.id;
+  const destination = {
+    riskId: risk?.id,
+    riskDataId: destinationRiskDataId,
+    recordScoped,
+  };
+  const isOwnSource = (source?: {
+    sourceRiskId: string;
+    sourceRiskDataId?: string;
+  } | null) => !!source && isRiskCatalogSourceSameAsDestination(source, destination);
 
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
@@ -45,7 +62,8 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
         if (dropLocked) return false;
         if (!risk?.id) return false;
         if (item.kind !== kind) return false;
-        if (item.sourceRiskId === risk.id) return false;
+        if (isRiskCatalogSourceSameAsDestination(item, destination)) return false;
+        if (recordScoped && item.recordCopyBlockedReason) return false;
         return true;
       },
       drop: async (item: RiskCatalogDndDragItem) => {
@@ -53,6 +71,8 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
         await onDropCatalogItem(item, {
           risk,
           riskData: riskData as any,
+          recordScoped,
+          label: recordScope?.label,
           handleSelect: async (values) => {
             await handleSelect(values);
           },
@@ -63,7 +83,17 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
         canDrop: monitor.canDrop(),
       }),
     }),
-    [kind, risk, riskData, handleSelect, onDropCatalogItem, dropLocked],
+    [
+      kind,
+      risk,
+      riskData,
+      handleSelect,
+      onDropCatalogItem,
+      dropLocked,
+      recordScoped,
+      destinationRiskDataId,
+      recordScope?.label,
+    ],
   );
 
   const handleBatchDestinationClick = useCallback(
@@ -77,7 +107,13 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
       const session = dnd.batchSession;
       if (session.kind !== kind) return;
 
-      if (session.sourceRiskId === risk.id) {
+      if (
+        isRiskCatalogSourceSameAsDestination(session, {
+          riskId: risk.id,
+          riskDataId: destinationRiskDataId,
+          recordScoped,
+        })
+      ) {
         dnd.clearBatchCopy();
         return;
       }
@@ -90,19 +126,38 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
         {
           risk,
           riskData: riskData as any,
+          recordScoped,
+          label: recordScope?.label,
           handleSelect: async (values) => {
             await handleSelect(values);
           },
         },
         {
           onFinished: () => {
-            dnd.triggerPulse({ riskId: risk.id, kind });
+            dnd.triggerPulse({
+              riskId: risk.id,
+              kind,
+              ...(recordScoped && destinationRiskDataId
+                ? { riskDataId: destinationRiskDataId }
+                : {}),
+            });
             dnd.clearBatchCopy();
           },
         },
       );
     },
-    [dnd, dropLocked, handleSelect, kind, onBatchCopyToDestination, risk, riskData],
+    [
+      dnd,
+      dropLocked,
+      handleSelect,
+      kind,
+      onBatchCopyToDestination,
+      risk,
+      riskData,
+      recordScoped,
+      destinationRiskDataId,
+      recordScope?.label,
+    ],
   );
 
   if (!dnd) {
@@ -111,23 +166,30 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
 
   const batchSession = dnd.batchSession;
   const highlightKind = dnd.highlightKind;
+  const lockedRecord = recordScoped && dropLocked;
   const isBatchDestination =
     !!batchSession &&
     batchSession.kind === kind &&
     !!risk?.id &&
-    batchSession.sourceRiskId !== risk.id;
+    !lockedRecord &&
+    !isOwnSource(batchSession);
   const isBatchSource =
     !!batchSession &&
     batchSession.kind === kind &&
-    batchSession.sourceRiskId === risk?.id;
+    !!risk?.id &&
+    isOwnSource(batchSession);
   const highlightCompatible =
     highlightKind === kind &&
     !!risk?.id &&
-    (!batchSession || batchSession.sourceRiskId !== risk.id);
+    !lockedRecord &&
+    (!batchSession || !isOwnSource(batchSession));
   const dimIncompatible =
     highlightKind != null && highlightKind !== kind;
   const shouldPulse =
-    dnd.pulseTarget?.riskId === risk?.id && dnd.pulseTarget?.kind === kind;
+    dnd.pulseTarget?.riskId === risk?.id &&
+    dnd.pulseTarget?.kind === kind &&
+    (!dnd.pulseTarget?.riskDataId ||
+      dnd.pulseTarget.riskDataId === destinationRiskDataId);
   const batchCount = batchSession?.items.length ?? 0;
   const pluralLabel = RISK_CATALOG_DND_KIND_LABEL_PLURAL[kind];
 
@@ -238,7 +300,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
               lineHeight: 1.2,
             }}
           >
-            Copiar para este fator
+            {recordScoped ? 'Copiar para este GSE' : 'Copiar para este fator'}
           </Typography>
           <Typography
             sx={{

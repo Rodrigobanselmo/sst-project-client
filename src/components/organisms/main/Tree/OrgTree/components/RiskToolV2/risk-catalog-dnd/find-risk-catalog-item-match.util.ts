@@ -7,6 +7,10 @@ import {
   RiskCatalogDndDragItem,
   RiskCatalogDndKind,
 } from './risk-catalog-dnd.types';
+import {
+  isRiskCatalogSourceSameAsDestination,
+  RiskCatalogDropDestination,
+} from './risk-catalog-record-copy.util';
 
 export { normalizeInventoryItemName };
 
@@ -92,6 +96,14 @@ export function buildRiskCatalogBatchSummaryMessage(
     );
   }
 
+  if (stats.blocked) {
+    lines.push(
+      `${stats.blocked} não ${
+        stats.blocked > 1 ? 'podem' : 'pode'
+      } ser copiado${stats.blocked > 1 ? 's' : ''} entre GSEs (correspondência informativa ou medida derivada do Plano).`,
+    );
+  }
+
   if (stats.failed > 0) {
     lines.push(`${stats.failed} falharam ao processar.`);
   }
@@ -102,9 +114,12 @@ export function buildRiskCatalogBatchSummaryMessage(
 export function isSameRiskCatalogDropForbidden(
   item: RiskCatalogDndDragItem,
   destinationRiskId?: string | null,
+  destination?: Omit<RiskCatalogDropDestination, 'riskId'>,
 ): boolean {
-  if (!destinationRiskId) return true;
-  return item.sourceRiskId === destinationRiskId;
+  return isRiskCatalogSourceSameAsDestination(item, {
+    ...destination,
+    riskId: destinationRiskId,
+  });
 }
 
 export function dedupeRiskCatalogDragItems(

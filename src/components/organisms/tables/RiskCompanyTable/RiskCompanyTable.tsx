@@ -118,6 +118,8 @@ export const RiskCompanyTable: FC<
       /** Liga Lista | Mapa de Presença | Dados Técnicos. Só a aba Caracterização > Riscos usa isso. */
       enableSectorRiskPresenceMap?: boolean;
       isAllEstablishments?: boolean;
+      /** "Origem" abre a visualização "Por risco" V2. Só Caracterização > Riscos usa isso. */
+      openRiskToolByRiskV2?: boolean;
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
@@ -129,6 +131,7 @@ export const RiskCompanyTable: FC<
   companyFlowBelowTabs = false,
   enableSectorRiskPresenceMap = false,
   isAllEstablishments = false,
+  openRiskToolByRiskV2 = false,
 }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
   const [presenceView, setPresenceView] = useState<'list' | 'presence' | 'technical'>('list');
@@ -579,6 +582,7 @@ export const RiskCompanyTable: FC<
                                     homogeneousGroup: riskData.homogeneousGroup,
                                     riskFactor: row,
                                     riskGroupId,
+                                    byRiskV2: openRiskToolByRiskV2,
                                   });
                                 }}
                               >

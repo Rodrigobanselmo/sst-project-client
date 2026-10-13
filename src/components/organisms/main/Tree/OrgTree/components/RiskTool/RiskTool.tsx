@@ -42,6 +42,9 @@ import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRisk
 import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { useOpenRiskTool } from './hooks/useOpenRiskTool';
 import { useRiskToolCopyGhoImportFlow } from '../RiskToolV2/hooks/useRiskToolCopyGhoImportFlow';
+import { shouldUseRiskToolV2ByRiskView } from '../RiskToolV2/components/RiskToolViews/RiskToolByRiskView/should-use-risk-tool-v2-by-risk-view.util';
+import { RiskToolByRiskV2 } from '../RiskToolV2/RiskToolByRiskV2';
+import { ApplyResidualOneToAllButton } from './components/ApplyResidualOneToAllButton/ApplyResidualOneToAllButton';
 import {
   STBoxContainer,
   STBoxStack,
@@ -59,10 +62,13 @@ import {
 export const RiskTool = ({
   riskGroupId,
   riskContextCompanyId,
+  byRiskV2 = false,
 }: {
   riskGroupId?: string;
   /** Empresa da caracterização em modal (router pode não ter `companyId`). */
   riskContextCompanyId?: string;
+  /** "Por risco" com componentes V2 (só Caracterização > Riscos > Origem). */
+  byRiskV2?: boolean;
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
@@ -275,6 +281,46 @@ export const RiskTool = ({
     );
   };
 
+  const topButtons = (
+    <RiskToolTopButtons
+      onChangeView={handleChangeView}
+      onChangeViewData={handleChangeViewData}
+      viewType={viewType}
+      viewDataType={viewDataType}
+      handleSelectGHO={handleSelectGHO}
+      riskInit={isRiskOpen}
+      riskGroupId={riskGroupIdMemo}
+    />
+  );
+
+  if (
+    isRiskOpen &&
+    risk?.id &&
+    shouldUseRiskToolV2ByRiskView({
+      byRiskV2,
+      viewType,
+      viewData: viewDataType,
+    })
+  ) {
+    return (
+      <RiskToolByRiskV2
+        risk={risk}
+        riskGroupId={riskGroupIdMemo}
+        viewData={viewDataType}
+        selectExpanded={!!selectExpanded}
+        topButtons={topButtons}
+        extraActions={
+          riskGroupIdMemo ? (
+            <ApplyResidualOneToAllButton
+              riskGroupId={riskGroupIdMemo}
+              viewType={viewType}
+            />
+          ) : null
+        }
+      />
+    );
+  }
+
   return (
     <>
       {(isGhoOpen || isRiskOpen) && (
@@ -283,15 +329,7 @@ export const RiskTool = ({
           risk_init={isRiskOpen ? 1 : 0}
           open={isOpen ? 1 : 0}
         >
-          <RiskToolTopButtons
-            onChangeView={handleChangeView}
-            onChangeViewData={handleChangeViewData}
-            viewType={viewType}
-            viewDataType={viewDataType}
-            handleSelectGHO={handleSelectGHO}
-            riskInit={isRiskOpen}
-            riskGroupId={riskGroupIdMemo}
-          />
+          {topButtons}
           <STTableContainer>
             <RiskToolHeader
               handleCopyGHO={handleCopyGHO}

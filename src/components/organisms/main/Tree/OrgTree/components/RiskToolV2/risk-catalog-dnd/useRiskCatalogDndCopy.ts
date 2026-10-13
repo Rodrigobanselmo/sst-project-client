@@ -21,7 +21,6 @@ import {
   buildRiskCatalogMissingConfirmMessage,
   dedupeRiskCatalogDragItems,
   findCatalogItemByNormalizedName,
-  isSameRiskCatalogDropForbidden,
 } from './find-risk-catalog-item-match.util';
 import {
   buildRecAttachPayload,
@@ -35,11 +34,46 @@ import {
   RiskCatalogDndDragItem,
   RiskCatalogDndKind,
 } from './risk-catalog-dnd.types';
+import { isRiskCatalogSourceSameAsDestination } from './risk-catalog-record-copy.util';
 
 type DestinationContext = {
   risk: IRiskFactors;
   riskData?: IRiskData | null;
   handleSelect: (values: Partial<IUpsertRiskData>) => Promise<void>;
+  /** Visualização por risco: destino é o registro (GSE), não o fator. */
+  recordScoped?: boolean;
+  /** Nome exibido do destino (GSE) nas mensagens da visualização por risco. */
+  label?: string;
+};
+
+const destinationIdentity = (dest: DestinationContext) => ({
+  riskId: dest.risk?.id,
+  riskDataId: dest.riskData?.id,
+  recordScoped: dest.recordScoped,
+});
+
+const destinationName = (dest: DestinationContext) =>
+  dest.label?.trim() || dest.risk.name || 'Fator de risco de destino';
+
+/** Mesmo fator em outro registro: o item já existe no cadastro; vincula pelo próprio id. */
+const sameRiskCatalogMatch = (
+  item: RiskCatalogDndDragItem,
+  dest: DestinationContext,
+): RiskCatalogCopyItemResult | null => {
+  if (!dest.recordScoped || item.kind === 'epi') return null;
+  if (item.sourceRiskId !== dest.risk?.id || item.catalogId == null) return null;
+  return {
+    status: 'attach_existing',
+    match: {
+      id: String(item.catalogId),
+      name: item.name,
+      recName: item.name,
+      medName: item.name,
+      recType: item.recType,
+      medType: item.medType,
+      ...(item.catalogStatus ? { status: item.catalogStatus } : {}),
+    },
+  };
 };
 
 function alreadyAttached(
@@ -198,12 +232,18 @@ export const useRiskCatalogDndCopy = () => {
       dest: DestinationContext,
     ): Promise<RiskCatalogCopyItemResult> => {
       if (!dest.risk?.id || !item.name?.trim()) return { status: 'invalid' };
-      if (isSameRiskCatalogDropForbidden(item, dest.risk.id)) {
+      if (isRiskCatalogSourceSameAsDestination(item, destinationIdentity(dest))) {
         return { status: 'invalid' };
+      }
+      if (dest.recordScoped && item.recordCopyBlockedReason) {
+        return { status: 'blocked', message: item.recordCopyBlockedReason };
       }
       if (alreadyAttached(item.kind, item, dest.riskData)) {
         return { status: 'already_attached' };
       }
+
+      const sameRiskMatch = sameRiskCatalogMatch(item, dest);
+      if (sameRiskMatch) return sameRiskMatch;
 
       const existing = await findExistingInDestination(item, dest.risk.id);
       if (existing?.id != null) {
@@ -245,6 +285,7 @@ export const useRiskCatalogDndCopy = () => {
             { ...(match as IRecMed), id: String(match.id) },
             dest.riskData,
             headerWorkspaceId,
+            { excludeExistingControl: dest.recordScoped },
           ),
         );
         return;
@@ -415,7 +456,11 @@ export const useRiskCatalogDndCopy = () => {
           recType?: RecTypeEnum;
           companyId: string;
         }[] = [];
-        const nextRecsForProb: IRecMed[] = validRiskDataRecs(dest.riskData);
+        const residualOptions = { excludeExistingControl: dest.recordScoped };
+        const nextRecsForProb: IRecMed[] = validRiskDataRecs(
+          dest.riskData,
+          residualOptions,
+        );
 
         for (const { item, result } of pairs) {
           if (result.status === 'attach_existing') {
@@ -454,6 +499,7 @@ export const useRiskCatalogDndCopy = () => {
             riskData: dest.riskData,
             nextRecommendations: nextRecsForProb,
             headerWorkspaceId,
+            options: residualOptions,
           });
         }
       }
@@ -481,22 +527,34 @@ export const useRiskCatalogDndCopy = () => {
   const onDropCatalogItem = useCallback(
     async (item: RiskCatalogDndDragItem, dest: DestinationContext) => {
       if (!dest.risk?.id) return;
-      if (isSameRiskCatalogDropForbidden(item, dest.risk.id)) return;
+      if (isRiskCatalogSourceSameAsDestination(item, destinationIdentity(dest))) {
+        return;
+      }
 
       try {
         const action = await resolveCatalogCopyAction(item, dest);
 
+        if (action.status === 'blocked') {
+          enqueueSnackbar(action.message, { variant: 'warning' });
+          return;
+        }
+
         if (action.status === 'already_attached') {
-          enqueueSnackbar('Este item já está neste fator de risco.', {
-            variant: 'info',
-          });
+          enqueueSnackbar(
+            dest.recordScoped
+              ? 'Este item já está neste GSE.'
+              : 'Este item já está neste fator de risco.',
+            { variant: 'info' },
+          );
           return;
         }
 
         if (action.status === 'attach_existing') {
           await attachExisting(item, action.match as any, dest);
           enqueueSnackbar(
-            `${RISK_CATALOG_DND_KIND_LABEL[item.kind]} adicionada ao fator de destino.`,
+            dest.recordScoped
+              ? `${RISK_CATALOG_DND_KIND_LABEL[item.kind]} copiada para ${destinationName(dest)}.`
+              : `${RISK_CATALOG_DND_KIND_LABEL[item.kind]} adicionada ao fator de destino.`,
             { variant: 'success' },
           );
           return;
@@ -512,8 +570,7 @@ export const useRiskCatalogDndCopy = () => {
 
         if (action.status !== 'create_and_attach') return;
 
-        const destinationRiskName =
-          dest.risk.name || 'Fator de risco de destino';
+        const destinationRiskName = destinationName(dest);
 
         preventWarn(
           buildRiskCatalogMissingConfirmMessage({
@@ -566,7 +623,11 @@ export const useRiskCatalogDndCopy = () => {
       if (!kind) return;
 
       const uniqueItems = dedupeRiskCatalogDragItems(
-        items.filter((i) => i.kind === kind && i.sourceRiskId !== dest.risk.id),
+        items.filter(
+          (i) =>
+            i.kind === kind &&
+            !isRiskCatalogSourceSameAsDestination(i, destinationIdentity(dest)),
+        ),
       );
 
       if (!uniqueItems.length) {
@@ -575,7 +636,7 @@ export const useRiskCatalogDndCopy = () => {
         return;
       }
 
-      const destinationRiskName = dest.risk.name || 'Fator de risco de destino';
+      const destinationRiskName = destinationName(dest);
 
       preventWarn(
         buildRiskCatalogBatchConfirmMessage({
@@ -606,6 +667,8 @@ export const useRiskCatalogDndCopy = () => {
                   stats.added += 1;
                 } else if (result.status === 'epi_missing') {
                   stats.epiMissing += 1;
+                } else if (result.status === 'blocked') {
+                  stats.blocked = (stats.blocked ?? 0) + 1;
                 } else {
                   stats.failed += 1;
                 }

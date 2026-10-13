@@ -107,12 +107,37 @@ const engRec = rec('eng-1', RecTypeEnum.ENG);
   assert.deepEqual(bulk(unresolved), { recs: ['cat-1'], probabilityAfter: 2 });
 }
 
+// --- Cópia entre GSEs do mesmo fator: mesma base do Adicionar da coluna (sem correspondências) ---
+{
+  const correspondence = {
+    ...rec('ctrl-1', RecTypeEnum.ENG),
+    origin: 'EXISTING_CONTROL',
+  } as unknown as IRecMed;
+  const withCorrespondence = riskRow({ probability: 4, recs: [correspondence] });
+
+  // Fora da visualização por risco: comportamento anterior (correspondência ENG soma na redução)
+  assert.deepEqual(buildRecAttachPayload(engRec, withCorrespondence), {
+    recs: ['eng-1'],
+    probabilityAfter: 2,
+  });
+  // Visualização por risco: igual ao RecColumn (residualRecs), só a ENG copiada reduz
+  assert.deepEqual(
+    buildRecAttachPayload(engRec, withCorrespondence, null, { excludeExistingControl: true }),
+    { recs: ['eng-1'], probabilityAfter: 3 },
+  );
+}
+
 // --- Hooks usam a proteção ---
 {
   const base = 'src/components/organisms/main/Tree/OrgTree/components/RiskToolV2';
   const dndHook = readFileSync(resolve(`${base}/risk-catalog-dnd/useRiskCatalogDndCopy.ts`), 'utf8');
   assert.equal(dndHook.includes('resolveResidualProbabilityAfterRecChange'), false);
-  assert.equal(dndHook.includes('headerWorkspaceId,\n          ),'), true);
+  assert.equal(
+    dndHook.includes(
+      'headerWorkspaceId,\n            { excludeExistingControl: dest.recordScoped },\n          ),',
+    ),
+    true,
+  );
   assert.equal(dndHook.includes('withRecAttachResidual({'), true);
 
   const bulkHook = readFileSync(resolve(`${base}/risk-catalog-bulk-add/useRiskCatalogBulkAdd.ts`), 'utf8');

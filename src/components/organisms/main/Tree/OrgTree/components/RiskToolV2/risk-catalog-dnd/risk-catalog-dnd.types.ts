@@ -23,6 +23,12 @@ export type RiskCatalogDndDragItem = {
   ca?: string;
   medType?: MedTypeEnum | string;
   recType?: RecTypeEnum | string;
+  /** Registro (RiskFactorData) de origem — cópia entre GSEs do mesmo fator. */
+  sourceRiskDataId?: string;
+  /** Status do cadastro no registro de origem (entra no cálculo do residual). */
+  catalogStatus?: string;
+  /** Motivo que impede copiar o item para outro registro do mesmo fator. */
+  recordCopyBlockedReason?: string;
 };
 
 export const RISK_CATALOG_DND_KIND_LABEL: Record<RiskCatalogDndKind, string> = {
@@ -66,12 +72,14 @@ export type RiskCatalogBatchSession = {
   kind: RiskCatalogDndKind;
   sourceRiskId: string;
   sourceRiskName: string;
+  sourceRiskDataId?: string;
   items: RiskCatalogDndDragItem[];
 };
 
 export type RiskCatalogPulseTarget = {
   riskId: string;
   kind: RiskCatalogDndKind;
+  riskDataId?: string;
 };
 
 export type RiskCatalogCopyItemResult =
@@ -82,6 +90,7 @@ export type RiskCatalogCopyItemResult =
     }
   | { status: 'create_and_attach' }
   | { status: 'epi_missing' }
+  | { status: 'blocked'; message: string }
   | { status: 'invalid' };
 
 export type RiskCatalogBatchStats = {
@@ -92,5 +101,6 @@ export type RiskCatalogBatchStats = {
   created: number;
   alreadyAttached: number;
   epiMissing: number;
+  blocked?: number;
   failed: number;
 };

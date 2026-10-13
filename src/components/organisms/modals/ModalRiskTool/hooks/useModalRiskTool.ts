@@ -7,8 +7,14 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 
-export const initialRiskToolState = {
+import {
+  mergeRiskToolModalData,
+  RiskToolModalData,
+} from './merge-risk-tool-modal-data.util';
+
+export const initialRiskToolState: RiskToolModalData = {
   riskGroupId: '',
+  byRiskV2: false,
 };
 
 const modalNameInit = ModalEnum.RISK_TOOL;
@@ -29,10 +35,7 @@ export const useModalRiskTool = (modalName = modalNameInit) => {
 
     if (!(initialData as any).passBack) {
       setData((oldData) => {
-        const newData = {
-          ...oldData,
-          ...initialData,
-        };
+        const newData = mergeRiskToolModalData(oldData, initialData);
 
         initialDataRef.current = newData;
         return newData;

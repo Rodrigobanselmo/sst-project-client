@@ -62,6 +62,7 @@ function CharacterizationSubTabPanel(props: {
           companyFlowSticky
           companyFlowBelowTabs
           enableSectorRiskPresenceMap
+          openRiskToolByRiskV2
           isAllEstablishments={props.isAllEstablishments}
         />
       );

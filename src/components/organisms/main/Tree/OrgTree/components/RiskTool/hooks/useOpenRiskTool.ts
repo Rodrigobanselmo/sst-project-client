@@ -105,6 +105,7 @@ export const useOpenRiskTool = () => {
       riskGroupId,
       viewsDataInit,
       viewTypeInit,
+      byRiskV2,
     }: {
       viewsDataInit?: ViewsDataEnum;
       viewTypeInit?: ViewTypeEnum;
@@ -112,6 +113,8 @@ export const useOpenRiskTool = () => {
       riskFactor?: IRiskFactors;
       hierarchyName?: string;
       riskGroupId?: string;
+      /** Abre "Por risco" com a visualização V2 (Caracterização > Riscos). */
+      byRiskV2?: boolean;
     }) => {
       const foundGho = homogeneousGroup;
 
@@ -155,9 +158,10 @@ export const useOpenRiskTool = () => {
         });
       }, 500);
 
-      onStackOpenModal(ModalEnum.RISK_TOOL, { riskGroupId } as Partial<
-        typeof initialRiskToolState
-      >);
+      onStackOpenModal(ModalEnum.RISK_TOOL, {
+        riskGroupId,
+        ...(byRiskV2 ? { byRiskV2: true } : {}),
+      } as Partial<typeof initialRiskToolState>);
     },
     [onOpenSelected, onStackOpenModal],
   );

@@ -39,7 +39,7 @@ export const ModalRiskTool = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <RiskTool riskGroupId={data.riskGroupId} />
+      <RiskTool riskGroupId={data.riskGroupId} byRiskV2={data.byRiskV2} />
     </SModal>
   );
 };

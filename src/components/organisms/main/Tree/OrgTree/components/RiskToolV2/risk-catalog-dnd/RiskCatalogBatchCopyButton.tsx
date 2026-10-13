@@ -10,6 +10,8 @@ import STooltip from 'components/atoms/STooltip';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { useRiskCatalogDndOptional } from './RiskCatalogDndProvider';
+import { useRiskCatalogRecordScope } from './RiskCatalogRecordScope';
+import { withRecordCopySource } from './risk-catalog-record-copy.util';
 import {
   RISK_CATALOG_BATCH_COPY_TOOLTIP,
   RISK_CATALOG_BATCH_EMPTY_MESSAGE,
@@ -30,18 +32,28 @@ export const RiskCatalogBatchCopyButton: FC<RiskCatalogBatchCopyButtonProps> = (
   items,
 }) => {
   const dnd = useRiskCatalogDndOptional();
+  const recordScope = useRiskCatalogRecordScope();
   const { enqueueSnackbar } = useSnackbar();
 
   if (!dnd || !risk?.id) return null;
 
-  const uniqueItems = dedupeRiskCatalogDragItems(
-    items.filter((i) => i.kind === kind && !!i.name?.trim()),
+  const scopedItems = recordScope
+    ? items.map((i) => withRecordCopySource(i, recordScope.riskData))
+    : items;
+  const candidateItems = dedupeRiskCatalogDragItems(
+    scopedItems.filter((i) => i.kind === kind && !!i.name?.trim()),
   );
+  const uniqueItems = recordScope
+    ? candidateItems.filter((i) => !i.recordCopyBlockedReason)
+    : candidateItems;
+  const blockedCount = candidateItems.length - uniqueItems.length;
   const count = uniqueItems.length;
+  const sourceRiskDataId = recordScope?.riskData.id;
 
   const isActive =
     dnd.batchSession?.sourceRiskId === risk.id &&
-    dnd.batchSession?.kind === kind;
+    dnd.batchSession?.kind === kind &&
+    (!recordScope || dnd.batchSession?.sourceRiskDataId === sourceRiskDataId);
 
   const tooltip = isActive
     ? 'Cancelar cópia em lote (Esc)'
@@ -69,9 +81,12 @@ export const RiskCatalogBatchCopyButton: FC<RiskCatalogBatchCopyButtonProps> = (
           if (dnd.isDragging) return;
 
           if (!count) {
-            enqueueSnackbar(RISK_CATALOG_BATCH_EMPTY_MESSAGE[kind], {
-              variant: 'info',
-            });
+            enqueueSnackbar(
+              blockedCount
+                ? (candidateItems[0]?.recordCopyBlockedReason as string)
+                : RISK_CATALOG_BATCH_EMPTY_MESSAGE[kind],
+              { variant: blockedCount ? 'warning' : 'info' },
+            );
             return;
           }
 
@@ -79,11 +94,22 @@ export const RiskCatalogBatchCopyButton: FC<RiskCatalogBatchCopyButtonProps> = (
             kind,
             sourceRiskId: risk.id,
             sourceRiskName: risk.name || '',
+            ...(sourceRiskDataId ? { sourceRiskDataId } : {}),
             items: uniqueItems,
           });
           enqueueSnackbar(
-            'Selecione o fator de destino. Esc cancela.',
-            { variant: 'info', autoHideDuration: 3500 },
+            recordScope
+              ? `Selecione o GSE de destino. Esc cancela.${
+                  blockedCount
+                    ? `\n${blockedCount} item(ns) não entram na cópia (correspondência informativa ou medida derivada do Plano).`
+                    : ''
+                }`
+              : 'Selecione o fator de destino. Esc cancela.',
+            {
+              variant: 'info',
+              autoHideDuration: 3500,
+              style: { whiteSpace: 'pre-line' },
+            },
           );
         }}
       >

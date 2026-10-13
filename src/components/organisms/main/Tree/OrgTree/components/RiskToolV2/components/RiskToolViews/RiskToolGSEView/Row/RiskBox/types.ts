@@ -15,4 +15,7 @@ export interface RiskToolGSEViewRowRiskBoxProps {
   showOrigin?: boolean;
   showOriginActions?: boolean;
   showEditHereAction?: boolean;
+  /** Substitui chip e nome do fator (visualização por risco: nome do GSE). */
+  headerTitle?: string;
+  hideRiskAiButton?: boolean;
 }
