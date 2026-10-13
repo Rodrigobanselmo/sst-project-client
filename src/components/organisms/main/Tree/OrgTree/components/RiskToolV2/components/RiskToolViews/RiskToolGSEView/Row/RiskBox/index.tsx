@@ -321,25 +321,40 @@ export const RiskToolGSEViewRowRiskBox: FC<
               {displayNextToChip}
             </SText>
           )}
-          <STooltip
-            minLength={20}
-            placement="top"
-            enterDelay={800}
-            title={riskName}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 0.5,
+              minWidth: 0,
+            }}
           >
-            <SText
-              fontSize={14}
-              fontWeight={600}
-              sx={{
-                wordBreak: 'break-word',
-                lineHeight: 1.35,
-              }}
+            {!readOnly && !isRepresentAll && riskData?.canEditOnThisEntity !== false && (
+              <Box sx={{ flexShrink: 0, mt: '-2px' }}>
+                <RiskFactorRiskAiButton riskId={data.id} riskName={riskName} />
+              </Box>
+            )}
+            <STooltip
+              minLength={20}
+              placement="top"
+              enterDelay={800}
+              title={riskName}
             >
-              {!isRepresentAll
-                ? riskName || 'Risco sem nome'
-                : 'Informações gerais'}
-            </SText>
-          </STooltip>
+              <SText
+                fontSize={14}
+                fontWeight={600}
+                sx={{
+                  wordBreak: 'break-word',
+                  lineHeight: 1.35,
+                  minWidth: 0,
+                }}
+              >
+                {!isRepresentAll
+                  ? riskName || 'Risco sem nome'
+                  : 'Informações gerais'}
+              </SText>
+            </STooltip>
+          </Box>
         </SFlex>
 
         <SFlex
@@ -350,9 +365,6 @@ export const RiskToolGSEViewRowRiskBox: FC<
           sx={{ flexShrink: 0, maxWidth: { xs: '100%', md: '58%' } }}
           onClick={(e) => e.stopPropagation()}
         >
-          {!readOnly && !isRepresentAll && riskData?.canEditOnThisEntity !== false && (
-            <RiskFactorRiskAiButton riskId={data.id} riskName={riskName} />
-          )}
           {showCollapsedSummary ? (
             <SFlex
               align="center"

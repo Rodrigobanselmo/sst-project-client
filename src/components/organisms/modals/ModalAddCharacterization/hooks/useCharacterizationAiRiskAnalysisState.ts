@@ -30,6 +30,7 @@ const createEmptyState = (): AiRiskAnalysisSessionSnapshot => ({
   temporaryDocumentSource: null,
   expandedSuggestionIds: [],
   appliedModularSuggestionKeys: [],
+  dismissedModularSuggestionKeys: [],
   hasAnalyzed: false,
 });
 
@@ -81,6 +82,8 @@ export const useCharacterizationAiRiskAnalysisState = (
   );
   const [appliedModularSuggestionKeys, setAppliedModularSuggestionKeys] =
     useState<string[]>(() => createEmptyState().appliedModularSuggestionKeys);
+  const [dismissedModularSuggestionKeys, setDismissedModularSuggestionKeys] =
+    useState<string[]>(() => createEmptyState().dismissedModularSuggestionKeys);
   const [hasAnalyzed, setHasAnalyzed] = useState(
     () => createEmptyState().hasAnalyzed,
   );
@@ -98,6 +101,7 @@ export const useCharacterizationAiRiskAnalysisState = (
       setTemporaryDocumentSource(emptyState.temporaryDocumentSource);
       setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
       setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
+      setDismissedModularSuggestionKeys(emptyState.dismissedModularSuggestionKeys);
       setHasAnalyzed(emptyState.hasAnalyzed);
       setHydratedKey(null);
       return;
@@ -115,6 +119,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     setTemporaryDocumentSource(restored.temporaryDocumentSource);
     setExpandedSuggestionIds(restored.expandedSuggestionIds);
     setAppliedModularSuggestionKeys(restored.appliedModularSuggestionKeys);
+    setDismissedModularSuggestionKeys(restored.dismissedModularSuggestionKeys);
     setHasAnalyzed(restored.hasAnalyzed);
     setHydratedKey(sessionKey);
   }, [hydratedKey, sessionKey]);
@@ -132,6 +137,7 @@ export const useCharacterizationAiRiskAnalysisState = (
       temporaryDocumentSource,
       expandedSuggestionIds,
       appliedModularSuggestionKeys,
+      dismissedModularSuggestionKeys,
       hasAnalyzed,
     });
   }, [
@@ -146,6 +152,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     temporaryDocumentSource,
     expandedSuggestionIds,
     appliedModularSuggestionKeys,
+    dismissedModularSuggestionKeys,
     hasAnalyzed,
   ]);
 
@@ -167,6 +174,11 @@ export const useCharacterizationAiRiskAnalysisState = (
   const appliedModularSuggestionKeysSet = useMemo(
     () => new Set(appliedModularSuggestionKeys),
     [appliedModularSuggestionKeys],
+  );
+
+  const dismissedModularSuggestionKeysSet = useMemo(
+    () => new Set(dismissedModularSuggestionKeys),
+    [dismissedModularSuggestionKeys],
   );
 
   const hasVisibleSuggestions = visibleSuggestions.length > 0;
@@ -243,6 +255,9 @@ export const useCharacterizationAiRiskAnalysisState = (
   }, []);
 
   const dismissModularSuggestion = useCallback((key: string) => {
+    setDismissedModularSuggestionKeys((current) =>
+      current.includes(key) ? current : [...current, key],
+    );
     setExistingRiskReviews((current) => removeModularSuggestion(current, key));
   }, []);
 
@@ -297,6 +312,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     setTemporaryDocumentSource(emptyState.temporaryDocumentSource);
     setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
     setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
+    setDismissedModularSuggestionKeys(emptyState.dismissedModularSuggestionKeys);
     setHasAnalyzed(emptyState.hasAnalyzed);
     clearAiRiskAnalysisSession(sessionKey);
   }, [sessionKey]);
@@ -318,6 +334,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     expandedSuggestionIdsSet,
     appliedModularSuggestionKeys,
     appliedModularSuggestionKeysSet,
+    dismissedModularSuggestionKeysSet,
     hasVisibleSuggestions,
     hasAnalyzed,
     mergeIncomingSuggestions,

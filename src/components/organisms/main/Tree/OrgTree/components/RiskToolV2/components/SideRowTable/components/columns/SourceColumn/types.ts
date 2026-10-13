@@ -11,4 +11,5 @@ export interface SourceColumnProps {
   handleRemove: (values: Partial<IUpsertRiskData>) => void;
   data?: IRiskDataRow;
   risk: IRiskFactors | null;
+  readOnly?: boolean;
 }

@@ -22,6 +22,7 @@ import { filterImplementedControls } from '../../../../../utils/derived-control-
 import { openFactorLinkedControlIds } from '../../../../../utils/existing-control-correspondence.util';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
+import { RiskFactorAiPendingList } from '../../../../../risk-factors-ai/RiskFactorAiPendingList';
 import { AdmColumnProps } from './types';
 import {
   getCharacterizationPlanItemTintSx,
@@ -35,6 +36,7 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
   data,
   risk,
   planWorkspaceId,
+  readOnly,
 }) => {
   const { companyId } = useGetCompanyId();
   const batchItems = useMemo((): RiskCatalogDndDragItem[] => {
@@ -193,6 +195,13 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
                 </RiskCatalogDraggableItem>
               );
             })}
+        <RiskFactorAiPendingList
+          column="adm"
+          riskId={risk?.id}
+          riskData={data}
+          handleSelect={handleSelect}
+          readOnly={readOnly}
+        />
       </Box>
     </RiskCatalogDropColumn>
   );

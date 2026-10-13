@@ -53,6 +53,7 @@ import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCa
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
 import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
 import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
+import { RiskFactorAiPendingList } from '../../../../../risk-factors-ai/RiskFactorAiPendingList';
 
 const REC_DELETE_BLOCKED_HINT =
   'Não é possível excluir esta recomendação: o item no Plano de Ação já saiu do status Pendente (Iniciado, Concluído ou Cancelado).';
@@ -63,6 +64,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   data,
   risk,
   planWorkspaceId,
+  readOnly,
 }) => {
   const { onStackOpenModal } = useModal();
   const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
@@ -327,6 +329,13 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             </RiskCatalogDraggableItem>
           );
         })}
+        <RiskFactorAiPendingList
+          column="rec"
+          riskId={risk?.id}
+          riskData={data}
+          handleSelect={handleSelect}
+          readOnly={readOnly}
+        />
       </Box>
     </RiskCatalogDropColumn>
   );

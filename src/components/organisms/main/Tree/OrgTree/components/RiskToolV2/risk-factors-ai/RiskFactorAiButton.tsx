@@ -57,8 +57,8 @@ export function RiskFactorRiskAiButton({
   return (
     <SIconButton
       size="small"
-      tooltip="Sugestões de IA para este risco"
-      aria-label="Sugestões de IA para este risco"
+      tooltip="Analisar este fator de risco com IA"
+      aria-label="Analisar este fator de risco com IA"
       sx={{ p: 0.25 }}
       onClick={(event) => {
         event.stopPropagation();

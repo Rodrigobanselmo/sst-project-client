@@ -43,6 +43,11 @@ import { useAiRiskSuggestionEdits } from './useAiRiskSuggestionEdits';
 import { isAiAnalyzeRequestCanceled } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/is-ai-analyze-request-canceled.util';
 import { buildModularRiskUpsert } from './build-modular-risk-upsert.util';
 import { riskDataAlreadyContainsFieldValue } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/risk-factors-ai-scope.util';
+import { AiColumnSuggestionsSummary } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/AiColumnSuggestionsSummary';
+import {
+  columnForAiField,
+  withoutColumnSuggestions,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/risk-factor-ai-pending.util';
 import {
   existenceConfirmationCopy,
   resolveSuggestionApplyValue,
@@ -109,6 +114,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     dismissSuggestion,
     expandedSuggestionIdsSet,
     appliedModularSuggestionKeysSet,
+    dismissedModularSuggestionKeysSet,
     setSuggestionExpanded,
     expandAllSuggestions,
     collapseAllSuggestions,
@@ -308,12 +314,17 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     ],
   );
 
+  const modalExistingRiskReviews = useMemo(
+    () => withoutColumnSuggestions(visibleExistingRiskReviews),
+    [visibleExistingRiskReviews],
+  );
+
   const reviewAccordionIds = useMemo(
     () =>
-      visibleExistingRiskReviews.map(
+      modalExistingRiskReviews.map(
         (review) => `review:${review.riskId}`,
       ),
-    [visibleExistingRiskReviews],
+    [modalExistingRiskReviews],
   );
 
   const existingRiskDataByRiskId = useMemo(() => {
@@ -414,6 +425,10 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     }
 
     if (params.suggestion.field === 'observation') {
+      return;
+    }
+
+    if (columnForAiField(params.suggestion.field)) {
       return;
     }
 
@@ -879,7 +894,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                       <SText variant="subtitle2" color="text.primary">
                         Melhorias sugeridas pela IA
                       </SText>
-                      {visibleExistingRiskReviews.length > 0 && (
+                      {modalExistingRiskReviews.length > 0 && (
                         <SFlex direction="row" gap={1}>
                           <SButton
                             text="Expandir todos"
@@ -904,10 +919,26 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                         </SFlex>
                       )}
                     </SFlex>
-                    <SText variant="body2" color="text.secondary">
-                      Sugestões modulares para riscos já caracterizados. Nada é
-                      aplicado automaticamente — escolha item a item.
-                    </SText>
+                    <AiColumnSuggestionsSummary
+                      reviews={existingRiskReviews.filter((review) =>
+                        existingRiskIds.has(review.riskId),
+                      )}
+                      riskDataFor={(review) =>
+                        existingRiskDataByRiskId.get(review.riskId) ||
+                        sortedExistingRiskData.find(
+                          (item) => item.id === review.riskFactorDataId,
+                        )
+                      }
+                      appliedKeys={appliedModularSuggestionKeysSet}
+                      dismissedKeys={dismissedModularSuggestionKeysSet}
+                    />
+                    {modalExistingRiskReviews.length > 0 && (
+                      <SText variant="body2" color="text.secondary">
+                        Probabilidade e observação sugeridas para riscos já
+                        caracterizados. Nada é aplicado automaticamente —
+                        escolha item a item.
+                      </SText>
+                    )}
 
                     {visibleExistingRiskReviews.length === 0 ? (
                       <SText variant="body2" color="text.secondary">
@@ -916,7 +947,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                       </SText>
                     ) : (
                       <SFlex direction="column" gap={1}>
-                        {visibleExistingRiskReviews.map((review) => {
+                        {modalExistingRiskReviews.map((review) => {
                           const accordionId = `review:${review.riskId}`;
                           return (
                             <AiExistingRiskReviewCard

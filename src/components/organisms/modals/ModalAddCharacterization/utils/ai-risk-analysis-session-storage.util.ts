@@ -19,6 +19,8 @@ export type AiRiskAnalysisSessionSnapshot = {
   /** Suggestion accordion ids the user left expanded in this browser session. */
   expandedSuggestionIds: string[];
   appliedModularSuggestionKeys: string[];
+  /** Sugestões modulares descartadas: não voltam em nova análise da mesma sessão. */
+  dismissedModularSuggestionKeys: string[];
   /** True after at least one AI analysis merge in this browser session. */
   hasAnalyzed: boolean;
 };
@@ -115,6 +117,13 @@ export function readAiRiskAnalysisSession(
         parsed.appliedModularSuggestionKeys,
       )
         ? parsed.appliedModularSuggestionKeys.filter(
+            (id): id is string => typeof id === 'string' && !!id,
+          )
+        : [],
+      dismissedModularSuggestionKeys: Array.isArray(
+        parsed.dismissedModularSuggestionKeys,
+      )
+        ? parsed.dismissedModularSuggestionKeys.filter(
             (id): id is string => typeof id === 'string' && !!id,
           )
         : [],

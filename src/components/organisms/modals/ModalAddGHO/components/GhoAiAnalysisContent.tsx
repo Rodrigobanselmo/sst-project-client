@@ -40,7 +40,12 @@ import { transcribeAiAnalyzeGseAudio } from '@v2/services/security/homogeneous-g
 import { useMutateAiAnalyzeGse } from '@v2/services/security/homogeneous-group/ai-analyze-gse/hooks/useMutateAiAnalyzeGse';
 import { IErrorResp } from '@v2/types/error.type';
 
-import { useCharacterizationAiRiskAnalysisState } from '../../ModalAddCharacterization/hooks/useCharacterizationAiRiskAnalysisState';
+import { CharacterizationAiRiskAnalysisState } from '../../ModalAddCharacterization/hooks/useCharacterizationAiRiskAnalysisState';
+import { AiColumnSuggestionsSummary } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/AiColumnSuggestionsSummary';
+import {
+  columnForAiField,
+  withoutColumnSuggestions,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/risk-factor-ai-pending.util';
 import { AiTemporaryPdfSourceField } from '../../ModalAddCharacterization/components/AiTemporaryPdfSourceField/AiTemporaryPdfSourceField';
 import { AiAnalyzeGuidanceAudioField } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/AiAnalyzeGuidanceAudioField';
 import { appendTranscribedGuidance } from '../../ModalAddCharacterization/components/ModalAiAnalysisContent/append-transcribed-guidance.util';
@@ -93,12 +98,14 @@ type GhoAiAnalysisContentProps = {
   companyId: string;
   ghoData: typeof initialAddGhoState;
   ghoQuery: IGho;
+  aiRiskAnalysis: CharacterizationAiRiskAnalysisState;
 };
 
 export const GhoAiAnalysisContent = ({
   companyId,
   ghoData,
   ghoQuery,
+  aiRiskAnalysis,
 }: GhoAiAnalysisContentProps) => {
   const gseId = ghoData.id;
   const workspaceIds = getGseLinkedWorkspaceIds(ghoData, ghoQuery);
@@ -108,19 +115,12 @@ export const GhoAiAnalysisContent = ({
   const { companyId: contextCompanyId, workspaceId: pageWorkspaceId } =
     useGetCompanyId();
   const routeWorkspaceId = pageWorkspaceId || workspaceIds[0];
-  const sessionWorkspaceKey = workspaceIds.slice().sort().join(',') || 'gse';
   const { data: riskGroupData } = useQueryRiskGroupData(companyId || undefined);
   const riskGroupId = useMemo(
     () => getCurrentRiskGroupId(riskGroupData),
     [riskGroupData],
   );
 
-  const aiRiskAnalysis = useCharacterizationAiRiskAnalysisState({
-    gseId,
-    riskGroupId,
-    companyId,
-    workspaceId: sessionWorkspaceKey,
-  });
   const {
     visibleSuggestions,
     existingRiskReviews,
@@ -141,6 +141,7 @@ export const GhoAiAnalysisContent = ({
     dismissSuggestion,
     expandedSuggestionIdsSet,
     appliedModularSuggestionKeysSet,
+    dismissedModularSuggestionKeysSet,
     setSuggestionExpanded,
     expandAllSuggestions,
     collapseAllSuggestions,
@@ -202,7 +203,10 @@ export const GhoAiAnalysisContent = ({
   const visibleExistingRiskReviews = existingRiskReviews.filter((review) =>
     existingRiskIds.has(review.riskId),
   );
-  const reviewAccordionIds = visibleExistingRiskReviews.map(
+  const modalExistingRiskReviews = withoutColumnSuggestions(
+    visibleExistingRiskReviews,
+  );
+  const reviewAccordionIds = modalExistingRiskReviews.map(
     (review) => `review:${review.riskId}`,
   );
 
@@ -323,6 +327,7 @@ export const GhoAiAnalysisContent = ({
       sortedExistingRiskData.find((item) => item.id === params.review.riskFactorDataId);
     if (!riskData?.id) return;
     if (params.suggestion.field === 'observation') return;
+    if (columnForAiField(params.suggestion.field)) return;
 
     const suggestionKey = buildModularSuggestionKey(
       params.review.riskId,
@@ -580,7 +585,7 @@ export const GhoAiAnalysisContent = ({
           >
             <SFlex direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
               <SText variant="subtitle2">Melhorias sugeridas pela IA</SText>
-              {visibleExistingRiskReviews.length > 0 && (
+              {modalExistingRiskReviews.length > 0 && (
                 <SFlex direction="row" gap={1}>
                   <SButton
                     text="Expandir todos"
@@ -601,17 +606,33 @@ export const GhoAiAnalysisContent = ({
                 </SFlex>
               )}
             </SFlex>
-            <SText variant="body2" color="text.secondary" mb={1}>
-              Sugestões modulares para riscos já caracterizados. Nada é
-              aplicado automaticamente — escolha item a item.
-            </SText>
+            <Box sx={{ mb: 1 }}>
+              <AiColumnSuggestionsSummary
+                reviews={visibleExistingRiskReviews}
+                riskDataFor={(review) =>
+                  existingRiskDataByRiskId.get(review.riskId) ||
+                  sortedExistingRiskData.find(
+                    (item) => item.id === review.riskFactorDataId,
+                  )
+                }
+                appliedKeys={appliedModularSuggestionKeysSet}
+                dismissedKeys={dismissedModularSuggestionKeysSet}
+              />
+            </Box>
+            {modalExistingRiskReviews.length > 0 && (
+              <SText variant="body2" color="text.secondary" mb={1}>
+                Probabilidade e observação sugeridas para riscos já
+                caracterizados. Nada é aplicado automaticamente — escolha item
+                a item.
+              </SText>
+            )}
             {visibleExistingRiskReviews.length === 0 ? (
               <SText variant="body2" color="text.secondary">
                 Nenhuma melhoria sugerida para riscos já caracterizados nesta
                 análise.
               </SText>
             ) : (
-              visibleExistingRiskReviews.map((review) => {
+              modalExistingRiskReviews.map((review) => {
                 const accordionId = `review:${review.riskId}`;
                 return (
                   <AiExistingRiskReviewCard

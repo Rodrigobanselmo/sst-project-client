@@ -13,6 +13,7 @@ import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatal
 import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
+import { RiskFactorAiPendingList } from '../../../../../risk-factors-ai/RiskFactorAiPendingList';
 import { SourceColumnProps } from './types';
 
 export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
@@ -20,6 +21,7 @@ export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
   handleRemove,
   data,
   risk,
+  readOnly,
 }) => {
   const batchItems = useMemo((): RiskCatalogDndDragItem[] => {
     return (data?.generateSources ?? [])
@@ -115,6 +117,13 @@ export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
                 />
               </RiskCatalogDraggableItem>
             ))}
+        <RiskFactorAiPendingList
+          column="source"
+          riskId={risk?.id}
+          riskData={data}
+          handleSelect={handleSelect}
+          readOnly={readOnly}
+        />
       </Box>
     </RiskCatalogDropColumn>
   );

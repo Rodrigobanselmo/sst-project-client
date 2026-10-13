@@ -143,6 +143,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
                 handleRemove={handleRemove}
                 data={riskData}
                 risk={risk}
+                readOnly={readOnly}
               />
             ) : (
               <div />
@@ -161,6 +162,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
               data={riskData}
               risk={risk}
               planWorkspaceId={planWorkspaceId}
+              readOnly={readOnly}
             />
             <AdmColumn
               handleSelect={handleSelect}
@@ -168,6 +170,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
               data={riskData}
               risk={risk}
               planWorkspaceId={planWorkspaceId}
+              readOnly={readOnly}
             />
             {!isRepresentAll ? (
               <>
@@ -208,6 +211,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
               data={riskData}
               risk={risk}
               planWorkspaceId={planWorkspaceId}
+              readOnly={readOnly}
             />
             {!isRepresentAll ? (
               <>

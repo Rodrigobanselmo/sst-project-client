@@ -44,6 +44,7 @@ import {
 } from '../gse-wizard-steps';
 import { GhoSaveIntent } from '../gho-save-intent.util';
 import { getGseLinkedWorkspaceIds } from '../get-gse-linked-workspace-ids.util';
+import { useGseAiRiskAnalysis } from '../hooks/useGseAiRiskAnalysis';
 
 export type GhoAddLayout = 'modal' | 'page';
 
@@ -96,6 +97,7 @@ export const GhoFormContent = ({
     router.query.tabWorkspaceId || router.query.workspaceId || '',
   );
   const gseWorkspaceIds = getGseLinkedWorkspaceIds(ghoData, ghoQuery);
+  const gseAi = useGseAiRiskAnalysis({ companyId, ghoData, ghoQuery });
   const coverageRows = useMemo(
     () =>
       buildGseCargoTabRows({
@@ -255,12 +257,15 @@ export const GhoFormContent = ({
                 gseId: ghoData.id,
                 ghoData,
                 ghoQuery: ghoQuery as IGho,
+                riskGroupId: gseAi.riskGroupId,
+                analysis: gseAi.analysis,
               }}
               renderGeneral={() => (
                 <GhoAiAnalysisContent
                   companyId={companyId}
                   ghoData={ghoData}
                   ghoQuery={ghoQuery}
+                  aiRiskAnalysis={gseAi.analysis}
                 />
               )}
             >
@@ -279,6 +284,7 @@ export const GhoFormContent = ({
           companyId={companyId}
           ghoData={ghoData}
           ghoQuery={ghoQuery}
+          aiRiskAnalysis={gseAi.analysis}
         />
       )}
     </Wizard>

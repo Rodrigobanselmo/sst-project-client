@@ -8,5 +8,6 @@ export interface AdmColumnProps {
   handleRemove: (values: Partial<IUpsertRiskData>) => void;
   data?: IRiskDataRow;
   risk: IRiskFactors | null;
+  readOnly?: boolean;
   planWorkspaceId?: string;
 }
