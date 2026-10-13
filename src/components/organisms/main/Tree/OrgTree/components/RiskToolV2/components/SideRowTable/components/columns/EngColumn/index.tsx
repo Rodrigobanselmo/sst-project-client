@@ -6,8 +6,11 @@ import { MedTypeEnum } from 'project/enum/medType.enum';
 import { isNaRecMed } from 'project/utils/isNa';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
+
+import { ControlCorrespondenceRowAction } from '../../../../ExistingControlCorrespondenceAction';
 
 import { RiskCatalogBulkAddButton } from '../../../../../risk-catalog-bulk-add/RiskCatalogBulkAddButton';
 import { resolveNewCatalogIds } from '../../../../../risk-catalog-bulk-add/resolve-risk-catalog-multi-select.util';
@@ -16,6 +19,8 @@ import { RiskCatalogDraggableItem } from '../../../../../risk-catalog-dnd/RiskCa
 import { RiskCatalogDropColumn } from '../../../../../risk-catalog-dnd/RiskCatalogDropColumn';
 import { RiskCatalogDndDragItem } from '../../../../../risk-catalog-dnd/risk-catalog-dnd.types';
 import { catalogControlDisplayName } from '../../../../../catalog-control-display-name.util';
+import { filterImplementedControls } from '../../../../../utils/derived-control-scope.util';
+import { openFactorLinkedControlIds } from '../../../../../utils/existing-control-correspondence.util';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { RiskFactorFieldAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
 import { EngColumnProps } from './types';
@@ -33,6 +38,7 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
   risk,
   planWorkspaceId,
 }) => {
+  const { companyId } = useGetCompanyId();
   const batchItems = useMemo((): RiskCatalogDndDragItem[] => {
     return (data?.engs ?? [])
       .filter(
@@ -72,6 +78,11 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
             selectedMed={(data?.engs ?? [])
               .map((eng) => eng?.id)
               .filter((id): id is string => typeof id === 'string' && !!id)}
+            existingControlLinkedIds={openFactorLinkedControlIds(data?.recs)}
+            factorRecs={data?.recs}
+            factorDataRecs={data?.dataRecs}
+            factorDerivedMeasures={data?.riskFactorDataRecDerivedMeasures}
+            planWorkspaceId={planWorkspaceId}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             type={MedTypeEnum.ENG}
@@ -115,7 +126,12 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
           />
         </Box>
         {data &&
-          (data.engs ?? [])
+          filterImplementedControls({
+            controls: data.engs ?? [],
+            getId: (eng) => eng?.id,
+            derivedLinks: data.riskFactorDataRecDerivedMeasures,
+            workspaceId: planWorkspaceId,
+          })
             .filter(
               (eng): eng is IRecMed =>
                 !!eng && typeof eng.id === 'string' && !!eng.id,
@@ -146,6 +162,12 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
                 >
                   <SelectedTableItem
                     name={measureName}
+                    recType={
+                      eng.medType === MedTypeEnum.ADM ||
+                      eng.medType === MedTypeEnum.ENG
+                        ? eng.medType
+                        : undefined
+                    }
                     planStatus={planStatus}
                     planTooltipStatus={planTooltipStatus}
                     itemTintSx={getCharacterizationPlanItemTintSx(
@@ -158,6 +180,21 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
                       handleRemove({
                         engs: [eng.engsRiskData || eng],
                       })
+                    }
+                    trailingAction={
+                      <ControlCorrespondenceRowAction
+                        kind="eng"
+                        control={eng}
+                        recs={data?.recs}
+                        dataRecs={data?.dataRecs}
+                        derivedMeasures={
+                          data?.riskFactorDataRecDerivedMeasures
+                        }
+                        workspaceId={planWorkspaceId}
+                        companyId={companyId}
+                        onLink={handleSelect}
+                        onUndo={handleRemove}
+                      />
                     }
                   />
                 </RiskCatalogDraggableItem>

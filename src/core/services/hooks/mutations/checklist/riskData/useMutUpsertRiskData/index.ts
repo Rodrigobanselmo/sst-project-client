@@ -68,6 +68,11 @@ export interface IUpsertRiskData {
     companyId: string;
     medType?: MedTypeEnum;
   }[];
+  informativeControlLink?: {
+    recMedId: string;
+    controlRecMedId?: string | null;
+    medType?: 'ADM' | 'ENG';
+  };
 }
 
 export async function upsertRiskData(

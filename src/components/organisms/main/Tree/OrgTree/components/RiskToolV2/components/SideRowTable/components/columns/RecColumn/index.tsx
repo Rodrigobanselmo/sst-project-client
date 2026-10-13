@@ -21,6 +21,12 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { catalogControlDisplayName } from '../../../../../catalog-control-display-name.util';
+import { InformativeControlLinkAction } from '../../../../InformativeControlLinkAction';
+import {
+  buildInformativeControlLinkPayload,
+  openFactorCorrespondenceRecIds,
+  resolveInformativeRecommendationLink,
+} from '../../../../../utils/existing-control-correspondence.util';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { RecColumnProps } from './types';
 
@@ -28,7 +34,9 @@ import {
   getCharacterizationPlanItemTintSx,
   getRecommendationPlanStatus,
   getRecommendationPlanTooltipStatus,
+  isExistingControlCorrespondence,
   isRecommendationDeletionAllowed,
+  isRecMedRemovableFromActionPlanStatus,
   recommendationHasDerivedMeasureLink,
 } from '../../../../../utils/characterization-action-plan-visual';
 import { RiskCatalogBulkAddButton } from '../../../../../risk-catalog-bulk-add/RiskCatalogBulkAddButton';
@@ -59,7 +67,10 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   const validRecs = (data?.recs ?? []).filter(
     (rec): rec is IRecMed => !!rec && typeof rec.id === 'string' && !!rec.id,
   );
-  const displayedRecs = sortRecsByTypeHierarchy(validRecs);
+  const residualRecs = validRecs.filter(
+    (rec) => !isExistingControlCorrespondence(rec),
+  );
+  const displayedRecs = sortRecsByTypeHierarchy(residualRecs);
 
   const batchItems = useMemo((): RiskCatalogDndDragItem[] => {
     return (data?.recs ?? [])
@@ -68,6 +79,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
           !!rec &&
           typeof rec.id === 'string' &&
           !!rec.id &&
+          !isExistingControlCorrespondence(rec) &&
           !!catalogControlDisplayName(rec, 'recommendation'),
       )
       .map((rec) => ({
@@ -82,17 +94,17 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   const buildAddPayload = (rec: IRecMed): Partial<IUpsertRiskData> =>
     buildRecsAttachPayload({
       recsToAdd: [rec],
-      currentRecs: validRecs,
+      currentRecs: residualRecs,
       realProbability: data?.probability,
       currentResidual: data?.probabilityAfter,
     });
 
   const buildRemovePayload = (recId: string): Partial<IUpsertRiskData> => {
-    const nextRecs = validRecs.filter((rec) => rec.id !== recId);
+    const nextRecs = residualRecs.filter((rec) => rec.id !== recId);
     const probabilityAfter = resolveResidualProbabilityAfterRecChange({
       realProbability: data?.probability,
       currentResidual: data?.probabilityAfter,
-      previousRecommendations: validRecs,
+      previousRecommendations: residualRecs,
       nextRecommendations: nextRecs,
     });
 
@@ -160,11 +172,13 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             enableRecTypeQuickClassify
             lockSelected
             selectedRec={validRecs.map((rec) => rec.id)}
+            existingControlLinkedIds={openFactorCorrespondenceRecIds(validRecs)}
+            factorRecs={validRecs}
+            factorControls={[...(data?.adms ?? []), ...(data?.engs ?? [])]}
             riskIds={[risk?.id || '']}
             risk={risk ? risk : undefined}
             onCreate={(rec) => {
-              if (rec && rec.id)
-                handleSelect(buildAddPayload(rec), rec);
+              if (rec && rec.id) handleSelect(buildAddPayload(rec), rec);
 
               document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
             }}
@@ -177,7 +191,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
               handleSelect(
                 buildRecsAttachPayload({
                   recsToAdd,
-                  currentRecs: validRecs,
+                  currentRecs: residualRecs,
                   realProbability: data?.probability,
                   currentResidual: data?.probabilityAfter,
                 }),
@@ -230,7 +244,17 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
               planWorkspaceId,
             );
           const missingType = isRecommendationRecTypeMissing(rec.recType);
-          const recommendationName = catalogControlDisplayName(rec, 'recommendation');
+          const recommendationName = catalogControlDisplayName(
+            rec,
+            'recommendation',
+          );
+          const link = resolveInformativeRecommendationLink({
+            rec,
+            controls: [...(data?.adms ?? []), ...(data?.engs ?? [])],
+            dataRecs: data?.dataRecs,
+            derivedMeasures: data?.riskFactorDataRecDerivedMeasures,
+            workspaceId: planWorkspaceId,
+          });
           return (
             <RiskCatalogDraggableItem
               key={rec.id}
@@ -250,9 +274,14 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
                 planTooltipStatus={planTooltipStatus}
                 showPlanDerivedTransformedNote={showDerivedNote}
                 planDeleteBlockedHint={
-                  canRemoveRec ? undefined : REC_DELETE_BLOCKED_HINT
+                  canRemoveRec ||
+                  isRecMedRemovableFromActionPlanStatus(planStatus)
+                    ? undefined
+                    : REC_DELETE_BLOCKED_HINT
                 }
-                itemTintSx={getCharacterizationPlanItemTintSx(planTooltipStatus)}
+                itemTintSx={getCharacterizationPlanItemTintSx(
+                  planTooltipStatus,
+                )}
                 showMissingTypeWarning={missingType}
                 missingTypeTooltip={MISSING_REC_TYPE_TOOLTIP}
                 onQuickClassifyRecType={
@@ -266,6 +295,22 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
                   canRemoveRec
                     ? () => handleRemove(buildRemovePayload(rec.id))
                     : undefined
+                }
+                trailingAction={
+                  <InformativeControlLinkAction
+                    kind={link.kind}
+                    medType={'medType' in link ? link.medType : undefined}
+                    onLink={(medType) =>
+                      handleSelect(
+                        buildInformativeControlLinkPayload(rec.id, medType),
+                      )
+                    }
+                    onUndo={
+                      link.kind === 'linked'
+                        ? () => handleSelect(link.undo)
+                        : undefined
+                    }
+                  />
                 }
               />
             </RiskCatalogDraggableItem>

@@ -27,4 +27,5 @@ export interface RowColumnsProps extends BoxProps {
   selectedRisks?: IRiskFactors[];
   handleDeleteRiskData?: () => void;
   probabilityCountSource?: ProbabilityCountSource;
+  planWorkspaceId?: string;
 }

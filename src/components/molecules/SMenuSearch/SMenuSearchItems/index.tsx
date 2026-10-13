@@ -3,6 +3,7 @@ import { FC, memo } from 'react';
 
 import { Box, Checkbox } from '@mui/material';
 import Icon from '@mui/material/Icon';
+import { SInfoIcon } from 'assets/icons/SInfoIcon';
 import STooltip from 'components/atoms/STooltip';
 
 import { IdsEnum } from 'core/enums/ids.enums';
@@ -48,15 +49,18 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
             id={IdsEnum.MENU_ITEM_ID.replace(':id', String(index))}
             className="checkbox-menu-item"
             aria-disabled={option.locked ? true : undefined}
-            sx={
-              option.locked
+            sx={{
+              ...(option.locked
                 ? {
                     opacity: 0.72,
                     cursor: 'default',
                     pointerEvents: 'auto',
                   }
-                : undefined
-            }
+                : {}),
+              ...(option.lockedLabel
+                ? { whiteSpace: 'normal', overflow: 'hidden' }
+                : {}),
+            }}
             onKeyDown={(e) => {
               if (e.key === 'ArrowUp' && index === 0) {
                 const input = document.getElementById(
@@ -170,30 +174,104 @@ const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
               />
             )}
             {startAdornment && startAdornment(option)}
-            <STooltip
-              minLength={100}
-              placement="right-start"
-              enterDelay={1200}
-              title={content}
+            <Box
+              sx={
+                option.lockedLabel
+                  ? {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      minWidth: 0,
+                      flex: '1 1 auto',
+                      overflow: 'hidden',
+                    }
+                  : { width: '100%' }
+              }
             >
-              <Box width="100%">
-                {renderContent ? (
-                  renderContent(option)
-                ) : (
-                  <SText fontSize={13} lineNumber={2}>
-                    {content}
-                  </SText>
-                )}
-                {option.locked && (
-                  <SText
-                    fontSize={11}
-                    sx={{ color: 'text.light', mt: 0.25, display: 'block' }}
+              <STooltip
+                minLength={100}
+                placement="right-start"
+                enterDelay={1200}
+                title={content}
+              >
+                <Box
+                  sx={{
+                    minWidth: 0,
+                    flex: 1,
+                    overflow: 'hidden',
+                    ...(option.lockedLabel
+                      ? { whiteSpace: 'normal' }
+                      : { width: '100%' }),
+                  }}
+                >
+                  {renderContent ? (
+                    renderContent(option)
+                  ) : (
+                    <SText fontSize={13} lineNumber={2}>
+                      {content}
+                    </SText>
+                  )}
+                  {option.locked && !option.lockedLabel && (
+                    <SText
+                      fontSize={11}
+                      sx={{ color: 'text.light', mt: 0.25, display: 'block' }}
+                    >
+                      já adicionado
+                    </SText>
+                  )}
+                </Box>
+              </STooltip>
+              {option.locked && option.lockedLabel ? (
+                <STooltip
+                  title={option.lockedLabel}
+                  placement="top"
+                  enterDelay={300}
+                  PopperProps={{
+                    modifiers: [
+                      {
+                        name: 'preventOverflow',
+                        options: {
+                          boundary: 'viewport',
+                          altAxis: true,
+                          padding: 8,
+                        },
+                      },
+                      {
+                        name: 'flip',
+                        options: {
+                          fallbackPlacements: ['bottom', 'left', 'right'],
+                        },
+                      },
+                    ],
+                  }}
+                  componentsProps={{
+                    tooltip: {
+                      sx: {
+                        maxWidth: 280,
+                        whiteSpace: 'normal',
+                        overflowWrap: 'anywhere',
+                      },
+                    },
+                  }}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      display: 'inline-flex',
+                      flexShrink: 0,
+                      lineHeight: 0,
+                    }}
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
                   >
-                    já adicionado
-                  </SText>
-                )}
-              </Box>
-            </STooltip>
+                    <Icon
+                      component={SInfoIcon}
+                      sx={{ fontSize: 16, color: 'info.main' }}
+                    />
+                  </Box>
+                </STooltip>
+              ) : null}
+            </Box>
             {endAdornment && endAdornment(option)}
           </STMenuItem>
         );

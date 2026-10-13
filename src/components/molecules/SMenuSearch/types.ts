@@ -11,6 +11,11 @@ export interface IMenuSearchOption extends Record<string, any> {
   checked?: boolean;
   /** Já vinculado: visível, mas não pode ser selecionado de novo. */
   locked?: boolean;
+  /**
+   * Motivo do bloqueio por correspondência ou vínculo.
+   * Não é impresso na linha: o seletor mostra um ícone e a mensagem no tooltip.
+   */
+  lockedLabel?: string;
   hideWithoutSearch?: boolean;
   icon?: ElementType<any>;
 }

@@ -26,4 +26,13 @@ export interface IRecMedSelectProps
    * (com recType) em vez de string[]. Checklist e demais usos não passam.
    */
   resolveMultipleAsItems?: boolean;
+  /**
+   * Ids de correspondência do fator aberto. O mesmo cadastro em outro fator
+   * não entra nesta lista.
+   */
+  existingControlLinkedIds?: string[];
+  /** Recomendações do fator aberto, com origem. */
+  factorRecs?: Array<IRecMed | null | undefined> | null;
+  /** Controles do fator aberto, para texto equivalente à correspondência. */
+  factorControls?: Array<IRecMed | null | undefined> | null;
 }

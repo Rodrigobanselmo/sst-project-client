@@ -4,6 +4,7 @@ import React, { FC, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IEpi } from 'core/interfaces/api/IEpi';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
@@ -12,6 +13,7 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskDat
 import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { buildProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 
+import { resolveOpenPlanWorkspaceId } from '../../../utils/existing-control-correspondence.util';
 import { useColumnAction } from '../../../hooks/useColumnAction';
 import {
   buildRiskDataUpsertWorkspaceFields,
@@ -37,15 +39,17 @@ export const RiskToolSingleRiskRow: FC<
   const gho = useAppSelector((state) => state.gho.selected);
   const viewData = useAppSelector((state) => state.riskAdd.viewData);
   const { query } = useRouter();
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const isOriginEdit = !!originHomogeneousGroupId;
-  const planWorkspaceId = useMemo(() => {
-    if (planWorkspaceIdOverride) return planWorkspaceIdOverride;
-    const fromQuery = query.workspaceId as string | undefined;
-    if (fromQuery) return fromQuery;
-    if (!gho?.id) return undefined;
-    const parts = String(gho.id).split('//');
-    return parts.length >= 2 ? parts[1] : undefined;
-  }, [planWorkspaceIdOverride, query.workspaceId, gho?.id]);
+  const planWorkspaceId = useMemo(
+    () =>
+      resolveOpenPlanWorkspaceId({
+        override: planWorkspaceIdOverride,
+        headerWorkspaceId,
+        ghoId: gho?.id,
+      }),
+    [planWorkspaceIdOverride, headerWorkspaceId, gho?.id],
+  );
   const {
     onHandleSelectSave,
     enqueueSnackbar,

@@ -30,11 +30,12 @@ export const SelectedTableItem: FC<
   onQuickClassifyRecType,
   quickClassifyLoading,
   recType,
+  trailingAction,
 }) => {
   const [classifyPopoverOpen, setClassifyPopoverOpen] = useState(false);
   const recTypeVisual =
     recType !== undefined ? resolveRecTypeVisualState(recType) : null;
-  const stackActionsOnEnd = recTypeVisual !== null;
+  const stackActionsOnEnd = recTypeVisual !== null || trailingAction != null;
 
   return (
     <STooltip
@@ -121,25 +122,26 @@ export const SelectedTableItem: FC<
         >
           {name}
         </SText>
-        {stackActionsOnEnd && recTypeVisual && (
+        {stackActionsOnEnd && (
           <Box
             sx={{
               display: 'flex',
-              flexDirection: 'column',
+              flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              gap: 0,
+              gap: 0.25,
               ml: 0.25,
             }}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            {recTypeVisual.kind === 'classified' && (
+            {recTypeVisual?.kind === 'classified' && (
               <Box title={recTypeVisual.tooltip} sx={{ lineHeight: 0 }}>
                 <RecTypeCategoryIcon recType={recTypeVisual.recType} fontSize={14} />
               </Box>
             )}
+            {trailingAction}
             {handleRemove && (
               <SIconButton
                 sx={{ maxWidth: 10, maxHeight: 10, p: 0 }}

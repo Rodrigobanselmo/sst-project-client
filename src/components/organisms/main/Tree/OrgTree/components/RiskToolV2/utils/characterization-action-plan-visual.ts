@@ -6,6 +6,11 @@ import palette from 'configs/theme/palette';
 import { IRiskData, IRiskDataRec } from 'core/interfaces/api/IRiskData';
 import { StatusEnum } from 'project/enum/status.enum';
 
+export {
+  EXISTING_CONTROL_CORRESPONDENCE_LABEL,
+  isExistingControlCorrespondence,
+} from './existing-control-correspondence.util';
+
 function dataRecsForWorkspace(
   dataRecs: IRiskDataRec[] | undefined,
   workspaceId?: string,
@@ -16,12 +21,21 @@ function dataRecsForWorkspace(
   return scoped.length ? scoped : dataRecs;
 }
 
+/** Status visual da recomendação: só o estabelecimento aberto. Sem linha local, não herda conclusão de outro. */
+function recommendationRowsForOpenWorkspace(
+  dataRecs: IRiskDataRec[] | undefined,
+  workspaceId?: string,
+): IRiskDataRec[] {
+  if (!dataRecs?.length || !workspaceId) return [];
+  return dataRecs.filter((row) => row.workspaceId === workspaceId);
+}
+
 export function getRecommendationPlanStatus(
   data: IRiskData | undefined,
   recMedId: string,
   workspaceId?: string,
 ): StatusEnum | undefined {
-  return dataRecsForWorkspace(data?.dataRecs, workspaceId).find(
+  return recommendationRowsForOpenWorkspace(data?.dataRecs, workspaceId).find(
     (r) => r.recMedId === recMedId,
   )?.status;
 }
@@ -33,12 +47,11 @@ export function recommendationHasDerivedMeasureLink(
   workspaceId?: string,
 ): boolean {
   const links = data?.riskFactorDataRecDerivedMeasures;
-  if (!links?.length) return false;
-  const scoped = workspaceId
-    ? links.filter((l) => l.workspaceId === workspaceId)
-    : links;
-  const pool = scoped.length ? scoped : links;
-  return pool.some((l) => l.sourceRecMedId === sourceRecMedId);
+  if (!links?.length || !workspaceId) return false;
+  return links.some(
+    (link) =>
+      link.workspaceId === workspaceId && link.sourceRecMedId === sourceRecMedId,
+  );
 }
 
 /**
@@ -70,7 +83,7 @@ export function getRecommendationPlanTooltipStatus(
   recMedId: string,
   workspaceId?: string,
 ): StatusEnum {
-  const row = dataRecsForWorkspace(data?.dataRecs, workspaceId).find(
+  const row = recommendationRowsForOpenWorkspace(data?.dataRecs, workspaceId).find(
     (r) => r.recMedId === recMedId,
   );
   const raw = row?.status;

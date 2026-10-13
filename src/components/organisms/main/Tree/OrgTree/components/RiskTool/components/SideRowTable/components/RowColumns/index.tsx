@@ -50,6 +50,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   isDeleteLoading,
   isLoading,
   probabilityCountSource,
+  planWorkspaceId,
   ...props
 }) => {
   const { columns } = useRowColumns();
@@ -144,12 +145,14 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
               handleRemove={handleRemove}
               data={riskData}
               risk={risk}
+              planWorkspaceId={planWorkspaceId}
             />
             <AdmColumn
               handleSelect={handleSelect}
               handleRemove={handleRemove}
               data={riskData}
               risk={risk}
+              planWorkspaceId={planWorkspaceId}
             />
             {!isRepresentAll ? (
               <>
@@ -188,6 +191,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
               handleRemove={handleRemove}
               data={riskData}
               risk={risk}
+              planWorkspaceId={planWorkspaceId}
             />
             {!isRepresentAll ? (
               <>

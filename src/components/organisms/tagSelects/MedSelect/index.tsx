@@ -12,6 +12,8 @@ import sortArray from 'sort-array';
 import EditIcon from 'assets/icons/SEditIcon';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
+import { ExistingControlLinkedOptionCaption } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/components/ExistingControlCorrespondenceAction';
+import { measureSelectionBlockMessage } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/existing-control-correspondence.util';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -34,8 +36,17 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   onlyInput,
   onlyEpi = false,
   onCreate = () => {},
+  existingControlLinkedIds,
+  factorRecs,
+  factorDataRecs,
+  factorDerivedMeasures,
+  planWorkspaceId,
   ...props
 }) => {
+  const linkedOnThisFactor = useMemo(
+    () => new Set((existingControlLinkedIds ?? []).map(String)),
+    [existingControlLinkedIds],
+  );
   const riskIdsArray = [...(riskIds.map((rId) => String(rId)) || [])];
   if (risk) riskIdsArray.push(risk.id);
 
@@ -55,11 +66,33 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
 
   const { onStackOpenModal } = useModal();
 
+  const measureBlock = (option?: {
+    id?: string | null;
+    recName?: string | null;
+    medName?: string | null;
+  }) =>
+    option
+      ? measureSelectionBlockMessage({
+          option,
+          recs: factorRecs,
+          dataRecs: factorDataRecs,
+          derivedMeasures: factorDerivedMeasures,
+          workspaceId: planWorkspaceId,
+          linkedControlIds: existingControlLinkedIds,
+        })
+      : undefined;
+
   const handleSelectRecMed = (options: IRecMed | string[]) => {
     if (Array.isArray(options)) {
-      if (handleSelect) handleSelect(options);
+      const allowed = options.filter((id) => {
+        const found = (recMed ?? []).find((item) => String(item.id) === String(id));
+        return !measureBlock(found ?? { id: String(id) });
+      });
+      if (handleSelect && allowed.length) handleSelect(allowed);
       return;
     }
+
+    if (measureBlock(options)) return;
 
     if (
       onlyEpi ||
@@ -133,7 +166,7 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   };
 
   const options = useMemo(() => {
-    const recMedList = recMed;
+    const recMedList = recMed ?? [];
 
     return sortArray(recMedList, {
       by: ['primary', 'all', 'medName'],
@@ -142,8 +175,26 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
         primary: (v) => v.medName?.slice(0, 3) == 'Não',
         all: (v) => !v.isAll,
       },
+    }).map((option) => {
+      const message = measureSelectionBlockMessage({
+        option,
+        recs: factorRecs,
+        dataRecs: factorDataRecs,
+        derivedMeasures: factorDerivedMeasures,
+        workspaceId: planWorkspaceId,
+        linkedControlIds: existingControlLinkedIds,
+      });
+      if (!message) return option;
+      return { ...option, locked: true, lockedLabel: message };
     });
-  }, [recMed]);
+  }, [
+    recMed,
+    factorRecs,
+    factorDataRecs,
+    factorDerivedMeasures,
+    planWorkspaceId,
+    existingControlLinkedIds,
+  ]);
 
   const recMedLength = String(selectedMed ? selectedMed.length : 0);
 
@@ -175,17 +226,24 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       }}
       endAdornment={(options: IRecMed | undefined) => {
         return (
-          <STooltip enterDelay={1200} withWrapper title={'editar'}>
-            <SIconButton
-              onClick={(e) => handleEditRecMed(e, options)}
-              sx={{ width: '2rem', height: '2rem' }}
-            >
-              <Icon
-                sx={{ color: 'text.light', fontSize: '18px' }}
-                component={EditIcon}
-              />
-            </SIconButton>
-          </STooltip>
+          <>
+            <ExistingControlLinkedOptionCaption
+              active={
+                !!options?.id && linkedOnThisFactor.has(String(options.id))
+              }
+            />
+            <STooltip enterDelay={1200} withWrapper title={'editar'}>
+              <SIconButton
+                onClick={(e) => handleEditRecMed(e, options)}
+                sx={{ width: '2rem', height: '2rem' }}
+              >
+                <Icon
+                  sx={{ color: 'text.light', fontSize: '18px' }}
+                  component={EditIcon}
+                />
+              </SIconButton>
+            </STooltip>
+          </>
         );
       }}
       optionsFieldName={{ valueField: 'id', contentField: 'medName' }}

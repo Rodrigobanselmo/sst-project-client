@@ -9,6 +9,8 @@ import sortArray from 'sort-array';
 import EditIcon from 'assets/icons/SEditIcon';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
+import { ExistingControlLinkedOptionCaption } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/components/ExistingControlCorrespondenceAction';
+import { recommendationSelectionBlockMessage } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/existing-control-correspondence.util';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -43,8 +45,15 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   type,
   enableRecTypeQuickClassify = false,
   resolveMultipleAsItems = false,
+  existingControlLinkedIds,
+  factorRecs,
+  factorControls,
   ...props
 }) => {
+  const linkedOnThisFactor = useMemo(
+    () => new Set((existingControlLinkedIds ?? []).map(String)),
+    [existingControlLinkedIds],
+  );
   const riskIdsArray = [...(riskIds.map((rId) => String(rId)) || [])];
   if (risk) riskIdsArray.push(risk.id);
 
@@ -70,15 +79,27 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
 
   const handleSelectRecMed = (options: string[] | IRecMed) => {
     if (!handleSelect) return;
+    const blocked = (option?: { id?: string | null; recName?: string | null; medName?: string | null }) =>
+      option
+        ? recommendationSelectionBlockMessage({
+            option,
+            recs: factorRecs,
+            controls: factorControls,
+          })
+        : undefined;
     if (resolveMultipleAsItems && Array.isArray(options)) {
-      const items = options.map((id) => {
-        const found = recMed.find((rec) => String(rec.id) === String(id));
-        if (found && typeof found.id === 'string' && found.id) return found;
-        return { id: String(id) } as IRecMed;
-      });
+      const items = options
+        .map((id) => {
+          const found = (recMed ?? []).find((rec) => String(rec.id) === String(id));
+          if (found && typeof found.id === 'string' && found.id) return found;
+          return { id: String(id) } as IRecMed;
+        })
+        .filter((item) => !blocked(item));
+      if (!items.length) return;
       handleSelect(items);
       return;
     }
+    if (!Array.isArray(options) && blocked(options)) return;
     handleSelect(options);
   };
 
@@ -143,7 +164,7 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   };
 
   const options = useMemo(() => {
-    const recMedList = recMed;
+    const recMedList = recMed ?? [];
 
     const sorted = sortArray(recMedList, {
       by: ['all', 'recName'],
@@ -151,6 +172,14 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       computed: {
         all: (v) => !v.isAll,
       },
+    }).map((option) => {
+      const message = recommendationSelectionBlockMessage({
+        option,
+        recs: factorRecs,
+        controls: factorControls,
+      });
+      if (!message) return option;
+      return { ...option, locked: true, lockedLabel: message };
     });
 
     if (!enableRecTypeQuickClassify) return sorted;
@@ -164,6 +193,8 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
     recSearch,
     recTypeFilter,
     selectedRec,
+    factorRecs,
+    factorControls,
   ]);
 
   const recMedLength = String(selectedRec ? selectedRec.length : 0);
@@ -205,17 +236,24 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       }}
       endAdornment={(options: IRecMed | undefined) => {
         return (
-          <STooltip enterDelay={1200} withWrapper title={'editar'}>
-            <SIconButton
-              onClick={(e) => handleEditRecMed(e, options)}
-              sx={{ width: '2rem', height: '2rem' }}
-            >
-              <Icon
-                sx={{ color: 'text.light', fontSize: '18px' }}
-                component={EditIcon}
-              />
-            </SIconButton>
-          </STooltip>
+          <>
+            <ExistingControlLinkedOptionCaption
+              active={
+                !!options?.id && linkedOnThisFactor.has(String(options.id))
+              }
+            />
+            <STooltip enterDelay={1200} withWrapper title={'editar'}>
+              <SIconButton
+                onClick={(e) => handleEditRecMed(e, options)}
+                sx={{ width: '2rem', height: '2rem' }}
+              >
+                <Icon
+                  sx={{ color: 'text.light', fontSize: '18px' }}
+                  component={EditIcon}
+                />
+              </SIconButton>
+            </STooltip>
+          </>
         );
       }}
       optionsFieldName={{ valueField: 'id', contentField: 'recName' }}

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useMemo } from 'react';
 
-import { useRouter } from 'next/router';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IEpi } from 'core/interfaces/api/IEpi';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
@@ -14,6 +14,7 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskDat
 import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { buildProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 
+import { resolveOpenPlanWorkspaceId } from '../../../utils/existing-control-correspondence.util';
 import { useColumnAction } from '../../../hooks/useColumnAction';
 import { RowColumns } from '../components/RowColumns';
 import { SideTableProps } from './types';
@@ -29,14 +30,15 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
 }) => {
   const risk = useAppSelector(selectRisk);
   const viewData = useAppSelector((state) => state.riskAdd.viewData);
-  const { query } = useRouter();
-  const planWorkspaceId = useMemo(() => {
-    const fromQuery = query.workspaceId as string | undefined;
-    if (fromQuery) return fromQuery;
-    if (!gho?.id) return undefined;
-    const parts = String(gho.id).split('//');
-    return parts.length >= 2 ? parts[1] : undefined;
-  }, [query.workspaceId, gho?.id]);
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
+  const planWorkspaceId = useMemo(
+    () =>
+      resolveOpenPlanWorkspaceId({
+        headerWorkspaceId,
+        ghoId: gho?.id,
+      }),
+    [headerWorkspaceId, gho?.id],
+  );
   const {
     onHandleSelectSave,
     enqueueSnackbar,

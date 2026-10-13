@@ -31,6 +31,9 @@ export interface IRecMed {
   status: StatusEnum;
   medType?: MedTypeEnum;
   recType?: RecTypeEnum;
+  /** Origem do vínculo neste fator. EXISTING_CONTROL é correspondência de controle existente. */
+  origin?: 'STANDARD' | 'EXISTING_CONTROL';
+  linkedControlRecMedId?: string | null;
   created_at: string;
   engsRiskData: IEngsRiskData;
   isAll: boolean;

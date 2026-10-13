@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
-import { useRouter } from 'next/router';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { IEpi } from 'core/interfaces/api/IEpi';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
@@ -14,6 +14,7 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskDat
 import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import { buildProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 
+import { resolveOpenPlanWorkspaceId } from '../../../../RiskToolV2/utils/existing-control-correspondence.util';
 import { useColumnAction } from '../../../hooks/useColumnAction';
 import { RowColumns } from '../components/RowColumns';
 import { SideTableProps } from './types';
@@ -29,6 +30,11 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
 }) => {
   const risk = useAppSelector(selectRisk);
   const viewData = useAppSelector((state) => state.riskAdd.viewData);
+  const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
+  const planWorkspaceId = resolveOpenPlanWorkspaceId({
+    headerWorkspaceId,
+    ghoId: gho?.id,
+  });
   const {
     onHandleSelectSave,
     enqueueSnackbar,
@@ -129,6 +135,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
       handleEditEngs={handleEditEngs}
       handleEditExams={handleEditExams}
       probabilityCountSource={buildProbabilityCountSource(gho, viewData)}
+      planWorkspaceId={planWorkspaceId}
       isRepresentAll={risk?.representAll}
       showEndDate
       isDeleteLoading={isDeleteLoading}

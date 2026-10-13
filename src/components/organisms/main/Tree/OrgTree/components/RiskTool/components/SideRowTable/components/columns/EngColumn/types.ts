@@ -9,4 +9,5 @@ export interface EngColumnProps {
   handleEdit: (recMed: IRecMed) => void;
   data?: IRiskDataRow;
   risk: IRiskFactors | null;
+  planWorkspaceId?: string;
 }

@@ -1,6 +1,13 @@
 import React, { FC, useState } from 'react';
 
 import { Box } from '@mui/material';
+import { InformativeControlLinkAction } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/components/InformativeControlLinkAction';
+import {
+  buildInformativeControlLinkPayload,
+  implementationRecommendations,
+  openFactorCorrespondenceRecIds,
+  resolveInformativeRecommendationLink,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/existing-control-correspondence.util';
 import { RecSelect } from 'components/organisms/tagSelects/RecSelect';
 import { sortRecsByTypeHierarchy } from 'components/organisms/tagSelects/RecSelect/resolve-rec-type-visual-state.util';
 import { resolveResidualProbabilityAfterRecChange } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
@@ -26,6 +33,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   handleRemove,
   data,
   risk,
+  planWorkspaceId,
 }) => {
   const { onStackOpenModal } = useModal();
   const updateRecMedMut = useMutUpdateRecMed();
@@ -34,7 +42,9 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   const validRecs = (data?.recs ?? []).filter(
     (rec): rec is IRecMed => !!rec && typeof rec.id === 'string' && !!rec.id,
   );
-  const displayedRecs = sortRecsByTypeHierarchy(validRecs);
+  const displayedRecs = sortRecsByTypeHierarchy(
+    implementationRecommendations(validRecs),
+  );
 
   const buildAddPayload = (rec: IRecMed): Partial<IUpsertRiskData> => {
     const nextRecs = [...validRecs, rec];
@@ -116,6 +126,9 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
         enableRecTypeQuickClassify
         lockSelected
         selectedRec={validRecs.map((rec) => rec.id)}
+        existingControlLinkedIds={openFactorCorrespondenceRecIds(validRecs)}
+        factorRecs={validRecs}
+        factorControls={[...(data?.adms ?? []), ...(data?.engs ?? [])]}
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
         onCreate={(rec) => {
@@ -130,22 +143,47 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
       />
       {displayedRecs.map((rec) => {
         const missingType = isRecommendationRecTypeMissing(rec.recType);
+        const link = resolveInformativeRecommendationLink({
+          rec,
+          controls: [...(data?.adms ?? []), ...(data?.engs ?? [])],
+          dataRecs: data?.dataRecs,
+          derivedMeasures: data?.riskFactorDataRecDerivedMeasures,
+          workspaceId: planWorkspaceId,
+        });
         return (
-          <SelectedTableItem
-            key={rec.id}
-            name={rec.recName}
-            recType={rec.recType ?? null}
-            showMissingTypeWarning={missingType}
-            missingTypeTooltip={MISSING_REC_TYPE_TOOLTIP}
-            onQuickClassifyRecType={
-              missingType
-                ? (recType) => handleQuickClassify(rec, recType)
-                : undefined
-            }
-            quickClassifyLoading={classifyingRecId === rec.id}
-            handleEdit={() => handleEditRec(rec)}
-            handleRemove={() => handleRemove(buildRemovePayload(rec.id))}
-          />
+          <Box key={rec.id}>
+            <SelectedTableItem
+              name={rec.recName}
+              recType={rec.recType ?? null}
+              showMissingTypeWarning={missingType}
+              missingTypeTooltip={MISSING_REC_TYPE_TOOLTIP}
+              onQuickClassifyRecType={
+                missingType
+                  ? (recType) => handleQuickClassify(rec, recType)
+                  : undefined
+              }
+              quickClassifyLoading={classifyingRecId === rec.id}
+              handleEdit={() => handleEditRec(rec)}
+              handleRemove={() => handleRemove(buildRemovePayload(rec.id))}
+              trailingAction={
+                <InformativeControlLinkAction
+                  kind={link.kind}
+                  medType={'medType' in link ? link.medType : undefined}
+                  onLink={(medType) =>
+                    handleSelect(
+                      buildInformativeControlLinkPayload(rec.id, medType),
+                      rec,
+                    )
+                  }
+                  onUndo={
+                    link.kind === 'linked'
+                      ? () => handleSelect(link.undo, rec)
+                      : undefined
+                  }
+                />
+              }
+            />
+          </Box>
         );
       })}
     </Box>

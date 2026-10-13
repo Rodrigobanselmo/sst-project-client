@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 import { SxProps } from '@mui/material';
 
 import { RecTypeEnum } from 'project/enum/recType.enum';
@@ -29,11 +31,13 @@ export interface SelectedTableItemProps {
    */
   showPlanDerivedTransformedNote?: boolean;
   /**
-   * Tipo da recomendação já vinculado (`rec.recType`).
-   * Quando informado (inclusive `null`), a coluna de ações vai para a direita
-   * com o ícone de categoria acima da lixeira.
+   * Classificação ADM/ENG/EPI. Quando informada (inclusive `null`), ou quando
+   * há `trailingAction`, os ícones ficam à direita do nome, na ordem:
+   * tipo, vínculo e exclusão.
    */
   recType?: RecTypeEnum | string | null;
+  /** Ícone de vínculo entre a classificação e a exclusão. */
+  trailingAction?: ReactNode;
   /** Alerta quando a recomendação não tem `recType` (ADM/ENG/EPI). */
   showMissingTypeWarning?: boolean;
   missingTypeTooltip?: string;
