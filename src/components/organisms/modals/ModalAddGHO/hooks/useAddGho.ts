@@ -394,8 +394,18 @@ export const useAddGho = () => {
         ? ghoData.workspaceIds
         : originalWorkspaceIds;
 
+      const updateWorkspaceIds = buildGseCreateWorkspacePayload(selectedWorkspaceIds);
+      if (!updateWorkspaceIds) {
+        setCreateWorkspaceError('Selecione ao menos um estabelecimento');
+        enqueueSnackbar('Selecione ao menos um estabelecimento', {
+          variant: 'error',
+        });
+        return;
+      }
+      setCreateWorkspaceError('');
+
       const removedWorkspaceIds = originalWorkspaceIds.filter(
-        (workspaceId) => !selectedWorkspaceIds.includes(workspaceId),
+        (workspaceId) => !updateWorkspaceIds.includes(workspaceId),
       );
 
       const hierarchyWorkspaceIds = removeDuplicate(
@@ -420,7 +430,7 @@ export const useAddGho = () => {
 
       const updatePayloadBase: IUpdateGho = {
         ...submitData,
-        workspaceIds: selectedWorkspaceIds,
+        workspaceIds: updateWorkspaceIds,
         id: ghoData.id,
       };
 
@@ -439,11 +449,16 @@ export const useAddGho = () => {
               intent,
               savedId: ghoData.id,
               form: data,
-              workspaceIds: selectedWorkspaceIds,
+              workspaceIds: updateWorkspaceIds,
             });
           })
           .catch((error: any) => {
             const status = error?.response?.status;
+            const apiMessage =
+              error?.response?.data?.message ||
+              (Array.isArray(error?.response?.data?.message)
+                ? error.response.data.message[0]
+                : undefined);
 
             if (status === 409 && !withConfirmUnlinkWorkspaces) {
               preventWarn(
@@ -458,6 +473,16 @@ export const useAddGho = () => {
                   tag: 'warning',
                 },
               );
+              return;
+            }
+
+            if (status === 400) {
+              // useMutUpdateGho já exibe o snackbar da API; aqui só marca o campo.
+              const message = Array.isArray(apiMessage)
+                ? apiMessage[0]
+                : apiMessage ||
+                  'Todo GSE operacional ativo deve possuir ao menos um estabelecimento vinculado.';
+              setCreateWorkspaceError(String(message));
             }
           });
       };
