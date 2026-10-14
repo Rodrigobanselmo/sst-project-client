@@ -77,6 +77,11 @@ assert.match(dialogSource, /Definir como padrão/);
 assert.match(dialogSource, /Restaurar padrão/);
 assert.match(dialogSource, /useMutateUpsertSystemAiPrompt/);
 assert.match(dialogSource, /useFetchSystemAiPrompt/);
+assert.match(dialogSource, /Modelo de IA para identificação de fatores/);
+assert.match(dialogSource, /sessionModel/);
+assert.match(dialogSource, /Seleção temporária/);
+// Modelo de sessão não entra no upsert da orientação funcional.
+assert.equal(/action: 'save'[\s\S]{0,160}model/.test(dialogSource), false);
 
 const typesSource = readFileSync(
   join(

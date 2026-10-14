@@ -10,7 +10,11 @@ export const useMutateAiAnalyzeCharacterization = () => {
   const mutate = useMutate({
     mutationFn: aiAnalyzeCharacterization,
     invalidateQueryKey: false,
-    onSuccess: () => onSuccessMessage('Análise de IA realizada com sucesso'),
+    onSuccess: (_data, variables) => {
+      // Catalog-only: o diálogo emite feedback específico do resultado.
+      if (variables?.suggestionMode === 'catalog-only') return;
+      onSuccessMessage('Análise de IA realizada com sucesso');
+    },
     onError: (error: unknown) => {
       if (isAiAnalyzeRequestCanceled(error)) return;
       onErrorMessage(error as unknown as IErrorResp);

@@ -21,6 +21,18 @@ export interface AiAnalyzeCharacterizationParams {
     | 'medidasAdministrativasRecomendadas';
   /** Ausente preserva a análise completa. catalog-only = só catálogo + justificativa. */
   suggestionMode?: 'catalog-only';
+  /**
+   * Somente catalog-only de Elemento. Ausente = todas as fotos persistidas (legado).
+   * existingPhotoIds: [] = nenhuma foto cadastrada.
+   */
+  photoSelection?: {
+    existingPhotoIds?: string[];
+    temporaryImages?: Array<{
+      fileName?: string;
+      mimeType?: 'image/jpeg' | 'image/png' | 'image/webp';
+      dataUrl: string;
+    }>;
+  };
   /** Optional abort signal to cancel an in-flight AI analysis request. */
   signal?: AbortSignal;
 }
@@ -104,6 +116,11 @@ export type Result = {
   detailedRisks: DetailedRisk[]; // Compat: novos riscos sugeridos
   newRiskSuggestions?: DetailedRisk[];
   existingRiskReviews?: ExistingRiskReview[];
+  /**
+   * Somente catalog-only: fatores que a IA identificou e que já estavam
+   * vinculados. Ausente na análise completa.
+   */
+  identifiedAlreadyLinkedRisks?: DetailedRisk[];
   description: string; // Descrição extraída das fotos e informações
   workProcess: WorkProcessItem[]; // Processo de trabalho extraído
   metadata?: Record<string, any>;

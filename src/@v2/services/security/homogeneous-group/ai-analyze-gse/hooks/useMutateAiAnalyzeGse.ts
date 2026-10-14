@@ -11,7 +11,10 @@ export const useMutateAiAnalyzeGse = () => {
   return useMutate({
     mutationFn: aiAnalyzeGse,
     invalidateQueryKey: false,
-    onSuccess: () => onSuccessMessage('Análise de IA realizada com sucesso'),
+    onSuccess: (_data, variables) => {
+      if (variables?.suggestionMode === 'catalog-only') return;
+      onSuccessMessage('Análise de IA realizada com sucesso');
+    },
     onError: (error: unknown) => {
       if (isAiAnalyzeRequestCanceled(error)) return;
       onErrorMessage(error as unknown as IErrorResp);

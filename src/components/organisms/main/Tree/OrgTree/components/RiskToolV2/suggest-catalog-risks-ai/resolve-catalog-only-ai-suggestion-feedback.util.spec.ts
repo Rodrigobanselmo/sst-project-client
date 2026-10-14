@@ -4,40 +4,53 @@ import { resolveCatalogOnlyAiSuggestionFeedback } from './resolve-catalog-only-a
 
 const emptyApi = resolveCatalogOnlyAiSuggestionFeedback({
   accepted: [],
-  apiReturnedCount: 0,
+  recognizedAlreadyLinked: [],
+  apiReturnedNewCount: 0,
+  apiReturnedAlreadyLinkedCount: 0,
   discardedInvalidCatalog: 0,
-  discardedAlreadyLinked: 0,
+  discardedAlreadyLinkedFromNew: 0,
 });
 assert.ok(emptyApi);
-assert.match(emptyApi.message, /não retornou sugestões/i);
+assert.match(emptyApi.message, /sem fatores de risco pertinentes/i);
+assert.match(emptyApi.message, /não implica/i);
 assert.equal(emptyApi.variant, 'info');
 
-const allDiscarded = resolveCatalogOnlyAiSuggestionFeedback({
+const onlyLinked = resolveCatalogOnlyAiSuggestionFeedback({
   accepted: [],
-  apiReturnedCount: 3,
-  discardedInvalidCatalog: 2,
-  discardedAlreadyLinked: 1,
-});
-assert.ok(allDiscarded);
-assert.match(allDiscarded.message, /não está disponível|fora do catálogo/i);
-assert.equal(allDiscarded.variant, 'warning');
-
-const partial = resolveCatalogOnlyAiSuggestionFeedback({
-  accepted: [{ id: 'a' } as never],
-  apiReturnedCount: 2,
-  discardedInvalidCatalog: 1,
-  discardedAlreadyLinked: 0,
-});
-assert.ok(partial);
-assert.match(partial.message, /disponível/i);
-assert.match(partial.message, /descartadas/i);
-
-const allValid = resolveCatalogOnlyAiSuggestionFeedback({
-  accepted: [{ id: 'a' } as never],
-  apiReturnedCount: 1,
+  recognizedAlreadyLinked: [{ id: 'c' } as never],
+  apiReturnedNewCount: 0,
+  apiReturnedAlreadyLinkedCount: 1,
   discardedInvalidCatalog: 0,
-  discardedAlreadyLinked: 0,
+  discardedAlreadyLinkedFromNew: 0,
 });
-assert.equal(allValid, null);
+assert.ok(onlyLinked);
+assert.match(onlyLinked.message, /sem novos fatores/i);
+assert.match(onlyLinked.message, /já vinculado/i);
+
+const withImageFallback = resolveCatalogOnlyAiSuggestionFeedback(
+  {
+    accepted: [{ id: 'a' } as never],
+    recognizedAlreadyLinked: [],
+    apiReturnedNewCount: 1,
+    apiReturnedAlreadyLinkedCount: 0,
+    discardedInvalidCatalog: 0,
+    discardedAlreadyLinkedFromNew: 0,
+  },
+  { imageFallbackApplied: true, imageFallbackTextOnly: true, selectedImageCount: 2 },
+);
+assert.ok(withImageFallback);
+assert.match(withImageFallback.message, /apenas textual/i);
+
+const mixed = resolveCatalogOnlyAiSuggestionFeedback({
+  accepted: [{ id: 'a' } as never],
+  recognizedAlreadyLinked: [{ id: 'c' } as never],
+  apiReturnedNewCount: 1,
+  apiReturnedAlreadyLinkedCount: 1,
+  discardedInvalidCatalog: 0,
+  discardedAlreadyLinkedFromNew: 0,
+});
+assert.ok(mixed);
+assert.equal(mixed.variant, 'success');
+assert.match(mixed.message, /oportunidade/i);
 
 console.log('resolve-catalog-only-ai-suggestion-feedback.util.spec.ts OK');

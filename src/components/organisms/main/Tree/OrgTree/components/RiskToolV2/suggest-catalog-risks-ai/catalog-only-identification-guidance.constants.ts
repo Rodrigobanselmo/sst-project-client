@@ -26,7 +26,7 @@ export const CATALOG_ONLY_PROTECTED_RULES_SUMMARY = [
   'Uso exclusivo de fatores ativos do catálogo permitido (IDs da Base de Conhecimento).',
   'Proibição de inventar fatores ou IDs fora do catálogo.',
   'Regras de FRPS / exclusão de fatores psicossociais não vinculados quando aplicável.',
-  'Exclusão de fatores já vinculados diretamente ao contexto.',
+  'Classificação de fatores já vinculados (exibição sem inclusão duplicada).',
   'Tratamento de fatores solicitados explicitamente pelo usuário (orientação a avaliar, sem inclusão automática).',
   'Ausência de preenchimento automático de probabilidade, severidade, controles e recomendações.',
   'Preservação do inventário, PGR e plano de ação (análise catalog-only não grava esses campos).',

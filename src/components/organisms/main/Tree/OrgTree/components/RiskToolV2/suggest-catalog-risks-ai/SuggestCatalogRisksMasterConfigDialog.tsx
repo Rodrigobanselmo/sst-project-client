@@ -8,6 +8,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
   Skeleton,
   TextField,
   Typography,
@@ -22,6 +26,10 @@ import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prom
 import { getSystemAiPromptErrorMessage } from '@v2/services/forms/system-ai-prompt/utils/system-ai-prompt-error.utils';
 
 import {
+  CATALOG_ONLY_AI_MODEL_OPTIONS,
+  type CatalogOnlyAiModelSessionValue,
+} from './catalog-only-ai-model-options.constants';
+import {
   CATALOG_ONLY_PROTECTED_RULES_SUMMARY,
   resolveCatalogOnlyContextFields,
   resolveCatalogOnlyIdentificationGuidanceFactoryDefault,
@@ -33,6 +41,9 @@ type Props = {
   open: boolean;
   onClose: () => void;
   kind: SuggestCatalogRisksContextKind;
+  /** Sessão temporária (não persiste em SystemAiPrompt). */
+  sessionModel: CatalogOnlyAiModelSessionValue;
+  onSessionModelChange: (value: CatalogOnlyAiModelSessionValue) => void;
 };
 
 function formatUpdatedAt(value?: string): string {
@@ -48,6 +59,8 @@ export const SuggestCatalogRisksMasterConfigDialog: FC<Props> = ({
   open,
   onClose,
   kind,
+  sessionModel,
+  onSessionModelChange,
 }) => {
   const { showConfirmation } = useConfirmationModal();
   const { enqueueSnackbar } = useSnackbar();
@@ -186,6 +199,40 @@ export const SuggestCatalogRisksMasterConfigDialog: FC<Props> = ({
         {fetchErrorMessage && (
           <Alert severity="warning">{fetchErrorMessage}</Alert>
         )}
+
+        <FormControl fullWidth size="small">
+          <InputLabel id="catalog-only-ai-model-label">
+            Modelo de IA para identificação de fatores
+          </InputLabel>
+          <Select
+            labelId="catalog-only-ai-model-label"
+            label="Modelo de IA para identificação de fatores"
+            value={sessionModel}
+            onChange={(event) =>
+              onSessionModelChange(
+                event.target.value as CatalogOnlyAiModelSessionValue,
+              )
+            }
+          >
+            {CATALOG_ONLY_AI_MODEL_OPTIONS.map((option) => (
+              <MenuItem
+                key={option.value || 'system-default'}
+                value={option.value}
+              >
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 0.75, display: 'block' }}
+          >
+            Seleção temporária para testes locais (master). Opções filtradas da
+            lista central do SimpleSST (visão + JSON estruturado). Não é salva
+            com a orientação funcional nem altera o padrão dos demais usuários.
+          </Typography>
+        </FormControl>
 
         <Alert severity="info">
           Revisão ativa: {systemAiPrompt?.revision ?? 0}

@@ -1,47 +1,88 @@
 import type { DetailedRisk } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 
 export type FilterCatalogOnlyAiSuggestionsResult = {
+  /** Novas oportunidades de inclusão (checkbox). */
   accepted: DetailedRisk[];
-  apiReturnedCount: number;
+  /** Fatores que a IA identificou e que já estão vinculados (somente leitura). */
+  recognizedAlreadyLinked: DetailedRisk[];
+  apiReturnedNewCount: number;
+  apiReturnedAlreadyLinkedCount: number;
   discardedInvalidCatalog: number;
-  discardedAlreadyLinked: number;
+  /** Itens de `incoming` novos que o client ainda vê como já vinculados. */
+  discardedAlreadyLinkedFromNew: number;
 };
 
 /**
- * Valida sugestões da API contra o catálogo já carregado e vínculos diretos.
+ * Classifica sugestões catalog-only em novas vs já vinculadas.
  * Não trata “cache ausente”: o caller deve garantir catálogo carregado.
  * Fatores herdados não entram em existingDirectRiskIds.
  */
 export function filterCatalogOnlyAiSuggestions(params: {
   incoming: DetailedRisk[];
+  incomingAlreadyLinked?: DetailedRisk[];
   catalogIds: Set<string>;
   existingDirectRiskIds: Set<string>;
 }): FilterCatalogOnlyAiSuggestionsResult {
-  const apiReturnedCount = params.incoming.length;
+  const apiReturnedNewCount = params.incoming.length;
+  const apiReturnedAlreadyLinkedCount = (params.incomingAlreadyLinked || [])
+    .length;
   let discardedInvalidCatalog = 0;
-  let discardedAlreadyLinked = 0;
+  let discardedAlreadyLinkedFromNew = 0;
+
   const accepted: DetailedRisk[] = [];
-  const seen = new Set<string>();
+  const recognizedAlreadyLinked: DetailedRisk[] = [];
+  const seenNew = new Set<string>();
+  const seenLinked = new Set<string>();
 
-  for (const risk of params.incoming) {
-    if (!risk?.id || seen.has(risk.id)) continue;
-    seen.add(risk.id);
+  const pushLinked = (risk: DetailedRisk) => {
+    if (!risk?.id || seenLinked.has(risk.id) || seenNew.has(risk.id)) return;
+    if (!params.catalogIds.has(risk.id)) {
+      discardedInvalidCatalog += 1;
+      return;
+    }
+    seenLinked.add(risk.id);
+    recognizedAlreadyLinked.push(risk);
+  };
 
+  const pushNew = (risk: DetailedRisk) => {
+    if (!risk?.id || seenNew.has(risk.id) || seenLinked.has(risk.id)) return;
+    if (!params.catalogIds.has(risk.id)) {
+      discardedInvalidCatalog += 1;
+      return;
+    }
+    if (params.existingDirectRiskIds.has(risk.id)) {
+      discardedAlreadyLinkedFromNew += 1;
+      pushLinked(risk);
+      return;
+    }
+    seenNew.add(risk.id);
+    accepted.push(risk);
+  };
+
+  for (const risk of params.incomingAlreadyLinked || []) {
+    if (!risk?.id) continue;
     if (!params.catalogIds.has(risk.id)) {
       discardedInvalidCatalog += 1;
       continue;
     }
-    if (params.existingDirectRiskIds.has(risk.id)) {
-      discardedAlreadyLinked += 1;
+    // API disse “já vinculado”, mas o client não tem o vínculo → trata como novo.
+    if (!params.existingDirectRiskIds.has(risk.id)) {
+      pushNew(risk);
       continue;
     }
-    accepted.push(risk);
+    pushLinked(risk);
+  }
+
+  for (const risk of params.incoming) {
+    pushNew(risk);
   }
 
   return {
     accepted,
-    apiReturnedCount,
+    recognizedAlreadyLinked,
+    apiReturnedNewCount,
+    apiReturnedAlreadyLinkedCount,
     discardedInvalidCatalog,
-    discardedAlreadyLinked,
+    discardedAlreadyLinkedFromNew,
   };
 }

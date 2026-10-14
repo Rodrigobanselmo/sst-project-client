@@ -94,11 +94,54 @@ assert.equal(afterLoad.discardedInvalidCatalog, 1);
 
 const feedbackEmptyApi = resolveCatalogOnlyAiSuggestionFeedback({
   accepted: [],
-  apiReturnedCount: 0,
+  recognizedAlreadyLinked: [],
+  apiReturnedNewCount: 0,
+  apiReturnedAlreadyLinkedCount: 0,
   discardedInvalidCatalog: 0,
-  discardedAlreadyLinked: 0,
+  discardedAlreadyLinkedFromNew: 0,
 });
-assert.ok(feedbackEmptyApi?.message.includes('não retornou'));
+assert.ok(feedbackEmptyApi?.message.includes('sem fatores de risco pertinentes'));
+
+assert.ok(dialog.includes('identifiedAlreadyLinkedRisks'));
+assert.ok(dialog.includes('Já vinculado'));
+assert.ok(
+  dialog.includes(
+    'Nenhum novo fator de risco pertinente foi identificado',
+  ),
+);
+assert.ok(
+  dialog.includes('Fatores identificados que já estão vinculados'),
+);
+assert.ok(dialog.includes('Novas oportunidades de inclusão'));
+assert.ok(dialog.includes('maxWidth="lg"'));
+assert.ok(dialog.includes('photoSelection'));
+assert.ok(dialog.includes('CatalogOnlyCharacterizationPhotosField'));
+assert.ok(dialog.includes('Adicionar foto para análise') === false); // texto no child component
+assert.ok(dialog.includes('CatalogOnlyAiIdentificationHistoryPanel'));
+assert.ok(dialog.includes('histórico é referência técnica'));
+assert.ok(dialog.includes('não confirma risco nem inclui fatores automaticamente'));
+assert.ok(dialog.includes('handleAddFromHistory'));
+assert.ok(dialog.includes('filterCatalogOnlyHistoryIdsForLink'));
+assert.ok(dialog.includes('onAddSelected={handleAddFromHistory}'));
+assert.ok(dialog.includes('closeOnSuccess: false'));
+// Prioridade visual: Solicitar é secundário; Adicionar no histórico ganha contained quando elegível
+assert.ok(dialog.includes('Solicitar sugestões'));
+const solicitarIdx = dialog.indexOf('Solicitar sugestões');
+assert.ok(solicitarIdx > 0);
+const solicitarButtonStart = dialog.lastIndexOf('<Button', solicitarIdx);
+assert.ok(solicitarButtonStart >= 0);
+const solicitarButtonBlock = dialog.slice(solicitarButtonStart, solicitarIdx);
+assert.ok(solicitarButtonBlock.includes('variant="outlined"'));
+assert.ok(solicitarButtonBlock.includes('color="primary"'));
+assert.equal(solicitarButtonBlock.includes('variant="contained"'), false);
+
+// Experimento A/B: model só quando master escolhe; diagnóstico só master
+assert.ok(dialog.includes('resolveCatalogOnlySessionModelForRequest'));
+assert.ok(dialog.includes('...(modelOverride ? { model: modelOverride } : {})'));
+assert.ok(dialog.includes('Diagnóstico técnico (master)'));
+assert.ok(dialog.includes('isSystemMaster'));
+assert.ok(button.includes('sessionModelByKind'));
+assert.ok(button.includes('CATALOG_ONLY_AI_MODEL_SESSION_DEFAULTS'));
 
 const feedbackCatalogFailMessage =
   'Não foi possível carregar o catálogo de fatores de risco. Tente novamente.';

@@ -13,6 +13,10 @@ import { useRouter } from 'next/router';
 import { RoleEnum } from 'project/enum/roles.enums';
 import { selectUserRoles } from 'store/reducers/user/userSlice';
 
+import {
+  CATALOG_ONLY_AI_MODEL_SESSION_DEFAULTS,
+  type CatalogOnlyAiModelSessionByKind,
+} from '../../suggest-catalog-risks-ai/catalog-only-ai-model-options.constants';
 import { SuggestCatalogRisksMasterConfigDialog } from '../../suggest-catalog-risks-ai/SuggestCatalogRisksMasterConfigDialog';
 import { SuggestCatalogRisksWithAiDialog } from '../../suggest-catalog-risks-ai/SuggestCatalogRisksWithAiDialog';
 import { resolveSuggestCatalogRisksContext } from '../../suggest-catalog-risks-ai/resolve-suggest-catalog-risks-context.util';
@@ -49,6 +53,10 @@ export function SuggestCatalogRisksWithAiButton({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
+  const [sessionModelByKind, setSessionModelByKind] =
+    useState<CatalogOnlyAiModelSessionByKind>(
+      CATALOG_ONLY_AI_MODEL_SESSION_DEFAULTS,
+    );
   const isSystemMaster = useIsSystemMaster();
   const { companyId: routeCompanyId, workspaceId: routeWorkspaceId } =
     useGetCompanyId();
@@ -114,6 +122,13 @@ export function SuggestCatalogRisksWithAiButton({
           open={configOpen}
           onClose={() => setConfigOpen(false)}
           kind={configKind}
+          sessionModel={sessionModelByKind[configKind]}
+          onSessionModelChange={(value) =>
+            setSessionModelByKind((current) => ({
+              ...current,
+              [configKind]: value,
+            }))
+          }
         />
       </>
     ) : null;
@@ -180,6 +195,12 @@ export function SuggestCatalogRisksWithAiButton({
         open={open}
         onClose={() => setOpen(false)}
         context={context}
+        isSystemMaster={isSystemMaster}
+        sessionModel={
+          context.kind === 'gse'
+            ? sessionModelByKind.gse
+            : sessionModelByKind.characterization
+        }
       />
     </>
   );
