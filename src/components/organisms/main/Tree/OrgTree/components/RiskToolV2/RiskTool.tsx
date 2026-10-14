@@ -409,6 +409,7 @@ export const RiskToolV2 = ({
             handleSelectGHO={handleSelectGHO}
             riskInit={true}
             riskGroupId={riskGroupIdMemo}
+            companyId={companyId}
             hideViewSwitcher={hideViewSwitcher}
             hideCloseButton={embedded}
           />

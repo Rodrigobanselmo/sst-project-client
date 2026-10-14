@@ -18,6 +18,8 @@ export interface SideTopProps {
   viewDataType: ViewsDataEnum;
   onChangeView?: (option: IViewsRiskOption) => void;
   riskGroupId: string;
+  /** Empresa do contexto selecionado (route / riskContextCompanyId). */
+  companyId?: string;
   onChangeViewData?: (option: IViewsDataOption) => void;
   hideViewSwitcher?: boolean;
   hideCloseButton?: boolean;

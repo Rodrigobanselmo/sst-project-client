@@ -23,5 +23,7 @@ export interface AiAnalyzeGseParams {
     | 'medidasAdministrativasExistentes'
     | 'medidasEngenhariaRecomendadas'
     | 'medidasAdministrativasRecomendadas';
+  /** Ausente preserva a análise completa. catalog-only = só catálogo + justificativa. */
+  suggestionMode?: 'catalog-only';
   signal?: AbortSignal;
 }

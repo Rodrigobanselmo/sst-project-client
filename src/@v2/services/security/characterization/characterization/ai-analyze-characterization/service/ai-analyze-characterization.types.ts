@@ -19,6 +19,8 @@ export interface AiAnalyzeCharacterizationParams {
     | 'medidasAdministrativasExistentes'
     | 'medidasEngenhariaRecomendadas'
     | 'medidasAdministrativasRecomendadas';
+  /** Ausente preserva a análise completa. catalog-only = só catálogo + justificativa. */
+  suggestionMode?: 'catalog-only';
   /** Optional abort signal to cancel an in-flight AI analysis request. */
   signal?: AbortSignal;
 }
@@ -27,6 +29,14 @@ export type WorkProcessItem = {
   desc: string;
   type: 'PARAGRAPH' | 'BULLET_0' | 'BULLET_1' | 'BULLET_2';
 };
+
+/** Presente no modo catalog-only; ausente na análise completa. */
+export type CatalogOnlySuggestionOrigin = 'AI_SUGGESTED' | 'USER_REQUESTED';
+
+export type CatalogOnlyTechnicalConsideration =
+  | 'PERTINENCE_IDENTIFIED'
+  | 'PERTINENCE_NOT_DEMONSTRATED'
+  | 'INCONCLUSIVE';
 
 export type DetailedRisk = {
   id: string;
@@ -40,6 +50,10 @@ export type DetailedRisk = {
   existingEngineeringMeasures: string[];
   existingAdministrativeMeasures: string[];
   confidence: number;
+  /** Somente catalog-only. */
+  suggestionOrigin?: CatalogOnlySuggestionOrigin;
+  /** Somente catalog-only. */
+  technicalConsideration?: CatalogOnlyTechnicalConsideration;
 };
 
 export type AiRiskFieldSuggestionField =

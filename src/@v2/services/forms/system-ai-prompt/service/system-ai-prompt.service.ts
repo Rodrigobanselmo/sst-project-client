@@ -24,13 +24,18 @@ export async function upsertSystemAiPrompt({
   key,
   content,
   changeReason,
+  action,
 }: UpsertSystemAiPromptParams): Promise<SystemAiPromptResult> {
   const response = await api.put<SystemAiPromptResult>(
     bindUrlParams({
       path: `${FormRoutes.SYSTEM_AI_PROMPT.PATH}/:key`,
       pathParams: { key },
     }),
-    { content, changeReason },
+    {
+      content,
+      changeReason,
+      action: action ?? 'save',
+    },
   );
 
   return response.data;

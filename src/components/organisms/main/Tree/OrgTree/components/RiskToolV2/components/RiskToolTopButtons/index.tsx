@@ -45,6 +45,7 @@ import {
   ViewTypeEnum,
 } from '../../utils/view-risk-type.constant';
 import { RiskToolTopButtonsSelectRisk } from './SelectRisk';
+import { SuggestCatalogRisksWithAiButton } from './SuggestCatalogRisksWithAiButton';
 import { SideTopProps } from './types';
 
 export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
@@ -55,13 +56,15 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
   viewDataType,
   onChangeViewData,
   riskGroupId,
+  companyId: companyIdProp,
   hideViewSwitcher = false,
   hideCloseButton = false,
 }) => {
   const dispatch = useAppDispatch();
   const { asPath, push } = useRouter();
   const { onOpenModal, onCloseModal } = useModal();
-  const { companyId } = useGetCompanyId();
+  const { companyId: routeCompanyId } = useGetCompanyId();
+  const companyId = companyIdProp || routeCompanyId;
   const selectedRisks = useAppSelector(selectRisks);
   const selectedRiskStore = useAppSelector(selectRisk);
 
@@ -126,6 +129,12 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
             <RiskToolTopButtonsSelectRisk
               riskGroupId={riskGroupId}
               viewType={viewType}
+            />
+            <SuggestCatalogRisksWithAiButton
+              riskGroupId={riskGroupId}
+              viewType={viewType}
+              viewDataType={viewDataType}
+              companyId={companyId}
             />
 
             {!hideCloseButton && (
