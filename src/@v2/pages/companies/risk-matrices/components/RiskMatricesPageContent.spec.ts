@@ -74,6 +74,11 @@ assert.ok(editorSource.includes('label="Sigla"'));
 assert.ok(editorSource.includes('sanitizeRiskMatrixClassificationAbbreviationInput'));
 assert.ok(editorSource.includes('toReplaceDraftPayload'));
 assert.ok(editorSource.includes('disabled={readOnly}'));
+assert.ok(editorSource.includes('disabled={presentationLocked || isBusy}'));
+assert.ok(editorSource.includes('classificationLabels'));
+assert.ok(
+  editorSource.includes('Correção de nomenclatura. A sigla permanece bloqueada.'),
+);
 assert.equal(
   editorSource.includes('status: CompanyRiskMatrixVersionStatusEnum.DRAFT'),
   false,

@@ -36,6 +36,7 @@ import {
   useMutateReplaceRiskMatrixDraft,
 } from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
 import {
+  ClassificationLabelSync,
   CompanyRiskMatrixStatusEnum,
   CompanyRiskMatrixVersionStatusEnum,
   RiskMatrixAxisEnum,
@@ -100,6 +101,45 @@ type RiskMatrixEditorPageContentProps = {
   matrixId: string;
   versionId: string;
 };
+
+const syncedEvaluationCount = (sync: ClassificationLabelSync[] | undefined) =>
+  (sync ?? [])
+    .filter((item) => item.changed)
+    .reduce(
+      (total, item) =>
+        total +
+        item.updated.riskFactorDataResolved +
+        item.updated.riskFactorDataResidual +
+        item.updated.workspaceEvaluationResolved +
+        item.updated.workspaceEvaluationResidual,
+      0,
+    );
+
+const skippedEvaluationCount = (sync: ClassificationLabelSync[] | undefined) =>
+  (sync ?? []).reduce(
+    (total, item) => total + item.skipped.reduce((sum, row) => sum + row.count, 0),
+    0,
+  );
+
+const presentationSavedMessage = (sync: ClassificationLabelSync[] | undefined) => {
+  const updated = syncedEvaluationCount(sync);
+  const skipped = skippedEvaluationCount(sync);
+  if (!updated && !skipped) return 'Apresentação da matriz publicada salva';
+  const updatedText =
+    updated === 1
+      ? '1 texto de avaliação vinculado foi atualizado'
+      : `${updated} textos de avaliação vinculados foram atualizados`;
+  if (!skipped) return `Apresentação salva. ${updatedText}.`;
+  const skippedText =
+    skipped === 1
+      ? '1 registro desta versão ficou sem vínculo e não foi alterado'
+      : `${skipped} registros desta versão ficaram sem vínculo e não foram alterados`;
+  return `Apresentação salva. ${updatedText}. ${skippedText}.`;
+};
+
+const presentationSavedTone = (
+  sync: ClassificationLabelSync[] | undefined,
+): 'success' | 'warning' => (skippedEvaluationCount(sync) > 0 ? 'warning' : 'success');
 
 export const RiskMatrixEditorPageContent: FC<
   RiskMatrixEditorPageContentProps
@@ -334,6 +374,16 @@ export const RiskMatrixEditorPageContent: FC<
       showSnackBar('Nome da matriz é obrigatório', { type: 'error' });
       return;
     }
+    if (editor.classifications.some((item) => !item.label.trim())) {
+      showSnackBar('Preencha o nome de todas as classificações.', { type: 'error' });
+      return;
+    }
+    if (editor.classifications.some((item) => item.label.trim().length > 120)) {
+      showSnackBar('O nome da classificação pode ter no máximo 120 caracteres.', {
+        type: 'error',
+      });
+      return;
+    }
 
     savingRef.current = true;
     try {
@@ -378,16 +428,27 @@ export const RiskMatrixEditorPageContent: FC<
         return [{ classificationId: stored.id, color: item.color }];
       });
 
+      const classificationLabels = editor.classifications.flatMap((item) => {
+        const previous = baseline.classifications.find((row) => row.key === item.key);
+        const stored = version.classifications.find((row) => row.key === item.key);
+        const nextLabel = item.label.trim();
+        if (!stored || !previous || !nextLabel) return [];
+        if (previous.label.trim() === nextLabel) return [];
+        return [{ classificationId: stored.id, label: nextLabel }];
+      });
+
       let savedVersion = version;
       if (
         criteria.length > 0 ||
         axisLevelColors.length > 0 ||
-        classificationColors.length > 0
+        classificationColors.length > 0 ||
+        classificationLabels.length > 0
       ) {
         savedVersion = await patchEditorialMutation.mutateAsync({
           ...(criteria.length ? { criteria } : {}),
           ...(axisLevelColors.length ? { axisLevelColors } : {}),
           ...(classificationColors.length ? { classificationColors } : {}),
+          ...(classificationLabels.length ? { classificationLabels } : {}),
         });
       }
 
@@ -397,7 +458,9 @@ export const RiskMatrixEditorPageContent: FC<
       });
       setEditor(next);
       setBaseline(next);
-      showSnackBar('Apresentação da matriz publicada salva', { type: 'success' });
+      showSnackBar(presentationSavedMessage(savedVersion.classificationLabelSync), {
+        type: presentationSavedTone(savedVersion.classificationLabelSync),
+      });
     } catch (error) {
       showSnackBar(
         getRiskMatrixApiErrorMessage(
@@ -595,9 +658,10 @@ export const RiskMatrixEditorPageContent: FC<
 
       {presentationEditable && (
         <Alert severity="info">
-          Esta versão está publicada. Você pode ajustar nome, descrição,
-          textos de critério e cores. A lógica de cálculo, as siglas, os
-          rótulos e as combinações S×P permanecem bloqueados.
+          Esta versão está publicada. Você pode ajustar o nome e a descrição
+          da matriz, os textos de critério, as cores e o nome das
+          classificações finais. Siglas, nomes dos eixos, compatibilidade
+          SimpleSST e combinações S×P permanecem bloqueados.
         </Alert>
       )}
 
@@ -973,9 +1037,15 @@ export const RiskMatrixEditorPageContent: FC<
                     label="Nome"
                     placeholder="Nome da classificação"
                     value={classification.label}
-                    disabled={readOnly}
+                    disabled={presentationLocked || isBusy}
+                    helperText={
+                      presentationEditable
+                        ? 'Correção de nomenclatura. A sigla permanece bloqueada.'
+                        : undefined
+                    }
+                    inputProps={{ maxLength: 120 }}
                     onChange={(event) =>
-                      updateEditor((current) => ({
+                      updatePresentation((current) => ({
                         ...current,
                         classifications: current.classifications.map((item) =>
                           item.key === classification.key

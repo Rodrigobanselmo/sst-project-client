@@ -147,6 +147,7 @@ export type RiskMatrixVersion = {
   cells: RiskMatrixCell[];
   coverages: RiskMatrixCoverageKeyEnum[];
   axisLevelColors?: SystemRiskMatrixAxisLevelColor[];
+  classificationLabelSync?: ClassificationLabelSync[];
 };
 
 export type SystemRiskMatrixMethodologicalGap = {
@@ -253,6 +254,26 @@ export type PatchRiskMatrixPayload = {
   description?: string | null;
 };
 
+export type ClassificationLabelSync = {
+  classificationId: string;
+  abbreviation: string;
+  previousLabel: string;
+  label: string;
+  changed: boolean;
+  updated: {
+    riskFactorDataResolved: number;
+    riskFactorDataResidual: number;
+    workspaceEvaluationResolved: number;
+    workspaceEvaluationResidual: number;
+  };
+  skipped: Array<{
+    table: 'RiskFactorData' | 'RiskFactorDataWorkspaceEvaluation';
+    field: 'resolvedLabel' | 'residualLabel';
+    reason: 'missing_classification_id' | 'version_mismatch';
+    count: number;
+  }>;
+};
+
 export type PatchPublishedRiskMatrixEditorialPayload = {
   criteria?: Array<{
     axisLevelId: string;
@@ -261,6 +282,7 @@ export type PatchPublishedRiskMatrixEditorialPayload = {
   }>;
   axisLevelColors?: Array<{ value: number; color: string }>;
   classificationColors?: Array<{ classificationId: string; color: string }>;
+  classificationLabels?: Array<{ classificationId: string; label: string }>;
 };
 
 export type RiskMatrixAxisLevelPayload = {

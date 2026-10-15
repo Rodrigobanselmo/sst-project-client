@@ -5,7 +5,7 @@ export const useSystemSnackbar = () => {
 
   const showSnackBar = (
     message: string,
-    options: { type: 'success' | 'error' },
+    options: { type: 'success' | 'error' | 'warning' },
   ) => {
     enqueueSnackbar(message, {
       variant: options.type,
