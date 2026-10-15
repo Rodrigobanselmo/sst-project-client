@@ -48,7 +48,7 @@ assert.equal(isCharacterizationAiAnalysisStep(4), false);
 
 assert.equal(
   clampCharacterizationWizardStep(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS),
-  CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+  CHARACTERIZATION_WIZARD_STEP.RISKS,
 );
 assert.equal(clampCharacterizationWizardStep(99), 0);
 assert.equal(clampCharacterizationWizardStep(undefined), 0);
@@ -253,9 +253,10 @@ function preserveRequestedStepDuringHydration(
   requested: number,
   gateOk: boolean,
 ): { intent: number; applied: number | null } {
+  const clamped = clampCharacterizationWizardStep(requested);
   return {
     intent: requested,
-    applied: gateOk ? requested : null,
+    applied: gateOk ? clamped : null,
   };
 }
 assert.deepEqual(
@@ -275,27 +276,27 @@ assert.deepEqual(
   ),
   {
     intent: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
-    applied: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+    applied: CHARACTERIZATION_WIZARD_STEP.RISKS,
   },
 );
 
-/** Clique rápido: Riscos → Fatores; IA → Análise de Riscos IA. Sem auto-run. */
+/** Clique rápido: Riscos e IA → Fatores (aba IA oculta). Sem auto-run. */
 function resolveRisksTarget(target: 'factors' | 'ai') {
   return {
-    wizardStep:
-      target === 'ai'
-        ? CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS
-        : CHARACTERIZATION_WIZARD_STEP.RISKS,
+    wizardStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
     autoRunAi: false,
+    target,
   };
 }
 assert.deepEqual(resolveRisksTarget('ai'), {
-  wizardStep: CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS,
+  wizardStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
   autoRunAi: false,
+  target: 'ai',
 });
 assert.deepEqual(resolveRisksTarget('factors'), {
   wizardStep: CHARACTERIZATION_WIZARD_STEP.RISKS,
   autoRunAi: false,
+  target: 'factors',
 });
 
 /** WizardTabs não deve sincronizar `active` contínuo no editor aninhado. */

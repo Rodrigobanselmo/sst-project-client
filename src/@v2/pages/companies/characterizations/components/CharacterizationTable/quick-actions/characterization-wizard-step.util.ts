@@ -14,6 +14,10 @@ export function clampCharacterizationWizardStep(
   if (rounded >= CHARACTERIZATION_EDITOR_STEP_COUNT) {
     return CHARACTERIZATION_WIZARD_STEP.DATA;
   }
+  // Aba antiga "Análise de Riscos IA" oculta na navegação — abre Fatores.
+  if (rounded === CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS) {
+    return CHARACTERIZATION_WIZARD_STEP.RISKS;
+  }
   return rounded;
 }
 

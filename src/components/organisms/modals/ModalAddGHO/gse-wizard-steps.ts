@@ -37,6 +37,8 @@ export function parseOptionalGseWizardStep(
   if (!Number.isFinite(parsed)) return undefined;
   const truncated = Math.trunc(parsed);
   if (truncated < 0 || truncated >= GSE_EDITOR_STEP_COUNT) return undefined;
+  // Aba antiga oculta: query legada cai em Fatores de Riscos.
+  if (truncated === GSE_WIZARD_STEP.AI_ANALYSIS) return GSE_WIZARD_STEP.RISKS;
   return truncated;
 }
 
@@ -65,6 +67,10 @@ export function clampGseWizardStep(
   if (rounded < 0 || rounded >= GSE_EDITOR_STEP_COUNT) {
     return GSE_WIZARD_STEP.DATA;
   }
+  // Aba antiga "Análise de Riscos IA" oculta na navegação — abre Fatores.
+  if (rounded === GSE_WIZARD_STEP.AI_ANALYSIS) {
+    return GSE_WIZARD_STEP.RISKS;
+  }
   return rounded;
 }
 
@@ -73,7 +79,8 @@ export function resolveGseTableOpenStep(
 ): number {
   if (action === 'cargos') return GSE_WIZARD_STEP.CARGOS;
   if (action === 'risks') return GSE_WIZARD_STEP.RISKS;
-  if (action === 'ai') return GSE_WIZARD_STEP.AI_ANALYSIS;
+  // Ação legada "ai" → Fatores (Análise geral com IA).
+  if (action === 'ai') return GSE_WIZARD_STEP.RISKS;
   return GSE_WIZARD_STEP.DATA;
 }
 
@@ -126,10 +133,11 @@ export function getGseWizardTabOptions(params: {
   }
 
   const laterDisabled = !params.isEdit;
+  // Aba "Análise de Riscos IA" oculta — código/step preservados para recuperação.
+  // Para reexibir: incluir novamente `{ label: GSE_WIZARD_TAB_LABELS.AI_ANALYSIS, disabled: laterDisabled }`.
   return [
     { label: GSE_WIZARD_TAB_LABELS.DATA },
     { label: GSE_WIZARD_TAB_LABELS.CARGOS },
     { label: GSE_WIZARD_TAB_LABELS.RISKS, disabled: laterDisabled },
-    { label: GSE_WIZARD_TAB_LABELS.AI_ANALYSIS, disabled: laterDisabled },
   ];
 }

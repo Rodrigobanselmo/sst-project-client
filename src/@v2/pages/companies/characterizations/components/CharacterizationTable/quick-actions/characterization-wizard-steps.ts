@@ -22,6 +22,11 @@ export const CHARACTERIZATION_WIZARD_TAB_LABELS = {
   AI_ANALYSIS: 'Análise de Riscos IA',
 } as const;
 
+/**
+ * Ordem histórica das abas (inclui a aba IA oculta).
+ * A navegação visível omite AI_ANALYSIS — ver ModalAddHierarchyRisk.
+ * Para reexibir a aba, incluir novamente o item AI_ANALYSIS nas `options` do WizardTabs.
+ */
 export const CHARACTERIZATION_WIZARD_TAB_ORDER = [
   CHARACTERIZATION_WIZARD_TAB_LABELS.DATA,
   CHARACTERIZATION_WIZARD_TAB_LABELS.CARGOS,

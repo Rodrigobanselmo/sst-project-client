@@ -2,7 +2,6 @@
 import React, { ReactNode, useEffect, useMemo } from 'react';
 import { Wizard } from 'react-use-wizard';
 
-import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import { Box, CircularProgress, Grid } from '@mui/material';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { RiskToolV2 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/RiskTool';
@@ -262,16 +261,8 @@ export const ModalAddHierarchyRisk = (
                   label: CHARACTERIZATION_WIZARD_TAB_LABELS.RISKS,
                   disabled: isDisable || !isEdit,
                 },
-                {
-                  label: CHARACTERIZATION_WIZARD_TAB_LABELS.AI_ANALYSIS,
-                  disabled: isDisable,
-                  icon: (
-                    <AutoFixHighOutlinedIcon
-                      sx={{ fontSize: 16, color: 'primary.main' }}
-                    />
-                  ),
-                  iconPosition: 'start',
-                },
+                // Aba "Análise de Riscos IA" oculta — step/conteúdo preservados no Wizard.
+                // Para reexibir: restaurar o option AI_ANALYSIS aqui (ícone AutoFixHigh).
               ]}
             />
           </>

@@ -574,10 +574,8 @@ export const CharacterizationTable = ({
     onQuickRisks: (row, target) => {
       if (!hasWorkspaceSelected) return;
       if (target === 'ai' && row.isInactive) return;
-      const wizardStep =
-        target === 'ai'
-          ? CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS
-          : CHARACTERIZATION_WIZARD_STEP.RISKS;
+      // Ação legada "ai" e "risks" abrem Fatores (aba IA oculta; Análise geral no dialog).
+      const wizardStep = CHARACTERIZATION_WIZARD_STEP.RISKS;
       handleCharacterizationEdit(row, { wizardStep });
     },
     onQuickCargos: (row, preferAdd) => {

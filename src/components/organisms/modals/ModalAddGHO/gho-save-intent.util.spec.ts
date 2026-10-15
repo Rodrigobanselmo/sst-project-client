@@ -7,7 +7,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { getGseWizardTabOptions, GSE_WIZARD_STEP } from './gse-wizard-steps';
+import {
+  getGseWizardTabOptions,
+  GSE_WIZARD_STEP,
+  GSE_WIZARD_TAB_LABELS,
+} from './gse-wizard-steps';
 import {
   buildGhoStaySnapshot,
   getGhoEditorSnapshot,
@@ -83,7 +87,9 @@ const pageTabsAfterCreateStay = getGseWizardTabOptions({
 });
 assert.equal(pageTabsAfterCreateStay[GSE_WIZARD_STEP.RISKS].disabled, false);
 assert.equal(
-  pageTabsAfterCreateStay[GSE_WIZARD_STEP.AI_ANALYSIS].disabled,
+  pageTabsAfterCreateStay.some(
+    (tab) => tab.label === GSE_WIZARD_TAB_LABELS.AI_ANALYSIS,
+  ),
   false,
 );
 

@@ -42,15 +42,17 @@ assert.equal(
 const pageSaved = getGseWizardTabOptions({ layout: 'page', isEdit: true });
 assert.deepEqual(
   pageSaved.map((tab) => tab.label),
-  ['Dados', 'Cargos', 'Fatores de Riscos', 'Análise de Riscos IA'],
+  ['Dados', 'Cargos', 'Fatores de Riscos'],
 );
-assert.equal(pageSaved.length, 4);
+assert.equal(pageSaved.length, 3);
 assert.equal(pageSaved[2].disabled, false);
-assert.equal(pageSaved[3].disabled, false);
+assert.equal(
+  pageSaved.some((tab) => tab.label === GSE_WIZARD_TAB_LABELS.AI_ANALYSIS),
+  false,
+);
 
 const pageUnsaved = getGseWizardTabOptions({ layout: 'page', isEdit: false });
 assert.equal(pageUnsaved[GSE_WIZARD_STEP.RISKS].disabled, true);
-assert.equal(pageUnsaved[GSE_WIZARD_STEP.AI_ANALYSIS].disabled, true);
 
 const modalTabs = getGseWizardTabOptions({ layout: 'modal', isEdit: true });
 assert.deepEqual(
@@ -78,13 +80,14 @@ assert.equal(CHARACTERIZATION_WIZARD_TAB_ORDER.length, 6);
 assert.equal(clampGseWizardStep(undefined), GSE_WIZARD_STEP.DATA);
 assert.equal(clampGseWizardStep(GSE_WIZARD_STEP.CARGOS), 1);
 assert.equal(clampGseWizardStep(GSE_WIZARD_STEP.RISKS), 2);
-assert.equal(clampGseWizardStep(GSE_WIZARD_STEP.AI_ANALYSIS), 3);
+assert.equal(clampGseWizardStep(GSE_WIZARD_STEP.AI_ANALYSIS), GSE_WIZARD_STEP.RISKS);
 assert.equal(clampGseWizardStep(CHARACTERIZATION_WIZARD_STEP.AI_ANALYSIS), 0);
 assert.equal(resolveGseTableOpenStep('row'), GSE_WIZARD_STEP.DATA);
 assert.equal(resolveGseTableOpenStep('edit'), GSE_WIZARD_STEP.DATA);
 assert.equal(resolveGseTableOpenStep('cargos'), GSE_WIZARD_STEP.CARGOS);
 assert.equal(resolveGseTableOpenStep('risks'), GSE_WIZARD_STEP.RISKS);
-assert.equal(resolveGseTableOpenStep('ai'), GSE_WIZARD_STEP.AI_ANALYSIS);
+assert.equal(resolveGseTableOpenStep('ai'), GSE_WIZARD_STEP.RISKS);
+assert.equal(parseOptionalGseWizardStep('3'), GSE_WIZARD_STEP.RISKS);
 
 assert.equal(parseOptionalGseWizardStep(undefined), undefined);
 assert.equal(parseOptionalGseWizardStep('2'), GSE_WIZARD_STEP.RISKS);
@@ -139,7 +142,7 @@ const applyAi = decideApplyGseWizardStep({
   activeStep: 0,
   stepCount: 4,
 });
-assert.equal(applyAi.target, 3);
+assert.equal(applyAi.target, GSE_WIZARD_STEP.RISKS);
 
 const applyData = decideApplyGseWizardStep({
   enabled: true,
