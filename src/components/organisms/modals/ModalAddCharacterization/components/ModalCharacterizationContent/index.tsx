@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from 'react';
 
-import { CircularProgress, Icon, Skeleton, styled } from '@mui/material';
+import { Box, CircularProgress, Icon, Skeleton, styled } from '@mui/material';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { useMutateAiRiskInventorySummary } from '@v2/services/security/characterization/characterization/ai-risk-inventory-summary/hooks/useMutateAiRiskInventorySummary';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
+import { SHelp } from 'components/atoms/SHelp';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioFormText } from 'components/molecules/form/radio-text';
-import { STagSelect } from 'components/molecules/STagSelect';
+import { SelectForm } from 'components/molecules/form/select';
 import { CharacterizationContentEditor } from 'components/organisms/characterization-content-editor/CharacterizationContentEditor';
 import { ModalAddHierarchyRisk } from 'components/organisms/modals/ModalAddCharacterization/components/ModalAddHierarchyRisk';
 import { ModalParametersContentBasic } from 'components/organisms/modals/ModalAddCharacterization/components/ModalParametersBasic';
@@ -25,7 +26,6 @@ import { StatusEnum } from 'project/enum/status.enum';
 import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
-import SOrderIcon from 'assets/icons/SOrderIcon';
 
 import {
   CHARACTERIZATION_TYPE_HELP_TEXT,
@@ -34,6 +34,9 @@ import {
 
 import { CharacterizationAiAssistModal } from '../CharacterizationAiAssistModal/CharacterizationAiAssistModal';
 import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
+
+const ASSISTENTE_IA_HELP_TEXT =
+  'Use o assistente para gerar rascunho de descrição, processos e considerações antes da Análise IA de riscos.';
 
 const RISK_INVENTORY_SUMMARY_MAX_LENGTH = 1000;
 
@@ -73,7 +76,6 @@ export const ModalCharacterizationContent = (
     setData: setCharacterizationData,
     handlePhotoRemove,
     loadingDelete,
-    filterQuery: characterizationsQuery,
     handleEditPhoto,
     onAddProfile,
     manyProfiles,
@@ -188,59 +190,100 @@ export const ModalCharacterizationContent = (
     canGenerateSummary,
   ]);
 
+  // Ordem e valores internos preservados (antes: RadioFormText em botões).
   const typeOptions = [
     {
       content: characterizationMap[CharacterizationTypeEnum.GENERAL].name,
       value: CharacterizationTypeEnum.GENERAL,
-      tooltip:
-        characterizationMap[CharacterizationTypeEnum.GENERAL].description,
-      gridSize: { xs: 3 },
     },
     {
       content:
         characterizationMap[CharacterizationTypeEnum.ADMINISTRATIVE].name,
       value: CharacterizationTypeEnum.ADMINISTRATIVE,
-      tooltip:
-        characterizationMap[CharacterizationTypeEnum.ADMINISTRATIVE]
-          .description,
-      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.OPERATION].name,
       value: CharacterizationTypeEnum.OPERATION,
-      tooltip:
-        characterizationMap[CharacterizationTypeEnum.OPERATION].description,
-      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.SUPPORT].name,
       value: CharacterizationTypeEnum.SUPPORT,
-      tooltip:
-        characterizationMap[CharacterizationTypeEnum.SUPPORT].description,
-      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.WORKSTATION].name,
       value: CharacterizationTypeEnum.WORKSTATION,
-      tooltip:
-        characterizationMap[CharacterizationTypeEnum.WORKSTATION].description,
-      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.ACTIVITIES].name,
       value: CharacterizationTypeEnum.ACTIVITIES,
-      tooltip:
-        characterizationMap[CharacterizationTypeEnum.ACTIVITIES].description,
-      gridSize: { xs: 3, sm: 1 },
     },
     {
       content: characterizationMap[CharacterizationTypeEnum.EQUIPMENT].name,
       value: CharacterizationTypeEnum.EQUIPMENT,
-      tooltip:
-        characterizationMap[CharacterizationTypeEnum.EQUIPMENT].description,
-      gridSize: { xs: 3, sm: 1 },
     },
   ];
+
+  const handleTypeChange = (e: { target?: { value?: unknown } }) => {
+    if (
+      notPrincipalProfile ||
+      !e?.target?.value ||
+      e.target.value == characterizationData.type
+    )
+      return;
+    setCharacterizationData((old) => ({
+      ...old,
+      type: e.target!.value as CharacterizationTypeEnum,
+    }));
+  };
+
+  // Tooltip estático: orientação geral + as 7 classificações (characterizationMap).
+  // A rolagem fica no Paper do Tooltip (componentsProps) para manter o hover interativo.
+  const typeHelpTooltip = (
+    <Box sx={{ textAlign: 'left' }}>
+      <Box component="p" sx={{ m: 0, mb: 1.5, fontSize: 13, lineHeight: 1.45 }}>
+        {CHARACTERIZATION_TYPE_HELP_TEXT}
+      </Box>
+      {typeOptions.map((option) => {
+        const entry = characterizationMap[option.value];
+        return (
+          <Box key={option.value} sx={{ mb: 1.5, '&:last-child': { mb: 0 } }}>
+            <Box
+              component="strong"
+              sx={{ display: 'block', mb: 0.5, fontSize: 13 }}
+            >
+              {entry.name}
+            </Box>
+            <Box
+              component="span"
+              sx={{ display: 'block', fontSize: 12, lineHeight: 1.4 }}
+            >
+              {entry.description}
+            </Box>
+          </Box>
+        );
+      })}
+    </Box>
+  );
+
+  const nameDisplayValue =
+    manyProfiles && notPrincipalProfile
+      ? principalProfile.name
+      : characterizationData.name;
+
+  const fieldLabelSx = {
+    '& .MuiInputLabel-root': {
+      color: 'text.primary',
+    },
+    '& .MuiInputLabel-root.Mui-focused': {
+      color: 'primary.main',
+    },
+    '& .MuiInputLabel-root.Mui-error': {
+      color: 'error.main',
+    },
+    '& .MuiInputLabel-root.Mui-disabled': {
+      color: 'text.disabled',
+    },
+  } as const;
 
   const { embedded, initialWizardStep, initialAiAction: _initialAiAction, ...hierarchyRiskProps } =
     props;
@@ -251,107 +294,273 @@ export const ModalCharacterizationContent = (
       embedded={embedded}
       initialWizardStep={initialWizardStep}
     >
-      <SFlex gap={8} direction="column" mt={embedded ? 0 : 8}>
-        {showNameInput ? (
-          <InputForm
-            autoFocus
-            defaultValue={characterizationData.name}
-            label="Nome"
-            labelPosition="center"
-            control={control}
-            setValue={setValue}
-            sx={{ width: ['100%'] }}
-            placeholder={'nome do elemento caracterizado...'}
-            name="name"
-            size="small"
-            firstLetterCapitalize
-            {...(manyProfiles &&
-              notPrincipalProfile && { value: principalProfile.name })}
-          />
-        ) : (
-          <Skeleton variant="rounded" height={40} sx={{ width: '100%' }} />
-        )}
-        <SText fontSize={13} color="text.secondary" mb={1}>
-          {CHARACTERIZATION_TYPE_HELP_TEXT}
-        </SText>
-        <RadioFormText
-          type="radio"
-          setValue={setValue}
-          control={control}
-          onChange={(e) => {
-            if (
-              notPrincipalProfile ||
-              !(e as any).target.value ||
-              (e as any).target.value == characterizationData.type
-            )
-              return;
-            setCharacterizationData((old) => ({
-              ...old,
-              type: (e as any).target.value,
-            }));
+      <SFlex
+        gap={8}
+        direction="column"
+        mt={embedded ? 0 : 8}
+        sx={{ overflow: 'visible', pt: 1 }}
+      >
+        {/*
+          Labels flutuantes (labelPosition=center) sobem ~16–20px acima do campo.
+          O wizard ancestral usa overflowY:auto — sem pt suficiente, o topo do
+          InputLabel é recortado. Nome cresce (~4fr); Tipo compacto (~1fr).
+        */}
+        <SFlex
+          gap={8}
+          flexWrap="wrap"
+          mb={10}
+          sx={{
+            width: '100%',
+            pt: 3,
+            overflow: 'visible',
+            alignItems: 'flex-start',
           }}
-          defaultValue={String(characterizationData.type)}
-          options={typeOptions}
-          name="type"
-          columns={3}
-          width="101%"
-          {...(manyProfiles && notPrincipalProfile && { disabled: true })}
-        />
-        <SFlex mb={10} align="center" overflow="auto">
-          <STagButton
-            tooltipTitle={
-              'Permite adicionar para um mesmo ambiente / atividade riscos especificos para cada cargo. (ex: um perfil com risco de ruído e probabilidade 5 e outro com risco de ruído e probabilidade 3)'
-            }
-            text={'Perfil Principal'}
-            large
-            active={!!manyProfiles && !notPrincipalProfile}
-            minWidth={80}
-            onClick={() =>
-              principalProfile?.id && onChangeProfile(principalProfile.id)
-            }
-            bg={!!manyProfiles && !notPrincipalProfile ? 'gray.500' : undefined}
-          />
-          {profiles?.map((profile) => {
-            return (
-              <STagButton
-                key={profile.id}
-                text={`${profile.profileName}`}
-                large
-                onClick={() => onChangeProfile(profile.id)}
-                minWidth={80}
-                active={!!manyProfiles && profile.id == characterizationData.id}
-                bg={
-                  !!manyProfiles && profile.id == characterizationData.id
-                    ? 'gray.500'
+        >
+          <Box
+            sx={{
+              flex: { xs: '1 1 100%', md: '4 1 0%' },
+              minWidth: { xs: '100%', md: 240 },
+              overflow: 'visible',
+            }}
+          >
+            {showNameInput ? (
+              <STooltip
+                withWrapper
+                boxProps={{ sx: { overflow: 'visible', width: '100%' } }}
+                title={
+                  nameDisplayValue && String(nameDisplayValue).length > 24
+                    ? String(nameDisplayValue)
                     : undefined
                 }
+              >
+                <InputForm
+                  autoFocus
+                  defaultValue={characterizationData.name}
+                  label="Nome"
+                  labelPosition="center"
+                  control={control}
+                  setValue={setValue}
+                  placeholder={'nome do elemento caracterizado...'}
+                  name="name"
+                  size="small"
+                  firstLetterCapitalize
+                  inputProps={{
+                    title:
+                      nameDisplayValue && String(nameDisplayValue).length > 24
+                        ? String(nameDisplayValue)
+                        : undefined,
+                  }}
+                  sx={{
+                    width: '100%',
+                    ...fieldLabelSx,
+                    '& .MuiInputBase-input': {
+                      color: 'text.primary',
+                      WebkitTextFillColor: 'unset',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                    },
+                  }}
+                  {...(manyProfiles &&
+                    notPrincipalProfile && { value: principalProfile.name })}
+                />
+              </STooltip>
+            ) : (
+              <Skeleton variant="rounded" height={40} sx={{ width: '100%' }} />
+            )}
+          </Box>
+
+          <Box
+            sx={{
+              flex: { xs: '1 1 100%', md: '1 1 0%' },
+              minWidth: { xs: '100%', md: 200 },
+              maxWidth: { xs: '100%', md: 240 },
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              overflow: 'visible',
+            }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0, overflow: 'visible' }}>
+              <SelectForm
+                setValue={setValue}
+                control={control}
+                onChange={handleTypeChange}
+                defaultValue={
+                  characterizationData.type
+                    ? String(characterizationData.type)
+                    : ''
+                }
+                options={typeOptions}
+                name="type"
+                size="small"
+                label="Tipo de elemento"
+                labelPosition="center"
+                placeholder="Escolha o tipo de elemento..."
+                formControlProps={{
+                  sx: {
+                    overflow: 'visible',
+                    ...fieldLabelSx,
+                  },
+                }}
+                inputLabelProps={{
+                  sx: {
+                    color: 'text.primary',
+                    '&.Mui-focused': { color: 'primary.main' },
+                    '&.Mui-error': { color: 'error.main' },
+                    '&.Mui-disabled': { color: 'text.disabled' },
+                  },
+                }}
+                dropDownProps={{
+                  sx: {
+                    backgroundColor: 'background.paper',
+                    mt: '1px',
+                    maxWidth: 'min(480px, 90vw)',
+                    '& .MuiMenuItem-root': {
+                      whiteSpace: 'normal',
+                      py: 1,
+                    },
+                  },
+                }}
+                sx={{
+                  '& .MuiSelect-select': {
+                    color: 'text.primary',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  },
+                }}
+                {...(manyProfiles && notPrincipalProfile && { disabled: true })}
               />
-            );
-          })}
-          {manyProfiles && notPrincipalProfile && !characterizationData.id && (
-            <STagButton
-              active={true}
-              text={`${'Novo'} Perfil`}
-              large
-              minWidth={80}
-              bg={'gray.500'}
+            </Box>
+            <SHelp
+              tooltip={typeHelpTooltip}
+              sx={{ flexShrink: 0, pt: 0.5 }}
+              tooltipProps={{
+                placement: 'bottom-start',
+                disableInteractive: false,
+                leaveDelay: 400,
+                enterNextDelay: 0,
+                PopperProps: {
+                  modifiers: [
+                    { name: 'flip', enabled: true },
+                    {
+                      name: 'preventOverflow',
+                      options: { padding: 8, boundary: 'viewport' },
+                    },
+                    {
+                      name: 'offset',
+                      options: { offset: [0, 4] },
+                    },
+                  ],
+                },
+                componentsProps: {
+                  tooltip: {
+                    sx: {
+                      maxWidth: 440,
+                      // ~640px, sem ultrapassar a viewport (rollo interno se necessário).
+                      maxHeight: 'min(640px, calc(100vh - 48px))',
+                      overflowY: 'auto',
+                      overscrollBehavior: 'contain',
+                      p: 1.5,
+                      scrollbarWidth: 'thin',
+                      '&::-webkit-scrollbar': { width: 8 },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: 'rgba(255,255,255,0.35)',
+                        borderRadius: 4,
+                      },
+                    },
+                  },
+                },
+              }}
             />
-          )}
-          <STagButton
-            tooltipTitle={'Adicionar perfil'}
-            large
-            icon={SAddIcon}
-            onClick={() => onAddProfile()}
-          />
-          {!hideCharacterizationDelete && (
-            <SIconButton
-              sx={{ ml: 'auto' }}
-              tooltip={'remover perfil'}
-              onClick={() => onRemove()}
-            >
-              <Icon sx={{ fontSize: 20 }} component={SDeleteIcon} />
-            </SIconButton>
-          )}
+          </Box>
+
+          <SFlex
+            align="center"
+            overflow="auto"
+            gap={0}
+            sx={{
+              flex: '0 1 auto',
+              minWidth: 0,
+              maxWidth: { xs: '100%', md: 'none' },
+              pt: 1.5,
+            }}
+          >
+            <STagButton
+              tooltipTitle={
+                'Permite adicionar para um mesmo ambiente / atividade riscos especificos para cada cargo. (ex: um perfil com risco de ruído e probabilidade 5 e outro com risco de ruído e probabilidade 3)'
+              }
+              text={'Perfil Principal'}
+              large
+              active={!!manyProfiles && !notPrincipalProfile}
+              minWidth={80}
+              onClick={() =>
+                principalProfile?.id && onChangeProfile(principalProfile.id)
+              }
+              bg={
+                !!manyProfiles && !notPrincipalProfile ? 'gray.500' : undefined
+              }
+            />
+            {profiles?.map((profile) => {
+              return (
+                <STagButton
+                  key={profile.id}
+                  text={`${profile.profileName}`}
+                  large
+                  onClick={() => onChangeProfile(profile.id)}
+                  minWidth={80}
+                  active={
+                    !!manyProfiles && profile.id == characterizationData.id
+                  }
+                  bg={
+                    !!manyProfiles && profile.id == characterizationData.id
+                      ? 'gray.500'
+                      : undefined
+                  }
+                />
+              );
+            })}
+            {manyProfiles &&
+              notPrincipalProfile &&
+              !characterizationData.id && (
+                <STagButton
+                  active={true}
+                  text={`${'Novo'} Perfil`}
+                  large
+                  minWidth={80}
+                  bg={'gray.500'}
+                />
+              )}
+            <STagButton
+              tooltipTitle={'Adicionar perfil'}
+              large
+              icon={SAddIcon}
+              onClick={() => onAddProfile()}
+            />
+            {!hideCharacterizationDelete && (
+              <SIconButton
+                tooltip={'remover perfil'}
+                onClick={() => onRemove()}
+              >
+                <Icon sx={{ fontSize: 20 }} component={SDeleteIcon} />
+              </SIconButton>
+            )}
+          </SFlex>
+
+          <Box sx={{ flex: '0 0 auto', pt: 1.5 }}>
+            {characterizationData.type ? (
+              <STooltip withWrapper title={ASSISTENTE_IA_HELP_TEXT}>
+                <SButton
+                  color="primary"
+                  variant="outlined"
+                  onClick={() => setAssistModalOpen(true)}
+                  sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                >
+                  Assistente IA da Caracterização
+                </SButton>
+              </STooltip>
+            ) : null}
+          </Box>
         </SFlex>
         {manyProfiles && (
           <InputForm
@@ -381,19 +590,6 @@ export const ModalCharacterizationContent = (
 
         {characterizationData.type && (
           <>
-            <SFlex mb={4} align="center" justify="space-between" flexWrap="wrap" gap={2}>
-              <SText fontSize={14} color="text.light">
-                Use o assistente para gerar rascunho de descrição, processos e considerações antes da Análise IA de riscos.
-              </SText>
-              <SButton
-                color="primary"
-                variant="outlined"
-                onClick={() => setAssistModalOpen(true)}
-              >
-                Assistente IA da Caracterização
-              </SButton>
-            </SFlex>
-
             <CharacterizationContentEditor
               label="Descrição"
               placeholder="Descreva..."
@@ -491,37 +687,13 @@ export const ModalCharacterizationContent = (
                 }))
               }
             />
-            <SFlex justify="end">
-              <STagSelect
-                options={characterizationsQuery.map((_, index) => ({
-                  name: `posição ${index + 1}`,
-                  value: index + 1,
-                }))}
-                tooltipTitle={
-                  'escolha a posição que o ambiente deve aparecer no documento'
-                }
-                text={`Posição ${
-                  !characterizationData?.order
-                    ? ''
-                    : characterizationData?.order
-                }`}
-                large
-                maxWidth={120}
-                mb={10}
-                handleSelectMenu={(option) =>
-                  setCharacterizationData((old) => ({
-                    ...old,
-                    order: option.value,
-                  }))
-                }
-                icon={SOrderIcon}
+            <Box sx={{ mt: 2 }}>
+              <ModalParametersContentBasic
+                setValue={setValue}
+                control={control}
+                data={characterizationData}
               />
-            </SFlex>
-            <ModalParametersContentBasic
-              setValue={setValue}
-              control={control}
-              data={characterizationData}
-            />
+            </Box>
             <SText color="text.label" fontSize={14}>
               Fotos
             </SText>

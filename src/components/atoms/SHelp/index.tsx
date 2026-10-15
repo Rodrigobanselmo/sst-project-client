@@ -13,10 +13,11 @@ export const SHelp: FC<{ children?: any } & SHelpProps> = ({
   fontSize = 15,
   tooltip,
   color = 'grey.700',
+  tooltipProps,
   ...props
 }) => {
   return (
-    <STooltip title={tooltip}>
+    <STooltip title={tooltip} {...tooltipProps}>
       <Box sx={{ cursor: 'pointer' }} {...props}>
         <Icon sx={{ fontSize, color }} component={SHelpIcon} />
       </Box>
