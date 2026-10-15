@@ -39,6 +39,7 @@ import {
   RiskFactorAiSuggestionActions,
   useRiskFactorAiSuggestionActions,
 } from './useRiskFactorAiSuggestionActions';
+import { RiskFactorAiNewRiskCandidates } from './RiskFactorAiNewRiskCandidates';
 
 type OpenFieldParams = {
   riskId: string;
@@ -92,7 +93,8 @@ type GseTarget = {
 type RiskFactorsAiProviderProps = {
   children: React.ReactNode;
   target: CharacterizationTarget | GseTarget;
-  renderGeneral: () => React.ReactNode;
+  /** Recebe onClose para o painel fechar o diálogo após o resumo. */
+  renderGeneral: (helpers: { onClose: () => void }) => React.ReactNode;
 };
 
 const FIELD_TITLE: Record<RiskFactorAiField, string> = {
@@ -184,20 +186,61 @@ export function RiskFactorsAiProvider({
 
   return (
     <RiskFactorsAiContext.Provider value={value}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-        <SButton
-          text="Análise geral com IA"
-          variant="outlined"
-          color="primary"
-          size="s"
-          onClick={() => {
-            setScoped(null);
-            setGeneralOpen(true);
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          height: '100%',
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          sx={{
+            flexShrink: 0,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            mb: 1,
           }}
-          buttonProps={{ sx: { minWidth: 'auto' } }}
-        />
+        >
+          <SButton
+            text="Análise geral com IA"
+            variant="outlined"
+            color="primary"
+            size="s"
+            onClick={() => {
+              setScoped(null);
+              setGeneralOpen(true);
+            }}
+            buttonProps={{ sx: { minWidth: 'auto' } }}
+          />
+        </Box>
+        <Box sx={{ flexShrink: 0 }}>
+          <RiskFactorAiNewRiskCandidates
+            analysis={target.analysis}
+            companyId={runtimeTarget.companyId}
+            workspaceId={runtimeTarget.workspaceId || undefined}
+            entityId={runtimeTarget.entityId}
+            riskGroupId={runtimeTarget.riskGroupId}
+          />
+        </Box>
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            '& > *': {
+              flex: 1,
+              minHeight: 0,
+            },
+          }}
+        >
+          {children}
+        </Box>
       </Box>
-      {children}
       <Dialog
         open={generalOpen}
         onClose={() => setGeneralOpen(false)}
@@ -206,7 +249,9 @@ export function RiskFactorsAiProvider({
       >
         <DialogTitle>Análise geral com IA</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: '80vh' }}>
-          {generalOpen ? renderGeneral() : null}
+          {generalOpen
+            ? renderGeneral({ onClose: () => setGeneralOpen(false) })
+            : null}
         </DialogContent>
       </Dialog>
       <Dialog

@@ -12,9 +12,12 @@ import { useRiskToolWideViewOptional } from './RiskToolWideViewContext';
 export function RiskToolWideFrame({
   children,
   selectExpanded,
+  fillParent = false,
 }: {
   children: React.ReactNode;
   selectExpanded?: boolean;
+  /** Quando true (RiskTool embedded), preenche a altura do pai em vez de depender só do viewport. */
+  fillParent?: boolean;
 }) {
   const wideCtx = useRiskToolWideViewOptional();
   const wideView = !!wideCtx?.wideView;
@@ -78,7 +81,15 @@ export function RiskToolWideFrame({
                 overflow: 'hidden',
                 boxShadow: 8,
               }
-            : undefined
+            : fillParent
+              ? {
+                  height: '100%',
+                  maxHeight: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                }
+              : undefined
         }
       >
         {children}

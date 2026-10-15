@@ -39,6 +39,11 @@ type Props = {
   value: AiTemporaryDocumentSource | null;
   onChange: (value: AiTemporaryDocumentSource | null) => void;
   disabled?: boolean;
+  /**
+   * Quando true, os avisos de uso temporário/privacidade só aparecem com PDF
+   * selecionado. Default false preserva o Assistente e demais consumidores.
+   */
+  showPrivacyAlertsOnlyWhenSelected?: boolean;
 };
 
 function getParseErrorMessage(error: unknown): string {
@@ -58,12 +63,15 @@ export const AiTemporaryPdfSourceField: React.FC<Props> = ({
   value,
   onChange,
   disabled,
+  showPrivacyAlertsOnlyWhenSelected = false,
 }) => {
   const [parsing, setParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
 
   const canParse = Boolean(companyId && workspaceId && (characterizationId || parsePdf));
+  const showPrivacyAlerts =
+    !showPrivacyAlertsOnlyWhenSelected || Boolean(value);
 
   const handleRemove = () => {
     setError(null);
@@ -128,16 +136,20 @@ export const AiTemporaryPdfSourceField: React.FC<Props> = ({
         Documento PDF temporário (opcional)
       </SText>
 
-      <Alert severity="info" sx={{ mb: 1.5 }}>
-        {persistHint ||
-          'Este PDF será usado apenas como contexto desta execução da IA. Ele não será salvo na caracterização.'}
-      </Alert>
+      {showPrivacyAlerts && (
+        <>
+          <Alert severity="info" sx={{ mb: 1.5 }}>
+            {persistHint ||
+              'Este PDF será usado apenas como contexto desta execução da IA. Ele não será salvo na caracterização.'}
+          </Alert>
 
-      <Alert severity="warning" sx={{ mb: 1.5 }}>
-        O conteúdo extraído deste PDF será enviado à IA como documento
-        temporário de apoio nesta execução. O arquivo não será salvo no
-        SimpleSST.
-      </Alert>
+          <Alert severity="warning" sx={{ mb: 1.5 }}>
+            O conteúdo extraído deste PDF será enviado à IA como documento
+            temporário de apoio nesta execução. O arquivo não será salvo no
+            SimpleSST.
+          </Alert>
+        </>
+      )}
 
       {!value && (
         <SInputFileDropZone

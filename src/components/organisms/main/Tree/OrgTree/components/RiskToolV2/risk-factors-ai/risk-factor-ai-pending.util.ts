@@ -18,18 +18,22 @@ import {
   RiskFactorAiField,
 } from './risk-factors-ai-scope.util';
 
-export type RiskFactorAiColumn = 'source' | 'eng' | 'adm' | 'rec';
+export type RiskFactorAiColumn = 'source' | 'eng' | 'adm' | 'rec' | 'probability';
 
 export type RiskFactorAiPendingAction =
   | 'add'
   | 'confirm-existence'
-  | 'accept-recommendation';
+  | 'accept-recommendation'
+  | 'approve-probability';
+
+/** Campos de coluna: controles/recomendações + probabilidade (etapa 2). */
+export type RiskFactorAiPendingField = RiskFactorAiField | 'probability';
 
 export type RiskFactorAiPendingSuggestion = {
   key: string;
   riskId: string;
   riskFactorDataId?: string;
-  field: RiskFactorAiField;
+  field: RiskFactorAiPendingField;
   value: string;
   rationale?: string;
   action: RiskFactorAiPendingAction;
@@ -41,11 +45,12 @@ export type RiskFactorAiPendingRiskData = Pick<
   'generateSources' | 'engs' | 'adms' | 'recs' | 'probability' | 'probabilityAfter'
 > & { probabilityAuthority?: unknown };
 
-const COLUMN_FIELDS: Record<RiskFactorAiColumn, RiskFactorAiField[]> = {
+const COLUMN_FIELDS: Record<RiskFactorAiColumn, RiskFactorAiPendingField[]> = {
   source: ['generateSource'],
   eng: ['existingEngineeringMeasures'],
   adm: ['existingAdministrativeMeasures'],
   rec: ['recommendedEngineeringMeasures', 'recommendedAdministrativeMeasures'],
+  probability: ['probability'],
 };
 
 export function columnForAiField(field: string): RiskFactorAiColumn | null {
@@ -64,8 +69,9 @@ export function isExistingControlField(field: string): boolean {
 
 /** Ação exigida por campo. Controle existente sempre pede confirmação, qualquer que seja o intent. */
 export function pendingActionForField(
-  field: RiskFactorAiField,
+  field: RiskFactorAiPendingField,
 ): RiskFactorAiPendingAction {
+  if (field === 'probability') return 'approve-probability';
   if (isExistingControlField(field)) return 'confirm-existence';
   if (
     field === 'recommendedEngineeringMeasures' ||
@@ -77,8 +83,9 @@ export function pendingActionForField(
 }
 
 export function existingControlApiField(
-  field: RiskFactorAiField,
+  field: RiskFactorAiPendingField,
 ): 'medidasAdministrativasExistentes' | 'medidasEngenhariaExistentes' | null {
+  if (field === 'probability') return null;
   const apiField = RISK_FACTOR_AI_API_FIELD[field];
   return apiField === 'medidasAdministrativasExistentes' ||
     apiField === 'medidasEngenhariaExistentes'
@@ -86,7 +93,10 @@ export function existingControlApiField(
     : null;
 }
 
-const recTypeForField = (field: RiskFactorAiField): RecTypeEnum | undefined => {
+const recTypeForField = (
+  field: RiskFactorAiPendingField,
+): RecTypeEnum | undefined => {
+  if (field === 'probability') return undefined;
   if (field === 'recommendedEngineeringMeasures') return RecTypeEnum.ENG;
   if (field === 'recommendedAdministrativeMeasures') return RecTypeEnum.ADM;
   return undefined;
@@ -112,7 +122,7 @@ export function pendingSuggestionsForColumn(params: {
 
   for (const review of reviews) {
     for (const suggestion of review.suggestions || []) {
-      const field = suggestion.field as RiskFactorAiField;
+      const field = suggestion.field as RiskFactorAiPendingField;
       if (!fields.includes(field)) continue;
 
       for (const rawValue of getSuggestionValues(suggestion)) {
@@ -153,7 +163,7 @@ export function countPendingSuggestionsByColumn(params: {
   appliedKeys: Set<string>;
   dismissedKeys: Set<string>;
 }): Record<RiskFactorAiColumn, number> {
-  const columns: RiskFactorAiColumn[] = ['source', 'eng', 'adm', 'rec'];
+  const columns: RiskFactorAiColumn[] = ['source', 'eng', 'adm', 'rec', 'probability'];
   return columns.reduce(
     (acc, column) => {
       acc[column] = pendingSuggestionsForColumn({
@@ -166,20 +176,29 @@ export function countPendingSuggestionsByColumn(params: {
       }).length;
       return acc;
     },
-    { source: 0, eng: 0, adm: 0, rec: 0 } as Record<RiskFactorAiColumn, number>,
+    { source: 0, eng: 0, adm: 0, rec: 0, probability: 0 } as Record<
+      RiskFactorAiColumn,
+      number
+    >,
   );
 }
 
-/** Mantém no modal apenas o que não tem coluna (probabilidade e observação). */
+/**
+ * Mantém no modal o que não tem coluna de controles/recomendações.
+ * Probabilidade também aparece na tabela (etapa 2), mas permanece no modal
+ * da aba antiga "Análise de Riscos IA".
+ */
 export function withoutColumnSuggestions(
   reviews: ExistingRiskReview[],
 ): ExistingRiskReview[] {
   return reviews
     .map((review) => ({
       ...review,
-      suggestions: (review.suggestions || []).filter(
-        (suggestion) => !columnForAiField(suggestion.field),
-      ),
+      suggestions: (review.suggestions || []).filter((suggestion) => {
+        const column = columnForAiField(suggestion.field);
+        if (!column) return true;
+        return column === 'probability';
+      }),
     }))
     .filter((review) => review.suggestions.length > 0);
 }
@@ -201,6 +220,15 @@ export function buildPendingAcceptPayload(params: {
   companyId: string;
   headerWorkspaceId?: string | null;
 }): Partial<IUpsertRiskData> | null {
+  // Etapa 2: só probabilidade inicial — nunca residual/severidade/matriz extras.
+  if (params.suggestion.field === 'probability') {
+    const probability = Number(params.suggestion.value);
+    if (!Number.isFinite(probability) || probability < 1 || probability > 5) {
+      return null;
+    }
+    return { probability };
+  }
+
   const modular = buildModularRiskUpsert({
     field: params.suggestion.field,
     value: params.suggestion.value,

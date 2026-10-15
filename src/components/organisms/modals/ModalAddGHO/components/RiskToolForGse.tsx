@@ -17,10 +17,6 @@ import { IGho } from 'core/interfaces/api/IGho';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { GSE_WIZARD_STEP_QUERY_KEY } from 'components/organisms/modals/ModalAddGHO/gse-wizard-steps';
-import {
-  CHARACTERIZATION_INLINE_RISK_TOOL_HEIGHT,
-} from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
-
 type RiskToolForGseProps = {
   companyId: string;
   ghoId: string;
@@ -164,8 +160,8 @@ export const RiskToolForGse = ({
   return (
     <Box
       sx={{
-        height: CHARACTERIZATION_INLINE_RISK_TOOL_HEIGHT,
-        minHeight: 420,
+        height: '100%',
+        minHeight: 0,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',

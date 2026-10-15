@@ -98,11 +98,22 @@ function sameSuggestionText(value: string | number, candidate?: string | null) {
 
 /** True when the live risk record already has this text in the same concept. */
 export function riskDataAlreadyContainsFieldValue(
-  field: RiskFactorAiField,
+  field: RiskFactorAiField | 'probability',
   value: string | number,
-  riskData: Pick<IRiskData, 'generateSources' | 'engs' | 'adms' | 'recs'>,
+  riskData: Pick<
+    IRiskData,
+    'generateSources' | 'engs' | 'adms' | 'recs' | 'probability'
+  >,
 ): boolean {
   switch (field) {
+    case 'probability': {
+      const expected = Number(value);
+      return (
+        Number.isFinite(expected) &&
+        typeof riskData.probability === 'number' &&
+        riskData.probability === expected
+      );
+    }
     case 'generateSource':
       return (riskData.generateSources || []).some((item) =>
         sameSuggestionText(value, item?.name),

@@ -114,17 +114,27 @@ const RiskToolForCharacterization: React.FC<{
   ]);
 
   return (
-    <RiskToolV2
-      riskGroupId={riskGroupId}
-      riskContextCompanyId={riskContextCompanyId}
-      embedded
-      lockedViewData={ViewsDataEnum.CHARACTERIZATION}
-      lockedGhoId={characterizationId}
-      lockedGhoName={characterizationName}
-      hideViewSwitcher
-      hideGhoPicker
-      disableEditGho
-    />
+    <Box
+      sx={{
+        height: '100%',
+        minHeight: 0,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <RiskToolV2
+        riskGroupId={riskGroupId}
+        riskContextCompanyId={riskContextCompanyId}
+        embedded
+        lockedViewData={ViewsDataEnum.CHARACTERIZATION}
+        lockedGhoId={characterizationId}
+        lockedGhoName={characterizationName}
+        hideViewSwitcher
+        hideGhoPicker
+        disableEditGho
+      />
+    </Box>
   );
 };
 
@@ -490,7 +500,12 @@ export const ModalAddHierarchyRisk = (
                   riskGroupId,
                   analysis: props.aiRiskAnalysis,
                 }}
-                renderGeneral={() => <ModalAiAnalysisContent {...props} />}
+                renderGeneral={({ onClose }) => (
+                  <ModalAiAnalysisContent
+                    {...props}
+                    onCloseDialog={onClose}
+                  />
+                )}
               >
                 <RiskToolForCharacterization
                   riskGroupId={riskGroupId}

@@ -41,6 +41,8 @@ import { useMutateAiAnalyzeGse } from '@v2/services/security/homogeneous-group/a
 import { IErrorResp } from '@v2/types/error.type';
 
 import { CharacterizationAiRiskAnalysisState } from '../../ModalAddCharacterization/hooks/useCharacterizationAiRiskAnalysisState';
+import { AiSessionAnalysesPanel } from '../../ModalAddCharacterization/components/AiSessionAnalysesPanel/AiSessionAnalysesPanel';
+import { summarizeAiSessionAnalysis } from '../../ModalAddCharacterization/utils/summarize-ai-session-analysis.util';
 import { AiColumnSuggestionsSummary } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/AiColumnSuggestionsSummary';
 import {
   columnForAiField,
@@ -94,11 +96,17 @@ const getApiErrorCode = (error: unknown): string | undefined => {
   return typeof data?.code === 'string' ? data.code : undefined;
 };
 
+/** `full` = aba "Análise de Riscos IA". `risksTabDialog` = diálogo da aba Fatores. */
+export type GhoAiAnalysisPresentation = 'full' | 'risksTabDialog';
+
 type GhoAiAnalysisContentProps = {
   companyId: string;
   ghoData: typeof initialAddGhoState;
   ghoQuery: IGho;
   aiRiskAnalysis: CharacterizationAiRiskAnalysisState;
+  presentation?: GhoAiAnalysisPresentation;
+  /** Fecha o diálogo da aba Fatores após o resumo (somente risksTabDialog). */
+  onCloseDialog?: () => void;
 };
 
 export const GhoAiAnalysisContent = ({
@@ -106,7 +114,11 @@ export const GhoAiAnalysisContent = ({
   ghoData,
   ghoQuery,
   aiRiskAnalysis,
+  presentation = 'full',
+  onCloseDialog,
 }: GhoAiAnalysisContentProps) => {
+  const isRisksTabDialog = presentation === 'risksTabDialog';
+  const summarySectionRef = useRef<HTMLDivElement | null>(null);
   const gseId = ghoData.id;
   const workspaceIds = getGseLinkedWorkspaceIds(ghoData, ghoQuery);
   const hasLinkedWorkspace = workspaceIds.length > 0;
@@ -125,6 +137,7 @@ export const GhoAiAnalysisContent = ({
     visibleSuggestions,
     existingRiskReviews,
     addedRiskIdsSet,
+    dismissedRiskIds,
     modifiedRisks,
     setModifiedRisks,
     userGuidance,
@@ -209,6 +222,35 @@ export const GhoAiAnalysisContent = ({
   const reviewAccordionIds = modalExistingRiskReviews.map(
     (review) => `review:${review.riskId}`,
   );
+
+  const sessionSummary = useMemo(
+    () =>
+      summarizeAiSessionAnalysis({
+        hasAnalyzed,
+        pendingNewRiskCount: newRiskSuggestions.length,
+        pendingReviewCount: visibleExistingRiskReviews.length,
+        acceptedNewRiskCount: addedRiskIdsSet.size,
+        acceptedModularCount: appliedModularSuggestionKeysSet.size,
+        discardedNewRiskCount: dismissedRiskIds.length,
+        discardedModularCount: dismissedModularSuggestionKeysSet.size,
+      }),
+    [
+      hasAnalyzed,
+      newRiskSuggestions.length,
+      visibleExistingRiskReviews.length,
+      addedRiskIdsSet,
+      appliedModularSuggestionKeysSet,
+      dismissedRiskIds.length,
+      dismissedModularSuggestionKeysSet,
+    ],
+  );
+
+  const handleViewSessionSummary = useCallback(() => {
+    summarySectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, []);
 
   const refreshExistingRisks = useCallback(async () => {
     const companyIdForQuery = companyId || contextCompanyId;
@@ -408,7 +450,7 @@ export const GhoAiAnalysisContent = ({
 
   if (!gseId) {
     return (
-      <Box sx={{ px: 0, pt: 6, pb: 4 }}>
+      <Box sx={{ px: 0, pt: isRisksTabDialog ? 1 : 6, pb: 4 }}>
         <SText variant="body1" textAlign="center">
           Salve o GSE antes de executar a Análise de Riscos IA.
         </SText>
@@ -416,17 +458,33 @@ export const GhoAiAnalysisContent = ({
     );
   }
 
+  const columnSummaryRiskDataFor = (review: ExistingRiskReview) =>
+    existingRiskDataByRiskId.get(review.riskId) ||
+    sortedExistingRiskData.find((item) => item.id === review.riskFactorDataId);
+
   return (
-    <Box sx={{ px: 0, pt: 6, pb: 4 }}>
-      <SFlex direction="column" gap={4}>
-        <SText variant="h6" color="text.primary">
-          {GSE_WIZARD_TAB_LABELS.AI_ANALYSIS}
-        </SText>
-        <SText variant="body2" color="text.secondary">
-          Sugere fatores de risco e melhorias para este GSE técnico com base no
-          nome, descrição, cargos, riscos já vinculados e elementos de origem do
-          Assistente. Nada é persistido automaticamente.
-        </SText>
+    <Box sx={{ px: 0, pt: isRisksTabDialog ? 1 : 6, pb: isRisksTabDialog ? 2 : 4 }}>
+      <SFlex direction="column" gap={isRisksTabDialog ? 3 : 4}>
+        {!isRisksTabDialog && (
+          <>
+            <SText variant="h6" color="text.primary">
+              {GSE_WIZARD_TAB_LABELS.AI_ANALYSIS}
+            </SText>
+            <SText variant="body2" color="text.secondary">
+              Sugere fatores de risco e melhorias para este GSE técnico com base no
+              nome, descrição, cargos, riscos já vinculados e elementos de origem do
+              Assistente. Nada é persistido automaticamente.
+            </SText>
+          </>
+        )}
+        {isRisksTabDialog && (
+          <SText variant="body2" color="text.secondary">
+            Análise global do GSE: informe contexto opcional, execute a IA e revise
+            as sugestões nas colunas da tabela (borda tracejada). Nada é gravado
+            automaticamente — confirme controles existentes e aceite recomendações
+            item a item.
+          </SText>
+        )}
 
         {workspaceIds.length === 0 && (
           <Alert severity="warning">{GSE_AI_ANALYZE_NO_WORKSPACE_MESSAGE}</Alert>
@@ -467,9 +525,22 @@ export const GhoAiAnalysisContent = ({
           }
           persistHint="Este PDF será usado apenas como contexto desta execução da IA. Ele não será salvo no GSE."
           unsavedMessage="Salve o GSE antes de anexar um PDF temporário."
+          showPrivacyAlertsOnlyWhenSelected
           value={temporaryDocumentSource}
           onChange={setTemporaryDocumentSource}
           disabled={aiAnalyzeMutation.isPending || !hasLinkedWorkspace}
+        />
+
+        <AiSessionAnalysesPanel
+          summary={sessionSummary}
+          onViewSummary={
+            sessionSummary.hasRecoverableAnalysis
+              ? handleViewSessionSummary
+              : undefined
+          }
+          onReturnToTable={
+            isRisksTabDialog && onCloseDialog ? onCloseDialog : undefined
+          }
         />
 
         <SFlex direction="row" alignItems="center" gap={1} sx={{ flexWrap: 'wrap' }}>
@@ -507,74 +578,7 @@ export const GhoAiAnalysisContent = ({
           )}
         </SFlex>
 
-        <Box
-          sx={{
-            border: '1px solid #e0e0e0',
-            borderRadius: 1,
-            p: 3,
-            backgroundColor: 'background.paper',
-          }}
-        >
-          <SText variant="subtitle2" color="text.primary" mb={1}>
-            Riscos já caracterizados neste GSE
-          </SText>
-          <SText variant="body2" color="text.secondary" mb={2}>
-            A IA não os adicionará novamente como novos. Riscos só nos elementos
-            de origem podem aparecer como candidatos novos.
-          </SText>
-          {sortedExistingRiskData.length === 0 ? (
-            <SText variant="body2" color="text.secondary">
-              Nenhum risco vinculado a este GSE neste inventário.
-            </SText>
-          ) : (
-            <SFlex direction="column" gap={1}>
-              {sortedExistingRiskData.map((riskData) => (
-                <Accordion
-                  key={riskData.id}
-                  disableGutters
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    '&:before': { display: 'none' },
-                    boxShadow: 'none',
-                  }}
-                >
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <SFlex direction="row" alignItems="center" gap={1} sx={{ width: '100%' }}>
-                      {riskData.riskFactor?.type && (
-                        <SRiskChip
-                          type={riskData.riskFactor.type as unknown as RiskTypeEnum}
-                        />
-                      )}
-                      <SText variant="body2">
-                        {riskData.riskFactor?.name || 'Risco sem nome'}
-                      </SText>
-                      <Chip size="small" label="Já caracterizado" variant="outlined" />
-                    </SFlex>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <SFlex direction="column" gap={0.5}>
-                      {typeof riskData.probability === 'number' && (
-                        <SText variant="caption" color="text.secondary">
-                          <strong>Probabilidade:</strong> {riskData.probability}
-                        </SText>
-                      )}
-                      {summarizeRiskDataLabels(riskData.generateSources) && (
-                        <SText variant="caption" color="text.secondary">
-                          <strong>Fonte geradora:</strong>{' '}
-                          {summarizeRiskDataLabels(riskData.generateSources)}
-                        </SText>
-                      )}
-                    </SFlex>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-            </SFlex>
-          )}
-        </Box>
-
-        {(hasAnalyzed || visibleExistingRiskReviews.length > 0) && (
+        {!isRisksTabDialog && (
           <Box
             sx={{
               border: '1px solid #e0e0e0',
@@ -583,9 +587,83 @@ export const GhoAiAnalysisContent = ({
               backgroundColor: 'background.paper',
             }}
           >
+            <SText variant="subtitle2" color="text.primary" mb={1}>
+              Riscos já caracterizados neste GSE
+            </SText>
+            <SText variant="body2" color="text.secondary" mb={2}>
+              A IA não os adicionará novamente como novos. Riscos só nos elementos
+              de origem podem aparecer como candidatos novos.
+            </SText>
+            {sortedExistingRiskData.length === 0 ? (
+              <SText variant="body2" color="text.secondary">
+                Nenhum risco vinculado a este GSE neste inventário.
+              </SText>
+            ) : (
+              <SFlex direction="column" gap={1}>
+                {sortedExistingRiskData.map((riskData) => (
+                  <Accordion
+                    key={riskData.id}
+                    disableGutters
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      '&:before': { display: 'none' },
+                      boxShadow: 'none',
+                    }}
+                  >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <SFlex direction="row" alignItems="center" gap={1} sx={{ width: '100%' }}>
+                        {riskData.riskFactor?.type && (
+                          <SRiskChip
+                            type={riskData.riskFactor.type as unknown as RiskTypeEnum}
+                          />
+                        )}
+                        <SText variant="body2">
+                          {riskData.riskFactor?.name || 'Risco sem nome'}
+                        </SText>
+                        <Chip size="small" label="Já caracterizado" variant="outlined" />
+                      </SFlex>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <SFlex direction="column" gap={0.5}>
+                        {typeof riskData.probability === 'number' && (
+                          <SText variant="caption" color="text.secondary">
+                            <strong>Probabilidade:</strong> {riskData.probability}
+                          </SText>
+                        )}
+                        {summarizeRiskDataLabels(riskData.generateSources) && (
+                          <SText variant="caption" color="text.secondary">
+                            <strong>Fonte geradora:</strong>{' '}
+                            {summarizeRiskDataLabels(riskData.generateSources)}
+                          </SText>
+                        )}
+                      </SFlex>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </SFlex>
+            )}
+          </Box>
+        )}
+
+        {(hasAnalyzed || visibleExistingRiskReviews.length > 0) && (
+          <Box
+            ref={summarySectionRef}
+            sx={{
+              border: '1px solid #e0e0e0',
+              borderRadius: 1,
+              p: 3,
+              backgroundColor: 'background.paper',
+            }}
+          >
             <SFlex direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-              <SText variant="subtitle2">Melhorias sugeridas pela IA</SText>
-              {modalExistingRiskReviews.length > 0 && (
+              <SText variant="subtitle2">
+                {isRisksTabDialog
+                  ? 'Resumo das sugestões'
+                  : 'Melhorias sugeridas pela IA'}
+              </SText>
+              {!isRisksTabDialog && modalExistingRiskReviews.length > 0 && (
                 <SFlex direction="row" gap={1}>
                   <SButton
                     text="Expandir todos"
@@ -609,29 +687,52 @@ export const GhoAiAnalysisContent = ({
             <Box sx={{ mb: 1 }}>
               <AiColumnSuggestionsSummary
                 reviews={visibleExistingRiskReviews}
-                riskDataFor={(review) =>
-                  existingRiskDataByRiskId.get(review.riskId) ||
-                  sortedExistingRiskData.find(
-                    (item) => item.id === review.riskFactorDataId,
-                  )
-                }
+                riskDataFor={columnSummaryRiskDataFor}
                 appliedKeys={appliedModularSuggestionKeysSet}
                 dismissedKeys={dismissedModularSuggestionKeysSet}
               />
             </Box>
-            {modalExistingRiskReviews.length > 0 && (
+            {isRisksTabDialog &&
+              hasAnalyzed &&
+              visibleExistingRiskReviews.length === 0 &&
+              newRiskSuggestions.length === 0 && (
+                <SText variant="body2" color="text.secondary" mb={1}>
+                  Nenhuma sugestão pertinente foi retornada nesta execução.
+                </SText>
+              )}
+            {isRisksTabDialog && newRiskSuggestions.length > 0 && (
+              <Alert severity="info" sx={{ mb: 1 }}>
+                {newRiskSuggestions.length === 1
+                  ? '1 novo fator de risco foi sugerido. Inclua-o na tabela de Fatores de Riscos (candidato com borda tracejada) ou pela aba Análise de Riscos IA.'
+                  : `${newRiskSuggestions.length} novos fatores de risco foram sugeridos. Inclua-os na tabela de Fatores de Riscos (candidatos com borda tracejada) ou pela aba Análise de Riscos IA.`}
+              </Alert>
+            )}
+            {isRisksTabDialog && onCloseDialog && hasAnalyzed && (
+              <SFlex direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
+                <SButton
+                  text="Ver sugestões na tabela"
+                  variant="contained"
+                  color="primary"
+                  size="s"
+                  onClick={onCloseDialog}
+                  buttonProps={{ sx: { minWidth: 'auto' } }}
+                />
+              </SFlex>
+            )}
+            {!isRisksTabDialog && modalExistingRiskReviews.length > 0 && (
               <SText variant="body2" color="text.secondary" mb={1}>
                 Probabilidade e observação sugeridas para riscos já
                 caracterizados. Nada é aplicado automaticamente — escolha item
                 a item.
               </SText>
             )}
-            {visibleExistingRiskReviews.length === 0 ? (
+            {!isRisksTabDialog && visibleExistingRiskReviews.length === 0 ? (
               <SText variant="body2" color="text.secondary">
                 Nenhuma melhoria sugerida para riscos já caracterizados nesta
                 análise.
               </SText>
-            ) : (
+            ) : null}
+            {!isRisksTabDialog &&
               modalExistingRiskReviews.map((review) => {
                 const accordionId = `review:${review.riskId}`;
                 return (
@@ -644,23 +745,17 @@ export const GhoAiAnalysisContent = ({
                     }
                     appliedKeys={appliedModularSuggestionKeysSet}
                     applyingKey={applyingSuggestionKey}
-                    riskData={
-                      existingRiskDataByRiskId.get(review.riskId) ||
-                      sortedExistingRiskData.find(
-                        (item) => item.id === review.riskFactorDataId,
-                      )
-                    }
+                    riskData={columnSummaryRiskDataFor(review)}
                     onApply={(params) => {
                       void handleApplyModularSuggestion(params);
                     }}
                   />
                 );
-              })
-            )}
+              })}
           </Box>
         )}
 
-        {newRiskSuggestions.length > 0 && (
+        {!isRisksTabDialog && newRiskSuggestions.length > 0 && (
           <Box
             sx={{
               border: '1px solid #e0e0e0',
@@ -722,6 +817,8 @@ export const GhoAiAnalysisContent = ({
           open={aiConfigDialogOpen}
           onClose={() => setAiConfigDialogOpen(false)}
           onApply={setAiMasterConfig}
+          initialConfig={aiMasterConfig}
+          defaultModelValue="gpt-5-mini"
           title="Configurar Análise de Riscos IA"
           description="Configuração válida apenas para esta sessão. Esta análise usa o GSE técnico já salvo e sugere apenas riscos."
           promptLabel="Prompt personalizado (opcional)"

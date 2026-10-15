@@ -106,9 +106,14 @@ const pending = (
       ['Treinamento de ruído', RecTypeEnum.ADM],
     ],
   );
-  assert.equal(columnForAiField('probability'), null);
+  assert.equal(columnForAiField('probability'), 'probability');
   assert.equal(columnForAiField('observation'), null);
   assert.equal(columnForAiField('generateSource'), 'source');
+  assert.deepEqual(
+    pending(reviews, 'probability').map((i) => [i.value, i.action]),
+    [['3', 'approve-probability']],
+    'probabilidade aparece na coluna Probabilidade',
+  );
   assert.equal(
     pendingSuggestionsForColumn({
       reviews,
@@ -126,7 +131,7 @@ const pending = (
   assert.deepEqual(
     modalOnly[0].suggestions.map((s) => s.field),
     ['probability', 'observation'],
-    'modal geral mantém apenas o que não tem coluna',
+    'aba antiga mantém probabilidade/observação no modal',
   );
 }
 
@@ -294,7 +299,7 @@ const pending = (
       appliedKeys: applied,
       dismissedKeys: none,
     }),
-    { source: 0, eng: 0, adm: 0, rec: 1 },
+    { source: 0, eng: 0, adm: 0, rec: 1, probability: 0 },
   );
 }
 
@@ -355,4 +360,56 @@ const pending = (
   delete (globalThis as { window?: unknown }).window;
 }
 
+
+// Etapa 2: coluna probabilidade + payload só probabilidade inicial
+{
+  assert.equal(pendingActionForField('probability'), 'approve-probability');
+  const reviews = [review([suggestion('probability', 4)])];
+  const items = pending(reviews, 'probability', { ...emptyRow, probability: 2 });
+  assert.equal(items.length, 1);
+  assert.equal(items[0].action, 'approve-probability');
+  assert.equal(items[0].value, '4');
+
+  const already = pending(reviews, 'probability', { ...emptyRow, probability: 4 });
+  assert.equal(already.length, 0, 'igual à efetiva não fica pendente');
+
+  const appliedKey = buildModularSuggestionKey('risk-1', 'probability', 4);
+  assert.equal(
+    pending(
+      reviews,
+      'probability',
+      emptyRow,
+      new Set([appliedKey]),
+      none,
+    ).length,
+    0,
+    'aprovada não reaparece',
+  );
+  assert.equal(
+    pending(
+      reviews,
+      'probability',
+      emptyRow,
+      none,
+      new Set([appliedKey]),
+    ).length,
+    0,
+    'descartada não reaparece',
+  );
+
+  const payload = buildPendingAcceptPayload({
+    suggestion: items[0],
+    riskData: { ...emptyRow, id: 'rfd-1', riskId: 'risk-1', probability: 2 },
+    companyId: 'co-1',
+  });
+  assert.deepEqual(payload, { probability: 4 });
+  assert.equal(
+    'probabilityAfter' in (payload || {}),
+    false,
+    'residual não é enviado',
+  );
+  assert.equal('severity' in (payload || {}), false);
+}
+
 console.log('risk-factor-ai-pending.util.spec: ok');
+

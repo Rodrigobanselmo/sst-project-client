@@ -509,7 +509,30 @@ export const RiskToolGhoHorizontal: FC<
             >
               <SButton
                 variant="outlined"
-                sx={{ ...tableUtilityPillSx, minWidth: 'auto', height: 30 }}
+                sx={{
+                  ...tableUtilityPillSx,
+                  minWidth: 'auto',
+                  height: 30,
+                  ...(wideCtx.wideView
+                    ? {
+                        '&&': {
+                          backgroundColor: 'primary.identityBackground',
+                          color: 'primary.identityOn',
+                          borderColor: 'primary.border',
+                        },
+                        '&:hover': {
+                          backgroundColor: 'primary.identityBackgroundHover',
+                          color: 'primary.identityOn',
+                          borderColor: 'primary.border',
+                        },
+                        '&&:hover': {
+                          backgroundColor: 'primary.identityBackgroundHover',
+                          color: 'primary.identityOn',
+                          borderColor: 'primary.border',
+                        },
+                      }
+                    : {}),
+                }}
                 onClick={() => wideCtx.toggleWideView()}
               >
                 <SText sx={{ mr: 5 }}>

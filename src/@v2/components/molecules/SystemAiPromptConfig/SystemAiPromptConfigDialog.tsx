@@ -47,6 +47,11 @@ export type SystemAiPromptConfigDialogProps = {
    * When present, takes precedence over persisted SystemAiPrompt / factory on open.
    */
   initialConfig?: SystemAiMasterConfig;
+  /**
+   * Valor inicial do seletor quando ainda não há model aplicado na sessão.
+   * Ausente = legado gpt-4o-mini (demais consumidores). Operacional GSE/Elemento passa gpt-5-mini.
+   */
+  defaultModelValue?: string;
   promptLabel?: string;
   modelLabel?: string;
   modelPlaceholder?: string;
@@ -58,9 +63,18 @@ export type SystemAiPromptConfigDialogProps = {
   promptMaxRows?: number;
 };
 
-const DEFAULT_MODEL =
+/** Default legado do diálogo compartilhado — não alterar sem avaliar FRPS e outros assistentes. */
+const LEGACY_DEFAULT_MODEL =
   AI_MODEL_OPTIONS.find((option) => option.value === 'gpt-4o-mini') ??
   AI_MODEL_OPTIONS[0];
+
+function resolveFormDefaultModel(defaultModelValue?: string): AiModelOption {
+  if (!defaultModelValue?.trim()) return LEGACY_DEFAULT_MODEL;
+  return (
+    AI_MODEL_OPTIONS.find((option) => option.value === defaultModelValue.trim()) ??
+    LEGACY_DEFAULT_MODEL
+  );
+}
 
 export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = ({
   open,
@@ -71,6 +85,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
   promptKey,
   factoryDefaultPrompt = '',
   initialConfig,
+  defaultModelValue,
   promptLabel = 'Prompt do sistema',
   modelLabel = 'Modelo de IA',
   modelPlaceholder = 'Selecione o modelo de IA',
@@ -83,10 +98,14 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
 }) => {
   const { showConfirmation } = useConfirmationModal();
   const { enqueueSnackbar } = useSnackbar();
+  const formDefaultModel = useMemo(
+    () => resolveFormDefaultModel(defaultModelValue),
+    [defaultModelValue],
+  );
   const methods = useForm<SystemAiPromptConfigForm>({
     defaultValues: {
       customPrompt: factoryDefaultPrompt,
-      model: DEFAULT_MODEL,
+      model: formDefaultModel,
     },
   });
   const { handleSubmit, reset, getValues, setValue } = methods;
@@ -114,11 +133,11 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
   }, [factoryDefaultPrompt, promptKey, systemAiPrompt?.defaultContent]);
 
   const resolveModelOption = (modelValue?: string): AiModelOption => {
-    if (!modelValue) return getValues('model') ?? DEFAULT_MODEL;
+    if (!modelValue) return getValues('model') ?? formDefaultModel;
     return (
       AI_MODEL_OPTIONS.find((option) => option.value === modelValue) ??
       getValues('model') ??
-      DEFAULT_MODEL
+      formDefaultModel
     );
   };
 
@@ -127,6 +146,10 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
 
     const sessionPrompt = initialConfig?.customPrompt?.trim();
     const sessionModel = resolveModelOption(initialConfig?.model);
+    /** Com defaultModelValue, sem model na sessão → padrão pedido; senão preserva legado. */
+    const emptySessionModel = defaultModelValue
+      ? formDefaultModel
+      : getValues('model') ?? formDefaultModel;
 
     // Session-applied config wins over persisted SystemAiPrompt / factory.
     if (sessionPrompt || initialConfig?.model) {
@@ -145,7 +168,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
     if (promptKey && systemAiPrompt) {
       reset({
         customPrompt: systemAiPrompt.content || factoryDefaultContent,
-        model: getValues('model') ?? DEFAULT_MODEL,
+        model: emptySessionModel,
       });
       return;
     }
@@ -153,7 +176,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
     if (!promptKey && !isLoadingSystemAiPrompt) {
       reset({
         customPrompt: getValues('customPrompt') ?? factoryDefaultContent,
-        model: getValues('model') ?? DEFAULT_MODEL,
+        model: emptySessionModel,
       });
       return;
     }
@@ -161,12 +184,14 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
     if (promptKey && !isLoadingSystemAiPrompt) {
       reset({
         customPrompt: factoryDefaultContent,
-        model: getValues('model') ?? DEFAULT_MODEL,
+        model: emptySessionModel,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- getValues/resolveModelOption are stable enough; avoid reset loops
   }, [
+    defaultModelValue,
     factoryDefaultContent,
+    formDefaultModel,
     initialConfig?.customPrompt,
     initialConfig?.model,
     isLoadingSystemAiPrompt,
@@ -174,9 +199,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
     promptKey,
     reset,
     systemAiPrompt,
-  ]);
-
-  const handleSaveDefaultPrompt = async () => {
+  ]);  const handleSaveDefaultPrompt = async () => {
     if (!promptKey) return;
 
     const content = getValues('customPrompt')?.trim();

@@ -73,6 +73,11 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { useAccess } from 'core/hooks/useAccess';
 import { AiTemporaryPdfSourceField } from '../AiTemporaryPdfSourceField/AiTemporaryPdfSourceField';
+import { AiSessionAnalysesPanel } from '../AiSessionAnalysesPanel/AiSessionAnalysesPanel';
+import { summarizeAiSessionAnalysis } from '../../utils/summarize-ai-session-analysis.util';
+import { CatalogOnlyCharacterizationPhotosField } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/suggest-catalog-risks-ai/CatalogOnlyCharacterizationPhotosField';
+import type { CatalogOnlyTemporaryImage } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/suggest-catalog-risks-ai/compress-catalog-only-temp-image.util';
+import type { ICharacterizationPhoto } from 'core/interfaces/api/ICharacterization';
 import { AiAnalyzeGuidanceAudioField } from './AiAnalyzeGuidanceAudioField';
 import { appendTranscribedGuidance } from './append-transcribed-guidance.util';
 
@@ -90,13 +95,20 @@ const summarizeRiskDataLabels = (
   return `${labels.slice(0, limit).join(', ')} +${labels.length - limit}`;
 };
 
-export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
-  const { data: characterizationData, hasUnsavedChanges, aiRiskAnalysis } =
-    props;
+export const ModalAiAnalysisContent = (
+  props: IUseEditCharacterization & { onCloseDialog?: () => void },
+) => {
+  const {
+    data: characterizationData,
+    hasUnsavedChanges,
+    aiRiskAnalysis,
+    onCloseDialog,
+  } = props;
   const {
     visibleSuggestions,
     existingRiskReviews,
     addedRiskIdsSet,
+    dismissedRiskIds,
     modifiedRisks,
     setModifiedRisks,
     userGuidance,
@@ -135,11 +147,59 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   >(null);
   const analyzeAbortControllerRef = useRef<AbortController | null>(null);
   const analyzeRequestIdRef = useRef(0);
+  const summarySectionRef = useRef<HTMLDivElement | null>(null);
   const [guidanceAudioBusy, setGuidanceAudioBusy] = useState(false);
+  const [selectedExistingPhotoIds, setSelectedExistingPhotoIds] = useState<
+    Set<string>
+  >(new Set());
+  const [temporaryImages, setTemporaryImages] = useState<
+    CatalogOnlyTemporaryImage[]
+  >([]);
+  const [photosHydratedForEntity, setPhotosHydratedForEntity] = useState<
+    string | null
+  >(null);
 
   const handleGuidanceTranscription = useCallback((text: string) => {
     setUserGuidance((current) => appendTranscribedGuidance(current, text));
   }, [setUserGuidance]);
+
+  const existingPhotos = useMemo((): ICharacterizationPhoto[] => {
+    const charId = characterizationData.id || '';
+    return (characterizationData.photos || [])
+      .filter(
+        (photo): photo is typeof photo & { id: string; photoUrl: string } =>
+          Boolean(photo?.id && photo?.photoUrl),
+      )
+      .map((photo) => ({
+        id: photo.id,
+        name: photo.name || '',
+        companyCharacterizationId: charId,
+        photoUrl: photo.photoUrl,
+        created_at: photo.updated_at || new Date(),
+        updated_at: photo.updated_at || new Date(),
+      }));
+  }, [characterizationData.id, characterizationData.photos]);
+
+  // Hidrata seleção padrão: todas as fotos cadastradas do elemento.
+  useEffect(() => {
+    if (!characterizationData.id) return;
+    if (photosHydratedForEntity === characterizationData.id) return;
+    setSelectedExistingPhotoIds(new Set(existingPhotos.map((photo) => photo.id)));
+    setPhotosHydratedForEntity(characterizationData.id);
+  }, [
+    characterizationData.id,
+    existingPhotos,
+    photosHydratedForEntity,
+  ]);
+
+  const toggleExistingPhoto = useCallback((photoId: string) => {
+    setSelectedExistingPhotoIds((current) => {
+      const next = new Set(current);
+      if (next.has(photoId)) next.delete(photoId);
+      else next.add(photoId);
+      return next;
+    });
+  }, []);
 
   const hasInsufficientCharacterizationText = useMemo(
     () => isCharacterizationTextInsufficient(characterizationData),
@@ -319,6 +379,36 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     [visibleExistingRiskReviews],
   );
 
+  const sessionSummary = useMemo(
+    () =>
+      summarizeAiSessionAnalysis({
+        hasAnalyzed,
+        pendingNewRiskCount: newRiskSuggestions.length,
+        pendingReviewCount: visibleExistingRiskReviews.length,
+        acceptedNewRiskCount: addedRiskIdsSet.size,
+        acceptedModularCount: appliedModularSuggestionKeysSet.size,
+        discardedNewRiskCount: dismissedRiskIds.length,
+        discardedModularCount: dismissedModularSuggestionKeysSet.size,
+      }),
+    [
+      hasAnalyzed,
+      newRiskSuggestions.length,
+      visibleExistingRiskReviews.length,
+      addedRiskIdsSet,
+      appliedModularSuggestionKeysSet,
+      dismissedRiskIds.length,
+      dismissedModularSuggestionKeysSet,
+    ],
+  );
+
+  const handleViewSessionSummary = useCallback(() => {
+    summarySectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, []);
+
+
   const reviewAccordionIds = useMemo(
     () =>
       modalExistingRiskReviews.map(
@@ -369,6 +459,14 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
         temporaryDocumentSources: temporaryDocumentSource
           ? [temporaryDocumentSource]
           : undefined,
+        photoSelection: {
+          existingPhotoIds: [...selectedExistingPhotoIds],
+          temporaryImages: temporaryImages.map((image) => ({
+            fileName: image.fileName,
+            mimeType: image.mimeType,
+            dataUrl: image.dataUrl,
+          })),
+        },
         customPrompt: masterOverrides.customPrompt,
         model: masterOverrides.model,
         signal: abortController.signal,
@@ -632,6 +730,15 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 </Alert>
               )}
 
+              <CatalogOnlyCharacterizationPhotosField
+                existingPhotos={existingPhotos}
+                selectedExistingIds={selectedExistingPhotoIds}
+                onToggleExisting={toggleExistingPhoto}
+                temporaryImages={temporaryImages}
+                onTemporaryChange={setTemporaryImages}
+                disabled={aiAnalyzeMutation.isPending || guidanceAudioBusy}
+              />
+
               <AiAnalyzeGuidanceAudioField
                 companyId={characterizationData.companyId}
                 workspaceId={characterizationData.workspaceId}
@@ -647,9 +754,20 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                 companyId={characterizationData.companyId}
                 workspaceId={characterizationData.workspaceId}
                 characterizationId={characterizationData.id}
+                showPrivacyAlertsOnlyWhenSelected
                 value={temporaryDocumentSource}
                 onChange={setTemporaryDocumentSource}
                 disabled={aiAnalyzeMutation.isPending}
+              />
+
+              <AiSessionAnalysesPanel
+                summary={sessionSummary}
+                onViewSummary={
+                  sessionSummary.hasRecoverableAnalysis
+                    ? handleViewSessionSummary
+                    : undefined
+                }
+                onReturnToTable={onCloseDialog}
               />
 
               <SFlex
@@ -875,6 +993,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
 
               {(hasAnalyzed || visibleExistingRiskReviews.length > 0) && (
                 <Box
+                  ref={summarySectionRef}
                   sx={{
                     border: '1px solid #e0e0e0',
                     borderRadius: 1,
@@ -1121,6 +1240,8 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
             open={aiConfigDialogOpen}
             onClose={() => setAiConfigDialogOpen(false)}
             onApply={setAiMasterConfig}
+            initialConfig={aiMasterConfig}
+            defaultModelValue="gpt-5-mini"
             title="Configurar Análise IA de Riscos"
             description="Configuração válida apenas para esta sessão. Esta análise usa a caracterização textual já preenchida e sugere apenas riscos."
             promptLabel="Prompt personalizado (opcional)"

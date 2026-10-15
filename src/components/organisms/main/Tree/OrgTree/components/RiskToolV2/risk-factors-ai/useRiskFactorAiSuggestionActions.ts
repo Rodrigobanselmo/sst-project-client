@@ -124,6 +124,21 @@ export function useRiskFactorAiSuggestionActions(params: {
       setApplyingKey(suggestion.key);
 
       try {
+        if (suggestion.action === 'approve-probability') {
+          const currentProbability =
+            typeof riskData.probability === 'number'
+              ? riskData.probability
+              : 'não informada';
+          const confirmed = await showConfirmation({
+            title: 'Aprovar probabilidade sugerida?',
+            message: `A probabilidade efetiva atual (${currentProbability}) permanece intacta até você confirmar. Ao aprovar, ela será substituída pela sugerida (${suggestion.value}). A probabilidade residual e demais campos não são alterados por esta ação.`,
+            confirmText: 'Aprovar probabilidade',
+            cancelText: 'Cancelar',
+            variant: 'warning',
+          });
+          if (!confirmed) return;
+        }
+
         const result = await acceptPendingAiSuggestion({
           suggestion,
           riskData,

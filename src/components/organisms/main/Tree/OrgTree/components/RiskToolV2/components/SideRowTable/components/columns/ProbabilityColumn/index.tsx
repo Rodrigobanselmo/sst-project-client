@@ -17,6 +17,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { RealProbabilityCountSuggestion } from 'components/organisms/modals/ModalAddProbability/RealProbabilityCountSuggestion';
 import SText from 'components/atoms/SText';
 import { workspaceProbabilityCaption } from 'core/utils/workspace-probability-evaluation.util';
+import { RiskFactorAiPendingList } from '../../../../../risk-factors-ai/RiskFactorAiPendingList';
 
 const CURRENT_PROBABILITY_LOCKED_REASON =
   'Como todas as recomendações aplicáveis a este risco foram concluídas com sucesso, o risco real deve ser igual ao risco residual. Para alterar essa probabilidade, adicione novas medidas de controle.';
@@ -158,6 +159,14 @@ export const ProbabilityColumn: FC<
           {probabilityCaption}
         </SText>
       ) : null}
+      {!data?.isQuantity && (
+        <RiskFactorAiPendingList
+          column="probability"
+          riskId={risk?.id}
+          riskData={data}
+          handleSelect={handleSelect}
+        />
+      )}
       <RealProbabilityCountSuggestion
         data={data}
         countSource={probabilityCountSource}

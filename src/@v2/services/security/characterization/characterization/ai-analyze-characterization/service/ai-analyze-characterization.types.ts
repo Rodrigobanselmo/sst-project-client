@@ -22,7 +22,8 @@ export interface AiAnalyzeCharacterizationParams {
   /** Ausente preserva a análise completa. catalog-only = só catálogo + justificativa. */
   suggestionMode?: 'catalog-only';
   /**
-   * Somente catalog-only de Elemento. Ausente = todas as fotos persistidas (legado).
+   * Elemento: catalog-only ou análise operacional geral.
+   * Ausente = todas as fotos persistidas (legado).
    * existingPhotoIds: [] = nenhuma foto cadastrada.
    */
   photoSelection?: {

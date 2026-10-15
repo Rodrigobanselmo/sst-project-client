@@ -29,6 +29,7 @@ import {
 } from 'react-hook-form';
 
 import { RiskFactorsAiProvider } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/RiskFactorsAiProvider';
+import { inlineRiskToolHeightSx } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 import { EditGhoSelects } from './EditGhoSelects';
 import { GhoAiAnalysisContent } from './GhoAiAnalysisContent';
 import { RiskToolForGse } from './RiskToolForGse';
@@ -235,7 +236,20 @@ export const GhoFormContent = ({
       </Box>
 
       {isPage && (
-        <Box sx={{ px: 0, pb: 4 }}>
+        <Box
+          sx={{
+            px: 0,
+            pb: 0,
+            ...(isEdit
+              ? {
+                  ...inlineRiskToolHeightSx,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }
+              : {}),
+          }}
+        >
           {!isEdit ? (
             <Box
               sx={{
@@ -250,32 +264,36 @@ export const GhoFormContent = ({
               </SText>
             </Box>
           ) : (
-            <RiskFactorsAiProvider
-              target={{
-                kind: 'gse',
-                companyId,
-                gseId: ghoData.id,
-                ghoData,
-                ghoQuery: ghoQuery as IGho,
-                riskGroupId: gseAi.riskGroupId,
-                analysis: gseAi.analysis,
-              }}
-              renderGeneral={() => (
-                <GhoAiAnalysisContent
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <RiskFactorsAiProvider
+                target={{
+                  kind: 'gse',
+                  companyId,
+                  gseId: ghoData.id,
+                  ghoData,
+                  ghoQuery: ghoQuery as IGho,
+                  riskGroupId: gseAi.riskGroupId,
+                  analysis: gseAi.analysis,
+                }}
+                renderGeneral={({ onClose }) => (
+                  <GhoAiAnalysisContent
+                    companyId={companyId}
+                    ghoData={ghoData}
+                    ghoQuery={ghoQuery}
+                    aiRiskAnalysis={gseAi.analysis}
+                    presentation="risksTabDialog"
+                    onCloseDialog={onClose}
+                  />
+                )}
+              >
+                <RiskToolForGse
                   companyId={companyId}
-                  ghoData={ghoData}
-                  ghoQuery={ghoQuery}
-                  aiRiskAnalysis={gseAi.analysis}
+                  ghoId={ghoData.id}
+                  ghoName={ghoData.name || ghoQuery.name}
+                  gho={ghoQuery?.id ? (ghoQuery as IGho) : null}
                 />
-              )}
-            >
-              <RiskToolForGse
-                companyId={companyId}
-                ghoId={ghoData.id}
-                ghoName={ghoData.name || ghoQuery.name}
-                gho={ghoQuery?.id ? (ghoQuery as IGho) : null}
-              />
-            </RiskFactorsAiProvider>
+              </RiskFactorsAiProvider>
+            </Box>
           )}
         </Box>
       )}
