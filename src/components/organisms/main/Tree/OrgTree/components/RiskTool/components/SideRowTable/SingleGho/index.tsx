@@ -14,7 +14,9 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskDat
 import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddProbability/qualitative-probability.util';
 import {
   controlsForProbabilityAssistant,
+  originKindForWorkspaceProbabilityWrite,
   prepareWorkspaceProbabilityWrite,
+  requiresWorkspaceProbabilityControls,
 } from 'core/utils/workspace-probability-evaluation.util';
 import { buildProbabilityCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 
@@ -79,7 +81,10 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
     const prepared = prepareWorkspaceProbabilityWrite({
       values: submitData,
       isQuantity: riskData?.isQuantity,
-      originKind: riskData?.originKind,
+      originKind: originKindForWorkspaceProbabilityWrite({
+        originKind: riskData?.originKind,
+        viewDataType: viewData,
+      }),
       headerWorkspaceId,
     });
     if (!prepared.ok) {
@@ -94,10 +99,12 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
     if (!risk?.id) return;
 
     const assistantControls = controlsForProbabilityAssistant(riskData, {
-      requireWorkspaceControls:
-        !riskData?.isQuantity &&
-        riskData?.originKind !== 'CHARACTERIZATION' &&
-        !!headerWorkspaceId,
+      requireWorkspaceControls: requiresWorkspaceProbabilityControls({
+        isQuantity: riskData?.isQuantity,
+        originKind: riskData?.originKind,
+        viewDataType: viewData,
+        headerWorkspaceId,
+      }),
     });
     if (!assistantControls.available) {
       enqueueSnackbar(assistantControls.message, { variant: 'warning' });

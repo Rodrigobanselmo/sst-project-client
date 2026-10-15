@@ -66,6 +66,42 @@ export function prepareWorkspaceProbabilityWrite<T extends {
 const MISSING_WORKSPACE_CONTROLS =
   'Os controles deste estabelecimento não estão disponíveis para a estimativa.';
 
+/** Avaliação por estabelecimento: GSE e hierarquia. Elemento caracterizado fica de fora. */
+const WORKSPACE_SCOPED_PROBABILITY_VIEWS = new Set(['GSE', 'SIMPLE_BY_GROUP']);
+
+/**
+ * A lista filtrada só é obrigatória no GSE/hierarquia qualitativo com estabelecimento.
+ * Elemento caracterizado usa os controles do próprio fator, os mesmos exibidos na linha.
+ */
+export function requiresWorkspaceProbabilityControls(params: {
+  isQuantity?: boolean | null;
+  originKind?: string | null;
+  viewDataType?: string | null;
+  headerWorkspaceId?: string | null;
+}): boolean {
+  if (params.isQuantity) return false;
+  if (params.originKind === 'CHARACTERIZATION') return false;
+  if (!params.headerWorkspaceId) return false;
+  if (params.viewDataType == null) return true;
+  return WORKSPACE_SCOPED_PROBABILITY_VIEWS.has(params.viewDataType);
+}
+
+/**
+ * Sem origem explícita, a tela de elemento caracterizado grava no fator.
+ * GSE e hierarquia continuam exigindo o estabelecimento do cabeçalho.
+ */
+export function originKindForWorkspaceProbabilityWrite(params: {
+  originKind?: string | null;
+  viewDataType?: string | null;
+}): string | null | undefined {
+  if (params.originKind) return params.originKind;
+  if (params.viewDataType == null) return params.originKind;
+  if (WORKSPACE_SCOPED_PROBABILITY_VIEWS.has(params.viewDataType)) {
+    return params.originKind;
+  }
+  return 'CHARACTERIZATION';
+}
+
 export type ProbabilityAssistantControls = {
   available: true;
   controls: {

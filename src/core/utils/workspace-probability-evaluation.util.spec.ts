@@ -4,7 +4,9 @@ import {
   controlsForProbabilityAssistant,
   countSuggestionMayAutoSave,
   mergeProbabilityWriteIntoRiskRow,
+  originKindForWorkspaceProbabilityWrite,
   prepareWorkspaceProbabilityWrite,
+  requiresWorkspaceProbabilityControls,
   workspaceProbabilityAssistantNote,
   workspaceProbabilityCaption,
 } from './workspace-probability-evaluation.util';
@@ -100,6 +102,132 @@ const blocked = controlsForProbabilityAssistant({
   controlsForWorkspaceProbabilityEstimate: null,
 }, { requireWorkspaceControls: true });
 assert.equal(blocked.available, false);
+
+const characterizationView = controlsForProbabilityAssistant({
+  engs: [{ id: 'epc' }],
+  adms: [{ id: 'adm' }, { id: 'treinamento' }],
+  epis: [epi],
+  controlsForWorkspaceProbabilityEstimate: null,
+}, {
+  requireWorkspaceControls: requiresWorkspaceProbabilityControls({
+    isQuantity: false,
+    originKind: undefined,
+    viewDataType: 'CHARACTERIZATION',
+    headerWorkspaceId: 'altus',
+  }),
+});
+assert.equal(characterizationView.available, true);
+if (characterizationView.available) {
+  assert.deepEqual(
+    characterizationView.controls.engs?.map((item) => (item as { id: string }).id),
+    ['epc'],
+  );
+  assert.equal(characterizationView.controls.adms?.length, 2);
+}
+
+const gseMissingControls = controlsForProbabilityAssistant({
+  engs: [{ id: 'epc' }],
+  adms: [manual],
+  epis: [epi],
+  controlsForWorkspaceProbabilityEstimate: null,
+}, {
+  requireWorkspaceControls: requiresWorkspaceProbabilityControls({
+    isQuantity: false,
+    originKind: 'GSE',
+    viewDataType: 'GSE',
+    headerWorkspaceId: 'altus',
+  }),
+});
+assert.equal(gseMissingControls.available, false);
+
+const gseWithoutControls = controlsForProbabilityAssistant({
+  engs: [],
+  adms: [],
+  epis: [],
+  controlsForWorkspaceProbabilityEstimate: { adms: [], engs: [], epis: [] },
+}, {
+  requireWorkspaceControls: requiresWorkspaceProbabilityControls({
+    viewDataType: 'GSE',
+    headerWorkspaceId: 'altus',
+  }),
+});
+assert.equal(gseWithoutControls.available, true);
+if (gseWithoutControls.available) {
+  assert.deepEqual(gseWithoutControls.controls.adms, []);
+  assert.deepEqual(gseWithoutControls.controls.engs, []);
+  assert.deepEqual(gseWithoutControls.controls.epis, []);
+}
+
+assert.equal(
+  requiresWorkspaceProbabilityControls({
+    originKind: 'CHARACTERIZATION',
+    viewDataType: 'GSE',
+    headerWorkspaceId: 'altus',
+  }),
+  false,
+);
+assert.equal(
+  requiresWorkspaceProbabilityControls({
+    isQuantity: true,
+    viewDataType: 'GSE',
+    headerWorkspaceId: 'altus',
+  }),
+  false,
+);
+assert.equal(
+  requiresWorkspaceProbabilityControls({
+    viewDataType: 'WORKSTATION',
+    headerWorkspaceId: 'altus',
+  }),
+  false,
+);
+assert.equal(
+  requiresWorkspaceProbabilityControls({
+    viewDataType: 'SIMPLE_BY_GROUP',
+    headerWorkspaceId: 'altus',
+  }),
+  true,
+);
+
+assert.equal(
+  originKindForWorkspaceProbabilityWrite({ viewDataType: 'CHARACTERIZATION' }),
+  'CHARACTERIZATION',
+);
+assert.equal(
+  originKindForWorkspaceProbabilityWrite({ viewDataType: 'WORKSTATION' }),
+  'CHARACTERIZATION',
+);
+assert.equal(
+  originKindForWorkspaceProbabilityWrite({
+    originKind: 'GSE',
+    viewDataType: 'GSE',
+  }),
+  'GSE',
+);
+assert.equal(
+  originKindForWorkspaceProbabilityWrite({
+    originKind: 'CHARACTERIZATION',
+    viewDataType: 'GSE',
+  }),
+  'CHARACTERIZATION',
+);
+assert.equal(
+  originKindForWorkspaceProbabilityWrite({ viewDataType: 'GSE' }),
+  undefined,
+);
+
+const characterizationSave = prepareWorkspaceProbabilityWrite({
+  values: { probability: 3, probabilityCriteria: { medsImplemented: 1 } },
+  originKind: originKindForWorkspaceProbabilityWrite({
+    viewDataType: 'CHARACTERIZATION',
+  }),
+  headerWorkspaceId: 'altus',
+});
+assert.equal(characterizationSave.ok, true);
+if (characterizationSave.ok) {
+  assert.equal(characterizationSave.values.workspaceId, undefined);
+  assert.equal(characterizationSave.values.probability, 3);
+}
 
 assert.equal(
   workspaceProbabilityCaption({ authority: 'SHARED' }),

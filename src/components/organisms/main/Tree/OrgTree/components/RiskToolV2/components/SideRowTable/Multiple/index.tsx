@@ -12,6 +12,7 @@ import { ProbabilityEstimateResult } from 'components/organisms/modals/ModalAddP
 import {
   controlsForProbabilityAssistant,
   prepareWorkspaceProbabilityWrite,
+  requiresWorkspaceProbabilityControls,
 } from 'core/utils/workspace-probability-evaluation.util';
 import { allWorkspacesCountSource } from 'components/organisms/modals/ModalAddProbability/use-live-employee-counts';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
@@ -194,11 +195,12 @@ export const SideRowTableMulti: FC<
     };
 
     const assistantControls = controlsForProbabilityAssistant(riskData, {
-      requireWorkspaceControls:
-        (viewDataType === ViewsDataEnum.GSE ||
-          viewDataType === ViewsDataEnum.HIERARCHY) &&
-        !Boolean((riskData as { isQuantity?: boolean }).isQuantity) &&
-        !!headerWorkspaceId,
+      requireWorkspaceControls: requiresWorkspaceProbabilityControls({
+        isQuantity: Boolean((riskData as { isQuantity?: boolean }).isQuantity),
+        originKind: (riskData as { originKind?: string | null }).originKind,
+        viewDataType,
+        headerWorkspaceId,
+      }),
     });
     if (!assistantControls.available) {
       enqueueSnackbar(assistantControls.message, { variant: 'warning' });
