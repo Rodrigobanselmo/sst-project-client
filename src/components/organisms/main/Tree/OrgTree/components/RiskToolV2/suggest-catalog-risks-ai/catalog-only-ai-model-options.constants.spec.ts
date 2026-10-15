@@ -12,11 +12,11 @@ import {
 } from './catalog-only-ai-model-options.constants';
 
 describe('catalog-only-ai-model-options', () => {
-  it('padrão do sistema indica GPT-4o e não envia model no payload', () => {
-    assert.equal(CATALOG_ONLY_DEFAULT_AI_MODEL, 'gpt-4o');
+  it('padrão do sistema indica GPT-5 Mini e não envia model no payload', () => {
+    assert.equal(CATALOG_ONLY_DEFAULT_AI_MODEL, 'gpt-5-mini');
     const systemOption = CATALOG_ONLY_AI_MODEL_OPTIONS[0];
     assert.equal(systemOption.value, CATALOG_ONLY_AI_MODEL_SYSTEM_DEFAULT);
-    assert.match(systemOption.label, /Padrão do sistema \(GPT-4o\)/);
+    assert.match(systemOption.label, /Padrão do sistema \(GPT-5 Mini\)/);
     assert.equal(
       resolveCatalogOnlySessionModelForRequest(systemOption.value),
       undefined,

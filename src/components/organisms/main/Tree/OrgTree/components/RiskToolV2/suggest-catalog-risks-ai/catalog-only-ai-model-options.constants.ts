@@ -30,7 +30,7 @@ export type CatalogOnlyCompatibleAiModel =
 export const CATALOG_ONLY_AI_MODEL_SYSTEM_DEFAULT = '';
 
 /** Espelha CATALOG_ONLY_DEFAULT_AI_MODEL da API (padrão oficial catalog-only). */
-export const CATALOG_ONLY_DEFAULT_AI_MODEL = 'gpt-4o';
+export const CATALOG_ONLY_DEFAULT_AI_MODEL = 'gpt-5-mini';
 
 const compatibleSet = new Set<string>(CATALOG_ONLY_COMPATIBLE_AI_MODEL_VALUES);
 
@@ -41,7 +41,7 @@ const compatibleFromCentralList: AiModelOption[] = AI_MODEL_OPTIONS.filter(
 export const CATALOG_ONLY_AI_MODEL_OPTIONS: AiModelOption[] = [
   {
     value: CATALOG_ONLY_AI_MODEL_SYSTEM_DEFAULT,
-    label: 'Padrão do sistema (GPT-4o)',
+    label: 'Padrão do sistema (GPT-5 Mini)',
   },
   ...compatibleFromCentralList,
 ];
