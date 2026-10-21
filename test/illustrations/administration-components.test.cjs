@@ -130,6 +130,7 @@ function harness() {
     },
   };
   return {
+    reset: () => states.splice(0),
     mocks,
     snapshots,
     queries,
@@ -846,4 +847,44 @@ test('watermarked previews and gallery omit duplicate visible captions but retai
         /ILUSTRAÇÃO GERADA POR IA/.test(node.props.alt),
     ),
   );
+});
+
+test('gallery PGR caption editor keeps warning read-only and saves suffix only with listing refresh', async () => {
+  const h = harness(), warning = 'Ilustração meramente ilustrativa, gerada por inteligência artificial. Não constitui registro fotográfico oficial.';
+  let listRefresh = 0, capRefresh = 0, saved = [], fail = false;
+  const row = { id: 'approved', pgrCaptionComplement: 'Inicial', pgrCaptionWarning: warning };
+  h.snapshots.capabilities = { data: { canGenerate: true, available: true }, refetch: async () => capRefresh++ };
+  h.snapshots.listing = { data: [row], refetch: async () => listRefresh++ };
+  h.mocks['./illustrations.flow'] = { browserSessionStorage: () => undefined,
+    IllustrationFlow: class { subscribe() {} snapshot = () => ({ busy: false, error: '' }); } };
+  const component = compile('src/components/organisms/modals/ModalAddCharacterization/components/Illustrations/IllustrationsPanel.tsx', h.mocks).IllustrationsPanel;
+  const api = { updatePgrCaption: async (...args) => { if (fail) throw { response: { status: 503, data: { message: 'Falha controlada' } } }; saved.push(args); } };
+  const scope = { userId: 1, companyId: 'owner', workspaceId: 'workspace', characterizationId: 'element' };
+  const panel = h.render(component, { scope, api, saved: true, canEdit: true, dirty: false });
+  const card = find(panel, n => n.props.id === row.id);
+  h.reset();
+  const render = () => h.render(card.type, card.props);
+  let tree = render();
+  find(tree, n => n.type === 'Button' && text(n) === 'Legenda no PGR').props.onClick();
+  tree = render();
+  assert.ok(text(tree).includes(warning));
+  const field = find(tree, n => n.type === 'TextField' && n.props.label === 'Complemento opcional');
+  assert.equal(field.props.value, 'Inicial');
+  assert.ok(!nodes(tree).some(n => n.type === 'TextField' && n.props.value === warning));
+  field.props.onChange({ target: { value: 'Bancada fictícia' } });
+  tree = render();
+  await find(tree, n => n.type === 'Button' && text(n) === 'Salvar complemento').props.onClick();
+  await settle();
+  assert.deepEqual(saved, [[scope, row.id, 'Bancada fictícia']]);
+  assert.equal(listRefresh, 1); assert.equal(capRefresh, 0);
+  tree = render();
+  find(tree, n => n.type === 'Button' && text(n) === 'Legenda no PGR').props.onClick();
+  tree = render();
+  find(tree, n => n.type === 'TextField').props.onChange({ target: { value: 'Não salvo' } });
+  fail = true; tree = render();
+  await find(tree, n => n.type === 'Button' && text(n) === 'Salvar complemento').props.onClick();
+  await settle(); tree = render();
+  assert.ok(text(tree).includes('Falha controlada'));
+  assert.equal(find(tree, n => n.type === 'TextField').props.value, 'Não salvo');
+  assert.equal(listRefresh, 1);
 });

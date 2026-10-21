@@ -74,6 +74,9 @@ export type Illustration = {
   generationId: string;
   origin: 'AI_GENERATED';
   caption: string;
+  pgrCaptionComplement: string | null;
+  pgrCaptionWarning: string;
+  pgrCaption: string;
   generatedAt: string;
   approvedAt: string;
   width: number;
@@ -121,7 +124,7 @@ export async function asIllustrationError(
   );
 }
 export function createIllustrationApi(
-  http: Pick<AxiosInstance, 'get' | 'post' | 'delete'>,
+  http: Pick<AxiosInstance, 'get' | 'post' | 'delete' | 'patch'>,
 ) {
   const base = (s: Scope) =>
     `/v2/companies/${encodeURIComponent(s.companyId)}/workspaces/${encodeURIComponent(s.workspaceId)}/characterizations/${encodeURIComponent(s.characterizationId)}/illustrations`;
@@ -157,6 +160,10 @@ export function createIllustrationApi(
       run<Generation>(() =>
         http.delete(base(s) + '/generations/' + encodeURIComponent(id)),
       ),
+    updatePgrCaption: (s: Scope, id: string, complement: string | null) =>
+      run<Illustration>(() => http.patch(base(s) + '/' + encodeURIComponent(id) + '/pgr-caption', {
+        pgrCaptionComplement: complement?.trim() || null,
+      })),
     remove: (s: Scope, id: string) =>
       run<unknown>(() => http.delete(base(s) + '/' + encodeURIComponent(id))),
     preview: (s: Scope, id: string, signal?: AbortSignal) =>

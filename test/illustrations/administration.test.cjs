@@ -251,3 +251,15 @@ test('platform accounting uses separate server endpoints and billing cannot be s
     'Idempotency-Key': 'idempotency-key',
   });
 });
+
+test('PGR caption PATCH sends only complement; clear and full warning come from API', async () => {
+  const calls = [], warning = 'Ilustração meramente ilustrativa, gerada por inteligência artificial. Não constitui registro fotográfico oficial.';
+  const api = createIllustrationApi({ patch: async (...args) => {
+    calls.push(args); return { data: { pgrCaptionWarning: warning, pgrCaption: warning, pgrCaptionComplement: args[1].pgrCaptionComplement } };
+  } });
+  const scope = { companyId: 'c/a', workspaceId: 'w', characterizationId: 'e' };
+  await api.updatePgrCaption(scope, 'i/a', ' Contexto ');
+  assert.deepEqual(calls[0], ['/v2/companies/c%2Fa/workspaces/w/characterizations/e/illustrations/i%2Fa/pgr-caption', { pgrCaptionComplement: 'Contexto' }]);
+  assert.equal((await api.updatePgrCaption(scope, 'i/a', '')).pgrCaptionWarning, warning);
+  assert.deepEqual(calls[1][1], { pgrCaptionComplement: null });
+});

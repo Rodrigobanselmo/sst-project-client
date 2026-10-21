@@ -19,6 +19,7 @@ import {
   DialogContent,
   DialogTitle,
   Typography,
+  TextField,
 } from '@mui/material';
 import { useQuery, useQueryClient } from 'react-query';
 import {
@@ -26,6 +27,7 @@ import {
   capabilityMessage,
   ILLUSTRATION_CAPTION,
   IllustrationApi,
+  Illustration,
   Scope,
 } from './illustrations.api';
 import { browserSessionStorage, IllustrationFlow } from './illustrations.flow';
@@ -99,7 +101,11 @@ function IllustrationCard({
   api,
   scope,
   refresh,
+  illustration,
+  refreshCaption,
 }: {
+  illustration: Illustration;
+  refreshCaption: () => Promise<unknown>;
   id: string;
   api: IllustrationApi;
   scope: Scope;
@@ -108,7 +114,22 @@ function IllustrationCard({
   const [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [view, setView] = useState(''),
-    [confirm, setConfirm] = useState(false);
+    [confirm, setConfirm] = useState(false),
+    [captionOpen, setCaptionOpen] = useState(false),
+    [complement, setComplement] = useState('');
+  const saveCaption = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await api.updatePgrCaption(scope, id, complement);
+      await refreshCaption();
+      setCaptionOpen(false);
+    } catch (e) {
+      setError((await asIllustrationError(e)).message);
+    } finally {
+      setBusy(false);
+    }
+  };
   const load = useCallback(
     (signal: AbortSignal) => api.file(scope, id, signal),
     [api, scope, id],
@@ -155,9 +176,14 @@ function IllustrationCard({
           sx={{ mb: 1 }}
         />
         <PrivateImage load={load} onOpen={setView} />
-        {error && <Alert severity="error">{error}</Alert>}
+        {error && !captionOpen && <Alert severity="error">{error}</Alert>}
       </CardContent>
-      <CardActions>
+      <CardActions sx={{ flexWrap: 'wrap' }}>
+        <Button disabled={busy || !illustration.pgrCaptionWarning} onClick={() => {
+          setComplement(illustration.pgrCaptionComplement || '');
+          setError('');
+          setCaptionOpen(true);
+        }}>Legenda no PGR</Button>
         <Button disabled={busy} onClick={() => void download()}>
           Baixar
         </Button>
@@ -165,6 +191,26 @@ function IllustrationCard({
           Excluir
         </Button>
       </CardActions>
+      <Dialog open={captionOpen} onClose={() => !busy && setCaptionOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Legenda da ilustração no PGR</DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ mb: 2 }}>{illustration.pgrCaptionWarning}</Alert>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            A advertência é obrigatória. O complemento aparecerá após um travessão, somente na legenda do PGR.
+          </Typography>
+          <TextField fullWidth label="Complemento opcional" value={complement}
+            disabled={busy} inputProps={{ maxLength: 500 }}
+            helperText={`${complement.length}/500 caracteres`}
+            onChange={(event) => setComplement(event.target.value)} />
+          {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={busy} onClick={() => setCaptionOpen(false)}>Cancelar</Button>
+          <Button variant="contained" disabled={busy || complement.trim() === (illustration.pgrCaptionComplement || '')} onClick={() => void saveCaption()}>
+            Salvar complemento
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={!!view} onClose={() => setView('')} maxWidth="md" fullWidth>
         <DialogTitle>Ilustração do elemento</DialogTitle>
         <DialogContent>
@@ -362,6 +408,8 @@ export function IllustrationsPanel({
           <IllustrationCard
             key={row.id}
             id={row.id}
+            illustration={row}
+            refreshCaption={() => listing.refetch()}
             api={api}
             scope={stableScope}
             refresh={refresh}
