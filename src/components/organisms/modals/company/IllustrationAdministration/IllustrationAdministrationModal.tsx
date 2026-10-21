@@ -1,3 +1,4 @@
+import { PlatformMasterConsumption } from './PlatformMasterConsumption';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -166,7 +167,11 @@ export function AdministrationContent({
     (value: Settings) => service.save(company.id, settingsInput(value)),
     {
       onSuccess: (persisted) => {
-        cache.setQueryData(key('settings'), persisted);
+        cache.setQueryData(key('settings'), {
+          ...persisted,
+          platformMasterAccountingAvailable:
+            settings.data?.platformMasterAccountingAvailable,
+        });
         setForm(persisted);
         setDirty(false);
         setConflict(false);
@@ -268,8 +273,19 @@ export function AdministrationContent({
         <Tab label="Configuração" />
         <Tab label="Consumo e histórico" />
         <Tab label="Alterações" />
+        {settings.data?.platformMasterAccountingAvailable && (
+          <Tab label="Consumo MASTER da plataforma" />
+        )}
       </Tabs>
       <Box role="tabpanel" sx={{ pt: 3 }}>
+        {tab === 3 && settings.data?.platformMasterAccountingAvailable && (
+          <PlatformMasterConsumption
+            key={company.id}
+            companyId={company.id}
+            actorId={user?.id}
+            service={service}
+          />
+        )}
         {tab === 0 && (
           <>
             {settings.isLoading && (

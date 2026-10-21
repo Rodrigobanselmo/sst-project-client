@@ -8,6 +8,9 @@ export type Scope = {
   characterizationId: string;
 };
 export type IllustrationCapabilities = {
+  billingMode?: 'COMPANY' | 'PLATFORM_MASTER';
+  billingCompanyId?: string;
+  commercialLimitsApply?: boolean;
   canGenerate: boolean;
   available: boolean;
   reason: string | null;
@@ -38,6 +41,8 @@ export function capabilityMessage(value: IllustrationCapabilities) {
       'Você já tem uma geração em andamento ou com resultado incerto.',
     ILLUSTRATION_COMPANY_CONCURRENT_LIMIT:
       'A empresa atingiu o limite de gerações simultâneas.',
+    ILLUSTRATION_PAYER_CONCURRENT_LIMIT:
+      'A SimpleSST atingiu o limite técnico de gerações simultâneas da plataforma.',
     ILLUSTRATION_COMPANY_BUDGET_LIMIT:
       'O orçamento disponível da empresa foi atingido.',
   };
@@ -56,6 +61,8 @@ export type GenerationStatus =
   | 'FAILED'
   | 'UNKNOWN';
 export type Generation = {
+  billingMode?: 'COMPANY' | 'PLATFORM_MASTER';
+  billingCompanyId?: string;
   generationId: string;
   status: GenerationStatus;
   expiresAt: string | null;

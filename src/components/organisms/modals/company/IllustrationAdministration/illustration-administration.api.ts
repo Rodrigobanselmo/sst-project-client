@@ -26,6 +26,7 @@ export const statusLabels: Record<string, string> = {
   UNKNOWN: 'Resultado incerto',
 };
 export type Settings = {
+  platformMasterAccountingAvailable?: boolean;
   enabled: boolean;
   generationLimit: number;
   generationPeriod: LimitPeriod;
@@ -69,6 +70,11 @@ export type HistoryFilter = {
 };
 export type GenerationHistory = {
   id: string;
+  reservedUsd?: string;
+  billingMode?: 'COMPANY' | 'PLATFORM_MASTER';
+  billingCompanyId?: string;
+  targetCompany?: { id: string; name: string | null };
+  characterization?: { id: string; name: string } | null;
   createdAt: string;
   status: string;
   requestedById: number;
@@ -90,6 +96,16 @@ export type GenerationHistory = {
     deletedAt?: string;
     deletedById?: number;
   } | null;
+};
+export type PlatformMasterUsage = {
+  billingMode: 'PLATFORM_MASTER';
+  billingCompanyId: string;
+  commercialLimitsApply: false;
+  attempts: number;
+  unknownAttempts: number;
+  confirmedCalculatedCostUsd: string;
+  pendingReservationsUsd: string;
+  costBasis: string;
 };
 export type SettingsAudit = {
   id: string;
@@ -194,6 +210,14 @@ export function createIllustrationAdministrationApi(
     history: (companyId: string, params: HistoryFilter) =>
       run<Page<GenerationHistory>>(() =>
         http.get(base(companyId) + '/generations', { params }),
+      ),
+    platformUsage: (companyId: string) =>
+      run<PlatformMasterUsage>(() =>
+        http.get(base(companyId) + '/platform-master/usage'),
+      ),
+    platformHistory: (companyId: string, params: HistoryFilter) =>
+      run<Page<GenerationHistory>>(() =>
+        http.get(base(companyId) + '/platform-master/generations', { params }),
       ),
     audit: (companyId: string, params: Pick<HistoryFilter, 'skip' | 'take'>) =>
       run<Page<SettingsAudit>>(() =>

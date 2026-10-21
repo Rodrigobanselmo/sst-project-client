@@ -20,11 +20,11 @@ function compile(relative, mocks) {
   }).outputText;
   const localRequire = (name) => {
     if (name in mocks) return mocks[name];
-    if (name.startsWith('.'))
-      return compile(
-        path.relative(root, path.resolve(path.dirname(filename), name + '.ts')),
-        mocks,
-      );
+    if (name.startsWith('.')) {
+      const resolved = path.resolve(path.dirname(filename), name);
+      const extension = fs.existsSync(resolved + '.ts') ? '.ts' : '.tsx';
+      return compile(path.relative(root, resolved + extension), mocks);
+    }
     if (name.startsWith('project/'))
       return compile('src/' + name + '.ts', mocks);
     return new Proxy(
@@ -628,4 +628,222 @@ test('embedded administration reuses financial content without a nested modal an
     false,
   );
   assert.equal(f.calls.length, 0);
+});
+
+test('platform consumption tab is gated by the server capability, including revocation', async () => {
+  const f = adminFixture();
+  assert.equal(
+    nodes(f.tree).some((n) => n.props.label === 'Consumo MASTER da plataforma'),
+    false,
+  );
+  f.snapshots.settings.data = {
+    ...initial,
+    platformMasterAccountingAvailable: true,
+  };
+  let tree = f.rerender();
+  assert.equal(
+    nodes(tree).some((n) => n.props.label === 'Consumo MASTER da plataforma'),
+    true,
+  );
+  // Capability controls visibility, never a client-selected payer or permission.
+  find(tree, (n) => n.type === 'Tabs').props.onChange(null, 3);
+  tree = f.rerender();
+  const content = find(
+    tree,
+    (n) =>
+      typeof n.type === 'function' &&
+      n.type.name === 'PlatformMasterConsumption',
+  );
+  assert.equal(content.props.companyId, 'fictional');
+  assert.equal(content.props.actorId, 12);
+  f.snapshots.settings.data = {
+    ...initial,
+    platformMasterAccountingAvailable: false,
+  };
+  tree = f.rerender();
+  assert.equal(
+    nodes(tree).some(
+      (n) =>
+        typeof n.type === 'function' &&
+        n.type.name === 'PlatformMasterConsumption',
+    ),
+    false,
+  );
+});
+test('MASTER generation notice uses API billing mode and never overrides canGenerate', () => {
+  const h = harness();
+  let generation = null;
+  h.snapshots.capabilities = {
+    data: {
+      canGenerate: true,
+      available: true,
+      billingMode: 'PLATFORM_MASTER',
+      billingCompanyId: 'server-payer',
+    },
+  };
+  h.snapshots.listing = { data: [] };
+  h.mocks['./illustrations.flow'] = {
+    browserSessionStorage: () => undefined,
+    IllustrationFlow: class {
+      subscribe() {}
+      snapshot = () => ({
+        pending: null,
+        generation,
+        busy: false,
+        error: '',
+      });
+    },
+  };
+  const component = compile(
+    'src/components/organisms/modals/ModalAddCharacterization/components/Illustrations/IllustrationsPanel.tsx',
+    h.mocks,
+  ).IllustrationsPanel;
+  const props = {
+    scope: {
+      userId: 1,
+      companyId: 'target',
+      workspaceId: 'w',
+      characterizationId: 'e',
+    },
+    api: {},
+    saved: true,
+    canEdit: true,
+    dirty: false,
+  };
+  let tree = h.render(component, props);
+  assert.match(text(tree), /Consumo atribuído à SimpleSST/);
+  assert.equal(button(tree, 'Gerar ilustração com IA').props.disabled, false);
+  h.snapshots.capabilities.data.canGenerate = false;
+  h.snapshots.capabilities.data.reason = 'ILLUSTRATION_PAYER_CONCURRENT_LIMIT';
+  tree = h.render(component, props);
+  assert.equal(button(tree, 'Gerar ilustração com IA').props.disabled, true);
+  assert.match(text(tree), /limite técnico/);
+  h.snapshots.capabilities.data = {
+    canGenerate: true,
+    available: true,
+    billingMode: 'COMPANY',
+  };
+  tree = h.render(component, props);
+  assert.doesNotMatch(text(tree), /Consumo atribuído à SimpleSST/);
+  h.snapshots.capabilities.data.billingMode = 'PLATFORM_MASTER';
+  generation = {
+    generationId: 'legacy',
+    status: 'FAILED',
+    billingMode: 'COMPANY',
+    billingCompanyId: 'target',
+  };
+  tree = h.render(component, props);
+  assert.doesNotMatch(text(tree), /Consumo atribuído à SimpleSST/);
+});
+test('platform accounting shows payer consumption, target identity and unknown reservations without commercial balance', () => {
+  const h = harness();
+  h.snapshots['platform-master-usage'] = {
+    data: {
+      attempts: 2,
+      unknownAttempts: 1,
+      confirmedCalculatedCostUsd: '0.100000',
+      pendingReservationsUsd: '0.500000',
+    },
+  };
+  h.snapshots['platform-master-generations'] = {
+    data: {
+      count: 1,
+      data: [
+        {
+          id: 'g',
+          createdAt: '2026-10-21T12:00:00Z',
+          requestedBy: { name: 'MASTER fictício' },
+          targetCompany: { id: 't', name: 'Atendida fictícia' },
+          characterization: { id: 'e', name: 'Bancada fictícia' },
+          status: 'UNKNOWN',
+          reservedUsd: '0.500000',
+          pendingReservationUsd: '0.500000',
+          confirmedCalculatedCostUsd: null,
+        },
+      ],
+    },
+  };
+  const component = compile(
+    'src/components/organisms/modals/company/IllustrationAdministration/PlatformMasterConsumption.tsx',
+    h.mocks,
+  ).PlatformMasterConsumption;
+  const tree = h.render(component, {
+    companyId: 'payer',
+    actorId: 12,
+    service: {},
+  });
+  assert.match(text(tree), /MASTER fictício/);
+  assert.match(text(tree), /Atendida fictícia/);
+  assert.match(text(tree), /Bancada fictícia/);
+  assert.match(text(tree), /Resultado incerto/);
+  assert.match(text(tree), /Não confirmado/);
+  assert.doesNotMatch(text(tree), /Saldo|Disponível|Restante/);
+  assert.equal(h.queries.length, 2);
+  assert.ok(
+    h.queries.every(
+      (q) =>
+        q.key[1] === 'payer' && q.key[2] === 12 && q.options.retry === false,
+    ),
+  );
+});
+
+test('watermarked previews and gallery omit duplicate visible captions but retain illustration identity', () => {
+  const h = harness();
+  h.snapshots.capabilities = {
+    data: { canGenerate: true, available: true, billingMode: 'COMPANY' },
+  };
+  h.snapshots.listing = { data: [{ id: 'marked-image' }] };
+  h.mocks['./illustrations.flow'] = {
+    browserSessionStorage: () => undefined,
+    IllustrationFlow: class {
+      subscribe() {}
+      snapshot = () => ({
+        pending: { key: 'k', generationId: 'g' },
+        generation: {
+          generationId: 'g',
+          status: 'READY',
+          expiresAt: '2099-01-01',
+        },
+        busy: false,
+        error: '',
+      });
+    },
+  };
+  const component = compile(
+    'src/components/organisms/modals/ModalAddCharacterization/components/Illustrations/IllustrationsPanel.tsx',
+    h.mocks,
+  ).IllustrationsPanel;
+  const tree = h.render(component, {
+    scope: {
+      userId: 1,
+      companyId: 'c',
+      workspaceId: 'w',
+      characterizationId: 'e',
+    },
+    api: {},
+    saved: true,
+    canEdit: true,
+    dirty: false,
+  });
+  assert.doesNotMatch(text(tree), /NÃO REPRESENTA REGISTRO FOTOGRÁFICO REAL/);
+  assert.ok(nodes(tree).some((node) => node.props.preview === true));
+  const card = find(tree, (node) => node.props.id === 'marked-image');
+  const cardTree = h.render(card.type, card.props);
+  assert.doesNotMatch(
+    text(cardTree),
+    /NÃO REPRESENTA REGISTRO FOTOGRÁFICO REAL/,
+  );
+  assert.ok(
+    nodes(cardTree).some(
+      (node) =>
+        node.type === 'Chip' && node.props.label === 'Ilustração gerada por IA',
+    ),
+  );
+  assert.ok(
+    nodes(cardTree).some(
+      (node) =>
+        node.props.component === 'img' &&
+        /ILUSTRAÇÃO GERADA POR IA/.test(node.props.alt),
+    ),
+  );
 });

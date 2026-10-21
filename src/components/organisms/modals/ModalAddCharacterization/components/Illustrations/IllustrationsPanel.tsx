@@ -155,11 +155,6 @@ function IllustrationCard({
           sx={{ mb: 1 }}
         />
         <PrivateImage load={load} onOpen={setView} />
-        <Typography
-          sx={{ whiteSpace: 'pre-line', fontSize: 12, fontWeight: 600, mt: 1 }}
-        >
-          {ILLUSTRATION_CAPTION}
-        </Typography>
         {error && <Alert severity="error">{error}</Alert>}
       </CardContent>
       <CardActions>
@@ -179,9 +174,6 @@ function IllustrationCard({
             alt={ILLUSTRATION_CAPTION}
             sx={{ width: '100%' }}
           />
-          <Typography sx={{ whiteSpace: 'pre-line' }}>
-            {ILLUSTRATION_CAPTION}
-          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setView('')}>Fechar</Button>
@@ -256,6 +248,8 @@ export function IllustrationsPanel({
     flow.snapshot,
     flow.snapshot,
   );
+  const currentBillingMode =
+    state.generation?.billingMode ?? capabilities.data?.billingMode;
   const previewId =
     state.generation?.status === 'READY' ? state.generation.generationId : '';
   const loadPreview = useCallback(
@@ -274,8 +268,11 @@ export function IllustrationsPanel({
     void queryClient.invalidateQueries({
       predicate: (q) =>
         q.queryKey[0] === 'illustration-administration' &&
-        q.queryKey[1] === scope.companyId &&
-        (q.queryKey[3] === 'usage' || q.queryKey[3] === 'generations'),
+        ((q.queryKey[1] === scope.companyId &&
+          (q.queryKey[3] === 'usage' || q.queryKey[3] === 'generations')) ||
+          (q.queryKey[1] === capabilities.data?.billingCompanyId &&
+            (q.queryKey[3] === 'platform-master-usage' ||
+              q.queryKey[3] === 'platform-master-generations'))),
     });
   };
   const generate = async (regenerate = false) => {
@@ -320,6 +317,9 @@ export function IllustrationsPanel({
             Atualizar disponibilidade
           </Button>
         </Alert>
+      )}
+      {currentBillingMode === 'PLATFORM_MASTER' && (
+        <Alert severity="info">Consumo atribuído à SimpleSST</Alert>
       )}
       <Button
         variant="outlined"
@@ -377,8 +377,10 @@ export function IllustrationsPanel({
         <DialogTitle>Gerar ilustração com IA</DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 2 }}>
-            A imagem usa os textos já salvos deste elemento. Cada geração
-            consome o limite disponível.
+            A imagem usa os textos já salvos deste elemento.{' '}
+            {currentBillingMode === 'PLATFORM_MASTER'
+              ? 'Consumo atribuído à SimpleSST'
+              : 'Cada geração consome o limite disponível.'}
           </Alert>
           {capabilities.data && !capabilities.data.canGenerate && (
             <Alert severity="info">
@@ -436,8 +438,10 @@ export function IllustrationsPanel({
           )}
           {status === 'FAILED' && (
             <Alert severity="error">
-              A geração falhou. Uma nova tentativa consumirá o limite
-              disponível.
+              A geração falhou.{' '}
+              {capabilities.data?.billingMode === 'PLATFORM_MASTER'
+                ? 'Uma nova tentativa terá seu consumo atribuído à SimpleSST.'
+                : 'Uma nova tentativa consumirá o limite disponível.'}
             </Alert>
           )}
           {state.approved && (
@@ -451,16 +455,6 @@ export function IllustrationsPanel({
               visualizá-la.
             </Alert>
           )}
-          <Typography
-            sx={{
-              whiteSpace: 'pre-line',
-              fontSize: 13,
-              fontWeight: 600,
-              mt: 2,
-            }}
-          >
-            {ILLUSTRATION_CAPTION}
-          </Typography>
         </DialogContent>
         <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
           <Button disabled={state.busy} onClick={() => setOpen(false)}>
@@ -520,8 +514,10 @@ export function IllustrationsPanel({
       >
         <DialogTitle>Gerar outra imagem?</DialogTitle>
         <DialogContent>
-          Uma nova geração consome o limite disponível. A prévia atual será
-          descartada, sem aprovação.
+          {capabilities.data?.billingMode === 'PLATFORM_MASTER'
+            ? 'Uma nova geração terá seu consumo atribuído à SimpleSST.'
+            : 'Uma nova geração consome o limite disponível.'}{' '}
+          A prévia atual será descartada, sem aprovação.
         </DialogContent>
         <DialogActions>
           <Button

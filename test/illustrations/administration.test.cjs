@@ -206,3 +206,48 @@ test('query cache isolates company and actor; capabilities distinct from gallery
     'Limite específico da API',
   );
 });
+
+test('platform accounting uses separate server endpoints and billing cannot be selected for generation', async () => {
+  const calls = [];
+  const http = {
+    get: async (...args) => {
+      calls.push(args);
+      return { data: {} };
+    },
+    post: async (...args) => {
+      calls.push(args);
+      return { data: {} };
+    },
+  };
+  const admin = createIllustrationAdministrationApi(http);
+  await admin.platformUsage('payer');
+  await admin.platformHistory('payer', { skip: 0, take: 10 });
+  assert.equal(
+    calls[0][0],
+    '/v2/companies/payer/illustration-administration/platform-master/usage',
+  );
+  assert.equal(
+    calls[1][0],
+    '/v2/companies/payer/illustration-administration/platform-master/generations',
+  );
+  const api = createIllustrationApi(http);
+  await api.generate(
+    {
+      userId: 1,
+      companyId: 'target',
+      workspaceId: 'w',
+      characterizationId: 'e',
+      billingMode: 'PLATFORM_MASTER',
+      billingCompanyId: 'forged',
+    },
+    'idempotency-key',
+  );
+  assert.equal(
+    calls[2][0],
+    '/v2/companies/target/workspaces/w/characterizations/e/illustrations/generations',
+  );
+  assert.equal(calls[2][1], undefined);
+  assert.deepEqual(calls[2][2].headers, {
+    'Idempotency-Key': 'idempotency-key',
+  });
+});
