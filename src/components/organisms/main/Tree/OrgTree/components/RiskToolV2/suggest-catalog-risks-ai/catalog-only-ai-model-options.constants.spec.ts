@@ -12,11 +12,11 @@ import {
 } from './catalog-only-ai-model-options.constants';
 
 describe('catalog-only-ai-model-options', () => {
-  it('padrão do sistema indica GPT-5 Mini e não envia model no payload', () => {
-    assert.equal(CATALOG_ONLY_DEFAULT_AI_MODEL, 'gpt-5-mini');
+  it('padrão do sistema indica GPT-6.1 Sol e não envia model no payload', () => {
+    assert.equal(CATALOG_ONLY_DEFAULT_AI_MODEL, 'gpt-6.1-sol');
     const systemOption = CATALOG_ONLY_AI_MODEL_OPTIONS[0];
     assert.equal(systemOption.value, CATALOG_ONLY_AI_MODEL_SYSTEM_DEFAULT);
-    assert.match(systemOption.label, /Padrão do sistema \(GPT-5 Mini\)/);
+    assert.match(systemOption.label, /Padrão do sistema \(GPT-6\.1 Sol\)/);
     assert.equal(
       resolveCatalogOnlySessionModelForRequest(systemOption.value),
       undefined,
@@ -64,6 +64,10 @@ describe('catalog-only-ai-model-options', () => {
       undefined,
     );
     assert.equal(resolveCatalogOnlySessionModelForRequest('gpt-5'), 'gpt-5');
+    assert.equal(
+      resolveCatalogOnlySessionModelForRequest('gpt-5-mini'),
+      'gpt-5-mini',
+    );
     assert.equal(
       resolveCatalogOnlySessionModelForRequest('o1-mini'),
       undefined,
