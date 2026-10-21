@@ -57,9 +57,17 @@ import { TypeSelect } from '../Selects/TypeSelect';
 import { ModalViewExamsData } from './components/ModalViewExamsData/ModalViewExamsData';
 import { ModalViewRiskData } from './components/ModalViewRiskData';
 import { useModalCard } from './hooks/useModalCard';
+import { HierarchyDescriptionAssistant } from './components/HierarchyDescriptionAssistant';
+import {
+  descriptionSuggestionInput,
+  DESCRIPTION_HIERARCHY_TYPES,
+} from '@v2/services/enterprise/hierarchy/suggest-description/suggest-description.service';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { PermissionEnum } from 'project/enum/permission.enum';
 
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectHierarchyTreeSelectItem);
+  const { isAuthSuccess } = useAuthShow();
   const [employees, setEmployees] = useState<IEmployee[]>([]);
   const { data: hierarchies } = useQueryHierarchies();
 
@@ -319,21 +327,44 @@ export const ModalEditCard = () => {
               placeholder={nodeTypesConstant[type]?.placeholder}
             />
             {nodeTypesConstant[type]?.placeholderDesc && (
-              <SInput
-                value={selectedNode?.description || ''}
-                label={'Descrição'}
-                onChange={(e) =>
-                  setEditNodeSelectedItem({ description: e.target.value })
-                }
-                labelPosition="center"
-                fullWidth
-                size="small"
-                multiline
-                minRows={2}
-                maxRows={6}
-                sx={{ mb: 10 }}
-                placeholder={nodeTypesConstant[type]?.placeholderDesc || ''}
-              />
+              <>
+                {DESCRIPTION_HIERARCHY_TYPES.includes(type as any) &&
+                  isAuthSuccess({
+                    permissions: [PermissionEnum.EMPLOYEE],
+                    cruds: 'u',
+                  }) && (
+                    <HierarchyDescriptionAssistant
+                      key={String(selectedNode.id)}
+                      companyId={getCompanyId(selectedNode)}
+                      input={descriptionSuggestionInput(
+                        selectedNode,
+                        workspacesIds.length
+                          ? workspacesIds
+                          : hierarchies[String(selectedNode.id).split('//')[0]]
+                              ?.workspaceIds || [],
+                      )}
+                      description={selectedNode.description || ''}
+                      onApply={(description) =>
+                        setEditNodeSelectedItem({ description })
+                      }
+                    />
+                  )}
+                <SInput
+                  value={selectedNode?.description || ''}
+                  label={'Descrição'}
+                  onChange={(e) =>
+                    setEditNodeSelectedItem({ description: e.target.value })
+                  }
+                  labelPosition="center"
+                  fullWidth
+                  size="small"
+                  multiline
+                  minRows={2}
+                  maxRows={6}
+                  sx={{ mb: 10 }}
+                  placeholder={nodeTypesConstant[type]?.placeholderDesc || ''}
+                />
+              </>
             )}
             {!isSubOffice && nodeTypesConstant[type]?.placeholderRealDesc && (
               <SInput
