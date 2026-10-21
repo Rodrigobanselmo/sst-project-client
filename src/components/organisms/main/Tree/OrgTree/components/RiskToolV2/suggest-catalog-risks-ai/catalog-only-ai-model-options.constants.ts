@@ -22,6 +22,9 @@ export const CATALOG_ONLY_COMPATIBLE_AI_MODEL_VALUES = [
   'gpt-4o',
   'gpt-4o-mini',
   'o4-mini',
+  'gpt-6.1-sol',
+  'gpt-6-astra',
+  'gpt-6-luna',
 ] as const;
 
 export type CatalogOnlyCompatibleAiModel =
@@ -38,11 +41,18 @@ const compatibleFromCentralList: AiModelOption[] = AI_MODEL_OPTIONS.filter(
   (option) => compatibleSet.has(option.value),
 );
 
+const additionalCompatibleOptions: AiModelOption[] = [
+  { label: 'GPT-6.1 Sol', value: 'gpt-6.1-sol' },
+  { label: 'GPT-6 Astra', value: 'gpt-6-astra' },
+  { label: 'GPT-6 Luna', value: 'gpt-6-luna' },
+];
+
 export const CATALOG_ONLY_AI_MODEL_OPTIONS: AiModelOption[] = [
   {
     value: CATALOG_ONLY_AI_MODEL_SYSTEM_DEFAULT,
     label: 'Padrão do sistema (GPT-5 Mini)',
   },
+  ...additionalCompatibleOptions,
   ...compatibleFromCentralList,
 ];
 
