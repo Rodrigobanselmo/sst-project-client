@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
+import { useAccess } from 'core/hooks/useAccess';
+import { IllustrationAdministrationModal } from '../IllustrationAdministration/IllustrationAdministrationModal';
 
 import SModal, { SModalHeader, SModalPaper } from 'components/molecules/SModal';
 import { Wizard } from 'components/organisms/main/Wizard';
@@ -23,21 +25,44 @@ import { useEditCompany } from './hooks/useEditCompany';
 export const ModalEditCompany = () => {
   const props = useEditCompany();
   const isEdit = props.isEdit;
+  const { isMaster } = useAccess();
+  const showIllustrations = !!(isEdit && props.companyData.id && isMaster);
+  const illustrationCloseGuard = useRef<(() => boolean) | null>(null);
+  const registerCloseGuard = useCallback((guard: () => boolean) => {
+    illustrationCloseGuard.current = guard;
+    return () => {
+      if (illustrationCloseGuard.current === guard)
+        illustrationCloseGuard.current = null;
+    };
+  }, []);
+  const closeCompany = () => {
+    if (!illustrationCloseGuard.current || illustrationCloseGuard.current())
+      props.onCloseUnsaved();
+  };
   return (
     <SModal
       {...props.registerModal(ModalEnum.COMPANY_EDIT)}
       keepMounted={false}
-      onClose={() => props.onCloseUnsaved()}
+      onClose={closeCompany}
     >
       <SModalPaper
-        // semiFullScreen={props.companyData.cnpj ? true : false}
-        sx={{ minWidth: props.companyData.cnpj ? ['100%', 950] : [] }}
+        sx={
+          isEdit
+            ? {
+                width: { xs: '95vw', lg: 'min(1280px,95vw)' },
+                minWidth: 0,
+                maxWidth: '95vw',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }
+            : undefined
+        }
         p={8}
         center
       >
         <SModalHeader
           tag={props.companyData.id ? 'edit' : 'add'}
-          onClose={props.onCloseUnsaved}
+          onClose={closeCompany}
           title={'Empresa'}
           {...(props.companyData.id && {
             onDelete: props.onDelete,
@@ -48,6 +73,13 @@ export const ModalEditCompany = () => {
           header={
             isEdit ? (
               <WizardTabs
+                onChangeTab={(value, goToStep) => {
+                  if (
+                    !illustrationCloseGuard.current ||
+                    illustrationCloseGuard.current()
+                  )
+                    goToStep(value);
+                }}
                 options={[
                   { label: 'Dados da empresa' },
                   { label: 'Endereço' },
@@ -57,6 +89,9 @@ export const ModalEditCompany = () => {
                   { label: 'Contato' },
                   { label: 'Capa do Documento' },
                   { label: 'Jornadas de trabalho' },
+                  ...(showIllustrations
+                    ? [{ label: 'Ilustrações com IA' }]
+                    : []),
                 ]}
               />
             ) : null
@@ -72,6 +107,17 @@ export const ModalEditCompany = () => {
           <ContactModalCompanyStep {...props} />
           <CoverModalCompanyStep {...props} />
           {isEdit && <JourneysModalCompanyStep {...props} />}
+          {showIllustrations && (
+            <IllustrationAdministrationModal
+              embedded
+              company={{
+                id: props.companyData.id,
+                name: props.companyData.name,
+              }}
+              onClose={props.onCloseUnsaved}
+              registerCloseGuard={registerCloseGuard}
+            />
+          )}
         </Wizard>
       </SModalPaper>
     </SModal>

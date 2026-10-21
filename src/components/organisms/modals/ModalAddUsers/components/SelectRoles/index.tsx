@@ -40,6 +40,9 @@ function buildInitialPermissionStringForExecutor(
   executorPermissions: string[] | undefined,
   isMaster: boolean,
 ): string | null {
+  // This capability must be selected explicitly; enabling a role must not grant it.
+  if (moduleKey === PermissionEnum.CHARACTERIZATION_ILLUSTRATION_GENERATE)
+    return null;
   const allowedChars = permissionsConstantMap[moduleKey]?.crud?.join('') || 'r';
   const allowedSet = [...new Set(Array.from(allowedChars))];
 
@@ -48,7 +51,9 @@ function buildInitialPermissionStringForExecutor(
     return `${moduleKey}-${allowedSet.sort().join('')}`;
   }
 
-  const ep = (executorPermissions || []).find((p) => p.split('-')[0] === moduleKey);
+  const ep = (executorPermissions || []).find(
+    (p) => p.split('-')[0] === moduleKey,
+  );
   if (!ep) return null;
   const executorCrud = ep.split('-')[1] || '';
   const selected = allowedSet.filter((c) => executorCrud.includes(c));
@@ -273,7 +278,12 @@ export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
                                 !permission.crud?.includes(type) ||
                                 (!hasPermission?.includes(type) &&
                                   type !== 'r' &&
-                                  !isMasterPermission)
+                                  !isMasterPermission &&
+                                  !(
+                                    pKey ===
+                                      PermissionEnum.CHARACTERIZATION_ILLUSTRATION_GENERATE &&
+                                    user?.roles?.includes(RoleEnum.MASTER)
+                                  ))
                               )
                                 return null;
 

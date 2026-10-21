@@ -118,6 +118,12 @@ export const permissionsConstantMap = {
     info: 'Gerenciamento dos ambientes, posto de trabalho, atividades e etc da empresa',
     crud: ['r', 'cu', 'd'],
   },
+  [PermissionEnum.CHARACTERIZATION_ILLUSTRATION_GENERATE]: {
+    value: PermissionEnum.CHARACTERIZATION_ILLUSTRATION_GENERATE,
+    label: 'Gerar ilustrações com IA',
+    info: 'Concessão explícita para gerar imagens, junto da edição da caracterização e habilitação da empresa.',
+    crud: ['c'],
+  },
   [PermissionEnum.CHARACTERIZATION_AI_PROFILE]: {
     value: PermissionEnum.CHARACTERIZATION_AI_PROFILE,
     label: 'Gerenciar especialistas de IA da Caracterização',

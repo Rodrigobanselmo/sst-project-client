@@ -1,3 +1,4 @@
+import { IllustrationAdministrationModal } from 'components/organisms/modals/company/IllustrationAdministration/IllustrationAdministrationModal';
 import { FC, MouseEvent, useMemo, useState } from 'react';
 
 import EditIcon from 'assets/icons/SEditIcon';
@@ -22,6 +23,8 @@ type CompanyActionsRowProps = {
 };
 
 export const CompanyActionsRow: FC<CompanyActionsRowProps> = ({ company }) => {
+  const [illustrationAdministrationOpen, setIllustrationAdministrationOpen] =
+    useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const { onStackOpenModal } = useModal();
   const { isMaster } = useAccess();
@@ -40,6 +43,7 @@ export const CompanyActionsRow: FC<CompanyActionsRowProps> = ({ company }) => {
     ];
 
     if (isMaster) {
+      items.push({ value: 'illustrations', name: 'Ilustrações com IA' });
       if (isInactive) {
         items.push({
           value: 'reactivate',
@@ -73,6 +77,11 @@ export const CompanyActionsRow: FC<CompanyActionsRowProps> = ({ company }) => {
   const handleSelect = (option: { value: string | number }, e: MouseEvent) => {
     e.stopPropagation();
     handleClose();
+
+    if (option.value === 'illustrations' && isMaster) {
+      setIllustrationAdministrationOpen(true);
+      return;
+    }
 
     if (option.value === 'edit') {
       onStackOpenModal(ModalEnum.COMPANY_EDIT, company);
@@ -116,6 +125,12 @@ export const CompanyActionsRow: FC<CompanyActionsRowProps> = ({ company }) => {
         tooltipTitle="Ações"
         onClick={handleOpen}
       />
+      {isMaster && illustrationAdministrationOpen && (
+        <IllustrationAdministrationModal
+          company={company}
+          onClose={() => setIllustrationAdministrationOpen(false)}
+        />
+      )}
       <SMenu
         close={handleClose}
         isOpen={Boolean(anchorEl)}

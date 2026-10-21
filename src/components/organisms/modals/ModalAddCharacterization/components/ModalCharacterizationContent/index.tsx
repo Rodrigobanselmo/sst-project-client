@@ -1,3 +1,9 @@
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { PermissionEnum } from 'project/enum/permission.enum';
+import { api } from 'core/services/apiClient';
+import { createIllustrationApi } from '../Illustrations/illustrations.api';
+import { IllustrationsPanel } from '../Illustrations/IllustrationsPanel';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -39,6 +45,7 @@ const ASSISTENTE_IA_HELP_TEXT =
   'Use o assistente para gerar rascunho de descrição, processos e considerações antes da Análise IA de riscos.';
 
 const RISK_INVENTORY_SUMMARY_MAX_LENGTH = 1000;
+const illustrationApi = createIllustrationApi(api);
 
 const StyledImage = styled('img')`
   width: 100px;
@@ -59,6 +66,16 @@ interface IModalCharacterizationContentProps extends IUseEditCharacterization {
 export const ModalCharacterizationContent = (
   props: IModalCharacterizationContentProps,
 ) => {
+  const { isAuthSuccess, user } = useAuthShow();
+  const canEditIllustrations =
+    isAuthSuccess({
+      permissions: [PermissionEnum.CHARACTERIZATION],
+      cruds: 'u',
+    }) ||
+    isAuthSuccess({
+      permissions: [PermissionEnum.CHARACTERIZATION],
+      cruds: 'c',
+    });
   const [showNameInput, setShowNameInput] = useState(false);
   const [assistModalOpen, setAssistModalOpen] = useState(false);
   const didAutoAiActionRef = useRef(false);
@@ -695,7 +712,7 @@ export const ModalCharacterizationContent = (
               />
             </Box>
             <SText color="text.label" fontSize={14}>
-              Fotos
+              Fotos e ilustrações
             </SText>
             <SButton
               onClick={handleAddPhoto}
@@ -764,6 +781,24 @@ export const ModalCharacterizationContent = (
                 </SFlex>
               ))}
             </SFlex>
+            <IllustrationsPanel
+              key={JSON.stringify([
+                user?.id,
+                characterizationData.companyId,
+                characterizationData.workspaceId,
+                characterizationData.id,
+              ])}
+              api={illustrationApi}
+              scope={{
+                userId: user?.id || 0,
+                companyId: characterizationData.companyId || '',
+                workspaceId: characterizationData.workspaceId || '',
+                characterizationId: characterizationData.id || '',
+              }}
+              saved={isEdit && props.isDetailLoaded}
+              canEdit={canEditIllustrations}
+              dirty={hasUnsavedChanges}
+            />
             <CharacterizationContentEditor
               label="Considerações"
               placeholder="Descreva sua consideração..."
