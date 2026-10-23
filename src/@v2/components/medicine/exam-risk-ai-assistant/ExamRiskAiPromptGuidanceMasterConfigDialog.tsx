@@ -1,3 +1,4 @@
+import { EXAM_RISK_AI_DEFAULT_MODEL, EXAM_RISK_AI_MODEL_OPTIONS } from './exam-risk-ai-model-options';
 import { FC } from 'react';
 
 import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
@@ -28,6 +29,8 @@ export const ExamRiskAiPromptGuidanceMasterConfigDialog: FC<Props> = ({
     onClose={onClose}
     onApply={onApply}
     promptKey={PROMPT_KEY}
+    defaultModelValue={EXAM_RISK_AI_DEFAULT_MODEL}
+    modelOptions={EXAM_RISK_AI_MODEL_OPTIONS}
     title="Configurar orientação padrão do sistema"
     description="Edita o padrão oficial do campo “Orientação para gerar o prompt” (SystemAiPrompt EXAM_RISK_AI_PROMPT_GUIDANCE_DEFAULT). Não altera o prompt-base da geração de campos (EXAM_RISK_PROMPT_DRAFT). Sessões já editadas pelo usuário não são sobrescritas automaticamente."
     promptLabel="Orientação padrão do sistema"

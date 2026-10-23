@@ -187,9 +187,7 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
       setRiskSubTypeId(rule.riskSubTypeId ? String(rule.riskSubTypeId) : '');
       setAgentCas(rule.agentCas ?? '');
       setAgentName(rule.agentName ?? '');
-      setQuantitativeLimitApplicable(
-        Boolean(rule.quantitativeLimitApplicable),
-      );
+      setQuantitativeLimitApplicable(Boolean(rule.quantitativeLimitApplicable));
       setExams(
         (rule.exams ?? []).map((exam) => ({
           ...exam,
@@ -251,22 +249,11 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
     );
   };
 
-  const clearExamQuantitativeValues = () => {
-    setExams((prev) =>
-      prev.map((exam) => ({ ...exam, minRiskDegreeQuantity: null })),
-    );
-  };
-
   const restoreAgentQuantitativeFromRule = () => {
     if (!rule) return;
 
     const applicable = Boolean(rule.quantitativeLimitApplicable);
     setQuantitativeLimitApplicable(applicable);
-
-    if (!applicable) {
-      clearExamQuantitativeValues();
-      return;
-    }
 
     setExams((prev) =>
       prev.map((exam, index) => {
@@ -290,13 +277,11 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
 
     if (nextScope === ExamRiskRuleScopeEnum.RISK) {
       setQuantitativeLimitApplicable(false);
-      clearExamQuantitativeValues();
       return;
     }
 
     if (scopesWithoutQuantitativeLimit.has(nextScope)) {
       setQuantitativeLimitApplicable(false);
-      clearExamQuantitativeValues();
       return;
     }
 
@@ -308,7 +293,6 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
 
       // Criação AGENT nova: aplicabilidade só é conhecida após persistência/API.
       setQuantitativeLimitApplicable(false);
-      clearExamQuantitativeValues();
     }
   };
 
@@ -318,34 +302,26 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
     status,
     rationale: rationale.trim() ? rationale.trim() : null,
     riskFactorId: scope === ExamRiskRuleScopeEnum.RISK ? riskFactorId : null,
-    riskCategory: scope === ExamRiskRuleScopeEnum.CATEGORY ? riskCategory : null,
+    riskCategory:
+      scope === ExamRiskRuleScopeEnum.CATEGORY ? riskCategory : null,
     riskSubTypeId:
       scope === ExamRiskRuleScopeEnum.GROUP
         ? toNumberOrNull(riskSubTypeId)
         : null,
     agentCas:
-      scope === ExamRiskRuleScopeEnum.AGENT
-        ? agentCas.trim() || null
-        : null,
+      scope === ExamRiskRuleScopeEnum.AGENT ? agentCas.trim() || null : null,
     agentName:
-      scope === ExamRiskRuleScopeEnum.AGENT
-        ? agentName.trim() || null
-        : null,
+      scope === ExamRiskRuleScopeEnum.AGENT ? agentName.trim() || null : null,
     exams: exams.map(({ _key, ...rest }) => ({
       ...rest,
-      minRiskDegreeQuantity: quantitativeLimitApplicable
-        ? rest.minRiskDegreeQuantity
-        : null,
+      minRiskDegreeQuantity: rest.minRiskDegreeQuantity,
     })),
   });
 
   const handleSubmit = () => {
     const payload = buildPayload();
     if (isEdit && rule) {
-      updateMutation.mutate(
-        { id: rule.id, payload },
-        { onSuccess: onClose },
-      );
+      updateMutation.mutate({ id: rule.id, payload }, { onSuccess: onClose });
     } else {
       createMutation.mutate(payload, { onSuccess: onClose });
     }
@@ -364,9 +340,7 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
               label="Escopo"
               value={scope}
               onChange={(event) => {
-                handleScopeChange(
-                  event.target.value as ExamRiskRuleScopeEnum,
-                );
+                handleScopeChange(event.target.value as ExamRiskRuleScopeEnum);
               }}
               sx={{ minWidth: 200 }}
             >
@@ -415,8 +389,8 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
               options={riskOptions}
               value={
                 riskFactorId
-                  ? riskOptions.find((option) => option.id === riskFactorId) ??
-                    null
+                  ? (riskOptions.find((option) => option.id === riskFactorId) ??
+                    null)
                   : null
               }
               getOptionLabel={(option) => option.label}
@@ -427,14 +401,6 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                 setQuantitativeLimitApplicable(
                   Boolean(option?.quantitativeLimitApplicable),
                 );
-                if (!option?.quantitativeLimitApplicable) {
-                  setExams((prev) =>
-                    prev.map((exam) => ({
-                      ...exam,
-                      minRiskDegreeQuantity: null,
-                    })),
-                  );
-                }
               }}
               onInputChange={(_, value, reason) => {
                 if (reason === 'input') setRiskSearch(value);
@@ -502,7 +468,11 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
 
           <Divider />
 
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Typography variant="subtitle1">Exames sugeridos</Typography>
             <Button
               size="small"
@@ -549,9 +519,9 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                     options={examOptions}
                     value={
                       exam.examId
-                        ? examOptions.find(
+                        ? (examOptions.find(
                             (option) => option.id === exam.examId,
-                          ) ?? null
+                          ) ?? null)
                         : null
                     }
                     getOptionLabel={(option) => option.label}
@@ -618,7 +588,9 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                         size="small"
                         checked={Boolean(exam.isMale)}
                         onChange={(event) =>
-                          updateExam(exam._key, { isMale: event.target.checked })
+                          updateExam(exam._key, {
+                            isMale: event.target.checked,
+                          })
                         }
                       />
                     }
@@ -703,10 +675,7 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
                       Não informado
                     </MenuItem>
                     {riskDegreeOptions.map((option) => (
-                      <MenuItem
-                        key={option.value}
-                        value={String(option.value)}
-                      >
+                      <MenuItem key={option.value} value={String(option.value)}>
                         {option.label}
                       </MenuItem>
                     ))}

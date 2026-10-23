@@ -35,11 +35,19 @@ export type ICompanyExamRiskCoverageExamSummary = {
   isLocalOnly: boolean;
   isAdopted: boolean;
   isMissing: boolean;
+  adoptionState?: 'ADOPTED' | 'PENDING' | 'NOT_ADOPTED';
+  nonAdoptionDecision?: {
+    fingerprint: string; version: string | null; active: boolean; valid: boolean;
+    reason: string | null; actorUserId: number | null; decidedAt: string | null; snapshot: unknown;
+  } | null;
   config: IPcmsoComparableConfig | null;
   notes?: string[];
+  recommendationSource?: { ruleId: string; ruleExamId: string; ruleUpdatedAt: string; itemUpdatedAt: string } | null;
+  matchedAdoptedLinks?: Array<{ examId: number; linkId: number }>;
 };
 
 export type ICompanyExamRiskCoverageItem = {
+  quantitativeLimitApplicable?: boolean;
   riskId: string;
   riskName: string;
   riskGroup: ICompanyExamRiskCoverageGroup;
@@ -52,6 +60,7 @@ export type ICompanyExamRiskCoverageItem = {
   hasAnyAdoptedExam: boolean;
   hasAnyRecommendation: boolean;
   adoptedCount: number;
+  notAdoptedCount?: number;
   recommendedCount: number;
   missingCount: number;
   localOnlyCount: number;
@@ -59,6 +68,7 @@ export type ICompanyExamRiskCoverageItem = {
 
 export type ICompanyExamRiskCoverageSummary = {
   totalRisksAnalyzed: number;
+  notAdoptedExams?: number;
   complete: number;
   missingRecommendedExams: number;
   noLibraryRecommendation: number;
@@ -71,6 +81,7 @@ export type ICompanyExamRiskCoverageMeta = {
   companyId: string;
   workspaceId?: string;
   generatedAt: string;
+  nonAdoptionDecisionsApplied?: boolean;
   onlyPcmso: boolean;
   truncated: boolean;
   truncationMessage?: string;

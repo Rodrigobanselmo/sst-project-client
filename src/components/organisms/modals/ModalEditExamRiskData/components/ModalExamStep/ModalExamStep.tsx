@@ -11,7 +11,7 @@ import { SelectForm } from 'components/molecules/form/select';
 import { ExamIncompatibilityAlert } from 'components/organisms/tagSelects/ExamSelect/ExamIncompatibilityAlert';
 
 import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
-import { isQuantity } from 'core/utils/helpers/isQuantity';
+import { isExamRiskQuantityApplicable } from 'core/utils/helpers/isExamRiskQuantityApplicable';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
@@ -206,12 +206,12 @@ export const ModalExamStep = ({
               }))}
           />
         </Box>
-        {isQuantity(examData.risk) ? (
+        {isExamRiskQuantityApplicable(examData.risk) ? (
           <Box flex={1} maxWidth={200}>
             <SelectForm
               fullWidth
               defaultValue={String(
-                examData.examRiskData.minRiskDegreeQuantity ?? 1,
+                examData.examRiskData.minRiskDegreeQuantity ?? '',
               )}
               label="Quantitativo"
               control={control}
@@ -235,7 +235,9 @@ export const ModalExamStep = ({
                 Quantitativo
               </SText>
               <SText fontSize={14} color="text.light">
-                Não aplicável para este fator de risco
+                {examData.risk?.quantitativeLimitApplicable === undefined
+                  ? 'Elegibilidade quantitativa não carregada. Selecione novamente o fator de risco.'
+                  : 'Não aplicável para este fator de risco. Valores existentes serão preservados.'}
               </SText>
             </Box>
           )

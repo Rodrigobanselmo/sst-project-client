@@ -1,11 +1,30 @@
-import { cloneElement, FC, ReactElement, useEffect, useMemo, useState } from 'react';
+import { coverageAiOpenOptions } from './exam-risk-ai-coverage-context.util';
+import { buildCoverageExamAdoptionSeed } from './exam-risk-adoption.util';
+import {
+  cloneElement,
+  FC,
+  ReactElement,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import { Alert, Box, BoxProps, FormControlLabel, Switch } from '@mui/material';
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
+  Box,
+  BoxProps,
+  FormControlLabel,
+  Switch,
+} from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import STooltip from 'components/atoms/STooltip';
 import {
@@ -79,13 +98,16 @@ import { CharacterizationStatusChip } from './CharacterizationStatusChip';
 import { CoverageStatusChip } from './CoverageStatusChip';
 import { ExamRiskCoverageDecisionBlocks } from './ExamRiskCoverageDecisionBlocks';
 import { ExamRiskCoverageDetailDrawer } from './ExamRiskCoverageDetailDrawer';
-import { ExamRiskCoveragePendingSection } from './ExamRiskCoveragePendingSection';
 import { ExamRiskCoverageSummaryCards } from './ExamRiskCoverageSummaryCards';
 import { ExamRiskWorkspaceContextBanner } from './ExamRiskWorkspaceContextBanner';
 import { LibraryStatusChip } from './LibraryStatusChip';
 import { getExamAge, getExamPeriodic } from './exam-risk-display.util';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
-import { buildDecisionCountsFromItems } from '@v2/services/medicine/company-exam-risk-coverage/company-exam-risk-coverage-decision.util';
+import {
+  buildDecisionCountsFromItems,
+  matchesCoverageFilter,
+  type ExamRiskCoverageFilter,
+} from '@v2/services/medicine/company-exam-risk-coverage/company-exam-risk-coverage-decision.util';
 import { companyExamRiskCoverageQueryKeys } from '@v2/services/medicine/company-exam-risk-coverage/hooks/company-exam-risk-coverage.query-keys';
 import { useFetchCompanyExamRiskCoverage } from '@v2/services/medicine/company-exam-risk-coverage/hooks/useFetchCompanyExamRiskCoverage';
 import {
@@ -102,17 +124,20 @@ import {
   isExamRiskLinkPending,
   resolveApplyRecommendedExams,
 } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
-import { useQueryClient as useTanstackQueryClient } from '@tanstack/react-query';const isCoveragePendingStatus = (
+import { useQueryClient as useTanstackQueryClient } from '@tanstack/react-query';
+const isCoveragePendingStatus = (
   status: CompanyExamRiskCoverageStatusEnum | undefined,
 ) =>
   status === CompanyExamRiskCoverageStatusEnum.MISSING_RECOMMENDED_EXAMS ||
   status === CompanyExamRiskCoverageStatusEnum.MIXED ||
   status === CompanyExamRiskCoverageStatusEnum.LOCAL_ONLY;
 
-const formatWorkspaceContextLabel = (workspace?: {
-  name?: string | null;
-  abbreviation?: string | null;
-} | null) => {
+const formatWorkspaceContextLabel = (
+  workspace?: {
+    name?: string | null;
+    abbreviation?: string | null;
+  } | null,
+) => {
   if (!workspace?.name?.trim()) return null;
   const name = workspace.name.trim();
   const abbreviation = workspace.abbreviation?.trim();
@@ -197,8 +222,18 @@ const COLUMN_DEFS: ColumnDef[] = [
     width: 'minmax(160px, 1.4fr)',
     sortField: 'type',
   },
-  { key: 'RISK', label: 'Fator de risco', width: 'minmax(250px, 5fr)', sortField: 'risk' },
-  { key: 'EXAM', label: 'Exame', width: 'minmax(150px, 5fr)', sortField: 'exam' },
+  {
+    key: 'RISK',
+    label: 'Fator de risco',
+    width: 'minmax(250px, 5fr)',
+    sortField: 'risk',
+  },
+  {
+    key: 'EXAM',
+    label: 'Exame',
+    width: 'minmax(150px, 5fr)',
+    sortField: 'exam',
+  },
   { key: 'PERIODICITY', label: 'Periodicidade', width: '120px' },
   { key: 'SEX', label: 'Sexo', width: '55px' },
   { key: 'AGE', label: 'Faixa etária', width: '135px' },
@@ -252,15 +287,18 @@ export const ExamsRiskTable: FC<
   const filterProps = useFilterTable(undefined, {
     setPage,
   });
-  const [sort, setSort] = useState<{ field: SortField; order: 'asc' | 'desc' } | null>(
-    null,
-  );
+  const [sort, setSort] = useState<{
+    field: SortField;
+    order: 'asc' | 'desc';
+  } | null>(null);
   const [severitySort, setSeveritySort] = useState<'asc' | 'desc' | null>(null);
   const [showPendingOnly, setShowPendingOnly] = useState(false);
+  const [coverageFilter, setCoverageFilter] =
+    useState<ExamRiskCoverageFilter>('analyzed');
   const [showCoveragePendingOnly, setShowCoveragePendingOnly] = useState(false);
-  const [coverageDetailRiskId, setCoverageDetailRiskId] = useState<string | null>(
-    null,
-  );
+  const [coverageDetailRiskId, setCoverageDetailRiskId] = useState<
+    string | null
+  >(null);
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<string, boolean>
   >(persistKeys.COLUMNS_EXAM_RISK, {});
@@ -383,17 +421,18 @@ export const ExamsRiskTable: FC<
     );
   }, [browseWorkspaces?.results, workspaceId, workspaceLabelProp]);
 
-  // Reset list page when establishment changes.
+  // Reset the link page and coverage drawer when the scope changes.
   useEffect(() => {
     setCoverageDetailRiskId(null);
     setPage(1);
-  }, [workspaceId, setPage]);
+  }, [companyId, workspaceId, setPage]);
 
   const coverageMatchesCurrentWorkspace =
     !showPcmsoStatus ||
     coverageData == null ||
-    coverageData.meta.workspaceId === workspaceId ||
-    (!workspaceId && !coverageData.meta.workspaceId);
+    (coverageData.meta.companyId === companyId &&
+      (coverageData.meta.workspaceId || undefined) ===
+        (workspaceId || undefined));
 
   const coverageSummaryForUi = coverageMatchesCurrentWorkspace
     ? coverageData?.summary
@@ -413,12 +452,12 @@ export const ExamsRiskTable: FC<
     [coverageItemsForUi, coverageSummaryForUi],
   );
 
-  const coveragePendingItems = useMemo(
+  const selectedCoverageItems = useMemo(
     () =>
       (coverageItemsForUi ?? []).filter((item) =>
-        isCoveragePendingStatus(item.coverageStatus),
+        matchesCoverageFilter(item, coverageFilter),
       ),
-    [coverageItemsForUi],
+    [coverageItemsForUi, coverageFilter],
   );
 
   const coverageByRiskId = useMemo(() => {
@@ -446,7 +485,10 @@ export const ExamsRiskTable: FC<
     statusByRiskExamKey.get(`${row.riskId}:${row.examId}`);
 
   const missingExamsByRiskId = useMemo(() => {
-    const map = new Map<string, IExamRiskLinkStatusItem['missingRecommendedExams']>();
+    const map = new Map<
+      string,
+      IExamRiskLinkStatusItem['missingRecommendedExams']
+    >();
 
     pcmsoStatusData?.items.forEach((item) => {
       if (!item.missingRecommendedExams?.length) return;
@@ -504,7 +546,9 @@ export const ExamsRiskTable: FC<
 
     if (showPcmsoStatus && showCoveragePendingOnly) {
       rows = rows.filter((row) =>
-        isCoveragePendingStatus(coverageByRiskId.get(row.riskId)?.coverageStatus),
+        isCoveragePendingStatus(
+          coverageByRiskId.get(row.riskId)?.coverageStatus,
+        ),
       );
     }
 
@@ -557,7 +601,7 @@ export const ExamsRiskTable: FC<
     setApplySuggestionsContext(null);
     setAiSuggestionsOpen(false);
     setAiSuggestionsContext(null);
-  }, [workspaceId]);
+  }, [companyId, workspaceId]);
 
   const isBulkMode = enableBulkActions && !isSelect;
   const {
@@ -659,9 +703,10 @@ export const ExamsRiskTable: FC<
     setPcmsoDefaultsOpen(false);
   };
 
-  const onEditExam = (exam: IExamToRisk) => {
+  const onEditExam = (exam: IExamToRisk, onSaved?: () => void) => {
     onStackOpenModal(ModalEnum.EXAM_RISK, {
       ...(exam as any),
+      ...(onSaved ? { callback: onSaved } : {}),
     } as typeof initialExamRiskState);
   };
 
@@ -673,7 +718,7 @@ export const ExamsRiskTable: FC<
 
   const tanstackQueryClient = useTanstackQueryClient();
 
-  const onRefetchThrottle = useThrottle(() => {
+  const onRefetchExams = () => {
     refetch();
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
@@ -681,7 +726,8 @@ export const ExamsRiskTable: FC<
     void tanstackQueryClient.invalidateQueries({
       queryKey: companyExamRiskCoverageQueryKeys.all(),
     });
-  }, 1000);
+  };
+  const onRefetchThrottle = useThrottle(onRefetchExams, 1000);
 
   const onOpenApplySuggestions = (statusItem: IExamRiskLinkStatusItem) => {
     const missingExams = resolveApplyRecommendedExams(
@@ -728,20 +774,30 @@ export const ExamsRiskTable: FC<
 
   const onConfigureManuallyFromCoverage = (
     item: ICompanyExamRiskCoverageItem,
+    onSaved?: () => void,
   ) => {
     onStackOpenModal(ModalEnum.EXAM_RISK, {
       ...(mapPcmsoDefaultsToExamRisk(pcmsoDefaults) as object),
+      ...(onSaved
+        ? {
+            id: 0,
+            examId: 0,
+            exam: initialExamRiskState.exam,
+            callback: onSaved,
+          }
+        : {}),
       riskId: item.riskId,
       risk: {
         id: item.riskId,
         name: item.riskName,
         type: item.riskGroup.id,
       },
-    } as typeof initialExamRiskState);
+    } as unknown as typeof initialExamRiskState);
   };
 
   const onReviewCoverageWithAi = (item: ICompanyExamRiskCoverageItem) => {
     onOpenAiSuggestions({
+      ...coverageAiOpenOptions(item),
       riskId: item.riskId,
       riskName: item.riskName,
       riskType: item.riskGroup.id,
@@ -765,7 +821,11 @@ export const ExamsRiskTable: FC<
 
   const onConfirmBulkEdit = async (patch: IBulkExamRiskPatch) => {
     if (selectedIds.length === 0) return;
-    await bulkUpdateMutation.mutateAsync({ ids: selectedIds, patch, companyId });
+    await bulkUpdateMutation.mutateAsync({
+      ids: selectedIds,
+      patch,
+      companyId,
+    });
     setBulkEditOpen(false);
     onClearSelection();
     onRefetchThrottle();
@@ -788,7 +848,7 @@ export const ExamsRiskTable: FC<
     .map((def) => def.width)
     .join(' ')} ${showPcmsoStatus ? '108px' : '80px'}`;
 
-  const tableChrome = (
+  const pageIntro = (
     <>
       {!isSelect && (
         <STableTitle
@@ -806,6 +866,60 @@ export const ExamsRiskTable: FC<
         >
           Exames
         </STableTitle>
+      )}
+      {showPcmsoStatus && !isSelect && (
+        <ExamRiskWorkspaceContextBanner
+          workspaceLabel={workspaceContextLabel}
+          isAllEstablishments={isAllEstablishments}
+          isLoading={
+            !isAllEstablishments &&
+            Boolean(workspaceId) &&
+            isLoadingAllWorkspaces &&
+            !workspaceContextLabel
+          }
+        />
+      )}
+      {showPcmsoStatus && !isSelect && (
+        <ExamRiskCoverageSummaryCards
+          activeFilter={coverageFilter}
+          onFilterChange={setCoverageFilter}
+          counts={decisionCounts}
+          isLoading={isCoverageScopeLoading}
+          establishmentScoped={!isAllEstablishments}
+        />
+      )}
+      {showPcmsoStatus &&
+        !isSelect &&
+        coverageMatchesCurrentWorkspace &&
+        (coverageData?.meta.truncated ||
+          (coverageData && coverageData.count > coverageData.items.length)) && (
+          <Alert severity="warning" sx={{ mt: 1, mb: 1 }}>
+            {coverageData?.meta.truncationMessage ||
+              'A listagem disponível está limitada.'}{' '}
+            Os registros carregados não representam necessariamente todos os
+            riscos do estabelecimento. Os filtros atuam somente sobre os dados
+            disponíveis.
+          </Alert>
+        )}
+      {showPcmsoStatus && coverageError && !isCoverageScopeLoading && (
+        <Alert severity="warning" sx={{ mt: 1, mb: 1, py: 0.5 }}>
+          <SText fontSize={12}>
+            Não foi possível carregar a cobertura das recomendações por risco.
+            Tente recarregar os dados no detalhamento dos vínculos de exames.
+          </SText>
+        </Alert>
+      )}
+    </>
+  );
+
+  const tableChrome = (
+    <>
+      {(!showPcmsoStatus || isSelect) && pageIntro}
+      {showPcmsoStatus && !isSelect && (
+        <SText fontSize={12} color="text.secondary" mb={1}>
+          Pesquisa, filtros e operações abaixo se aplicam somente aos vínculos
+          de exames.
+        </SText>
       )}
       <STableSearch
         onAddClick={onAddExam}
@@ -891,22 +1005,12 @@ export const ExamsRiskTable: FC<
         }
       />
       <FilterTagList filterProps={filterProps} />
-      {showPcmsoStatus && !isSelect && (
-        <ExamRiskWorkspaceContextBanner
-          workspaceLabel={workspaceContextLabel}
-          isAllEstablishments={isAllEstablishments}
-          isLoading={
-            !isAllEstablishments &&
-            Boolean(workspaceId) &&
-            isLoadingAllWorkspaces &&
-            !workspaceContextLabel
-          }
-        />
-      )}
       {showPcmsoStatus && !isSelect && pcmsoStatusData?.summary && (
         <Alert
           severity={
-            hasExamRiskStatusBannerWarnings(pcmsoStatusData) ? 'warning' : 'info'
+            hasExamRiskStatusBannerWarnings(pcmsoStatusData)
+              ? 'warning'
+              : 'info'
           }
           sx={{ mt: 1, mb: 1, py: 0.5 }}
         >
@@ -915,47 +1019,12 @@ export const ExamsRiskTable: FC<
           </SText>
         </Alert>
       )}
-      {showPcmsoStatus && !isSelect && (
-        <ExamRiskCoverageSummaryCards
-          counts={decisionCounts}
-          isLoading={isCoverageScopeLoading}
-          establishmentScoped={!isAllEstablishments}
-        />
-      )}
-      {showPcmsoStatus && coverageError && !isCoverageScopeLoading && (
-        <Alert severity="warning" sx={{ mt: 1, mb: 1, py: 0.5 }}>
-          <SText fontSize={12}>
-            Não foi possível carregar a cobertura das recomendações por risco.
-            Verifique se a API está atualizada com o endpoint de cobertura e tente
-            recarregar.
-          </SText>
-        </Alert>
-      )}
-      {showPcmsoStatus && showCoveragePendingOnly && !isSelect && (
-        <ExamRiskCoveragePendingSection
-          items={coveragePendingItems}
-          isLoading={isCoverageScopeLoading}
-          isError={coverageError}
-          onOpenRisk={(riskId) => setCoverageDetailRiskId(riskId)}
-        />
-      )}
       {showPcmsoStatus && pcmsoStatusError && (
         <Alert severity="warning" sx={{ mt: 2, mb: 1, py: 0.5 }}>
           <SText fontSize={12}>
             Não foi possível carregar o status PCMSO desta página.
           </SText>
         </Alert>
-      )}
-      {showPcmsoStatus && !isSelect && (
-        <Box mt={2} mb={1}>
-          <SText fontSize={14} fontWeight={700}>
-            Lista 2 — Vínculos ExamToRisk deste estabelecimento
-          </SText>
-          <SText fontSize={12} color="text.secondary">
-            Cada linha é um exame já adotado pela empresa para um risco. Diferente da
-            Lista 1, riscos sem vínculo não aparecem aqui.
-          </SText>
-        </Box>
       )}
       {isBulkMode && selectedIds.length > 0 && (
         <SFlex
@@ -1026,10 +1095,14 @@ export const ExamsRiskTable: FC<
           >
             {def.label}
             {!severitySort && (
-              <UnfoldMoreIcon sx={{ fontSize: 14, ml: 0.5, color: 'grey.400' }} />
+              <UnfoldMoreIcon
+                sx={{ fontSize: 14, ml: 0.5, color: 'grey.400' }}
+              />
             )}
             {severitySort === 'asc' && (
-              <ArrowUpwardIcon sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }} />
+              <ArrowUpwardIcon
+                sx={{ fontSize: 14, ml: 0.5, color: 'primary.main' }}
+              />
             )}
             {severitySort === 'desc' && (
               <ArrowDownwardIcon
@@ -1054,7 +1127,10 @@ export const ExamsRiskTable: FC<
     </STableHeader>
   );
 
-  const renderCell = (def: ColumnDef, row: IExamToRisk): ReactElement | null => {
+  const renderCell = (
+    def: ColumnDef,
+    row: IExamToRisk,
+  ): ReactElement | null => {
     switch (def.key) {
       case 'RISK': {
         const riskName = row.risk?.name || '-';
@@ -1166,12 +1242,17 @@ export const ExamsRiskTable: FC<
           <TextIconRow
             clickable
             justifyContent="center"
-            text={row?.considerBetweenDays ? String(row.considerBetweenDays) : '-'}
+            text={
+              row?.considerBetweenDays ? String(row.considerBetweenDays) : '-'
+            }
           />
         );
       case 'MIN_QUALITATIVE':
         return (
-          <TextIconRow clickable text={formatExamRiskQualitativeDegreeLabel(row?.minRiskDegree)} />
+          <TextIconRow
+            clickable
+            text={formatExamRiskQualitativeDegreeLabel(row?.minRiskDegree)}
+          />
         );
       case 'MIN_QUANTITATIVE':
         return (
@@ -1239,52 +1320,55 @@ export const ExamsRiskTable: FC<
               gap={0.5}
               sx={{ justifyContent: 'center', width: '100%', minWidth: 72 }}
             >
-              {showPcmsoStatus && (() => {
-                const statusItem = getStatusItemForRow(row);
-                const showPlaylistAdd = canShowApplyRecommendedExams(
-                  statusItem,
-                  applyRecommendedExamsContext,
-                );
+              {showPcmsoStatus &&
+                (() => {
+                  const statusItem = getStatusItemForRow(row);
+                  const showPlaylistAdd = canShowApplyRecommendedExams(
+                    statusItem,
+                    applyRecommendedExamsContext,
+                  );
 
-                return (
-                  <>
-                    {showPlaylistAdd && statusItem ? (
-                      <IconButtonRow
-                        icon={<PlaylistAddIcon />}
-                        tooltipTitle="Adicionar exames recomendados"
-                        sx={{ mx: 0 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenApplySuggestions(statusItem);
-                        }}
-                      />
-                    ) : null}
-                    {row.riskId ? (
-                      <IconButtonRow
-                        icon={<AutoAwesomeIcon fontSize="small" />}
-                        tooltipTitle="Revisar exames (Biblioteca × empresa)"
-                        sx={{ mx: 0 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenAiSuggestions({
-                            riskId: row.riskId,
-                            riskName: row.risk?.name || 'Risco',
-                            riskType: row.risk?.type,
-                            riskSubTypes: (row.risk?.subTypes || []).map((entry) => ({
-                              id: Number(entry.sub_type?.id) || 0,
-                              name: entry.sub_type?.name ?? '',
-                            })),
-                            riskCas: row.risk?.cas ?? null,
-                            riskEsocialCode: row.risk?.esocialCode ?? null,
-                            mode: 'REVIEW',
-                            autoStart: true,
-                          });
-                        }}
-                      />
-                    ) : null}
-                  </>
-                );
-              })()}
+                  return (
+                    <>
+                      {showPlaylistAdd && statusItem ? (
+                        <IconButtonRow
+                          icon={<PlaylistAddIcon />}
+                          tooltipTitle="Adicionar exames recomendados"
+                          sx={{ mx: 0 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenApplySuggestions(statusItem);
+                          }}
+                        />
+                      ) : null}
+                      {row.riskId ? (
+                        <IconButtonRow
+                          icon={<AutoAwesomeIcon fontSize="small" />}
+                          tooltipTitle="Revisar exames (Biblioteca × empresa)"
+                          sx={{ mx: 0 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenAiSuggestions({
+                              riskId: row.riskId,
+                              riskName: row.risk?.name || 'Risco',
+                              riskType: row.risk?.type,
+                              riskSubTypes: (row.risk?.subTypes || []).map(
+                                (entry) => ({
+                                  id: Number(entry.sub_type?.id) || 0,
+                                  name: entry.sub_type?.name ?? '',
+                                }),
+                              ),
+                              riskCas: row.risk?.cas ?? null,
+                              riskEsocialCode: row.risk?.esocialCode ?? null,
+                              mode: 'REVIEW',
+                              autoStart: true,
+                            });
+                          }}
+                        />
+                      ) : null}
+                    </>
+                  );
+                })()}
               <IconButtonRow
                 icon={<EditIcon />}
                 sx={{ mx: 0 }}
@@ -1316,6 +1400,14 @@ export const ExamsRiskTable: FC<
     <BulkEditExamRiskModal
       open={bulkEditOpen}
       count={selectedIds.length}
+      canEditQuantitative={
+        selectedIds.length > 0 &&
+        selectedIds.every(
+          (id) =>
+            exams?.find((row) => row.id === id)?.risk
+              ?.quantitativeLimitApplicable === true,
+        )
+      }
       isSaving={bulkUpdateMutation.isLoading}
       onClose={() => setBulkEditOpen(false)}
       onConfirm={onConfirmBulkEdit}
@@ -1370,19 +1462,33 @@ export const ExamsRiskTable: FC<
   const coverageDecisionSection =
     showPcmsoStatus && !isSelect ? (
       <ExamRiskCoverageDecisionBlocks
-        items={coverageItemsForUi ?? []}
+        key={`${companyId}:${workspaceId ?? 'all'}:${coverageFilter}`}
+        companyId={companyId || ''}
+        workspaceId={workspaceId}
+        activeFilter={coverageFilter}
+        isError={coverageError}
+        items={selectedCoverageItems}
         isLoading={isCoverageScopeLoading}
+        onAddLink={(item) =>
+          onConfigureManuallyFromCoverage(item, onRefetchExams)
+        }
+        onAdoptExam={(item, exam) => {
+          onStackOpenModal(ModalEnum.EXAM_RISK, {
+            ...initialExamRiskState,
+            ...buildCoverageExamAdoptionSeed(item, exam, onRefetchExams),
+          } as unknown as typeof initialExamRiskState);
+        }}
+        onEditLink={(link) => onEditExam(link, onRefetchExams)}
         onViewCoverage={(riskId) => setCoverageDetailRiskId(riskId)}
-        onAdoptStandard={onOpenAdoptFromCoverage}
         onCompleteCoverage={onOpenAdoptFromCoverage}
         onReviewWithAi={onReviewCoverageWithAi}
-        onConfigureManually={onConfigureManuallyFromCoverage}
       />
     ) : null;
 
   const coverageDetailDrawer =
     showPcmsoStatus && companyId ? (
       <ExamRiskCoverageDetailDrawer
+        key={`${companyId}:${workspaceId ?? 'all'}`}
         open={Boolean(coverageDetailRiskId)}
         onClose={() => setCoverageDetailRiskId(null)}
         companyId={companyId}
@@ -1391,34 +1497,21 @@ export const ExamsRiskTable: FC<
       />
     ) : null;
 
-  if (companyFlowSticky) {
-    return (
-      <>
-        <CompanyFlowTableSection
-          chrome={tableChrome}
-          supplementary={coverageDecisionSection}
-          columns={tableColumns}
-          loading={loadExams || copyExamMutation.isLoading}
-          rowsNumber={effectiveLimit}
-          header={tableHeader}
-          footer={tablePagination}
-          belowModuleTabs={companyFlowBelowTabs}
-        >
-          {tableBody}
-        </CompanyFlowTableSection>
-        {bulkEditModal}
-        {pcmsoDefaultsModal}
-        {applySuggestionsModal}
-        {aiSuggestionsModal}
-        {coverageDetailDrawer}
-      </>
-    );
-  }
-
-  return (
+  const linkTable = companyFlowSticky ? (
+    <CompanyFlowTableSection
+      chrome={tableChrome}
+      columns={tableColumns}
+      loading={loadExams || copyExamMutation.isLoading}
+      rowsNumber={effectiveLimit}
+      header={tableHeader}
+      footer={tablePagination}
+      belowModuleTabs={companyFlowBelowTabs}
+    >
+      {tableBody}
+    </CompanyFlowTableSection>
+  ) : (
     <>
       {tableChrome}
-      {coverageDecisionSection}
       <STable
         columns={tableColumns}
         loading={loadExams || copyExamMutation.isLoading}
@@ -1428,6 +1521,36 @@ export const ExamsRiskTable: FC<
         {tableBody}
       </STable>
       {tablePagination}
+    </>
+  );
+
+  return (
+    <>
+      {showPcmsoStatus && !isSelect ? (
+        <>
+          {pageIntro}
+          {coverageDecisionSection}
+          <Accordion
+            defaultExpanded={false}
+            disableGutters
+            sx={{
+              mt: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              '&:before': { display: 'none' },
+            }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <SText fontWeight={700}>
+                Detalhamento dos vínculos de exames
+              </SText>
+            </AccordionSummary>
+            <AccordionDetails>{linkTable}</AccordionDetails>
+          </Accordion>
+        </>
+      ) : (
+        linkTable
+      )}
       {bulkEditModal}
       {pcmsoDefaultsModal}
       {applySuggestionsModal}

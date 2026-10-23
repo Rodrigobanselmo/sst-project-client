@@ -1,3 +1,4 @@
+import { EXAM_RISK_AI_MODEL_OPTIONS } from './exam-risk-ai-model-options';
 import { FC } from 'react';
 
 import {
@@ -27,12 +28,16 @@ type Props = {
     value: ExamRiskAiAssistantFormValues[K],
   ) => void;
   optionSwitches?: ExamRiskAiAssistantOptionSwitch[];
+  companyModels?: boolean;
+  canChooseModel?: boolean;
 };
 
 export const ExamRiskAiAssistantConfigForm: FC<Props> = ({
   values,
   onFieldChange,
   optionSwitches = [],
+  companyModels = false,
+  canChooseModel = true,
 }) => (
   <Stack spacing={3}>
     <Stack spacing={2}>
@@ -159,13 +164,32 @@ export const ExamRiskAiAssistantConfigForm: FC<Props> = ({
           placeholder="Ajuste pontual para esta execução da IA"
         />
       </Box>
-      <TextField
+      {companyModels && !canChooseModel ? <TextField
+        label="Modelo IA"
+        value="Padrão do sistema (GPT-6.1 Sol)"
+        InputProps={{ readOnly: true }}
+        size="small"
+        sx={{ maxWidth: 360 }}
+      /> : companyModels ? <TextField
+        label="Modelo IA"
+        select
+        SelectProps={{ displayEmpty: true }}
+        InputLabelProps={{ shrink: true }}
+        value={values.model}
+        onChange={(event) => onFieldChange('model', event.target.value)}
+        size="small"
+        sx={{ maxWidth: 360 }}
+      >
+        <MenuItem value="">Padrão do sistema (GPT-6.1 Sol)</MenuItem>
+        {values.model && !EXAM_RISK_AI_MODEL_OPTIONS.some(option => option.value === values.model) && <MenuItem value={values.model}>{values.model}</MenuItem>}
+        {EXAM_RISK_AI_MODEL_OPTIONS.map(option => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+      </TextField> : <TextField
         label="Modelo IA opcional"
         value={values.model}
         onChange={(event) => onFieldChange('model', event.target.value)}
         size="small"
         sx={{ maxWidth: 360 }}
-      />
+      />}
     </Stack>
   </Stack>
 );

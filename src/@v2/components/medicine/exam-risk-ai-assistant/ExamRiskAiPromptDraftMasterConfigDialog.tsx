@@ -1,3 +1,4 @@
+import { EXAM_RISK_AI_DEFAULT_MODEL, EXAM_RISK_AI_MODEL_OPTIONS } from './exam-risk-ai-model-options';
 import { FC } from 'react';
 
 import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
@@ -24,6 +25,8 @@ export const ExamRiskAiPromptDraftMasterConfigDialog: FC<Props> = ({
     onClose={onClose}
     onApply={onApply}
     promptKey={PROMPT_KEY}
+    defaultModelValue={EXAM_RISK_AI_DEFAULT_MODEL}
+    modelOptions={EXAM_RISK_AI_MODEL_OPTIONS}
     title="Configurar prompt da geração de campos"
     description={`Altera apenas a qualidade da sugestão de textos e filtros do formulário. Não cria vínculo, não publica na Biblioteca e não roda dry-run automaticamente.\n\n${VARIABLES_HELP}`}
     promptLabel="Prompt-base da geração de campos"

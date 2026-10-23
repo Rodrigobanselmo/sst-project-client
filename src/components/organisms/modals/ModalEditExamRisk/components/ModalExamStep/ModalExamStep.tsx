@@ -14,7 +14,7 @@ import { ExamIncompatibilityAlert } from 'components/organisms/tagSelects/ExamSe
 import { RiskSelect } from 'components/organisms/tagSelects/RiskSelect';
 
 import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
-import { isQuantity } from 'core/utils/helpers/isQuantity';
+import { isExamRiskQuantityApplicable } from 'core/utils/helpers/isExamRiskQuantityApplicable';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
@@ -103,7 +103,7 @@ export const ModalExamStep = ({
       <SFlex minWidth={['100%', 600, 800]} flexWrap="wrap" gap={5}>
         <Box flex={1} maxWidth={150}>
           <InputForm
-            defaultValue={String(examData.fromAge || '')}
+            defaultValue={String(examData.fromAge ?? '')}
             label="De"
             setValue={setValue}
             fullWidth
@@ -117,7 +117,7 @@ export const ModalExamStep = ({
         </Box>
         <Box flex={1} maxWidth={150}>
           <InputForm
-            defaultValue={String(examData.toAge || '')}
+            defaultValue={String(examData.toAge ?? '')}
             setValue={setValue}
             fullWidth
             label="Até"
@@ -143,11 +143,10 @@ export const ModalExamStep = ({
               labelPosition: 'top',
               placeholder: 'meses...',
               name: 'validityInMonths',
-              helpText:
-                'Obrigatório apenas quando Periódico estiver marcado.',
+              helpText: 'Obrigatório apenas quando Periódico estiver marcado.',
             }}
             setValue={(v) => setValue('validityInMonths', String(v))}
-            defaultValue={examData.validityInMonths || ''}
+            defaultValue={String(examData.validityInMonths ?? '')}
             mask={intMask.apply}
             label="Peridiocidade (meses)"
             options={[3, 6, 9, 12, 18, 24]}
@@ -186,7 +185,7 @@ export const ModalExamStep = ({
                 'Exemplo (considerando valor de 60 dias entre ocupacional): caso seja necessaria realizar o exame periódico, o sistema irá verificar se o exame coplementar está com validade superior a 60 dias, se sim, não será solicitado a realização do exame. No caso da validade ser inferior a 60 dias, um novo exame será solicitado',
             }}
             setValue={(v) => setValue('considerBetweenDays', String(v))}
-            defaultValue={examData.considerBetweenDays || ''}
+            defaultValue={String(examData.considerBetweenDays ?? '')}
             mask={intMask.apply}
             label="Considerar (dias entre ocupacional)"
             sx={{ width: [300] }}
@@ -286,60 +285,63 @@ export const ModalExamStep = ({
             riskType={riskType}
             sx={{ mt: 2 }}
           />
-          {isMasterAdmin && examData.riskId && examData.examId && !examData.isAll && (
-            <Box mt={3}>
-              <SCheckBox
-                label="Criar também regra padrão na Biblioteca Risco × Exame"
-                checked={examData.publishAsSystemRule}
-                onChange={(e) => {
-                  const publishAsSystemRule = e.target.checked;
-                  setExamData((oldData) => {
-                    const enrichedRisk =
-                      publishAsSystemRule && oldData.risk?.id
-                        ? enrichRiskWithSystemFlag(oldData.risk)
-                        : oldData.risk;
+          {isMasterAdmin &&
+            examData.riskId &&
+            examData.examId &&
+            !examData.isAll && (
+              <Box mt={3}>
+                <SCheckBox
+                  label="Criar também regra padrão na Biblioteca Risco × Exame"
+                  checked={examData.publishAsSystemRule}
+                  onChange={(e) => {
+                    const publishAsSystemRule = e.target.checked;
+                    setExamData((oldData) => {
+                      const enrichedRisk =
+                        publishAsSystemRule && oldData.risk?.id
+                          ? enrichRiskWithSystemFlag(oldData.risk)
+                          : oldData.risk;
 
-                    return {
+                      return {
+                        ...oldData,
+                        publishAsSystemRule,
+                        riskIsCatalogForPublish: false,
+                        selectedCanonicalRisk: null,
+                        existingEquivalence: null,
+                        ...(enrichedRisk ? { risk: enrichedRisk } : {}),
+                      };
+                    });
+                  }}
+                />
+                <SText sx={{ fontSize: 12, color: 'text.light', mt: 1 }}>
+                  Esta ação cria uma sugestão padrão do sistema para este Fator
+                  de Risco × Exame. Ela não aplica automaticamente o exame em
+                  outras empresas; apenas fará com que o sistema recomende essa
+                  relação quando o risco existir.
+                </SText>
+                <RiskFactorEquivalencePublishBlock
+                  companyId={companyId}
+                  risk={examData.risk}
+                  publishAsSystemRule={examData.publishAsSystemRule}
+                  equivalenceType={examData.equivalenceType}
+                  selectedCanonicalRisk={examData.selectedCanonicalRisk}
+                  onEquivalenceTypeChange={(equivalenceType) =>
+                    setExamData({ ...examData, equivalenceType })
+                  }
+                  onCanonicalRiskChange={(selectedCanonicalRisk) =>
+                    setExamData({ ...examData, selectedCanonicalRisk })
+                  }
+                  onExistingEquivalenceChange={(existingEquivalence) =>
+                    setExamData({ ...examData, existingEquivalence })
+                  }
+                  onCatalogRiskResolved={(riskIsCatalogForPublish) =>
+                    setExamData((oldData) => ({
                       ...oldData,
-                      publishAsSystemRule,
-                      riskIsCatalogForPublish: false,
-                      selectedCanonicalRisk: null,
-                      existingEquivalence: null,
-                      ...(enrichedRisk ? { risk: enrichedRisk } : {}),
-                    };
-                  });
-                }}
-              />
-              <SText sx={{ fontSize: 12, color: 'text.light', mt: 1 }}>
-                Esta ação cria uma sugestão padrão do sistema para este Fator de
-                Risco × Exame. Ela não aplica automaticamente o exame em outras
-                empresas; apenas fará com que o sistema recomende essa relação
-                quando o risco existir.
-              </SText>
-              <RiskFactorEquivalencePublishBlock
-                companyId={companyId}
-                risk={examData.risk}
-                publishAsSystemRule={examData.publishAsSystemRule}
-                equivalenceType={examData.equivalenceType}
-                selectedCanonicalRisk={examData.selectedCanonicalRisk}
-                onEquivalenceTypeChange={(equivalenceType) =>
-                  setExamData({ ...examData, equivalenceType })
-                }
-                onCanonicalRiskChange={(selectedCanonicalRisk) =>
-                  setExamData({ ...examData, selectedCanonicalRisk })
-                }
-                onExistingEquivalenceChange={(existingEquivalence) =>
-                  setExamData({ ...examData, existingEquivalence })
-                }
-                onCatalogRiskResolved={(riskIsCatalogForPublish) =>
-                  setExamData((oldData) => ({
-                    ...oldData,
-                    riskIsCatalogForPublish,
-                  }))
-                }
-              />
-            </Box>
-          )}
+                      riskIsCatalogForPublish,
+                    }))
+                  }
+                />
+              </Box>
+            )}
         </Box>
 
         <Box ml={6}>
@@ -365,7 +367,7 @@ export const ModalExamStep = ({
       <SFlex gap={5} mt={2} maxWidth={400} flexWrap="wrap">
         <Box flex={1} width={200}>
           <SelectForm
-            defaultValue={String(examData.minRiskDegree ?? 1)}
+            defaultValue={String(examData.minRiskDegree ?? '')}
             label="Qualitativo"
             control={control}
             placeholder="grau de risco..."
@@ -381,11 +383,11 @@ export const ModalExamStep = ({
               }))}
           />
         </Box>
-        {isQuantity(examData.risk) ? (
+        {isExamRiskQuantityApplicable(examData.risk) ? (
           <Box flex={1} maxWidth={200}>
             <SelectForm
               fullWidth
-              defaultValue={String(examData.minRiskDegreeQuantity ?? 1)}
+              defaultValue={String(examData.minRiskDegreeQuantity ?? '')}
               label="Quantitativo"
               control={control}
               setValue={setValue}
@@ -408,7 +410,9 @@ export const ModalExamStep = ({
                 Quantitativo
               </SText>
               <SText fontSize={14} color="text.light">
-                Não aplicável para este fator de risco
+                {examData.risk?.quantitativeLimitApplicable === undefined
+                  ? 'Elegibilidade quantitativa não carregada. Selecione novamente o fator de risco.'
+                  : 'Não aplicável para este fator de risco. Valores existentes serão preservados.'}
               </SText>
             </Box>
           )

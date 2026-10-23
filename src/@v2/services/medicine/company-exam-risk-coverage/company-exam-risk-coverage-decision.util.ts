@@ -136,3 +136,34 @@ export const decisionGroupTitles: Record<
       'Há exames adotados pela empresa que não correspondem a uma recomendação ACTIVE da Biblioteca SimpleSST. Isso não é, por si só, um erro.',
   },
 };
+
+/** Card selection only; coverage classifications remain owned by the API. */
+export type ExamRiskCoverageFilter = keyof ExamRiskCoverageDecisionCounts;
+
+export const matchesCoverageFilter = (
+  item: ICompanyExamRiskCoverageItem,
+  filter: ExamRiskCoverageFilter,
+): boolean => {
+  const group = resolveCoverageDecisionGroup(item);
+  switch (filter) {
+    case 'analyzed':
+      return true;
+    case 'complete':
+      return item.coverageStatus === CompanyExamRiskCoverageStatusEnum.COMPLETE;
+    case 'recommendationAvailable':
+      return (
+        group ===
+        ExamRiskCoverageDecisionGroupEnum.LIBRARY_RECOMMENDATION_AVAILABLE
+      );
+    case 'partiallyAdopted':
+      return group === ExamRiskCoverageDecisionGroupEnum.PARTIALLY_ADOPTED;
+    case 'noLibraryRecommendation':
+      return (
+        group === ExamRiskCoverageDecisionGroupEnum.NO_LIBRARY_RECOMMENDATION
+      );
+    case 'localOnly':
+      return group === ExamRiskCoverageDecisionGroupEnum.LOCAL_ONLY;
+    case 'recommendedWithoutAdoptedExam':
+      return item.hasAnyRecommendation && !item.hasAnyAdoptedExam;
+  }
+};

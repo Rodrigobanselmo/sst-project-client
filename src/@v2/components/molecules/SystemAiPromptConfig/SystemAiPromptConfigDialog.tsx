@@ -52,6 +52,7 @@ export type SystemAiPromptConfigDialogProps = {
    * Ausente = legado gpt-4o-mini (demais consumidores). Operacional GSE/Elemento passa gpt-5-mini.
    */
   defaultModelValue?: string;
+  modelOptions?: AiModelOption[];
   promptLabel?: string;
   modelLabel?: string;
   modelPlaceholder?: string;
@@ -68,10 +69,10 @@ const LEGACY_DEFAULT_MODEL =
   AI_MODEL_OPTIONS.find((option) => option.value === 'gpt-4o-mini') ??
   AI_MODEL_OPTIONS[0];
 
-function resolveFormDefaultModel(defaultModelValue?: string): AiModelOption {
+function resolveFormDefaultModel(defaultModelValue?: string, options = AI_MODEL_OPTIONS): AiModelOption {
   if (!defaultModelValue?.trim()) return LEGACY_DEFAULT_MODEL;
   return (
-    AI_MODEL_OPTIONS.find((option) => option.value === defaultModelValue.trim()) ??
+    options.find((option) => option.value === defaultModelValue.trim()) ??
     LEGACY_DEFAULT_MODEL
   );
 }
@@ -86,6 +87,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
   factoryDefaultPrompt = '',
   initialConfig,
   defaultModelValue,
+  modelOptions = AI_MODEL_OPTIONS,
   promptLabel = 'Prompt do sistema',
   modelLabel = 'Modelo de IA',
   modelPlaceholder = 'Selecione o modelo de IA',
@@ -99,8 +101,8 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
   const { showConfirmation } = useConfirmationModal();
   const { enqueueSnackbar } = useSnackbar();
   const formDefaultModel = useMemo(
-    () => resolveFormDefaultModel(defaultModelValue),
-    [defaultModelValue],
+    () => resolveFormDefaultModel(defaultModelValue, modelOptions),
+    [defaultModelValue, modelOptions],
   );
   const methods = useForm<SystemAiPromptConfigForm>({
     defaultValues: {
@@ -135,7 +137,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
   const resolveModelOption = (modelValue?: string): AiModelOption => {
     if (!modelValue) return getValues('model') ?? formDefaultModel;
     return (
-      AI_MODEL_OPTIONS.find((option) => option.value === modelValue) ??
+      modelOptions.find((option) => option.value === modelValue) ??
       getValues('model') ??
       formDefaultModel
     );
@@ -286,7 +288,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
               name="model"
               label={modelLabel}
               placeholder={modelPlaceholder}
-              options={AI_MODEL_OPTIONS}
+              options={modelOptions}
               getOptionLabel={(option) => option.label}
               getOptionValue={(option) => option.value}
             />

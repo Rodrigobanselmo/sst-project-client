@@ -50,3 +50,9 @@ export const buildExamRiskAiAssistantPayload = (
     model: values.model.trim() || undefined,
   },
 });
+
+/** Corporate assistant: saved presets cannot override the model for non-MASTER users. */
+export const buildCompanyExamRiskAiAssistantPayload = (
+  values: ExamRiskAiAssistantFormValues,
+  isMaster: boolean,
+) => buildExamRiskAiAssistantPayload(isMaster ? values : { ...values, model: '' });

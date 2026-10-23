@@ -24,6 +24,7 @@ type SexOption = 'male' | 'female' | 'both';
 type Props = {
   open: boolean;
   count: number;
+  canEditQuantitative: boolean;
   isSaving: boolean;
   onClose: () => void;
   onConfirm: (patch: IBulkExamRiskPatch) => void;
@@ -43,6 +44,7 @@ const parseAge = (value: string): number | null => {
 export const BulkEditExamRiskModal: FC<Props> = ({
   open,
   count,
+  canEditQuantitative,
   isSaving,
   onClose,
   onConfirm,
@@ -134,7 +136,7 @@ export const BulkEditExamRiskModal: FC<Props> = ({
       result.minRiskDegree = parseInt(qualitative, 10);
     }
 
-    if (enableQuantitative) {
+    if (enableQuantitative && canEditQuantitative) {
       result.minRiskDegreeQuantity = parseInt(quantitative, 10);
     }
 
@@ -154,6 +156,7 @@ export const BulkEditExamRiskModal: FC<Props> = ({
     enableQualitative,
     qualitative,
     enableQuantitative,
+    canEditQuantitative,
     quantitative,
   ]);
 
@@ -190,8 +193,8 @@ export const BulkEditExamRiskModal: FC<Props> = ({
       <DialogContent dividers>
         <Box display="flex" flexDirection="column" gap={2}>
           <Typography variant="body2" color="text.secondary">
-            {count} vínculo(s) selecionado(s). Marque apenas os campos que deseja
-            alterar. Campos não marcados permanecem inalterados.
+            {count} vínculo(s) selecionado(s). Marque apenas os campos que
+            deseja alterar. Campos não marcados permanecem inalterados.
           </Typography>
 
           {/* Periodicidade (tipos) */}
@@ -406,13 +409,20 @@ export const BulkEditExamRiskModal: FC<Props> = ({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={enableQuantitative}
+                  disabled={!canEditQuantitative}
+                  checked={enableQuantitative && canEditQuantitative}
                   onChange={(e) => setEnableQuantitative(e.target.checked)}
                 />
               }
               label="Grau de risco mínimo — Quantitativo"
             />
-            {enableQuantitative && (
+            {!canEditQuantitative && (
+              <Typography variant="caption" color="text.secondary">
+                Quantitativo indisponível: todos os vínculos selecionados
+                precisam ter elegibilidade confirmada.
+              </Typography>
+            )}
+            {enableQuantitative && canEditQuantitative && (
               <Box pl={4} maxWidth={220}>
                 <TextField
                   select

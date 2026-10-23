@@ -46,6 +46,7 @@ export type IApplyExamRiskSuggestionsParams = {
   workspaceId?: string;
   dryRun?: boolean;
   clientRequestId?: string;
+  expectedPreviewFingerprint?: string;
 };
 
 export type IApplyExamRiskSuggestionsResponse = {
@@ -60,7 +61,9 @@ export type IApplyExamRiskSuggestionsResponse = {
     errors: number;
   };
   warnings: string[];
+  previewFingerprint: string;
   meta: {
+    quantitativeLimitApplicable?: boolean;
     generatedAt: string;
     workspaceId: string | null;
     riskName: string;

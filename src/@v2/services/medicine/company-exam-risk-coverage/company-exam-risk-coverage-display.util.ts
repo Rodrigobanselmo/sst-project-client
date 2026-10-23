@@ -1,3 +1,4 @@
+import { ExamRiskCoverageDecisionGroupEnum, resolveCoverageDecisionGroup } from './company-exam-risk-coverage-decision.util';
 import { CompanyExamRiskCoverageStatusEnum } from '@v2/services/medicine/company-exam-risk-coverage/company-exam-risk-coverage.types';
 import type { IPcmsoComparableConfig } from '@v2/services/medicine/company-exam-risk-coverage/company-exam-risk-coverage.types';
 import type { SxProps, Theme } from '@mui/material';
@@ -8,11 +9,27 @@ export const coverageStatusLabels: Record<
 > = {
   [CompanyExamRiskCoverageStatusEnum.COMPLETE]: 'Cobertura completa',
   [CompanyExamRiskCoverageStatusEnum.MISSING_RECOMMENDED_EXAMS]:
-    'Recomendações pendentes',
+    'Cobertura incompleta',
   [CompanyExamRiskCoverageStatusEnum.NO_LIBRARY_RECOMMENDATION]:
     'Sem recomendação',
   [CompanyExamRiskCoverageStatusEnum.LOCAL_ONLY]: 'Vínculo exclusivamente local',
   [CompanyExamRiskCoverageStatusEnum.MIXED]: 'Cobertura mista',
+};
+
+export const resolveCoverageStatusLabel = (
+  item: Parameters<typeof resolveCoverageDecisionGroup>[0],
+): string => {
+  if (
+    item.coverageStatus ===
+    CompanyExamRiskCoverageStatusEnum.MISSING_RECOMMENDED_EXAMS
+  ) {
+    return resolveCoverageDecisionGroup(item) ===
+      ExamRiskCoverageDecisionGroupEnum.LIBRARY_RECOMMENDATION_AVAILABLE
+      ? 'Sem nenhum exame adotado'
+      : 'Cobertura incompleta';
+  }
+
+  return coverageStatusLabels[item.coverageStatus];
 };
 
 export const coverageStatusTooltips: Record<
@@ -20,9 +37,9 @@ export const coverageStatusTooltips: Record<
   string
 > = {
   [CompanyExamRiskCoverageStatusEnum.COMPLETE]:
-    'Todas as recomendações aplicáveis da Biblioteca já estão contempladas nos vínculos desta empresa.',
+    'Todas as recomendações aplicáveis estão adotadas ou têm decisão válida de não adoção, sem exames exclusivamente locais.',
   [CompanyExamRiskCoverageStatusEnum.MISSING_RECOMMENDED_EXAMS]:
-    'Existem exames recomendados pela Biblioteca que ainda não foram incorporados à configuração desta empresa.',
+    'Existem recomendações da Biblioteca ainda sem exame correspondente e sem decisão válida de não adoção.',
   [CompanyExamRiskCoverageStatusEnum.NO_LIBRARY_RECOMMENDATION]:
     'Não há regra ativa da Biblioteca para este risco.',
   [CompanyExamRiskCoverageStatusEnum.LOCAL_ONLY]:

@@ -6,7 +6,11 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { ExamOriginEnum, IExam, IExamRiskData } from 'core/interfaces/api/IExam';
+import {
+  ExamOriginEnum,
+  IExam,
+  IExamRiskData,
+} from 'core/interfaces/api/IExam';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
@@ -32,7 +36,7 @@ export const initialExamDataState = {
     fromAge: undefined as number | undefined,
     toAge: undefined as number | undefined,
     minRiskDegree: 0 as number,
-    minRiskDegreeQuantity: 1 as number,
+    minRiskDegreeQuantity: null as number | null,
   } as Partial<IExamRiskData>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: Partial<IExam> | null) => {},
@@ -136,7 +140,8 @@ export const useEditExams = () => {
           minRiskDegree,
           minRiskDegreeQuantity,
           storedMinRiskDegree: examData.examRiskData.minRiskDegree,
-          storedMinRiskDegreeQuantity: examData.examRiskData.minRiskDegreeQuantity,
+          storedMinRiskDegreeQuantity:
+            examData.examRiskData.minRiskDegreeQuantity,
           risk: examData.risk,
         }),
       },

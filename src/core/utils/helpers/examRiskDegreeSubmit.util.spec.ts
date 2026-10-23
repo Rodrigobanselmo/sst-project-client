@@ -36,6 +36,32 @@ describe('examRiskDegreeSubmit.util', () => {
   });
 
   describe('resolveExamRiskMinDegreesOnSubmit', () => {
+    it('does not infer eligibility from chemical type or eSocial code', () => {
+      const result = resolveExamRiskMinDegreesOnSubmit({
+        minRiskDegreeQuantity: '2',
+        storedMinRiskDegreeQuantity: 4,
+        risk: { type: 'QUI', esocialCode: '02.01.001' } as never,
+      });
+      expect(result.isQuantitativeApplicable).toBe(false);
+      expect(result.minRiskDegreeQuantity).toBe(4);
+    });
+    it('keeps null when an eligible value has not been supplied', () => {
+      const result = resolveExamRiskMinDegreesOnSubmit({
+        storedMinRiskDegreeQuantity: null,
+        risk: { quantitativeLimitApplicable: true } as never,
+      });
+      expect(result.isQuantitativeApplicable).toBe(true);
+      expect(result.minRiskDegreeQuantity).toBeNull();
+    });
+    it('edits an eligible threshold using the resolved API flag', () => {
+      const result = resolveExamRiskMinDegreesOnSubmit({
+        minRiskDegreeQuantity: '3',
+        storedMinRiskDegreeQuantity: 4,
+        risk: { quantitativeLimitApplicable: true } as never,
+      });
+      expect(result.minRiskDegreeQuantity).toBe(3);
+    });
+
     it('usa valor numérico do form no qualitativo', () => {
       const result = resolveExamRiskMinDegreesOnSubmit({
         minRiskDegree: 2,
@@ -46,7 +72,7 @@ describe('examRiskDegreeSubmit.util', () => {
       expect(result.minRiskDegree).toBe(2);
     });
 
-    it('limpa quantitativo quando risco não é quantitativo', () => {
+    it('preserva quantitativo quando risco não é elegível', () => {
       const result = resolveExamRiskMinDegreesOnSubmit({
         storedMinRiskDegree: 3,
         storedMinRiskDegreeQuantity: 4,
@@ -54,7 +80,7 @@ describe('examRiskDegreeSubmit.util', () => {
       });
 
       expect(result.minRiskDegree).toBe(3);
-      expect(result.minRiskDegreeQuantity).toBeNull();
+      expect(result.minRiskDegreeQuantity).toBe(4);
       expect(result.isQuantitativeApplicable).toBe(false);
     });
   });

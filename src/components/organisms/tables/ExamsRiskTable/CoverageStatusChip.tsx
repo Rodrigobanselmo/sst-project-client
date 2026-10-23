@@ -3,7 +3,7 @@ import { FC } from 'react';
 import { Box, Chip, CircularProgress, SxProps, Theme } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 import {
-  coverageStatusLabels,
+  resolveCoverageStatusLabel,
   coverageStatusPillSx,
   coverageStatusTooltips,
 } from '@v2/services/medicine/company-exam-risk-coverage/company-exam-risk-coverage-display.util';
@@ -13,7 +13,10 @@ import {
 } from '@v2/services/medicine/company-exam-risk-coverage/company-exam-risk-coverage.types';
 
 type Props = {
-  item?: Pick<ICompanyExamRiskCoverageItem, 'coverageStatus'>;
+  item?: Pick<
+    ICompanyExamRiskCoverageItem,
+    'coverageStatus' | 'hasAnyAdoptedExam' | 'missingCount'
+  >;
   loading?: boolean;
   onClick?: () => void;
 };
@@ -56,7 +59,11 @@ export const CoverageStatusChip: FC<Props> = ({ item, loading, onClick }) => {
 
   return (
     <PillWithTooltip
-      label={coverageStatusLabels[status]}
+      label={resolveCoverageStatusLabel(item ?? {
+        coverageStatus: status,
+        hasAnyAdoptedExam: false,
+        missingCount: 0,
+      })}
       sx={coverageStatusPillSx[status]}
       tooltip={coverageStatusTooltips[status]}
       onClick={onClick}

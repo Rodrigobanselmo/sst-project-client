@@ -1,6 +1,6 @@
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
-import { isQuantity } from './isQuantity';
+import { isExamRiskQuantityApplicable } from './isExamRiskQuantityApplicable';
 
 export const parseDegree = (
   value?: string | number | null,
@@ -25,23 +25,22 @@ export const resolveExamRiskMinDegreesOnSubmit = (params: {
   storedMinRiskDegreeQuantity?: number | null;
   risk?: IRiskFactors | null;
 }) => {
-  const isQuantitativeApplicable = Boolean(isQuantity(params.risk));
+  const isQuantitativeApplicable = isExamRiskQuantityApplicable(params.risk);
 
   const fromFormQualitative = parseDegree(params.minRiskDegree);
   const minRiskDegree =
     fromFormQualitative ??
-    (params.storedMinRiskDegree != null
-      ? params.storedMinRiskDegree
-      : 1);
+    (params.storedMinRiskDegree != null ? params.storedMinRiskDegree : 1);
 
-  let minRiskDegreeQuantity: number | null = null;
+  let minRiskDegreeQuantity: number | null =
+    params.storedMinRiskDegreeQuantity ?? null;
   if (isQuantitativeApplicable) {
     const fromFormQuantitative = parseDegree(params.minRiskDegreeQuantity);
     minRiskDegreeQuantity =
       fromFormQuantitative ??
       (params.storedMinRiskDegreeQuantity != null
         ? params.storedMinRiskDegreeQuantity
-        : 1);
+        : null);
   }
 
   return {

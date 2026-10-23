@@ -42,7 +42,7 @@ export const initialExamRiskState = {
   id: 0,
   examId: 0 as number,
   minRiskDegree: 0 as number,
-  minRiskDegreeQuantity: 1 as number,
+  minRiskDegreeQuantity: null as number | null,
   riskId: '' as string,
   isAll: false,
   isMale: true,
@@ -64,7 +64,8 @@ export const initialExamRiskState = {
     exam: false,
   },
   publishAsSystemRule: true,
-  equivalenceType: 'SEMANTIC_ALIAS' as RiskFactorEquivalencePayload['equivalenceType'],
+  equivalenceType:
+    'SEMANTIC_ALIAS' as RiskFactorEquivalencePayload['equivalenceType'],
   selectedCanonicalRisk: null as SystemRiskSearchItem | null,
   existingEquivalence: null as {
     canonicalRiskId: string;
@@ -97,11 +98,19 @@ export const useEditExams = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { isMasterAdmin } = usePermissionsAccess();
 
-  const { handleSubmit, control, setValue, reset, getValues, clearErrors, trigger, watch } =
-    useForm<any>({
-      resolver: yupResolver(examRiskSchema),
-      defaultValues: { isPeriodic: initialExamRiskState.isPeriodic },
-    });
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    reset,
+    getValues,
+    clearErrors,
+    trigger,
+    watch,
+  } = useForm<any>({
+    resolver: yupResolver(examRiskSchema),
+    defaultValues: { isPeriodic: initialExamRiskState.isPeriodic },
+  });
 
   const { preventDiscardIf, preventDelete } = usePreventAction();
   const saveIntentRef = useRef<'stay' | 'exit'>('exit');
@@ -152,7 +161,7 @@ export const useEditExams = () => {
           ...(mergedRisk ? { risk: mergedRisk } : {}),
           publishAsSystemRule: initialData.id
             ? false
-            : initialData.publishAsSystemRule ?? true,
+            : (initialData.publishAsSystemRule ?? true),
           ...(initialData.id
             ? {
                 selectedCanonicalRisk: null,
@@ -300,8 +309,7 @@ export const useEditExams = () => {
               risk: examData.risk,
               riskIsCatalogForPublish: examData.riskIsCatalogForPublish,
               existingEquivalence: examData.existingEquivalence,
-            }) &&
-            examData.selectedCanonicalRisk?.id
+            }) && examData.selectedCanonicalRisk?.id
               ? {
                   riskFactorEquivalence: {
                     canonicalRiskId: examData.selectedCanonicalRisk.id,
@@ -339,9 +347,12 @@ export const useEditExams = () => {
         if ((exam as any)?.systemRule) {
           const systemRule = (exam as any).systemRule;
           if (systemRule.action === 'created') {
-            enqueueSnackbar('Regra padrão publicada na Biblioteca Risco × Exame.', {
-              variant: 'info',
-            });
+            enqueueSnackbar(
+              'Regra padrão publicada na Biblioteca Risco × Exame.',
+              {
+                variant: 'info',
+              },
+            );
           } else if (systemRule.action === 'alreadyExists') {
             enqueueSnackbar(
               systemRule.reason ||
@@ -375,9 +386,12 @@ export const useEditExams = () => {
         if ((exam as any)?.systemRule) {
           const systemRule = (exam as any).systemRule;
           if (systemRule.action === 'created') {
-            enqueueSnackbar('Regra padrão publicada na Biblioteca Risco × Exame.', {
-              variant: 'info',
-            });
+            enqueueSnackbar(
+              'Regra padrão publicada na Biblioteca Risco × Exame.',
+              {
+                variant: 'info',
+              },
+            );
           } else if (systemRule.action === 'alreadyExists') {
             enqueueSnackbar(
               systemRule.reason ||

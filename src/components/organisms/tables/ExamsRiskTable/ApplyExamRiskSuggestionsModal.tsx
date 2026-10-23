@@ -1,4 +1,5 @@
 import { FC, useEffect, useMemo, useState } from 'react';
+import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
 
 import {
   Alert,
@@ -19,12 +20,12 @@ import {
   Typography,
 } from '@mui/material';
 
-import {
-  formatExamRiskQualitativeDegreeLabel,
-  formatExamRiskQuantitativeDegreeLabel,
-} from 'core/utils/helpers/exam-risk-degree-display.util';
+import { formatExamRiskQualitativeDegreeLabel } from 'core/utils/helpers/exam-risk-degree-display.util';
 
-import { useApplyExamRiskSuggestions } from '@v2/services/medicine/company-exam-risk-suggestions/hooks/useApplyExamRiskSuggestions';
+import {
+  useApplyExamRiskSuggestions,
+  confirmPreviewedExamRiskSuggestions,
+} from '@v2/services/medicine/company-exam-risk-suggestions/hooks/useApplyExamRiskSuggestions';
 import {
   ApplyExamRiskSuggestionItemStatusEnum,
   type IApplyExamRiskSuggestionItem,
@@ -35,7 +36,11 @@ import type { IExamRiskLinkMissingExam } from '@v2/services/medicine/company-exa
 import { PcmsoLinkStatusEnum } from '@v2/services/medicine/company-exam-risk-link-status/company-exam-risk-link-status.types';
 import { pcmsoLinkStatusLabels } from '@v2/services/medicine/company-exam-risk-link-status/pcmso-link-status-display.util';
 
-import { getExamAge, getExamPeriodic } from './exam-risk-display.util';
+import {
+  formatExamAge,
+  formatExamEvents,
+  formatExamSex,
+} from '@v2/services/medicine/company-exam-risk-coverage/company-exam-risk-coverage-display.util';
 
 type Step = 'select' | 'preview' | 'result';
 
@@ -52,34 +57,14 @@ type Props = {
   onSuccess: () => void;
 };
 
-const getConfigSourceLabel = (source: IResolvedExamRiskConfig['configSource']) => {
+const getConfigSourceLabel = (
+  source: IResolvedExamRiskConfig['configSource'],
+) => {
   if (source.ruleExamRowId) return 'Regra da biblioteca';
   if (source.usedCompanyDefaults) return 'Padrões PCMSO da empresa';
   if (source.usedCreationDefaults) return 'Padrões de criação';
   return '-';
 };
-
-const formatSex = (config: IResolvedExamRiskConfig) => {
-  const parts: string[] = [];
-  if (config.isMale) parts.push('M');
-  if (config.isFemale) parts.push('F');
-  return parts.length ? parts.join(' / ') : '-';
-};
-
-const formatAgeRange = (config: IResolvedExamRiskConfig) =>
-  getExamAge({
-    fromAge: config.fromAge ?? undefined,
-    toAge: config.toAge ?? undefined,
-  });
-
-const formatPeriodicity = (config: IResolvedExamRiskConfig) =>
-  getExamPeriodic({
-    isAdmission: config.isAdmission,
-    isPeriodic: config.isPeriodic,
-    isChange: config.isChange,
-    isReturn: config.isReturn,
-    isDismissal: config.isDismissal,
-  }).text || '-';
 
 const getItemStatusLabel = (
   status: ApplyExamRiskSuggestionItemStatusEnum,
@@ -105,22 +90,27 @@ const getItemStatusLabel = (
   }
 };
 
-const PreviewTable: FC<{
+export const PreviewTable: FC<{
   items: IApplyExamRiskSuggestionItem[];
   dryRun: boolean;
-  riskRef?: { type?: string; esocialCode?: string | null };
+  riskRef?: {
+    type?: string;
+    esocialCode?: string | null;
+    quantitativeLimitApplicable?: boolean;
+  };
 }> = ({ items, dryRun, riskRef }) => (
   <Table size="small">
     <TableHead>
       <TableRow>
         <TableCell>Exame</TableCell>
-        <TableCell>Periodicidade</TableCell>
+        <TableCell>Eventos</TableCell>
         <TableCell>Sexo</TableCell>
         <TableCell>Faixa etária</TableCell>
         <TableCell>Validade (meses)</TableCell>
         <TableCell>Considerar (dias)</TableCell>
         <TableCell>Qualitativo</TableCell>
         <TableCell>Quantitativo</TableCell>
+        <TableCell>Motivo / observações</TableCell>
         <TableCell>Origem</TableCell>
         <TableCell>Status</TableCell>
       </TableRow>
@@ -129,12 +119,10 @@ const PreviewTable: FC<{
       {items.map((item) => (
         <TableRow key={item.examId}>
           <TableCell>{item.examName}</TableCell>
-          <TableCell>{formatPeriodicity(item.proposedConfig)}</TableCell>
-          <TableCell>{formatSex(item.proposedConfig)}</TableCell>
-          <TableCell>{formatAgeRange(item.proposedConfig)}</TableCell>
-          <TableCell>
-            {item.proposedConfig.validityInMonths ?? '-'}
-          </TableCell>
+          <TableCell>{formatExamEvents(item.proposedConfig)}</TableCell>
+          <TableCell>{formatExamSex(item.proposedConfig)}</TableCell>
+          <TableCell>{formatExamAge(item.proposedConfig)}</TableCell>
+          <TableCell>{item.proposedConfig.validityInMonths ?? '-'}</TableCell>
           <TableCell>
             {item.proposedConfig.considerBetweenDays ?? '-'}
           </TableCell>
@@ -144,11 +132,18 @@ const PreviewTable: FC<{
             )}
           </TableCell>
           <TableCell>
-            {formatExamRiskQuantitativeDegreeLabel(
-              item.proposedConfig.minRiskDegreeQuantity,
-              riskRef,
-            )}
+            {riskRef?.quantitativeLimitApplicable === false
+              ? 'Não aplicável'
+              : riskRef?.quantitativeLimitApplicable !== true
+                ? 'Elegibilidade não resolvida'
+                : item.proposedConfig.minRiskDegreeQuantity == null
+                  ? 'Não informado'
+                  : (matrixRiskMap[
+                      item.proposedConfig
+                        .minRiskDegreeQuantity as keyof typeof matrixRiskMap
+                    ]?.label ?? 'Valor inválido')}
           </TableCell>
+          <TableCell>{item.message ?? '—'}</TableCell>
           <TableCell>
             {getConfigSourceLabel(item.proposedConfig.configSource)}
           </TableCell>
@@ -173,6 +168,7 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
 }) => {
   const applyMutation = useApplyExamRiskSuggestions();
   const [step, setStep] = useState<Step>('select');
+  const [confirmError, setConfirmError] = useState('');
   const [selectedExamIds, setSelectedExamIds] = useState<number[]>([]);
   const [previewData, setPreviewData] =
     useState<IApplyExamRiskSuggestionsResponse | null>(null);
@@ -185,8 +181,13 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
   );
 
   const riskRef = useMemo(
-    () => ({ type: riskType, esocialCode: riskEsocialCode }),
-    [riskEsocialCode, riskType],
+    () => ({
+      type: riskType,
+      esocialCode: riskEsocialCode,
+      quantitativeLimitApplicable: (resultData ?? previewData)?.meta
+        .quantitativeLimitApplicable,
+    }),
+    [riskEsocialCode, riskType, resultData, previewData],
   );
 
   useEffect(() => {
@@ -195,6 +196,7 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
     setSelectedExamIds(allExamIds);
     setPreviewData(null);
     setResultData(null);
+    setConfirmError('');
     applyMutation.reset();
   }, [open, allExamIds]);
 
@@ -211,38 +213,65 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
   };
 
   const onPreview = async () => {
-    if (!selectedExamIds.length) return;
-    const response = await applyMutation.mutateAsync({
-      companyId,
-      riskId,
-      examIds: selectedExamIds,
-      workspaceId,
-      dryRun: true,
-    });
-    setPreviewData(response);
-    setStep('preview');
+    if (!selectedExamIds.length || applyMutation.isLoading) return;
+    setConfirmError('');
+    try {
+      const response = await applyMutation.mutateAsync({
+        companyId,
+        riskId,
+        examIds: selectedExamIds,
+        workspaceId,
+        dryRun: true,
+      });
+      setPreviewData(response);
+      setStep('preview');
+    } catch {
+      setConfirmError(
+        'Não foi possível carregar a prévia. Nenhum exame foi adotado por esta solicitação.',
+      );
+    }
   };
 
   const onConfirm = async () => {
-    if (!selectedExamIds.length) return;
-    const response = await applyMutation.mutateAsync({
-      companyId,
-      riskId,
-      examIds: selectedExamIds,
-      workspaceId,
-      dryRun: false,
-    });
-    setResultData(response);
-    setStep('result');
-    if (response.summary.created > 0) {
-      onSuccess();
+    if (
+      !selectedExamIds.length ||
+      !previewData?.previewFingerprint ||
+      applyMutation.isLoading
+    )
+      return;
+    setConfirmError('');
+    try {
+      const response = await confirmPreviewedExamRiskSuggestions(
+        applyMutation.mutateAsync,
+        {
+          companyId,
+          riskId,
+          examIds: selectedExamIds,
+          workspaceId,
+          dryRun: false,
+          expectedPreviewFingerprint: previewData.previewFingerprint,
+        },
+        onSuccess,
+      );
+      setResultData(response);
+      setStep('result');
+    } catch (error: any) {
+      setPreviewData(null);
+      setStep('select');
+      setConfirmError(
+        error?.response?.status === 409
+          ? 'As recomendações ou os vínculos mudaram. Refaça a prévia antes de confirmar.'
+          : 'Não foi possível concluir a adoção. Os dados serão atualizados; confira os vínculos e refaça a prévia.',
+      );
     }
   };
 
   const previewItems = useMemo(() => {
     if (!previewData) return [];
     return previewData.items.filter(
-      (item) => item.status !== ApplyExamRiskSuggestionItemStatusEnum.SKIPPED_NOT_SELECTED,
+      (item) =>
+        item.status !==
+        ApplyExamRiskSuggestionItemStatusEnum.SKIPPED_NOT_SELECTED,
     );
   }, [previewData]);
 
@@ -273,9 +302,7 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
               control={
                 <Checkbox
                   checked={allSelected}
-                  indeterminate={
-                    selectedExamIds.length > 0 && !allSelected
-                  }
+                  indeterminate={selectedExamIds.length > 0 && !allSelected}
                   onChange={(event) => onToggleAll(event.target.checked)}
                 />
               }
@@ -300,8 +327,9 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
         {step === 'preview' && previewData && (
           <Box>
             <Alert severity="info" sx={{ mb: 2 }}>
-              Serão criados vínculos novos. Nenhum vínculo existente será
-              alterado.
+              Apenas os exames marcados como "Pronto para criar" serão
+              incluídos. Exames com erro não serão adotados. Nenhum vínculo
+              existente será alterado.
             </Alert>
             {previewData.warnings.length > 0 && (
               <Alert severity="warning" sx={{ mb: 2 }}>
@@ -315,22 +343,36 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
         {step === 'result' && resultData && (
           <Box>
             <Alert
-              severity={resultData.summary.errors > 0 ? 'warning' : 'success'}
+              severity={
+                resultData.summary.errors > 0 || resultData.warnings.length > 0
+                  ? 'warning'
+                  : 'success'
+              }
               sx={{ mb: 2 }}
             >
-              {resultData.summary.created} criado(s), {resultData.summary.skipped}{' '}
-              ignorado(s), {resultData.summary.errors} erro(s).
+              {resultData.summary.created} criado(s),{' '}
+              {resultData.summary.skipped} ignorado(s),{' '}
+              {resultData.summary.errors} erro(s).
             </Alert>
             {resultData.warnings.length > 0 && (
               <Alert severity="warning" sx={{ mb: 2 }}>
                 {resultData.warnings.join(' ')}
               </Alert>
             )}
-            <PreviewTable items={resultItems} dryRun={false} riskRef={riskRef} />
+            <PreviewTable
+              items={resultItems}
+              dryRun={false}
+              riskRef={riskRef}
+            />
           </Box>
         )}
 
-        {applyMutation.isError && (
+        {confirmError && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            {confirmError}
+          </Alert>
+        )}
+        {applyMutation.isError && !confirmError && (
           <Alert severity="error" sx={{ mt: 2 }}>
             Não foi possível processar a solicitação. Tente novamente.
           </Alert>
@@ -360,7 +402,11 @@ export const ApplyExamRiskSuggestionsModal: FC<Props> = ({
             </Button>
             <Button
               variant="contained"
-              disabled={isLoading}
+              disabled={
+                isLoading ||
+                !previewData?.previewFingerprint ||
+                !previewData?.summary.created
+              }
               onClick={onConfirm}
             >
               Confirmar

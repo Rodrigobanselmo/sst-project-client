@@ -1,3 +1,4 @@
+import { ExamRiskAiModeNotice } from './ExamRiskAiModePresentation';
 import {
   FC,
   ReactNode,
@@ -67,7 +68,7 @@ import {
   getExamRiskAiVerdictLabel,
 } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-verdict-display.util';
 import {
-  buildExamRiskAiAssistantPayload,
+  buildCompanyExamRiskAiAssistantPayload,
   createDefaultExamRiskAiAssistantFormValues,
   type ExamRiskAiAssistantFormValues,
 } from '@v2/components/medicine/exam-risk-ai-assistant/exam-risk-ai-assistant.types';
@@ -790,8 +791,9 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
 
     let cancelled = false;
     const run = async () => {
-      const payload = buildExamRiskAiAssistantPayload(
+      const payload = buildCompanyExamRiskAiAssistantPayload(
         createDefaultExamRiskAiAssistantFormValues(),
+        isMasterAdmin,
       );
       try {
         const response = await dryRunMutation.mutateAsync({
@@ -823,7 +825,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
     };
     // intentionally omit mutation identity — restart only on open/risk/mode
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, riskId, isReviewMode, autoStart, companyId, workspaceId]);
+  }, [open, riskId, isReviewMode, autoStart, companyId, workspaceId, isMasterAdmin]);
 
   const updateFormField = <K extends keyof ExamRiskAiAssistantFormValues>(
     key: K,
@@ -880,7 +882,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
   };
 
   const onGenerateSuggestions = async () => {
-    const payload = buildExamRiskAiAssistantPayload(formValues);
+    const payload = buildCompanyExamRiskAiAssistantPayload(formValues, isMasterAdmin);
     const response = await dryRunMutation.mutateAsync({
       companyId,
       riskId,
@@ -1089,11 +1091,7 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
 
           {step === 'setup' && (
             <>
-              <Alert severity="warning">
-                {isReviewMode
-                  ? 'Modo revisão: a IA compara o padrão oficial da Biblioteca com os vínculos ExamToRisk atuais. Nada será alterado automaticamente.'
-                  : 'A IA apenas sugere exames. Nada será gravado no catálogo da empresa até você revisar tecnicamente, selecionar os itens e confirmar a criação.'}
-              </Alert>
+              <ExamRiskAiModeNotice isReviewMode={isReviewMode} />
               {!isReviewMode && (
                 <>
                   <Alert severity="info">
@@ -1141,6 +1139,8 @@ export const CompanyExamRiskAiSuggestionsModal: FC<Props> = ({
               />
 
               <ExamRiskAiAssistantConfigForm
+                companyModels
+                canChooseModel={isMasterAdmin}
                 values={formValues}
                 onFieldChange={updateFormField}
                 optionSwitches={[

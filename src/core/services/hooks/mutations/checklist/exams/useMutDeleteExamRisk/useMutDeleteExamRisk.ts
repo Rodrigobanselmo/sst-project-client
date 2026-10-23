@@ -1,3 +1,6 @@
+import { useQueryClient as useTanstackQueryClient } from '@tanstack/react-query';
+import { companyExamRiskCoverageQueryKeys } from '@v2/services/medicine/company-exam-risk-coverage/hooks/company-exam-risk-coverage.query-keys';
+import { refetchExamRiskLinkStatusQueries } from '@v2/services/medicine/company-exam-risk-link-status/hooks/refetch-exam-risk-link-status';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -22,6 +25,7 @@ export async function deleteExam(id: number, companyId?: string) {
 }
 
 export function useMutDeleteExamRisk() {
+  const cache = useTanstackQueryClient();
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -31,7 +35,28 @@ export function useMutDeleteExamRisk() {
     {
       onSuccess: async (newExam) => {
         if (newExam) {
-          queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
+          try {
+            await Promise.all([
+              queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]),
+              queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]),
+              queryClient.invalidateQueries(['exam-risk-inline-links']),
+              refetchExamRiskLinkStatusQueries(),
+              cache.invalidateQueries(
+                { queryKey: companyExamRiskCoverageQueryKeys.all() },
+                { throwOnError: true },
+              ),
+              cache.invalidateQueries(
+                { queryKey: ['exam-risk-parameter-reviews'] },
+                { throwOnError: true },
+              ),
+            ]);
+          } catch {
+            enqueueSnackbar(
+              'Vínculo removido, mas não foi possível atualizar todos os dados. Atualize a tela.',
+              { variant: 'warning' },
+            );
+            return newExam;
+          }
         }
 
         enqueueSnackbar('Removido com sucesso', {
@@ -40,7 +65,11 @@ export function useMutDeleteExamRisk() {
         return newExam;
       },
       onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        enqueueSnackbar(
+          error?.response?.data?.message ||
+            'Não foi possível remover o vínculo.',
+          { variant: 'error' },
+        );
       },
     },
   );

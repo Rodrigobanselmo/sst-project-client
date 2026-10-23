@@ -186,6 +186,7 @@ export interface IRiskFactors {
     };
   }[];
 
+  quantitativeLimitApplicable?: boolean;
   esocialCode: string;
   esocial?: IEsocialTable24;
 }
