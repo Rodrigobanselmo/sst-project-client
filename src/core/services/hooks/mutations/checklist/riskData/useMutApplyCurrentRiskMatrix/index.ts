@@ -1,3 +1,4 @@
+import { invalidateRiskPrioritization } from '@v2/services/security/risk-prioritization/invalidate-risk-prioritization';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -60,6 +61,7 @@ function useApplyMatrixSuccessHandler() {
   return {
     companyId,
     onSuccess: (res: IApplyCurrentRiskMatrixResponse) => {
+      void invalidateRiskPrioritization(companyId);
       queryClient.invalidateQueries([QueryEnum.RISK_DATA, companyId]);
       queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
       enqueueSnackbar(

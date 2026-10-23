@@ -1,3 +1,4 @@
+import { invalidateRiskPrioritization } from '@v2/services/security/risk-prioritization/invalidate-risk-prioritization';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -204,6 +205,7 @@ export function useMutUpsertRiskData() {
           queryClient.invalidateQueries([QueryEnum.RISK_DATA, companyId]);
         }
 
+        void invalidateRiskPrioritization(companyId);
         return resp;
       },
       onError: (error: IErrorResp) => {

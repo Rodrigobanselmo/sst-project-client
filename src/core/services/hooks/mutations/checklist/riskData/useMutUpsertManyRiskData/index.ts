@@ -1,3 +1,4 @@
+import { invalidateRiskPrioritization } from '@v2/services/security/risk-prioritization/invalidate-risk-prioritization';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -118,6 +119,7 @@ export function useMutUpsertManyRiskData() {
           queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
           const first = resp[0][0];
           const companyId = getCompanyId(resp);
+          void invalidateRiskPrioritization(companyId);
           if (first?.riskFactorGroupDataId && first?.homogeneousGroupId) {
             queryClient.invalidateQueries(
               riskFactorDataByGhoQueryKeyPrefix({

@@ -1,3 +1,4 @@
+import { invalidateRiskPrioritization } from '@v2/services/security/risk-prioritization/invalidate-risk-prioritization';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -69,6 +70,7 @@ export function useMutDeleteManyRiskData() {
         queryClient.invalidateQueries([QueryEnum.RISK]);
 
         const companyId = getCompanyId(resp?.companyId);
+        void invalidateRiskPrioritization(companyId);
         if (resp?.homogeneousGroupIds?.length) {
           resp.homogeneousGroupIds.forEach((id) => {
             queryClient.invalidateQueries(
