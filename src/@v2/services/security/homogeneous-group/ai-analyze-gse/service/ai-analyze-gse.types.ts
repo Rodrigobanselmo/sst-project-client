@@ -17,6 +17,8 @@ export interface AiAnalyzeGseParams {
   model?: string;
   scope?: 'general' | 'risk' | 'field';
   riskId?: string;
+  /** Somente scope risk; ausente mantém o comportamento legado. */
+  selectedFields?: Array<'fonteGeradora' | 'medidasEngenhariaExistentes' | 'medidasAdministrativasExistentes' | 'medidasEngenhariaRecomendadas' | 'medidasAdministrativasRecomendadas' | 'probabilidade'>;
   field?:
     | 'fonteGeradora'
     | 'medidasEngenhariaExistentes'

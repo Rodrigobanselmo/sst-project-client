@@ -15,6 +15,7 @@ import { useCharacterizationAiAnalyzeAudioRecorder } from '@v2/services/security
 import type { TranscribeAiAnalyzeAudioFn } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/hooks/useCharacterizationAiAnalyzeAudioRecorder';
 
 type Props = {
+  label?: string;
   companyId: string;
   workspaceId: string;
   characterizationId?: string;
@@ -27,6 +28,7 @@ type Props = {
 };
 
 export function AiAnalyzeGuidanceAudioField({
+  label = "Orientações adicionais para análise de riscos",
   companyId,
   workspaceId,
   characterizationId,
@@ -55,7 +57,7 @@ export function AiAnalyzeGuidanceAudioField({
 
   return (
     <TextField
-      label="Orientações adicionais para análise de riscos"
+      label={label}
       placeholder="Ex.: avaliar queda ao mar, ruído, movimentação de cargas, trabalho em altura, intempéries..."
       value={value}
       onChange={(event) => onChange(event.target.value)}

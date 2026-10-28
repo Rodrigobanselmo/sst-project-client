@@ -8,7 +8,14 @@ import React, {
   useState,
 } from 'react';
 
-import { Alert, Box, CircularProgress, Dialog, DialogContent, DialogTitle } from '@mui/material';
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { useMutateAiAnalyzeCharacterization } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/hooks/useMutateAiAnalyzeCharacterization';
@@ -39,6 +46,8 @@ import {
   RiskFactorAiSuggestionActions,
   useRiskFactorAiSuggestionActions,
 } from './useRiskFactorAiSuggestionActions';
+import { RiskFactorAiConfigurationDialog } from './RiskFactorAiConfigurationDialog';
+import { runCancelableRiskAnalysis } from './run-cancelable-risk-analysis.util';
 import { RiskFactorAiNewRiskCandidates } from './RiskFactorAiNewRiskCandidates';
 
 type OpenFieldParams = {
@@ -58,7 +67,9 @@ type RiskFactorsAiContextValue = {
   suggestions: RiskFactorAiSuggestionActions;
 };
 
-const RiskFactorsAiContext = createContext<RiskFactorsAiContextValue | null>(null);
+const RiskFactorsAiContext = createContext<RiskFactorsAiContextValue | null>(
+  null,
+);
 
 export function useRiskFactorsAiOptional(): RiskFactorsAiContextValue | null {
   return useContext(RiskFactorsAiContext);
@@ -122,6 +133,9 @@ export function RiskFactorsAiProvider({
   renderGeneral,
 }: RiskFactorsAiProviderProps) {
   const requestSeq = useRef(0);
+  const [configureRisk, setConfigureRisk] = useState<OpenRiskParams | null>(
+    null,
+  );
   const [generalOpen, setGeneralOpen] = useState(false);
   const [scoped, setScoped] = useState<ScopedPanel | null>(null);
   const { workspaceId: pageWorkspaceId } = useGetCompanyId();
@@ -136,7 +150,10 @@ export function RiskFactorsAiProvider({
         riskGroupId: target.riskGroupId,
       };
     }
-    const workspaceIds = getGseLinkedWorkspaceIds(target.ghoData, target.ghoQuery);
+    const workspaceIds = getGseLinkedWorkspaceIds(
+      target.ghoData,
+      target.ghoQuery,
+    );
     const apiWorkspaceId = pageWorkspaceId || workspaceIds[0];
     return {
       kind: 'gse',
@@ -169,14 +186,9 @@ export function RiskFactorsAiProvider({
   }, []);
 
   const openRisk = useCallback((params: OpenRiskParams) => {
-    requestSeq.current += 1;
     setGeneralOpen(false);
-    setScoped({
-      scope: 'risk',
-      riskId: params.riskId,
-      riskName: params.riskName,
-      requestId: requestSeq.current,
-    });
+    setScoped(null);
+    setConfigureRisk(params);
   }, []);
 
   const value = useMemo(
@@ -241,6 +253,24 @@ export function RiskFactorsAiProvider({
           {children}
         </Box>
       </Box>
+      {configureRisk && (
+        <RiskFactorAiConfigurationDialog
+          riskName={configureRisk.riskName || configureRisk.riskId}
+          target={runtimeTarget}
+          onClose={() => setConfigureRisk(null)}
+          onGenerate={({ selectedFields, userGuidance }) => {
+            requestSeq.current += 1;
+            setScoped({
+              scope: 'risk',
+              ...configureRisk,
+              selectedFields,
+              userGuidance,
+              requestId: requestSeq.current,
+            });
+            setConfigureRisk(null);
+          }}
+        />
+      )}
       <Dialog
         open={generalOpen}
         onClose={() => setGeneralOpen(false)}
@@ -312,29 +342,37 @@ function ScopedAiDialog({
       try {
         setErrorMessage(null);
         setEmptyReason(null);
-        const result =
-          target.kind === 'characterization'
-            ? await characterizationAnalyze.mutateAsync({
-                companyId: target.companyId,
-                workspaceId: target.workspaceId,
-                characterizationId: target.entityId,
-                ...payload,
-                signal: abortController.signal,
-              })
-            : await gseAnalyze.mutateAsync({
-                companyId: target.companyId,
-                workspaceId: target.workspaceId,
-                gseId: target.entityId,
-                ...payload,
-                signal: abortController.signal,
-              });
-        if (abortController.signal.aborted) return;
-        setEmptyReason(result.emptyReason || null);
-        analysis.mergeIncomingExistingRiskReviews(
-          filterReviewsForRiskFactorAi(result.existingRiskReviews || [], request),
+        await runCancelableRiskAnalysis(
+          abortController.signal,
+          () =>
+            target.kind === 'characterization'
+              ? characterizationAnalyze.mutateAsync({
+                  companyId: target.companyId,
+                  workspaceId: target.workspaceId,
+                  characterizationId: target.entityId,
+                  ...payload,
+                  signal: abortController.signal,
+                })
+              : gseAnalyze.mutateAsync({
+                  companyId: target.companyId,
+                  workspaceId: target.workspaceId,
+                  gseId: target.entityId,
+                  ...payload,
+                  signal: abortController.signal,
+                }),
+          (result) => {
+            setEmptyReason(result.emptyReason || null);
+            analysis.mergeIncomingExistingRiskReviews(
+              filterReviewsForRiskFactorAi(
+                result.existingRiskReviews || [],
+                request,
+              ),
+            );
+          },
         );
       } catch (error) {
-        if (isAiAnalyzeRequestCanceled(error) || abortController.signal.aborted) return;
+        if (isAiAnalyzeRequestCanceled(error) || abortController.signal.aborted)
+          return;
         setErrorMessage('Não foi possível concluir a análise deste recorte.');
       } finally {
         if (!abortController.signal.aborted) setFinished(true);
@@ -347,20 +385,27 @@ function ScopedAiDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const riskData = existingRiskData.find((item) => item.riskId === request.riskId);
+  const riskData = existingRiskData.find(
+    (item) => item.riskId === request.riskId,
+  );
   const columns =
     request.scope === 'field'
       ? [columnForAiField(request.field)].filter(
           (column): column is RiskFactorAiColumn => !!column,
         )
-      : ALL_COLUMNS;
+      : request.selectedFields
+        ? Array.from(
+            new Set(request.selectedFields.map(columnForAiField)),
+          ).filter((column): column is RiskFactorAiColumn => !!column)
+        : ALL_COLUMNS;
   const pendingCount = columns.reduce(
     (total, column) =>
       total +
       suggestions
         .pendingFor({ riskId: request.riskId, column, riskData })
-        .filter((item) => request.scope !== 'field' || item.field === request.field)
-        .length,
+        .filter(
+          (item) => request.scope !== 'field' || item.field === request.field,
+        ).length,
     0,
   );
   const title =
@@ -399,23 +444,30 @@ function ScopedAiDialog({
             </SText>
           </Box>
         )}
-        {finished && !target.missingWorkspace && !errorMessage && pendingCount > 0 && (
-          <Alert severity="success">
-            {pendingCount === 1
-              ? '1 sugestão está disponível na coluna correspondente, com borda tracejada.'
-              : `${pendingCount} sugestões estão disponíveis nas colunas correspondentes, com borda tracejada.`}{' '}
-            Nada foi gravado: confirme, aceite ou descarte cada item na própria coluna.
-          </Alert>
-        )}
-        {finished && !target.missingWorkspace && !errorMessage && pendingCount === 0 && (
-          <SText variant="body2" color="text.secondary">
-            {request.scope === 'field' &&
-            (request.field === 'existingAdministrativeMeasures' ||
-              request.field === 'existingEngineeringMeasures')
-              ? existingControlEmptyMessage(emptyReason)
-              : scopedAiEmptyMessage(request.scope)}
-          </SText>
-        )}
+        {finished &&
+          !target.missingWorkspace &&
+          !errorMessage &&
+          pendingCount > 0 && (
+            <Alert severity="success">
+              {pendingCount === 1
+                ? '1 sugestão está disponível na coluna correspondente, com borda tracejada.'
+                : `${pendingCount} sugestões estão disponíveis nas colunas correspondentes, com borda tracejada.`}{' '}
+              Nada foi gravado: confirme, aceite ou descarte cada item na
+              própria coluna.
+            </Alert>
+          )}
+        {finished &&
+          !target.missingWorkspace &&
+          !errorMessage &&
+          pendingCount === 0 && (
+            <SText variant="body2" color="text.secondary">
+              {request.scope === 'field' &&
+              (request.field === 'existingAdministrativeMeasures' ||
+                request.field === 'existingEngineeringMeasures')
+                ? existingControlEmptyMessage(emptyReason)
+                : scopedAiEmptyMessage(request.scope)}
+            </SText>
+          )}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
           <SButton
             text={finished && pendingCount > 0 ? 'Ver nas colunas' : 'Fechar'}
