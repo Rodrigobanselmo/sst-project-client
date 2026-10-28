@@ -1,3 +1,4 @@
+import { transcribeAiAnalyzeHierarchyAudio } from '@v2/services/security/hierarchy/ai-analyze-hierarchy-risk.service';
 import React, { useRef, useState } from 'react';
 import {
   Alert,
@@ -60,7 +61,8 @@ const ALL_FIELDS = GROUPS.flatMap((group) =>
 type Props = {
   riskName: string;
   target: {
-    kind: 'gse' | 'characterization';
+    kind: 'gse' | 'characterization' | 'hierarchy';
+    hierarchyType?: string;
     companyId: string;
     workspaceId: string;
     entityId: string;
@@ -180,16 +182,26 @@ export function RiskFactorAiConfigurationDialog({
             target.kind === 'characterization' ? target.entityId : undefined
           }
           transcribe={
-            target.kind === 'gse'
+            target.kind === 'hierarchy'
               ? ({ audio, fileName }) =>
-                  transcribeAiAnalyzeGseAudio({
+                  transcribeAiAnalyzeHierarchyAudio({
                     companyId: target.companyId,
                     workspaceId: target.workspaceId,
-                    gseId: target.entityId,
+                    hierarchyId: target.entityId,
+                    hierarchyType: target.hierarchyType!,
                     audio,
                     fileName,
                   })
-              : undefined
+              : target.kind === 'gse'
+                ? ({ audio, fileName }) =>
+                    transcribeAiAnalyzeGseAudio({
+                      companyId: target.companyId,
+                      workspaceId: target.workspaceId,
+                      gseId: target.entityId,
+                      audio,
+                      fileName,
+                    })
+                : undefined
           }
           value={userGuidance}
           onChange={setUserGuidance}

@@ -40,15 +40,23 @@ export const useCharacterizationAiRiskAnalysisState = (
   const sessionKey = useMemo(
     () =>
       buildAiRiskAnalysisSessionKey({
+        sessionNamespace: params.sessionNamespace,
+        occurrenceSignature: params.occurrenceSignature,
         characterizationId: params.characterizationId,
         gseId: params.gseId,
+        hierarchyId: params.hierarchyId,
+        hierarchyType: params.hierarchyType,
         riskGroupId: params.riskGroupId,
         companyId: params.companyId,
         workspaceId: params.workspaceId,
       }),
     [
+      params.sessionNamespace,
+      params.occurrenceSignature,
       params.characterizationId,
       params.gseId,
+      params.hierarchyId,
+      params.hierarchyType,
       params.riskGroupId,
       params.companyId,
       params.workspaceId,
@@ -101,7 +109,9 @@ export const useCharacterizationAiRiskAnalysisState = (
       setTemporaryDocumentSource(emptyState.temporaryDocumentSource);
       setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
       setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
-      setDismissedModularSuggestionKeys(emptyState.dismissedModularSuggestionKeys);
+      setDismissedModularSuggestionKeys(
+        emptyState.dismissedModularSuggestionKeys,
+      );
       setHasAnalyzed(emptyState.hasAnalyzed);
       setHydratedKey(null);
       return;
@@ -109,7 +119,8 @@ export const useCharacterizationAiRiskAnalysisState = (
 
     if (hydratedKey === sessionKey) return;
 
-    const restored = readAiRiskAnalysisSession(sessionKey) || createEmptyState();
+    const restored =
+      readAiRiskAnalysisSession(sessionKey) || createEmptyState();
     setSuggestions(restored.suggestions);
     setExistingRiskReviews(restored.existingRiskReviews);
     setAddedRiskIds(restored.addedRiskIds);
@@ -161,10 +172,7 @@ export const useCharacterizationAiRiskAnalysisState = (
     [dismissedRiskIds, suggestions],
   );
 
-  const addedRiskIdsSet = useMemo(
-    () => new Set(addedRiskIds),
-    [addedRiskIds],
-  );
+  const addedRiskIdsSet = useMemo(() => new Set(addedRiskIds), [addedRiskIds]);
 
   const expandedSuggestionIdsSet = useMemo(
     () => new Set(expandedSuggestionIds),
@@ -312,7 +320,9 @@ export const useCharacterizationAiRiskAnalysisState = (
     setTemporaryDocumentSource(emptyState.temporaryDocumentSource);
     setExpandedSuggestionIds(emptyState.expandedSuggestionIds);
     setAppliedModularSuggestionKeys(emptyState.appliedModularSuggestionKeys);
-    setDismissedModularSuggestionKeys(emptyState.dismissedModularSuggestionKeys);
+    setDismissedModularSuggestionKeys(
+      emptyState.dismissedModularSuggestionKeys,
+    );
     setHasAnalyzed(emptyState.hasAnalyzed);
     clearAiRiskAnalysisSession(sessionKey);
   }, [sessionKey]);

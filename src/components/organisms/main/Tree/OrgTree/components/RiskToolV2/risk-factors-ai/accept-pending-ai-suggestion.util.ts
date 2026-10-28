@@ -19,6 +19,7 @@ export type AcceptPendingAiSuggestionResult =
  * e só então a marcação como aplicada. Qualquer falha mantém a sugestão pendente.
  */
 export async function acceptPendingAiSuggestion(params: {
+  isActive?: () => boolean;
   suggestion: RiskFactorAiPendingSuggestion;
   riskData: RiskFactorAiPendingRiskData & { id?: string; riskId?: string };
   companyId: string;
@@ -29,11 +30,16 @@ export async function acceptPendingAiSuggestion(params: {
   markApplied: (key: string) => void;
   onExistenceConfirmed?: () => Promise<void> | void;
 }): Promise<AcceptPendingAiSuggestionResult> {
+  if (params.isActive && !params.isActive()) return 'cancelled';
   const { suggestion } = params;
   const isExistingControl = suggestion.action === 'confirm-existence';
 
   if (
-    riskDataAlreadyContainsFieldValue(suggestion.field, suggestion.value, params.riskData)
+    riskDataAlreadyContainsFieldValue(
+      suggestion.field,
+      suggestion.value,
+      params.riskData,
+    )
   ) {
     params.markApplied(suggestion.key);
     return 'already-registered';
@@ -44,6 +50,7 @@ export async function acceptPendingAiSuggestion(params: {
     if (!confirmed) return 'cancelled';
   }
 
+  if (params.isActive && !params.isActive()) return 'cancelled';
   const payload = buildPendingAcceptPayload({
     suggestion,
     riskData: params.riskData,
@@ -55,9 +62,14 @@ export async function acceptPendingAiSuggestion(params: {
   try {
     await params.write(payload);
     const saved = await params.readSavedRow();
+    if (params.isActive && !params.isActive()) return 'cancelled';
     if (
       !saved ||
-      !riskDataAlreadyContainsFieldValue(suggestion.field, suggestion.value, saved)
+      !riskDataAlreadyContainsFieldValue(
+        suggestion.field,
+        suggestion.value,
+        saved,
+      )
     ) {
       return 'failed';
     }

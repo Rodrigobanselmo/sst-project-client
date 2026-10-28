@@ -1,8 +1,10 @@
+import { aiAnalyzeHierarchyRisk } from '@v2/services/security/hierarchy/ai-analyze-hierarchy-risk.service';
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -22,6 +24,7 @@ import { useMutateAiAnalyzeCharacterization } from '@v2/services/security/charac
 import { isAiAnalyzeRequestCanceled } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/is-ai-analyze-request-canceled.util';
 import { useMutateAiAnalyzeGse } from '@v2/services/security/homogeneous-group/ai-analyze-gse/hooks/useMutateAiAnalyzeGse';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import type { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IGho } from 'core/interfaces/api/IGho';
 import { useQueryRiskDataByGho } from 'core/services/hooks/queries/useQueryRiskDataByGho';
 
@@ -48,20 +51,30 @@ import {
 } from './useRiskFactorAiSuggestionActions';
 import { RiskFactorAiConfigurationDialog } from './RiskFactorAiConfigurationDialog';
 import { runCancelableRiskAnalysis } from './run-cancelable-risk-analysis.util';
+import {
+  canAnalyzeRiskLinkageOccurrence,
+  canUseRiskLinkageRow,
+  RiskLinkageAiOccurrence,
+  filterRiskLinkageOccurrenceReviews,
+  RiskFactorAiOccurrenceScope,
+} from './risk-linkage-ai-context.util';
 import { RiskFactorAiNewRiskCandidates } from './RiskFactorAiNewRiskCandidates';
 
 type OpenFieldParams = {
+  riskFactorDataId?: string;
   riskId: string;
   riskName?: string;
   field: RiskFactorAiField;
 };
 
 type OpenRiskParams = {
+  riskFactorDataId?: string;
   riskId: string;
   riskName?: string;
 };
 
 type RiskFactorsAiContextValue = {
+  occurrenceScope?: RiskFactorAiOccurrenceScope;
   openField: (params: OpenFieldParams) => void;
   openRisk: (params: OpenRiskParams) => void;
   suggestions: RiskFactorAiSuggestionActions;
@@ -78,6 +91,7 @@ export function useRiskFactorsAiOptional(): RiskFactorsAiContextValue | null {
 export type { RiskFactorAiField };
 
 type ScopedPanel = RiskFactorAiScopeRequest & {
+  riskFactorDataId?: string;
   riskName?: string;
   requestId: number;
 };
@@ -95,17 +109,30 @@ type GseTarget = {
   kind: 'gse';
   companyId: string;
   gseId: string;
-  ghoData: typeof initialAddGhoState;
-  ghoQuery: IGho;
   riskGroupId?: string;
+  analysis: CharacterizationAiRiskAnalysisState;
+} & (
+  | { workspaceId: string }
+  | { ghoData: typeof initialAddGhoState; ghoQuery: IGho }
+);
+
+type HierarchyTarget = {
+  kind: 'hierarchy';
+  companyId: string;
+  workspaceId: string;
+  hierarchyId: string;
+  hierarchyType: string;
+  riskGroupId: string;
   analysis: CharacterizationAiRiskAnalysisState;
 };
 
 type RiskFactorsAiProviderProps = {
   children: React.ReactNode;
-  target: CharacterizationTarget | GseTarget;
+  target: CharacterizationTarget | GseTarget | HierarchyTarget;
   /** Recebe onClose para o painel fechar o diálogo após o resumo. */
-  renderGeneral: (helpers: { onClose: () => void }) => React.ReactNode;
+  individualOnly?: boolean;
+  occurrenceScope?: RiskFactorAiOccurrenceScope;
+  renderGeneral?: (helpers: { onClose: () => void }) => React.ReactNode;
 };
 
 const FIELD_TITLE: Record<RiskFactorAiField, string> = {
@@ -119,7 +146,8 @@ const FIELD_TITLE: Record<RiskFactorAiField, string> = {
 const ALL_COLUMNS: RiskFactorAiColumn[] = ['source', 'eng', 'adm', 'rec'];
 
 type ScopedRuntimeTarget = {
-  kind: 'characterization' | 'gse';
+  kind: 'characterization' | 'gse' | 'hierarchy';
+  hierarchyType?: string;
   companyId: string;
   workspaceId: string;
   entityId: string;
@@ -131,6 +159,8 @@ export function RiskFactorsAiProvider({
   children,
   target,
   renderGeneral,
+  individualOnly = false,
+  occurrenceScope,
 }: RiskFactorsAiProviderProps) {
   const requestSeq = useRef(0);
   const [configureRisk, setConfigureRisk] = useState<OpenRiskParams | null>(
@@ -139,8 +169,46 @@ export function RiskFactorsAiProvider({
   const [generalOpen, setGeneralOpen] = useState(false);
   const [scoped, setScoped] = useState<ScopedPanel | null>(null);
   const { workspaceId: pageWorkspaceId } = useGetCompanyId();
+  const active = useRef(true);
+  const scopeRef = useRef(occurrenceScope);
+  scopeRef.current = occurrenceScope;
+  useLayoutEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+    };
+  }, []);
+  const canUseOccurrence = useCallback(
+    (riskId?: string, occurrenceId?: string) => {
+      return (
+        active.current &&
+        (!scopeRef.current ||
+          canAnalyzeRiskLinkageOccurrence(
+            scopeRef.current,
+            riskId,
+            occurrenceId,
+          ))
+      );
+    },
+    [],
+  );
+  const validateOccurrence = useCallback(
+    (row: Partial<RiskLinkageAiOccurrence>) =>
+      canUseOccurrence(row.riskId, row.id) &&
+      (!scopeRef.current || canUseRiskLinkageRow(scopeRef.current, row)),
+    [canUseOccurrence],
+  );
 
   const runtimeTarget: ScopedRuntimeTarget = useMemo(() => {
+    if (target.kind === 'hierarchy')
+      return {
+        kind: 'hierarchy',
+        companyId: target.companyId,
+        workspaceId: target.workspaceId,
+        entityId: target.hierarchyId,
+        hierarchyType: target.hierarchyType,
+        riskGroupId: target.riskGroupId,
+      };
     if (target.kind === 'characterization') {
       return {
         kind: 'characterization',
@@ -148,6 +216,16 @@ export function RiskFactorsAiProvider({
         workspaceId: target.workspaceId,
         entityId: target.characterizationId,
         riskGroupId: target.riskGroupId,
+      };
+    }
+    if ('workspaceId' in target) {
+      return {
+        kind: 'gse',
+        companyId: target.companyId,
+        workspaceId: target.workspaceId,
+        entityId: target.gseId,
+        riskGroupId: target.riskGroupId,
+        missingWorkspace: !target.workspaceId,
       };
     }
     const workspaceIds = getGseLinkedWorkspaceIds(
@@ -171,29 +249,50 @@ export function RiskFactorsAiProvider({
     apiWorkspaceId: runtimeTarget.workspaceId || undefined,
     riskGroupId: runtimeTarget.riskGroupId,
     entityId: runtimeTarget.entityId,
+    validateOccurrence: occurrenceScope ? validateOccurrence : undefined,
   });
 
-  const openField = useCallback((params: OpenFieldParams) => {
-    requestSeq.current += 1;
-    setGeneralOpen(false);
-    setScoped({
-      scope: 'field',
-      riskId: params.riskId,
-      field: params.field,
-      riskName: params.riskName,
-      requestId: requestSeq.current,
-    });
-  }, []);
+  const openField = useCallback(
+    (params: OpenFieldParams) => {
+      if (!canUseOccurrence(params.riskId, params.riskFactorDataId)) return;
+      requestSeq.current += 1;
+      setGeneralOpen(false);
+      setScoped({
+        scope: 'field',
+        riskFactorDataId: params.riskFactorDataId,
+        riskId: params.riskId,
+        field: params.field,
+        riskName: params.riskName,
+        requestId: requestSeq.current,
+      });
+    },
+    [canUseOccurrence],
+  );
 
-  const openRisk = useCallback((params: OpenRiskParams) => {
-    setGeneralOpen(false);
-    setScoped(null);
-    setConfigureRisk(params);
-  }, []);
+  const openRisk = useCallback(
+    (params: OpenRiskParams) => {
+      if (!canUseOccurrence(params.riskId, params.riskFactorDataId)) return;
+      setGeneralOpen(false);
+      setScoped(null);
+      setConfigureRisk(params);
+    },
+    [canUseOccurrence],
+  );
+
+  useEffect(() => {
+    if (!occurrenceScope) return;
+    if (
+      configureRisk &&
+      !canUseOccurrence(configureRisk.riskId, configureRisk.riskFactorDataId)
+    )
+      setConfigureRisk(null);
+    if (scoped && !canUseOccurrence(scoped.riskId, scoped.riskFactorDataId))
+      setScoped(null);
+  }, [occurrenceScope, configureRisk, scoped, canUseOccurrence]);
 
   const value = useMemo(
-    () => ({ openField, openRisk, suggestions }),
-    [openField, openRisk, suggestions],
+    () => ({ openField, openRisk, suggestions, occurrenceScope }),
+    [openField, openRisk, suggestions, occurrenceScope],
   );
 
   return (
@@ -208,35 +307,39 @@ export function RiskFactorsAiProvider({
           overflow: 'hidden',
         }}
       >
-        <Box
-          sx={{
-            flexShrink: 0,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            mb: 1,
-          }}
-        >
-          <SButton
-            text="Análise geral com IA"
-            variant="outlined"
-            color="primary"
-            size="s"
-            onClick={() => {
-              setScoped(null);
-              setGeneralOpen(true);
+        {!individualOnly && (
+          <Box
+            sx={{
+              flexShrink: 0,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              mb: 1,
             }}
-            buttonProps={{ sx: { minWidth: 'auto' } }}
-          />
-        </Box>
-        <Box sx={{ flexShrink: 0 }}>
-          <RiskFactorAiNewRiskCandidates
-            analysis={target.analysis}
-            companyId={runtimeTarget.companyId}
-            workspaceId={runtimeTarget.workspaceId || undefined}
-            entityId={runtimeTarget.entityId}
-            riskGroupId={runtimeTarget.riskGroupId}
-          />
-        </Box>
+          >
+            <SButton
+              text="Análise geral com IA"
+              variant="outlined"
+              color="primary"
+              size="s"
+              onClick={() => {
+                setScoped(null);
+                setGeneralOpen(true);
+              }}
+              buttonProps={{ sx: { minWidth: 'auto' } }}
+            />
+          </Box>
+        )}
+        {!individualOnly && (
+          <Box sx={{ flexShrink: 0 }}>
+            <RiskFactorAiNewRiskCandidates
+              analysis={target.analysis}
+              companyId={runtimeTarget.companyId}
+              workspaceId={runtimeTarget.workspaceId || undefined}
+              entityId={runtimeTarget.entityId}
+              riskGroupId={runtimeTarget.riskGroupId}
+            />
+          </Box>
+        )}
         <Box
           sx={{
             flex: 1,
@@ -259,6 +362,13 @@ export function RiskFactorsAiProvider({
           target={runtimeTarget}
           onClose={() => setConfigureRisk(null)}
           onGenerate={({ selectedFields, userGuidance }) => {
+            if (
+              !canUseOccurrence(
+                configureRisk.riskId,
+                configureRisk.riskFactorDataId,
+              )
+            )
+              return;
             requestSeq.current += 1;
             setScoped({
               scope: 'risk',
@@ -271,19 +381,21 @@ export function RiskFactorsAiProvider({
           }}
         />
       )}
-      <Dialog
-        open={generalOpen}
-        onClose={() => setGeneralOpen(false)}
-        fullWidth
-        maxWidth="md"
-      >
-        <DialogTitle>Análise geral com IA</DialogTitle>
-        <DialogContent dividers sx={{ maxHeight: '80vh' }}>
-          {generalOpen
-            ? renderGeneral({ onClose: () => setGeneralOpen(false) })
-            : null}
-        </DialogContent>
-      </Dialog>
+      {!individualOnly && (
+        <Dialog
+          open={generalOpen}
+          onClose={() => setGeneralOpen(false)}
+          fullWidth
+          maxWidth="md"
+        >
+          <DialogTitle>Análise geral com IA</DialogTitle>
+          <DialogContent dividers sx={{ maxHeight: '80vh' }}>
+            {generalOpen && renderGeneral
+              ? renderGeneral({ onClose: () => setGeneralOpen(false) })
+              : null}
+          </DialogContent>
+        </Dialog>
+      )}
       <Dialog
         open={!!scoped}
         onClose={() => setScoped(null)}
@@ -297,6 +409,8 @@ export function RiskFactorsAiProvider({
             analysis={target.analysis}
             suggestions={suggestions}
             request={scoped}
+            occurrenceScope={occurrenceScope}
+            canUseOccurrence={canUseOccurrence}
             onClose={() => setScoped(null)}
           />
         )}
@@ -310,8 +424,12 @@ function ScopedAiDialog({
   analysis,
   suggestions,
   request,
+  occurrenceScope,
+  canUseOccurrence,
   onClose,
 }: {
+  occurrenceScope?: RiskFactorAiOccurrenceScope;
+  canUseOccurrence: (riskId?: string, occurrenceId?: string) => boolean;
   target: ScopedRuntimeTarget;
   analysis: CharacterizationAiRiskAnalysisState;
   suggestions: RiskFactorAiSuggestionActions;
@@ -331,7 +449,11 @@ function ScopedAiDialog({
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    if (target.missingWorkspace || !target.workspaceId) {
+    if (
+      target.missingWorkspace ||
+      !target.workspaceId ||
+      !canUseOccurrence(request.riskId, request.riskFactorDataId)
+    ) {
       setFinished(true);
       return;
     }
@@ -344,8 +466,21 @@ function ScopedAiDialog({
         setEmptyReason(null);
         await runCancelableRiskAnalysis(
           abortController.signal,
-          () =>
-            target.kind === 'characterization'
+          () => {
+            if (!canUseOccurrence(request.riskId, request.riskFactorDataId))
+              return Promise.reject(new Error('Ocorrência indisponível.'));
+            if (target.kind === 'hierarchy')
+              return aiAnalyzeHierarchyRisk({
+                companyId: target.companyId,
+                workspaceId: target.workspaceId,
+                hierarchyId: target.entityId,
+                hierarchyType: target.hierarchyType!,
+                riskGroupId: target.riskGroupId!,
+                riskFactorDataId: request.riskFactorDataId!,
+                ...payload,
+                signal: abortController.signal,
+              });
+            return target.kind === 'characterization'
               ? characterizationAnalyze.mutateAsync({
                   companyId: target.companyId,
                   workspaceId: target.workspaceId,
@@ -359,12 +494,22 @@ function ScopedAiDialog({
                   gseId: target.entityId,
                   ...payload,
                   signal: abortController.signal,
-                }),
+                });
+          },
           (result) => {
+            if (!canUseOccurrence(request.riskId, request.riskFactorDataId))
+              return;
             setEmptyReason(result.emptyReason || null);
             analysis.mergeIncomingExistingRiskReviews(
               filterReviewsForRiskFactorAi(
-                result.existingRiskReviews || [],
+                occurrenceScope
+                  ? filterRiskLinkageOccurrenceReviews(
+                      result.existingRiskReviews || [],
+                      occurrenceScope,
+                      request.riskId,
+                      request.riskFactorDataId,
+                    )
+                  : result.existingRiskReviews || [],
                 request,
               ),
             );
@@ -385,8 +530,10 @@ function ScopedAiDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const riskData = existingRiskData.find(
-    (item) => item.riskId === request.riskId,
+  const riskData = existingRiskData.find((item) =>
+    occurrenceScope
+      ? item.id === request.riskFactorDataId
+      : item.riskId === request.riskId,
   );
   const columns =
     request.scope === 'field'
@@ -478,5 +625,39 @@ function ScopedAiDialog({
         </Box>
       </DialogContent>
     </>
+  );
+}
+
+/** Bind the shared buttons to one validated occurrence, without changing their contracts. */
+export function RiskFactorAiOccurrenceBoundary({
+  riskData,
+  disabled,
+  children,
+}: {
+  riskData?: IRiskData;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  const parent = useRiskFactorsAiOptional();
+  const value = useMemo(() => {
+    if (!parent?.occurrenceScope) return parent;
+    if (
+      disabled ||
+      !riskData ||
+      !canUseRiskLinkageRow(parent.occurrenceScope, riskData)
+    )
+      return null;
+    return {
+      ...parent,
+      openField: (params: OpenFieldParams) =>
+        parent.openField({ ...params, riskFactorDataId: riskData.id }),
+      openRisk: (params: OpenRiskParams) =>
+        parent.openRisk({ ...params, riskFactorDataId: riskData.id }),
+    };
+  }, [parent, riskData, disabled]);
+  return (
+    <RiskFactorsAiContext.Provider value={value}>
+      {children}
+    </RiskFactorsAiContext.Provider>
   );
 }

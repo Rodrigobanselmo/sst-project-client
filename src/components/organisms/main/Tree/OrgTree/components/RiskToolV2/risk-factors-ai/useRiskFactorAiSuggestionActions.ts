@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useLayoutEffect } from 'react';
 
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { updateExistingControlSuggestion } from '@v2/services/security/characterization/characterization/existing-control-suggestion/service/existing-control-suggestion.service';
+import { useModalState, ModalKeyEnum } from '@v2/hooks/useModal';
 import { useSnackbar } from 'notistack';
 
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
@@ -11,6 +12,7 @@ import { useQueryRiskDataByGho } from 'core/services/hooks/queries/useQueryRiskD
 import { existenceConfirmationCopy } from 'components/organisms/modals/ModalAddCharacterization/components/ModalAiAnalysisContent/suggestion-apply-plan.util';
 import { CharacterizationAiRiskAnalysisState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useCharacterizationAiRiskAnalysisState';
 
+import type { RiskLinkageAiOccurrence } from './risk-linkage-ai-context.util';
 import { acceptPendingAiSuggestion } from './accept-pending-ai-suggestion.util';
 import {
   existingControlApiField,
@@ -20,11 +22,12 @@ import {
   RiskFactorAiPendingSuggestion,
 } from './risk-factor-ai-pending.util';
 
-export type RiskFactorAiRowRiskData = RiskFactorAiPendingRiskData & {
-  id?: string;
-  riskId?: string;
-  homogeneousGroupId?: string;
-};
+export type RiskFactorAiRowRiskData = RiskFactorAiPendingRiskData &
+  Partial<RiskLinkageAiOccurrence> & {
+    id?: string;
+    riskId?: string;
+    homogeneousGroupId?: string;
+  };
 
 const belongsToEntity = (
   riskData: RiskFactorAiRowRiskData | null | undefined,
@@ -58,9 +61,52 @@ export function useRiskFactorAiSuggestionActions(params: {
   apiWorkspaceId?: string;
   riskGroupId?: string;
   entityId: string;
+  validateOccurrence?: (row: RiskFactorAiRowRiskData) => boolean;
 }): RiskFactorAiSuggestionActions {
-  const { analysis, companyId, apiWorkspaceId, riskGroupId, entityId } = params;
-  const { showConfirmation } = useConfirmationModal();
+  const {
+    analysis,
+    companyId,
+    apiWorkspaceId,
+    riskGroupId,
+    entityId,
+    validateOccurrence,
+  } = params;
+  const { showConfirmation: showConfirmationModal } = useConfirmationModal();
+  const pendingConfirmation = useRef<{ cancel: () => void } | null>(null);
+  useLayoutEffect(
+    () => () => {
+      pendingConfirmation.current?.cancel();
+      pendingConfirmation.current = null;
+    },
+    [],
+  );
+  const showConfirmation = useCallback(
+    async (options: Parameters<typeof showConfirmationModal>[0]) => {
+      const result = showConfirmationModal(options);
+      if (!validateOccurrence) return result;
+      const state = useModalState.getState();
+      const modal = state.modals[state.modals.length - 1];
+      if (modal?.key !== ModalKeyEnum.CONFIRMATION_MODAL) return result;
+      const owned = {
+        cancel: () => {
+          const current = useModalState.getState();
+          const onCancel = (
+            modal.content as { props?: { onCancel?: () => void } }
+          )?.props?.onCancel;
+          onCancel?.();
+          current.setModals(current.modals.filter((item) => item !== modal));
+        },
+      };
+      pendingConfirmation.current = owned;
+      try {
+        return await result;
+      } finally {
+        if (pendingConfirmation.current === owned)
+          pendingConfirmation.current = null;
+      }
+    },
+    [showConfirmationModal, validateOccurrence],
+  );
   const { enqueueSnackbar } = useSnackbar();
   const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
   const { refetch } = useQueryRiskDataByGho(riskGroupId || '', entityId);
@@ -83,7 +129,8 @@ export function useRiskFactorAiSuggestionActions(params: {
     ) => {
       const field = existingControlApiField(suggestion.field);
       const riskFactorDataId = suggestion.riskFactorDataId || riskData?.id;
-      if (!field || !riskFactorDataId || !apiWorkspaceId) return Promise.resolve();
+      if (!field || !riskFactorDataId || !apiWorkspaceId)
+        return Promise.resolve();
       return updateExistingControlSuggestion({
         companyId,
         workspaceId: apiWorkspaceId,
@@ -99,8 +146,13 @@ export function useRiskFactorAiSuggestionActions(params: {
   const pendingFor: RiskFactorAiSuggestionActions['pendingFor'] = useCallback(
     ({ riskId, column, riskData }) => {
       if (!riskId || !belongsToEntity(riskData, entityId)) return [];
+      if (validateOccurrence && !validateOccurrence(riskData)) return [];
       return pendingSuggestionsForColumn({
-        reviews: existingRiskReviews,
+        reviews: validateOccurrence
+          ? existingRiskReviews.filter(
+              (review) => review.riskFactorDataId === riskData.id,
+            )
+          : existingRiskReviews,
         riskId,
         column,
         riskData,
@@ -113,12 +165,19 @@ export function useRiskFactorAiSuggestionActions(params: {
       dismissedModularSuggestionKeysSet,
       entityId,
       existingRiskReviews,
+      validateOccurrence,
     ],
   );
 
   const accept: RiskFactorAiSuggestionActions['accept'] = useCallback(
     async ({ suggestion, riskData, handleSelect }) => {
       if (!riskGroupId || !belongsToEntity(riskData, entityId)) return;
+      const isActive = () =>
+        !validateOccurrence ||
+        (validateOccurrence(riskData) &&
+          suggestion.riskFactorDataId === riskData.id &&
+          suggestion.riskId === riskData.riskId);
+      if (!isActive()) return;
       if (applyingLock.current) return;
       applyingLock.current = suggestion.key;
       setApplyingKey(suggestion.key);
@@ -140,6 +199,7 @@ export function useRiskFactorAiSuggestionActions(params: {
         }
 
         const result = await acceptPendingAiSuggestion({
+          isActive,
           suggestion,
           riskData,
           companyId,
@@ -152,7 +212,9 @@ export function useRiskFactorAiSuggestionActions(params: {
             const rows = refreshed.data || [];
             return (
               rows.find((row) => row.id === riskData.id) ||
-              rows.find((row) => row.riskId === suggestion.riskId)
+              (!validateOccurrence
+                ? rows.find((row) => row.riskId === suggestion.riskId)
+                : undefined)
             );
           },
           markApplied: markModularSuggestionApplied,
@@ -181,18 +243,27 @@ export function useRiskFactorAiSuggestionActions(params: {
       refetch,
       riskGroupId,
       showConfirmation,
+      validateOccurrence,
     ],
   );
 
   const dismiss: RiskFactorAiSuggestionActions['dismiss'] = useCallback(
     ({ suggestion, riskData }) => {
+      if (
+        validateOccurrence &&
+        (!riskData ||
+          !validateOccurrence(riskData) ||
+          suggestion.riskFactorDataId !== riskData.id ||
+          suggestion.riskId !== riskData.riskId)
+      )
+        return;
       if (applyingLock.current === suggestion.key) return;
       dismissModularSuggestion(suggestion.key);
       void logExistingControl('dismiss', suggestion, riskData).catch(
         () => undefined,
       );
     },
-    [dismissModularSuggestion, logExistingControl],
+    [dismissModularSuggestion, logExistingControl, validateOccurrence],
   );
 
   return useMemo(

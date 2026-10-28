@@ -26,8 +26,12 @@ export type AiRiskAnalysisSessionSnapshot = {
 };
 
 export type AiRiskAnalysisSessionKeyParams = {
+  sessionNamespace?: string;
+  occurrenceSignature?: string;
   characterizationId?: string;
   gseId?: string;
+  hierarchyId?: string;
+  hierarchyType?: string;
   riskGroupId?: string;
   companyId?: string;
   workspaceId?: string;
@@ -65,15 +69,26 @@ function normalizeTemporaryDocumentSource(
 export function buildAiRiskAnalysisSessionKey(
   params: AiRiskAnalysisSessionKeyParams,
 ): string | null {
-  const entityId = params.gseId?.trim() || params.characterizationId?.trim();
+  const entityId =
+    params.hierarchyId?.trim() ||
+    params.gseId?.trim() ||
+    params.characterizationId?.trim();
   const riskGroupId = params.riskGroupId?.trim();
   if (!entityId || !riskGroupId) return null;
 
   const companyId = params.companyId?.trim() || 'unknown-company';
   const workspaceId = params.workspaceId?.trim() || 'unknown-workspace';
-  const prefix = params.gseId?.trim() ? GSE_STORAGE_PREFIX : STORAGE_PREFIX;
+  const prefix = params.hierarchyId
+    ? `hierarchy-ai-risk-analysis:${params.hierarchyType || 'unknown'}`
+    : params.gseId?.trim()
+      ? GSE_STORAGE_PREFIX
+      : STORAGE_PREFIX;
 
-  return [prefix, companyId, workspaceId, entityId, riskGroupId].join(':');
+  const parts = [prefix, companyId, workspaceId, entityId, riskGroupId];
+  if (params.sessionNamespace) {
+    parts.push(params.sessionNamespace, params.occurrenceSignature || '');
+  }
+  return parts.join(':');
 }
 
 export function readAiRiskAnalysisSession(
