@@ -1,3 +1,11 @@
+import { mergeProbabilitySuggestionActions } from './merge-probability-suggestion-actions.util';
+import {
+  resolveProbabilityAiResult,
+  PROBABILITY_AI_GUIDANCE,
+  PROBABILITY_AI_MESSAGES,
+  isProbabilityOccurrenceRejection,
+} from './probability-ai-result.util';
+import type { RiskByOccurrenceAiAdapter } from './by-risk-occurrence/risk-by-occurrence-ai-adapter.types';
 import { aiAnalyzeHierarchyRisk } from '@v2/services/security/hierarchy/ai-analyze-hierarchy-risk.service';
 import React, {
   createContext,
@@ -74,6 +82,8 @@ type OpenRiskParams = {
 };
 
 type RiskFactorsAiContextValue = {
+  byRiskOccurrence?: RiskByOccurrenceAiAdapter;
+  openProbability?: (params: OpenRiskParams) => void;
   occurrenceScope?: RiskFactorAiOccurrenceScope;
   openField: (params: OpenFieldParams) => void;
   openRisk: (params: OpenRiskParams) => void;
@@ -94,6 +104,7 @@ type ScopedPanel = RiskFactorAiScopeRequest & {
   riskFactorDataId?: string;
   riskName?: string;
   requestId: number;
+  probabilityShortcut?: boolean;
 };
 
 type CharacterizationTarget = {
@@ -132,6 +143,8 @@ type RiskFactorsAiProviderProps = {
   /** Recebe onClose para o painel fechar o diálogo após o resumo. */
   individualOnly?: boolean;
   occurrenceScope?: RiskFactorAiOccurrenceScope;
+  byRiskOccurrence?: RiskByOccurrenceAiAdapter;
+  probabilityFallback?: RiskFactorAiSuggestionActions;
   renderGeneral?: (helpers: { onClose: () => void }) => React.ReactNode;
 };
 
@@ -161,6 +174,8 @@ export function RiskFactorsAiProvider({
   renderGeneral,
   individualOnly = false,
   occurrenceScope,
+  byRiskOccurrence,
+  probabilityFallback,
 }: RiskFactorsAiProviderProps) {
   const requestSeq = useRef(0);
   const [configureRisk, setConfigureRisk] = useState<OpenRiskParams | null>(
@@ -171,6 +186,8 @@ export function RiskFactorsAiProvider({
   const { workspaceId: pageWorkspaceId } = useGetCompanyId();
   const active = useRef(true);
   const scopeRef = useRef(occurrenceScope);
+  const byRiskRef = useRef(byRiskOccurrence);
+  byRiskRef.current = byRiskOccurrence;
   scopeRef.current = occurrenceScope;
   useLayoutEffect(() => {
     active.current = true;
@@ -182,12 +199,16 @@ export function RiskFactorsAiProvider({
     (riskId?: string, occurrenceId?: string) => {
       return (
         active.current &&
-        (!scopeRef.current ||
-          canAnalyzeRiskLinkageOccurrence(
-            scopeRef.current,
-            riskId,
-            occurrenceId,
-          ))
+        (byRiskRef.current
+          ? byRiskRef.current.identity.riskId === riskId &&
+            byRiskRef.current.identity.riskFactorDataId === occurrenceId &&
+            byRiskRef.current.validate(byRiskRef.current.row)
+          : !scopeRef.current ||
+            canAnalyzeRiskLinkageOccurrence(
+              scopeRef.current,
+              riskId,
+              occurrenceId,
+            ))
       );
     },
     [],
@@ -195,7 +216,9 @@ export function RiskFactorsAiProvider({
   const validateOccurrence = useCallback(
     (row: Partial<RiskLinkageAiOccurrence>) =>
       canUseOccurrence(row.riskId, row.id) &&
-      (!scopeRef.current || canUseRiskLinkageRow(scopeRef.current, row)),
+      (byRiskRef.current
+        ? byRiskRef.current.validate(row)
+        : !scopeRef.current || canUseRiskLinkageRow(scopeRef.current, row)),
     [canUseOccurrence],
   );
 
@@ -243,17 +266,28 @@ export function RiskFactorsAiProvider({
     };
   }, [pageWorkspaceId, target]);
 
-  const suggestions = useRiskFactorAiSuggestionActions({
+  const primarySuggestions = useRiskFactorAiSuggestionActions({
     analysis: target.analysis,
     companyId: runtimeTarget.companyId,
     apiWorkspaceId: runtimeTarget.workspaceId || undefined,
     riskGroupId: runtimeTarget.riskGroupId,
     entityId: runtimeTarget.entityId,
-    validateOccurrence: occurrenceScope ? validateOccurrence : undefined,
+    validateOccurrence:
+      occurrenceScope || byRiskOccurrence ? validateOccurrence : undefined,
+    byRiskOccurrence,
   });
+
+  const suggestions = mergeProbabilitySuggestionActions(
+    primarySuggestions,
+    byRiskOccurrence?.validate(byRiskOccurrence.row) &&
+      byRiskOccurrence.canApproveProbability(byRiskOccurrence.row)
+      ? probabilityFallback
+      : undefined,
+  );
 
   const openField = useCallback(
     (params: OpenFieldParams) => {
+      byRiskRef.current?.activate();
       if (!canUseOccurrence(params.riskId, params.riskFactorDataId)) return;
       requestSeq.current += 1;
       setGeneralOpen(false);
@@ -271,6 +305,7 @@ export function RiskFactorsAiProvider({
 
   const openRisk = useCallback(
     (params: OpenRiskParams) => {
+      byRiskRef.current?.activate();
       if (!canUseOccurrence(params.riskId, params.riskFactorDataId)) return;
       setGeneralOpen(false);
       setScoped(null);
@@ -290,16 +325,58 @@ export function RiskFactorsAiProvider({
       setScoped(null);
   }, [occurrenceScope, configureRisk, scoped, canUseOccurrence]);
 
+  useLayoutEffect(
+    () =>
+      byRiskOccurrence?.subscribeInactive(() => {
+        setConfigureRisk(null);
+        setScoped(null);
+        setGeneralOpen(false);
+      }),
+    [byRiskOccurrence],
+  );
+  const openProbability = useCallback(
+    (params: OpenRiskParams) => {
+      const adapter = byRiskRef.current;
+      if (!adapter || !adapter.canApproveProbability(adapter.row)) return;
+      adapter.activate();
+      if (!canUseOccurrence(params.riskId, params.riskFactorDataId)) return;
+      requestSeq.current++;
+      setConfigureRisk(null);
+      setScoped({
+        ...params,
+        scope: 'risk',
+        selectedFields: ['probability'],
+        probabilityShortcut: true,
+        requestId: requestSeq.current,
+      });
+    },
+    [canUseOccurrence],
+  );
+
   const value = useMemo(
-    () => ({ openField, openRisk, suggestions, occurrenceScope }),
-    [openField, openRisk, suggestions, occurrenceScope],
+    () => ({
+      openField,
+      openRisk,
+      openProbability: byRiskOccurrence ? openProbability : undefined,
+      suggestions,
+      occurrenceScope,
+      byRiskOccurrence,
+    }),
+    [
+      openField,
+      openRisk,
+      openProbability,
+      suggestions,
+      occurrenceScope,
+      byRiskOccurrence,
+    ],
   );
 
   return (
     <RiskFactorsAiContext.Provider value={value}>
       <Box
         sx={{
-          display: 'flex',
+          display: byRiskOccurrence ? 'contents' : 'flex',
           flexDirection: 'column',
           flex: 1,
           minHeight: 0,
@@ -345,12 +422,14 @@ export function RiskFactorsAiProvider({
             flex: 1,
             minHeight: 0,
             overflow: 'hidden',
-            display: 'flex',
+            display: byRiskOccurrence ? 'contents' : 'flex',
             flexDirection: 'column',
-            '& > *': {
-              flex: 1,
-              minHeight: 0,
-            },
+            '& > *': byRiskOccurrence
+              ? {}
+              : {
+                  flex: 1,
+                  minHeight: 0,
+                },
           }}
         >
           {children}
@@ -410,6 +489,7 @@ export function RiskFactorsAiProvider({
             suggestions={suggestions}
             request={scoped}
             occurrenceScope={occurrenceScope}
+            byRiskOccurrence={byRiskOccurrence}
             canUseOccurrence={canUseOccurrence}
             onClose={() => setScoped(null)}
           />
@@ -425,10 +505,12 @@ function ScopedAiDialog({
   suggestions,
   request,
   occurrenceScope,
+  byRiskOccurrence,
   canUseOccurrence,
   onClose,
 }: {
   occurrenceScope?: RiskFactorAiOccurrenceScope;
+  byRiskOccurrence?: RiskByOccurrenceAiAdapter;
   canUseOccurrence: (riskId?: string, occurrenceId?: string) => boolean;
   target: ScopedRuntimeTarget;
   analysis: CharacterizationAiRiskAnalysisState;
@@ -441,12 +523,18 @@ function ScopedAiDialog({
   const { data: existingRiskData = [] } = useQueryRiskDataByGho(
     target.riskGroupId || '',
     target.entityId,
+    { enabled: !byRiskOccurrence },
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [emptyReason, setEmptyReason] = useState<
     'missing_generate_source' | 'insufficient_context' | 'exhausted' | null
   >(null);
   const [finished, setFinished] = useState(false);
+  const [probabilityResponse, setProbabilityResponse] = useState<{
+    metadata?: unknown;
+    reviews: Parameters<typeof resolveProbabilityAiResult>[0]['reviews'];
+  }>({ reviews: [] });
+  const [occurrenceRejected, setOccurrenceRejected] = useState(false);
 
   useEffect(() => {
     if (
@@ -454,6 +542,7 @@ function ScopedAiDialog({
       !target.workspaceId ||
       !canUseOccurrence(request.riskId, request.riskFactorDataId)
     ) {
+      setOccurrenceRejected(true);
       setFinished(true);
       return;
     }
@@ -469,6 +558,8 @@ function ScopedAiDialog({
           () => {
             if (!canUseOccurrence(request.riskId, request.riskFactorDataId))
               return Promise.reject(new Error('Ocorrência indisponível.'));
+            if (byRiskOccurrence)
+              return byRiskOccurrence.analyze(request, abortController.signal);
             if (target.kind === 'hierarchy')
               return aiAnalyzeHierarchyRisk({
                 companyId: target.companyId,
@@ -497,19 +588,45 @@ function ScopedAiDialog({
                 });
           },
           (result) => {
+            if (byRiskOccurrence && !byRiskOccurrence.isResponseCurrent(result))
+              return;
             if (!canUseOccurrence(request.riskId, request.riskFactorDataId))
               return;
             setEmptyReason(result.emptyReason || null);
+            if (request.probabilityShortcut) {
+              setProbabilityResponse({
+                metadata: result.metadata?.probabilityAnalysis,
+                reviews: result.existingRiskReviews || [],
+              });
+            }
             analysis.mergeIncomingExistingRiskReviews(
               filterReviewsForRiskFactorAi(
-                occurrenceScope
-                  ? filterRiskLinkageOccurrenceReviews(
-                      result.existingRiskReviews || [],
-                      occurrenceScope,
-                      request.riskId,
-                      request.riskFactorDataId,
-                    )
-                  : result.existingRiskReviews || [],
+                byRiskOccurrence
+                  ? (result.existingRiskReviews || [])
+                      .filter(
+                        (review) =>
+                          review.riskId === byRiskOccurrence.identity.riskId &&
+                          review.riskFactorDataId ===
+                            byRiskOccurrence.identity.riskFactorDataId,
+                      )
+                      .map((review) => ({
+                        ...review,
+                        suggestions: review.suggestions.filter(
+                          (suggestion) =>
+                            suggestion.field !== 'probability' ||
+                            byRiskOccurrence.canApproveProbability(
+                              byRiskOccurrence.row,
+                            ),
+                        ),
+                      }))
+                  : occurrenceScope
+                    ? filterRiskLinkageOccurrenceReviews(
+                        result.existingRiskReviews || [],
+                        occurrenceScope,
+                        request.riskId,
+                        request.riskFactorDataId,
+                      )
+                    : result.existingRiskReviews || [],
                 request,
               ),
             );
@@ -518,7 +635,14 @@ function ScopedAiDialog({
       } catch (error) {
         if (isAiAnalyzeRequestCanceled(error) || abortController.signal.aborted)
           return;
-        setErrorMessage('Não foi possível concluir a análise deste recorte.');
+        if (
+          request.probabilityShortcut &&
+          isProbabilityOccurrenceRejection(error)
+        ) {
+          setOccurrenceRejected(true);
+        } else {
+          setErrorMessage('Não foi possível concluir a análise deste recorte.');
+        }
       } finally {
         if (!abortController.signal.aborted) setFinished(true);
       }
@@ -530,11 +654,13 @@ function ScopedAiDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const riskData = existingRiskData.find((item) =>
-    occurrenceScope
-      ? item.id === request.riskFactorDataId
-      : item.riskId === request.riskId,
-  );
+  const riskData =
+    byRiskOccurrence?.row ||
+    existingRiskData.find((item) =>
+      occurrenceScope
+        ? item.id === request.riskFactorDataId
+        : item.riskId === request.riskId,
+    );
   const columns =
     request.scope === 'field'
       ? [columnForAiField(request.field)].filter(
@@ -555,8 +681,28 @@ function ScopedAiDialog({
         ).length,
     0,
   );
-  const title =
-    request.scope === 'field'
+  const probabilityResult = request.probabilityShortcut
+    ? resolveProbabilityAiResult({
+        eligible:
+          !occurrenceRejected &&
+          canUseOccurrence(request.riskId, request.riskFactorDataId) &&
+          !!byRiskOccurrence?.canApproveProbability(byRiskOccurrence.row),
+        pendingCount,
+        riskId: request.riskId,
+        riskFactorDataId: request.riskFactorDataId || riskData?.id,
+        currentProbability: riskData?.probability,
+        ...probabilityResponse,
+        appliedKeys:
+          analysis.appliedModularSuggestionKeysSet || new Set<string>(),
+        dismissedKeys:
+          analysis.dismissedModularSuggestionKeysSet || new Set<string>(),
+      })
+    : null;
+  const visiblePendingCount =
+    probabilityResult === 'ineligible' ? 0 : pendingCount;
+  const title = request.probabilityShortcut
+    ? 'IA — estimativa orientativa de probabilidade'
+    : request.scope === 'field'
       ? `IA — ${FIELD_TITLE[request.field]}`
       : 'IA — sugestões deste risco';
 
@@ -567,6 +713,11 @@ function ScopedAiDialog({
         {request.riskName ? ` — ${request.riskName}` : ''}
       </DialogTitle>
       <DialogContent dividers>
+        {request.probabilityShortcut && (
+          <Alert severity="info" sx={{ mb: 1 }}>
+            {PROBABILITY_AI_GUIDANCE}
+          </Alert>
+        )}
         {target.missingWorkspace && (
           <Alert severity="info">{GSE_AI_ANALYZE_NO_WORKSPACE_MESSAGE}</Alert>
         )}
@@ -594,7 +745,7 @@ function ScopedAiDialog({
         {finished &&
           !target.missingWorkspace &&
           !errorMessage &&
-          pendingCount > 0 && (
+          visiblePendingCount > 0 && (
             <Alert severity="success">
               {pendingCount === 1
                 ? '1 sugestão está disponível na coluna correspondente, com borda tracejada.'
@@ -606,18 +757,23 @@ function ScopedAiDialog({
         {finished &&
           !target.missingWorkspace &&
           !errorMessage &&
-          pendingCount === 0 && (
+          (visiblePendingCount === 0 ||
+            (probabilityResult && probabilityResult !== 'pending')) && (
             <SText variant="body2" color="text.secondary">
-              {request.scope === 'field' &&
-              (request.field === 'existingAdministrativeMeasures' ||
-                request.field === 'existingEngineeringMeasures')
-                ? existingControlEmptyMessage(emptyReason)
-                : scopedAiEmptyMessage(request.scope)}
+              {probabilityResult && probabilityResult !== 'pending'
+                ? PROBABILITY_AI_MESSAGES[probabilityResult]
+                : request.scope === 'field' &&
+                    (request.field === 'existingAdministrativeMeasures' ||
+                      request.field === 'existingEngineeringMeasures')
+                  ? existingControlEmptyMessage(emptyReason)
+                  : scopedAiEmptyMessage(request.scope)}
             </SText>
           )}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
           <SButton
-            text={finished && pendingCount > 0 ? 'Ver nas colunas' : 'Fechar'}
+            text={
+              finished && visiblePendingCount > 0 ? 'Ver nas colunas' : 'Fechar'
+            }
             variant="shade"
             size="s"
             onClick={onClose}
@@ -640,6 +796,24 @@ export function RiskFactorAiOccurrenceBoundary({
 }) {
   const parent = useRiskFactorsAiOptional();
   const value = useMemo(() => {
+    if (parent?.byRiskOccurrence) {
+      if (disabled || !riskData || !parent.byRiskOccurrence.validate(riskData))
+        return null;
+      return {
+        ...parent,
+        openField: (params: OpenFieldParams) =>
+          parent.openField({ ...params, riskFactorDataId: riskData.id }),
+        openRisk: (params: OpenRiskParams) =>
+          parent.openRisk({ ...params, riskFactorDataId: riskData.id }),
+        openProbability: parent.openProbability
+          ? (params: OpenRiskParams) =>
+              parent.openProbability!({
+                ...params,
+                riskFactorDataId: riskData.id,
+              })
+          : undefined,
+      };
+    }
     if (!parent?.occurrenceScope) return parent;
     if (
       disabled ||
@@ -657,6 +831,19 @@ export function RiskFactorAiOccurrenceBoundary({
   }, [parent, riskData, disabled]);
   return (
     <RiskFactorsAiContext.Provider value={value}>
+      {children}
+    </RiskFactorsAiContext.Provider>
+  );
+}
+
+/** Explicitly suppress inherited providers for ineligible rows in the by-risk modal. */
+export function RiskFactorsAiDisabled({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <RiskFactorsAiContext.Provider value={null}>
       {children}
     </RiskFactorsAiContext.Provider>
   );

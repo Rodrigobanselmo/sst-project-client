@@ -1,3 +1,6 @@
+import { Box } from '@mui/material';
+import { EditorProbabilityAiBoundary } from '../../../../../risk-factors-ai/EditorProbabilityAiScope';
+import { RiskFactorProbabilityAiButton } from '../../../../../risk-factors-ai/RiskFactorAiButton';
 import { FC } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
@@ -39,7 +42,7 @@ const scopedDerivedLinks = (
   return scoped.length ? scoped : links;
 };
 
-const isCurrentProbabilityLocked = (
+export const isCurrentProbabilityLocked = (
   data: ProbabilityColumnProps['data'],
   workspaceId?: string,
 ) => {
@@ -64,9 +67,13 @@ const isCurrentProbabilityLocked = (
   });
 };
 
-export const ProbabilityColumn: FC<
-  { children?: any } & ProbabilityColumnProps
-> = ({ handleSelect, data, handleHelp, risk, planWorkspaceId, probabilityCountSource }) => {
+export const ProbabilityColumn: FC<{ children?: any } & ProbabilityColumnProps> = (props) => (
+  <EditorProbabilityAiBoundary data={props.data}>
+    <ProbabilityColumnContent {...props} />
+  </EditorProbabilityAiBoundary>
+);
+
+const ProbabilityColumnContent: FC<{ children?: any } & ProbabilityColumnProps> = ({ handleSelect, data, handleHelp, risk, planWorkspaceId, probabilityCountSource }) => {
   const dataSelect = {} as Partial<IUpsertRiskData>;
   const { onStackOpenModal } = useModal();
   const probabilityLockByPlan = isCurrentProbabilityLocked(
@@ -131,29 +138,39 @@ export const ProbabilityColumn: FC<
 
   return (
     <SFlex gap={0} direction="column">
-      <SelectedNumber
-        handleSelect={(number) => {
-          const nextProbability = setProbability(number);
-          const payload: Partial<IUpsertRiskData> = {
-            probability: nextProbability,
-            ...dataSelect,
-          };
+      <SFlex
+        gap={0}
+        align="center"
+        sx={{ height: 24, flexWrap: 'nowrap' }}
+        data-testid="probability-indicators-ai-row"
+      >
+        <Box sx={{ width: 120, flexShrink: 0 }}>
+          <SelectedNumber
+            handleSelect={(number) => {
+              const nextProbability = setProbability(number);
+              const payload: Partial<IUpsertRiskData> = {
+                probability: nextProbability,
+                ...dataSelect,
+              };
 
-          handleSelect(payload);
-        }}
-        // Quantitativo: probability espelha riskLevel — não destacar como P selecionada.
-        selectedNumber={data?.isQuantity ? undefined : data?.probability}
-        disabledGtEqual={7}
-        disabledNumbers={disabledNumbers}
-        getDisabledReason={(number) =>
-          data?.isQuantity
-            ? 'Resultado quantitativo: a probabilidade qualitativa não se aplica. Altere pela medição.'
-            : disabledNumbers.includes(number)
-              ? CURRENT_PROBABILITY_LOCKED_REASON
-              : undefined
-        }
-        handleHelp={() => handleHelp && handleHelp(dataSelect)}
-      />
+              handleSelect(payload);
+            }}
+            // Quantitativo: probability espelha riskLevel — não destacar como P selecionada.
+            selectedNumber={data?.isQuantity ? undefined : data?.probability}
+            disabledGtEqual={7}
+            disabledNumbers={disabledNumbers}
+            getDisabledReason={(number) =>
+              data?.isQuantity
+                ? 'Resultado quantitativo: a probabilidade qualitativa não se aplica. Altere pela medição.'
+                : disabledNumbers.includes(number)
+                  ? CURRENT_PROBABILITY_LOCKED_REASON
+                  : undefined
+            }
+            handleHelp={() => handleHelp && handleHelp(dataSelect)}
+          />
+        </Box>
+        <RiskFactorProbabilityAiButton riskId={risk?.id} riskName={risk?.name} />
+      </SFlex>
       {probabilityCaption ? (
         <SText fontSize={10} color="text.secondary" sx={{ lineHeight: 1.3, maxWidth: 150, mt: 0.5 }}>
           {probabilityCaption}

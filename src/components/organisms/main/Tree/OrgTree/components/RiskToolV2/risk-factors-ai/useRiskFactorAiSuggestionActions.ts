@@ -1,3 +1,5 @@
+import type { RiskByOccurrenceAiAdapter } from './by-risk-occurrence/risk-by-occurrence-ai-adapter.types';
+import type { AiRiskOccurrenceIdentity } from './by-risk-occurrence/ai-risk-occurrence.identity';
 import { useCallback, useMemo, useRef, useState, useLayoutEffect } from 'react';
 
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
@@ -39,6 +41,7 @@ const belongsToEntity = (
 
 export type RiskFactorAiSuggestionActions = {
   applyingKey: string | null;
+  resolvedKeys?: ReadonlySet<string>;
   pendingFor: (params: {
     riskId?: string;
     column: RiskFactorAiColumn;
@@ -47,7 +50,10 @@ export type RiskFactorAiSuggestionActions = {
   accept: (params: {
     suggestion: RiskFactorAiPendingSuggestion;
     riskData: RiskFactorAiRowRiskData;
-    handleSelect: (values: Partial<IUpsertRiskData>) => Promise<void> | void;
+    handleSelect: (
+      values: Partial<IUpsertRiskData>,
+      context?: { occurrence: AiRiskOccurrenceIdentity },
+    ) => Promise<void> | void;
   }) => Promise<void>;
   dismiss: (params: {
     suggestion: RiskFactorAiPendingSuggestion;
@@ -62,6 +68,7 @@ export function useRiskFactorAiSuggestionActions(params: {
   riskGroupId?: string;
   entityId: string;
   validateOccurrence?: (row: RiskFactorAiRowRiskData) => boolean;
+  byRiskOccurrence?: RiskByOccurrenceAiAdapter;
 }): RiskFactorAiSuggestionActions {
   const {
     analysis,
@@ -70,6 +77,7 @@ export function useRiskFactorAiSuggestionActions(params: {
     riskGroupId,
     entityId,
     validateOccurrence,
+    byRiskOccurrence,
   } = params;
   const { showConfirmation: showConfirmationModal } = useConfirmationModal();
   const pendingConfirmation = useRef<{ cancel: () => void } | null>(null);
@@ -107,9 +115,19 @@ export function useRiskFactorAiSuggestionActions(params: {
     },
     [showConfirmationModal, validateOccurrence],
   );
+  useLayoutEffect(
+    () =>
+      byRiskOccurrence?.subscribeInactive(() => {
+        pendingConfirmation.current?.cancel();
+        pendingConfirmation.current = null;
+      }),
+    [byRiskOccurrence],
+  );
   const { enqueueSnackbar } = useSnackbar();
   const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
-  const { refetch } = useQueryRiskDataByGho(riskGroupId || '', entityId);
+  const { refetch } = useQueryRiskDataByGho(riskGroupId || '', entityId, {
+    enabled: !byRiskOccurrence,
+  });
   const applyingLock = useRef<string | null>(null);
   const [applyingKey, setApplyingKey] = useState<string | null>(null);
 
@@ -146,6 +164,12 @@ export function useRiskFactorAiSuggestionActions(params: {
   const pendingFor: RiskFactorAiSuggestionActions['pendingFor'] = useCallback(
     ({ riskId, column, riskData }) => {
       if (!riskId || !belongsToEntity(riskData, entityId)) return [];
+      if (
+        byRiskOccurrence &&
+        column === 'probability' &&
+        (!riskData || !byRiskOccurrence.canApproveProbability(riskData))
+      )
+        return [];
       if (validateOccurrence && !validateOccurrence(riskData)) return [];
       return pendingSuggestionsForColumn({
         reviews: validateOccurrence
@@ -166,17 +190,24 @@ export function useRiskFactorAiSuggestionActions(params: {
       entityId,
       existingRiskReviews,
       validateOccurrence,
+      byRiskOccurrence,
     ],
   );
 
   const accept: RiskFactorAiSuggestionActions['accept'] = useCallback(
     async ({ suggestion, riskData, handleSelect }) => {
       if (!riskGroupId || !belongsToEntity(riskData, entityId)) return;
+      const acceptance = byRiskOccurrence?.prepareAcceptance(
+        suggestion,
+        riskData,
+      );
+      if (byRiskOccurrence && !acceptance) return;
       const isActive = () =>
-        !validateOccurrence ||
-        (validateOccurrence(riskData) &&
-          suggestion.riskFactorDataId === riskData.id &&
-          suggestion.riskId === riskData.riskId);
+        (!acceptance || acceptance.isActive()) &&
+        (!validateOccurrence ||
+          (validateOccurrence(riskData) &&
+            suggestion.riskFactorDataId === riskData.id &&
+            suggestion.riskId === riskData.riskId));
       if (!isActive()) return;
       if (applyingLock.current) return;
       applyingLock.current = suggestion.key;
@@ -200,14 +231,19 @@ export function useRiskFactorAiSuggestionActions(params: {
 
         const result = await acceptPendingAiSuggestion({
           isActive,
+          beforeWrite: acceptance?.beforeWrite,
           suggestion,
           riskData,
           companyId,
           headerWorkspaceId,
           confirmExistence: (value) =>
             showConfirmation(existenceConfirmationCopy(value)),
-          write: handleSelect,
+          write: (payload) =>
+            byRiskOccurrence
+              ? handleSelect(payload, { occurrence: byRiskOccurrence.identity })
+              : handleSelect(payload),
           readSavedRow: async () => {
+            if (byRiskOccurrence) return byRiskOccurrence.readSavedRow();
             const refreshed = await refetch();
             const rows = refreshed.data || [];
             return (
@@ -244,6 +280,7 @@ export function useRiskFactorAiSuggestionActions(params: {
       riskGroupId,
       showConfirmation,
       validateOccurrence,
+      byRiskOccurrence,
     ],
   );
 
@@ -267,7 +304,14 @@ export function useRiskFactorAiSuggestionActions(params: {
   );
 
   return useMemo(
-    () => ({ applyingKey, pendingFor, accept, dismiss }),
-    [accept, applyingKey, dismiss, pendingFor],
+    () => ({
+      applyingKey, pendingFor, accept, dismiss,
+      resolvedKeys: new Set([
+        ...appliedModularSuggestionKeysSet,
+        ...dismissedModularSuggestionKeysSet,
+      ]),
+    }),
+    [accept, applyingKey, dismiss, pendingFor,
+      appliedModularSuggestionKeysSet, dismissedModularSuggestionKeysSet],
   );
 }

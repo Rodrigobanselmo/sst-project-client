@@ -1,8 +1,11 @@
+import type { AiRiskOccurrenceIdentity } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/by-risk-occurrence/ai-risk-occurrence.identity';
 import type { AiTemporaryDocumentSource } from '../../ai-temporary-source/ai-temporary-document-source.types';
 
 export type { AiTemporaryDocumentSource };
 
 export interface AiAnalyzeCharacterizationParams {
+  occurrence?: AiRiskOccurrenceIdentity;
+  validateOnly?: boolean;
   companyId: string;
   workspaceId: string;
   characterizationId: string;

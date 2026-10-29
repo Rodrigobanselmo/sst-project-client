@@ -1,3 +1,6 @@
+import { RiskByRiskAiOccurrence } from '../../../risk-factors-ai/by-risk-occurrence/RiskByRiskAiScope';
+import { RiskFactorAiOccurrenceBoundary } from '../../../risk-factors-ai/RiskFactorsAiProvider';
+import type { IRiskData } from 'core/interfaces/api/IRiskData';
 import React, { useMemo } from 'react';
 
 import { Box } from '@mui/material';
@@ -19,10 +22,11 @@ type RiskToolByRiskRowProps = {
   row: RiskToolByRiskRowData;
   risk: IRiskFactors;
   riskGroupId: string;
+  occurrences: IRiskData[];
 };
 
 export const RiskToolByRiskRow = React.memo<RiskToolByRiskRowProps>(
-  ({ row, risk, riskGroupId }) => {
+  ({ row, risk, riskGroupId, occurrences }) => {
     const expandCtx = useRiskRowsExpandOptional();
     const dnd = useRiskCatalogDndOptional();
     const { riskData, readOnly } = row;
@@ -32,8 +36,7 @@ export const RiskToolByRiskRow = React.memo<RiskToolByRiskRowProps>(
       [riskData, row.ghoName],
     );
 
-    const isRepresentAll =
-      risk.type === RiskEnum.OUTROS && !!risk.representAll;
+    const isRepresentAll = risk.type === RiskEnum.OUTROS && !!risk.representAll;
     const expanded = expandCtx ? expandCtx.isExpanded(row.rowId) : false;
     const borderColor = row.isHistorical ? 'error.main' : 'grey.400';
 
@@ -61,77 +64,95 @@ export const RiskToolByRiskRow = React.memo<RiskToolByRiskRowProps>(
     );
 
     return (
-      <Box
-        data-testid="risk-tool-by-risk-row"
-        sx={{
-          width: '100%',
-          mb: 5,
-          border: '1.5px solid',
-          borderColor: isBatchDestination
-            ? 'primary.main'
-            : isBatchSource
-              ? 'warning.main'
-              : borderColor,
-          borderRadius: 1,
-          backgroundColor: isBatchDestination
-            ? 'rgba(25, 118, 210, 0.04)'
-            : 'background.paper',
-          boxShadow: isBatchDestination
-            ? '0 0 0 1px rgba(25, 118, 210, 0.25)'
-            : undefined,
-          transition:
-            'border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease',
-          flexShrink: 0,
-          overflow: 'visible',
-          cursor: isBatchDestination ? 'copy' : undefined,
-        }}
+      <RiskByRiskAiOccurrence
+        gho={row.gho}
+        row={riskData}
+        rows={occurrences}
+        riskId={risk.id}
+        riskGroupId={riskGroupId}
+        disabled={readOnly || isRepresentAll}
       >
-        <Box
-          sx={{
-            ...(isBatchDestination
-              ? {
-                  backgroundColor: 'rgba(25, 118, 210, 0.06)',
-                  borderBottom: '1px solid',
-                  borderColor: 'primary.light',
-                }
-              : {}),
-            ...(isBatchSource
-              ? { backgroundColor: 'rgba(237, 108, 2, 0.06)' }
-              : {}),
-          }}
+        <RiskFactorAiOccurrenceBoundary
+          riskData={riskData}
+          disabled={readOnly || isRepresentAll}
         >
-          <RiskToolGSEViewRowRiskBox
-            riskData={riskData}
-            data={risk}
-            hide
-            riskGroupId={riskGroupId}
-            isRepresentAll={isRepresentAll}
-            expanded={expanded}
-            framed
-            readOnly={readOnly}
-            showOriginActions={false}
-            headerTitle={row.ghoName}
-            hideRiskAiButton
-            onToggleExpand={
-              expandCtx ? () => expandCtx.toggle(row.rowId) : undefined
-            }
-          />
-        </Box>
-        {expanded && (
           <Box
+            data-testid="risk-tool-by-risk-row"
             sx={{
               width: '100%',
-              overflowX: 'auto',
-              overflowY: 'visible',
+              mb: 5,
+              border: '1.5px solid',
+              borderColor: isBatchDestination
+                ? 'primary.main'
+                : isBatchSource
+                  ? 'warning.main'
+                  : borderColor,
+              borderRadius: 1,
               backgroundColor: isBatchDestination
-                ? 'rgba(25, 118, 210, 0.03)'
+                ? 'rgba(25, 118, 210, 0.04)'
                 : 'background.paper',
+              boxShadow: isBatchDestination
+                ? '0 0 0 1px rgba(25, 118, 210, 0.25)'
+                : undefined,
+              transition:
+                'border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease',
+              flexShrink: 0,
+              overflow: 'visible',
+              cursor: isBatchDestination ? 'copy' : undefined,
             }}
           >
-            {readOnly ? <RiskCatalogDropLock>{columns}</RiskCatalogDropLock> : columns}
+            <Box
+              sx={{
+                ...(isBatchDestination
+                  ? {
+                      backgroundColor: 'rgba(25, 118, 210, 0.06)',
+                      borderBottom: '1px solid',
+                      borderColor: 'primary.light',
+                    }
+                  : {}),
+                ...(isBatchSource
+                  ? { backgroundColor: 'rgba(237, 108, 2, 0.06)' }
+                  : {}),
+              }}
+            >
+              <RiskToolGSEViewRowRiskBox
+                riskData={riskData}
+                data={risk}
+                hide
+                riskGroupId={riskGroupId}
+                isRepresentAll={isRepresentAll}
+                expanded={expanded}
+                framed
+                readOnly={readOnly}
+                showOriginActions={false}
+                headerTitle={row.ghoName}
+                hideRiskAiButton={false}
+                onToggleExpand={
+                  expandCtx ? () => expandCtx.toggle(row.rowId) : undefined
+                }
+              />
+            </Box>
+            {expanded && (
+              <Box
+                sx={{
+                  width: '100%',
+                  overflowX: 'auto',
+                  overflowY: 'visible',
+                  backgroundColor: isBatchDestination
+                    ? 'rgba(25, 118, 210, 0.03)'
+                    : 'background.paper',
+                }}
+              >
+                {readOnly ? (
+                  <RiskCatalogDropLock>{columns}</RiskCatalogDropLock>
+                ) : (
+                  columns
+                )}
+              </Box>
+            )}
           </Box>
-        )}
-      </Box>
+        </RiskFactorAiOccurrenceBoundary>
+      </RiskByRiskAiOccurrence>
     );
   },
 );

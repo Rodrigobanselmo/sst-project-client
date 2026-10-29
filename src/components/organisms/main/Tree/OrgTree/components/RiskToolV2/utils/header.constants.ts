@@ -54,7 +54,8 @@ export const headerRowColumnsMap: IColumnOptionsMap = {
     tooltip: 'Grau de exposição estimado (probabilidade)',
     filterKey: 'probability',
     filterValues: ['desc', 'asc', 'none'],
-    grid: '120px',
+    // Preserve the 120px indicators and reserve 24px for the inline AI button.
+    grid: '144px',
   },
   [RowColumnsTypeEnum.RO]: {
     label: 'Risco Ocupacional',

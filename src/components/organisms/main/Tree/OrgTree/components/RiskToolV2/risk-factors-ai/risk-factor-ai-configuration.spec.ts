@@ -188,7 +188,7 @@ async function main() {
   const provider = readFileSync(base + 'RiskFactorsAiProvider.tsx', 'utf8');
   const openRisk = provider
     .split('const openRisk =')[1]
-    .split('const value =')[0];
+    .split('useEffect(() =>')[0];
   assert.ok(openRisk.includes('setConfigureRisk(params)'));
   assert.ok(!openRisk.includes('setScoped({'));
   const openField = provider

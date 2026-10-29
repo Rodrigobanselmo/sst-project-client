@@ -1,3 +1,8 @@
+import { RiskByOccurrenceAiSession } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/by-risk-occurrence/risk-by-occurrence-ai-session.util';
+import {
+  AiRiskOccurrenceIdentity,
+  aiRiskOccurrenceContextKey,
+} from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/by-risk-occurrence/ai-risk-occurrence.identity';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -36,21 +41,28 @@ const createEmptyState = (): AiRiskAnalysisSessionSnapshot => ({
 
 export const useCharacterizationAiRiskAnalysisState = (
   params: AiRiskAnalysisSessionKeyParams,
+  occurrenceSession?: {
+    identity: AiRiskOccurrenceIdentity;
+    controller: RiskByOccurrenceAiSession;
+  },
 ) => {
   const sessionKey = useMemo(
     () =>
-      buildAiRiskAnalysisSessionKey({
-        sessionNamespace: params.sessionNamespace,
-        occurrenceSignature: params.occurrenceSignature,
-        characterizationId: params.characterizationId,
-        gseId: params.gseId,
-        hierarchyId: params.hierarchyId,
-        hierarchyType: params.hierarchyType,
-        riskGroupId: params.riskGroupId,
-        companyId: params.companyId,
-        workspaceId: params.workspaceId,
-      }),
+      occurrenceSession
+        ? aiRiskOccurrenceContextKey(occurrenceSession.identity)
+        : buildAiRiskAnalysisSessionKey({
+            sessionNamespace: params.sessionNamespace,
+            occurrenceSignature: params.occurrenceSignature,
+            characterizationId: params.characterizationId,
+            gseId: params.gseId,
+            hierarchyId: params.hierarchyId,
+            hierarchyType: params.hierarchyType,
+            riskGroupId: params.riskGroupId,
+            companyId: params.companyId,
+            workspaceId: params.workspaceId,
+          }),
     [
+      occurrenceSession?.identity,
       params.sessionNamespace,
       params.occurrenceSignature,
       params.characterizationId,
@@ -119,8 +131,14 @@ export const useCharacterizationAiRiskAnalysisState = (
 
     if (hydratedKey === sessionKey) return;
 
-    const restored =
-      readAiRiskAnalysisSession(sessionKey) || createEmptyState();
+    const restored = occurrenceSession
+      ? {
+          ...createEmptyState(),
+          ...occurrenceSession.controller.readPending(
+            occurrenceSession.identity,
+          ),
+        }
+      : readAiRiskAnalysisSession(sessionKey) || createEmptyState();
     setSuggestions(restored.suggestions);
     setExistingRiskReviews(restored.existingRiskReviews);
     setAddedRiskIds(restored.addedRiskIds);
@@ -138,6 +156,15 @@ export const useCharacterizationAiRiskAnalysisState = (
   useEffect(() => {
     if (!sessionKey || hydratedKey !== sessionKey) return;
 
+    if (occurrenceSession) {
+      occurrenceSession.controller.savePending(occurrenceSession.identity, {
+        existingRiskReviews,
+        appliedModularSuggestionKeys,
+        dismissedModularSuggestionKeys,
+        userGuidance,
+      });
+      return;
+    }
     writeAiRiskAnalysisSession(sessionKey, {
       suggestions,
       existingRiskReviews,
@@ -324,7 +351,12 @@ export const useCharacterizationAiRiskAnalysisState = (
       emptyState.dismissedModularSuggestionKeys,
     );
     setHasAnalyzed(emptyState.hasAnalyzed);
-    clearAiRiskAnalysisSession(sessionKey);
+    if (occurrenceSession)
+      occurrenceSession.controller.savePending(
+        occurrenceSession.identity,
+        createEmptyState(),
+      );
+    else clearAiRiskAnalysisSession(sessionKey);
   }, [sessionKey]);
 
   return {

@@ -20,6 +20,7 @@ export type AcceptPendingAiSuggestionResult =
  */
 export async function acceptPendingAiSuggestion(params: {
   isActive?: () => boolean;
+  beforeWrite?: () => Promise<boolean>;
   suggestion: RiskFactorAiPendingSuggestion;
   riskData: RiskFactorAiPendingRiskData & { id?: string; riskId?: string };
   companyId: string;
@@ -41,6 +42,13 @@ export async function acceptPendingAiSuggestion(params: {
       params.riskData,
     )
   ) {
+    try {
+      if (params.beforeWrite && !(await params.beforeWrite()))
+        return 'cancelled';
+    } catch {
+      return 'failed';
+    }
+    if (params.isActive && !params.isActive()) return 'cancelled';
     params.markApplied(suggestion.key);
     return 'already-registered';
   }
@@ -60,6 +68,8 @@ export async function acceptPendingAiSuggestion(params: {
   if (!payload) return 'invalid';
 
   try {
+    if (params.beforeWrite && !(await params.beforeWrite())) return 'cancelled';
+    if (params.isActive && !params.isActive()) return 'cancelled';
     await params.write(payload);
     const saved = await params.readSavedRow();
     if (params.isActive && !params.isActive()) return 'cancelled';

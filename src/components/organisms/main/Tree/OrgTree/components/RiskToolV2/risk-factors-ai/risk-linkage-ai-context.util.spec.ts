@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import {
+  PROBABILITY_AI_GUIDANCE,
+  PROBABILITY_AI_MESSAGES,
+} from './probability-ai-result.util';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
@@ -15,6 +19,8 @@ import {
 import {
   buildAiAnalyzeScopePayload,
   filterReviewsForRiskFactorAi,
+  scopedAiEmptyMessage,
+  existingControlEmptyMessage,
 } from './risk-factors-ai-scope.util';
 import { acceptPendingAiSuggestion } from './accept-pending-ai-suggestion.util';
 import * as pending from './risk-factor-ai-pending.util';
@@ -473,10 +479,16 @@ async function main() {
     },
     'components/organisms/modals/ModalAddGHO/get-gse-linked-workspace-ids.util':
       { getGseLinkedWorkspaceIds: () => ['legacy-first'] },
+    './merge-probability-suggestion-actions.util': await import('./merge-probability-suggestion-actions.util'),
+    './probability-ai-result.util': await import(
+      './probability-ai-result.util'
+    ),
     './risk-factor-ai-pending.util': pending,
     './risk-factors-ai-scope.util': {
       buildAiAnalyzeScopePayload,
       filterReviewsForRiskFactorAi,
+      scopedAiEmptyMessage,
+      existingControlEmptyMessage,
     },
     './useRiskFactorAiSuggestionActions': {
       useRiskFactorAiSuggestionActions: () => ({ pendingFor: () => [] }),
@@ -669,7 +681,11 @@ async function main() {
     status: 'ACTIVE',
     workspaceIds: ['ws-2'],
   }));
+  const ownerRefreshes: any[] = [];
   const adapterModule = loadComponent(base + 'RiskLinkageAiProvider.tsx', {
+    'core/enums/query.enums': { QueryEnum: { GHO: 'gho' } },
+    'core/services/queryClient': { queryClient: { invalidateQueries: (key: any) => { ownerRefreshes.push(key); return Promise.resolve(); } } },
+    './EditorProbabilityAiScope': { EditorProbabilityAiScope: 'EditorProbabilityAiScope' },
     'core/hooks/useAppSelector': {
       useAppSelector: (select: any) => select(state),
     },
@@ -744,6 +760,12 @@ async function main() {
   assert.equal(provider.props.target.kind, 'gse');
   assert.equal(provider.props.target.workspaceId, 'ws-2');
   assert.equal(provider.props.individualOnly, true);
+  const probabilityScope = nodes(adapterTree).find((node) => node.type === 'EditorProbabilityAiScope');
+  assert.equal(probabilityScope.props.kind, 'GSE');
+  assert.equal(probabilityScope.props.ownerId, 'gse-a');
+  assert.equal(probabilityScope.props.workspaceId, 'ws-2');
+  assert.equal(probabilityScope.props.jointWorkspaceScoped, true);
+  assert.equal(ownerRefreshes.length, 0, 'existing GSE cache policy remains unchanged');
   assert.equal(sessionParams.at(-1).sessionNamespace, 'risk-linkage-v1');
   state = {
     gho: { selected: { id: 'char-a' } },
@@ -784,12 +806,18 @@ async function main() {
       gho: { selected: { id: `${entity.id}//ws-2` } },
       riskAdd: { viewData: 'SIMPLE_BY_GROUP' },
     };
-    const hierarchyProvider = nodes(renderAdapter()).find(
+    const linkageHierarchyTree = renderAdapter();
+    const probabilityScope = nodes(linkageHierarchyTree).find((node) => node.type === 'EditorProbabilityAiScope');
+    assert.equal(probabilityScope.props.kind, 'HIERARCHY');
+    assert.equal(probabilityScope.props.ownerId, entity.id);
+    assert.equal(probabilityScope.props.hierarchyType, entity.type);
+    const hierarchyProvider = nodes(linkageHierarchyTree).find(
       (node) => node.type === 'RiskFactorsAiProvider',
     );
     assert.equal(hierarchyProvider.props.target.kind, 'hierarchy');
     assert.equal(hierarchyProvider.props.target.hierarchyType, entity.type);
     assert.equal(sessionParams.at(-1).hierarchyId, entity.id);
+    assert.equal(JSON.stringify(ownerRefreshes.at(-1)), JSON.stringify(['gho', 'company']));
     assert.equal(sessionParams.at(-1).gseId, undefined);
     const hierarchyContext = {
       ...context,
@@ -1146,6 +1174,307 @@ async function main() {
   assert.equal(modalState.modals.length, 1);
   assert.equal(modalState.modals[0], untouched);
   assert.equal(wrote, 1);
+  // New by-risk adapter reuses the SAME provider/dialog and acceptance hook.
+  let inactive!: () => void;
+  const byRiskCalls: any[] = [];
+  const byRiskMerges: any[] = [];
+  const byRiskAdapter: any = {
+    identity: {
+      companyId: 'company',
+      workspaceId: 'ws-2',
+      ownerType: 'GSE',
+      ownerId: 'gse-a',
+      riskGroupId: 'group',
+      riskId: row.riskId,
+      riskFactorDataId: row.id,
+    },
+    row,
+    activate: () => {},
+    validate: (candidate: any) =>
+      candidate?.id === row.id &&
+      candidate?.homogeneousGroupId === row.homogeneousGroupId,
+    canApproveProbability: (candidate: any) => !candidate.isQuantity,
+    subscribeInactive: (close: any) => {
+      inactive = close;
+      return () => {};
+    },
+    isResponseCurrent: () => true,
+    analyze: async (request: any) => {
+      byRiskCalls.push(request);
+      return { existingRiskReviews: [review(), review('other-occurrence')] };
+    },
+  };
+  const byRiskProps = {
+    target: {
+      kind: 'gse',
+      companyId: 'company',
+      workspaceId: 'ws-2',
+      gseId: 'gse-a',
+      riskGroupId: 'group',
+      analysis: {
+        mergeIncomingExistingRiskReviews: (value: any) =>
+          byRiskMerges.push(value),
+      },
+    },
+    byRiskOccurrence: byRiskAdapter,
+    individualOnly: true,
+    children: 'grid',
+  };
+  const byRiskMount = new HookHarness();
+  let byRiskTree = byRiskMount.render(() =>
+    module.RiskFactorsAiProvider(byRiskProps),
+  );
+  assert.equal(
+    nodes(byRiskTree).some(
+      (node) => node.type === 'RiskFactorAiNewRiskCandidates',
+    ),
+    false,
+  );
+  byRiskTree.props.value.openRisk({
+    riskId: row.riskId,
+    riskFactorDataId: row.id,
+    riskName: 'Ruído',
+  });
+  byRiskTree = byRiskMount.render(() =>
+    module.RiskFactorsAiProvider(byRiskProps),
+  );
+  assert.ok(
+    nodes(byRiskTree).some(
+      (node) => node.type === 'RiskFactorAiConfigurationDialog',
+    ),
+  );
+  inactive();
+  byRiskTree = byRiskMount.render(() =>
+    module.RiskFactorsAiProvider(byRiskProps),
+  );
+  assert.equal(
+    nodes(byRiskTree).some(
+      (node) => node.type === 'RiskFactorAiConfigurationDialog',
+    ),
+    false,
+  );
+  byRiskTree.props.value.openProbability({
+    riskId: row.riskId,
+    riskFactorDataId: row.id,
+  });
+  byRiskTree = byRiskMount.render(() =>
+    module.RiskFactorsAiProvider(byRiskProps),
+  );
+  let byRiskDialog = nodes(byRiskTree).find(
+    (node) =>
+      typeof node.type === 'function' && node.type.name === 'ScopedAiDialog',
+  );
+  const byRiskDialogMount = new HookHarness();
+  byRiskDialogMount.render(() => byRiskDialog.type(byRiskDialog.props));
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(byRiskCalls.length, 1);
+  assert.deepEqual(Array.from(byRiskCalls[0].selectedFields), ['probability']);
+  assert.equal(byRiskMerges[0].length, 1);
+  assert.equal(byRiskMerges[0][0].riskFactorDataId, row.id);
+  assert.deepEqual(
+    Array.from(byRiskMerges[0][0].suggestions.map((item: any) => item.field)),
+    ['probability'],
+  );
+  byRiskDialogMount.unmount();
+  // Render the actual dialog after completion, including session filters and eligibility.
+  for (const scenario of [
+    { outcome: 'pending', value: 4 },
+    { outcome: 'unchanged', value: 2 },
+    { outcome: 'unavailable' },
+    { outcome: 'applied', value: 4 },
+    { outcome: 'dismissed', value: 4 },
+    { outcome: 'ineligible', value: 4 },
+    { outcome: 'rejected' },
+    { outcome: 'joint' },
+  ]) {
+    const resolvedKeys = new Set([`risk:probability:${scenario.value}`]);
+    const appliedKeys =
+      scenario.outcome === 'applied' ? resolvedKeys : new Set<string>();
+    const dismissedKeys =
+      scenario.outcome === 'dismissed' ? resolvedKeys : new Set<string>();
+    const incoming = scenario.value === 4 ? [review()] : [];
+    const metadata =
+      scenario.outcome === 'unchanged'
+        ? { status: 'unchanged', value: 2 }
+        : scenario.value === 4
+          ? { status: 'suggested', value: 4 }
+          : { status: 'unavailable' };
+    const props = {
+      ...byRiskDialog.props,
+      request: {
+        ...byRiskDialog.props.request,
+        probabilityShortcut: scenario.outcome !== 'joint',
+      },
+      analysis: {
+        ...byRiskDialog.props.analysis,
+        appliedModularSuggestionKeysSet: appliedKeys,
+        dismissedModularSuggestionKeysSet: dismissedKeys,
+      },
+      byRiskOccurrence: {
+        ...byRiskAdapter,
+        canApproveProbability: () => scenario.outcome !== 'ineligible',
+        analyze: async () => {
+          if (scenario.outcome === 'rejected')
+            throw {
+              response: {
+                status: 422,
+                data: { code: 'HISTORICAL_OCCURRENCE' },
+              },
+            };
+          return {
+            existingRiskReviews: incoming,
+            metadata: { probabilityAnalysis: metadata },
+          };
+        },
+      },
+      suggestions: {
+        pendingFor: (params: any) =>
+          pending.pendingSuggestionsForColumn({
+            ...params,
+            reviews: incoming,
+            appliedKeys,
+            dismissedKeys,
+          }),
+      },
+    };
+    const mount = new HookHarness();
+    mount.render(() => byRiskDialog.type(props));
+    for (let tick = 0; tick < 8; tick++) await Promise.resolve();
+    const completed = mount.render(() => byRiskDialog.type(props));
+    const text = JSON.stringify(completed);
+    if (scenario.outcome === 'joint') {
+      assert.ok(text.includes(scopedAiEmptyMessage('risk')));
+      assert.equal(text.includes(PROBABILITY_AI_GUIDANCE), false);
+    } else {
+      assert.ok(text.includes(PROBABILITY_AI_GUIDANCE));
+      assert.equal(text.includes(scopedAiEmptyMessage('risk')), false);
+      if (scenario.outcome === 'pending') {
+        assert.ok(text.includes('1 sugestão está disponível'));
+        assert.ok(text.includes('Nada foi gravado'));
+      } else {
+        const outcome =
+          scenario.outcome === 'rejected' ? 'ineligible' : scenario.outcome;
+        assert.ok(
+          text.includes(
+            PROBABILITY_AI_MESSAGES[
+              outcome as keyof typeof PROBABILITY_AI_MESSAGES
+            ],
+          ),
+          scenario.outcome,
+        );
+        assert.equal(text.includes('1 sugestão está disponível'), false);
+      }
+    }
+    mount.unmount();
+  }
+  byRiskMount.unmount();
+
+  const timeline: string[] = [],
+    patches: any[] = [],
+    metadata: any[] = [];
+  let saved: any = row,
+    dismissed = 0,
+    appliedByRisk = 0;
+  openConfirmation = async () => {
+    timeline.push('confirmation');
+    return true;
+  };
+  const actionsAdapter = {
+    ...byRiskAdapter,
+    prepareAcceptance: (_suggestion: any, candidate: any) =>
+      candidate.isQuantity
+        ? null
+        : {
+            isActive: () => true,
+            beforeWrite: async () => {
+              timeline.push('revalidate');
+              return true;
+            },
+          },
+    readSavedRow: async () => saved,
+  };
+  const byRiskActionsMount = new HookHarness();
+  const byRiskActions = byRiskActionsMount.render(() =>
+    actionsModule.useRiskFactorAiSuggestionActions({
+      companyId: 'company',
+      apiWorkspaceId: 'ws-2',
+      riskGroupId: 'group',
+      entityId: 'gse-a',
+      byRiskOccurrence: actionsAdapter,
+      validateOccurrence: byRiskAdapter.validate,
+      analysis: {
+        existingRiskReviews: [review()],
+        appliedModularSuggestionKeysSet: new Set(),
+        dismissedModularSuggestionKeysSet: new Set(),
+        markModularSuggestionApplied: () => appliedByRisk++,
+        dismissModularSuggestion: () => dismissed++,
+      },
+    }),
+  );
+  const write = async (payload: any, context: any) => {
+    timeline.push('write');
+    patches.push(payload);
+    metadata.push(context);
+    if (payload.admsAddOnly)
+      saved = { ...row, adms: [{ medName: control.value }] };
+    else if (payload.recAddOnly)
+      saved = { ...row, recs: [{ recName: suggestion.value }] };
+    else if (payload.probability)
+      saved = { ...row, probability: payload.probability };
+  };
+  await byRiskActions.accept({
+    suggestion: control,
+    riskData: row,
+    handleSelect: write,
+  });
+  assert.deepEqual(timeline.slice(0, 3), [
+    'confirmation',
+    'revalidate',
+    'write',
+  ]);
+  assert.equal(appliedByRisk, 1);
+  await byRiskActions.accept({
+    suggestion: {
+      ...suggestion,
+      field: 'recommendedAdministrativeMeasures',
+      action: 'accept-recommendation',
+    },
+    riskData: row,
+    handleSelect: write,
+  });
+  assert.ok(patches.at(-1).recAddOnly);
+  await byRiskActions.accept({
+    suggestion: {
+      ...suggestion,
+      field: 'probability',
+      action: 'approve-probability',
+      value: '4',
+    },
+    riskData: row,
+    handleSelect: write,
+  });
+  assert.deepEqual(patches.at(-1), { probability: 4 });
+  assert.equal(metadata.at(-1).occurrence.riskFactorDataId, row.id);
+  const beforeQuantity = patches.length;
+  await byRiskActions.accept({
+    suggestion: {
+      ...suggestion,
+      field: 'probability',
+      action: 'approve-probability',
+      value: '4',
+    },
+    riskData: { ...row, isQuantity: true },
+    handleSelect: write,
+  });
+  assert.equal(patches.length, beforeQuantity);
+  byRiskActions.dismiss({ suggestion, riskData: row });
+  assert.equal(dismissed, 1);
+  assert.equal(patches.length, beforeQuantity);
+  byRiskActionsMount.unmount();
+
   const legacy = new HookHarness().render(() =>
     module.RiskFactorsAiProvider({
       target: {

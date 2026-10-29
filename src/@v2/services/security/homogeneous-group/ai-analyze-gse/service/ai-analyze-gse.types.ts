@@ -1,3 +1,4 @@
+import type { AiRiskOccurrenceIdentity } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/by-risk-occurrence/ai-risk-occurrence.identity';
 import type { Result } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 import type { AiTemporaryDocumentSource } from '@v2/services/security/characterization/characterization/ai-temporary-source/ai-temporary-document-source.types';
 
@@ -8,6 +9,8 @@ export type {
 } from '@v2/services/security/characterization/characterization/ai-analyze-characterization/service/ai-analyze-characterization.types';
 
 export interface AiAnalyzeGseParams {
+  occurrence?: AiRiskOccurrenceIdentity;
+  validateOnly?: boolean;
   companyId: string;
   workspaceId: string;
   gseId: string;

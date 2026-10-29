@@ -1,3 +1,4 @@
+import { EditorProbabilityAiScope } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/EditorProbabilityAiScope';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from 'react';
 import { Wizard } from 'react-use-wizard';
@@ -286,12 +287,19 @@ export const GhoFormContent = ({
                   />
                 )}
               >
-                <RiskToolForGse
+                <EditorProbabilityAiScope
+                  kind="GSE"
                   companyId={companyId}
-                  ghoId={ghoData.id}
-                  ghoName={ghoData.name || ghoQuery.name}
-                  gho={ghoQuery?.id ? (ghoQuery as IGho) : null}
-                />
+                  ownerId={ghoData.id}
+                  riskGroupId={gseAi.riskGroupId || ''}
+                >
+                  <RiskToolForGse
+                    companyId={companyId}
+                    ghoId={ghoData.id}
+                    ghoName={ghoData.name || ghoQuery.name}
+                    gho={ghoQuery?.id ? (ghoQuery as IGho) : null}
+                  />
+                </EditorProbabilityAiScope>
               </RiskFactorsAiProvider>
             </Box>
           )}

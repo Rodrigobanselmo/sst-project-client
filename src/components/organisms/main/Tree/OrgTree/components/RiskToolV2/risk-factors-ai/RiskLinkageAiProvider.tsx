@@ -1,4 +1,7 @@
-import React from 'react';
+import { EditorProbabilityAiScope } from './EditorProbabilityAiScope';
+import React, { useEffect } from 'react';
+import { queryClient } from 'core/services/queryClient';
+import { QueryEnum } from 'core/enums/query.enums';
 import { Alert, Box } from '@mui/material';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -191,6 +194,11 @@ function ScopedLinkageAi({
   children: React.ReactNode;
 }) {
   const { context } = scope;
+  useEffect(() => {
+    // A first direct link can persist the hierarchy's typed owner after the GHO cache was loaded.
+    if (context.kind === 'hierarchy' && scope.rows.length > 0)
+      void queryClient.invalidateQueries([QueryEnum.GHO, context.companyId]);
+  }, [context.kind, context.companyId, context.entityId, signature, scope.rows.length]);
   const analysis = useCharacterizationAiRiskAnalysisState({
     companyId: context.companyId,
     workspaceId: context.workspaceId,
@@ -237,7 +245,14 @@ function ScopedLinkageAi({
       individualOnly
       occurrenceScope={scope}
     >
-      {children}
+      <EditorProbabilityAiScope
+        jointWorkspaceScoped
+        kind={context.kind === 'hierarchy' ? 'HIERARCHY' : context.kind === 'gse' ? 'GSE' : 'CHARACTERIZATION'}
+        companyId={context.companyId} workspaceId={context.workspaceId}
+        riskGroupId={context.riskGroupId} ownerId={context.entityId} hierarchyType={context.hierarchyType}
+      >
+        {children}
+      </EditorProbabilityAiScope>
     </RiskFactorsAiProvider>
   );
 }

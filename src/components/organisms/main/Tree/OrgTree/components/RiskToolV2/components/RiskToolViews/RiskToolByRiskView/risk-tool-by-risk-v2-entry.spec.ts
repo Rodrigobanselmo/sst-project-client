@@ -129,7 +129,7 @@ const TREE = 'src/components/organisms/main/Tree/OrgTree/components';
   assert.match(row, /headerTitle=\{row\.ghoName\}/);
   assert.match(row, /targetGho=\{row\.gho\}/);
   assert.match(row, /<RiskCatalogRecordScope value=\{scope\}>/);
-  assert.match(row, /readOnly \? <RiskCatalogDropLock>\{columns\}<\/RiskCatalogDropLock> : columns/);
+  assert.match(row, /readOnly \?\s*\(?\s*<RiskCatalogDropLock>\{columns\}<\/RiskCatalogDropLock>\s*\)?\s*:\s*\(?\s*columns/);
   assert.match(row, /expandCtx\.isExpanded\(row\.rowId\) : false/);
 
   // Cabeçalho recolhido mostra inerente e residual (MatrixEquation) — reuso do RiskBox

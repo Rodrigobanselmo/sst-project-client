@@ -1,3 +1,4 @@
+import { RiskByRiskAiScope } from './risk-factors-ai/by-risk-occurrence/RiskByRiskAiScope';
 import React, { ReactNode } from 'react';
 
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
@@ -33,27 +34,38 @@ export const RiskToolByRiskV2 = ({
   extraActions,
   selectExpanded,
 }: RiskToolByRiskV2Props) => (
-  <RiskCatalogDndProvider>
-    <RiskToolWideViewProvider>
-      <RiskToolWideFrame selectExpanded={!!selectExpanded}>
-        {topButtons}
-        <STTableContainer
-          sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-        >
-          <RiskRowsExpandProvider>
-            <RiskToolByRiskStack selectExpanded={!!selectExpanded}>
-              <RiskToolByRiskView
-                risk={risk}
-                riskGroupId={riskGroupId}
-                viewData={viewData}
-                extraActions={extraActions}
-              />
-            </RiskToolByRiskStack>
-          </RiskRowsExpandProvider>
-        </STTableContainer>
-      </RiskToolWideFrame>
-    </RiskToolWideViewProvider>
-  </RiskCatalogDndProvider>
+  <RiskByRiskAiScope
+    riskId={risk.id}
+    riskGroupId={riskGroupId}
+    viewData={viewData}
+  >
+    <RiskCatalogDndProvider>
+      <RiskToolWideViewProvider>
+        <RiskToolWideFrame selectExpanded={!!selectExpanded}>
+          {topButtons}
+          <STTableContainer
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <RiskRowsExpandProvider>
+              <RiskToolByRiskStack selectExpanded={!!selectExpanded}>
+                <RiskToolByRiskView
+                  risk={risk}
+                  riskGroupId={riskGroupId}
+                  viewData={viewData}
+                  extraActions={extraActions}
+                />
+              </RiskToolByRiskStack>
+            </RiskRowsExpandProvider>
+          </STTableContainer>
+        </RiskToolWideFrame>
+      </RiskToolWideViewProvider>
+    </RiskCatalogDndProvider>
+  </RiskByRiskAiScope>
 );
 
 function RiskToolByRiskStack({

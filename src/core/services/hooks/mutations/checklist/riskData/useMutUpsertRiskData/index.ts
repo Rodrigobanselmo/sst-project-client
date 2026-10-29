@@ -1,3 +1,4 @@
+import type { AiRiskOccurrenceIdentity } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/by-risk-occurrence/ai-risk-occurrence.identity';
 import { invalidateRiskPrioritization } from '@v2/services/security/risk-prioritization/invalidate-risk-prioritization';
 import { useMutation } from 'react-query';
 
@@ -36,6 +37,7 @@ import {
 } from 'core/utils/workspace-probability-evaluation.util';
 
 export interface IUpsertRiskData {
+  occurrence?: AiRiskOccurrenceIdentity;
   id?: string;
   companyId?: string;
   riskFactorGroupDataId: string;

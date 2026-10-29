@@ -30,6 +30,8 @@ export async function aiAnalyzeHierarchyRisk({
   > & {
     riskFactorDataId: string;
     riskGroupId: string;
+    occurrence?: AiAnalyzeGseParams['occurrence'];
+    validateOnly?: boolean;
   }): Promise<AiAnalyzeGseResult> {
   const response = await api.post(
     url({ companyId, workspaceId, hierarchyId, hierarchyType }),
