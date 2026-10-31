@@ -1,3 +1,5 @@
+import { environmentGroups } from '../../../../org-panels.model';
+import { useGseVisualAssistance } from '../../../GseVisualAssistance/GseVisualAssistance.context';
 import React, { FC, useEffect, useMemo } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
@@ -18,6 +20,9 @@ import { GhoRow } from '../GhoRow';
 import { RiskToolRiskViewProps } from './types';
 
 export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
+  environmentOnly = false,
+  environmentWorkspaceId,
+  environmentCompanyId = '',
   handleDeleteGHO,
   handleEditGHO,
   handleSelectGHO,
@@ -26,7 +31,11 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
   handleFilter,
 }) => {
   const { data: ghoQuery } = useQueryGHOAll();
-  const selectedGhoId = useAppSelector(selectGhoId);
+  const assistance = useGseVisualAssistance();
+  const manualSelected = useAppSelector(selectGhoId);
+  const selectedGhoId = assistance?.active
+    ? assistance.selectedGroupId
+    : manualSelected;
   const { pathname, query } = useRouter();
 
   const isOrgHierarquiaContext =
@@ -35,10 +44,12 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
     ? (query.tabWorkspaceId as string | undefined)
     : undefined;
 
-  const disableNonGseTabs = isOrgHierarquiaContext && !tabWorkspaceId;
+  const disableNonGseTabs =
+    !environmentOnly && isOrgHierarquiaContext && !tabWorkspaceId;
 
   useEffect(() => {
     if (
+      !environmentOnly &&
       isOrgHierarquiaContext &&
       !tabWorkspaceId &&
       filter != null &&
@@ -46,11 +57,25 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
     ) {
       handleFilter(HomoTypeEnum.GSE);
     }
-  }, [filter, handleFilter, isOrgHierarquiaContext, tabWorkspaceId]);
+  }, [
+    filter,
+    handleFilter,
+    isOrgHierarquiaContext,
+    tabWorkspaceId,
+    environmentOnly,
+  ]);
 
   const ghoOrderedData = useMemo(() => {
+    if (assistance?.active) return assistance.rows;
     if (!ghoQuery) return [];
-    const ghoFilter = ghoQuery.map((gho) => {
+    const source = environmentOnly
+      ? environmentGroups(
+          ghoQuery,
+          environmentCompanyId,
+          environmentWorkspaceId,
+        )
+      : ghoQuery;
+    const ghoFilter = source.map((gho) => {
       if (!gho.type) return gho;
       const name = gho.description.split('(//)')[0];
       const type = gho.description.split('(//)')[1];
@@ -67,7 +92,7 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
       };
     });
 
-    if (isOrgHierarquiaContext && tabWorkspaceId) {
+    if (!environmentOnly && isOrgHierarquiaContext && tabWorkspaceId) {
       return ghoFilter.filter(
         (gho) =>
           gho.workspaceIds?.includes(tabWorkspaceId) ||
@@ -76,9 +101,18 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
     }
 
     return ghoFilter;
-  }, [ghoQuery, isOrgHierarquiaContext, tabWorkspaceId]);
+  }, [
+    ghoQuery,
+    isOrgHierarquiaContext,
+    tabWorkspaceId,
+    assistance,
+    environmentOnly,
+    environmentCompanyId,
+    environmentWorkspaceId,
+  ]);
 
   const ghoFilters = useMemo(() => {
+    if (assistance?.active) return [HomoTypeEnum.GSE];
     if (!ghoQuery) return [];
 
     const ghoFilters = Object.values(HomoTypeEnum)
@@ -91,43 +125,48 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
       .filter((i) => !!i) as HomoTypeEnum[];
 
     return [HomoTypeEnum.GSE, ...ghoFilters];
-  }, [ghoQuery]);
+  }, [ghoQuery, assistance]);
 
   return (
     <>
-      <SFlex flexWrap="wrap" align="center" gap={4} mb={5} width="280px">
-        {ghoFilters.map((type) => {
-          const isGseTab = type === HomoTypeEnum.GSE;
-          const tabDisabled = disableNonGseTabs && !isGseTab;
-          return (
-            <STagButton
-              onClick={() => {
-                if (tabDisabled) return;
-                handleFilter(type || null);
-              }}
-              key={String(type)}
-              active={filter === type || (!filter && !type)}
-              text={originRiskMap[type].name}
-              disabled={tabDisabled}
-              tooltipTitle={
-                tabDisabled
-                  ? isOrgMultiWorkspaceMode(query)
-                    ? ORG_MULTI_WORKSPACE_DISABLED_HINT
-                    : 'Selecione um estabelecimento no cabeçalho para listar e vincular elementos caracterizados a este organograma.'
-                  : undefined
-              }
-            />
-          );
-        })}
-      </SFlex>
+      {!assistance?.active && !environmentOnly && (
+        <SFlex flexWrap="wrap" align="center" gap={4} mb={5} width="280px">
+          {ghoFilters.map((type) => {
+            const isGseTab = type === HomoTypeEnum.GSE;
+            const tabDisabled = disableNonGseTabs && !isGseTab;
+            return (
+              <STagButton
+                onClick={() => {
+                  if (tabDisabled) return;
+                  handleFilter(type || null);
+                }}
+                key={String(type)}
+                active={filter === type || (!filter && !type)}
+                text={originRiskMap[type].name}
+                disabled={tabDisabled}
+                tooltipTitle={
+                  tabDisabled
+                    ? isOrgMultiWorkspaceMode(query)
+                      ? ORG_MULTI_WORKSPACE_DISABLED_HINT
+                      : 'Selecione um estabelecimento no cabeçalho para listar e vincular elementos caracterizados a este organograma.'
+                    : undefined
+                }
+              />
+            );
+          })}
+        </SFlex>
+      )}
       {ghoOrderedData.map((gho, index) => {
-        if (gho.type !== filter && !selectedGhoId) return null;
+        if (!assistance?.active && gho.type !== filter && !selectedGhoId)
+          return null;
 
         return (
           <GhoRow
             key={gho.id}
             gho={gho}
-            handleEditGHO={!gho.type ? handleEditGHO : undefined}
+            handleEditGHO={
+              environmentOnly || !gho.type ? handleEditGHO : undefined
+            }
             handleSelectGHO={handleSelectGHO}
             handleDeleteGHO={handleDeleteGHO}
             selectedGhoId={selectedGhoId}

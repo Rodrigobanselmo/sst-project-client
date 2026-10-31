@@ -1,5 +1,7 @@
+import { useGseVisualAssistance } from '../../../GseVisualAssistance/GseVisualAssistance.context';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef } from 'react';
+import { Box } from '@mui/material';
 
 import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
 import STooltip from 'components/atoms/STooltip';
@@ -30,6 +32,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
     },
     ref,
   ) => {
+    const assisted = !!useGseVisualAssistance()?.active;
     const selectedGho = useAppSelector(selectGhoData);
     const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
     const anchorEl = useRef<HTMLDivElement>(null);
@@ -47,7 +50,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
           ? 'Salvar'
           : 'Adicionar';
 
-    return (
+    const content = (
       <>
         <STSInput
           endAdornment={
@@ -78,6 +81,11 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
           inputRef={ref}
           fullWidth
           {...props}
+          sx={
+            assisted
+              ? { width: '100%', minWidth: 0, maxWidth: '100%', ...props.sx }
+              : props.sx
+          }
         />
         <SPopperHelper
           show={
@@ -100,6 +108,20 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
           }}
         />
       </>
+    );
+    return assisted ? (
+      <Box
+        sx={{
+          width: '100%',
+          minWidth: 0,
+          '& > div': { width: '100%' },
+          '& .MuiTextField-root': { width: '100%' },
+        }}
+      >
+        {content}
+      </Box>
+    ) : (
+      content
     );
   },
 );

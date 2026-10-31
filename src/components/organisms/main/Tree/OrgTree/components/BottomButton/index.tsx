@@ -1,3 +1,11 @@
+import LandscapeOutlinedIcon from '@mui/icons-material/LandscapeOutlined';
+import { useGseVisualAssistance } from '../GseVisualAssistance/GseVisualAssistance.context';
+import { useOrgPanelBusy } from '../../hooks/useOrgPanelBusy';
+import {
+  nextOrgPanel,
+  withoutOrgRiskPanel,
+  type OrgPanel,
+} from '../../org-panels.model';
 import React, { FC, useCallback } from 'react';
 
 import { Icon } from '@mui/material';
@@ -5,13 +13,7 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { useRouter } from 'next/router';
-import {
-  selectGhoOpen,
-  setGhoOpen,
-  setGhoState,
-  setGhoSearch,
-  setGhoSearchSelect,
-} from 'store/reducers/hierarchy/ghoSlice';
+import { selectGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import SGhoIcon from 'assets/icons/SGhoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
@@ -28,16 +30,52 @@ import { SFlexButton } from './styles';
 export const BottomButton: FC = () => {
   const dispatch = useAppDispatch();
   const isGhoOpen = useAppSelector(selectGhoOpen);
-  const { query, push } = useRouter();
+  const { query, push, replace, pathname } = useRouter();
+  const assistance = useGseVisualAssistance();
+  const busy = useOrgPanelBusy();
+  const current: OrgPanel = assistance?.active
+    ? 'GSE'
+    : isGhoOpen
+      ? 'ENVIRONMENT'
+      : null;
+  const openPanel = (requested: Exclude<OrgPanel, null>) => {
+    if (busy) return;
+    const next = nextOrgPanel(current, requested, false);
+    dispatch(
+      setGhoState({
+        data: null,
+        selected: null,
+        hierarchies: [],
+        search: '',
+        searchSelect: '',
+        open: next === 'ENVIRONMENT',
+      }),
+    );
+    if (!!assistance?.active !== (next === 'GSE')) assistance?.toggle();
+    if (next && query.riskGroupId)
+      void replace({ pathname, query: withoutOrgRiskPanel(query) }, undefined, {
+        shallow: true,
+      });
+  };
   const { workspaceId: tabWorkspaceId } = useTabWorkspaceId();
   const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
 
   const handleOpenEntityRisks = useCallback(() => {
-    if (isOrgMultiWorkspace) return;
+    if (isOrgMultiWorkspace || busy) return;
     const companyId = query.companyId;
     if (typeof companyId !== 'string' || !companyId) return;
 
-    dispatch(setGhoOpen(false));
+    if (assistance?.active) assistance.toggle();
+    dispatch(
+      setGhoState({
+        open: false,
+        data: null,
+        selected: null,
+        hierarchies: [],
+        search: '',
+        searchSelect: '',
+      }),
+    );
 
     void push(
       getCharacterizationEntityRisksHref({
@@ -45,7 +83,15 @@ export const BottomButton: FC = () => {
         tabWorkspaceId,
       }),
     );
-  }, [dispatch, isOrgMultiWorkspace, push, query.companyId, tabWorkspaceId]);
+  }, [
+    dispatch,
+    isOrgMultiWorkspace,
+    push,
+    query.companyId,
+    tabWorkspaceId,
+    busy,
+    assistance,
+  ]);
 
   return (
     <SFlex>
@@ -58,7 +104,9 @@ export const BottomButton: FC = () => {
         }
       >
         <SFlexButton
-          onClick={isOrgMultiWorkspace ? undefined : handleOpenEntityRisks}
+          onClick={
+            isOrgMultiWorkspace || busy ? undefined : handleOpenEntityRisks
+          }
           active={0}
           gap={4}
           px={5}
@@ -75,39 +123,56 @@ export const BottomButton: FC = () => {
           <SText>Fatores de Risco</SText>
         </SFlexButton>
       </STooltip>
-      <STooltip
-        placement="top-start"
-        title={
-          isOrgMultiWorkspace
-            ? ORG_MULTI_WORKSPACE_DISABLED_HINT
-            : 'Grupo homogênio de exposição'
-        }
-      >
+      <STooltip placement="top-start" title="Assistência Visual de GSEs">
         <SFlexButton
-          active={isGhoOpen && !isOrgMultiWorkspace ? 1 : 0}
-          onClick={
-            isOrgMultiWorkspace
-              ? undefined
-              : () => {
-                  dispatch(setGhoState({ hierarchies: [], data: null }));
-                  dispatch(setGhoOpen());
-                  dispatch(setGhoSearch(''));
-                  dispatch(setGhoSearchSelect(''));
-                }
-          }
+          role="button"
+          tabIndex={busy ? -1 : 0}
+          aria-label="GSE"
+          aria-disabled={busy}
+          aria-pressed={current === 'GSE'}
+          active={current === 'GSE' ? 1 : 0}
+          onClick={() => openPanel('GSE')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openPanel('GSE');
+            }
+          }}
           gap={3}
           px={5}
           py={2}
           pr={6}
           center
-          sx={
-            isOrgMultiWorkspace
-              ? { opacity: 0.5, cursor: 'not-allowed' }
-              : undefined
-          }
+          sx={busy ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
         >
           <Icon component={SGhoIcon} />
           <SText>GSE</SText>
+        </SFlexButton>
+      </STooltip>
+      <STooltip placement="top-start" title="Gestão de Ambientes">
+        <SFlexButton
+          role="button"
+          tabIndex={busy ? -1 : 0}
+          aria-label="Ambiente"
+          aria-disabled={busy}
+          aria-pressed={current === 'ENVIRONMENT'}
+          active={current === 'ENVIRONMENT' ? 1 : 0}
+          onClick={() => openPanel('ENVIRONMENT')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openPanel('ENVIRONMENT');
+            }
+          }}
+          gap={3}
+          px={5}
+          py={2}
+          pr={6}
+          center
+          sx={busy ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+        >
+          <LandscapeOutlinedIcon />
+          <SText>Ambiente</SText>
         </SFlexButton>
       </STooltip>
     </SFlex>

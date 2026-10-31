@@ -1,3 +1,21 @@
+import { GseSaveConfirmation } from '../GseVisualAssistance/GseSaveConfirmation';
+import { Alert, TextField, MenuItem } from '@mui/material';
+import {
+  eligibleEnvironmentWorkspaces,
+  environmentWorkspaceId,
+  environmentGroups,
+} from '../../org-panels.model';
+import { useOrgPanelBusy } from '../../hooks/useOrgPanelBusy';
+import { applyOrgWorkspaceFilterToQuery } from 'core/utils/org-workspace-query';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import { Box } from '@mui/material';
+import { useGseVisualAssistance } from '../GseVisualAssistance/GseVisualAssistance.context';
+import {
+  GseAssistanceControls,
+  GseAssistanceLegend,
+  GseGroupLegend,
+  GseAssistanceInfo,
+} from '../GseVisualAssistance/GseVisualAssistance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { initialCharacterizationState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
@@ -77,10 +95,45 @@ const modalPayloadForHomoFilter = (
   } as Partial<typeof initialCharacterizationState>;
 };
 
-export const GhoTool = () => {
+export const GhoTool = ({
+  environmentOnly = false,
+}: {
+  environmentOnly?: boolean;
+}) => {
+  const assistance = useGseVisualAssistance();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { pathname, query } = useRouter();
+  const { pathname, query, replace } = useRouter();
   const { data: company } = useQueryCompany();
+  const { data: allGroups } = useQueryGHOAll();
+  const panelBusy = useOrgPanelBusy();
+  const eligibleWorkspaces = eligibleEnvironmentWorkspaces(
+    company.workspace,
+    company.id,
+  );
+  const environmentWorkspace = environmentWorkspaceId(
+    query,
+    eligibleWorkspaces,
+  );
+  const scopedEnvironments = environmentGroups(
+    allGroups,
+    company.id,
+    environmentWorkspace,
+  );
+  const chooseEnvironmentWorkspace = (id: string) => {
+    if (panelBusy || !eligibleWorkspaces.some((w) => w.id === id)) return;
+    const nextQuery = { ...query };
+    applyOrgWorkspaceFilterToQuery(nextQuery, [id]);
+    dispatch(
+      setGhoState({
+        data: null,
+        selected: null,
+        hierarchies: [],
+        search: '',
+        searchSelect: '',
+      }),
+    );
+    void replace({ pathname, query: nextQuery }, undefined, { shallow: true });
+  };
   const { preventDelete } = usePreventAction();
   const { onOpenModal } = useModal();
   const dispatch = useAppDispatch();
@@ -97,22 +150,71 @@ export const GhoTool = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!isOrgMultiWorkspace) return;
-    dispatch(setGhoState({ hierarchies: [], data: null }));
+    if (environmentOnly || !isOrgMultiWorkspace) return;
+    dispatch(setGhoState({ hierarchies: [], data: null, selected: null }));
     dispatch(setGhoOpen(false));
     dispatch(setGhoSearch(''));
     dispatch(setGhoSearchSelect(''));
-  }, [dispatch, isOrgMultiWorkspace]);
+  }, [dispatch, isOrgMultiWorkspace, environmentOnly]);
 
   // HomoTypeEnum.GSE is 0 — do not use `|| null` or the default becomes null and breaks the list filter.
-  const [filter, setFilter] = useState<HomoTypeEnum | null>(HomoTypeEnum.GSE);
+  const [filter, setFilter] = useState<HomoTypeEnum | null>(
+    environmentOnly ? HomoTypeEnum.ENVIRONMENT : HomoTypeEnum.GSE,
+  );
+
+  useEffect(() => {
+    if (!environmentOnly || !isGhoOpen || assistance?.active || panelBusy)
+      return;
+    if (environmentWorkspace && query.tabWorkspaceId !== environmentWorkspace)
+      chooseEnvironmentWorkspace(environmentWorkspace);
+  }, [
+    environmentOnly,
+    isGhoOpen,
+    assistance?.active,
+    panelBusy,
+    environmentWorkspace,
+    query.tabWorkspaceId,
+  ]);
+
+  const environmentScope = JSON.stringify([company.id, environmentWorkspace]);
+  const previousEnvironmentScope = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      !environmentOnly ||
+      panelBusy ||
+      previousEnvironmentScope.current === environmentScope
+    )
+      return;
+    previousEnvironmentScope.current = environmentScope;
+    dispatch(
+      setGhoState({
+        data: null,
+        selected: null,
+        hierarchies: [],
+        search: '',
+        searchSelect: '',
+      }),
+    );
+  }, [environmentOnly, environmentScope, dispatch, panelBusy]);
 
   const handleAddGHO = async () => {
+    if (assistance?.active) return;
     if (isOrgMultiWorkspace) return;
     onOpenModal(ModalEnum.GHO_ADD);
   };
 
   const handleEditGHO = (data: IGho) => {
+    if (panelBusy || assistance?.active) return;
+    if (environmentOnly) {
+      if (!scopedEnvironments.some((g) => g.id === data.id)) return;
+      onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
+        id: data.characterization?.id || data.id,
+        companyId: company.id,
+        workspaceId: environmentWorkspace,
+        characterizationType: 'environment',
+      });
+      return;
+    }
     if (isOrgMultiWorkspace) return;
     onOpenModal(ModalEnum.GHO_ADD, {
       id: data.id,
@@ -124,11 +226,16 @@ export const GhoTool = () => {
 
   const handleDeleteGHO = useCallback(
     (id: string, data?: IGho) => {
+      if (panelBusy || assistance?.active) return;
+      if (environmentOnly && !scopedEnvironments.some((g) => g.id === id))
+        return;
       if (isOrgMultiWorkspace) return;
       preventDelete(
         async () => {
           await deleteMutation.mutateAsync(id).catch(() => {});
-          dispatch(setGhoState({ hierarchies: [], data: null }));
+          dispatch(
+            setGhoState({ hierarchies: [], data: null, selected: null }),
+          );
         },
         <span>
           <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>
@@ -144,18 +251,43 @@ export const GhoTool = () => {
         { inputConfirm: true },
       );
     },
-    [deleteMutation, dispatch, isOrgMultiWorkspace, preventDelete],
+    [
+      deleteMutation,
+      dispatch,
+      isOrgMultiWorkspace,
+      preventDelete,
+      assistance,
+      panelBusy,
+      environmentOnly,
+      scopedEnvironments,
+    ],
   );
 
   const handleSelectGHO = useCallback(
     (gho: IGho | null, hierarchies: string[]) => {
+      if (panelBusy) return;
+      if (
+        environmentOnly &&
+        gho &&
+        !scopedEnvironments.some((g) => g.id === gho.id)
+      )
+        return;
+      if (assistance?.active) {
+        assistance.selectGroup(gho?.id || null);
+        return;
+      }
       if (isOrgMultiWorkspace) {
-        if (!gho) dispatch(setGhoState({ hierarchies: [], data: null }));
+        if (!gho)
+          dispatch(
+            setGhoState({ hierarchies: [], data: null, selected: null }),
+          );
         return;
       }
       if (!gho) {
         if (!selectExpanded) dispatch(setRiskAddToggleExpand());
-        return dispatch(setGhoState({ hierarchies: [], data: null }));
+        return dispatch(
+          setGhoState({ hierarchies: [], data: null, selected: null }),
+        );
       }
 
       const data = {
@@ -166,21 +298,36 @@ export const GhoTool = () => {
       if (selectExpanded) dispatch(setRiskAddToggleExpand());
       dispatch(setGhoState(data));
     },
-    [dispatch, isOrgMultiWorkspace, selectExpanded],
+    [
+      dispatch,
+      isOrgMultiWorkspace,
+      selectExpanded,
+      assistance,
+      panelBusy,
+      environmentOnly,
+      scopedEnvironments,
+    ],
   );
 
   const handleFilter = (filter: HomoTypeEnum | null) => {
-    setFilter(filter);
+    if (!environmentOnly) setFilter(filter);
   };
 
   const isOrgHierarquiaContext =
     pathname.includes('/empresas/') && pathname.includes('/hierarquia');
-  const tabWorkspaceId = isOrgHierarquiaContext
-    ? (query.tabWorkspaceId as string | undefined)
-    : undefined;
+  const tabWorkspaceId = environmentOnly
+    ? environmentWorkspace
+    : isOrgHierarquiaContext
+      ? (query.tabWorkspaceId as string | undefined)
+      : undefined;
 
   const handleAddCharacterization = useCallback(() => {
-    if (isOrgMultiWorkspace) return;
+    if (
+      panelBusy ||
+      (environmentOnly && !environmentWorkspace) ||
+      isOrgMultiWorkspace
+    )
+      return;
     if (!company?.id || filter == null || !homoCharacterizationTabs.has(filter))
       return;
 
@@ -216,31 +363,146 @@ export const GhoTool = () => {
     isOrgMultiWorkspace,
     onOpenModal,
     tabWorkspaceId,
+    panelBusy,
+    environmentOnly,
+    environmentWorkspace,
   ]);
 
   return (
     <>
-      {isGhoOpen && !isOrgMultiWorkspace && (
-        <STBoxContainer expanded={selectExpanded ? 1 : 0}>
-          <GhoToolTopButtons handleSelectGHO={handleSelectGHO} />
-          <STTableContainer>
-            <GhoToolHeader
-              handleSelectGHO={handleSelectGHO}
-              handleEditGHO={handleEditGHO}
-              handleAddGHO={handleAddGHO}
-              handleAddCharacterization={
-                filter != null && homoCharacterizationTabs.has(filter)
-                  ? handleAddCharacterization
+      {(assistance?.active ||
+        (isGhoOpen && (environmentOnly || !isOrgMultiWorkspace))) && (
+        <STBoxContainer
+          expanded={!assistance?.active && selectExpanded ? 1 : 0}
+          sx={
+            assistance?.active
+              ? {
+                  m: 0,
+                  width: '100%',
+                  height: 'calc(100dvh - 216px)',
+                  maxHeight: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxSizing: 'border-box',
+                  minHeight: 0,
+                }
+              : undefined
+          }
+        >
+          <GhoToolTopButtons
+            handleSelectGHO={handleSelectGHO}
+            environmentOnly={environmentOnly}
+          />
+          {assistance?.active && (
+            <Box
+              sx={{
+                flexShrink: 0,
+                pb: 1,
+                borderBottom: 1,
+                borderColor: 'divider',
+                mb: 1,
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <GseGroupLegend />
+                <GseAssistanceLegend />
+              </Box>
+              <Box id="gse-review-navigation-slot" />
+              <GseAssistanceInfo />
+            </Box>
+          )}
+          <STTableContainer
+            sx={
+              assistance?.active
+                ? {
+                    display: 'block',
+                    flex: 1,
+                    minWidth: 0,
+                    minHeight: 0,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    overscrollBehavior: 'contain',
+                    scrollbarGutter: 'stable',
+                  }
+                : undefined
+            }
+          >
+            {assistance?.active && <GseAssistanceControls />}
+            {environmentOnly && !assistance?.active && (
+              <Box sx={{ mb: 2 }}>
+                {!environmentWorkspace && (
+                  <Alert severity="info">
+                    Selecione um estabelecimento para gerenciar Ambientes.
+                  </Alert>
+                )}
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="Estabelecimento"
+                  value={environmentWorkspace || ''}
+                  disabled={panelBusy || !eligibleWorkspaces.length}
+                  onChange={(e) => chooseEnvironmentWorkspace(e.target.value)}
+                >
+                  {eligibleWorkspaces.map((w) => (
+                    <MenuItem key={w.id} value={w.id}>
+                      {w.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            )}
+            {(!environmentOnly || !!environmentWorkspace) && (
+              <GhoToolHeader
+                handleSelectGHO={handleSelectGHO}
+                handleEditGHO={handleEditGHO}
+                handleAddGHO={handleAddGHO}
+                handleAddCharacterization={
+                  !assistance?.active &&
+                  filter != null &&
+                  homoCharacterizationTabs.has(filter)
+                    ? handleAddCharacterization
+                    : undefined
+                }
+                isAddLoading={addMutation.isLoading}
+                inputRef={inputRef}
+                filter={filter}
+              />
+            )}
+
+            <STBoxStack
+              expanded={selectExpanded ? 1 : 0}
+              sx={
+                assistance?.active
+                  ? {
+                      minHeight: 0,
+                      width: '100%',
+                      maxHeight: 'none',
+                      minWidth: 0,
+                      overflow: 'visible',
+                      overscrollBehavior: 'contain',
+                      scrollbarGutter: 'stable',
+                      '&::-webkit-scrollbar': { width: 8 },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: 'grey.500',
+                      },
+                    }
                   : undefined
               }
-              isAddLoading={addMutation.isLoading}
-              inputRef={inputRef}
-              filter={filter}
-            />
-
-            <STBoxStack expanded={selectExpanded ? 1 : 0}>
+            >
               <GhoToolView
                 handleEditGHO={handleEditGHO}
+                environmentOnly={environmentOnly}
+                environmentWorkspaceId={environmentWorkspace}
+                environmentCompanyId={company.id}
                 handleSelectGHO={handleSelectGHO}
                 handleDeleteGHO={handleDeleteGHO}
                 selectedGhoId={selectedGhoId}
@@ -251,6 +513,7 @@ export const GhoTool = () => {
             </STBoxStack>
             <GhoToolTreeFilter />
           </STTableContainer>
+          {assistance?.active && <GseSaveConfirmation />}
         </STBoxContainer>
       )}
       <ModalAddProbability />

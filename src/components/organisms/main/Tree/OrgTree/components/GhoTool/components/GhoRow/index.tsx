@@ -1,3 +1,4 @@
+import { useGseVisualAssistance } from '../../../GseVisualAssistance/GseVisualAssistance.context';
 /* eslint-disable react/display-name */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef } from 'react';
@@ -25,6 +26,7 @@ export const GhoRow = React.memo<GhoRowProps>(
     isDeleteLoading,
     isFirst,
   }) => {
+    const assisted = !!useGseVisualAssistance()?.active;
     const isSelected = selectedGhoId === gho.id;
     const { hide, ref } = useObserverHide();
     const searchSelected = useAppSelector(selectGhoSearch);
@@ -37,7 +39,8 @@ export const GhoRow = React.memo<GhoRowProps>(
       searchSelected &&
       !stringNormalize(gho.name).includes(stringNormalize(searchSelected));
 
-    const displayNone = isToFilter || (selectedGhoId && !isSelected);
+    const displayNone =
+      isToFilter || (!assisted && selectedGhoId && !isSelected);
 
     return (
       <>
@@ -45,7 +48,9 @@ export const GhoRow = React.memo<GhoRowProps>(
           key={gho.id}
           ref={ref}
           sx={{
-            gridTemplateColumns: '285px 1fr',
+            gridTemplateColumns: assisted ? 'minmax(0, 1fr)' : '285px 1fr',
+            width: assisted ? '100%' : undefined,
+            minWidth: assisted ? 0 : undefined,
             display: displayNone ? 'none' : 'grid',
           }}
           gap={5}
@@ -62,9 +67,9 @@ export const GhoRow = React.memo<GhoRowProps>(
           />
         </SFlex>
         <SPopperHelper
-          show={isFirst && !isOrgMultiWorkspace}
+          show={!assisted && isFirst && !isOrgMultiWorkspace}
           content="Click aqui para adicionar setores e cargos ao GSE"
-          isOpen={isOpen && !isOrgMultiWorkspace}
+          isOpen={!assisted && isOpen && !isOrgMultiWorkspace}
           close={close}
           anchorEl={anchorEl}
           minWidth={'400px'}

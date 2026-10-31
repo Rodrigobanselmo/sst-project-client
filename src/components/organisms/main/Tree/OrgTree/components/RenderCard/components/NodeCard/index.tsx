@@ -1,3 +1,8 @@
+import { useRouter } from 'next/router';
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { canLinkEnvironmentAtWorkspace } from '../../../../org-panels.model';
+import { useGseVisualAssistance } from '../../../GseVisualAssistance/GseVisualAssistance.context';
+import { GseAssistanceIndicator } from '../../../GseVisualAssistance/GseAssistanceIndicator';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, MouseEvent, useRef } from 'react';
 import { useStore } from 'react-redux';
@@ -152,6 +157,8 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   node,
   menuRef,
 }) => {
+  const { query } = useRouter();
+  const assisted = !!useGseVisualAssistance()?.active;
   const { onOpenModal } = useModal();
   const updateMutation = useMutUpdateGho();
   const {
@@ -193,6 +200,18 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   };
 
   const onUpdateGho = (newHierarchyIds: string[]) => {
+    const selectedGroup = (store.getState().gho as IGhoState).data;
+    if (!selectedGroup || selectedGroup.id !== GhoId) return;
+    if (
+      selectedGroup.type === HomoTypeEnum.ENVIRONMENT &&
+      !canLinkEnvironmentAtWorkspace(
+        selectedGroup,
+        String(query.companyId || ''),
+        query,
+        String(node.id),
+      )
+    )
+      return;
     if (node.showRef) return;
     if (isOrgMultiWorkspace) return;
     dispatch(setGhoState({ hierarchies: newHierarchyIds }));
@@ -274,9 +293,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     node.type === TreeTypeEnum.OFFICE || node.type === TreeTypeEnum.SUB_OFFICE;
   const showCornerGhoBadge = isCargoCard && !node.showRef;
   const showOptionsSelect =
-    !node.showRef &&
-    !GhoId &&
-    !isUngroupedEstablishmentGroupTreeId(node.id);
+    !node.showRef && !GhoId && !isUngroupedEstablishmentGroupTreeId(node.id);
   const showPopperHelp =
     !node.showRef &&
     node.type === TreeTypeEnum.WORKSPACE &&
@@ -322,7 +339,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
         gap: 1,
       }}
       onClick={
-        !selectionMode && GhoId && !isOrgMultiWorkspace
+        !assisted && !selectionMode && GhoId && !isOrgMultiWorkspace
           ? handleAddGhoHierarchy
           : undefined
       }
@@ -344,7 +361,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
             sx={{ flexShrink: 0, ml: 'auto', position: 'relative' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {selectionMode && canSelect && (
+            {!assisted && selectionMode && canSelect && (
               <Checkbox
                 size="small"
                 checked={isSelected}
@@ -359,7 +376,8 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
                 sx={{ p: 0.25, flexShrink: 0 }}
               />
             )}
-            {!selectionMode && showHeaderActions && (
+            {assisted && <GseAssistanceIndicator node={node} />}
+            {!assisted && !selectionMode && showHeaderActions && (
               <>
                 {showGhoSelectButton && (
                   <SelectGho
@@ -465,7 +483,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
         <NodeLabel label={node.label} />
       </Box>
 
-      {showRefSelect && isHierarchy && (
+      {!assisted && showRefSelect && isHierarchy && (
         <SFlex
           alignItems="center"
           width="100%"
