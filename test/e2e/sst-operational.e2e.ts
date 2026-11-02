@@ -4099,12 +4099,7 @@ test('SST eventos — fonte clínica, CAT e ASO reais, retificação e exclusão
   );
   expect(rectification.kind).toBe('RECTIFICATION');
   expect(rectification.content.ideEmpregador.nrInsc).toBe('11222333000181');
-  await expect(
-    page.getByRole('combobox', {
-      name: 'Inscrição do empregador no eSocial',
-      exact: true,
-    }),
-  ).toHaveCount(0);
+  await expect(page.getByText(/A retificação usará o recibo/)).toBeVisible();
   expect(rectification.unsignedXml).toContain(
     `<nrRecibo>${accepted.receipt}</nrRecibo>`,
   );
@@ -4355,7 +4350,8 @@ test('SST eventos — fonte clínica, CAT e ASO reais, retificação e exclusão
   expect(afterDeliveries).toBe(beforeDeliveries);
 });
 
-test('SST consultoria — operador sem membership cliente prepara e acompanha envios pelo contrato ativo', async ({
+for (const master of [false, true]) {
+test(`SST consultoria — ${master ? 'master em testes' : 'operador em produção'} sem membership cliente prepara e acompanha envios pelo contrato ativo`, async ({
   page,
 }) => {
   test.setTimeout(240000);
@@ -4384,7 +4380,7 @@ test('SST consultoria — operador sem membership cliente prepara e acompanha en
       companies: {
         create: {
           companyId: consultancy.id,
-          roles: ['master', '1', '8', '14', '15', '16'],
+          roles: [...(master ? ['master'] : []), '1', '8', '14', '15', '16'],
           permissions: [
             '14-cru',
             '26-cr',
@@ -4422,7 +4418,8 @@ test('SST consultoria — operador sem membership cliente prepara e acompanha en
     Buffer.from(cookie.split('.')[1], 'base64url').toString(),
   );
   expect(claims.companyId).toBe(consultancy.id);
-  expect(claims.roles).not.toContain('master');
+  expect(claims.roles.includes('master')).toBe(master);
+  await expect(page.getByRole('combobox', { name: 'Ambiente destes eventos', exact: true })).toHaveCount(master ? 1 : 0);
   await expect(
     page.getByRole('region', { name: 'Situação do acompanhamento eSocial' }),
   ).toBeVisible();
@@ -4525,19 +4522,20 @@ test('SST consultoria — operador sem membership cliente prepara e acompanha en
   expect(event.state, JSON.stringify(event.diagnostics)).toBe('READY');
   expect(event.source.id).toBe(clinical.id);
   expect(event.content.ideEmpregador.nrInsc).toBe('11222333000181');
-  expect(event.legalDeadline.deadline.environment).toBe(2);
-  expect(event.legalDeadline.deadline.legalEffect).toBe(false);
+  expect(event.environment).toBe(master ? 2 : 1);
+  expect(event.legalDeadline.deadline.environment).toBe(master ? 2 : 1);
+  expect(event.legalDeadline.deadline.legalEffect).toBe(!master);
   const prepared = await db.sstSecondaryEvent.findUniqueOrThrow({
     where: { id: event.id },
   });
   expect(prepared.actorId).toBe(String(consultant.id));
   expect(prepared.companyId).toBe(companyId);
-  const accepted = await call(
+  const accepted = master ? await call(
     page,
     'POST',
     `/companies/${companyId}/sst-domain-test/browser/accept-secondary`,
     { type: 'S-2221', id: event.id },
-  );
+  ) : null;
   const region = page.getByRole('region', {
     name: 'Conferência do evento adicional',
     exact: true,
@@ -4546,13 +4544,15 @@ test('SST consultoria — operador sem membership cliente prepara e acompanha en
     name: 'Prazo legal do evento preparado',
     exact: true,
   });
-  await expect(legalDeadline).toContainText('Simulação · produção restrita');
-  await expect(legalDeadline).toContainText(
-    'cumprimento do prazo não avaliado',
-  );
-  await expect(
-    region.getByText(accepted.receipt, { exact: true }),
-  ).toBeVisible();
+  if (accepted) {
+    await expect(legalDeadline).toContainText('Simulação · produção restrita');
+    await expect(legalDeadline).toContainText('cumprimento do prazo não avaliado');
+    await expect(region.getByText(accepted.receipt, { exact: true })).toBeVisible();
+  } else {
+    await expect(legalDeadline).not.toContainText('Simulação · produção restrita');
+    await expect(region.getByRole('button', { name: 'Confirmar transmissão deste evento', exact: true })).toBeDisabled();
+    expect(await db.sstSecondaryDelivery.count({ where: { eventId: event.id } })).toBe(0);
+  }
   await region.scrollIntoViewIfNeeded();
   await page.screenshot({
     path: test.info().outputPath('consultoria-envio-desktop.png'),
@@ -4561,12 +4561,10 @@ test('SST consultoria — operador sem membership cliente prepara e acompanha en
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await region.scrollIntoViewIfNeeded();
-  const result = region.getByLabel('Resultado do processamento deste evento', {
+  const result = accepted ? region.getByLabel('Resultado do processamento deste evento', {
     exact: true,
-  });
-  await expect(
-    result.getByText(accepted.receipt, { exact: true }),
-  ).toBeVisible();
+  }) : region;
+  if (accepted) await expect(result.getByText(accepted.receipt, { exact: true })).toBeVisible();
   expect(
     await result.evaluate(
       (element) => element.scrollWidth <= element.clientWidth,
@@ -4594,6 +4592,7 @@ test('SST consultoria — operador sem membership cliente prepara e acompanha en
     ).receipt,
   ).toBe(initial.receipt);
 });
+}
 
 test('SST contexto — data e motivo valem nesta aba, com exceção por alteração e encerramento explícito', async ({
   page,

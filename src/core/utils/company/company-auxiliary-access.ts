@@ -12,7 +12,8 @@ type AuxiliaryUser =
 // UI fetch gate; the API continues to authorize every actual request.
 export function canReadCompanyAuxiliaryData(user: AuxiliaryUser): boolean {
   if (!user?.id) return false;
-  if (user.roles?.includes('master')) return true;
+  // A platform role enables the eSocial environment selector, but does not
+  // replace the company read grant required by the branding/group endpoints.
   return (user.permissions || []).some((permission) => {
     const [code, rights] = permission.split('-');
     return (

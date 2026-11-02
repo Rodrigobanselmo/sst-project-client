@@ -93,7 +93,7 @@ test('S-2240 — preparar na tela existente usa a API real, mostra impedimentos 
     .getByRole('button', { name: 'Preparar primeiro envio', exact: true })
     .click();
   const prepared = await assertStatus(await preparedResponse, 201);
-  expect(prepared.environment).toBe(2);
+  expect(prepared.environment).toBe(1);
   expect(prepared.sourceManifest.selection).toBe('CURRENT');
   expect(prepared.sourceManifest.mode).toBe('INITIAL');
   expect(prepared.state).toBe('BLOCKED');

@@ -26,7 +26,11 @@ test('existing company readers and explicit legacy master rights retain company 
     ['master-crud'],
   ])
     assert.equal(canReadCompanyAuxiliaryData({ id: 1, permissions }), true);
-  assert.equal(canReadCompanyAuxiliaryData({ id: 1, roles: ['master'] }), true);
+  assert.equal(canReadCompanyAuxiliaryData({ id: 1, roles: ['master'], permissions: ['2-r'] }), true);
+});
+test('master role without company read does not trigger forbidden auxiliary requests', () => {
+  for (const permissions of [[], ['14-r'], ['14-ru'], ['2-u']])
+    assert.equal(canReadCompanyAuxiliaryData({ id: 1, roles: ['master'], permissions }), false);
 });
 test('missing sessions and similarly named roles never enable auxiliary queries', () => {
   assert.equal(canReadCompanyAuxiliaryData(null), false);

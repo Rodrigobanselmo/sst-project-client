@@ -100,8 +100,8 @@ test('07 — riscos químicos, físicos e biológicos: cadastro, GSE e vínculos
     .getByRole('button', { name: 'Selecionar Ativos', exact: true })
     .last()
     .click();
-  await page.getByPlaceholder('__/__/__').first().fill('01/01/2026');
-  await page.getByPlaceholder('__/__/__').first().press('Tab');
+  await page.getByLabel('Data de início', { exact: true }).fill('01/01/2026');
+  await page.getByLabel('Data de início', { exact: true }).press('Tab');
   const group = await db.homogeneousGroup.findFirstOrThrow({
     where: { companyId: fixture.companyId, name: 'GSE RISCOS NAVEGADOR E2E' },
   });
@@ -133,8 +133,8 @@ test('07 — riscos químicos, físicos e biológicos: cadastro, GSE e vínculos
       .getByRole('button', { name: 'Selecionar Ativos', exact: true })
       .last()
       .click();
-    await page.getByPlaceholder('__/__/__').first().fill('01/01/2026');
-    await page.getByPlaceholder('__/__/__').first().press('Tab');
+    await page.getByLabel('Data de início', { exact: true }).fill('01/01/2026');
+    await page.getByLabel('Data de início', { exact: true }).press('Tab');
     const updated = waitForApi(
       page,
       'PATCH',
