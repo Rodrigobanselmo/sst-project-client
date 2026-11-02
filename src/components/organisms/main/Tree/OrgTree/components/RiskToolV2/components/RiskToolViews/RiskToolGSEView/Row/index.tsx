@@ -12,6 +12,7 @@ import { useRiskCatalogDndOptional } from '../../../../risk-catalog-dnd/RiskCata
 import { RiskToolSingleRiskRow } from '../../../SideRowTable/SingleRisk';
 import { useRiskRowsExpandOptional } from '../RiskRowsExpandContext';
 import { RiskToolGSEViewRowRiskBox } from './RiskBox';
+import { RiskFactorAiOccurrenceBoundary } from '../../../../risk-factors-ai/RiskFactorsAiProvider';
 import { SideRowProps } from './types';
 
 // STBoxStack é flex column com altura fixa. overflow≠visible no filho zera
@@ -48,6 +49,7 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
       isBatchSelecting && dnd?.batchSession?.sourceRiskId !== risk.id;
 
     return (
+      <RiskFactorAiOccurrenceBoundary riskData={riskData} disabled={readOnly || isRepresentAll}>
       <Box
         key={risk.id}
         sx={{
@@ -132,6 +134,7 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
           </Box>
         )}
       </Box>
+      </RiskFactorAiOccurrenceBoundary>
     );
   },
 );

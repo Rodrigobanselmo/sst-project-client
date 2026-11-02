@@ -1,0 +1,40 @@
+import type { SaveRequest, SaveResult } from './gse-additive-save';
+import { createContext, useContext } from 'react';
+import type { IGho } from 'core/interfaces/api/IGho';
+import type { ITreeMap } from '../../interfaces';
+import type { ReviewState } from './gse-visual-assistance.model';
+import type { IntegratedReview } from './gse-integrated-review.model';
+export type AssistanceContextValue = {
+  persistenceBusy?: boolean;
+  setPersistenceBusy?: (busy: boolean) => void;
+  persisted?: (request: SaveRequest, result: SaveResult) => Promise<void>;
+  active: boolean;
+  toggle: () => void;
+  companyId: string;
+  workspaceId: string;
+  setWorkspaceId: (id: string) => void;
+  workspaces: { id: string; name: string }[];
+  nodes: ITreeMap;
+  groups: IGho[];
+  rows: IGho[];
+  guidance: string;
+  setGuidance: (value: string) => void;
+  review: IntegratedReview;
+  hasAnalysis: boolean;
+  selectedGroupId: string | null;
+  navigationRequest?: { groupId: string; sequence: number };
+  selectGroup: (id: string | null) => void;
+  stale: boolean;
+  loading: boolean;
+  error: string;
+  analyze: () => void;
+  propose: (groupId: string, nodeId: string, kind: 'ADD' | 'REMOVE') => void;
+  decide: (id: string, value: ReviewState) => void;
+  decideGroup: (id: string, value: ReviewState) => void;
+  renameGroup: (id: string, name: string) => void;
+  describeGroup?: (id: string, description: string) => void;
+};
+export const GseVisualAssistanceContext =
+  createContext<AssistanceContextValue | null>(null);
+export const useGseVisualAssistance = () =>
+  useContext(GseVisualAssistanceContext);

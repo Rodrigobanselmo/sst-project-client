@@ -1,3 +1,4 @@
+import { useGseVisualAssistance } from '../GseVisualAssistance/GseVisualAssistance.context';
 import React, { MouseEvent, useRef } from 'react';
 
 import {
@@ -26,6 +27,7 @@ import { useDnd } from './hooks/useDnd';
 import { STCardArea, STRenderLabel } from './styles';
 
 export const RenderCard = ({ node, prop }: IRenderCard) => {
+  const assisted = !!useGseVisualAssistance()?.active;
   const dispatch = useAppDispatch();
   const { setSelectedItem } = useHierarchyTreeActions();
   const { drop, isDragging, drag } = useDnd(node);
@@ -40,6 +42,11 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   if (node.className) clx.push(node.className);
 
   const handleClickCard = (e?: MouseEvent) => {
+    if (assisted) {
+      e?.preventDefault();
+      e?.stopPropagation();
+      return;
+    }
     if (node.showRef) return;
 
     // Shift + clique: inicia o modo de seleção e marca o card (sem abrir modal).
@@ -60,10 +67,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
 
     if (isEstablishmentGroupTreeType(node.type)) {
       const groupId = getEstablishmentGroupIdFromTreeId(node.id);
-      onOpenModal(
-        ModalEnum.ESTABLISHMENT_GROUPS,
-        groupId ? { groupId } : {},
-      );
+      onOpenModal(ModalEnum.ESTABLISHMENT_GROUPS, groupId ? { groupId } : {});
       return;
     }
 
@@ -72,7 +76,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   };
 
   const onContextMenu = (e: MouseEvent<HTMLDivElement>) => {
-    if (selectionMode) {
+    if (selectionMode || assisted) {
       e.preventDefault();
       return;
     }
@@ -86,17 +90,17 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
       key={`label_${node.id}`}
       horizontal={prop.horizontal ? 1 : 0}
       className={'org-tree-node-label'}
-      ref={drop as any}
+      ref={assisted ? undefined : (drop as any)}
       sx={selectionMode ? { cursor: 'default' } : undefined}
     >
       <STRenderLabel
         key={`label_inner_${node.id}`}
         id={`node_card_${node.id}`}
-        ref={drag as any}
+        ref={assisted ? undefined : (drag as any)}
         type={node.type}
         isDragging={isDragging}
-        isSelected={isSelected}
-        selectionMode={selectionMode}
+        isSelected={assisted ? false : isSelected}
+        selectionMode={assisted ? false : selectionMode}
         className={clx.join(' ')}
         style={{
           ...node?.style,

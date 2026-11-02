@@ -11,6 +11,11 @@ export type RiskFactorAiField = Exclude<
   'probability' | 'observation'
 >;
 
+export type RiskFactorAiSelectedField = RiskFactorAiField | 'probability';
+export type RiskFactorAiSelectedApiField =
+  | RiskFactorAiApiField
+  | 'probabilidade';
+
 export type RiskFactorAiApiField =
   | 'fonteGeradora'
   | 'medidasEngenhariaExistentes'
@@ -18,7 +23,10 @@ export type RiskFactorAiApiField =
   | 'medidasEngenhariaRecomendadas'
   | 'medidasAdministrativasRecomendadas';
 
-export const RISK_FACTOR_AI_API_FIELD: Record<RiskFactorAiField, RiskFactorAiApiField> = {
+export const RISK_FACTOR_AI_API_FIELD: Record<
+  RiskFactorAiField,
+  RiskFactorAiApiField
+> = {
   generateSource: 'fonteGeradora',
   existingEngineeringMeasures: 'medidasEngenhariaExistentes',
   existingAdministrativeMeasures: 'medidasAdministrativasExistentes',
@@ -31,15 +39,38 @@ const RISK_MODE_FIELDS = new Set<RiskFactorAiField>(
 );
 
 export type RiskFactorAiScopeRequest =
-  | { scope: 'risk'; riskId: string }
+  | {
+      scope: 'risk';
+      riskId: string;
+      selectedFields?: RiskFactorAiSelectedField[];
+      userGuidance?: string;
+    }
   | { scope: 'field'; riskId: string; field: RiskFactorAiField };
 
 export function buildAiAnalyzeScopePayload(request: RiskFactorAiScopeRequest): {
   scope: 'risk' | 'field';
   riskId: string;
   field?: RiskFactorAiApiField;
+  selectedFields?: RiskFactorAiSelectedApiField[];
+  userGuidance?: string;
 } {
   if (request.scope === 'risk') {
+    if (request.selectedFields) {
+      if (!request.selectedFields.length)
+        throw new Error('Selecione pelo menos um campo.');
+      return {
+        scope: 'risk',
+        riskId: request.riskId,
+        selectedFields: request.selectedFields.map((field) =>
+          field === 'probability'
+            ? 'probabilidade'
+            : RISK_FACTOR_AI_API_FIELD[field],
+        ),
+        ...(request.userGuidance?.trim()
+          ? { userGuidance: request.userGuidance.trim() }
+          : {}),
+      };
+    }
     return { scope: 'risk', riskId: request.riskId };
   }
   return {
@@ -49,7 +80,9 @@ export function buildAiAnalyzeScopePayload(request: RiskFactorAiScopeRequest): {
   };
 }
 
-export function scopedAiEmptyMessage(scope: RiskFactorAiScopeRequest['scope']): string {
+export function scopedAiEmptyMessage(
+  scope: RiskFactorAiScopeRequest['scope'],
+): string {
   if (scope === 'risk') {
     return 'Não foram identificadas sugestões pertinentes para este fator de risco.';
   }
@@ -57,7 +90,11 @@ export function scopedAiEmptyMessage(scope: RiskFactorAiScopeRequest['scope']): 
 }
 
 export function existingControlEmptyMessage(
-  reason?: 'missing_generate_source' | 'insufficient_context' | 'exhausted' | null,
+  reason?:
+    | 'missing_generate_source'
+    | 'insufficient_context'
+    | 'exhausted'
+    | null,
 ): string {
   if (reason === 'missing_generate_source') {
     return 'Preencha a fonte geradora deste fator antes de pedir sugestões de controles existentes.';
@@ -80,10 +117,19 @@ export function filterReviewsForRiskFactorAi(
     .map((review) => ({
       ...review,
       suggestions: (review.suggestions || []).filter((suggestion) => {
-        if (suggestion.field === 'probability' || suggestion.field === 'observation') {
+        if (request.scope === 'risk' && request.selectedFields) {
+          return request.selectedFields.includes(
+            suggestion.field as RiskFactorAiSelectedField,
+          );
+        }
+        if (
+          suggestion.field === 'probability' ||
+          suggestion.field === 'observation'
+        ) {
           return false;
         }
-        if (request.scope === 'field') return suggestion.field === request.field;
+        if (request.scope === 'field')
+          return suggestion.field === request.field;
         return RISK_MODE_FIELDS.has(suggestion.field);
       }),
     }))

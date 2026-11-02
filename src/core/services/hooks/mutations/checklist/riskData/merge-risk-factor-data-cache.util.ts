@@ -17,8 +17,9 @@ export function isSameRiskFactorDataCacheRow(
   item: RiskFactorDataCacheIdentity,
   incoming: RiskFactorDataCacheIdentity,
 ): boolean {
-  if (item.id && incoming.id && item.id === incoming.id) {
-    return true;
+  // Two persisted records can never be merged by the legacy owner/risk fallback.
+  if (item.id && incoming.id) {
+    return item.id === incoming.id;
   }
 
   if (!item.riskId || !incoming.riskId || item.riskId !== incoming.riskId) {

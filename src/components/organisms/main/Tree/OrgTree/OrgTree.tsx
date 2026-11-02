@@ -1,3 +1,5 @@
+import { GseFloatingPanel } from './components/GseVisualAssistance/GseFloatingPanel';
+import { GseReviewNavigation } from './components/GseVisualAssistance/GseReviewNavigation';
 import React, { FC, useEffect, useRef } from 'react';
 
 import { Box, Icon, Stack } from '@mui/material';
@@ -27,14 +29,18 @@ import { LoadingFeedback } from './components/LoadingFeedback';
 import { MouseControl } from './components/MouseControl';
 import { RiskTool } from './components/RiskTool/RiskTool';
 import { IOrgTreeProps } from './interfaces';
+import { GseVisualAssistanceProvider } from './components/GseVisualAssistance/GseVisualAssistance';
+import { useGseVisualAssistance } from './components/GseVisualAssistance/GseVisualAssistance.context';
 import { OrgTree, OrgTreeContainer, STGhoBox } from './OrgTree.styles';
 
-export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
+const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
   collapsable = true,
   horizontal = false,
   showGHO = true,
   ...props
 }) => {
+  const assistance = useGseVisualAssistance();
+  const assisted = !!assistance?.active;
   const orgContainerRef = useRef<HTMLDivElement>(null);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const isGhoOpen = useAppSelector(selectGhoOpen);
@@ -66,8 +72,12 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
         flex: 1,
       }}
     >
-      <HierarchyFilter />
-      {query.companyId && (
+      <GseReviewNavigation
+        containerRef={orgContainerRef}
+        onChangeZoom={onChangeZoom}
+      />
+      {!assisted && <HierarchyFilter />}
+      {query.companyId && !assisted && (
         <Box sx={{ mx: '16px', mb: '16px' }}>
           <StructuralArchivedButton
             companyId={String(query.companyId)}
@@ -101,25 +111,26 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
           minHeight: 0,
         }}
       >
-        {(!selectExpanded || !isRiskOpen) && (
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 20,
+            right: 88,
+            // Above the draggable assistance (1200), below modal dialogs (1300).
+            zIndex: 1201,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            flexWrap: 'wrap',
+            gap: 2,
+            maxWidth: 'calc(100% - 108px)',
+          }}
+        >
+          <LoadingFeedback />
+          {showGHO && <BottomButton />}
+        </Box>
+        {(assisted || !selectExpanded || !isRiskOpen) && (
           <>
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 20,
-                right: 88,
-                zIndex: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                flexWrap: 'wrap',
-                gap: 2,
-                maxWidth: 'calc(100% - 108px)',
-              }}
-            >
-              <LoadingFeedback />
-              {showGHO && <BottomButton />}
-            </Box>
             <MouseControl orgContainerRef={orgContainerRef} />
             <OrgTreeContainer
               id="org-tree-container"
@@ -137,16 +148,32 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
           </>
         )}
       </Box>
-      {showGHO && (
+      {showGHO && assisted && (
+        <GseFloatingPanel>
+          <GhoTool />
+        </GseFloatingPanel>
+      )}
+      {showGHO && !assisted && (
         <STGhoBox
-          expanded={selectExpanded ? 1 : 0}
-          gho={isGhoOpen && !isOrgMultiWorkspace ? 1 : 0}
-          risk_init={isRiskOpen ? 1 : 0}
+          expanded={!assisted && selectExpanded ? 1 : 0}
+          gho={isGhoOpen ? 1 : 0}
+          risk_init={!assisted && isRiskOpen ? 1 : 0}
         >
-          {isRiskOpen && <RiskTool />}
-          {!isRiskOpen && <GhoTool />}
+          {!assisted && isRiskOpen && <RiskTool />}
+          {!isRiskOpen && <GhoTool key="environment" environmentOnly />}
         </STGhoBox>
       )}
     </Box>
   );
 };
+
+export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = (
+  props,
+) =>
+  props.showGHO === false ? (
+    <OrgTreeView {...props} />
+  ) : (
+    <GseVisualAssistanceProvider>
+      <OrgTreeView {...props} />
+    </GseVisualAssistanceProvider>
+  );

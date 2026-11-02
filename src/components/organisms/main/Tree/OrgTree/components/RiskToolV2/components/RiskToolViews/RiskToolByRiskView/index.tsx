@@ -195,6 +195,7 @@ export const RiskToolByRiskView: FC<RiskToolByRiskViewProps> = ({
         <RiskToolByRiskRow
           key={row.rowId}
           row={row}
+          occurrences={coerceRiskDataList(riskDataList)}
           risk={risk}
           riskGroupId={riskGroupId}
         />
@@ -214,6 +215,7 @@ export const RiskToolByRiskView: FC<RiskToolByRiskViewProps> = ({
             <RiskToolByRiskRow
               key={row.rowId}
               row={row}
+              occurrences={coerceRiskDataList(riskDataList)}
               risk={risk}
               riskGroupId={riskGroupId}
             />

@@ -3,6 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 
 import { Box, CircularProgress } from '@mui/material';
 import SText from 'components/atoms/SText';
+import { RiskLinkageAiProvider } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/RiskLinkageAiProvider';
 import { RiskToolV2 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/RiskTool';
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/utils/view-data-type.constant';
 import { getCurrentRiskGroupId } from 'components/organisms/modals/ModalAddCharacterization/utils/get-current-risk-group-id.util';
@@ -114,15 +115,21 @@ export const RiskToolByEntityTabContent = () => {
     >
       <Box sx={{ px: 1, pt: 1, pb: 1.5, flexShrink: 0 }}>
         <SText color="text.secondary" fontSize={13}>
-          Fatores de riscos por entidade — GSE, Elementos Caracterizados e Hierarquia.
+          Fatores de riscos por entidade — GSE, Elementos Caracterizados e
+          Hierarquia.
         </SText>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <RiskToolV2
+        <RiskLinkageAiProvider
+          companyId={companyId || ''}
           riskGroupId={riskGroupId}
-          riskContextCompanyId={companyId || undefined}
-          embedded
-        />
+        >
+          <RiskToolV2
+            riskGroupId={riskGroupId}
+            riskContextCompanyId={companyId || undefined}
+            embedded
+          />
+        </RiskLinkageAiProvider>
       </Box>
     </Box>
   );

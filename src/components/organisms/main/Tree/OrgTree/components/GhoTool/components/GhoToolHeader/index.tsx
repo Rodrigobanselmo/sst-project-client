@@ -1,3 +1,4 @@
+import { useGseVisualAssistance } from '../../../GseVisualAssistance/GseVisualAssistance.context';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useEffect } from 'react';
 
@@ -24,6 +25,7 @@ export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
   inputRef,
   filter,
 }) => {
+  const assisted = !!useGseVisualAssistance()?.active;
   const dispatch = useAppDispatch();
   const searchSelected = useAppSelector(selectGhoSearch);
 
@@ -48,10 +50,10 @@ export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
         ref={inputRef}
         handleSelectGHO={handleSelectGHO}
         onSearch={onSearch}
-        handleEditGHO={handleEditGHO}
-        handleAddGHO={!filter ? handleAddGHO : undefined}
+        handleEditGHO={assisted ? undefined : handleEditGHO}
+        handleAddGHO={!assisted && !filter ? handleAddGHO : undefined}
         handleAddCharacterization={
-          filter ? handleAddCharacterization : undefined
+          !assisted && filter ? handleAddCharacterization : undefined
         }
         characterizationAddTooltip={characterizationTooltip}
         isAddLoading={isAddLoading}

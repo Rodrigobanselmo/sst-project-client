@@ -6,6 +6,9 @@ import { IGho } from 'core/interfaces/api/IGho';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface RiskToolRiskViewProps {
+  environmentOnly?: boolean;
+  environmentWorkspaceId?: string;
+  environmentCompanyId?: string;
   isDeleteLoading: boolean;
   selectedGhoId: string | null;
   handleEditGHO: (data: IGho) => void;

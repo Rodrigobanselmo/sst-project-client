@@ -1,3 +1,4 @@
+import type { AiRiskOccurrenceIdentity } from '../../../risk-factors-ai/by-risk-occurrence/ai-risk-occurrence.identity';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useMemo } from 'react';
 
@@ -69,7 +70,7 @@ export const RiskToolSingleRiskRow: FC<
     upsertRiskData,
   } = useColumnAction();
 
-  const handleSelect = async (values: Partial<IUpsertRiskData>) => {
+  const handleSelect = async (values: Partial<IUpsertRiskData>, context?: { occurrence: AiRiskOccurrenceIdentity }) => {
     if (!isOriginEdit && (readOnly || riskData?.canEditOnThisEntity === false)) {
       return;
     }
@@ -111,6 +112,7 @@ export const RiskToolSingleRiskRow: FC<
         routeWorkspaceId: query.workspaceId,
         tabWorkspaceId: query.tabWorkspaceId,
       }),
+      ...(context?.occurrence ? { occurrence: context.occurrence, workspaceId: context.occurrence.workspaceId } : {}),
     } as IUpsertRiskData;
 
     const prepared = prepareWorkspaceProbabilityWrite({

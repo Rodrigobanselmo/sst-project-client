@@ -29,6 +29,7 @@ export const queryRiskData = async (
 export function useQueryRiskDataByGho(
   riskGroupId: string,
   homogeneousGroupId: string,
+  options?: { enabled?: boolean },
 ): IReactQuery<IRiskData[]> {
   const { companyId, workspaceId, router } = useGetCompanyId();
   const operationWorkspaceId =
@@ -47,7 +48,7 @@ export function useQueryRiskDataByGho(
         : <Promise<IRiskData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
-      enabled: !!companyId && !!riskGroupId && !!homogeneousGroupId,
+      enabled: options?.enabled !== false && !!companyId && !!riskGroupId && !!homogeneousGroupId,
     },
   );
 

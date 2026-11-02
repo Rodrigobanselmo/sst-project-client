@@ -1,3 +1,4 @@
+import { EditorProbabilityAiScope } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/EditorProbabilityAiScope';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { ReactNode, useEffect, useMemo } from 'react';
 import { Wizard } from 'react-use-wizard';
@@ -498,12 +499,20 @@ export const ModalAddHierarchyRisk = (
                   />
                 )}
               >
-                <RiskToolForCharacterization
+                <EditorProbabilityAiScope
+                  kind="CHARACTERIZATION"
+                  companyId={data.companyId || ''}
+                  workspaceId={data.workspaceId}
+                  ownerId={data.id}
                   riskGroupId={riskGroupId}
-                  characterizationId={data.id}
-                  characterizationName={data.name}
-                  riskContextCompanyId={data.companyId}
-                />
+                >
+                  <RiskToolForCharacterization
+                    riskGroupId={riskGroupId}
+                    characterizationId={data.id}
+                    characterizationName={data.name}
+                    riskContextCompanyId={data.companyId}
+                  />
+                </EditorProbabilityAiScope>
               </RiskFactorsAiProvider>
             </Box>
           )}
