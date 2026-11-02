@@ -4,7 +4,10 @@ import { Box, Icon, Stack } from '@mui/material';
 import SSlider from 'components/atoms/SSlider';
 import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
-import { setCopyDndActive, setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
+import {
+  setCopyDndActive,
+  setHierarchySearch,
+} from 'store/reducers/hierarchy/hierarchySlice';
 import { selectRiskAddExpand } from 'store/reducers/hierarchy/riskAddSlice';
 
 import SZooInIcon from 'assets/icons/SZooInIcon';
@@ -13,6 +16,7 @@ import SZooOutIcon from 'assets/icons/SZooOutIcon';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
+import { StructuralArchivedButton } from '@v2/features/sst-operational/StructuralArchivedButton';
 
 import { useZoom } from '../../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
@@ -63,6 +67,15 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
       }}
     >
       <HierarchyFilter />
+      {query.companyId && (
+        <Box sx={{ mx: '16px', mb: '16px' }}>
+          <StructuralArchivedButton
+            companyId={String(query.companyId)}
+            table="Hierarchy"
+            label="Consultar cargos e setores encerrados"
+          />
+        </Box>
+      )}
       <Box sx={{ width: 278, ml: 17 }}>
         <Stack spacing={5} direction="row" sx={{ mb: 1 }} alignItems="center">
           <SSlider

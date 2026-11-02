@@ -195,6 +195,8 @@ export type SystemRiskMatrixEditorialMeta = {
 };
 
 export type PutSystemRiskMatrixPayload = {
+  expectedRevision: number;
+  operationId: string;
   axisCriteria: SystemRiskMatrixAxisCriterion[];
   axisLevelColors: SystemRiskMatrixAxisLevelColor[];
   classificationColors: SystemRiskMatrixClassificationColor[];

@@ -36,7 +36,6 @@ import {
   useMutateReplaceRiskMatrixDraft,
 } from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
 import {
-  ClassificationLabelSync,
   CompanyRiskMatrixStatusEnum,
   CompanyRiskMatrixVersionStatusEnum,
   RiskMatrixAxisEnum,
@@ -49,6 +48,7 @@ import {
   RISK_MATRIX_COVERAGE_OPTIONS,
   RISK_MATRIX_ORIENTATION_OPTIONS,
   RISK_MATRIX_PUBLISH_CONFIRMATION,
+  RISK_MATRIX_VERSION_HISTORY_HELP,
   RISK_MATRIX_PUBLISH_SAVE_FIRST_MESSAGE,
   RISK_MATRIX_SIMPLE_SST_EQUIVALENCE_OPTIONS,
   RISK_MATRIX_SIMPLE_SST_HELP,
@@ -101,45 +101,6 @@ type RiskMatrixEditorPageContentProps = {
   matrixId: string;
   versionId: string;
 };
-
-const syncedEvaluationCount = (sync: ClassificationLabelSync[] | undefined) =>
-  (sync ?? [])
-    .filter((item) => item.changed)
-    .reduce(
-      (total, item) =>
-        total +
-        item.updated.riskFactorDataResolved +
-        item.updated.riskFactorDataResidual +
-        item.updated.workspaceEvaluationResolved +
-        item.updated.workspaceEvaluationResidual,
-      0,
-    );
-
-const skippedEvaluationCount = (sync: ClassificationLabelSync[] | undefined) =>
-  (sync ?? []).reduce(
-    (total, item) => total + item.skipped.reduce((sum, row) => sum + row.count, 0),
-    0,
-  );
-
-const presentationSavedMessage = (sync: ClassificationLabelSync[] | undefined) => {
-  const updated = syncedEvaluationCount(sync);
-  const skipped = skippedEvaluationCount(sync);
-  if (!updated && !skipped) return 'Apresentação da matriz publicada salva';
-  const updatedText =
-    updated === 1
-      ? '1 texto de avaliação vinculado foi atualizado'
-      : `${updated} textos de avaliação vinculados foram atualizados`;
-  if (!skipped) return `Apresentação salva. ${updatedText}.`;
-  const skippedText =
-    skipped === 1
-      ? '1 registro desta versão ficou sem vínculo e não foi alterado'
-      : `${skipped} registros desta versão ficaram sem vínculo e não foram alterados`;
-  return `Apresentação salva. ${updatedText}. ${skippedText}.`;
-};
-
-const presentationSavedTone = (
-  sync: ClassificationLabelSync[] | undefined,
-): 'success' | 'warning' => (skippedEvaluationCount(sync) > 0 ? 'warning' : 'success');
 
 export const RiskMatrixEditorPageContent: FC<
   RiskMatrixEditorPageContentProps
@@ -210,11 +171,16 @@ export const RiskMatrixEditorPageContent: FC<
     version?.status === CompanyRiskMatrixVersionStatusEnum.PUBLISHED &&
     matrix?.status === CompanyRiskMatrixStatusEnum.ACTIVE;
   const presentationLocked = readOnly && !presentationEditable;
-  const dirty = Boolean(editor && baseline && isEditorStateDirty(editor, baseline));
+  const dirty = Boolean(
+    editor && baseline && isEditorStateDirty(editor, baseline),
+  );
   const validation = editor ? validateEditorState(editor) : null;
 
   const severityLevels = useMemo(
-    () => (editor ? getAxisLevelsByAxis(editor.axisLevels, RiskMatrixAxisEnum.SEVERITY) : []),
+    () =>
+      editor
+        ? getAxisLevelsByAxis(editor.axisLevels, RiskMatrixAxisEnum.SEVERITY)
+        : [],
     [editor],
   );
   const probabilityLevels = useMemo(
@@ -299,7 +265,10 @@ export const RiskMatrixEditorPageContent: FC<
       setBaseline(next);
     } catch (error) {
       showSnackBar(
-        getRiskMatrixApiErrorMessage(error, 'Não foi possível salvar o rascunho.'),
+        getRiskMatrixApiErrorMessage(
+          error,
+          'Não foi possível salvar o rascunho.',
+        ),
         { type: 'error' },
       );
     } finally {
@@ -318,11 +287,13 @@ export const RiskMatrixEditorPageContent: FC<
       return;
     }
 
-    if (!canAttemptPublishRiskMatrixVersion({
-      status: version.status,
-      dirty,
-      readOnly,
-    })) {
+    if (
+      !canAttemptPublishRiskMatrixVersion({
+        status: version.status,
+        dirty,
+        readOnly,
+      })
+    ) {
       if (dirty) {
         showSnackBar(RISK_MATRIX_PUBLISH_SAVE_FIRST_MESSAGE, {
           type: 'error',
@@ -375,13 +346,18 @@ export const RiskMatrixEditorPageContent: FC<
       return;
     }
     if (editor.classifications.some((item) => !item.label.trim())) {
-      showSnackBar('Preencha o nome de todas as classificações.', { type: 'error' });
+      showSnackBar('Preencha o nome de todas as classificações.', {
+        type: 'error',
+      });
       return;
     }
     if (editor.classifications.some((item) => item.label.trim().length > 120)) {
-      showSnackBar('O nome da classificação pode ter no máximo 120 caracteres.', {
-        type: 'error',
-      });
+      showSnackBar(
+        'O nome da classificação pode ter no máximo 120 caracteres.',
+        {
+          type: 'error',
+        },
+      );
       return;
     }
 
@@ -393,44 +369,43 @@ export const RiskMatrixEditorPageContent: FC<
       if (nameChanged || descriptionChanged) {
         await patchIdentityMutation.mutateAsync({
           name: editor.name.trim(),
-          description: editor.description.trim() ? editor.description.trim() : null,
+          description: editor.description.trim()
+            ? editor.description.trim()
+            : null,
         });
       }
-
-      const criteria = editor.axisLevels.flatMap((level) => {
-        const stored = version.axisLevels.find(
-          (item) => item.axis === level.axis && item.value === level.value,
-        );
-        const previous = baseline.axisLevels.find(
-          (item) => item.axis === level.axis && item.value === level.value,
-        );
-        if (!stored) return [];
-        return editor.coverages.flatMap((coverage) => {
-          const next = (level.criteriaByCoverage[coverage] ?? '').trim();
-          const before = (previous?.criteriaByCoverage[coverage] ?? '').trim();
-          if (!next || next === before) return [];
-          return [{ axisLevelId: stored.id, coverageKey: coverage, criterion: next }];
-        });
-      });
 
       const nextColors = editor.axisLevelColors ?? [];
       const previousColors = baseline.axisLevelColors ?? [];
       const axisLevelColors = nextColors.filter((item) => {
-        const previous = previousColors.find((color) => color.value === item.value);
-        return !previous || previous.color.toUpperCase() !== item.color.toUpperCase();
+        const previous = previousColors.find(
+          (color) => color.value === item.value,
+        );
+        return (
+          !previous || previous.color.toUpperCase() !== item.color.toUpperCase()
+        );
       });
 
       const classificationColors = editor.classifications.flatMap((item) => {
-        const previous = baseline.classifications.find((row) => row.key === item.key);
-        const stored = version.classifications.find((row) => row.key === item.key);
+        const previous = baseline.classifications.find(
+          (row) => row.key === item.key,
+        );
+        const stored = version.classifications.find(
+          (row) => row.key === item.key,
+        );
         if (!stored || !previous) return [];
-        if (previous.color.toUpperCase() === item.color.toUpperCase()) return [];
+        if (previous.color.toUpperCase() === item.color.toUpperCase())
+          return [];
         return [{ classificationId: stored.id, color: item.color }];
       });
 
       const classificationLabels = editor.classifications.flatMap((item) => {
-        const previous = baseline.classifications.find((row) => row.key === item.key);
-        const stored = version.classifications.find((row) => row.key === item.key);
+        const previous = baseline.classifications.find(
+          (row) => row.key === item.key,
+        );
+        const stored = version.classifications.find(
+          (row) => row.key === item.key,
+        );
         const nextLabel = item.label.trim();
         if (!stored || !previous || !nextLabel) return [];
         if (previous.label.trim() === nextLabel) return [];
@@ -439,13 +414,11 @@ export const RiskMatrixEditorPageContent: FC<
 
       let savedVersion = version;
       if (
-        criteria.length > 0 ||
         axisLevelColors.length > 0 ||
         classificationColors.length > 0 ||
         classificationLabels.length > 0
       ) {
         savedVersion = await patchEditorialMutation.mutateAsync({
-          ...(criteria.length ? { criteria } : {}),
           ...(axisLevelColors.length ? { axisLevelColors } : {}),
           ...(classificationColors.length ? { classificationColors } : {}),
           ...(classificationLabels.length ? { classificationLabels } : {}),
@@ -458,9 +431,12 @@ export const RiskMatrixEditorPageContent: FC<
       });
       setEditor(next);
       setBaseline(next);
-      showSnackBar(presentationSavedMessage(savedVersion.classificationLabelSync), {
-        type: presentationSavedTone(savedVersion.classificationLabelSync),
-      });
+      showSnackBar(
+        'Apresentação salva. As avaliações existentes permanecem preservadas.',
+        {
+          type: 'success',
+        },
+      );
     } catch (error) {
       showSnackBar(
         getRiskMatrixApiErrorMessage(
@@ -474,7 +450,9 @@ export const RiskMatrixEditorPageContent: FC<
     }
   };
 
-  const updateEditor = (updater: (current: RiskMatrixEditorState) => RiskMatrixEditorState) => {
+  const updateEditor = (
+    updater: (current: RiskMatrixEditorState) => RiskMatrixEditorState,
+  ) => {
     if (readOnly) return;
     setEditor((current) => (current ? updater(current) : current));
   };
@@ -496,7 +474,10 @@ export const RiskMatrixEditorPageContent: FC<
   const handleCoverageToggle = (coverage: RiskMatrixCoverageKeyEnum) => {
     if (!editor) return;
     const isRemoving = editor.coverages.includes(coverage);
-    if (isRemoving && hasFilledCriteriaForCoverage(editor.axisLevels, coverage)) {
+    if (
+      isRemoving &&
+      hasFilledCriteriaForCoverage(editor.axisLevels, coverage)
+    ) {
       preventWarn(
         'Os critérios desta cobertura deixarão de fazer parte da configuração salva. Enquanto esta tela estiver aberta, os textos permanecem disponíveis se você remarcar a cobertura.',
         () => applyCoverageToggle(coverage),
@@ -621,7 +602,8 @@ export const RiskMatrixEditorPageContent: FC<
           {presentationEditable && (
             <SButton
               text={
-                patchIdentityMutation.isPending || patchEditorialMutation.isPending
+                patchIdentityMutation.isPending ||
+                patchEditorialMutation.isPending
                   ? 'Salvando apresentação...'
                   : 'Salvar apresentação'
               }
@@ -630,7 +612,8 @@ export const RiskMatrixEditorPageContent: FC<
               variant="contained"
               size="m"
               loading={
-                patchIdentityMutation.isPending || patchEditorialMutation.isPending
+                patchIdentityMutation.isPending ||
+                patchEditorialMutation.isPending
               }
               disabled={isBusy || !dirty}
             />
@@ -658,11 +641,17 @@ export const RiskMatrixEditorPageContent: FC<
 
       {presentationEditable && (
         <Alert severity="info">
-          Esta versão está publicada. Você pode ajustar o nome e a descrição
-          da matriz, os textos de critério, as cores e o nome das
-          classificações finais. Siglas, nomes dos eixos, compatibilidade
-          SimpleSST e combinações S×P permanecem bloqueados.
+          Esta versão está publicada. Você pode ajustar o nome e a descrição da
+          matriz, as cores e o nome das classificações finais. Os resultados das
+          avaliações existentes permanecem preservados. Para alterar os
+          critérios ou a metodologia, crie uma nova versão no catálogo. Siglas,
+          nomes dos eixos, compatibilidade SimpleSST e combinações S×P
+          permanecem bloqueados.
         </Alert>
+      )}
+
+      {!readOnly && (
+        <Alert severity="info">{RISK_MATRIX_VERSION_HISTORY_HELP}</Alert>
       )}
 
       {readOnly && !presentationEditable && (
@@ -738,46 +727,47 @@ export const RiskMatrixEditorPageContent: FC<
           classificação final é pintada na interseção e não é calculada.
         </Typography>
         <Box display="flex" flexWrap="wrap" gap={2} mb={2}>
-        <FormControl size="small" sx={{ minWidth: 360 }} disabled={readOnly}>
-          <InputLabel>Orientação da matriz</InputLabel>
-          <Select
-            label="Orientação da matriz"
-            value={editor.gridOrientation}
-            onChange={(event) => {
-              const next = event.target.value as RiskMatrixGridOrientationEnum;
-              updateEditor((current) => ({
-                ...current,
-                gridOrientation: next,
-              }));
-            }}
-          >
-            {RISK_MATRIX_ORIENTATION_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 260 }} disabled={readOnly}>
-          <InputLabel>Direção do eixo vertical</InputLabel>
-          <Select
-            label="Direção do eixo vertical"
-            value={editor.yAxisDirection}
-            onChange={(event) => {
-              const next = event.target.value as RiskMatrixYAxisDirectionEnum;
-              updateEditor((current) => ({
-                ...current,
-                yAxisDirection: next,
-              }));
-            }}
-          >
-            {RISK_MATRIX_Y_AXIS_DIRECTION_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          <FormControl size="small" sx={{ minWidth: 360 }} disabled={readOnly}>
+            <InputLabel>Orientação da matriz</InputLabel>
+            <Select
+              label="Orientação da matriz"
+              value={editor.gridOrientation}
+              onChange={(event) => {
+                const next = event.target
+                  .value as RiskMatrixGridOrientationEnum;
+                updateEditor((current) => ({
+                  ...current,
+                  gridOrientation: next,
+                }));
+              }}
+            >
+              {RISK_MATRIX_ORIENTATION_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 260 }} disabled={readOnly}>
+            <InputLabel>Direção do eixo vertical</InputLabel>
+            <Select
+              label="Direção do eixo vertical"
+              value={editor.yAxisDirection}
+              onChange={(event) => {
+                const next = event.target.value as RiskMatrixYAxisDirectionEnum;
+                updateEditor((current) => ({
+                  ...current,
+                  yAxisDirection: next,
+                }));
+              }}
+            >
+              {RISK_MATRIX_Y_AXIS_DIRECTION_OPTIONS.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
         <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
           {editor.classifications.map((classification) => {
@@ -809,9 +799,10 @@ export const RiskMatrixEditorPageContent: FC<
                     ? classification.color || undefined
                     : 'transparent',
                   borderColor: classification.color || undefined,
-                  color: selected && classification.color
-                    ? undefined
-                    : 'text.primary',
+                  color:
+                    selected && classification.color
+                      ? undefined
+                      : 'text.primary',
                 }}
               />
             );
@@ -833,12 +824,14 @@ export const RiskMatrixEditorPageContent: FC<
           cells={editor.cells}
           selectedClassificationKey={selectedClassificationKey}
           disabled={readOnly}
-          criteriaDisabled={presentationLocked}
+          criteriaDisabled={readOnly}
           axisLevelColorByValue={axisLevelColorByValue}
           onChangeLabel={(axis, value, label) =>
             updateEditor((current) => ({
               ...current,
-              axisLevels: updateAxisLevel(current.axisLevels, axis, value, { label }),
+              axisLevels: updateAxisLevel(current.axisLevels, axis, value, {
+                label,
+              }),
             }))
           }
           onChangeCriterion={(axis, value, coverage, criterion) =>
@@ -867,9 +860,12 @@ export const RiskMatrixEditorPageContent: FC<
           }
           onPaintCell={(coordinate) => {
             if (!selectedClassificationKey) {
-              showSnackBar('Selecione uma classificação para pintar a matriz.', {
-                type: 'error',
-              });
+              showSnackBar(
+                'Selecione uma classificação para pintar a matriz.',
+                {
+                  type: 'error',
+                },
+              );
               return;
             }
             updateEditor((current) => ({
@@ -903,7 +899,11 @@ export const RiskMatrixEditorPageContent: FC<
               P2, S3 = P3, S4 = P4 e S5 = P5. Independente das cores das
               classificações finais.
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 0.75 }}
+            >
               {usesOwnAxisPalette
                 ? 'Esta versão tem paleta própria.'
                 : 'Usando paleta padrão SimpleSST vigente.'}
@@ -938,7 +938,9 @@ export const RiskMatrixEditorPageContent: FC<
               </Typography>
               <RiskMatrixColorInput
                 value={item.color}
-                disabled={presentationLocked || effectiveAxisLevelColors.length !== 5}
+                disabled={
+                  presentationLocked || effectiveAxisLevelColors.length !== 5
+                }
                 onChange={(color) =>
                   updatePresentation((current) => ({
                     ...current,
@@ -997,7 +999,10 @@ export const RiskMatrixEditorPageContent: FC<
                     showSnackBar(result.reason, { type: 'error' });
                     return current;
                   }
-                  return { ...current, classifications: result.classifications };
+                  return {
+                    ...current,
+                    classifications: result.classifications,
+                  };
                 });
               }}
             >
@@ -1129,78 +1134,88 @@ export const RiskMatrixEditorPageContent: FC<
                     }
                   />
                   <Box display="flex" alignItems="center" gap={0.5}>
-                  {readOnly ? (
-                    <Typography variant="body2" sx={{ minWidth: 320 }}>
-                      Compatibilidade SimpleSST:{' '}
-                      {classification.compatibilityBands.length > 0
-                        ? classification.compatibilityBands.join(', ')
-                        : '—'}
-                    </Typography>
-                  ) : (
-                  <FormControl size="small" sx={{ minWidth: 320 }}>
-                    <InputLabel>Compatibilidade SimpleSST</InputLabel>
-                    <Select
-                      multiple
-                      label="Compatibilidade SimpleSST"
-                      value={classification.compatibilityBands}
-                      onChange={(event) => {
-                        const raw = event.target.value;
-                        const selected = (
-                          Array.isArray(raw) ? raw : [raw]
-                        ).map(Number);
-                        updateEditor((current) => ({
-                          ...current,
-                          classifications: setClassificationCompatibilityBands(
-                            current.classifications,
-                            classification.key,
-                            selected,
-                          ),
-                        }));
-                      }}
-                      renderValue={(selected) => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {(selected as number[]).map((band) => {
-                            const option =
-                              RISK_MATRIX_SIMPLE_SST_EQUIVALENCE_OPTIONS.find(
-                                (item) => item.value === Number(band),
+                    {readOnly ? (
+                      <Typography variant="body2" sx={{ minWidth: 320 }}>
+                        Compatibilidade SimpleSST:{' '}
+                        {classification.compatibilityBands.length > 0
+                          ? classification.compatibilityBands.join(', ')
+                          : '—'}
+                      </Typography>
+                    ) : (
+                      <FormControl size="small" sx={{ minWidth: 320 }}>
+                        <InputLabel>Compatibilidade SimpleSST</InputLabel>
+                        <Select
+                          multiple
+                          label="Compatibilidade SimpleSST"
+                          value={classification.compatibilityBands}
+                          onChange={(event) => {
+                            const raw = event.target.value;
+                            const selected = (
+                              Array.isArray(raw) ? raw : [raw]
+                            ).map(Number);
+                            updateEditor((current) => ({
+                              ...current,
+                              classifications:
+                                setClassificationCompatibilityBands(
+                                  current.classifications,
+                                  classification.key,
+                                  selected,
+                                ),
+                            }));
+                          }}
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 0.5,
+                              }}
+                            >
+                              {(selected as number[]).map((band) => {
+                                const option =
+                                  RISK_MATRIX_SIMPLE_SST_EQUIVALENCE_OPTIONS.find(
+                                    (item) => item.value === Number(band),
+                                  );
+                                return (
+                                  <Chip
+                                    key={band}
+                                    size="small"
+                                    label={option?.label ?? String(band)}
+                                  />
+                                );
+                              })}
+                            </Box>
+                          )}
+                        >
+                          {RISK_MATRIX_SIMPLE_SST_EQUIVALENCE_OPTIONS.map(
+                            (option) => {
+                              const usedByOther =
+                                isCompatibilityBandUsedByOther(
+                                  editor.classifications,
+                                  classification.key,
+                                  option.value,
+                                );
+                              return (
+                                <MenuItem
+                                  key={option.value}
+                                  value={option.value}
+                                  disabled={usedByOther}
+                                >
+                                  {option.label}
+                                </MenuItem>
                               );
-                            return (
-                              <Chip
-                                key={band}
-                                size="small"
-                                label={option?.label ?? String(band)}
-                              />
-                            );
-                          })}
-                        </Box>
-                      )}
-                    >
-                      {RISK_MATRIX_SIMPLE_SST_EQUIVALENCE_OPTIONS.map((option) => {
-                        const usedByOther = isCompatibilityBandUsedByOther(
-                          editor.classifications,
-                          classification.key,
-                          option.value,
-                        );
-                        return (
-                          <MenuItem
-                            key={option.value}
-                            value={option.value}
-                            disabled={usedByOther}
-                          >
-                            {option.label}
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                  )}
-                  <Tooltip title={RISK_MATRIX_SIMPLE_SST_HELP}>
-                    <HelpOutlineIcon
-                      fontSize="small"
-                      color="action"
-                      aria-label="Ajuda sobre compatibilidade SimpleSST"
-                    />
-                  </Tooltip>
+                            },
+                          )}
+                        </Select>
+                      </FormControl>
+                    )}
+                    <Tooltip title={RISK_MATRIX_SIMPLE_SST_HELP}>
+                      <HelpOutlineIcon
+                        fontSize="small"
+                        color="action"
+                        aria-label="Ajuda sobre compatibilidade SimpleSST"
+                      />
+                    </Tooltip>
                   </Box>
                   <Box display="flex" gap={1} flexWrap="wrap">
                     <Button
@@ -1252,10 +1267,15 @@ export const RiskMatrixEditorPageContent: FC<
                             showSnackBar(result.reason, { type: 'error' });
                             return current;
                           }
-                          if (selectedClassificationKey === classification.key) {
+                          if (
+                            selectedClassificationKey === classification.key
+                          ) {
                             setSelectedClassificationKey(null);
                           }
-                          return { ...current, classifications: result.classifications };
+                          return {
+                            ...current,
+                            classifications: result.classifications,
+                          };
                         })
                       }
                     >
@@ -1264,7 +1284,12 @@ export const RiskMatrixEditorPageContent: FC<
                   </Box>
                 </Box>
                 {used && (
-                  <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                    mt={1}
+                  >
                     Em uso na matriz. Despinte as células antes de remover.
                   </Typography>
                 )}
@@ -1292,18 +1317,23 @@ export const RiskMatrixEditorPageContent: FC<
         {validation?.distributionComplete && !dirty && !readOnly && (
           <Alert severity="info">
             Configuração persistida pronta para publicação. A API valida a
-            metodologia no momento de publicar. A publicação não disponibiliza
-            a matriz em estabelecimentos.
+            metodologia no momento de publicar. A publicação não disponibiliza a
+            matriz em estabelecimentos.
           </Alert>
         )}
         {readOnly &&
           version.status === CompanyRiskMatrixVersionStatusEnum.PUBLISHED && (
-          <Alert severity="info">
-            Versão publicada. Grade, classificações, critérios e demais dados
-            permanecem visíveis em consulta.
-          </Alert>
-        )}
-        <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+            <Alert severity="info">
+              Versão publicada. Grade, classificações, critérios e demais dados
+              permanecem visíveis em consulta.
+            </Alert>
+          )}
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          display="block"
+          mt={1}
+        >
           A publicação congela a metodologia desta versão. Ela não disponibiliza
           a matriz em estabelecimentos e não altera avaliações existentes.
         </Typography>

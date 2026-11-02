@@ -17,6 +17,7 @@ import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useC
 import { useFetchBrowseRiskMatrices } from '@v2/services/security/risk-matrix/hooks/useFetchBrowseRiskMatrices';
 import {
   useMutateCreateRiskMatrix,
+  useMutateCreateRiskMatrixVersion,
   useMutateDeleteRiskMatrixDraft,
   useMutateDuplicateRiskMatrix,
 } from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
@@ -36,11 +37,14 @@ import {
   RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION,
   RISK_MATRIX_DUPLICATE_CONFIRMATION,
   RISK_MATRIX_MANAGE_AVAILABILITY_ACTION,
+  RISK_MATRIX_NEW_VERSION_ACTION,
+  RISK_MATRIX_NEW_VERSION_CONFIRMATION,
   RISK_MATRIX_STATUS_LABELS,
   RISK_MATRIX_VIEW_PUBLISHED_ACTION,
 } from '../maps/risk-matrix.maps';
 import {
   mapBrowseRiskMatrices,
+  canCreateCatalogVersion,
   canDeleteCatalogDraft,
   canDuplicateRiskMatrix,
   canOpenWorkspaceAvailability,
@@ -76,6 +80,7 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
   const { data, isLoading, isError, error } =
     useFetchBrowseRiskMatrices(companyId);
   const createMutation = useMutateCreateRiskMatrix(companyId);
+  const createVersionMutation = useMutateCreateRiskMatrixVersion(companyId);
   const duplicateMutation = useMutateDuplicateRiskMatrix(companyId);
   const deleteDraftMutation = useMutateDeleteRiskMatrixDraft(companyId);
 
@@ -151,6 +156,38 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
         getRiskMatrixApiErrorMessage(
           duplicateError,
           'Não foi possível duplicar a matriz.',
+        ),
+        { type: 'error' },
+      );
+    }
+  };
+
+  const handleCreateVersion = async (matrix: RiskMatrixBrowseItem) => {
+    if (
+      !canCreateCatalogVersion(matrix) ||
+      !matrix.latestPublishedVersion?.id ||
+      createVersionMutation.isPending
+    )
+      return;
+
+    const confirmed = await showConfirmation(
+      RISK_MATRIX_NEW_VERSION_CONFIRMATION,
+    );
+    if (!confirmed) return;
+
+    try {
+      const version = await createVersionMutation.mutateAsync({
+        matrixId: matrix.id,
+        sourceVersionId: matrix.latestPublishedVersion.id,
+      });
+      await router.push(
+        getRiskMatrixVersionEditorPath(companyId, matrix.id, version.id),
+      );
+    } catch (createError) {
+      showSnackBar(
+        getRiskMatrixApiErrorMessage(
+          createError,
+          'Não foi possível criar a nova versão.',
         ),
         { type: 'error' },
       );
@@ -256,11 +293,13 @@ export const RiskMatricesPageContent: FC<RiskMatricesPageContentProps> = ({
               matrix={matrix}
               canWrite={canCreate}
               duplicating={duplicateMutation.isPending}
+              creatingVersion={createVersionMutation.isPending}
               deletingDraft={deleteDraftMutation.isPending}
               onViewPublished={() => handleViewPublished(matrix)}
               onOpenDraft={() => handleOpenDraft(matrix)}
               onOpenAvailability={() => setAvailabilityMatrix(matrix)}
               onDuplicate={() => handleDuplicate(matrix)}
+              onCreateVersion={() => handleCreateVersion(matrix)}
               onDeleteDraft={() => handleDeleteDraft(matrix)}
             />
           ))}
@@ -289,21 +328,25 @@ const RiskMatrixCatalogCard: FC<{
   matrix: RiskMatrixBrowseItem;
   canWrite: boolean;
   duplicating: boolean;
+  creatingVersion: boolean;
   deletingDraft: boolean;
   onViewPublished: () => void;
   onOpenDraft: () => void;
   onOpenAvailability: () => void;
   onDuplicate: () => void;
+  onCreateVersion: () => void;
   onDeleteDraft: () => void;
 }> = ({
   matrix,
   canWrite,
   duplicating,
+  creatingVersion,
   deletingDraft,
   onViewPublished,
   onOpenDraft,
   onOpenAvailability,
   onDuplicate,
+  onCreateVersion,
   onDeleteDraft,
 }) => {
   const published = matrix.latestPublishedVersion;
@@ -311,6 +354,7 @@ const RiskMatrixCatalogCard: FC<{
   const showViewPublishedAction = canViewPublishedRiskMatrix(matrix);
   const showAvailabilityAction = canOpenWorkspaceAvailability(matrix);
   const showDuplicateAction = canWrite && canDuplicateRiskMatrix(matrix);
+  const showCreateVersionAction = canWrite && canCreateCatalogVersion(matrix);
   const showDeleteDraftAction = canWrite && canDeleteCatalogDraft(matrix);
   const establishmentLabel = catalogEstablishmentAvailabilityLabel(matrix);
 
@@ -353,19 +397,34 @@ const RiskMatrixCatalogCard: FC<{
             {matrix.description?.trim() || 'Sem descrição'}
           </Typography>
           {published ? (
-            <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              mt={1}
+            >
               Última versão publicada: v{published.versionNumber}
               {published.publishedAt
                 ? ` · ${new Date(published.publishedAt).toLocaleDateString('pt-BR')}`
                 : ''}
             </Typography>
           ) : (
-            <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              mt={1}
+            >
               Sem versão publicada
             </Typography>
           )}
           {establishmentLabel && (
-            <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              mt={0.5}
+            >
               {establishmentLabel}
             </Typography>
           )}
@@ -413,6 +472,18 @@ const RiskMatrixCatalogCard: FC<{
             <Button size="small" variant="outlined" onClick={onOpenDraft}>
               Editar rascunho
             </Button>
+          )}
+          {showCreateVersionAction && (
+            <SAuthShow permissions={[PermissionEnum.RISK]} cruds="c">
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={onCreateVersion}
+                disabled={creatingVersion}
+              >
+                {RISK_MATRIX_NEW_VERSION_ACTION}
+              </Button>
+            </SAuthShow>
           )}
           {showDeleteDraftAction && (
             <SAuthShow permissions={[PermissionEnum.RISK]} cruds="c">

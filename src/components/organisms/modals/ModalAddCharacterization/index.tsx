@@ -14,6 +14,7 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { getSaveActionColor } from 'core/utils/save-action-color';
+import { StructuralSourceActions } from '@v2/features/sst-operational/StructuralSourceActions';
 
 import { ModalCharacterizationContent } from './components/ModalCharacterizationContent';
 import { useEditCharacterization } from './hooks/useEditCharacterization';
@@ -102,6 +103,18 @@ export const ModalAddCharacterization = () => {
             secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
             secondIconClick={onRemove}
           />
+
+          {isEdit && characterizationData.id && (
+            <StructuralSourceActions
+              companyId={characterizationData.companyId}
+              target={{
+                table: 'CompanyCharacterization',
+                id: characterizationData.id,
+              }}
+              disabled={hasUnsavedChanges || loading}
+              onChanged={onCloseUnsaved}
+            />
+          )}
 
           <ModalCharacterizationContent {...props} />
 

@@ -22,7 +22,10 @@ import { RiskFactorAiPendingList } from '../../../../../risk-factors-ai/RiskFact
 const CURRENT_PROBABILITY_LOCKED_REASON =
   'Como todas as recomendações aplicáveis a este risco foram concluídas com sucesso, o risco real deve ser igual ao risco residual. Para alterar essa probabilidade, adicione novas medidas de controle.';
 
-const scopedRows = (data: ProbabilityColumnProps['data'], workspaceId?: string) => {
+const scopedRows = (
+  data: ProbabilityColumnProps['data'],
+  workspaceId?: string,
+) => {
   const rows = data?.dataRecs || [];
   if (!workspaceId) return rows;
   const scoped = rows.filter((r) => r.workspaceId === workspaceId);
@@ -66,7 +69,14 @@ const isCurrentProbabilityLocked = (
 
 export const ProbabilityColumn: FC<
   { children?: any } & ProbabilityColumnProps
-> = ({ handleSelect, data, handleHelp, risk, planWorkspaceId, probabilityCountSource }) => {
+> = ({
+  handleSelect,
+  data,
+  handleHelp,
+  risk,
+  planWorkspaceId,
+  probabilityCountSource,
+}) => {
   const dataSelect = {} as Partial<IUpsertRiskData>;
   const { onStackOpenModal } = useModal();
   const probabilityLockByPlan = isCurrentProbabilityLocked(
@@ -105,7 +115,10 @@ export const ProbabilityColumn: FC<
       risk,
       type: hasQuality,
       onCreate: (value) =>
-        handleSelect({ json: value, probabilityAfter: undefined }),
+        handleSelect({
+          json: { ...(data?.json || {}), ...value },
+          probabilityAfter: undefined,
+        }),
     } as typeof initialQuantityState);
   };
 
@@ -155,7 +168,11 @@ export const ProbabilityColumn: FC<
         handleHelp={() => handleHelp && handleHelp(dataSelect)}
       />
       {probabilityCaption ? (
-        <SText fontSize={10} color="text.secondary" sx={{ lineHeight: 1.3, maxWidth: 150, mt: 0.5 }}>
+        <SText
+          fontSize={10}
+          color="text.secondary"
+          sx={{ lineHeight: 1.3, maxWidth: 150, mt: 0.5 }}
+        >
           {probabilityCaption}
         </SText>
       ) : null}

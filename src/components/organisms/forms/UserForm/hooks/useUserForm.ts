@@ -26,6 +26,7 @@ interface ISubmit extends Partial<IUpdateUser> {}
 export const useUserForm = () => {
   const { user, refreshUser: refreshUserMain, googleSignLink } = useAuth();
   const { query } = useRouter();
+  const canManageGoogle = !query?.userId;
 
   const { data: userFetch, isLoading } = useQueryUser({
     companyId: query?.companyId as string | undefined,
@@ -152,6 +153,7 @@ export const useUserForm = () => {
   };
 
   const linkGoogle = async () => {
+    if (!canManageGoogle) return;
     const result = await googleSignLink();
     if (result) {
       await updateMutation
@@ -168,6 +170,7 @@ export const useUserForm = () => {
   };
 
   const handleDeleteGoogleAccount = async () => {
+    if (!canManageGoogle) return;
     await updateMutation
       .mutateAsync({
         googleExternalId: null,
@@ -222,6 +225,7 @@ export const useUserForm = () => {
     handleChangePass,
     loadingPage: isLoading,
     isUserEditAdmin: !!query?.userId,
+    canManageGoogle,
   };
 };
 

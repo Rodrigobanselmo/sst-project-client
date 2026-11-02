@@ -14,6 +14,8 @@ import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutatio
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
 import { heatSchema } from './../../../../../core/utils/schemas/heat.schema';
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
+import { submitQuantityCallback } from './quantity-submission';
 
 export const initialQuantityState = {
   id: '',
@@ -57,12 +59,18 @@ export const initialQuantityState = {
   clothesType: '' as number | '',
 
   type: '',
+  measuredOn: '',
+  selectedMeasurement: '',
+  selectionReason: '',
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCreate: (value: any) => {},
 };
 
 interface ISubmit {
+  measuredOn?: string;
+  selectedMeasurement?: string;
+  selectionReason?: string;
   stel?: string;
   vmp?: string;
   twa?: string;
@@ -115,7 +123,14 @@ export const useModalAddQuantity = () => {
     ...initialQuantityState,
   });
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
+  const {
+    handleSubmit,
+    control,
+    reset,
+    getValues,
+    setValue,
+    formState: { isSubmitting },
+  } = useForm<any>({
     resolver: yupResolver(heatSchema),
   });
 
@@ -134,6 +149,12 @@ export const useModalAddQuantity = () => {
           ...oldData,
           ...initialData,
         };
+        for (const key of [
+          'measuredOn',
+          'selectedMeasurement',
+          'selectionReason',
+        ])
+          setValue(key, (newData as any)[key] || '');
         newData.longDuration = !!newData.twaValue || !!newData.nr15ltValue;
         newData.shortDuration = !!newData.stelValue || !!newData.vmpValue;
 
@@ -283,9 +304,14 @@ export const useModalAddQuantity = () => {
         type: QuantityTypeEnum.RADIATION,
       };
 
-    data.onCreate && data.onCreate(submit);
-
-    onClose();
+    submit.measuredOn = dataFrom.measuredOn || '';
+    submit.selectedMeasurement = dataFrom.selectedMeasurement || '';
+    submit.selectionReason = dataFrom.selectionReason || '';
+    await submitQuantityCallback({
+      save: () => data.onCreate?.(submit),
+      close: onClose,
+      isCancelled: isSstMutationCancelled,
+    });
   };
 
   return {
@@ -293,7 +319,7 @@ export const useModalAddQuantity = () => {
     onCloseUnsaved,
     onClose,
     onSubmit,
-    loading: updateMutation.isLoading,
+    loading: isSubmitting || updateMutation.isLoading,
     loadingCep: cepMutation.isLoading,
     control,
     handleSubmit,

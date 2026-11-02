@@ -44,13 +44,9 @@ const pintura = [
   node('dev', HierarchyEnum.SUB_OFFICE, 'p1', 'PINTOR I TURNO'),
   node('vazio', HierarchyEnum.SECTOR, 'ger', 'SETOR VAZIO'),
   node('soldador', HierarchyEnum.OFFICE, 'ger', 'SOLDADOR'),
-  node(
-    'ref-pintor',
-    HierarchyEnum.OFFICE,
-    'setor',
-    'PINTOR REFINARIA',
-    ['refinaria'],
-  ),
+  node('ref-pintor', HierarchyEnum.OFFICE, 'setor', 'PINTOR REFINARIA', [
+    'refinaria',
+  ]),
 ];
 
 const sectorSummary = summarizeEffectiveOfficeCoverage({
@@ -152,7 +148,12 @@ assert.equal(
   ),
   true,
 );
-const inheritedOfficeIds = ['p1//matriz', 'p2//matriz', 'p3//matriz', 'p4//matriz'];
+const inheritedOfficeIds = [
+  'p1//matriz',
+  'p2//matriz',
+  'p3//matriz',
+  'p4//matriz',
+];
 inheritedOfficeIds.forEach((modalId) => {
   assert.equal(sectorModal.explicitModalIds.includes(modalId), false);
   assert.equal(sectorModal.availableOfficeModalIds.includes(modalId), false);
@@ -163,7 +164,10 @@ const overlapModal = buildGseCargoModalView({
   modalSelectIds: ['setor//matriz', 'p1//matriz'],
   workspaceId: 'matriz',
 });
-assert.deepEqual(overlapModal.explicitModalIds, ['setor//matriz', 'p1//matriz']);
+assert.deepEqual(overlapModal.explicitModalIds, [
+  'setor//matriz',
+  'p1//matriz',
+]);
 assert.equal(overlapModal.selected.length, 4);
 assert.equal(
   overlapModal.explicitModalIds.filter((id) => id.startsWith('p')).length,
@@ -264,14 +268,8 @@ const directOfficeRows = buildGseCargoTabRows({
 const directLayout = layoutGseCargoTabRows(directOfficeRows);
 assert.equal(directOfficeRows.length, 1);
 assert.equal(directOfficeRows[0].origin, 'direct');
-assert.equal(
-  directLayout.filter((row) => row.kind === 'covered').length,
-  0,
-);
-assert.equal(
-  directLayout.filter((row) => row.kind === 'link').length,
-  1,
-);
+assert.equal(directLayout.filter((row) => row.kind === 'covered').length, 0);
+assert.equal(directLayout.filter((row) => row.kind === 'link').length, 1);
 
 const tooltip = formatCharacterizationCargoTooltipLines({
   summary: sectorSummary,
@@ -298,13 +296,27 @@ const editorCargoSource = readFileSync(
 );
 assert.equal(editorCargoSource.includes('buildGseCargoTabRows'), true);
 assert.equal(editorCargoSource.includes('coverageRows'), true);
-assert.equal(editorCargoSource.includes('officesForSelectedEstablishment'), true);
-assert.equal(dialogSource.includes('invalidateCharacterizationInventory'), true);
+assert.equal(
+  editorCargoSource.includes('officesForSelectedEstablishment'),
+  true,
+);
+assert.equal(
+  dialogSource.includes('invalidateCharacterizationInventory'),
+  true,
+);
 assert.equal(dialogSource.includes('gseCargoSelect'), false);
 assert.equal(
   dialogSource.includes(
-    "hierarchyIds: selected.map((h) => String(h.id).split('//')[0])",
+    'confirmedHierarchyIds: selected.map((h) => String(h.id))',
   ),
+  true,
+);
+assert.equal(
+  dialogSource.includes('buildCharacterizationHierarchySelection'),
+  true,
+);
+assert.equal(
+  dialogSource.includes('useMutSelectCharacterizationHierarchies'),
   true,
 );
 

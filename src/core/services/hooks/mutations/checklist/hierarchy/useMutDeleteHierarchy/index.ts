@@ -1,3 +1,4 @@
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -44,12 +45,18 @@ export function useMutDeleteHierarchy() {
       return resp;
     },
     onError: (error: IErrorResp) => {
-      if (error.response.data.message.includes('fkey'))
+      if (isSstMutationCancelled(error)) return;
+      if (error?.response?.data?.message?.includes('fkey'))
         enqueueSnackbar(
           'Proibido deletar hierarquia quando ligada a um empregado',
           { variant: 'error' },
         );
-      else enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      else
+        enqueueSnackbar(
+          error?.response?.data?.message ||
+            'Não foi possível aplicar esta alteração.',
+          { variant: 'error' },
+        );
     },
   });
 }

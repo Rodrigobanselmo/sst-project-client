@@ -1,3 +1,6 @@
+import { HistoryView } from '@v2/features/sst-operational/HistoryView';
+import { assessmentPeriodCivilDate } from '@v2/features/sst-operational/civil-date';
+import { useSstAccess } from '@v2/features/sst-operational/access';
 import React, { FC, useMemo, useState } from 'react';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -19,7 +22,6 @@ import { useModal } from 'core/hooks/useModal';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
-import { dateToString } from 'core/utils/date/date-format';
 import { resolveDisplayedOccupationalRisk, resolveDisplayedResidualOccupationalRisk } from 'core/utils/helpers/matriz';
 import { resolveQuantitativeCollapsedPresentationFromSnapshot } from 'core/utils/helpers/format-quantitative-evidence.util';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
@@ -67,6 +69,8 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const presentation = useSystemRiskMatrixPresentation();
   const selectedGhoId = useAppSelector((state) => state.gho.selected?.id);
   const [editHereOpen, setEditHereOpen] = useState(false);
+  const [historyOpen,setHistoryOpen]=useState(false);
+  const historyAccess=useSstAccess();
   const hasData = riskData && riskData.homogeneousGroupId;
   const originLabel =
     showOrigin && !isRepresentAll
@@ -493,10 +497,10 @@ export const RiskToolGSEViewRowRiskBox: FC<
             sx={{ opacity: 0.85, cursor: 'default' }}
           >
             <SText fontSize="10px" color="text.disabled" noBreak>
-              início: {dateToString(riskData?.startDate)}
+              início: {assessmentPeriodCivilDate(riskData?.startDate)?.format('DD/MM/YYYY') || ''}
             </SText>
             <SText fontSize="10px" color="text.disabled" noBreak>
-              fim: {dateToString(riskData?.endDate)}
+              {riskData?.endDate ? `válido antes de: ${assessmentPeriodCivilDate(riskData.endDate)?.format('DD/MM/YYYY') || ''}` : 'fim: em aberto'}
             </SText>
           </SFlex>
         ) : (
@@ -508,15 +512,17 @@ export const RiskToolGSEViewRowRiskBox: FC<
               sx={{ opacity: 0.85 }}
             >
               <SText fontSize="10px" color="text.disabled" noBreak>
-                início: {dateToString(riskData?.startDate)}
+                início: {assessmentPeriodCivilDate(riskData?.startDate)?.format('DD/MM/YYYY') || ''}
               </SText>
               <SText fontSize="10px" color="text.disabled" noBreak>
-                fim: {dateToString(riskData?.endDate)}
+                {riskData?.endDate ? `válido antes de: ${assessmentPeriodCivilDate(riskData.endDate)?.format('DD/MM/YYYY') || ''}` : 'fim: em aberto'}
               </SText>
             </SFlex>
           </STooltip>
         )
       )}
+    {riskData?.id && historyAccess.canRead && <button type="button" onClick={()=>setHistoryOpen(true)}>Consultar histórico da avaliação</button>}
+    {historyOpen && companyId && riskData?.id && <HistoryView companyId={companyId} table="RiskFactorData" id={riskData.id} onClose={()=>setHistoryOpen(false)}/>}
     </STBoxItem>
     {showEditHere && riskData && (
       <GseInheritedRiskEditModal

@@ -64,6 +64,7 @@ import {
 } from '@v2/services/enterprise/hierarchy/suggest-description/suggest-description.service';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { PermissionEnum } from 'project/enum/permission.enum';
+import { StructuralSourceActions } from '@v2/features/sst-operational/StructuralSourceActions';
 
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectHierarchyTreeSelectItem);
@@ -242,6 +243,19 @@ export const ModalEditCard = () => {
   };
 
   const type = selectedNode?.type || TreeTypeEnum.COMPANY;
+  const originalHierarchy = selectedNode
+    ? hierarchies[String(selectedNode.id).split('//')[0]]
+    : undefined;
+  const hierarchyDraftChanged =
+    !!selectedNode &&
+    !!originalHierarchy &&
+    ((selectedNode.label || '') !== (originalHierarchy.name || '') ||
+      (selectedNode.description || '') !==
+        (originalHierarchy.description || '') ||
+      (selectedNode.realDescription || '') !==
+        (originalHierarchy.realDescription || '') ||
+      employees.length > 0 ||
+      workspacesIds.length > 0);
 
   if (!selectedNode) return null;
   const allEmployees = removeDuplicate([...employees, ...selectedEmployees], {
@@ -299,6 +313,17 @@ export const ModalEditCard = () => {
             </Box>
           }
         />
+        {isNotHierarchy && selectedNode.action !== 'add' && companyId && (
+          <StructuralSourceActions
+            companyId={companyId}
+            target={{
+              table: 'Hierarchy',
+              id: String(selectedNode.id).split('//')[0],
+            }}
+            disabled={hierarchyDraftChanged}
+            onChanged={onCloseUnsaved}
+          />
+        )}
         <Wizard
           header={
             <WizardTabs

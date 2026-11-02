@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { canReadCompanyAuxiliaryData } from 'core/utils/company/company-auxiliary-access';
 
 import { useFetchVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/hooks/useFetchVisualIdentity';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -17,14 +18,17 @@ function routeCompanyIdFromQuery(companyId: unknown): string | undefined {
 export function useResolvedVisualIdentity() {
   const { user, router } = useGetCompanyId();
 
-  const fetchCompanyId = resolveVisualIdentityFetchCompanyId({
-    isRouterReady: router.isReady,
-    selectedCompanyId: routeCompanyIdFromQuery(router.query.companyId),
-    sessionCompanyId: user?.companyId,
-    lastKnownCompanyId: user?.id
-      ? peekLastKnownVisualIdentityCompanyId()
-      : '',
-  });
+  const canReadPresentation = canReadCompanyAuxiliaryData(user);
+  const fetchCompanyId = canReadPresentation
+    ? resolveVisualIdentityFetchCompanyId({
+        isRouterReady: router.isReady,
+        selectedCompanyId: routeCompanyIdFromQuery(router.query.companyId),
+        sessionCompanyId: user?.companyId,
+        lastKnownCompanyId: user?.id
+          ? peekLastKnownVisualIdentityCompanyId()
+          : '',
+      })
+    : '';
 
   useEffect(() => {
     if (!user?.id) {
@@ -38,11 +42,13 @@ export function useResolvedVisualIdentity() {
   }, [user?.id, fetchCompanyId]);
 
   const query = useFetchVisualIdentity({ companyId: fetchCompanyId });
-  const applied = canApplyVisualIdentity({
-    visualIdentity: query.visualIdentity,
-  })
-    ? query.visualIdentity
-    : undefined;
+  const applied =
+    canReadPresentation &&
+    canApplyVisualIdentity({
+      visualIdentity: query.visualIdentity,
+    })
+      ? query.visualIdentity
+      : undefined;
 
   return {
     ...query,

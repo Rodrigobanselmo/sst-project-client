@@ -21,6 +21,19 @@ export type ChemicalCompositionDisclosure =
   | 'PARTIAL'
   | 'UNINDIVIDUALIZED';
 
+export type ChemicalCompositionMutation = {
+  sourceType: 'MANUAL' | 'PURE' | 'FISPQ';
+  sourceDocumentId?: string | null;
+  ingredients: ChemicalIngredientPayload[];
+  compositionDisclosure?: ChemicalCompositionDisclosure | null;
+  compositionDisclosureNote?: string | null;
+};
+
+export type ChemicalFispqCompositionMutation = Omit<
+  ChemicalCompositionMutation,
+  'sourceType' | 'sourceDocumentId'
+>;
+
 export type ChemicalIngredientSummary = {
   id: string;
   chemicalName: string;

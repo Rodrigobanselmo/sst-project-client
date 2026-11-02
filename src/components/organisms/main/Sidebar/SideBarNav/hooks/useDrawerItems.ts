@@ -44,6 +44,7 @@ import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import ListAltIcon from 'assets/icons/SProtocolIcon';
 import type { SidebarSectionId } from 'core/hooks/useSidebarSectionExpansion.util';
+import { usePlatformCertificateAccess } from '@v2/features/esocial-certificates/usePlatformCertificateAccess';
 
 export interface IDrawerBase {
   text: string;
@@ -112,6 +113,7 @@ type IDrawerItemsMap = Record<DrawerItemsEnum, IDrawerItems>;
 
 export const useDrawerItems = () => {
   const { isMasterAdmin } = usePermissionsAccess();
+  const platformCertificateAccess = usePlatformCertificateAccess();
   const { onAccessFilterBase } = useAccess();
   const { userCompanyId } = useGetCompanyId();
   const { data: company } = useQueryCompany(userCompanyId);
@@ -120,6 +122,22 @@ export const useDrawerItems = () => {
   const hasActiveCompanyInRoute = !!query.companyId;
 
   const items: IDrawerItemsMap = {
+    [DrawerItemsEnum.esocialCertificates]: {
+      text: 'Certificados eSocial',
+      description: 'Certificados da organização e procurações por empregador',
+      Icon: SDocumentIcon,
+      href: RoutesEnum.ESOCIAL_CERTIFICATES,
+      permissions: [PermissionEnum.ESOCIAL_CERTIFICATE],
+      shouldMatchExactHref: true,
+    },
+    [DrawerItemsEnum.esocialPlatformCertificate]: {
+      text: 'Transmissão eSocial · SimpleSST',
+      description: 'Configuração interna do certificado de transmissão',
+      Icon: SDocumentIcon,
+      href: RoutesEnum.ESOCIAL_PLATFORM_CERTIFICATE,
+      roles: [RoleEnum.MASTER],
+      shouldMatchExactHref: true,
+    },
     [DrawerItemsEnum.dashboard]: {
       text: 'Empresas',
       description: 'Listagem/seleção de empresas',
@@ -487,17 +505,24 @@ export const useDrawerItems = () => {
         isSchedule: true,
       },
     },
-    [DrawerItemsEnum.esocial]: {
-      text: 'eSocial',
+    [DrawerItemsEnum.esocialPortfolio]: {
+      text: 'eSocial · Empresas atendidas',
       image: '/images/esocial-full-logo.png',
       imageType: 'esocial',
-      description: 'Gerenciar eventos do eSocial',
+      description: 'Pendências e resultados das empresas com contrato direto ativo',
+      href: RoutesEnum.ESOCIAL_PORTFOLIO,
+      permissions: [PermissionEnum.ESOCIAL],
+      shouldMatchExactHref: true,
+    },
+    [DrawerItemsEnum.esocial]: {
+      text: 'Acompanhamento eSocial',
+      image: '/images/esocial-full-logo.png',
+      imageType: 'esocial',
+      description: 'Revisar condições, vigências e composição local do S-2240',
       href: RoutesEnum.ESOCIAL,
-      roles: [RoleEnum.ESOCIAL],
+      permissions: [PermissionEnum.SST_HISTORY],
       shouldMatchExactHref: false,
-      showIf: {
-        isEsocial: true,
-      },
+
       // text: '',
       // image: '/images/esocial-full-logo.png',
     },
@@ -758,6 +783,7 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.actionPlan],
       items[DrawerItemsEnum.absenteeism],
       items[DrawerItemsEnum.cat],
+      items[DrawerItemsEnum.esocialPortfolio],
       items[DrawerItemsEnum.esocial],
     ],
   };
@@ -803,6 +829,10 @@ export const useDrawerItems = () => {
     },
     items: [
       items[DrawerItemsEnum.team],
+      items[DrawerItemsEnum.esocialCertificates],
+      ...(platformCertificateAccess.allowed
+        ? [items[DrawerItemsEnum.esocialPlatformCertificate]]
+        : []),
       items[DrawerItemsEnum.accessGroups],
       items[DrawerItemsEnum.block],
       items[DrawerItemsEnum.report],

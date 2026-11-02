@@ -47,6 +47,7 @@ export const UserForm = (
     formProps,
     handleChangePass,
     isUserEditAdmin,
+    canManageGoogle,
   } = useUserForm();
 
   useFetchFeedback(!user);
@@ -118,35 +119,49 @@ export const UserForm = (
                   </SText>
                 </SText>
 
-                <SIconButton
-                  tooltip={'remover conta google'}
-                  sx={{ mt: -1, width: 20, height: 20 }}
-                  onClick={handleDeleteGoogleAccount}
-                  loading={loading}
-                >
-                  <Icon
-                    component={SDeleteIcon}
-                    sx={{ fontSize: 15, color: 'error.dark' }}
-                  />
-                </SIconButton>
+                {canManageGoogle && (
+                  <SIconButton
+                    tooltip={'remover conta google'}
+                    sx={{ mt: -1, width: 20, height: 20 }}
+                    onClick={handleDeleteGoogleAccount}
+                    loading={loading}
+                  >
+                    <Icon
+                      component={SDeleteIcon}
+                      sx={{ fontSize: 15, color: 'error.dark' }}
+                    />
+                  </SIconButton>
+                )}
               </SFlex>
             </Box>
           )}
-          <SFlex
-            maxWidth={240}
-            gap={0}
-            direction={'column'}
-            align={'center'}
-            {...(props.firstEdit && { mb: 10 })}
-          >
-            <GoogleButton
-              sx={{ width: '100%', maxWidth: '100%', minWidth: 'fit-content' }}
-              onClick={linkGoogle}
-              text={
-                isGoogleAccount ? 'Trocar conta Gogle' : 'Vincular conta Google'
-              }
-            />
-          </SFlex>
+          {canManageGoogle ? (
+            <SFlex
+              maxWidth={240}
+              gap={0}
+              direction={'column'}
+              align={'center'}
+              {...(props.firstEdit && { mb: 10 })}
+            >
+              <GoogleButton
+                sx={{
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 'fit-content',
+                }}
+                onClick={linkGoogle}
+                text={
+                  isGoogleAccount
+                    ? 'Trocar conta Gogle'
+                    : 'Vincular conta Google'
+                }
+              />
+            </SFlex>
+          ) : (
+            <SText fontSize={12}>
+              Vínculo Google gerenciado pelo próprio usuário.
+            </SText>
+          )}
 
           {!props.firstEdit && (
             <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">

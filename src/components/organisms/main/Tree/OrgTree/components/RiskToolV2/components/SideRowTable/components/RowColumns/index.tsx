@@ -32,6 +32,7 @@ import { RecColumn } from '../columns/RecColumn';
 import { SourceColumn } from '../columns/SourceColumn';
 import { RowColumnsProps } from './types';
 import { EsocialCodeEnum } from 'core/enums/esocial-code.enum';
+import { RiskDeclarationFields } from '@v2/features/sst-operational/RiskDeclarationFields';
 
 export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   handleSelect,
@@ -123,9 +124,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
           border: 'none',
           borderRadius: 0,
           backgroundColor: 'background.paper',
-          ...(readOnly
-            ? { pointerEvents: 'none', userSelect: 'text' }
-            : {}),
+          ...(readOnly ? { pointerEvents: 'none', userSelect: 'text' } : {}),
         }}
         onClick={() =>
           risk?.id
@@ -241,6 +240,16 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
           </>
         )}
       </STGridItem>
+      {!hide && !isRepresentAll && riskData?.id && risk?.id && (
+        <RiskDeclarationFields
+          key={riskData.id}
+          json={riskData.json}
+          disabled={readOnly || riskData.canEditOnThisEntity === false}
+          epiCount={riskData.epis?.length || 0}
+          epcCount={riskData.engs?.length || 0}
+          onSave={(json) => handleSelect({ json, keepEmpty: true })}
+        />
+      )}
       {showEndDate && riskData && (
         <SFlex align="center">
           {readOnly ? (

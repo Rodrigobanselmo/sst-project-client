@@ -10,13 +10,22 @@ import { DashboardLoadingFeedback } from './loading';
 import { STBoxContent, STBoxSidebar, STGridBox, STBoxAIChat } from './styles';
 import { KBarRegisterDashboard } from 'layouts/default/KBar/KBarProvider';
 import { AIChatSidebar, useAIChat } from '@v2/features/ai-chat';
+import { useAuth } from 'core/contexts/AuthContext';
 
 const DashboardLayoutContent: FC<React.PropsWithChildren<any>> = ({
   children,
 }) => {
   const { asPath } = useRouter();
   const { isOpen, panelWidth } = useAIChat();
+  const { user } = useAuth();
   const isAIChatEnabled = true;
+
+  if (
+    !user &&
+    (asPath.includes(RoutesEnum.DASHBOARD) ||
+      asPath.includes(RoutesEnum.ONBOARD))
+  )
+    return <LoadingFeedback />;
 
   if (asPath.includes(RoutesEnum.ONBOARD))
     return (

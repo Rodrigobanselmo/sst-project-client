@@ -7,6 +7,7 @@ import {
 import { useFetchBrowseChemicalProducts } from '@v2/services/security/characterization/chemical-product/hooks/useFetchBrowseChemicalProducts';
 import type { ChemicalUseScenarioBoardRow } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import {
+  Alert,
   Button,
   Dialog,
   DialogActions,
@@ -16,6 +17,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ChemicalUseScenarioForm } from './ChemicalUseScenarioForm';
+import { CHEMICAL_INVENTORY_DECLARATION_HELP } from './chemical-product-atomic-edit.util';
 import {
   emptyChemicalUseScenarioFormValues,
   isChemicalUseScenarioSubmitBlocked,
@@ -109,30 +111,31 @@ export const ChemicalUseScenarioFormDialog = ({
     savingRef.current = true;
     setError(null);
     setSaving(true);
-    const result = isEdit && scenario
-      ? await submitUpdateChemicalUseScenarioForm({
-          saving: false,
-          values,
-          update: (body) =>
-            updateChemicalUseScenario({
-              companyId,
-              workspaceId,
-              scenarioId: scenario.id,
-              ...body,
-            }),
-          onUpdated: onSaved,
-        })
-      : await submitCreateChemicalUseScenarioForm({
-          saving: false,
-          values,
-          create: (body) =>
-            createChemicalUseScenario({
-              companyId,
-              workspaceId,
-              ...body,
-            }),
-          onCreated: onSaved,
-        });
+    const result =
+      isEdit && scenario
+        ? await submitUpdateChemicalUseScenarioForm({
+            saving: false,
+            values,
+            update: (body) =>
+              updateChemicalUseScenario({
+                companyId,
+                workspaceId,
+                scenarioId: scenario.id,
+                ...body,
+              }),
+            onUpdated: onSaved,
+          })
+        : await submitCreateChemicalUseScenarioForm({
+            saving: false,
+            values,
+            create: (body) =>
+              createChemicalUseScenario({
+                companyId,
+                workspaceId,
+                ...body,
+              }),
+            onCreated: onSaved,
+          });
     if (result.status === 'ok') {
       savingRef.current = false;
       setSaving(false);
@@ -152,10 +155,13 @@ export const ChemicalUseScenarioFormDialog = ({
 
   return (
     <Dialog open={open} onClose={close} fullWidth maxWidth="md">
-      <DialogTitle>
+      <DialogTitle sx={{ px: 12, pt: 12, pb: 8 }}>
         {isEdit ? 'Editar cenário de uso' : 'Novo cenário de uso'}
       </DialogTitle>
-      <DialogContent sx={{ pt: 1.5 }}>
+      <DialogContent sx={{ px: 12, pt: 4, pb: 12 }}>
+        <Alert severity="info" sx={{ mb: 8 }}>
+          {CHEMICAL_INVENTORY_DECLARATION_HELP}
+        </Alert>
         <ChemicalUseScenarioForm
           mode={isEdit ? 'edit' : 'create'}
           productLocked={isEdit}
@@ -169,7 +175,10 @@ export const ChemicalUseScenarioFormDialog = ({
           error={error}
         />
       </DialogContent>
-      <DialogActions>
+      <DialogActions
+        disableSpacing
+        sx={{ px: 12, pt: 8, pb: 12, gap: 4, flexWrap: 'wrap' }}
+      >
         <Button onClick={close} disabled={saving}>
           Cancelar
         </Button>

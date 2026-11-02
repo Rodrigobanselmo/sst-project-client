@@ -47,14 +47,14 @@ export function useQueryExamsHierarchy(
     // take: take || 20,
   };
 
-  const companyId = userCompanyId;
+  const companyId = query.companyId || userCompanyId;
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EXAMS_RISK_DATA, page, { ...pagination, companyId, ...query }],
-    () => queryExams(pagination, { companyId, ...query }),
+    [QueryEnum.EXAMS_RISK_DATA, page, { ...pagination, ...query, companyId }],
+    () => queryExams(pagination, { ...query, companyId }),
     {
+      enabled: Boolean(companyId),
       staleTime: 1000 * 60 * 60, // 1 hour
-      // enabled: page != 0,
     },
   );
 

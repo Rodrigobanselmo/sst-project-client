@@ -14,6 +14,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { queryClient } from 'core/services/queryClient';
+import { ImportRecalculationPendingError } from 'core/utils/helpers/importCompletionError';
 
 import { EmptyWorkspaceData } from '../empty/EmptyWorkspaceData';
 import { ModalUploadFile } from '../ModalUploadFile';
@@ -55,7 +56,14 @@ export const ModalAddExcelEmployees = () => {
               file: files[0],
               path: path,
             })
-            .catch(() => {});
+            .catch((error) => {
+              if (error instanceof ImportRecalculationPendingError) {
+                queryClient.invalidateQueries([QueryEnum.COMPANY, companyId]);
+                queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+                queryClient.invalidateQueries([QueryEnum.GHO]);
+                throw error;
+              }
+            });
           queryClient.invalidateQueries([QueryEnum.COMPANY, companyId]);
           queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
           queryClient.invalidateQueries([QueryEnum.GHO]);

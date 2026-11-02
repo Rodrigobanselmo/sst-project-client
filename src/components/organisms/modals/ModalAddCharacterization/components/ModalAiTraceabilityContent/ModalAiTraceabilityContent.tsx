@@ -74,13 +74,17 @@ const URL_STATUS_LABELS: Record<string, string> = {
 };
 
 const asStringArray = (value: unknown): string[] =>
-  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
 
 const asTextItems = (value: unknown): AiCharacterizationAssistTextItem[] => {
   if (!Array.isArray(value)) return [];
   return value.filter(
     (item): item is AiCharacterizationAssistTextItem =>
-      Boolean(item) && typeof item === 'object' && typeof (item as { text?: unknown }).text === 'string',
+      Boolean(item) &&
+      typeof item === 'object' &&
+      typeof (item as { text?: unknown }).text === 'string',
   );
 };
 
@@ -97,10 +101,10 @@ const formatDateTime = (value?: string | null) => {
   }
 };
 
-const TextItemsBlock: React.FC<{ title: string; items: AiCharacterizationAssistTextItem[] }> = ({
-  title,
-  items,
-}) => {
+const TextItemsBlock: React.FC<{
+  title: string;
+  items: AiCharacterizationAssistTextItem[];
+}> = ({ title, items }) => {
   if (!items.length) {
     return (
       <Box sx={{ mb: 2 }}>
@@ -130,18 +134,22 @@ const TextItemsBlock: React.FC<{ title: string; items: AiCharacterizationAssistT
   );
 };
 
-const StringListBlock: React.FC<{ title: string; items: string[]; accent?: boolean }> = ({
-  title,
-  items,
-  accent,
-}) => {
+const StringListBlock: React.FC<{
+  title: string;
+  items: string[];
+  accent?: boolean;
+}> = ({ title, items, accent }) => {
   if (!items.length) return null;
 
   return (
     <Box sx={{ mb: 2 }}>
       <SText
         variant="body2"
-        sx={{ fontWeight: 600, mb: 0.5, color: accent ? 'warning.dark' : 'text.primary' }}
+        sx={{
+          fontWeight: 600,
+          mb: 0.5,
+          color: accent ? 'warning.dark' : 'text.primary',
+        }}
       >
         {title}
       </SText>
@@ -156,12 +164,19 @@ const StringListBlock: React.FC<{ title: string; items: string[]; accent?: boole
   );
 };
 
-const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ trace }) => {
+const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({
+  trace,
+}) => {
   const [expanded, setExpanded] = useState(false);
-  const appliedFields = (trace.appliedFields || []) as CharacterizationAiAssistAppliedField[];
+  const appliedFields = (trace.appliedFields ||
+    []) as CharacterizationAiAssistAppliedField[];
   const externalSources = trace.externalSources as
     | {
-        userProvidedUrls?: Array<{ url: string; status?: string; warning?: string }>;
+        userProvidedUrls?: Array<{
+          url: string;
+          status?: string;
+          warning?: string;
+        }>;
         webSearch?: { status?: string; warning?: string; queries?: string[] };
       }
     | undefined;
@@ -209,10 +224,19 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
               <Chip size="small" color="info" label="Cautelas" />
             )}
             {trace.hasFailedUrls && (
-              <Chip size="small" color="error" variant="outlined" label="Fontes com falha" />
+              <Chip
+                size="small"
+                color="error"
+                variant="outlined"
+                label="Fontes com falha"
+              />
             )}
             {trace.webSearchStatus === 'UNAVAILABLE' && (
-              <Chip size="small" variant="outlined" label="Pesquisa web indisponível" />
+              <Chip
+                size="small"
+                variant="outlined"
+                label="Pesquisa web indisponível"
+              />
             )}
             {appliedFields.map((field) => (
               <Chip
@@ -247,7 +271,9 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
             size="small"
             label={PROMPT_MODE_LABELS[trace.promptMode] || trace.promptMode}
           />
-          {trace.usedTemporaryPdf && <Chip size="small" label="PDF temporário" />}
+          {trace.usedTemporaryPdf && (
+            <Chip size="small" label="PDF temporário" />
+          )}
           {trace.usedPhotos && <Chip size="small" label="Fotos" />}
           {trace.usedUserUrls && <Chip size="small" label="URLs do usuário" />}
           <Chip
@@ -266,8 +292,13 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
               URLs processadas
             </SText>
             {externalSources.userProvidedUrls.map((item) => (
-              <SText key={item.url} variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                {item.url} — {URL_STATUS_LABELS[item.status || ''] || item.status || '—'}
+              <SText
+                key={item.url}
+                variant="caption"
+                sx={{ display: 'block', mb: 0.5 }}
+              >
+                {item.url} —{' '}
+                {URL_STATUS_LABELS[item.status || ''] || item.status || '—'}
                 {item.warning ? ` (${item.warning})` : ''}
               </SText>
             ))}
@@ -285,7 +316,11 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
           items={asStringArray(trace.inconsistencies)}
           accent
         />
-        <StringListBlock title="Cautelas" items={asStringArray(trace.cautions)} accent />
+        <StringListBlock
+          title="Cautelas"
+          items={asStringArray(trace.cautions)}
+          accent
+        />
         <StringListBlock
           title="Pontos de incerteza"
           items={asStringArray(trace.uncertaintyPoints)}
@@ -337,8 +372,8 @@ const TraceCard: React.FC<{ trace: CharacterizationAiAssistTraceItem }> = ({ tra
                 variant="caption"
                 sx={{ display: 'block', mb: 0.5 }}
               >
-                {APPLIED_FIELD_LABELS[field.field] || field.field} · modo {field.mode} ·{' '}
-                {formatDateTime(field.appliedAt)}
+                {APPLIED_FIELD_LABELS[field.field] || field.field} · modo{' '}
+                {field.mode} · {formatDateTime(field.appliedAt)}
                 {trace.appliedBy?.name ? ` · por ${trace.appliedBy.name}` : ''}
               </SText>
             ))}
@@ -378,9 +413,15 @@ const TechnicalRecordCard: React.FC<{
           <SText variant="body1" sx={{ fontWeight: 600 }}>
             {record.title}
           </SText>
-          <SText variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+          <SText
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block' }}
+          >
             {formatDateTime(record.analysisDate)} · {record.responsibleName}
-            {record.createdBy?.name ? ` · criado por ${record.createdBy.name}` : ''}
+            {record.createdBy?.name
+              ? ` · criado por ${record.createdBy.name}`
+              : ''}
           </SText>
           <SFlex gap={0.75} flexWrap="wrap" sx={{ mt: 1 }}>
             <Chip size="small" label={RECORD_TYPE_LABELS[record.recordType]} />
@@ -396,7 +437,11 @@ const TechnicalRecordCard: React.FC<{
               label={`${record.sources.length} fonte(s)`}
             />
             {record.finalCharacterizationSnapshot && (
-              <Chip size="small" variant="outlined" label="Snapshot capturado" />
+              <Chip
+                size="small"
+                variant="outlined"
+                label="Snapshot capturado"
+              />
             )}
           </SFlex>
         </Box>
@@ -430,7 +475,11 @@ const TechnicalRecordCard: React.FC<{
             </SText>
             <SFlex gap={0.75} flexWrap="wrap">
               {record.relatedFields.map((field) => (
-                <Chip key={field} size="small" label={RELATED_FIELD_LABELS[field]} />
+                <Chip
+                  key={field}
+                  size="small"
+                  label={RELATED_FIELD_LABELS[field]}
+                />
               ))}
             </SFlex>
           </Box>
@@ -593,10 +642,17 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
     return () => {
       cancelled = true;
     };
-  }, [enabled, scope.companyId, scope.workspaceId, scope.characterizationId, records.length]);
+  }, [
+    enabled,
+    scope.companyId,
+    scope.workspaceId,
+    scope.characterizationId,
+    records.length,
+  ]);
 
   const hasAnyAlert = useMemo(
-    () => traces.some((trace) => trace.hasInconsistencies || trace.hasFailedUrls),
+    () =>
+      traces.some((trace) => trace.hasInconsistencies || trace.hasFailedUrls),
     [traces],
   );
 
@@ -616,10 +672,12 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
 
     if (!confirmed) return;
 
-    await deleteMutation.mutateAsync({
-      ...scope,
-      recordId: record.id,
-    });
+    try {
+      await deleteMutation.mutateAsync({ ...scope, recordId: record.id });
+    } catch {
+      // The mutation reports server errors and keeps the record visible.
+      // Deliberate cancellation is handled without a false error by the hook.
+    }
   };
 
   if (!isEdit) {
@@ -635,9 +693,10 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
   return (
     <Box sx={{ px: 5, pb: 10 }}>
       <Alert severity="info" sx={{ mb: 3 }}>
-        Esta área registra as fontes, pesquisas, análises, decisões e execuções de IA
-        utilizadas na elaboração da caracterização. O conteúdo é mantido para
-        rastreabilidade técnica e não é inserido automaticamente nos documentos oficiais.
+        Esta área registra as fontes, pesquisas, análises, decisões e execuções
+        de IA utilizadas na elaboração da caracterização. O conteúdo é mantido
+        para rastreabilidade técnica e não é inserido automaticamente nos
+        documentos oficiais.
       </Alert>
 
       {aiEvidenceCount > 0 && (
@@ -652,8 +711,8 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
             />
           }
         >
-          Foram identificadas {aiEvidenceCount} evidências utilizadas pelo Assistente
-          IA nesta caracterização. Deseja revisá-las e importá-las?
+          Foram identificadas {aiEvidenceCount} evidências utilizadas pelo
+          Assistente IA nesta caracterização. Deseja revisá-las e importá-las?
         </Alert>
       )}
 
@@ -740,7 +799,8 @@ export const ModalAiTraceabilityContent: React.FC<IUseEditCharacterization> = (
 
         {!isLoading && !isError && !traces.length && (
           <SText variant="body2" color="text.secondary">
-            Nenhuma execução do Assistente IA registrada para esta caracterização.
+            Nenhuma execução do Assistente IA registrada para esta
+            caracterização.
           </SText>
         )}
 

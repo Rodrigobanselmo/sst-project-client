@@ -60,6 +60,7 @@ export function useQueryRisks(page = 1, query = {} as IQueryRisks, take = 20) {
     ],
     () => queryRisks(pagination, { ...query, companyId }),
     {
+      enabled: Boolean(companyId),
       staleTime: 1000 * 60 * 60, // 1 hour
     },
   );

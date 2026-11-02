@@ -15,6 +15,8 @@ import {
   ChemicalExcelImportPreview,
   ChemicalIngredientPayload,
   ChemicalCompositionDisclosure,
+  ChemicalCompositionMutation,
+  ChemicalFispqCompositionMutation,
   ChemicalPrepareAnalyzeResult,
   ChemicalPrepareColumnMapping,
   ChemicalPreparePreviewResult,
@@ -131,6 +133,7 @@ export async function updateChemicalProduct(
     productId: string;
     tradeName?: string;
     manufacturer?: string | null;
+    composition?: ChemicalCompositionMutation;
   },
 ) {
   const { companyId, workspaceId, productId, ...body } = params;
@@ -327,6 +330,7 @@ export async function createChemicalFispqDocument(
     issuedAt?: string | null;
     language?: string | null;
     activate?: boolean;
+    composition?: ChemicalFispqCompositionMutation;
   },
 ) {
   const { companyId, workspaceId, productId, ...body } = params;
@@ -347,8 +351,13 @@ export async function setChemicalFispqEmployeeVisibility(
     publishedForEmployees: boolean;
   },
 ) {
-  const { companyId, workspaceId, productId, documentId, publishedForEmployees } =
-    params;
+  const {
+    companyId,
+    workspaceId,
+    productId,
+    documentId,
+    publishedForEmployees,
+  } = params;
   const response = await api.patch(
     bindUrlParams({
       path: ChemicalProductRoutes.PUBLISH_FISPQ,
@@ -371,18 +380,12 @@ export async function activateChemicalFispqDocument(
   return response.data;
 }
 
-async function downloadChemicalXlsx(
-  path: string,
-  pathParams: WorkspaceParams,
-) {
+async function downloadChemicalXlsx(path: string, pathParams: WorkspaceParams) {
   const { token } = await refreshToken();
-  const response = await api.get(
-    bindUrlParams({ path, pathParams }),
-    {
-      responseType: 'blob',
-      headers: { Authorization: `Bearer ${token}` },
-    },
-  );
+  const response = await api.get(bindUrlParams({ path, pathParams }), {
+    responseType: 'blob',
+    headers: { Authorization: `Bearer ${token}` },
+  });
   await downloadFile(response);
 }
 
@@ -427,7 +430,10 @@ export async function commitChemicalExcelImport(
 ) {
   const formData = new FormData();
   formData.append('file', params.file);
-  formData.append('confirmCommit', params.confirmCommit === false ? 'false' : 'true');
+  formData.append(
+    'confirmCommit',
+    params.confirmCommit === false ? 'false' : 'true',
+  );
   if (params.decisions?.length) {
     formData.append('decisions', JSON.stringify(params.decisions));
   }
@@ -641,12 +647,13 @@ export async function downloadChemicalExcelAiCuration(
           synonyms: (decision.identity.synonyms || []).slice(0, 16),
           origin: decision.identity.origin,
           manualSource: decision.identity.manualSource?.slice(0, 200),
-          manualJustification:
-            decision.identity.manualJustification?.slice(0, 800),
+          manualJustification: decision.identity.manualJustification?.slice(
+            0,
+            800,
+          ),
           originalSuggestion: decision.identity.originalSuggestion
             ? {
-                officialName:
-                  decision.identity.originalSuggestion.officialName,
+                officialName: decision.identity.originalSuggestion.officialName,
                 cas: decision.identity.originalSuggestion.cas ?? null,
               }
             : undefined,
@@ -666,8 +673,10 @@ export async function downloadChemicalExcelAiCuration(
             synonyms: (part.identity.synonyms || []).slice(0, 16),
             origin: part.identity.origin,
             manualSource: part.identity.manualSource?.slice(0, 200),
-            manualJustification:
-              part.identity.manualJustification?.slice(0, 800),
+            manualJustification: part.identity.manualJustification?.slice(
+              0,
+              800,
+            ),
             originalSuggestion: part.identity.originalSuggestion,
           }
         : undefined,
@@ -989,16 +998,12 @@ export type TechnicalWorkspaceGseOption = {
   name: string;
 };
 
-function isTechnicalWorkspaceGse(
-  group: IGho,
-  workspaceId: string,
-): boolean {
+function isTechnicalWorkspaceGse(group: IGho, workspaceId: string): boolean {
   if (group.status && group.status !== StatusEnum.ACTIVE) return false;
   if (group.type != null && group.type !== HomoTypeEnum.GSE) return false;
-  const workspaceIds =
-    group.workspaceIds?.length
-      ? group.workspaceIds
-      : (group.workspaces || []).map((workspace) => workspace.id);
+  const workspaceIds = group.workspaceIds?.length
+    ? group.workspaceIds
+    : (group.workspaces || []).map((workspace) => workspace.id);
   if (workspaceIds.length && !workspaceIds.includes(workspaceId)) return false;
   return true;
 }

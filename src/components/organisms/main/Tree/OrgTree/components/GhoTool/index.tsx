@@ -35,6 +35,7 @@ import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { StructuralArchivedButton } from '@v2/features/sst-operational/StructuralArchivedButton';
 
 import { GhoToolHeader } from './components/GhoToolHeader';
 import { GhoToolTopButtons } from './components/GhoToolTopButtons';
@@ -127,8 +128,10 @@ export const GhoTool = () => {
       if (isOrgMultiWorkspace) return;
       preventDelete(
         async () => {
-          await deleteMutation.mutateAsync(id).catch(() => {});
-          dispatch(setGhoState({ hierarchies: [], data: null }));
+          const removed = await deleteMutation
+            .mutateAsync(id)
+            .catch(() => null);
+          if (removed) dispatch(setGhoState({ hierarchies: [], data: null }));
         },
         <span>
           <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>
@@ -224,6 +227,22 @@ export const GhoTool = () => {
         <STBoxContainer expanded={selectExpanded ? 1 : 0}>
           <GhoToolTopButtons handleSelectGHO={handleSelectGHO} />
           <STTableContainer>
+            {company?.id && (
+              <StructuralArchivedButton
+                companyId={company.id}
+                table={
+                  filter != null && homoCharacterizationTabs.has(filter)
+                    ? 'CompanyCharacterization'
+                    : 'HomogeneousGroup'
+                }
+                workspaceId={tabWorkspaceId}
+                label={
+                  filter != null && homoCharacterizationTabs.has(filter)
+                    ? 'Consultar ambientes e atividades encerrados'
+                    : 'Consultar GSEs encerrados'
+                }
+              />
+            )}
             <GhoToolHeader
               handleSelectGHO={handleSelectGHO}
               handleEditGHO={handleEditGHO}

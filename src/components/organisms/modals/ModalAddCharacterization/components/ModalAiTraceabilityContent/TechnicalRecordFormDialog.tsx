@@ -26,6 +26,9 @@ import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { useAuth } from 'core/contexts/AuthContext';
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
+import { extractApiError } from '@v2/utils/extract-api-error';
+import type { IErrorResp } from '@v2/types/error.type';
 import type {
   CharacterizationFinalSnapshot,
   CharacterizationTechnicalRecordItem,
@@ -143,8 +146,7 @@ const buildInitialState = (
       sourceClassification: source.sourceClassification || '',
       informationUsed: source.informationUsed || '',
       limitations: source.limitations || '',
-      applicationInCharacterization:
-        source.applicationInCharacterization || '',
+      applicationInCharacterization: source.applicationInCharacterization || '',
       sortOrder: source.sortOrder ?? index,
     })),
   };
@@ -154,7 +156,11 @@ const formatSnapshotText = (value: string[] | string | null | undefined) => {
   if (!value) return '—';
   if (Array.isArray(value)) {
     const cleaned = value
-      .map((item) => String(item).replace(/\{type\}=.+$/, '').trim())
+      .map((item) =>
+        String(item)
+          .replace(/\{type\}=.+$/, '')
+          .trim(),
+      )
       .filter(Boolean);
     return cleaned.length ? cleaned.join('\n') : '—';
   }
@@ -232,8 +238,7 @@ export const TechnicalRecordFormDialog: React.FC<
     setExpandedSourceKey(next.sources[0]?.localKey || false);
   }, [open, record, defaultResponsibleName, initialSources]);
 
-  const isExternalAi =
-    form.analysisOrigin === 'EXTERNAL_AI_USER_DECLARED';
+  const isExternalAi = form.analysisOrigin === 'EXTERNAL_AI_USER_DECLARED';
 
   const canSubmit = useMemo(() => {
     const hasReport = Boolean(form.technicalReport.trim());
@@ -254,10 +259,7 @@ export const TechnicalRecordFormDialog: React.FC<
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateSource = (
-    localKey: string,
-    patch: Partial<FormSource>,
-  ) => {
+  const updateSource = (localKey: string, patch: Partial<FormSource>) => {
     setForm((prev) => ({
       ...prev,
       sources: prev.sources.map((source) =>
@@ -312,12 +314,21 @@ export const TechnicalRecordFormDialog: React.FC<
   };
 
   const handleCaptureSnapshot = async () => {
-    const snapshot = await captureMutation.mutateAsync({
-      companyId,
-      workspaceId,
-      characterizationId,
-    });
-    updateField('finalCharacterizationSnapshot', snapshot);
+    setFormError(null);
+    try {
+      const snapshot = await captureMutation.mutateAsync({
+        companyId,
+        workspaceId,
+        characterizationId,
+      });
+      updateField('finalCharacterizationSnapshot', snapshot);
+    } catch (error) {
+      if (!isSstMutationCancelled(error))
+        setFormError(
+          extractApiError(error as IErrorResp) ||
+            'Não foi possível capturar a caracterização. Os dados preenchidos foram preservados.',
+        );
+    }
   };
 
   const handleSubmit = async () => {
@@ -362,45 +373,57 @@ export const TechnicalRecordFormDialog: React.FC<
       })),
     };
 
-    if (record?.id) {
-      await updateMutation.mutateAsync({
-        companyId,
-        workspaceId,
-        characterizationId,
-        recordId: record.id,
-        ...payload,
-      });
-    } else {
-      await createMutation.mutateAsync({
-        companyId,
-        workspaceId,
-        characterizationId,
-        ...payload,
-      });
+    try {
+      if (record?.id) {
+        await updateMutation.mutateAsync({
+          companyId,
+          workspaceId,
+          characterizationId,
+          recordId: record.id,
+          ...payload,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          companyId,
+          workspaceId,
+          characterizationId,
+          ...payload,
+        });
+      }
+      onClose();
+    } catch (error) {
+      if (!isSstMutationCancelled(error))
+        setFormError(
+          extractApiError(error as IErrorResp) ||
+            'Não foi possível salvar o registro técnico. Os dados preenchidos foram preservados.',
+        );
     }
-
-    onClose();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>
+    <Dialog
+      open={open}
+      onClose={saving ? undefined : onClose}
+      fullWidth
+      maxWidth="md"
+    >
+      <DialogTitle sx={{ px: 12, pt: 12, pb: 8 }}>
         {record ? 'Editar registro técnico' : 'Adicionar registro técnico'}
       </DialogTitle>
-      <DialogContent dividers>
-        <Alert severity="info" sx={{ mb: 2 }}>
+      <DialogContent dividers sx={{ px: 12, py: 8 }}>
+        <Alert severity="info" sx={{ mb: 8 }}>
           Este registro é de rastreabilidade técnica. Ele não é inserido
           automaticamente nos documentos oficiais nem altera os campos da
           caracterização.
         </Alert>
 
         {formError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 8 }}>
             {formError}
           </Alert>
         )}
 
-        <SFlex direction="column" gap={2}>
+        <SFlex direction="column" gap={8}>
           <TextField
             label="Título"
             required
@@ -409,7 +432,7 @@ export const TechnicalRecordFormDialog: React.FC<
             onChange={(e) => updateField('title', e.target.value)}
           />
 
-          <SFlex gap={2} flexWrap="wrap">
+          <SFlex gap={8} flexWrap="wrap">
             <TextField
               select
               label="Tipo de registro"
@@ -488,18 +511,18 @@ export const TechnicalRecordFormDialog: React.FC<
           {isExternalAi && (
             <Box
               sx={{
-                p: 2,
+                p: 8,
                 border: '1px dashed',
                 borderColor: 'warning.main',
                 borderRadius: 1,
                 bgcolor: 'warning.50',
               }}
             >
-              <Alert severity="warning" sx={{ mb: 2 }}>
+              <Alert severity="warning" sx={{ mb: 8 }}>
                 Informação declarada pelo usuário. Não é uma execução automática
                 do Assistente IA do SimpleSST.
               </Alert>
-              <SFlex gap={2} flexWrap="wrap">
+              <SFlex gap={8} flexWrap="wrap">
                 <TextField
                   select
                   label="Ferramenta utilizada"
@@ -531,17 +554,17 @@ export const TechnicalRecordFormDialog: React.FC<
 
           <Box
             sx={{
-              p: 2,
+              p: 8,
               border: '1px solid',
               borderColor: 'primary.light',
               borderRadius: 1,
               bgcolor: 'primary.50',
             }}
           >
-            <SText variant="body1" sx={{ fontWeight: 700, mb: 1 }}>
+            <SText variant="body1" sx={{ fontWeight: 700, mb: 4 }}>
               Relatório técnico da análise
             </SText>
-            <Alert severity="info" sx={{ mb: 1.5 }}>
+            <Alert severity="info" sx={{ mb: 8 }}>
               Registre aqui o objeto da análise, metodologia, síntese técnica,
               divergências, critérios, limitações, decisões e conclusão. Evite
               repetir essas informações individualmente em cada fonte.
@@ -558,12 +581,31 @@ export const TechnicalRecordFormDialog: React.FC<
           </Box>
 
           <Box>
-            <SFlex align="center" justify="space-between" sx={{ mb: 1 }} flexWrap="wrap" gap={1}>
+            <SFlex
+              align="center"
+              justify="space-between"
+              sx={{ mb: 4 }}
+              flexWrap="wrap"
+              gap={4}
+            >
               <SText variant="body1" sx={{ fontWeight: 600 }}>
                 Fontes vinculadas (evidências)
               </SText>
-              <SFlex gap={1}>
+              <SFlex
+                gap={4}
+                direction={{ xs: 'column', sm: 'row' }}
+                width={{ xs: '100%', sm: 'auto' }}
+                align="stretch"
+              >
                 <SButton
+                  buttonProps={{
+                    sx: {
+                      height: 'auto',
+                      minHeight: 36,
+                      py: 4,
+                      width: { xs: '100%', sm: 'auto' },
+                    },
+                  }}
                   variant="outlined"
                   text="Importar fontes por URL"
                   onClick={() => setImportUrlsOpen(true)}
@@ -571,6 +613,14 @@ export const TechnicalRecordFormDialog: React.FC<
                 <SButton
                   variant="outlined"
                   text="+ Adicionar fonte"
+                  buttonProps={{
+                    sx: {
+                      height: 'auto',
+                      minHeight: 36,
+                      py: 4,
+                      width: { xs: '100%', sm: 'auto' },
+                    },
+                  }}
                   onClick={addSource}
                 />
               </SFlex>
@@ -590,10 +640,10 @@ export const TechnicalRecordFormDialog: React.FC<
                 onChange={(_, expanded) =>
                   setExpandedSourceKey(expanded ? source.localKey : false)
                 }
-                sx={{ mb: 1 }}
+                sx={{ mb: 4 }}
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <SFlex align="center" gap={1} sx={{ width: '100%', pr: 1 }}>
+                  <SFlex align="center" gap={4} sx={{ width: '100%', pr: 1 }}>
                     <SText variant="body2" sx={{ fontWeight: 600, flex: 1 }}>
                       Fonte {index + 1}
                       {source.title ? ` — ${source.title}` : ''}
@@ -633,9 +683,9 @@ export const TechnicalRecordFormDialog: React.FC<
                     </IconButton>
                   </SFlex>
                 </AccordionSummary>
-                <AccordionDetails>
-                  <SFlex direction="column" gap={2}>
-                    <SFlex gap={2} flexWrap="wrap">
+                <AccordionDetails sx={{ px: 8, pt: 4, pb: 8 }}>
+                  <SFlex direction="column" gap={8}>
+                    <SFlex gap={8} flexWrap="wrap">
                       <TextField
                         select
                         label="Tipo de fonte"
@@ -692,7 +742,7 @@ export const TechnicalRecordFormDialog: React.FC<
                         updateSource(source.localKey, { title: e.target.value })
                       }
                     />
-                    <SFlex gap={2} flexWrap="wrap">
+                    <SFlex gap={8} flexWrap="wrap">
                       <TextField
                         label="Data de publicação/revisão"
                         type="date"
@@ -716,7 +766,7 @@ export const TechnicalRecordFormDialog: React.FC<
                         }
                       />
                     </SFlex>
-                    <SFlex gap={2} flexWrap="wrap">
+                    <SFlex gap={8} flexWrap="wrap">
                       <TextField
                         label="Nome do arquivo (referência textual)"
                         sx={{ minWidth: 220, flex: 1 }}
@@ -779,7 +829,7 @@ export const TechnicalRecordFormDialog: React.FC<
                             Informações do formato anterior
                           </SText>
                         </AccordionSummary>
-                        <AccordionDetails>
+                        <AccordionDetails sx={{ px: 8, pt: 4, pb: 8 }}>
                           {source.sourceClassification && (
                             <SText variant="caption" sx={{ display: 'block' }}>
                               Classificação: {source.sourceClassification}
@@ -811,7 +861,7 @@ export const TechnicalRecordFormDialog: React.FC<
           </Box>
 
           <Box>
-            <SText variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
+            <SText variant="body1" sx={{ fontWeight: 600, mb: 4 }}>
               Relação com os campos da caracterização
             </SText>
             <FormGroup>
@@ -831,13 +881,28 @@ export const TechnicalRecordFormDialog: React.FC<
           </Box>
 
           <Box>
-            <SFlex align="center" justify="space-between" sx={{ mb: 1 }}>
+            <SFlex
+              align={{ xs: 'stretch', sm: 'center' }}
+              direction={{ xs: 'column', sm: 'row' }}
+              justify="space-between"
+              gap={8}
+              sx={{ mb: 4 }}
+            >
               <SText variant="body1" sx={{ fontWeight: 600 }}>
                 Texto final resultante (snapshot histórico)
               </SText>
               <SButton
                 variant="outlined"
                 text="Capturar versão atual da caracterização"
+                buttonProps={{
+                  sx: {
+                    height: 'auto',
+                    minHeight: 36,
+                    py: 4,
+                    width: { xs: '100%', sm: 'auto' },
+                    flexShrink: 0,
+                  },
+                }}
                 onClick={handleCaptureSnapshot}
                 loading={captureMutation.isPending}
               />
@@ -846,18 +911,18 @@ export const TechnicalRecordFormDialog: React.FC<
             {form.finalCharacterizationSnapshot ? (
               <Box
                 sx={{
-                  p: 2,
+                  p: 8,
                   border: '1px solid',
                   borderColor: 'divider',
                   borderRadius: 1,
                   bgcolor: 'grey.50',
                 }}
               >
-                <Alert severity="info" sx={{ mb: 1 }}>
+                <Alert severity="info" sx={{ mb: 4 }}>
                   Cópia histórica independente. Alterações futuras na
                   caracterização não atualizam este snapshot.
                 </Alert>
-                <SText variant="caption" sx={{ display: 'block', mb: 1 }}>
+                <SText variant="caption" sx={{ display: 'block', mb: 4 }}>
                   Capturado em{' '}
                   {new Date(
                     form.finalCharacterizationSnapshot.capturedAt,
@@ -869,13 +934,13 @@ export const TechnicalRecordFormDialog: React.FC<
                 <SText variant="body2" sx={{ fontWeight: 600 }}>
                   Nome
                 </SText>
-                <SText variant="body2" sx={{ mb: 1, whiteSpace: 'pre-wrap' }}>
+                <SText variant="body2" sx={{ mb: 4, whiteSpace: 'pre-wrap' }}>
                   {form.finalCharacterizationSnapshot.name || '—'}
                 </SText>
                 <SText variant="body2" sx={{ fontWeight: 600 }}>
                   Descrição
                 </SText>
-                <SText variant="body2" sx={{ mb: 1, whiteSpace: 'pre-wrap' }}>
+                <SText variant="body2" sx={{ mb: 4, whiteSpace: 'pre-wrap' }}>
                   {formatSnapshotText(
                     form.finalCharacterizationSnapshot.description,
                   )}
@@ -883,7 +948,7 @@ export const TechnicalRecordFormDialog: React.FC<
                 <SText variant="body2" sx={{ fontWeight: 600 }}>
                   Processos/atividades
                 </SText>
-                <SText variant="body2" sx={{ mb: 1, whiteSpace: 'pre-wrap' }}>
+                <SText variant="body2" sx={{ mb: 4, whiteSpace: 'pre-wrap' }}>
                   {formatSnapshotText(
                     form.finalCharacterizationSnapshot.workActivities,
                   )}
@@ -905,8 +970,16 @@ export const TechnicalRecordFormDialog: React.FC<
           </Box>
         </SFlex>
       </DialogContent>
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <SButton variant="outlined" text="Cancelar" onClick={onClose} />
+      <DialogActions
+        disableSpacing
+        sx={{ px: 12, pt: 8, pb: 12, gap: 4, flexWrap: 'wrap' }}
+      >
+        <SButton
+          variant="outlined"
+          text="Cancelar"
+          onClick={onClose}
+          disabled={saving}
+        />
         <SButton
           variant="contained"
           text={record ? 'Salvar alterações' : 'Salvar registro'}

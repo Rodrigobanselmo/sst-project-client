@@ -1,6 +1,9 @@
 import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
+import type { IErrorResp } from '@v2/types/error.type';
+import { extractApiError } from '@v2/utils/extract-api-error';
 import {
   captureCharacterizationTechnicalSnapshot,
   createCharacterizationTechnicalRecord,
@@ -28,7 +31,13 @@ export const useMutateCreateCharacterizationTechnicalRecord = () => {
       technicalRecordsQueryKey(variables),
     ],
     onSuccess: () => onSuccessMessage('Registro técnico criado com sucesso'),
-    onError: onErrorMessage,
+    onError: (error: IErrorResp) => {
+      if (!isSstMutationCancelled(error))
+        onErrorMessage(
+          extractApiError(error) ||
+            'Não foi possível criar o registro técnico.',
+        );
+    },
   });
 };
 
@@ -40,8 +49,15 @@ export const useMutateUpdateCharacterizationTechnicalRecord = () => {
     invalidateManyQueryKeys: (_data, variables) => [
       technicalRecordsQueryKey(variables),
     ],
-    onSuccess: () => onSuccessMessage('Registro técnico atualizado com sucesso'),
-    onError: onErrorMessage,
+    onSuccess: () =>
+      onSuccessMessage('Registro técnico atualizado com sucesso'),
+    onError: (error: IErrorResp) => {
+      if (!isSstMutationCancelled(error))
+        onErrorMessage(
+          extractApiError(error) ||
+            'Não foi possível atualizar o registro técnico.',
+        );
+    },
   });
 };
 
@@ -59,7 +75,13 @@ export const useMutateDeleteCharacterizationTechnicalRecord = () => {
           ? 'Registro técnico arquivado'
           : 'Registro técnico excluído',
       ),
-    onError: onErrorMessage,
+    onError: (error: IErrorResp) => {
+      if (!isSstMutationCancelled(error))
+        onErrorMessage(
+          extractApiError(error) ||
+            'Não foi possível remover o registro técnico.',
+        );
+    },
   });
 };
 
@@ -69,6 +91,12 @@ export const useMutateCaptureCharacterizationTechnicalSnapshot = () => {
   return useMutate({
     mutationFn: captureCharacterizationTechnicalSnapshot,
     invalidateQueryKey: false,
-    onError: onErrorMessage,
+    onError: (error: IErrorResp) => {
+      if (!isSstMutationCancelled(error))
+        onErrorMessage(
+          extractApiError(error) ||
+            'Não foi possível capturar a caracterização.',
+        );
+    },
   });
 };

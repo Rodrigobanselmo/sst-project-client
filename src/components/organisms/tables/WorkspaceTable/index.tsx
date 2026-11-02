@@ -37,6 +37,7 @@ import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { StructuralArchivedButton } from '@v2/features/sst-operational/StructuralArchivedButton';
 
 import { buildWorkspaceEditModalData } from './build-workspace-edit-modal-data';
 
@@ -279,9 +280,7 @@ export const WorkspaceTable: FC<
       case 'name':
         return <TextIconRow key="name" text={row.name} />;
       case 'description':
-        return (
-          <TextIconRow key="desc" text={row.description || ' -- '} />
-        );
+        return <TextIconRow key="desc" text={row.description || ' -- '} />;
       case 'abbreviation':
         return <TextIconRow key="abbr" text={row.abbreviation} />;
       case 'status':
@@ -329,6 +328,13 @@ export const WorkspaceTable: FC<
           addText={'Adicionar'}
           identitySquareActions
         />
+        {data?.id && (
+          <StructuralArchivedButton
+            companyId={data.id}
+            table="Workspace"
+            label="Consultar estabelecimentos encerrados"
+          />
+        )}
         <STableButton
           sm
           onClick={() => onOpenModal(ModalEnum.ESTABLISHMENT_GROUPS)}
@@ -366,11 +372,7 @@ export const WorkspaceTable: FC<
           />
         }
       />
-      <STable
-        loading={isLoading}
-        rowsNumber={pageSize}
-        columns={gridTemplate}
-      >
+      <STable loading={isLoading} rowsNumber={pageSize} columns={gridTemplate}>
         <STableHeader>
           {visibleColumns.map((col) =>
             col.id === 'edit' ? (

@@ -1,74 +1,28 @@
-import React, { useEffect } from 'react';
-import { Wizard } from 'react-use-wizard';
-
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
-import TopicIcon from '@mui/icons-material/Topic';
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
-import STableTitle from 'components/atoms/STable/components/STableTitle';
-import SWizardBox from 'components/atoms/SWizardBox';
-import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
-import { ModalSend2210ESocial } from 'components/organisms/modals/ModalSend2210ESocial/ModalSend2210ESocial';
-import { ModalSend2220ESocial } from 'components/organisms/modals/ModalSend2220ESocial/ModalSend2220ESocial';
-import { ModalSend2240ESocial } from 'components/organisms/modals/ModalSend2240ESocial/ModalSend2240ESocial';
-import { CompanyESocialTable } from 'components/organisms/tables/CompanyESocialTable/CompanyESocialTable';
-import { ESocialBatchTable } from 'components/organisms/tables/ESocialBatchTable/ESocialBatchTable';
-import { ESocialEventTable } from 'components/organisms/tables/ESocialEventTable/ESocialEventTable';
-import { NextPage } from 'next';
-
-import SEventIcon from 'assets/icons/SEventIcon/SEventIcon';
-
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
-
-const EsocialPage: NextPage = () => {
+import { EsocialOverview } from '@v2/features/sst-operational/EsocialOverview';
+import { Button, Box } from '@mui/material';
+import Link from 'next/link';
+export default function EsocialPage() {
+  const { companyId } = useGetCompanyId();
   return (
     <>
-      <SHeaderTag title={'eSocial'} />
+      <SHeaderTag title="eSocial SST" />
       <SContainer>
-        <STableTitle>Eventos eSocial</STableTitle>
-        <Wizard
-          header={
-            <WizardTabs
-              shadow
-              textColor="secondary"
-              indicatorColor="secondary"
-              height={60}
-              options={[
-                {
-                  label: 'Geral',
-                  icon: <ContentPasteIcon />,
-                  iconPosition: 'start',
-                },
-                {
-                  label: 'Eventos',
-                  icon: <SEventIcon />,
-                  iconPosition: 'start',
-                },
-                { label: 'Lotes', icon: <TopicIcon />, iconPosition: 'start' },
-              ]}
-            />
-          }
-        >
-          <CompanyESocialTable />
-          <SWizardBox sx={{ px: 5, py: 10 }}>
-            <ESocialEventTable />
-          </SWizardBox>
-          <SWizardBox sx={{ px: 5, py: 10 }}>
-            <ESocialBatchTable />
-          </SWizardBox>
-        </Wizard>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: '16px', p: 8 }}>
+          <Button component={Link} href="/dashboard/esocial">Ver empresas atendidas</Button>
+          <Button
+            component={Link}
+            href={`/dashboard/empresas/${companyId}/esocial/certificados`}
+          >
+            Gerenciar certificados
+          </Button>
+        </Box>
+        {companyId && <EsocialOverview key={companyId} companyId={companyId} />}
       </SContainer>
-      <ModalSend2210ESocial />
-      <ModalSend2220ESocial />
-      <ModalSend2240ESocial />
     </>
   );
-};
-
-export default EsocialPage;
-
-export const getServerSideProps = withSSRAuth(async () => {
-  return {
-    props: {},
-  };
-});
+}
+export const getServerSideProps = withSSRAuth(async () => ({ props: {} }));

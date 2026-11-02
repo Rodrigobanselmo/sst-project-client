@@ -172,6 +172,9 @@ export function useMutUpsertCharacterization() {
       },
       onError: (error: IErrorResp) => {
         console.error(error);
+        // A cancelled period decision is a local Error, without an HTTP
+        // response. Keep the draft instead of throwing from the error handler.
+        if (!error.response?.data?.message) return;
         enqueueSnackbar(error.response.data.message, {
           variant: 'error',
           anchorOrigin: {

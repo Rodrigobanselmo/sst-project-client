@@ -49,6 +49,7 @@ export function useQueryGhos(page = 1, query = {} as IQueryGhos, take = 20) {
     [QueryEnum.GHO, page, { ...pagination, ...query, companyId }],
     () => queryRisks(pagination, { ...query, companyId }),
     {
+      enabled: Boolean(companyId),
       staleTime: 1000 * 60 * 60, // 1 hour
     },
   );

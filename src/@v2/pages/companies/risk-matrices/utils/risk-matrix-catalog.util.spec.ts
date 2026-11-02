@@ -15,6 +15,7 @@ import {
   catalogEstablishmentAvailabilityLabel,
   catalogPublishedCoverageCount,
   canDuplicateRiskMatrix,
+  canCreateCatalogVersion,
   canDeleteCatalogDraft,
   canOpenWorkspaceAvailability,
   canViewPublishedRiskMatrix,
@@ -27,6 +28,9 @@ import {
   RISK_MATRIX_DELETE_DRAFT_KEEP_PUBLISHED_CONFIRMATION,
   RISK_MATRIX_DELETE_DRAFT_ONLY_CONFIRMATION,
   RISK_MATRIX_VIEW_PUBLISHED_ACTION,
+  RISK_MATRIX_NEW_VERSION_ACTION,
+  RISK_MATRIX_NEW_VERSION_CONFIRMATION,
+  RISK_MATRIX_VERSION_HISTORY_HELP,
 } from '../maps/risk-matrix.maps';
 
 const matrix: RiskMatrixBrowseItem = {
@@ -55,10 +59,7 @@ const matrix: RiskMatrixBrowseItem = {
 assert.deepEqual(mapBrowseRiskMatrices(undefined), []);
 assert.deepEqual(mapBrowseRiskMatrices({ results: [matrix] }), [matrix]);
 assert.equal(hasCatalogDraft(matrix), true);
-assert.equal(
-  hasCatalogDraft({ ...matrix, draftVersion: null }),
-  false,
-);
+assert.equal(hasCatalogDraft({ ...matrix, draftVersion: null }), false);
 assert.equal(catalogPublishedCoverageCount(matrix), 2);
 assert.equal(
   catalogPublishedCoverageCount({ ...matrix, latestPublishedVersion: null }),
@@ -89,6 +90,45 @@ assert.equal(
   true,
 );
 assert.equal(RISK_MATRIX_VIEW_PUBLISHED_ACTION, 'Visualizar matriz');
+assert.equal(canCreateCatalogVersion(matrix), false);
+assert.equal(canCreateCatalogVersion({ ...matrix, draftVersion: null }), true);
+assert.equal(
+  canCreateCatalogVersion({
+    ...matrix,
+    draftVersion: null,
+    status: CompanyRiskMatrixStatusEnum.ARCHIVED,
+  }),
+  false,
+);
+assert.equal(
+  canCreateCatalogVersion({ ...matrix, latestPublishedVersion: null }),
+  false,
+);
+assert.equal(
+  canCreateCatalogVersion({
+    ...matrix,
+    latestPublishedVersion: null,
+    draftVersion: null,
+  }),
+  false,
+);
+assert.equal(RISK_MATRIX_NEW_VERSION_ACTION, 'Criar nova versão');
+assert.match(
+  RISK_MATRIX_NEW_VERSION_CONFIRMATION.message,
+  /rascunho.*última versão publicada/,
+);
+assert.match(
+  RISK_MATRIX_NEW_VERSION_CONFIRMATION.message,
+  /avaliações existentes.*eSocial.*preservados/,
+);
+assert.match(
+  RISK_MATRIX_NEW_VERSION_CONFIRMATION.message,
+  /não reaplica a matriz aos riscos/,
+);
+assert.match(
+  RISK_MATRIX_VERSION_HISTORY_HELP,
+  /cadastro de origem.*decisão.*vigência/,
+);
 assert.equal(canDuplicateRiskMatrix(matrix), true);
 assert.equal(
   canDuplicateRiskMatrix({
@@ -113,10 +153,7 @@ assert.equal(
   false,
 );
 assert.equal(canDeleteCatalogDraft(matrix), true);
-assert.equal(
-  canDeleteCatalogDraft({ ...matrix, draftVersion: null }),
-  false,
-);
+assert.equal(canDeleteCatalogDraft({ ...matrix, draftVersion: null }), false);
 assert.equal(deleteCatalogDraftRemovesIdentity(matrix), false);
 assert.equal(
   deleteCatalogDraftRemovesIdentity({

@@ -93,13 +93,21 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     router,
   ]);
 
+  // Only pages with an actual workspace selector need this optional lookup.
+  // In particular, an eSocial-only reader must not fetch company data merely
+  // because the global header is mounted on the eSocial page.
+  const needsWorkspaceSelector = !(isHomePage && isGroupConsolidated) && (
+    isDocumentsListPage || isActionPlanPage || isCharacterizationRootPage ||
+    showSstWorkspaceSelector || isGseCharacterizationPage || isChemicalProductsPage ||
+    isAssistenteGsePage || isNewDocumentsStagePage || isHierarchyOrganogramPage || routeHasWorkspace
+  );
   const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
     companyId: companyId || '',
-  });
+  }, { enabled: needsWorkspaceSelector });
 
   const workspaceCount = workspaces?.results?.length ?? 0;
 
-  if (!companyId) return null;
+  if (!companyId || !needsWorkspaceSelector) return null;
 
   if (isHomePage && isGroupConsolidated) {
     return null;

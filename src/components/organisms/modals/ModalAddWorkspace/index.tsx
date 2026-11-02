@@ -26,6 +26,8 @@ import { WorkspaceEmergencyPlanSection } from './components/WorkspaceEmergencyPl
 import { ConvertWorkspaceToCompanyModal } from './components/ConvertWorkspaceToCompanyModal/ConvertWorkspaceToCompanyModal';
 import { WorkspaceModalKeepTabPanel } from './components/WorkspaceModalKeepTabPanel';
 import { useEditWorkspace } from './hooks/useEditWorkspace';
+import { useFormState } from 'react-hook-form';
+import { StructuralSourceActions } from '@v2/features/sst-operational/StructuralSourceActions';
 
 const WORKSPACE_TABS = [
   { label: 'Dados', type: 'button' as const },
@@ -50,6 +52,7 @@ export const ModalAddWorkspace = () => {
   } = props;
 
   const isEditing = !!companyData.id;
+  const { isDirty } = useFormState({ control: props.control });
 
   useEffect(() => {
     setTab(0);
@@ -71,115 +74,124 @@ export const ModalAddWorkspace = () => {
         keepMounted={false}
         onClose={onCloseUnsaved}
       >
-      <SModalPaper
-        p={8}
-        center
-        component="form"
-        onSubmit={(handleSubmit as any)(onSubmit)}
-        sx={
-          isEditing
-            ? {
-                minWidth: ['95%', '95%', 1080],
-                maxWidth: ['95%', '95%', 1280],
-              }
-            : undefined
-        }
-      >
-        <SModalHeader
-          tag={companyData.id ? 'edit' : 'add'}
-          onClose={onCloseUnsaved}
-          title={'Estabelecimento (área de trabalho)'}
-        />
+        <SModalPaper
+          p={8}
+          center
+          component="form"
+          onSubmit={(handleSubmit as any)(onSubmit)}
+          sx={
+            isEditing
+              ? {
+                  minWidth: ['95%', '95%', 1080],
+                  maxWidth: ['95%', '95%', 1280],
+                }
+              : undefined
+          }
+        >
+          <SModalHeader
+            tag={companyData.id ? 'edit' : 'add'}
+            onClose={onCloseUnsaved}
+            title={'Estabelecimento (área de trabalho)'}
+          />
 
-        {isEditing ? (
-          <>
-            <STabs
-              value={tab}
-              mt={2}
-              mb={4}
-              options={WORKSPACE_TABS}
-              onChange={(_, value) => setTab(Number(value))}
+          {isEditing && companyId && tab === 0 && (
+            <StructuralSourceActions
+              companyId={companyId}
+              target={{ table: 'Workspace', id: companyData.id }}
+              disabled={isDirty || loading}
+              onChanged={onCloseUnsaved}
             />
-            <Box
-              sx={{
-                maxHeight: '70vh',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                pr: 2,
-              }}
-            >
-              <WorkspaceModalKeepTabPanel value={tab} index={0}>
-                <ModalWorkspaceStep {...props} />
-              </WorkspaceModalKeepTabPanel>
-              <WorkspaceModalKeepTabPanel value={tab} index={1}>
-                <WorkspaceFirstAidSection {...props} />
-                <Box sx={{ mt: 8 }}>
-                  <SText color="text.secondary" fontSize={13} mb={-4}>
-                    Clínicas, hospitais e ambulatórios de referência. São os
-                    mesmos dados usados no PCMSO — não há cadastro paralelo.
-                  </SText>
-                  <PcmsoAttendanceServicesTable
+          )}
+
+          {isEditing ? (
+            <>
+              <STabs
+                value={tab}
+                mt={2}
+                mb={4}
+                options={WORKSPACE_TABS}
+                onChange={(_, value) => setTab(Number(value))}
+              />
+              <Box
+                sx={{
+                  maxHeight: '70vh',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  pr: 2,
+                }}
+              >
+                <WorkspaceModalKeepTabPanel value={tab} index={0}>
+                  <ModalWorkspaceStep {...props} />
+                </WorkspaceModalKeepTabPanel>
+                <WorkspaceModalKeepTabPanel value={tab} index={1}>
+                  <WorkspaceFirstAidSection {...props} />
+                  <Box sx={{ mt: 8 }}>
+                    <SText color="text.secondary" fontSize={13} mb={-4}>
+                      Clínicas, hospitais e ambulatórios de referência. São os
+                      mesmos dados usados no PCMSO — não há cadastro paralelo.
+                    </SText>
+                    <PcmsoAttendanceServicesTable
+                      workspaceId={companyData.id}
+                      companyId={companyId}
+                    />
+                  </Box>
+                  <WorkspaceEmergencyPlanSection
                     workspaceId={companyData.id}
                     companyId={companyId}
                   />
-                </Box>
-                <WorkspaceEmergencyPlanSection
-                  workspaceId={companyData.id}
-                  companyId={companyId}
-                />
-              </WorkspaceModalKeepTabPanel>
-              <WorkspaceModalKeepTabPanel value={tab} index={2}>
-                <PcmsoExaminingPhysiciansWorkspaceTable
-                  workspaceId={companyData.id}
-                  companyId={companyId}
-                />
-              </WorkspaceModalKeepTabPanel>
-            </Box>
-          </>
-        ) : (
-          <ModalWorkspaceStep {...props} />
-        )}
+                </WorkspaceModalKeepTabPanel>
+                <WorkspaceModalKeepTabPanel value={tab} index={2}>
+                  <PcmsoExaminingPhysiciansWorkspaceTable
+                    workspaceId={companyData.id}
+                    companyId={companyId}
+                  />
+                </WorkspaceModalKeepTabPanel>
+              </Box>
+            </>
+          ) : (
+            <ModalWorkspaceStep {...props} />
+          )}
 
-        <SModalButtons
-          loading={loading}
-          onClose={onCloseUnsaved}
-          buttons={buttons}
-          justifyContent="space-between"
-        >
-          <Box display="flex" gap={5}>
-            {companyData.id && isMaster && (
+          <SModalButtons
+            loading={loading}
+            onClose={onCloseUnsaved}
+            buttons={buttons}
+            justifyContent="space-between"
+          >
+            <Box display="flex" gap={5}>
+              {companyData.id && isMaster && (
+                <SButton
+                  type="button"
+                  variant="outlined"
+                  color="warning"
+                  onClick={() => setConvertOpen(true)}
+                  style={{ minWidth: 180 }}
+                >
+                  Converter em empresa
+                </SButton>
+              )}
+              {companyData.id && (
+                <SButton
+                  type="button"
+                  variant="outlined"
+                  color="error"
+                  onClick={handleDelete}
+                  style={{ minWidth: 100 }}
+                >
+                  Excluir
+                </SButton>
+              )}
               <SButton
                 type="button"
                 variant="outlined"
-                color="warning"
-                onClick={() => setConvertOpen(true)}
-                style={{ minWidth: 180 }}
-              >
-                Converter em empresa
-              </SButton>
-            )}
-            {companyData.id && (
-              <SButton
-                type="button"
-                variant="outlined"
-                color="error"
-                onClick={handleDelete}
+                onClick={onCloseUnsaved}
                 style={{ minWidth: 100 }}
               >
-                Excluir
+                Cancelar
               </SButton>
-            )}
-            <SButton
-              type="button"
-              variant="outlined"
-              onClick={onCloseUnsaved}
-              style={{ minWidth: 100 }}
-            >
-              Cancelar
-            </SButton>
-          </Box>
-        </SModalButtons>
-      </SModalPaper>
+            </Box>
+          </SModalButtons>
+        </SModalPaper>
       </SModal>
       {companyData.id && (
         <ConvertWorkspaceToCompanyModal

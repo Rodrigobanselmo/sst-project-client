@@ -1,3 +1,4 @@
+import { sstEditSession } from '@v2/features/sst-operational/edit-session';
 import {
   createContext,
   ReactNode,
@@ -7,6 +8,8 @@ import {
   useState,
 } from 'react';
 import { useStore } from 'react-redux';
+import { flushSync } from 'react-dom';
+import axios from 'axios';
 
 import {
   GoogleAuthProvider,
@@ -39,6 +42,9 @@ import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { queryClient } from '../services/queryClient';
 import { v2QueryClient } from '@v2/services/query-client';
 import { resolveActiveCompanyContext } from '../utils/auth/resolve-active-company-context';
+import { subscribeAuthLogout } from './auth-broadcast';
+import { browserAuthSession } from './auth-session-lifecycle';
+import { purgeSessionDrafts } from './auth-session-policy';
 
 export type SignInCredentials = {
   email: string;
@@ -70,9 +76,15 @@ type AuthProviderProps = {
 
 export const AuthContext = createContext({} as AuthContextData);
 
-let authChannel: BroadcastChannel;
+let authChannel: BroadcastChannel | undefined;
+type LogoutOptions = { redirect?: boolean; broadcast?: boolean };
+let providerSignOut: ((options?: LogoutOptions) => Promise<void>) | undefined;
 
 export function clearAuthSession(ctx?: any) {
+  if (typeof window !== 'undefined') browserAuthSession.end();
+  sstEditSession.clear();
+  if (typeof window !== 'undefined') purgeSessionDrafts(window);
+
   destroyCookie(ctx, 'nextauth.token', { path: '/' });
   destroyCookie(ctx, 'nextauth.refreshToken', { path: '/' });
 
@@ -84,20 +96,40 @@ export function clearAuthSession(ctx?: any) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
 export async function signOut(ctx?: any, options?: { redirect?: boolean }) {
-  clearAuthSession(ctx);
-  if (authChannel) authChannel.postMessage('signOut');
-
-  await firebaseAuth.signOut().catch(() => {});
-
-  if (options?.redirect !== false && process.browser) {
-    Router.push(RoutesEnum.LOGIN);
+  if (typeof window !== 'undefined') {
+    if (providerSignOut) return providerSignOut(options);
+    return browserAuthSession.logout(async (generation) => {
+      clearAuthSession(ctx);
+      authChannel?.postMessage('signOut');
+      await firebaseAuth.signOut().catch(() => {});
+      if (
+        browserAuthSession.isGeneration(generation) &&
+        options?.redirect !== false &&
+        Router.pathname !== RoutesEnum.LOGIN
+      )
+        await Router.replace(RoutesEnum.LOGIN);
+    });
   }
+  // A server request owns only its cookies, never another request's lifecycle.
+  clearAuthSession(ctx);
 }
 
 export async function refreshToken(companyId?: string) {
+  const generation = browserAuthSession.capture();
   const { 'nextauth.refreshToken': refresh_token } = parseCookies();
+  if (
+    typeof window !== 'undefined' &&
+    (!refresh_token || !browserAuthSession.isCurrent(generation))
+  )
+    throw new axios.Cancel('A sessão foi encerrada.');
 
   const refresh = await api.post('/refresh', { refresh_token, companyId });
+  if (
+    typeof window !== 'undefined' &&
+    (!browserAuthSession.isCurrent(generation) ||
+      parseCookies()['nextauth.refreshToken'] !== refresh_token)
+  )
+    throw new axios.Cancel('A sessão foi encerrada.');
 
   const { token } = refresh.data;
 
@@ -148,25 +180,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
 
   const signOutFunc = useCallback(
-    async (options?: { redirect?: boolean }) => {
-      clearAuthSession();
-      queryClient.clear();
-      v2QueryClient.clear();
-      dispatch(createUser(null));
-      dispatch(setIsFetchingData(false));
-      setIsInitializingAuth(false);
-      if (authChannel) authChannel.postMessage('signOut');
-      await firebaseAuth.signOut().catch(() => {});
-      if (options?.redirect !== false && process.browser) {
-        Router.push(RoutesEnum.LOGIN);
-      }
-    },
+    (options?: LogoutOptions) =>
+      browserAuthSession.logout(async (generation) => {
+        // Unmount private observers before clearing caches. Clearing first can
+        // recreate their queries against the route's company after token removal.
+        flushSync(() => {
+          dispatch(createUser(null));
+          dispatch(setIsFetchingData(false));
+          setIsInitializingAuth(false);
+        });
+        clearAuthSession();
+        void queryClient.cancelQueries();
+        void v2QueryClient.cancelQueries();
+        queryClient.clear();
+        v2QueryClient.clear();
+        if (options?.broadcast !== false) authChannel?.postMessage('signOut');
+        await firebaseAuth.signOut().catch(() => {});
+        if (
+          browserAuthSession.isGeneration(generation) &&
+          options?.redirect !== false &&
+          process.browser &&
+          Router.pathname !== RoutesEnum.LOGIN
+        )
+          await Router.replace(RoutesEnum.LOGIN);
+      }),
     [dispatch],
   );
 
   const getMe = useCallback(async () => {
+    const generation = browserAuthSession.capture();
+    if (!browserAuthSession.isCurrent(generation)) return;
     try {
       const response = await api.get(ApiRoutesEnum.ME);
+      if (
+        !browserAuthSession.isCurrent(generation) ||
+        !parseCookies()['nextauth.token']
+      )
+        return;
       const activeCompany = resolveActiveCompanyContext(response.data);
 
       dispatch(
@@ -190,9 +240,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         router.replace(RoutesEnum.ONBOARD_USER);
       }
     } catch (error) {
-      await signOutFunc({ redirect: true });
+      if (browserAuthSession.isCurrent(generation) && !axios.isCancel(error))
+        await signOutFunc({ redirect: true });
     } finally {
-      setIsInitializingAuth(false);
+      if (browserAuthSession.isGeneration(generation))
+        setIsInitializingAuth(false);
     }
   }, [dispatch, router, signOutFunc]);
 
@@ -210,23 +262,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [dispatch, store]);
 
   useEffect(() => {
-    authChannel = new BroadcastChannel('auth');
-
-    authChannel.onmessage = (message) => {
-      switch (message.data) {
-        case 'signOut':
-          if (parseCookies()['nextauth.token']) signOutFunc();
-          break;
-        default:
-          break;
-      }
+    providerSignOut = signOutFunc;
+    const channel = new BroadcastChannel('auth');
+    authChannel = channel;
+    const unsubscribe = subscribeAuthLogout(channel, signOutFunc);
+    return () => {
+      unsubscribe();
+      if (providerSignOut === signOutFunc) providerSignOut = undefined;
+      if (authChannel === channel) authChannel = undefined;
     };
   }, [signOutFunc]);
 
   const signToken = (
     { token, refresh_token, permissions, roles, companyId, user }: ISession,
     type: 'signIn' | 'signUp',
+    generation: number,
   ) => {
+    if (!browserAuthSession.isCurrent(generation)) return;
     setCookie(null, 'nextauth.token', token, {
       maxAge: 60 * 60 * 25 * 30, // 30 days
       path: '/',
@@ -266,10 +318,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       router.push(RoutesEnum.ONBOARD_USER);
     }
 
-    authChannel.postMessage('signIn');
+    authChannel?.postMessage('signIn');
   };
 
   async function signIn({ email, password, googleToken }: SignInCredentials) {
+    const generation = browserAuthSession.begin();
     const path = googleToken
       ? ApiRoutesEnum.SESSION_GOOGLE
       : ApiRoutesEnum.SESSION;
@@ -283,7 +336,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const response = await api.post<ISession>(path, payload);
 
-    signToken(response.data, 'signIn');
+    signToken(response.data, 'signIn', generation);
   }
 
   async function signUp({
@@ -294,6 +347,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     photoUrl,
     token,
   }: SignInCredentials) {
+    const generation = browserAuthSession.begin();
     await signInService({
       token: token || '',
       email,
@@ -301,10 +355,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       googleToken,
     });
 
-    await signIn({ email, password, googleToken });
+    if (browserAuthSession.isCurrent(generation))
+      await signIn({ email, password, googleToken });
   }
 
   async function googleSignIn() {
+    const generation = browserAuthSession.begin();
     const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
       (error) => {
         enqueueSnackbar('Erro ao tentar fazer login com o Google', {
@@ -312,7 +368,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
       },
     );
-    if (result) {
+    if (result && browserAuthSession.isCurrent(generation)) {
       // This gives you a Google Access Token. You can use it to access the Googl e API.
       const credential = GoogleAuthProvider.credentialFromResult(result);
       if (credential) {
@@ -342,6 +398,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function googleSignUp(token?: string) {
+    const generation = browserAuthSession.begin();
     const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
       (error) => {
         enqueueSnackbar('Erro ao tentar fazer entrar com o Google', {
@@ -350,7 +407,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       },
     );
 
-    if (result) {
+    if (result && browserAuthSession.isCurrent(generation)) {
       dispatch(setIsFetchingData(true));
 
       if (!result.user.email) {
@@ -408,9 +465,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function refreshUser(companyId?: string) {
+    const generation = browserAuthSession.capture();
     await refreshToken(companyId || user?.companyId);
 
-    await getMe();
+    if (browserAuthSession.isCurrent(generation)) await getMe();
   }
 
   return (

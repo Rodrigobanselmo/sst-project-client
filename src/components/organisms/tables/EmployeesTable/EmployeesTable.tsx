@@ -179,7 +179,7 @@ export const EmployeesTable: FC<
 
   const onAddEmployee = () => {
     onStackOpenModal(ModalEnum.EMPLOYEES_ADD, {
-      companeId: company.id,
+      companyId: company.id,
       company,
     });
   };

@@ -8,6 +8,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
+import { ImportRecalculationPendingError } from 'core/utils/helpers/importCompletionError';
 
 export const useImportExport = () => {
   const { onStackOpenModal, onCloseModal } = useOpenRiskTool();
@@ -51,7 +52,13 @@ export const useImportExport = () => {
               onCloseModal(ModalEnum.IMPORT_EXPORT_MODAL);
               onUpload?.();
             })
-            .catch(() => null);
+            .catch((error) => {
+              if (error instanceof ImportRecalculationPendingError) {
+                onUpload?.();
+                throw error;
+              }
+              return null;
+            });
         },
         title,
       } as Partial<typeof initialModalImportExport>);

@@ -254,7 +254,12 @@ export function HierarchyLinkTree({
             contained: 'incluído no vínculo do ancestral',
           }[row.visualState];
           return (
-            <STooltip key={row.id} title={row.tooltip} withWrapper>
+            <STooltip
+              key={row.id}
+              title={row.tooltip}
+              withWrapper
+              disableInteractive
+            >
               <Box
                 id={rowDomId(row.id)}
                 role="treeitem"

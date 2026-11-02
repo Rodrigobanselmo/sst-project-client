@@ -92,8 +92,12 @@ export const useAddRecMed = () => {
         localId: recMedData.localId,
       });
     else {
-      await deleteMedMut.mutateAsync(recMedData.id).catch(() => {});
-      onClose();
+      try {
+        await deleteMedMut.mutateAsync(recMedData.id);
+        onClose();
+      } catch {
+        return;
+      }
     }
 
     setRecMedData(initialAddRecMedState);
@@ -147,20 +151,20 @@ export const useAddRecMed = () => {
 
     try {
       if (recMedData.id == '') {
-        const result = await createRecMedMut
-          .mutateAsync(submitData)
-          .catch(() => {});
+        const result = await createRecMedMut.mutateAsync(submitData);
+        if (!result) return;
         if (result) recMedData.onCreate(result);
       } else {
-        await updateRecMedMut
-          .mutateAsync({
-            ...submitData,
-            companyId: recMedData.companyId || undefined,
-            id: recMedData.id,
-          })
-          .catch(() => {});
+        const result = await updateRecMedMut.mutateAsync({
+          ...submitData,
+          companyId: recMedData.companyId || undefined,
+          id: recMedData.id,
+        });
+        if (!result) return;
       }
-    } catch (error) {}
+    } catch {
+      return;
+    }
 
     onClose();
   };

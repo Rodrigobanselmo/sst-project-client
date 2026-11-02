@@ -42,13 +42,9 @@ assert.ok(headerSource.includes('Sincronizar com o plano'));
 assert.ok(!headerSource.includes('ViewsDataEnum.HIERARCHY &&'));
 assert.ok(!headerSource.includes('ViewsDataEnum.EMPLOYEE'));
 
-const afterColV2 = readFileSync(
-  'src/components/organisms/main/Tree/OrgTree/components/RiskToolV2/components/SideRowTable/components/columns/ProbabilityAfterColumn/index.tsx',
-  'utf8',
-);
-assert.ok(
-  afterColV2.includes('...(data?.probability ? { probability: data.probability } : {})'),
-);
+// Residual probability has its own behavioral tests in residual-auto-apply and
+// workspace-probability-evaluation. This availability/adoption contract must not
+// require the residual column to rewrite the current probability on every edit.
 
 assert.ok(rowV2.includes('OccupationalRiskResultPill'));
 assert.ok(rowV2.includes('alignSelfStart'));

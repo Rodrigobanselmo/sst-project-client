@@ -1,3 +1,5 @@
+import { TextField, Stack, MenuItem } from '@mui/material';
+import { Controller } from 'react-hook-form';
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
@@ -17,6 +19,7 @@ import { QuiForm } from './components/QuiForm';
 import { RadiationForm } from './components/RadiationForm';
 import { VibrationForm } from './components/VibrationForm';
 import { useModalAddQuantity } from './hooks/useModalAddQuantity';
+import { measurementOptions } from '@v2/features/sst-operational/measurement-model';
 
 export const ModalAddQuantity = () => {
   const props = useModalAddQuantity();
@@ -29,6 +32,7 @@ export const ModalAddQuantity = () => {
     modalName,
     data,
   } = props;
+  const resultOptions = measurementOptions(data.type, data.risk);
 
   const buttons = [
     {},
@@ -70,6 +74,56 @@ export const ModalAddQuantity = () => {
         {data.type === QuantityTypeEnum.VFB && <VibrationForm {...props} />}
         {data.type === QuantityTypeEnum.VL && <VibrationForm vl {...props} />}
 
+        <Stack spacing={2} sx={{ my: 2 }}>
+          <Controller
+            name="measuredOn"
+            control={props.control}
+            defaultValue={data.measuredOn}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                type="date"
+                label="Data da medição"
+                InputLabelProps={{ shrink: true }}
+              />
+            )}
+          />
+          <Controller
+            name="selectedMeasurement"
+            control={props.control}
+            defaultValue={data.selectedMeasurement}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                select
+                label="Resultado que fundamenta a exposição"
+              >
+                <MenuItem value="">Não selecionado</MenuItem>
+                {!!field.value &&
+                  !resultOptions.some(
+                    (option) => option.value === field.value,
+                  ) && (
+                    <MenuItem value={field.value} disabled>
+                      Resultado anterior incompatível — confira a seleção
+                    </MenuItem>
+                  )}
+                {resultOptions.map(({ value, label }) => (
+                  <MenuItem key={value} value={value}>
+                    {label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+          <Controller
+            name="selectionReason"
+            control={props.control}
+            defaultValue={data.selectionReason}
+            render={({ field }) => (
+              <TextField {...field} label="Fundamento da medição selecionada" />
+            )}
+          />
+        </Stack>
         <SModalButtons
           loading={loading}
           onClose={onCloseUnsaved}

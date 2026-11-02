@@ -25,7 +25,7 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
 import {
@@ -33,6 +33,8 @@ import {
   UNINDIVIDUALIZED_COMPOSITION_LABEL,
 } from './chemical-composition-disclosure.util';
 import { mapChemicalFispqImportError } from './chemical-fispq-import-error.util';
+import { CHEMICAL_INVENTORY_DECLARATION_HELP } from './chemical-product-atomic-edit.util';
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
 import {
   buildCompositionCompareRows,
   buildDefaultCompositionDecisions,
@@ -101,7 +103,6 @@ export const ChemicalProductDetailDialog = ({
   const {
     uploadFispqFile,
     createFispq,
-    createComposition,
     parseFispq,
     setVisibility,
     activateFispq,
@@ -110,13 +111,13 @@ export const ChemicalProductDetailDialog = ({
     queryKey: [
       ...chemicalProductQueryKeys.read({ companyId, workspaceId, productId }),
     ],
-    queryFn: () =>
-      readChemicalProduct({ companyId, workspaceId, productId }),
+    queryFn: () => readChemicalProduct({ companyId, workspaceId, productId }),
     enabled: open && Boolean(productId),
   });
 
   const [showLinkFispq, setShowLinkFispq] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParseFispqResult | null>(null);
   const [versionLabel, setVersionLabel] = useState('');
   const [issuedAt, setIssuedAt] = useState('');
@@ -128,11 +129,12 @@ export const ChemicalProductDetailDialog = ({
   >({});
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
+  const linkingRef = useRef(false);
 
   const clearDraft = () => {
     setShowLinkFispq(false);
     setFile(null);
+    setUploadedFileId(null);
     setParsed(null);
     setVersionLabel('');
     setIssuedAt('');
@@ -141,7 +143,6 @@ export const ChemicalProductDetailDialog = ({
     setDecisions({});
     setError(null);
     setInfo(null);
-    setWarning(null);
   };
 
   const hasDraft =
@@ -153,6 +154,7 @@ export const ChemicalProductDetailDialog = ({
     (language || 'pt') !== 'pt';
 
   const requestClose = (reason: string) => {
+    if (linkingRef.current) return;
     const decision = resolveChemicalDialogClose({
       reason,
       hasDraft,
@@ -210,10 +212,10 @@ export const ChemicalProductDetailDialog = ({
 
   const handleSelectFile = async (next: File | null) => {
     setFile(next);
+    setUploadedFileId(null);
     setParsed(null);
     setError(null);
     setInfo(null);
-    setWarning(null);
     setApplyMode('document-only');
     setDecisions({});
     if (!next) return;
@@ -238,9 +240,7 @@ export const ChemicalProductDetailDialog = ({
           result.message ||
             'Não foi possível extrair texto deste PDF. Você ainda pode vincular somente o documento.',
         );
-      } else if (
-        !hasUsableExtractedIngredients(result.preview?.ingredients)
-      ) {
+      } else if (!hasUsableExtractedIngredients(result.preview?.ingredients)) {
         setInfo(
           'Nenhum componente utilizável foi encontrado. O documento poderá ser vinculado sem alterar a composição.',
         );
@@ -254,22 +254,33 @@ export const ChemicalProductDetailDialog = ({
     }
   };
 
-  const setRowDecision = (
-    rowId: string,
-    decision: CompositionRowDecision,
-  ) => {
+  const setRowDecision = (rowId: string, decision: CompositionRowDecision) => {
     setDecisions((current) => ({ ...current, [rowId]: decision }));
   };
 
   const handleConfirmLink = async () => {
-    const fileId = parsed?.fileId;
+    const fileId = parsed?.fileId || uploadedFileId;
     if (!fileId && !file) return;
+    if (linkingRef.current) return;
+    linkingRef.current = true;
     setError(null);
-    setWarning(null);
     setInfo(null);
 
-    let documentId: string | null = null;
     try {
+      const ingredients =
+        applyMode === 'document-and-composition'
+          ? buildLinkedFispqCompositionPayload({
+              mode: applyMode,
+              rows: compareRows,
+              decisions,
+            })
+          : undefined;
+      if (ingredients && (!canUpdateComposition || !ingredients.length)) {
+        setError(
+          'Revise os componentes antes de vincular a FISPQ com a composição. Nada foi aplicado ao produto.',
+        );
+        return;
+      }
       let resolvedFileId = fileId;
       if (!resolvedFileId && file) {
         const uploaded = await uploadFispqFile.mutateAsync({
@@ -278,13 +289,14 @@ export const ChemicalProductDetailDialog = ({
           file,
         });
         resolvedFileId = uploaded.fileId;
+        setUploadedFileId(uploaded.fileId);
       }
       if (!resolvedFileId) {
         setError('Selecione um PDF para vincular a FISPQ.');
         return;
       }
 
-      const document = await createFispq.mutateAsync({
+      await createFispq.mutateAsync({
         companyId,
         workspaceId,
         productId,
@@ -293,76 +305,29 @@ export const ChemicalProductDetailDialog = ({
         issuedAt: issuedAt || null,
         language: language || null,
         activate: true,
+        ...(ingredients && { composition: { ingredients } }),
       });
-      documentId = document?.id || null;
-
-      if (applyMode === 'document-and-composition') {
-        if (!canUpdateComposition) {
-          clearDraft();
-          setWarning(
-            'A FISPQ foi vinculada, mas a composição não foi atualizada: não há componentes utilizáveis no preview.',
-          );
-          await refetch();
-          return;
-        }
-
-        const ingredients = buildLinkedFispqCompositionPayload({
-          mode: applyMode,
-          rows: compareRows,
-          decisions,
-        });
-
-        if (!ingredients.length) {
-          clearDraft();
-          setWarning(
-            'A FISPQ foi vinculada, mas a composição não foi atualizada: as decisões resultaram em lista vazia.',
-          );
-          await refetch();
-          return;
-        }
-
-        try {
-          await createComposition.mutateAsync({
-            companyId,
-            workspaceId,
-            productId,
-            sourceType: 'FISPQ',
-            sourceDocumentId: documentId,
-            ingredients,
-          });
-        } catch (compositionErr) {
-          clearDraft();
-          setWarning(
-            `A FISPQ foi vinculada ao produto (documento ACTIVE), mas a composição não foi atualizada: ${mapChemicalFispqImportError(
-              compositionErr,
-            )}`,
-          );
-          await refetch();
-          return;
-        }
-      }
 
       const successMessage =
         applyMode === 'document-and-composition'
-          ? 'FISPQ vinculada e nova composição criada. A anterior ficou SUPERSEDED.'
-          : 'FISPQ vinculada. A anterior ficou SUPERSEDED. A composição do produto não foi alterada.';
+          ? 'FISPQ e composição salvas juntas. As versões anteriores foram preservadas.'
+          : 'FISPQ vinculada. A versão anterior foi preservada. A composição do produto não foi alterada.';
       clearDraft();
       setInfo(successMessage);
       await refetch();
     } catch (err) {
+      if (isSstMutationCancelled(err)) return;
       setError(mapChemicalFispqImportError(err));
+    } finally {
+      linkingRef.current = false;
     }
   };
 
   const documents = data?.documents || [];
-  const activeFispq =
-    documents.find((doc) => doc.status === 'ACTIVE') || null;
+  const activeFispq = documents.find((doc) => doc.status === 'ACTIVE') || null;
   const history = documents.filter((doc) => doc.status !== 'ACTIVE');
   const busy =
-    uploadFispqFile.isPending ||
-    createFispq.isPending ||
-    createComposition.isPending ||
-    parseFispq.isPending;
+    uploadFispqFile.isPending || createFispq.isPending || parseFispq.isPending;
 
   const renderDecisionControls = (row: CompositionCompareRow) => {
     const value = decisions[row.id] ?? row.defaultDecision;
@@ -427,12 +392,15 @@ export const ChemicalProductDetailDialog = ({
         onMouseDown: (event) => event.stopPropagation(),
       }}
     >
-      <DialogTitle>Produto químico</DialogTitle>
-      <DialogContent sx={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+      <DialogTitle sx={{ px: 12, pt: 12, pb: 8 }}>Produto químico</DialogTitle>
+      <DialogContent
+        sx={{ overflowY: 'auto', flex: 1, minHeight: 0, px: 12, pt: 4, pb: 12 }}
+      >
         {isLoading || !data ? (
           <SText>Carregando…</SText>
         ) : (
-          <Stack spacing={2} mt={1}>
+          <Stack spacing={8} mt={4}>
+            <Alert severity="info">{CHEMICAL_INVENTORY_DECLARATION_HELP}</Alert>
             <SText fontWeight={700}>{data.tradeName}</SText>
             <SText fontSize={13} color="text.secondary">
               {data.isPureSubstance ? 'Produto puro' : 'Mistura'}
@@ -449,7 +417,9 @@ export const ChemicalProductDetailDialog = ({
             {(data.compositionVersions || [])
               .filter((version) => version.status === 'ACTIVE')
               .map((version) => {
-                if (isUnindividualizedDisclosure(version.compositionDisclosure)) {
+                if (
+                  isUnindividualizedDisclosure(version.compositionDisclosure)
+                ) {
                   return (
                     <Stack key={version.id} spacing={0.5}>
                       <SText fontSize={13}>
@@ -465,7 +435,11 @@ export const ChemicalProductDetailDialog = ({
                 }
                 if (!version.ingredients?.length) {
                   return (
-                    <SText key={version.id} fontSize={13} color="text.secondary">
+                    <SText
+                      key={version.id}
+                      fontSize={13}
+                      color="text.secondary"
+                    >
                       Sem componentes
                     </SText>
                   );
@@ -492,7 +466,7 @@ export const ChemicalProductDetailDialog = ({
 
             <Box
               sx={{
-                p: 2,
+                p: 8,
                 border: '2px solid',
                 borderColor: 'primary.main',
                 borderRadius: 1,
@@ -503,8 +477,8 @@ export const ChemicalProductDetailDialog = ({
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
-                mb={1.5}
-                gap={1}
+                mb={8}
+                gap={4}
                 flexWrap="wrap"
               >
                 <SText fontWeight={800} fontSize={16}>
@@ -520,10 +494,14 @@ export const ChemicalProductDetailDialog = ({
               </Stack>
 
               {activeFispq ? (
-                <Stack spacing={1} mb={2}>
+                <Stack spacing={8} mb={8}>
                   <SText fontWeight={600}>FISPQ vigente</SText>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    <Chip size="small" color="primary" label={activeFispq.status} />
+                  <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
+                    <Chip
+                      size="small"
+                      color="primary"
+                      label={activeFispq.status}
+                    />
                     <Chip
                       size="small"
                       label={`Versão: ${activeFispq.versionLabel || 'sem versão'}`}
@@ -541,12 +519,16 @@ export const ChemicalProductDetailDialog = ({
                       label={`Idioma: ${activeFispq.language || '—'}`}
                     />
                     {activeFispq.publishedForEmployees ? (
-                      <Chip size="small" color="success" label="Publicada p/ empregados" />
+                      <Chip
+                        size="small"
+                        color="success"
+                        label="Publicada p/ empregados"
+                      />
                     ) : (
                       <Chip size="small" label="Não publicada p/ empregados" />
                     )}
                   </Stack>
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                  <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
                     <Button
                       size="small"
                       variant="outlined"
@@ -592,10 +574,11 @@ export const ChemicalProductDetailDialog = ({
                   <Stack
                     key={doc.id}
                     direction="row"
-                    spacing={1}
+                    spacing={4}
                     alignItems="center"
                     flexWrap="wrap"
-                    mb={0.5}
+                    mb={4}
+                    useFlexGap
                   >
                     <Chip size="small" label={doc.status} />
                     <SText fontSize={13}>
@@ -640,28 +623,30 @@ export const ChemicalProductDetailDialog = ({
 
               {showLinkFispq ? (
                 <Box
-                  mt={2}
-                  p={1.5}
+                  mt={12}
+                  p={8}
                   border="1px dashed"
                   borderColor="divider"
                   borderRadius={1}
                 >
-                  <SText fontWeight={700} mb={1}>
+                  <SText fontWeight={700} mb={8}>
                     Vincular / Nova versão da FISPQ
                   </SText>
-                  <Alert severity="warning" sx={{ mb: 1.5 }}>
+                  <Alert severity="warning" sx={{ mb: 8 }}>
                     Ao confirmar, a nova FISPQ ficará ACTIVE e a anterior
                     SUPERSEDED. Se a anterior estiver publicada para empregados,
-                    essa publicação será desativada; será necessário republicar a
-                    nova versão pelo fluxo existente. Nome comercial e fabricante
-                    do produto não serão alterados.
+                    essa publicação será desativada; será necessário republicar
+                    a nova versão pelo fluxo existente. Nome comercial e
+                    fabricante do produto não serão alterados.
                   </Alert>
 
-                  <Stack spacing={1.5}>
-                    <Button variant="outlined" component="label" disabled={busy}>
-                      {parseFispq.isPending
-                        ? 'Extraindo…'
-                        : 'Selecionar PDF'}
+                  <Stack spacing={8}>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      disabled={busy}
+                    >
+                      {parseFispq.isPending ? 'Extraindo…' : 'Selecionar PDF'}
                       <input
                         hidden
                         type="file"
@@ -683,7 +668,7 @@ export const ChemicalProductDetailDialog = ({
 
                     {parsed ? (
                       <Box
-                        p={1.25}
+                        p={8}
                         border="1px solid"
                         borderColor="divider"
                         borderRadius={1}
@@ -698,9 +683,7 @@ export const ChemicalProductDetailDialog = ({
                         </SText>
                         <SText fontSize={13}>
                           Nome comercial extraído:{' '}
-                          <strong>
-                            {parsed.preview?.tradeName || '—'}
-                          </strong>
+                          <strong>{parsed.preview?.tradeName || '—'}</strong>
                         </SText>
                         <SText fontSize={13} mt={1}>
                           Fabricante atual:{' '}
@@ -708,9 +691,7 @@ export const ChemicalProductDetailDialog = ({
                         </SText>
                         <SText fontSize={13}>
                           Fabricante extraído:{' '}
-                          <strong>
-                            {parsed.preview?.manufacturer || '—'}
-                          </strong>
+                          <strong>{parsed.preview?.manufacturer || '—'}</strong>
                         </SText>
                         {tradeNameDiffers || manufacturerDiffers ? (
                           <Alert severity="warning" sx={{ mt: 1 }}>
@@ -766,7 +747,7 @@ export const ChemicalProductDetailDialog = ({
                         />
                       </RadioGroup>
                       {!canUpdateComposition && parsed ? (
-                        <Alert severity="info" sx={{ mt: 0.5 }}>
+                        <Alert severity="info" sx={{ mt: 4 }}>
                           Atualização de composição desabilitada: não há
                           componentes utilizáveis no preview.
                         </Alert>
@@ -775,7 +756,7 @@ export const ChemicalProductDetailDialog = ({
 
                     {applyMode === 'document-and-composition' &&
                     compareRows.length ? (
-                      <Stack spacing={1.25}>
+                      <Stack spacing={8}>
                         <SText fontWeight={600}>
                           Comparação dos componentes
                         </SText>
@@ -787,7 +768,7 @@ export const ChemicalProductDetailDialog = ({
                         {compareRows.map((row) => (
                           <Box
                             key={row.id}
-                            p={1.25}
+                            p={8}
                             border="1px solid"
                             borderColor="divider"
                             borderRadius={1}
@@ -795,9 +776,9 @@ export const ChemicalProductDetailDialog = ({
                           >
                             <Stack
                               direction="row"
-                              spacing={1}
+                              spacing={4}
                               alignItems="center"
-                              mb={1}
+                              mb={8}
                               flexWrap="wrap"
                               useFlexGap
                             >
@@ -816,7 +797,7 @@ export const ChemicalProductDetailDialog = ({
                             </Stack>
                             <Stack
                               direction={{ xs: 'column', sm: 'row' }}
-                              spacing={1.5}
+                              spacing={8}
                               mb={1}
                             >
                               <Box flex={1}>
@@ -868,7 +849,12 @@ export const ChemicalProductDetailDialog = ({
                       </Stack>
                     ) : null}
 
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Stack
+                      direction="row"
+                      spacing={4}
+                      flexWrap="wrap"
+                      useFlexGap
+                    >
                       <Button
                         variant="contained"
                         disabled={(!parsed && !file) || busy}
@@ -876,19 +862,7 @@ export const ChemicalProductDetailDialog = ({
                       >
                         {busy ? 'Salvando…' : 'Confirmar vínculo'}
                       </Button>
-                      <Button
-                        onClick={() => {
-                          setShowLinkFispq(false);
-                          setFile(null);
-                          setParsed(null);
-                          setDecisions({});
-                          setApplyMode('document-only');
-                          setError(null);
-                          setWarning(null);
-                          setInfo(null);
-                        }}
-                        disabled={busy}
-                      >
+                      <Button onClick={clearDraft} disabled={busy}>
                         Cancelar
                       </Button>
                     </Stack>
@@ -898,21 +872,26 @@ export const ChemicalProductDetailDialog = ({
             </Box>
 
             {info ? <Alert severity="info">{info}</Alert> : null}
-            {warning ? <Alert severity="warning">{warning}</Alert> : null}
             {error ? <Alert severity="error">{error}</Alert> : null}
           </Stack>
         )}
       </DialogContent>
-      <DialogActions>
+      <DialogActions
+        disableSpacing
+        sx={{ px: 12, pt: 8, pb: 12, gap: 4, flexWrap: 'wrap' }}
+      >
         {data && onEdit ? (
           <Button
             onClick={() => onEdit(data as ChemicalProductDetail)}
             variant="outlined"
+            disabled={busy}
           >
             Editar produto
           </Button>
         ) : null}
-        <Button onClick={() => requestClose('closeButton')}>Fechar</Button>
+        <Button onClick={() => requestClose('closeButton')} disabled={busy}>
+          Fechar
+        </Button>
       </DialogActions>
     </Dialog>
   );

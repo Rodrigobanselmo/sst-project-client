@@ -23,7 +23,6 @@ import SText from 'components/atoms/SText';
 import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
 import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
-import dayjs from 'dayjs';
 import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -48,6 +47,7 @@ import {
   useQueryHisExamEmployee,
 } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { dateToString } from 'core/utils/date/date-format';
+import { clinicalHistoryCivilDate } from '@v2/features/sst-operational/civil-date';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeExamTable: FC<
@@ -243,7 +243,9 @@ export const HistoryEmployeeExamTable: FC<
               >
                 <TextIconRow
                   text={
-                    (dateToString(row.doneDate) || '-') + ` ${row?.time || ''}`
+                    (clinicalHistoryCivilDate(row.doneDate)?.format(
+                      'DD/MM/YYYY',
+                    ) || '-') + ` ${row?.time || ''}`
                   }
                 />
                 <TextIconRow clickable text={row?.exam?.name || '-'} />
@@ -257,8 +259,8 @@ export const HistoryEmployeeExamTable: FC<
                 <TextIconRow
                   clickable
                   text={
-                    dayjs(row.doneDate)
-                      .add(row.validityInMonths || 0, 'month')
+                    clinicalHistoryCivilDate(row.doneDate)
+                      ?.add(row.validityInMonths || 0, 'month')
                       .format('DD/MM/YYYY') || '-'
                   }
                 />
