@@ -23,7 +23,8 @@
     "type-check:e2e": "tsc --project tsconfig.e2e.json --noEmit",
     "test:e2e:export": "node test/e2e/export-evidence.cjs",
     "test:unit:characterization": "node --experimental-strip-types --test src/components/organisms/modals/ModalAddCharacterization/hooks/characterization-draft-hydration.spec.ts src/components/organisms/modals/ModalAddCharacterization/hooks/commit-characterization-hierarchy-selection.spec.ts",
-    "test:unit:system-matrix": "node test/unit/run-system-matrix.cjs"
+    "test:unit:system-matrix": "node test/unit/run-system-matrix.cjs",
+    "test:unit:gse-integration": "node test/unit/run-gse-integration.cjs"
   },
   "dependencies": {
     "@brazilian-utils/brazilian-utils": "^1.0.0-rc.12",
