@@ -32,7 +32,9 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     viewport: { width: 1440, height: 1000 },
     video: { mode: 'on', size: { width: 1440, height: 1000 } },
-    trace: 'on',
+    // Video and explicit screenshots already record the visuals. Avoid a second
+    // frame-by-frame copy inside every trace, while retaining DOM/network/steps.
+    trace: { mode: 'on', screenshots: false, snapshots: true, sources: true },
     screenshot: 'on',
     locale: 'pt-BR',
     timezoneId: 'America/Sao_Paulo',

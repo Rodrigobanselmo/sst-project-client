@@ -717,12 +717,13 @@ async function prepareToxicology(page: Page, j: Journey, original: boolean) {
       .click();
     await page.getByRole('option', { name: /11222333000181$/ }).click();
   } else {
-    await expect(
-      page.getByRole('combobox', {
-        name: 'Inscrição do empregador no eSocial',
-        exact: true,
-      }),
-    ).toHaveCount(0);
+    // The shared selector remains available for a separate bulk authorization.
+    // Individual corrections inherit the accepted employer, regardless of it.
+    await expect(page.getByText(/A retificação usará o recibo/)).toBeVisible();
+    await page.getByRole('combobox', {
+      name: 'Inscrição do empregador no eSocial', exact: true,
+    }).click();
+    await page.getByRole('option', { name: 'Selecione a inscrição cadastrada', exact: true }).click();
   }
   await page
     .getByLabel('Motivo do envio ou da retificação', { exact: true })
@@ -734,7 +735,10 @@ async function prepareToxicology(page: Page, j: Journey, original: boolean) {
       exact: true,
     })
     .click();
-  const event = await assertStatus(await response, 201);
+  const preparedResponse = await response;
+  const request = preparedResponse.request().postDataJSON();
+  if (!original) expect(request).not.toHaveProperty('employerRegistration');
+  const event = await assertStatus(preparedResponse, 201);
   expect(event.state, JSON.stringify(event.diagnostics)).toBe('READY');
   expect(event.environment).toBe(2);
   return event;
