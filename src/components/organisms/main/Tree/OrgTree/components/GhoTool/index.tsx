@@ -438,13 +438,13 @@ export const GhoTool = ({
               <StructuralArchivedButton
                 companyId={company.id}
                 table={
-                  filter != null && homoCharacterizationTabs.has(filter)
+                  environmentOnly || (filter != null && homoCharacterizationTabs.has(filter))
                     ? 'CompanyCharacterization'
                     : 'HomogeneousGroup'
                 }
-                workspaceId={tabWorkspaceId}
+                workspaceId={environmentOnly ? environmentWorkspace : tabWorkspaceId}
                 label={
-                  filter != null && homoCharacterizationTabs.has(filter)
+                  environmentOnly || (filter != null && homoCharacterizationTabs.has(filter))
                     ? 'Consultar ambientes e atividades encerrados'
                     : 'Consultar GSEs encerrados'
                 }
