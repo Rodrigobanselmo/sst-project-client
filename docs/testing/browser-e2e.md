@@ -116,3 +116,7 @@ Também passaram `type-check`, `type-check:e2e`, os 11 testes de `test:unit:sst`
 A seleção de cargos da caracterização salva inclusões e retiradas juntas, pelo endpoint `hierarchy-selection`. A retirada de um vínculo já declarado exige nova condição com data; o vínculo anterior é encerrado, preservando suas datas e os riscos cadastrados. Cancelamento ou alteração concorrente mantém as escolhas locais para conferência. A seleção não salva nome, resumo ou outros rascunhos do editor.
 
 Retirar o último vínculo de risco de um empregado **não comprova ausência de exposição**. Sem revisão explícita dessa ausência, a preparação para esse empregado fica bloqueada por `ABSENCE_NOT_EXPLICITLY_REVIEWED`; o sistema não inventa o código `09.01.001`. Isso não impede preparar separadamente o empregado do cargo de destino, cujo vínculo e risco estão completos. O cenário `SST vínculos` verifica os dois resultados sem modificar a regra do compositor nem inserir uma declaração de ausência artificial na base.
+
+## Perfis e ambiente após a integração de 02/11/2026
+
+O usuário comum prepara produção e não vê os seletores de ambiente. `sst-declarations.e2e.ts` confere esse comportamento; `QA ambientes` compara explicitamente cliente e master. As jornadas complexas que precisam selecionar/acompanhar produção restrita usam atores sintéticos com papel master, sem alterar os perfis da aplicação. Os leitores continuam sem permissão CRUD de transmissão. A fronteira governamental permanece sintética, inclusive quando a interface mostra produção.

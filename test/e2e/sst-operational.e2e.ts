@@ -145,7 +145,8 @@ async function seedCatalogBrowserSetup(): Promise<CatalogBrowserSetup> {
     data: {
       companyId: company.id,
       userId: user.id,
-      roles: [...membership.roles],
+      // Sandbox scenario actor; customer defaults are covered by sst-declarations and QA ambientes.
+      roles: [...membership.roles, 'master'],
       permissions: [...membership.permissions],
     },
   });
@@ -4383,7 +4384,7 @@ test('SST consultoria — operador sem membership cliente prepara e acompanha en
       companies: {
         create: {
           companyId: consultancy.id,
-          roles: ['1', '8', '14', '15', '16'],
+          roles: ['master', '1', '8', '14', '15', '16'],
           permissions: [
             '14-cru',
             '26-cr',
@@ -5484,7 +5485,7 @@ test('SST portfólio — consultoria pagina empresas, filtra resultados e abre e
   const client = await db.company.findUniqueOrThrow({ where: { id: companyId } });
   const passwordSource = await db.user.findUniqueOrThrow({ where: { email: fixture.email } });
   const owner = await db.company.create({ data: { name: 'Consultoria painel E2E', isConsulting: true, type: 'MATRIZ', permissions: client.permissions } });
-  const makeOperator = (name: string, permissions: string[]) => db.user.create({ data: { name, email: `portfolio-${randomUUID()}@api-e2e.invalid`, password: passwordSource.password, companies: { create: { companyId: owner.id, roles: ['1', '8', '14', '16'], permissions } } } });
+  const makeOperator = (name: string, permissions: string[]) => db.user.create({ data: { name, email: `portfolio-${randomUUID()}@api-e2e.invalid`, password: passwordSource.password, companies: { create: { companyId: owner.id, roles: ['master', '1', '8', '14', '16'], permissions } } } });
   const operator = await makeOperator('Operador painel E2E', ['14-ru']);
   const reader = await makeOperator('Leitor painel E2E', ['14-r']);
   for (let index = 0; index < 21; index++) {

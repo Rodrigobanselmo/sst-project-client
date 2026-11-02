@@ -60,7 +60,7 @@ test('S-2240 — preparar na tela existente usa a API real, mostra impedimentos 
   ).toBeVisible();
   await expect(
     page.getByRole('combobox', { name: 'Ambiente do eSocial' }),
-  ).toContainText('Produção restrita');
+  ).toHaveCount(0);
   await expect(
     page.getByText(/A transmissão está desabilitada neste ambiente do sistema/),
   ).toBeVisible();
@@ -99,7 +99,7 @@ test('S-2240 — preparar na tela existente usa a API real, mostra impedimentos 
   expect(prepared.state).toBe('BLOCKED');
   expect(prepared.diagnostics.length).toBeGreaterThan(0);
   await expect(
-    page.getByText('Declaração preparada · Produção restrita', { exact: true }),
+    page.getByText('Declaração preparada · Produção', { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: /^Confirmar e enviar/ }),
@@ -122,7 +122,7 @@ test('S-2240 — preparar na tela existente usa a API real, mostra impedimentos 
     .getByRole('option', { name: new RegExp(prepared.id.slice(0, 8)) })
     .click();
   await expect(
-    page.getByText('Declaração preparada · Produção restrita', { exact: true }),
+    page.getByText('Declaração preparada · Produção', { exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/Impedido — confira a origem/)).toBeVisible();
   await expect(
