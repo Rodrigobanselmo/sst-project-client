@@ -13,8 +13,39 @@ export function clampPanelPosition(
       Math.min(80, Math.max(8, viewportWidth - width - 8)),
       Math.min(x, viewportWidth - width - 8),
     ),
-    y: Math.max(100, Math.min(y, viewportHeight - height - 8)),
+    y: Math.max(
+      Math.min(100, Math.max(8, viewportHeight - height - 8)),
+      Math.min(y, viewportHeight - height - 8),
+    ),
   };
+}
+/** Opening/reset placement only. Manual dragging keeps its existing viewport bounds. */
+export function initialGsePanelPosition(
+  width: number,
+  height: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  usefulTop = 80,
+) {
+  const top = Math.max(8, usefulTop);
+  return {
+    x: clampPanelPosition(
+      viewportWidth - width - 24,
+      top,
+      width,
+      height,
+      viewportWidth,
+      viewportHeight,
+    ).x,
+    y: top,
+  };
+}
+export function gsePanelMaxHeight(viewportHeight: number, usefulTop = 80) {
+  return Math.max(32, viewportHeight - Math.max(8, usefulTop) - 96);
+}
+function usefulOrganogramTop(panel: HTMLElement | null) {
+  const root = panel?.closest('[data-gse-organogram-viewport]');
+  return Math.max(80, (root?.getBoundingClientRect().top ?? 72) + 8);
 }
 /** Owns position only. Review data remains in the existing provider. */
 export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
@@ -22,6 +53,8 @@ export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
   );
+  const [defaultTop, setDefaultTop] = useState(80);
+  const manualPosition = useRef(false);
   const drag = useRef<{
     x: number;
     y: number;
@@ -31,27 +64,71 @@ export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const resize = () => {
       const r = ref.current?.getBoundingClientRect();
-      if (r)
-        setPosition((p) =>
-          p
-            ? clampPanelPosition(
-                p.x,
-                p.y,
-                r.width,
-                r.height,
-                innerWidth,
-                innerHeight,
-              )
-            : null,
-        );
+      if (r) {
+        const top = usefulOrganogramTop(ref.current);
+        setDefaultTop(top);
+        setPosition((p) => {
+          const next =
+            p && manualPosition.current
+              ? clampPanelPosition(
+                  p.x,
+                  p.y,
+                  r.width,
+                  r.height,
+                  innerWidth,
+                  innerHeight,
+                )
+              : initialGsePanelPosition(
+                  r.width,
+                  r.height,
+                  innerWidth,
+                  innerHeight,
+                  top,
+                );
+          return p && p.x === next.x && p.y === next.y ? p : next;
+        });
+      }
     };
+    resize();
     window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
+    const observer =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
+    if (ref.current) observer?.observe(ref.current);
+    return () => {
+      window.removeEventListener('resize', resize);
+      observer?.disconnect();
+    };
   }, []);
   return (
     <Box
       id="gse-floating-panel"
       ref={ref}
+      onKeyDown={(e) => {
+        if (!(e.target as HTMLElement).matches('[data-gse-drag-handle]'))
+          return;
+        const delta: Record<string, [number, number]> = {
+          ArrowLeft: [-12, 0],
+          ArrowRight: [12, 0],
+          ArrowUp: [0, -12],
+          ArrowDown: [0, 12],
+        };
+        if (!delta[e.key]) return;
+        const r = e.currentTarget.getBoundingClientRect();
+        const [x, y] = delta[e.key];
+        manualPosition.current = true;
+        setPosition(
+          clampPanelPosition(
+            r.left + x,
+            r.top + y,
+            r.width,
+            r.height,
+            innerWidth,
+            innerHeight,
+          ),
+        );
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       onPointerDown={(e) => {
         if (
           !(e.target as HTMLElement).closest('[data-gse-drag-handle]') ||
@@ -66,6 +143,7 @@ export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
       }}
       onPointerMove={(e) => {
         if (!drag.current) return;
+        manualPosition.current = true;
         const r = e.currentTarget.getBoundingClientRect();
         setPosition(
           clampPanelPosition(
@@ -91,11 +169,11 @@ export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
       sx={{
         position: 'fixed',
         zIndex: 1200,
-        top: position?.y ?? 166,
+        top: position?.y ?? defaultTop,
         left: position?.x,
         right: position ? 'auto' : 24,
-        width: 'min(370px, calc(100vw - 96px))',
-        maxHeight: 'calc(100dvh - 180px)',
+        width: 'min(462px, calc(100vw - 32px))',
+        maxHeight: `max(32px, calc(100dvh - ${defaultTop + 96}px))`,
         display: 'flex',
         flexDirection: 'column',
         '& > div:last-child': { minHeight: 0 },
@@ -104,7 +182,23 @@ export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
     >
       <Button
         size="small"
-        onClick={() => setPosition(null)}
+        onClick={() => {
+          const r = ref.current?.getBoundingClientRect();
+          if (r) {
+            manualPosition.current = false;
+            const top = usefulOrganogramTop(ref.current);
+            setDefaultTop(top);
+            setPosition(
+              initialGsePanelPosition(
+                r.width,
+                r.height,
+                innerWidth,
+                innerHeight,
+                top,
+              ),
+            );
+          }
+        }}
         sx={{ alignSelf: 'flex-end', bgcolor: 'background.paper' }}
       >
         Restaurar posição

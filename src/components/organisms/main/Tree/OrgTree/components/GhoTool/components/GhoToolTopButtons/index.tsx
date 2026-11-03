@@ -1,10 +1,9 @@
 import { useOrgPanelBusy } from '../../../../hooks/useOrgPanelBusy';
-import { GseAssistanceToolbar } from '../../../GseVisualAssistance/GseVisualAssistance';
 import { useGseVisualAssistance } from '../../../GseVisualAssistance/GseVisualAssistance.context';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
-import { Icon } from '@mui/material';
+import { Box, Tooltip, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
@@ -36,11 +35,26 @@ export const GhoToolTopButtons: FC<
   return (
     <SFlex
       data-gse-drag-handle={assistance?.active ? true : undefined}
+      tabIndex={assistance?.active ? 0 : undefined}
+      aria-label={
+        assistance?.active
+          ? 'Mover painel: arraste ou use as setas do teclado'
+          : undefined
+      }
       align="center"
       gap="1"
       mb={2}
     >
-      <SIconButton disabled={busy} onClick={handleCloseRisk} size="small">
+      <SIconButton
+        aria-label={
+          environmentOnly
+            ? 'Fechar painel de ambientes'
+            : 'Fechar painel de GSEs'
+        }
+        disabled={busy}
+        onClick={handleCloseRisk}
+        size="small"
+      >
         <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
       </SIconButton>
       <SText
@@ -50,7 +64,23 @@ export const GhoToolTopButtons: FC<
       >
         {environmentOnly ? 'Ambientes' : 'Grupo similar de exposição'}
       </SText>
-      {!environmentOnly && <GseAssistanceToolbar />}
+      {assistance?.active && (
+        <Tooltip title="Arraste esta área para mover o painel">
+          <Box
+            component="span"
+            aria-label="Área de arraste do painel"
+            sx={{
+              width: 28,
+              height: 16,
+              flexShrink: 0,
+              backgroundImage:
+                'radial-gradient(currentColor 1px, transparent 1px)',
+              backgroundSize: '4px 4px',
+              opacity: 0.45,
+            }}
+          />
+        </Tooltip>
+      )}
     </SFlex>
   );
 };

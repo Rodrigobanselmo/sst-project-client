@@ -25,7 +25,7 @@ import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-query';
 
-import { SFlexButton } from './styles';
+import { SFlexButton, gseActiveButtonSx } from './styles';
 
 export const BottomButton: FC = () => {
   const dispatch = useAppDispatch();
@@ -143,7 +143,7 @@ export const BottomButton: FC = () => {
           py={2}
           pr={6}
           center
-          sx={busy ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+          sx={[current === 'GSE' ? gseActiveButtonSx : {}, busy ? { opacity: 0.5, cursor: 'not-allowed' } : {}]}
         >
           <Icon component={SGhoIcon} />
           <SText>GSE</SText>
@@ -169,7 +169,7 @@ export const BottomButton: FC = () => {
           py={2}
           pr={6}
           center
-          sx={busy ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+          sx={[current === 'ENVIRONMENT' ? gseActiveButtonSx : {}, busy ? { opacity: 0.5, cursor: 'not-allowed' } : {}]}
         >
           <LandscapeOutlinedIcon />
           <SText>Ambiente</SText>

@@ -205,7 +205,8 @@ export const GhoTool = ({
   };
 
   const handleEditGHO = (data: IGho) => {
-    if (panelBusy || assistance?.active) return;
+    if (assistance?.active && !assistance.groups.some((g) => g.id === data.id)) return;
+    if (panelBusy || assistance?.persistenceBusy) return;
     if (environmentOnly) {
       if (!scopedEnvironments.some((g) => g.id === data.id)) return;
       onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
@@ -227,7 +228,8 @@ export const GhoTool = ({
 
   const handleDeleteGHO = useCallback(
     (id: string, data?: IGho) => {
-      if (panelBusy || assistance?.active) return;
+      if (assistance?.active && !assistance.groups.some((g) => g.id === id)) return;
+      if (panelBusy || assistance?.persistenceBusy) return;
       if (environmentOnly && !scopedEnvironments.some((g) => g.id === id))
         return;
       if (isOrgMultiWorkspace) return;

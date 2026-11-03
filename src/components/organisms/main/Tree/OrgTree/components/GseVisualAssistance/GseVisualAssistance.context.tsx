@@ -5,6 +5,8 @@ import type { ITreeMap } from '../../interfaces';
 import type { ReviewState } from './gse-visual-assistance.model';
 import type { IntegratedReview } from './gse-integrated-review.model';
 export type AssistanceContextValue = {
+  aiAnalysisActive?: boolean;
+  setAiAnalysisActive?: (active: boolean) => void;
   persistenceBusy?: boolean;
   setPersistenceBusy?: (busy: boolean) => void;
   persisted?: (request: SaveRequest, result: SaveResult) => Promise<void>;

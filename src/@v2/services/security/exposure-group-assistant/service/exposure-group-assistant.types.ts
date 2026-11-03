@@ -587,6 +587,7 @@ export type SimilarityCandidate = {
   justificationSummary?: string;
   commonRoleNames?: string[];
   draft?: GseDraftProposal;
+  proposalFingerprint?: string;
   materialization?: GseProposalMaterialization;
 };
 

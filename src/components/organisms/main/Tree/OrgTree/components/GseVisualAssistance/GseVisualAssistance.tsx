@@ -1,9 +1,13 @@
+import { preliminaryGseDistribution } from './gse-ai-preliminary';
+import { GseConsultativeInfo } from './GseConsultativeInfo';
 import { useQuery } from 'react-query';
 import { queryClient } from 'core/services/queryClient';
 import { QueryEnum } from 'core/enums/query.enums';
 import { invalidateGhoAndHierarchyFamilies } from 'core/services/hooks/mutations/checklist/gho/invalidate-gho-queries.util';
 import { reconcileSavedReview } from './gse-additive-save';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { GseAiRegistryBridge } from './GseAiRegistryBridge';
+import { GseOccupationalAnalysis } from './GseOccupationalAnalysis';
 import { GseLinkSymbol } from './GseLinkSymbol';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import {
@@ -74,6 +78,7 @@ export function GseVisualAssistanceProvider({
   children: React.ReactNode;
 }) {
   const [persistenceBusy, setPersistenceBusy] = useState(false);
+  const [aiAnalysisActive, setAiAnalysisActive] = useState(false);
   const nodes = useAppSelector(selectAllHierarchyTreeNodes),
     selectedWorkspace = useAppSelector(selectWorkplaceId);
   const { query } = useRouter();
@@ -334,6 +339,8 @@ export function GseVisualAssistanceProvider({
           );
         },
         active,
+        aiAnalysisActive,
+        setAiAnalysisActive,
         toggle,
         companyId,
         workspaceId,
@@ -526,7 +533,7 @@ export function GseReviewDetails() {
   return (
     <Box sx={{ p: 2, maxWidth: 330 }}>
       <Typography variant="body2" color="text.primary">
-        Análise determinística · sem modelo de IA.
+        Análise estrutural determinística · sem modelo de IA.
       </Typography>
       <Typography variant="body2" color="text.primary">
         Decisões temporárias. Nenhuma gravação ocupacional. Exposição homogênea
@@ -591,7 +598,15 @@ export function GseAssistanceControls() {
           </MenuItem>
         ))}
       </TextField>
+      <Typography variant="body2" fontWeight={600}>
+        Análise e revisão de GSEs
+      </Typography>
       <Stack direction="row" flexWrap="wrap" gap={1}>
+        <GseConsultativeInfo label="Sobre a análise estrutural">
+          Examina a organização e os vínculos hierárquicos. Para interpretar
+          atividades e revisar a compatibilidade ocupacional, utilize Analisar
+          com IA.
+        </GseConsultativeInfo>
         <Button size="small" onClick={() => setOpen((v) => !v)}>
           Orientações / voz
         </Button>
@@ -603,6 +618,23 @@ export function GseAssistanceControls() {
           Analisar estrutura
         </Button>
       </Stack>
+      <GseAiRegistryBridge
+        key={`ai/${ctx.companyId}/${ctx.workspaceId}`}
+        companyId={ctx.companyId}
+        workspaceId={ctx.workspaceId}
+        preliminaryDistribution={preliminaryGseDistribution(ctx.review, ctx.nodes, ctx.groups)}
+        onAnalysisPresence={ctx.setAiAnalysisActive}
+        guidance={ctx.guidance}
+        disabled={!!ctx.persistenceBusy || ctx.loading || audioBusy}
+        onLocate={ctx.selectGroup}
+      />
+      <GseOccupationalAnalysis
+        key={`${ctx.companyId}/${ctx.workspaceId}`}
+        companyId={ctx.companyId}
+        workspaceId={ctx.workspaceId}
+        disabled={!!ctx.persistenceBusy || ctx.loading || audioBusy}
+        onLocate={ctx.selectGroup}
+      />
       <Collapse in={open} unmountOnExit>
         <Box key={`${ctx.companyId}/${ctx.workspaceId}`} sx={{ my: 1 }}>
           <AiAnalyzeGuidanceAudioField
@@ -619,8 +651,8 @@ export function GseAssistanceControls() {
             onBusyChange={setAudioBusy}
           />
           <Typography variant="caption" color="text.primary">
-            Revise a transcrição. Nesta versão, o texto orienta a revisão
-            humana; não é interpretado automaticamente.
+            Revise a transcrição. O texto orienta a revisão estrutural humana
+            e é enviado à IA somente ao acionar Analisar com IA.
           </Typography>
         </Box>
       </Collapse>

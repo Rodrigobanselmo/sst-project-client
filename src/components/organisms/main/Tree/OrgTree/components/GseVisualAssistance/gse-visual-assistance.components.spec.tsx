@@ -302,11 +302,20 @@ test('existing no changes neutral, changed amber and new purple', () => {
   };
   assert(render(list(), plain).includes('Existente · sem alterações'));
 });
-test('manual destructive/edit actions hidden only in assistance', () => {
+test('persisted GSEs retain conventional edit/delete actions in assistance', () => {
   const html = render(list());
+  assert(html.includes('Deletar'));
+  assert(html.includes('Editar'));
+  assert(html.includes('Visualizar vínculos'));
+});
+test('temporary suggestions never expose conventional edit/delete actions', () => {
+  const ctx = context();
+  const proposed = ctx.rows.find((row) => ctx.review.newGroups.some((p) => p.id === row.id))!;
+  const html = render(<Row data={proposed} isSelected={false} isDeleteLoading={false}
+    handleDeleteGHO={() => { throw Error('NO_WRITE'); }} handleEditGHO={() => { throw Error('NO_WRITE'); }}
+    handleSelectGHO={() => undefined} hide={false} anchorEl={{ current: null }} />, ctx);
   assert(!html.includes('Deletar'));
   assert(!html.includes('Editar'));
-  assert(html.includes('Visualizar vínculos'));
 });
 test('compact controls have no duplicate composition list', () => {
   const html = render(<GseAssistanceControls />);
@@ -350,7 +359,7 @@ test('single header AI icon highlights activity and keeps the original toggle ca
   )!.props.onClick();
   assert.equal(toggles, 1);
 });
-test('header retains close and title with exactly one assistance activation icon', () => {
+test('header retains close and title without redundant assistance icon', () => {
   for (const active of [true, false]) {
     const html = render(
       <GhoToolTopButtons handleSelectGHO={() => undefined} />,
@@ -360,9 +369,9 @@ test('header retains close and title with exactly one assistance activation icon
     assert.equal(
       (html.match(/aria-label="Assistência de GSEs — prévia visual"/g) || [])
         .length,
-      1,
+      0,
     );
-    assert(html.includes(`aria-pressed="${active}"`));
+    assert.equal(html.includes('Área de arraste do painel'), active);
   }
 });
 test('diagnostic details are behind click control while temporary preview stays perceptible', () => {
