@@ -126,14 +126,14 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
       <SFlex sx={assisted ? { gridColumn: 2, gridRow: 1 } : undefined}>
         {(assisted || !hide) && (
           <>
-            {!assisted && (
+            {(!assisted || !proposed) && (
               <>
                 <STooltip withWrapper title={actionHint || 'Deletar'}>
                   <SIconButton
                     loading={isDeleteLoading}
-                    disabled={!assisted && isOrgMultiWorkspace}
+                    disabled={isOrgMultiWorkspace || !!assistance?.persistenceBusy}
                     onClick={() => {
-                      if (!assisted && isOrgMultiWorkspace) return;
+                      if (isOrgMultiWorkspace || assistance?.persistenceBusy) return;
                       handleDeleteGHO(data.id, data);
                     }}
                     size="small"
@@ -144,9 +144,9 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
                 {handleEditGHO && (
                   <STooltip withWrapper title={actionHint || 'Editar'}>
                     <SIconButton
-                      disabled={!assisted && isOrgMultiWorkspace}
+                      disabled={isOrgMultiWorkspace || !!assistance?.persistenceBusy}
                       onClick={() => {
-                        if (!assisted && isOrgMultiWorkspace) return;
+                        if (isOrgMultiWorkspace || assistance?.persistenceBusy) return;
                         handleEditGHO?.(data);
                       }}
                       size="small"
@@ -169,9 +169,9 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
                 aria-label={
                   assisted ? `Visualizar vínculos de ${data.name}` : undefined
                 }
-                disabled={!assisted && isOrgMultiWorkspace}
+                disabled={isOrgMultiWorkspace || !!assistance?.persistenceBusy}
                 onClick={() => {
-                  if (!assisted && isOrgMultiWorkspace) return;
+                  if (isOrgMultiWorkspace || assistance?.persistenceBusy) return;
                   if (assisted)
                     assistance?.selectGroup(isSelected ? null : data.id);
                   else handleSelectGHO(isSelected ? null : data, hierarchies);

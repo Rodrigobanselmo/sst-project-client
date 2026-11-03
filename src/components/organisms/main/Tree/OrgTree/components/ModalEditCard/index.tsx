@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from 'react-redux';
 import { Wizard } from 'react-use-wizard';
 
@@ -102,7 +102,19 @@ export const ModalEditCard = () => {
     refetch,
   } = useQueryEmployees(1, query, 1000);
 
-  const { registerModal } = useRegisterModal();
+  const { registerModal, getModalData, isOpen } = useRegisterModal();
+  const formalDescriptionRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  const interviewRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  const focusField = getModalData<{ gseFocusField?: string }>(ModalEnum.HIERARCHY_TREE_CARD)?.gseFocusField;
+  const editorOpen = isOpen(ModalEnum.HIERARCHY_TREE_CARD);
+  useEffect(() => {
+    if (!editorOpen || !focusField) return;
+    const timer = setTimeout(() => {
+      const field = focusField === 'realDescription' ? interviewRef.current : formalDescriptionRef.current;
+      field?.focus(); field?.scrollIntoView?.({ block: 'nearest' });
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [editorOpen, focusField, selectedNode?.id]);
   const { onCloseModal } = useModal();
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
   const { editNodes, removeNodes, createEmptyCard } = useHierarchyTreeActions();
@@ -351,6 +363,7 @@ export const ModalEditCard = () => {
                   )}
                 <SInput
                   value={selectedNode?.description || ''}
+                  inputRef={formalDescriptionRef}
                   label={'Descrição'}
                   onChange={(e) =>
                     setEditNodeSelectedItem({ description: e.target.value })
@@ -369,6 +382,7 @@ export const ModalEditCard = () => {
             {!isSubOffice && nodeTypesConstant[type]?.placeholderRealDesc && (
               <SInput
                 value={selectedNode?.realDescription || ''}
+                inputRef={interviewRef}
                 onChange={(e) =>
                   setEditNodeSelectedItem({ realDescription: e.target.value })
                 }

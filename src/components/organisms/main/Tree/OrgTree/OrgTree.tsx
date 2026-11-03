@@ -62,6 +62,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
 
   return (
     <Box
+      data-gse-organogram-viewport
       sx={{
         display: 'flex',
         flexDirection: 'column',

@@ -24,11 +24,25 @@ try {
 const entries = process.argv.slice(2);
 if (!entries.length)
   entries.push(
+    path.relative(root, path.join(__dirname, 'gse-structuring-alternatives.spec.tsx')),
+    path.relative(root, path.join(__dirname, 'gse-consultative-interaction.spec.tsx')),
+    path.relative(root, path.join(__dirname, 'gse-ai-group-centered.spec.tsx')),
     path.relative(
       root,
       path.join(__dirname, 'gse-proposal-registration.spec.ts'),
     ),
     path.relative(root, path.join(__dirname, 'gse-additive-save.spec.ts')),
+    path.relative(root, path.join(__dirname, 'gse-ai-result-envelope.spec.ts')),
+    path.relative(root, path.join(__dirname, 'gse-ai-review-ux.spec.tsx')),
+    path.relative(root, path.join(__dirname, 'gse-ai-consultative.spec.tsx')),
+    path.relative(
+      root,
+      path.join(__dirname, 'gse-occupational-adapter.spec.ts'),
+    ),
+    path.relative(
+      root,
+      path.join(__dirname, 'gse-occupational.components.spec.tsx'),
+    ),
     path.relative(
       root,
       path.join(__dirname, 'gse-integrated-review.model.spec.ts'),
@@ -62,14 +76,17 @@ global.__GSE_VISUAL_TEST_ISOLATED = true;
               'core/services/apiClient': `exports.api={get:async()=>({data:{available:false}}),post:async(path,body)=>{global.__visualRequests??=[];global.__visualRequests.push({path,body});if(path!=='/ai-chat/transcribe')throw Error('OCCUPATIONAL_WRITE_FORBIDDEN');return {data:{text:'Orientação transcrita'}};}};`,
               'core/services/hooks/queries/useQueryCompany': `exports.useQueryCompany=()=>({data:{id:'c'}});`,
               'core/services/hooks/queries/useQueryGHOAll': `exports.useQueryGHOAll=()=>({data:[],isLoading:false,isError:false});`,
-              'core/hooks/useAppDispatch': `exports.useAppDispatch=()=>action=>action;`,
+              'core/hooks/useAppDispatch': `exports.useAppDispatch=()=>action=>{global.__gseDispatch?.push(action);return action;};`,
               'core/hooks/useAppSelector': `exports.useAppSelector=(selector)=>selector({hierarchy:{nodes:{},workspaceId:'w'},gho:{data:null,search:'',hierarchies:[],searchSelect:'',isOpen:false}});`,
+              'core/services/hooks/queries/useQueryHierarchies': `exports.useQueryHierarchies=()=>({data:global.__gseRegistry||{},refetch:async()=>({data:global.__gseRegistry||{},isError:false})});`,
+              'components/molecules/SAuthShow': `exports.useAuthShow=()=>({isAuthSuccess:()=>global.__gseCanEdit===true});`,
+              'core/hooks/useModal': `exports.useModal=()=>({onOpenModal:(...args)=>{global.__gseModalOpens??=[];global.__gseModalOpens.push(args);}});`,
               'next/router': `exports.useRouter=()=>({query:{},pathname:'/dashboard/empresas/[companyId]/hierarquia',asPath:'/hierarquia'});`,
             };
             build.onResolve(
               {
                 filter:
-                  /^(core\/services\/apiClient|core\/services\/hooks\/queries\/useQueryCompany|core\/services\/hooks\/queries\/useQueryGHOAll|core\/hooks\/useAppSelector|core\/hooks\/useAppDispatch|next\/router)$/,
+                  /^(core\/services\/apiClient|core\/services\/hooks\/queries\/useQueryCompany|core\/services\/hooks\/queries\/useQueryGHOAll|core\/hooks\/useAppSelector|core\/hooks\/useAppDispatch|core\/services\/hooks\/queries\/useQueryHierarchies|components\/molecules\/SAuthShow|core\/hooks\/useModal|next\/router)$/,
               },
               (args) => ({ path: args.path, namespace: 'safe-stub' }),
             );
