@@ -608,7 +608,32 @@ test('SST 5 — medição é alterada na caracterização e exige decisão ali m
       type: 'AMB',
     },
   });
-  await login(page);
+  // The accepted baseline below is explicitly in restricted production. Use a
+  // separate master actor, preserving the ordinary fixture's production rights.
+  const sourceUser = await db.user.findUniqueOrThrow({
+    where: { email: fixture.email },
+  });
+  const membership = await db.userCompany.findUniqueOrThrow({
+    where: { companyId_userId: { companyId: fixture.companyId, userId: sourceUser.id } },
+  });
+  const sandboxUser = await db.user.create({
+    data: {
+      name: 'Master medição E2E',
+      email: `measurement-master-${suffix}@api-e2e.invalid`,
+      password: sourceUser.password,
+      companies: {
+        create: {
+          companyId: fixture.companyId,
+          roles: ['master'],
+          permissions: [...membership.permissions],
+        },
+      },
+    },
+  });
+  await login(page, companyPath('empregados'), {
+    email: sandboxUser.email,
+    password: fixture.password,
+  });
   await page.goto(
     companyPath('novo/sst') + `?active=2&tabWorkspaceId=${fixture.workspaceId}`,
   );
@@ -777,6 +802,8 @@ test('SST 5 — medição é alterada na caracterização e exige decisão ali m
     })
     .click();
   const changes = await assertStatus(await changesResponse, 201);
+  expect(changes.environment).toBe(2);
+  expect((await changesResponse).request().postDataJSON().environment).toBe(2);
   expect(changes.state, JSON.stringify(changes.diagnostics)).toBe('READY');
   expect(changes.events).toHaveLength(1);
   expect(changes.events[0].operation).toBe('ORIGINAL');
@@ -2274,7 +2301,7 @@ test('SST vínculos — seleção de cargos é atômica, datada e preserva cance
       .getByRole('button', { name: 'Selecionar Ativos', exact: true })
       .last()
       .click();
-    const start = page.getByPlaceholder('__/__/__').first();
+    const start = page.getByLabel('Data de início', { exact: true });
     await start.fill(date);
     await start.press('Tab');
     await page.getByRole('button', { name: 'Confirmar', exact: true }).click();
