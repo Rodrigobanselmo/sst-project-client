@@ -47,6 +47,8 @@ export function useMutUpdateRisk() {
 
         queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
         queryClient.invalidateQueries([QueryEnum.RISK, resp.companyId]);
+        // A scoped catalogue revision can also create assessment periods.
+        queryClient.invalidateQueries([QueryEnum.RISK_DATA]);
         invalidateIdentifiedRiskList();
 
         const replace = (company: string) => {

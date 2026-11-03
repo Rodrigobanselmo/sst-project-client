@@ -5,12 +5,13 @@ import { BrowseAllWorkspacesParams } from '../service/browse-all-workspaces.type
 
 export const useFetchBrowseAllWorkspaces = (
   params: BrowseAllWorkspacesParams,
+  options: { enabled?: boolean } = {},
 ) => {
   const { data, ...response } = useFetch({
     queryFn: async () => {
       return browseAllWorkspaces(params);
     },
-    enabled: !!params.companyId,
+    enabled: !!params.companyId && options.enabled !== false,
     queryKey: [
       QueryKeyCompanyEnum.COMPANY_WORKSPACE,
       params.companyId,

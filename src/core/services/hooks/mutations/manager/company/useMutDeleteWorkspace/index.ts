@@ -1,3 +1,4 @@
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -31,20 +32,21 @@ export function useMutDeleteWorkspace() {
   return useMutation(
     (data: IDeleteWorkspace) => deleteWorkspace(data, getCompanyId(data)),
     {
-    onSuccess: async () => {
-      queryClient.invalidateQueries([QueryEnum.COMPANIES, user?.companyId]);
-      queryClient.invalidateQueries([QueryEnum.COMPANY]);
+      onSuccess: async () => {
+        queryClient.invalidateQueries([QueryEnum.COMPANIES, user?.companyId]);
+        queryClient.invalidateQueries([QueryEnum.COMPANY]);
 
-      enqueueSnackbar('Estabelecimento excluído com sucesso', {
-        variant: 'success',
-      });
+        enqueueSnackbar('Estabelecimento excluído com sucesso', {
+          variant: 'success',
+        });
+      },
+      onError: (error: IErrorResp) => {
+        if (isSstMutationCancelled(error)) return;
+        enqueueSnackbar(
+          error?.response?.data?.message ?? 'Erro ao excluir estabelecimento',
+          { variant: 'error' },
+        );
+      },
     },
-    onError: (error: IErrorResp) => {
-      enqueueSnackbar(
-        error?.response?.data?.message ?? 'Erro ao excluir estabelecimento',
-        { variant: 'error' },
-      );
-    },
-  },
   );
 }

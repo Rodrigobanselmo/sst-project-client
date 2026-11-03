@@ -25,7 +25,6 @@ import {
 import { StackModalRiskTool } from 'components/organisms/modals/ModalRiskTool';
 import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
-import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
@@ -265,7 +264,6 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
         <ModalViewProfessional />
         <ModalSingleInput />
         <StackModalEditEmployee />
-        <ModalSelectHierarchy />
         <ModalAddWorkspace />
         <ModalAddExcelEmployees />
         <ModalAddRiskGroup />

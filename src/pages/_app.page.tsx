@@ -1,3 +1,7 @@
+import { MutationDecisionDialog } from '@v2/features/sst-operational/MutationDecisionDialog';
+import { SstEditSessionBanner } from '@v2/features/sst-operational/SstEditSessionBanner';
+import { CatalogDecisionDialog } from '@v2/features/sst-operational/CatalogDecisionDialog';
+import { StructuralDecisionDialog } from '@v2/features/sst-operational/StructuralRevisionDialog';
 import '../polyfills/findDOMNode'; // Must be first — patches ReactDOM.findDOMNode for draft-js (React 19)
 import '../core/styles/react-datepicker.css';
 import '../core/styles/cronStyles.css';
@@ -24,7 +28,11 @@ dayjs.extend(relativeTime);
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <DefaultProviders>
+      <MutationDecisionDialog />
+      <CatalogDecisionDialog />
+      <StructuralDecisionDialog />
       <DefaultLayout>
+        <SstEditSessionBanner />
         <Component {...pageProps} />
         <Analytics />
       </DefaultLayout>

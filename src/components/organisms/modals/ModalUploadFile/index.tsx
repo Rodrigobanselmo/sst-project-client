@@ -1,4 +1,5 @@
-import React, { FC, useRef } from 'react';
+import React, { FC, useRef, useState } from 'react';
+import { Alert } from '@mui/material';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -14,6 +15,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { api } from 'core/services/apiClient';
+import { ImportRecalculationPendingError } from 'core/utils/helpers/importCompletionError';
 
 import { SFileDndUpload } from '../../../molecules/SFileDndUpload';
 import { SModalUploadFile } from './types';
@@ -27,13 +29,16 @@ export const ModalUploadFile: FC<{ children?: any } & SModalUploadFile> = ({
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const filesRef = useRef<File[]>([]);
+  const [importCompletion, setImportCompletion] = useState('');
 
   const onClose = () => {
     onCloseModal(ModalEnum.UPLOAD);
     filesRef.current = [];
+    setImportCompletion('');
   };
 
   const onConfirmButton = async () => {
+    if (importCompletion) return;
     const { 'nextauth.refreshToken': refresh_token } = parseCookies();
 
     const response = await api.post('/refresh', { refresh_token });
@@ -54,8 +59,16 @@ export const ModalUploadFile: FC<{ children?: any } & SModalUploadFile> = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
 
-    onConfirm &&
-      (await onConfirm(filesRef.current, getModalData(ModalEnum.UPLOAD)));
+    try {
+      onConfirm &&
+        (await onConfirm(filesRef.current, getModalData(ModalEnum.UPLOAD)));
+    } catch (error) {
+      if (error instanceof ImportRecalculationPendingError) {
+        setImportCompletion(error.message);
+        return;
+      }
+      throw error;
+    }
 
     setTimeout(() => {
       onClose();
@@ -72,6 +85,7 @@ export const ModalUploadFile: FC<{ children?: any } & SModalUploadFile> = ({
       text: 'Fazer upload',
       onClick: onConfirmButton,
       variant: 'contained',
+      disabled: !!importCompletion,
     },
   ] as IModalButton[];
 
@@ -90,6 +104,11 @@ export const ModalUploadFile: FC<{ children?: any } & SModalUploadFile> = ({
             onChange={onSetFiles}
           />
         </DndProvider>
+        {importCompletion && (
+          <Alert severity="warning" sx={{ mt: '16px' }}>
+            {importCompletion}
+          </Alert>
+        )}
         <SModalButtons loading={loading} onClose={onClose} buttons={buttons} />
       </SModalPaper>
     </SModal>

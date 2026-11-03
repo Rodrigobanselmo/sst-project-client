@@ -51,11 +51,11 @@ const emptyForm: FormState = {
 };
 
 export const ModalEstablishmentGroups: FC = () => {
-  const { registerModal, getModalData } = useRegisterModal();
+  const { registerModal, getModalData, isOpen } = useRegisterModal();
   const { onCloseModal } = useModal();
   const { preventDelete } = usePreventAction();
   const { data: company } = useQueryCompany();
-  const { data: groups, isLoading } = useQueryEstablishmentGroups();
+  const { data: groups, isLoading } = useQueryEstablishmentGroups(isOpen(ModalEnum.ESTABLISHMENT_GROUPS));
   const createMutation = useMutCreateEstablishmentGroup();
   const updateMutation = useMutUpdateEstablishmentGroup();
   const deleteMutation = useMutDeleteEstablishmentGroup();

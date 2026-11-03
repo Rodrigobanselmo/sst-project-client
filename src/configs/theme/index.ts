@@ -100,7 +100,8 @@ export function createCustomTheme(
     typography,
     shape,
     mixins,
-    spacing: (factor: number) => `${0.125 * factor}rem`, // (Bootstrap strategy) 4px
+    // One spacing unit is 0.125rem (2px with a 16px root), not MUI's default 8px.
+    spacing: (factor: number) => `${0.125 * factor}rem`,
     components: {
       MuiCssBaseline: {
         styleOverrides: {

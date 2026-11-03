@@ -14,6 +14,14 @@ export function hasCatalogDraft(matrix: RiskMatrixBrowseItem) {
   return Boolean(matrix.draftVersion?.id);
 }
 
+export function canCreateCatalogVersion(matrix: RiskMatrixBrowseItem) {
+  return (
+    matrix.status === CompanyRiskMatrixStatusEnum.ACTIVE &&
+    Boolean(matrix.latestPublishedVersion?.id) &&
+    !hasCatalogDraft(matrix)
+  );
+}
+
 export function catalogPublishedCoverageCount(matrix: RiskMatrixBrowseItem) {
   return matrix.latestPublishedVersion?.coverages.length ?? 0;
 }
@@ -38,7 +46,9 @@ export function canDeleteCatalogDraft(matrix: RiskMatrixBrowseItem) {
   return Boolean(matrix.draftVersion?.id);
 }
 
-export function deleteCatalogDraftRemovesIdentity(matrix: RiskMatrixBrowseItem) {
+export function deleteCatalogDraftRemovesIdentity(
+  matrix: RiskMatrixBrowseItem,
+) {
   return Boolean(matrix.draftVersion?.id) && !matrix.latestPublishedVersion?.id;
 }
 

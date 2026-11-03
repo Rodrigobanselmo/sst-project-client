@@ -20,11 +20,11 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
 import {
-  CharacterizationHierarchyUnlinkError,
+  buildCharacterizationHierarchySelection,
+  CharacterizationHierarchySnapshotError,
   commitCharacterizationHierarchySelection,
 } from 'components/organisms/modals/ModalAddCharacterization/hooks/commit-characterization-hierarchy-selection';
-import { deleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteHierarchyGho/useMutDeleteHierarchyGho';
-import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
+import { useMutSelectCharacterizationHierarchies } from 'core/services/hooks/mutations/manager/useMutSelectCharacterizationHierarchies';
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
@@ -58,7 +58,7 @@ export function CharacterizationCargoManagerDialog({
   const { onStackOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
   const { selectStartEndDate } = useStartEndDate();
-  const upsertMutation = useMutUpsertCharacterization();
+  const selectionMutation = useMutSelectCharacterizationHierarchies();
   const { data: ghoQuery } = useQueryGHOAll();
   const { data: company } = useQueryCompany();
   const hierarchyQuery = useQueryHierarchies(companyId);
@@ -150,51 +150,55 @@ export function CharacterizationCargoManagerDialog({
     [refresh, companyId, workspaceId, characterizationId, onClose],
   );
 
-  const onAddHierarchy = useCallback(() => {
+  const onAddHierarchy = useCallback(async () => {
     if (!detail?.id) return;
+    const latest = await refetch();
+    if (latest.isError || !latest.data?.id) {
+      enqueueSnackbar(
+        'Não foi possível atualizar os vínculos. Tente abrir a seleção novamente.',
+        { variant: 'error' },
+      );
+      return;
+    }
+    const currentHierarchies = latest.data.hierarchies || [];
 
-    const handleSelect = (
+    const handleSelect = async (
       selected: IHierarchyChildren[],
       startDate: Date,
       endDate: Date,
       close?: () => void,
     ) => {
-      void commitCharacterizationHierarchySelection({
-        hierarchies,
-        confirmedHierarchyIds: selected.map((h) =>
-          String(h.id).split('//')[0],
-        ),
-        workspaceId,
-        unlink: (ids) => deleteGho({ ids, companyId }, companyId),
-        upsert: () =>
-          upsertMutation.mutateAsync({
-            id: detail.id,
-            name: detail.name,
-            type: detail.type,
-            companyId,
-            workspaceId,
-            startDate,
-            endDate,
-            hierarchyIds: selected.map((h) => String(h.id).split('//')[0]),
-          }),
-        refreshAfterPartialFailure: refresh,
-      })
-        .then(async () => {
-          close?.();
-          await refresh();
-        })
-        .catch((error) => {
-          if (error instanceof CharacterizationHierarchyUnlinkError) {
-            enqueueSnackbar(
-              'Não foi possível remover os vínculos. A seleção não foi salva.',
-              { variant: 'error' },
-            );
-          }
+      try {
+        const selection = buildCharacterizationHierarchySelection({
+          hierarchies: currentHierarchies,
+          confirmedHierarchyIds: selected.map((h) => String(h.id)),
+          workspaceId,
+          characterizationId: detail.id,
+          startDate,
+          endDate,
         });
+        await commitCharacterizationHierarchySelection({
+          selection,
+          persist: (selection) =>
+            selectionMutation.mutateAsync({
+              companyId,
+              workspaceId,
+              characterizationId: detail.id,
+              selection,
+            }),
+        });
+        await refresh();
+        close?.();
+      } catch (error) {
+        // A decisão cancelada ou o conflito mantém a seleção para conferência.
+        if (error instanceof CharacterizationHierarchySnapshotError)
+          enqueueSnackbar(error.message, { variant: 'error' });
+      }
     };
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       keepOpen: true,
+      title: `Selecionar cargos — ${detail.name}`,
       onSelect: (hIds, closeModal) =>
         selectStartEndDate((d) => {
           handleSelect(hIds, d.startDate, d.endDate, closeModal);
@@ -205,18 +209,22 @@ export function CharacterizationCargoManagerDialog({
       forceCargoFilter: true,
       characterizationCargoSelect: true,
       characterizationId: detail.id,
-      hierarchiesIds: hierarchies
+      hierarchiesIds: currentHierarchies
         .filter((h) =>
-          (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
+          (h as any)?.hierarchyOnHomogeneous?.some(
+            (hg: any) => !hg?.endDate && !hg?.deletedAt,
+          ),
         )
         .map((hierarchy) =>
           String(hierarchy.id).split('//').length === 1
             ? `${String(hierarchy.id)}//${workspaceId}`
             : String(hierarchy.id),
         ),
-      allHierarchiesIds: hierarchies
+      allHierarchiesIds: currentHierarchies
         .filter((h) =>
-          (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
+          (h as any)?.hierarchyOnHomogeneous?.some(
+            (hg: any) => !hg?.endDate && !hg?.deletedAt,
+          ),
         )
         .map((hierarchy) =>
           String(hierarchy.id).split('//').length === 1
@@ -228,12 +236,12 @@ export function CharacterizationCargoManagerDialog({
     detail,
     companyId,
     workspaceId,
-    hierarchies,
     ghoQuery,
     onStackOpenModal,
     selectStartEndDate,
-    upsertMutation,
+    selectionMutation,
     refresh,
+    refetch,
     enqueueSnackbar,
   ]);
 
@@ -278,7 +286,7 @@ export function CharacterizationCargoManagerDialog({
         ) : (
           <HierarchyHomoTable
             onAdd={onAddHierarchy}
-            loading={isLoading || upsertMutation.isLoading}
+            loading={isLoading || selectionMutation.isLoading}
             hierarchies={hierarchies as any}
             isCreate={false}
             fixedRowsPerPage={15}

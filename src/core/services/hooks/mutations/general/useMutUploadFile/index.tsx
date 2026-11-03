@@ -12,6 +12,10 @@ import { useModal } from 'core/hooks/useModal';
 import { api } from 'core/services/apiClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
 import {
+  ImportRecalculationPendingError,
+  readImportRecalculationPendingError,
+} from 'core/utils/helpers/importCompletionError';
+import {
   handleBlobError,
   handleBlobErrorModal,
 } from 'core/utils/helpers/handleBlobError';
@@ -55,13 +59,17 @@ export async function uploadFile(
 
   const { token } = await refreshToken();
 
-  const response = await api.post(path, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${token}`,
-    },
-    responseType: 'blob',
-  });
+  const response = await api
+    .post(path, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: 'blob',
+    })
+    .catch(async (error) => {
+      throw (await readImportRecalculationPendingError(error)) || error;
+    });
 
   if (response.headers['content-type'] === 'application/json; charset=utf-8')
     return response.data;
@@ -89,6 +97,10 @@ export function useMutUploadFile() {
         return resp;
       },
       onError: (error: IErrorResp) => {
+        if (error instanceof ImportRecalculationPendingError) {
+          enqueueSnackbar(error.message, { variant: 'warning', persist: true });
+          return;
+        }
         handleBlobErrorModal(error, enqueueSnackbar, onStackOpenModal);
       },
     },

@@ -25,7 +25,10 @@ import { RiskFactorAiPendingList } from '../../../../../risk-factors-ai/RiskFact
 const CURRENT_PROBABILITY_LOCKED_REASON =
   'Como todas as recomendações aplicáveis a este risco foram concluídas com sucesso, o risco real deve ser igual ao risco residual. Para alterar essa probabilidade, adicione novas medidas de controle.';
 
-const scopedRows = (data: ProbabilityColumnProps['data'], workspaceId?: string) => {
+const scopedRows = (
+  data: ProbabilityColumnProps['data'],
+  workspaceId?: string,
+) => {
   const rows = data?.dataRecs || [];
   if (!workspaceId) return rows;
   const scoped = rows.filter((r) => r.workspaceId === workspaceId);
@@ -112,7 +115,10 @@ const ProbabilityColumnContent: FC<{ children?: any } & ProbabilityColumnProps> 
       risk,
       type: hasQuality,
       onCreate: (value) =>
-        handleSelect({ json: value, probabilityAfter: undefined }),
+        handleSelect({
+          json: { ...(data?.json || {}), ...value },
+          probabilityAfter: undefined,
+        }),
     } as typeof initialQuantityState);
   };
 
@@ -172,7 +178,11 @@ const ProbabilityColumnContent: FC<{ children?: any } & ProbabilityColumnProps> 
         <RiskFactorProbabilityAiButton riskId={risk?.id} riskName={risk?.name} />
       </SFlex>
       {probabilityCaption ? (
-        <SText fontSize={10} color="text.secondary" sx={{ lineHeight: 1.3, maxWidth: 150, mt: 0.5 }}>
+        <SText
+          fontSize={10}
+          color="text.secondary"
+          sx={{ lineHeight: 1.3, maxWidth: 150, mt: 0.5 }}
+        >
           {probabilityCaption}
         </SText>
       ) : null}

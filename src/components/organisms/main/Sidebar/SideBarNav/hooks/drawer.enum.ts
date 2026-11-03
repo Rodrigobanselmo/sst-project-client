@@ -9,6 +9,8 @@
  */
 export enum DrawerItemsEnum {
   dashboard = 'dashboard',
+  esocialCertificates = 'esocialCertificates',
+  esocialPlatformCertificate = 'esocialPlatformCertificate',
   profile = 'profile',
   documents = 'documents',
   team = 'team',
@@ -62,6 +64,7 @@ export enum DrawerItemsEnum {
   hoMethods = 'hoMethods',
   schedule = 'schedule',
   esocial = 'esocial',
+  esocialPortfolio = 'esocialPortfolio',
   absenteeism = 'absenteeism',
   cat = 'cat',
   block = 'block',

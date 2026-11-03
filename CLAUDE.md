@@ -70,6 +70,7 @@ Custom hooks wrap React Query:
 ## Key Conventions
 
 - **Styling:** Emotion CSS-in-JS + MUI theming. Use MUI's `sx` prop or `styled()` from `@emotion/styled`.
+- **MUI spacing:** `src/configs/theme/index.ts` defines `theme.spacing(n)` as `0.125 * n rem`; with a 16px root, one unit is **2px**, not MUI's default 8px. For example, `spacing={4}` / `p: 4` means 8px, `spacing={8}` / `p: 8` means 16px, and `spacing={12}` / `p: 12` means 24px. This applies to spacing-aware MUI props (`Stack spacing`, `sx` margin/padding/gap), not every numeric CSS property. Use the actual theme scale or explicit CSS lengths, and check floating labels, helper text, and dialog scrolling at desktop and narrow widths. Do not change the global scale to repair a single screen.
 - **Forms:** React Hook Form + Yup validation schemas. Form schemas live in `src/core/utils/`.
 - **Enums:** Route names, modal names, and API endpoints are defined as enums in `src/core/enums/`.
 - **Dates:** Day.js with Portuguese (`pt-br`) locale.

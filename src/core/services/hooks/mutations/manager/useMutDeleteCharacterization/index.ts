@@ -1,3 +1,4 @@
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
@@ -114,7 +115,12 @@ export function useMutDeleteCharacterization() {
         return resp;
       },
       onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        if (isSstMutationCancelled(error)) return;
+        enqueueSnackbar(
+          error?.response?.data?.message ||
+            'Não foi possível aplicar esta alteração.',
+          { variant: 'error' },
+        );
       },
     },
   );

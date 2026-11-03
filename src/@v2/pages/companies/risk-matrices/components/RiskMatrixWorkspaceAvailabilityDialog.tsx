@@ -28,6 +28,7 @@ import {
 
 import {
   RISK_MATRIX_AVAILABILITY_DISCLAIMER,
+  RISK_MATRIX_AVAILABILITY_APPLY_HELP,
   RISK_MATRIX_COVERAGE_LABELS,
   RISK_MATRIX_SIMPLESST_ALWAYS_AVAILABLE,
 } from '../maps/risk-matrix.maps';
@@ -150,14 +151,23 @@ export const RiskMatrixWorkspaceAvailabilityDialog: FC<
           {target ? ` · versão publicada v${target.versionNumber}` : ''}
         </Typography>
       </DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <DialogContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
         <Alert severity="info">{RISK_MATRIX_AVAILABILITY_DISCLAIMER}</Alert>
+        <Typography variant="body2" color="text.secondary">
+          {RISK_MATRIX_AVAILABILITY_APPLY_HELP}
+        </Typography>
         <Alert severity="info">{RISK_MATRIX_SIMPLESST_ALWAYS_AVAILABLE}</Alert>
 
         {error && <Alert severity="error">{error}</Alert>}
 
         {availabilityQuery.isLoading && (
-          <Box display="flex" alignItems="center" gap={2} py={1}>
+          <Box display="flex" alignItems="center" gap={8} py={4}>
             <CircularProgress size={20} />
             <Typography variant="body2" color="text.secondary">
               Carregando estabelecimentos…
@@ -183,7 +193,7 @@ export const RiskMatrixWorkspaceAvailabilityDialog: FC<
         )}
 
         {target && target.coverages.length > 0 && (
-          <Box display="flex" flexWrap="wrap" gap={0.5}>
+          <Box display="flex" flexWrap="wrap" gap={4}>
             {target.coverages.map((coverage) => (
               <Chip
                 key={coverage}
@@ -251,10 +261,10 @@ const WorkspaceAvailabilityRow: FC<{
         border: 1,
         borderColor: 'divider',
         borderRadius: 1,
-        p: 1.5,
+        p: 8,
         display: 'flex',
         justifyContent: 'space-between',
-        gap: 2,
+        gap: 8,
         flexWrap: 'wrap',
         alignItems: 'flex-start',
       }}
@@ -265,13 +275,13 @@ const WorkspaceAvailabilityRow: FC<{
           {describeWorkspaceAvailability(workspace)}
         </Typography>
         {conflictText && (
-          <Typography variant="caption" color="error" display="block" mt={0.5}>
+          <Typography variant="caption" color="error" display="block" mt={4}>
             {conflictText}
           </Typography>
         )}
       </Box>
       <SAuthShow permissions={[PermissionEnum.RISK]} cruds="c">
-        <Box display="flex" gap={1} flexWrap="wrap">
+        <Box display="flex" gap={4} flexWrap="wrap">
           {workspace.canEnable && (
             <Button
               size="small"
@@ -290,8 +300,8 @@ const WorkspaceAvailabilityRow: FC<{
               onClick={onSwitch}
             >
               {pending
-                ? 'Atualizando…'
-                : `Atualizar para v${targetVersionNumber ?? ''}`}
+                ? 'Disponibilizando…'
+                : `Disponibilizar v${targetVersionNumber ?? ''}`}
             </Button>
           )}
           {workspace.canDisable && (
@@ -310,4 +320,3 @@ const WorkspaceAvailabilityRow: FC<{
     </Box>
   );
 };
-

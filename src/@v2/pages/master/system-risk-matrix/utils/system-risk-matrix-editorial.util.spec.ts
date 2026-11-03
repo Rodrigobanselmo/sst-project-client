@@ -40,7 +40,10 @@ const COVERAGES = [
 
 const completeAxisCriteria = () => {
   const items: SystemRiskMatrixProjection['axisCriteria'] = [];
-  for (const axis of [RiskMatrixAxisEnum.SEVERITY, RiskMatrixAxisEnum.PROBABILITY]) {
+  for (const axis of [
+    RiskMatrixAxisEnum.SEVERITY,
+    RiskMatrixAxisEnum.PROBABILITY,
+  ]) {
     for (const value of [1, 2, 3, 4, 5]) {
       for (const coverageKey of COVERAGES) {
         items.push({
@@ -174,7 +177,10 @@ assert.equal(
 
 const editedAxis = setSystemAxisLevelColor(editorial, 3, '#111111');
 const afterS3 = buildSystemRiskMatrixPutPayload(editedAxis);
-assert.equal(afterS3.axisLevelColors.find((item) => item.value === 3)?.color, '#111111');
+assert.equal(
+  afterS3.axisLevelColors.find((item) => item.value === 3)?.color,
+  '#111111',
+);
 assert.equal(
   afterS3.classificationColors.find((item) => item.key === 'C3')?.color,
   '#D9D10B',
@@ -182,7 +188,10 @@ assert.equal(
 
 const editedClass = setSystemClassificationColor(editorial, 'C3', '#AAAAAA');
 const afterC3 = buildSystemRiskMatrixPutPayload(editedClass);
-assert.equal(afterC3.classificationColors.find((item) => item.key === 'C3')?.color, '#AAAAAA');
+assert.equal(
+  afterC3.classificationColors.find((item) => item.key === 'C3')?.color,
+  '#AAAAAA',
+);
 assert.equal(
   afterC3.axisLevelColors.find((item) => item.value === 3)?.color,
   '#D9D10B',
@@ -282,8 +291,8 @@ assert.ok(pageSource.includes('CriterionHierarchyView'));
 assert.ok(pageSource.includes('axisLevelColorByValue'));
 assert.ok(pageSource.includes('disabled'));
 assert.ok(pageSource.includes('onPaintCell={() => undefined}'));
-assert.ok(pageSource.includes('buildSystemRiskMatrixPutPayload'));
-assert.ok(pageSource.includes('buildSystemRiskMatrixEditorialState(saved)'));
+assert.ok(pageSource.includes('beginSystemRiskMatrixSave'));
+assert.ok(pageSource.includes('completeSystemRiskMatrixSave'));
 assert.equal(pageSource.includes('system-presentation'), false);
 assert.equal(pageSource.includes('useMutateReplaceRiskMatrixDraft'), false);
 assert.equal(pageSource.includes('severityColor'), false);

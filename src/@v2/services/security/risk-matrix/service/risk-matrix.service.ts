@@ -5,6 +5,7 @@ import { api } from 'core/services/apiClient';
 import type {
   BrowseRiskMatricesResponse,
   CreateRiskMatrixPayload,
+  CreateRiskMatrixVersionPayload,
   DeleteRiskMatrixDraftResponse,
   MatrixWorkspaceAvailability,
   PatchRiskMatrixPayload,
@@ -138,6 +139,21 @@ export async function readRiskMatrixVersion(params: {
     }),
   );
 
+  return response.data;
+}
+
+export async function createRiskMatrixVersion(params: {
+  companyId: string;
+  matrixId: string;
+  payload: CreateRiskMatrixVersionPayload;
+}): Promise<RiskMatrixVersion> {
+  const response = await api.post<RiskMatrixVersion>(
+    bindUrlParams({
+      path: RiskMatrixRoutes.VERSIONS,
+      pathParams: { companyId: params.companyId, matrixId: params.matrixId },
+    }),
+    params.payload,
+  );
   return response.data;
 }
 

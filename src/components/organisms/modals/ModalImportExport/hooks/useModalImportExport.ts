@@ -8,6 +8,7 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
+import { ImportRecalculationPendingError } from 'core/utils/helpers/importCompletionError';
 
 export interface IUploadNewFileConfirm {
   files: File[];
@@ -36,6 +37,7 @@ export const useModalImportExport = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDownloadLoading, setIsDownloadLoading] = useState<boolean>(false);
+  const [importCompletion, setImportCompletion] = useState('');
   const { onCloseModal } = useModal();
 
   const { handleSubmit, reset } = useForm();
@@ -64,6 +66,7 @@ export const useModalImportExport = () => {
   const onClose = () => {
     onCloseModal(modalName);
     setFileData(initialModalImportExport);
+    setImportCompletion('');
     reset();
   };
 
@@ -76,6 +79,7 @@ export const useModalImportExport = () => {
   };
 
   const onSubmit = async () => {
+    if (importCompletion) return;
     try {
       setIsLoading(true);
       fileData.onConfirm &&
@@ -88,7 +92,9 @@ export const useModalImportExport = () => {
       // setTimeout(() => { //! add
       //   onClose();
       // }, 100);
-    } catch {
+    } catch (error) {
+      if (error instanceof ImportRecalculationPendingError)
+        setImportCompletion(error.message);
       setIsLoading(false);
     }
   };
@@ -110,6 +116,7 @@ export const useModalImportExport = () => {
     setFileData,
     modalName,
     isLoading,
+    importCompletion,
     handleRemove,
     isDownloadLoading,
     onSubmit,

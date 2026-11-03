@@ -13,7 +13,10 @@ import type { RiskMatrixEditorState } from '@v2/pages/companies/risk-matrices/ut
 const AXIS_VALUES = [1, 2, 3, 4, 5] as const;
 const CLASSIFICATION_KEYS = ['C1', 'C2', 'C3', 'C4', 'C5'] as const;
 
-export type SystemRiskMatrixEditorialState = PutSystemRiskMatrixPayload;
+export type SystemRiskMatrixEditorialState = Pick<
+  PutSystemRiskMatrixPayload,
+  'axisCriteria' | 'axisLevelColors' | 'classificationColors'
+>;
 
 const criterionKey = (
   axis: RiskMatrixAxisEnum,
@@ -57,7 +60,11 @@ const uniqueClassificationColors = (
 ): SystemRiskMatrixClassificationColor[] => {
   const byKey = new Map<string, string>();
   for (const item of colors) {
-    if (!CLASSIFICATION_KEYS.includes(item.key as (typeof CLASSIFICATION_KEYS)[number])) {
+    if (
+      !CLASSIFICATION_KEYS.includes(
+        item.key as (typeof CLASSIFICATION_KEYS)[number],
+      )
+    ) {
       continue;
     }
     if (!byKey.has(item.key)) {
@@ -88,7 +95,7 @@ export function buildSystemRiskMatrixEditorialState(
   const axisLevelColors = uniqueSharedAxisLevelColors(
     projection.axisLevelColors?.length
       ? projection.axisLevelColors
-      : projection.version.axisLevelColors ?? [],
+      : (projection.version.axisLevelColors ?? []),
   );
 
   const classificationColors = uniqueClassificationColors(
@@ -109,7 +116,7 @@ export function buildSystemRiskMatrixEditorialState(
 
 export function buildSystemRiskMatrixPutPayload(
   editorial: SystemRiskMatrixEditorialState,
-): PutSystemRiskMatrixPayload {
+): SystemRiskMatrixEditorialState {
   return {
     axisCriteria: editorial.axisCriteria.map((item) => ({
       axis: item.axis,
@@ -225,13 +232,14 @@ export function overlayEditorialOnEditorState(
     classifications: editor.classifications.map((classification) => ({
       ...classification,
       color:
-        classificationColorByKey.get(classification.key) ?? classification.color,
+        classificationColorByKey.get(classification.key) ??
+        classification.color,
     })),
   };
 }
 
 export function payloadHasForbiddenStructuralFields(
-  payload: PutSystemRiskMatrixPayload,
+  payload: SystemRiskMatrixEditorialState,
 ) {
   const serialized = JSON.stringify(payload);
   return (

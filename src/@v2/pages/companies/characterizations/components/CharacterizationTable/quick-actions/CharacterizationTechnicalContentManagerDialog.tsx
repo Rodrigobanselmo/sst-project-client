@@ -139,7 +139,7 @@ export function CharacterizationTechnicalContentManagerDialog({
 
   const persist = useCallback(
     async (next: TechnicalDraft) => {
-      if (!next.id) return;
+      if (!next.id) return false;
       setSaving(true);
       try {
         await upsertMutation.mutateAsync({
@@ -154,13 +154,16 @@ export function CharacterizationTechnicalContentManagerDialog({
           riskInventorySummary: next.riskInventorySummary || '',
         });
         await refresh();
+        return true;
       } catch {
-        await refetch();
+        // Cancelling the eSocial date decision must leave the editor and its
+        // unsaved technical content available for another attempt.
+        return false;
       } finally {
         setSaving(false);
       }
     },
-    [companyId, workspaceId, upsertMutation, refresh, refetch],
+    [companyId, workspaceId, upsertMutation, refresh],
   );
 
   const onEditArrayContent = useCallback(
@@ -214,7 +217,9 @@ export function CharacterizationTechnicalContentManagerDialog({
       const eligible = canGenerateInventorySummary({
         hasDescription: hasCharacterizationArrayContent(draft.paragraphs),
         hasProcesses: hasCharacterizationArrayContent(draft.activities),
-        hasConsiderations: hasCharacterizationArrayContent(draft.considerations),
+        hasConsiderations: hasCharacterizationArrayContent(
+          draft.considerations,
+        ),
       });
       if (eligible) setSummaryAiOpen(true);
     }
@@ -235,7 +240,9 @@ export function CharacterizationTechnicalContentManagerDialog({
     const hasConsiderations = hasCharacterizationArrayContent(
       draft?.considerations,
     );
-    const hasInventorySummary = !!String(draft?.riskInventorySummary || '').trim();
+    const hasInventorySummary = !!String(
+      draft?.riskInventorySummary || '',
+    ).trim();
     return {
       hasDescription,
       hasProcesses,
@@ -270,7 +277,7 @@ export function CharacterizationTechnicalContentManagerDialog({
           sx: {
             width: '100%',
             maxWidth: { xs: '100%', md: 1100, lg: 1200 },
-            m: { xs: 1, sm: 2 },
+            m: { xs: 4, sm: 8 },
           },
         }}
       >
@@ -279,10 +286,10 @@ export function CharacterizationTechnicalContentManagerDialog({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 1,
-            px: { xs: 2, sm: 3 },
-            py: 2,
-            pr: 1,
+            gap: 8,
+            px: { xs: 8, sm: 12 },
+            py: 8,
+            pr: 8,
           }}
         >
           <Box>
@@ -306,8 +313,8 @@ export function CharacterizationTechnicalContentManagerDialog({
         <DialogContent
           dividers
           sx={{
-            px: { xs: 2, sm: 3 },
-            py: { xs: 2, sm: 2.5 },
+            px: { xs: 8, sm: 12 },
+            py: { xs: 8, sm: 12 },
           }}
         >
           {isLoading && !draft ? (
@@ -341,9 +348,10 @@ export function CharacterizationTechnicalContentManagerDialog({
           {draft ? (
             <Box
               display="grid"
-              gap={{ xs: 1.5, sm: 2 }}
+              gap={{ xs: 8, sm: 12 }}
               gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }}
               alignItems="stretch"
+              sx={{ '& > .MuiPaper-root': { p: { xs: 8, sm: 10 }, gap: 8 } }}
             >
               <CharacterizationTechnicalContentFieldCard
                 title="Descrição"
@@ -388,9 +396,7 @@ export function CharacterizationTechnicalContentManagerDialog({
                 aiDisabled={saving || !flags.canSummary}
                 aiDisabledTooltip={INVENTORY_SUMMARY_DISABLED_TOOLTIP}
                 emptyVariant={
-                  !flags.canSummary
-                    ? 'summary-unavailable'
-                    : 'summary-pending'
+                  !flags.canSummary ? 'summary-unavailable' : 'summary-pending'
                 }
                 statusLabel={
                   flags.hasInventorySummary
@@ -410,7 +416,11 @@ export function CharacterizationTechnicalContentManagerDialog({
             </Box>
           ) : null}
           {saving ? (
-            <Alert severity="info" sx={{ mt: 2 }} icon={<CircularProgress size={16} />}>
+            <Alert
+              severity="info"
+              sx={{ mt: 2 }}
+              icon={<CircularProgress size={16} />}
+            >
               Salvando e atualizando a tabela…
             </Alert>
           ) : null}
@@ -438,8 +448,8 @@ export function CharacterizationTechnicalContentManagerDialog({
           currentSummary={String(draft.riskInventorySummary || '')}
           applying={saving}
           onApply={async (summary) => {
-            await persist({ ...draft, riskInventorySummary: summary });
-            setSummaryAiOpen(false);
+            if (await persist({ ...draft, riskInventorySummary: summary }))
+              setSummaryAiOpen(false);
           }}
         />
       ) : null}
@@ -463,8 +473,8 @@ export function CharacterizationTechnicalContentManagerDialog({
           saving={saving}
           onClose={() => setEditorTarget(null)}
           onSave={async (next) => {
-            await persist({ ...draft, [editorTarget]: next });
-            setEditorTarget(null);
+            if (await persist({ ...draft, [editorTarget]: next }))
+              setEditorTarget(null);
           }}
         />
       ) : null}
@@ -477,8 +487,8 @@ export function CharacterizationTechnicalContentManagerDialog({
           saving={saving}
           onClose={() => setEditorTarget(null)}
           onSave={async (next) => {
-            await persist({ ...draft, riskInventorySummary: next });
-            setEditorTarget(null);
+            if (await persist({ ...draft, riskInventorySummary: next }))
+              setEditorTarget(null);
           }}
         />
       ) : null}

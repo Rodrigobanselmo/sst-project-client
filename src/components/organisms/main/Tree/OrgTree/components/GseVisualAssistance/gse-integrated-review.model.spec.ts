@@ -604,3 +604,14 @@ test('actual save reconciliation preserves proposals through purple/amber/gray t
   assert.equal(groupVisualState(complete, 'g'), 'EXISTENTE_SEM_ALTERACOES');
 });
 console.log(`${count} integrated model tests passed.`);
+
+test('additive API operational group is selectable only in its own company and workspace', () => {
+  const rows = [{ id: 'persisted-gse', companyId: 'company', status: 'ACTIVE', type: null, deletedAt: null, workspaceIds: ['filial'] }] as unknown as IGho[];
+  assert.deepEqual(scopedExistingGroups(rows, 'company', 'filial').map(g => g.id), ['persisted-gse']);
+  assert.deepEqual(scopedExistingGroups(rows, 'company', 'other-establishment'), []);
+  assert.deepEqual(scopedExistingGroups(rows, 'other-company', 'filial'), []);
+});
+test('internal hierarchy groups returned alongside an additive GSE remain excluded from assistance', () => {
+  const rows = [{ id: 'internal-cargo', companyId: 'company', status: 'ACTIVE', type: 'HIERARCHY', workspaceIds: ['filial'] }] as unknown as IGho[];
+  assert.deepEqual(scopedExistingGroups(rows, 'company', 'filial'), []);
+});

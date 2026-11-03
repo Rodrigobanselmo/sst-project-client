@@ -27,47 +27,70 @@ import {
   RISK_MATRIX_Y_AXIS_DIRECTION_OPTIONS,
 } from '@v2/pages/companies/risk-matrices/maps/risk-matrix.maps';
 import { getAxisLevelsByAxis } from '@v2/pages/companies/risk-matrices/utils/risk-matrix-editor-state.util';
-import { getRiskMatrixApiErrorMessage } from '@v2/pages/companies/risk-matrices/utils/risk-matrix-error.util';
+import {
+  getRiskMatrixApiErrorBody,
+  getRiskMatrixApiErrorMessage,
+} from '@v2/pages/companies/risk-matrices/utils/risk-matrix-error.util';
 import { useFetchReadSystemRiskMatrix } from '@v2/services/security/risk-matrix/hooks/useFetchReadSystemRiskMatrix';
 import { useMutateSaveSystemRiskMatrix } from '@v2/services/security/risk-matrix/hooks/useMutateRiskMatrix';
 import { RiskMatrixAxisEnum } from '@v2/services/security/risk-matrix/service/risk-matrix.types';
 import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 
 import {
-  buildSystemRiskMatrixEditorialState,
-  buildSystemRiskMatrixPutPayload,
-  isSystemRiskMatrixEditorialDirty,
   overlayEditorialOnEditorState,
   setSystemAxisCriterion,
   setSystemAxisLevelColor,
   setSystemClassificationColor,
   toAxisLevelColorByValue,
-  type SystemRiskMatrixEditorialState,
 } from './utils/system-risk-matrix-editorial.util';
+import {
+  beginSystemRiskMatrixSave,
+  completeSystemRiskMatrixSave,
+  createSystemRiskMatrixDraft,
+  failSystemRiskMatrixSave,
+  isSystemRiskMatrixDraftDirty,
+  isSystemRiskMatrixDraftStale,
+  receiveSystemRiskMatrixProjection,
+  type SystemRiskMatrixDraft,
+} from './utils/system-risk-matrix-draft.util';
 import { hydrateSystemRiskMatrixView } from './utils/system-risk-matrix-view.util';
 
 export const SystemRiskMatrixPage: FC = () => {
   const router = useRouter();
   const { showSnackBar } = useSystemSnackbar();
-  const { data, isLoading, isError, error } = useFetchReadSystemRiskMatrix();
+  const { data, isLoading, isError, error, refetch } =
+    useFetchReadSystemRiskMatrix();
   const saveMutation = useMutateSaveSystemRiskMatrix();
-  const [editorial, setEditorial] = useState<SystemRiskMatrixEditorialState | null>(
-    null,
-  );
-  const [baseline, setBaseline] = useState<SystemRiskMatrixEditorialState | null>(
-    null,
-  );
+  const [draft, setDraft] = useState<SystemRiskMatrixDraft | null>(null);
+  const [loadingLatest, setLoadingLatest] = useState(false);
 
   useEffect(() => {
     if (!data) return;
-    const next = buildSystemRiskMatrixEditorialState(data);
-    setEditorial(next);
-    setBaseline(next);
+    setDraft((current) => receiveSystemRiskMatrixProjection(current, data));
   }, [data]);
 
+  const editorial = draft?.editorial ?? null;
+  const busy = Boolean(
+    draft?.saving || saveMutation.isPending || loadingLatest,
+  );
+  const stale = Boolean(draft && isSystemRiskMatrixDraftStale(draft));
+  const updateEditorial = (
+    update: (
+      current: NonNullable<typeof editorial>,
+    ) => NonNullable<typeof editorial>,
+  ) => {
+    setDraft((current) =>
+      current && !current.saving
+        ? { ...current, editorial: update(current.editorial) }
+        : current,
+    );
+  };
+
+  const currentProjection = draft?.latest;
   const view = useMemo(
-    () => (data ? hydrateSystemRiskMatrixView(data) : null),
-    [data],
+    () =>
+      currentProjection ? hydrateSystemRiskMatrixView(currentProjection) : null,
+    [currentProjection],
   );
   const editor = useMemo(() => {
     if (!view) return null;
@@ -90,9 +113,7 @@ export const SystemRiskMatrixPage: FC = () => {
     [editor],
   );
 
-  const dirty = Boolean(
-    editorial && baseline && isSystemRiskMatrixEditorialDirty(editorial, baseline),
-  );
+  const dirty = Boolean(draft && isSystemRiskMatrixDraftDirty(draft));
   const orientationLabel = RISK_MATRIX_ORIENTATION_OPTIONS.find(
     (option) => option.value === editor?.gridOrientation,
   )?.label;
@@ -101,15 +122,26 @@ export const SystemRiskMatrixPage: FC = () => {
   )?.label;
 
   const handleSave = async () => {
-    if (!editorial) return;
+    if (!draft || busy || stale || !dirty) return;
+    const submission = beginSystemRiskMatrixSave(draft, () =>
+      crypto.randomUUID(),
+    );
+    setDraft(submission.draft);
     try {
-      const saved = await saveMutation.mutateAsync(
-        buildSystemRiskMatrixPutPayload(editorial),
+      const saved = await saveMutation.mutateAsync(submission.payload);
+      setDraft((current) =>
+        current
+          ? completeSystemRiskMatrixSave(current, saved)
+          : createSystemRiskMatrixDraft(saved),
       );
-      const next = buildSystemRiskMatrixEditorialState(saved);
-      setEditorial(next);
-      setBaseline(next);
     } catch (saveError) {
+      const conflict =
+        getRiskMatrixApiErrorBody(saveError)?.code ===
+        'SYSTEM_RISK_MATRIX_REVISION_CONFLICT';
+      setDraft((current) =>
+        current ? failSystemRiskMatrixSave(current, conflict) : current,
+      );
+      if (conflict) void refetch();
       showSnackBar(
         getRiskMatrixApiErrorMessage(
           saveError,
@@ -120,34 +152,52 @@ export const SystemRiskMatrixPage: FC = () => {
     }
   };
 
+  const handleLoadLatest = async () => {
+    setLoadingLatest(true);
+    try {
+      const latest = await refetch();
+      if (latest.isError || !latest.data) {
+        showSnackBar(
+          'Não foi possível carregar a versão atual. Seu rascunho foi mantido.',
+          { type: 'error' },
+        );
+        return;
+      }
+      setDraft(createSystemRiskMatrixDraft(latest.data));
+    } finally {
+      setLoadingLatest(false);
+    }
+  };
+
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
-      <Box sx={{ px: { xs: 2, md: 5 }, pb: 10, pt: 2 }}>
+      <Box sx={{ px: { xs: '16px', md: '24px' }, pb: '32px', pt: '16px' }}>
         <Box
           display="flex"
           justifyContent="space-between"
           alignItems="flex-start"
-          gap={2}
+          gap="16px"
           flexWrap="wrap"
-          mb={3}
+          mb="16px"
         >
           <Box>
             <Typography variant="h5" gutterBottom>
               Matriz Padrão SimpleSST
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Administração global da matriz-mãe. A grade 5×5 permanece
-              estrutural; somente critérios e as duas paletas de cores são
-              editoriais.
+              Textos de orientação e cores são globais; salvar não recalcula
+              avaliações nem altera exposições já registradas. O cálculo 5×5
+              permanece fixo.
             </Typography>
-            <Box display="flex" flexWrap="wrap" gap={0.5} mt={1}>
+            <Box display="flex" flexWrap="wrap" gap="8px" mt="12px">
               <Chip size="small" color="primary" label="SYSTEM" />
               <Chip size="small" color="secondary" label="Edição editorial" />
             </Box>
           </Box>
-          <Box display="flex" gap={1} flexWrap="wrap">
+          <Box display="flex" gap="16px" flexWrap="wrap">
             <Button
               variant="outlined"
+              disabled={busy}
               onClick={() => router.push(RoutesEnum.DATABASE)}
             >
               Voltar
@@ -155,7 +205,7 @@ export const SystemRiskMatrixPage: FC = () => {
             <Button
               variant="contained"
               color={getSaveActionColor(dirty)}
-              disabled={!dirty || saveMutation.isPending || !editorial}
+              disabled={!dirty || busy || !editorial || stale}
               onClick={() => void handleSave()}
             >
               Salvar
@@ -178,14 +228,34 @@ export const SystemRiskMatrixPage: FC = () => {
           </Alert>
         )}
 
+        {stale && (
+          <Alert
+            severity="warning"
+            sx={{ mb: '16px', '& .MuiAlert-message': { minWidth: 0 } }}
+          >
+            <Typography variant="body2">
+              A matriz foi alterada por outra sessão. Seu rascunho foi mantido e
+              não substituiu a versão publicada. Carregar a versão atual
+              descarta as alterações não salvas desta tela.
+            </Typography>
+            <Button
+              variant="outlined"
+              disabled={busy}
+              onClick={() => void handleLoadLatest()}
+              sx={{ mt: '16px' }}
+            >
+              Carregar versão atual
+            </Button>
+          </Alert>
+        )}
+
         {view && editor && editorial && (
-          <Box display="flex" flexDirection="column" gap={3}>
+          <Box display="flex" flexDirection="column" gap="16px">
             <Alert severity="info">
-              Esta é a representação visual da metodologia nativa 5×5. Não há
-              persistência de CompanyRiskMatrix SYSTEM e o SAVE não altera o
-              cálculo operacional das células. O estado extraordinário
-              Interromper atividades (P≥6) não faz parte desta grade e não entra
-              na edição.
+              Os textos orientam a leitura dos níveis e as cores atualizam a
+              apresentação da matriz padrão. Matrizes próprias já publicadas
+              conservam a cópia utilizada. Interromper atividades (P≥6)
+              permanece fora desta edição.
             </Alert>
 
             {view.gaps.map((gap) => (
@@ -201,14 +271,22 @@ export const SystemRiskMatrixPage: FC = () => {
               </Alert>
             )}
 
-            <Paper variant="outlined" sx={{ p: 2 }}>
+            <Paper
+              variant="outlined"
+              sx={{ p: '16px', minWidth: 0 }}
+              data-testid="system-risk-matrix-name"
+            >
               <Typography variant="subtitle1" gutterBottom>
                 Nome da matriz
               </Typography>
               <Typography>{editor.name}</Typography>
               {editor.description && (
                 <>
-                  <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+                  <Typography
+                    variant="subtitle1"
+                    gutterBottom
+                    sx={{ mt: '16px' }}
+                  >
                     Descrição
                   </Typography>
                   <Typography color="text.secondary">
@@ -218,15 +296,19 @@ export const SystemRiskMatrixPage: FC = () => {
               )}
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 2 }}>
+            <Paper variant="outlined" sx={{ p: '16px', minWidth: 0 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Coberturas
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Classes metodológicas reconhecidas pelo padrão. Cada coverage
-                tem critérios próprios de severidade e probabilidade.
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: '12px' }}
+              >
+                Cada tipo de risco tem orientações próprias de severidade e
+                probabilidade.
               </Typography>
-              <Box display="flex" flexWrap="wrap" gap={0.75}>
+              <Box display="flex" flexWrap="wrap" gap="8px">
                 {RISK_MATRIX_COVERAGE_OPTIONS.filter((option) =>
                   editor.coverages.includes(option.value),
                 ).map((option) => (
@@ -248,11 +330,15 @@ export const SystemRiskMatrixPage: FC = () => {
               </Box>
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 2 }}>
+            <Paper variant="outlined" sx={{ p: '16px', minWidth: 0 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Matriz
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: '16px' }}
+              >
                 {orientationLabel}. {yAxisLabel}. Grade estrutural somente
                 leitura. As células usam a cor da classificação final.
               </Typography>
@@ -277,21 +363,30 @@ export const SystemRiskMatrixPage: FC = () => {
               />
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 2 }}>
+            <Paper variant="outlined" sx={{ p: '16px', minWidth: 0 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Cores de Severidade e Probabilidade
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Uma única cor por value, compartilhada pelos eixos. S1 = P1, S2
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: '16px' }}
+              >
+                Uma única cor por nível, compartilhada pelos eixos. S1 = P1, S2
                 = P2, S3 = P3, S4 = P4 e S5 = P5. Independente das cores C1..C5.
               </Typography>
-              <Box display="flex" flexDirection="column" gap={1.5}>
+              <Box
+                display="flex"
+                flexDirection="column"
+                gap="16px"
+                data-testid="system-risk-matrix-axis-colors"
+              >
                 {editorial.axisLevelColors.map((item) => (
                   <Box
                     key={item.value}
                     display="flex"
                     alignItems="center"
-                    gap={1.5}
+                    gap="16px"
                     flexWrap="wrap"
                   >
                     <Typography sx={{ minWidth: 148 }}>
@@ -299,11 +394,10 @@ export const SystemRiskMatrixPage: FC = () => {
                     </Typography>
                     <RiskMatrixColorInput
                       value={item.color}
+                      disabled={busy}
                       onChange={(color) =>
-                        setEditorial((current) =>
-                          current
-                            ? setSystemAxisLevelColor(current, item.value, color)
-                            : current,
+                        updateEditorial((current) =>
+                          setSystemAxisLevelColor(current, item.value, color),
                         )
                       }
                     />
@@ -312,24 +406,24 @@ export const SystemRiskMatrixPage: FC = () => {
               </Box>
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 2 }}>
+            <Paper variant="outlined" sx={{ p: '16px', minWidth: 0 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Classificações finais
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Key, label, sigla e faixa SimpleSST são estruturais. Somente a cor
-                C1..C5 é editorial e independente da paleta S/P. A sigla é
-                somente leitura.
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: '16px' }}
+              >
+                Nomes, siglas e faixas SimpleSST permanecem fixos. As cores das
+                classificações podem ser alteradas separadamente das cores de
+                severidade e probabilidade.
               </Typography>
               <Box
-                display="grid"
-                width="max-content"
-                maxWidth="100%"
-                gridTemplateColumns="minmax(148px, max-content) max-content max-content max-content"
-                columnGap={1.5}
-                rowGap={1.5}
-                alignItems="center"
-                justifyContent="start"
+                display="flex"
+                flexDirection="column"
+                gap="16px"
+                data-testid="system-risk-matrix-classification-colors"
               >
                 {editor.classifications.map((classification) => {
                   const bandLabel = classification.compatibilityBands
@@ -341,8 +435,21 @@ export const SystemRiskMatrixPage: FC = () => {
                     )
                     .join(', ');
                   return (
-                    <Box key={classification.key} display="contents">
-                      <Typography whiteSpace="nowrap">
+                    <Box
+                      key={classification.key}
+                      display="grid"
+                      gridTemplateColumns={{
+                        xs: 'minmax(0, 1fr) auto',
+                        md: 'minmax(148px, max-content) 32px 180px minmax(0, 1fr)',
+                      }}
+                      columnGap="16px"
+                      rowGap="12px"
+                      alignItems="center"
+                      minWidth={0}
+                    >
+                      <Typography
+                        sx={{ whiteSpace: { xs: 'normal', md: 'nowrap' } }}
+                      >
                         {classification.key} — {classification.label}
                       </Typography>
                       <Typography
@@ -353,24 +460,25 @@ export const SystemRiskMatrixPage: FC = () => {
                       >
                         {classification.abbreviation || '—'}
                       </Typography>
-                      <RiskMatrixColorInput
-                        value={classification.color}
-                        onChange={(color) =>
-                          setEditorial((current) =>
-                            current
-                              ? setSystemClassificationColor(
-                                  current,
-                                  classification.key,
-                                  color,
-                                )
-                              : current,
-                          )
-                        }
-                      />
+                      <Box sx={{ gridColumn: { xs: '1 / -1', md: 'auto' } }}>
+                        <RiskMatrixColorInput
+                          value={classification.color}
+                          disabled={busy}
+                          onChange={(color) =>
+                            updateEditorial((current) =>
+                              setSystemClassificationColor(
+                                current,
+                                classification.key,
+                                color,
+                              ),
+                            )
+                          }
+                        />
+                      </Box>
                       <Typography
                         variant="body2"
                         color="text.secondary"
-                        whiteSpace="nowrap"
+                        sx={{ gridColumn: { xs: '1 / -1', md: 'auto' } }}
                       >
                         {bandLabel}
                       </Typography>
@@ -380,41 +488,46 @@ export const SystemRiskMatrixPage: FC = () => {
               </Box>
             </Paper>
 
-            <Paper variant="outlined" sx={{ p: 2 }}>
+            <Paper variant="outlined" sx={{ p: '16px', minWidth: 0 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Critérios metodológicos dos eixos
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Textos publicados por tipo de risco. O preview hierárquico não
-                altera o valor enviado no SAVE.
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: '16px' }}
+              >
+                Textos de orientação por tipo de risco. A prévia abaixo de cada
+                campo mostra a organização do texto e preserva o que foi
+                digitado.
               </Typography>
               {editor.coverages.map((coverage) => {
                 const option = RISK_MATRIX_COVERAGE_OPTIONS.find(
                   (item) => item.value === coverage,
                 );
-                const severityGap = view.undefinedCoveragesByAxis[
-                  RiskMatrixAxisEnum.SEVERITY
-                ]?.includes(coverage);
-                const probabilityGap = view.undefinedCoveragesByAxis[
-                  RiskMatrixAxisEnum.PROBABILITY
-                ]?.includes(coverage);
+                const severityGap =
+                  view.undefinedCoveragesByAxis[
+                    RiskMatrixAxisEnum.SEVERITY
+                  ]?.includes(coverage);
+                const probabilityGap =
+                  view.undefinedCoveragesByAxis[
+                    RiskMatrixAxisEnum.PROBABILITY
+                  ]?.includes(coverage);
                 return (
                   <SAccordion
                     key={coverage}
                     defaultExpanded={false}
                     title={
                       <Typography variant="subtitle2">
-                        {option
-                          ? `${option.code} — ${option.title}`
-                          : coverage}
+                        {option ? `${option.code} — ${option.title}` : coverage}
                       </Typography>
                     }
                     accordionProps={{
                       disableGutters: true,
-                      sx: { mb: 1.5 },
+                      sx: { mb: '16px' },
                     }}
                   >
-                    <Box display="flex" flexDirection="column" gap={1.5}>
+                    <Box display="flex" flexDirection="column" gap="16px">
                       {[
                         {
                           title: 'Severidade',
@@ -434,12 +547,14 @@ export const SystemRiskMatrixPage: FC = () => {
                             {axis.title}
                           </Typography>
                           {axis.isUndefined ? (
-                            <Alert severity="warning" sx={{ mt: 1 }}>
-                              {view.gaps.find(
-                                (gap) =>
-                                  gap.coverageKey === coverage &&
-                                  (gap.axis === axis.axis || !gap.axis),
-                              )?.message}
+                            <Alert severity="warning" sx={{ mt: '16px' }}>
+                              {
+                                view.gaps.find(
+                                  (gap) =>
+                                    gap.coverageKey === coverage &&
+                                    (gap.axis === axis.axis || !gap.axis),
+                                )?.message
+                              }
                             </Alert>
                           ) : (
                             axis.levels.map((level) => {
@@ -456,8 +571,8 @@ export const SystemRiskMatrixPage: FC = () => {
                                 <Box
                                   key={`${axis.title}-${level.value}`}
                                   sx={{
-                                    mt: 1,
-                                    p: 1.25,
+                                    mt: '16px',
+                                    p: '16px',
                                     border: '1px solid',
                                     borderColor: 'divider',
                                     borderRadius: 1,
@@ -470,24 +585,28 @@ export const SystemRiskMatrixPage: FC = () => {
                                     fullWidth
                                     multiline
                                     minRows={3}
-                                    sx={{ mt: 1 }}
+                                    disabled={busy}
+                                    sx={{ mt: '16px' }}
                                     label="Critério"
+                                    inputProps={{
+                                      'aria-label': `Critério ${coverage} ${axis.title} ${level.value}`,
+                                    }}
                                     value={criterion}
                                     onChange={(event) =>
-                                      setEditorial((current) =>
-                                        current
-                                          ? setSystemAxisCriterion(current, {
-                                              axis: axis.axis,
-                                              value: level.value,
-                                              coverageKey: coverage,
-                                              criterion: event.target.value,
-                                            })
-                                          : current,
+                                      updateEditorial((current) =>
+                                        setSystemAxisCriterion(current, {
+                                          axis: axis.axis,
+                                          value: level.value,
+                                          coverageKey: coverage,
+                                          criterion: event.target.value,
+                                        }),
                                       )
                                     }
                                   />
-                                  <Box sx={{ mt: 1 }}>
-                                    <CriterionHierarchyView criterion={criterion} />
+                                  <Box sx={{ mt: '16px' }}>
+                                    <CriterionHierarchyView
+                                      criterion={criterion}
+                                    />
                                   </Box>
                                 </Box>
                               );

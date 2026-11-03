@@ -12,6 +12,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { queryClient } from 'core/services/queryClient';
+import { ImportRecalculationPendingError } from 'core/utils/helpers/importCompletionError';
 
 import { ModalUploadFile } from '../ModalUploadFile';
 import { ModalExportEmployees as ModalExportHierarchies } from './components/ModalExportHierarchies';
@@ -51,7 +52,13 @@ export const ModalExcelHierarchies = () => {
               file: files[0],
               path: path,
             })
-            .catch(() => {});
+            .catch((error) => {
+              if (error instanceof ImportRecalculationPendingError) {
+                queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
+                queryClient.invalidateQueries([QueryEnum.GHO, companyId]);
+                throw error;
+              }
+            });
           queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
           queryClient.invalidateQueries([QueryEnum.GHO, companyId]);
           onClose();

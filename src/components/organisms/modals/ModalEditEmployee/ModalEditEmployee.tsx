@@ -1,5 +1,9 @@
+import { Button } from '@mui/material';
+import { EmployeeExposureGroups } from '@v2/features/sst-operational/EmployeeExposureGroups';
+import { HistoryView } from '@v2/features/sst-operational/HistoryView';
+import { useSstAccess } from '@v2/features/sst-operational/access';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useState } from 'react';
 
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SModal, { SModalHeader, SModalPaper } from 'components/molecules/SModal';
@@ -24,6 +28,8 @@ import { useEditEmployee } from './hooks/useEditEmployee';
 export const ModalEditEmployee = () => {
   const props = useEditEmployee();
   const isEdit = props.isEdit;
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const historyAccess = useSstAccess();
 
   return (
     <SModal
@@ -49,6 +55,30 @@ export const ModalEditEmployee = () => {
           onClose={props.onCloseUnsaved}
           title={'Funcionário'}
         />
+        {isEdit && historyAccess.canRead && (
+          <Button type="button" onClick={() => setHistoryOpen(true)}>
+            Consultar versões do vínculo
+          </Button>
+        )}
+        {historyOpen &&
+          (props.data.companyId || historyAccess.companyId) &&
+          props.data.id && (
+            <HistoryView
+              companyId={(props.data.companyId || historyAccess.companyId)!}
+              table="Employee"
+              id={String(props.data.id)}
+              slot="employment"
+              onClose={() => setHistoryOpen(false)}
+            />
+          )}
+        {isEdit &&
+          props.data.id &&
+          (props.data.companyId || historyAccess.companyId) && (
+            <EmployeeExposureGroups
+              companyId={(props.data.companyId || historyAccess.companyId)!}
+              employeeId={Number(props.data.id)}
+            />
+          )}
         <Wizard
           header={
             isEdit ? (

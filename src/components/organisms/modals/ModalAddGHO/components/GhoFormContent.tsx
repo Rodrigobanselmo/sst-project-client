@@ -47,6 +47,7 @@ import {
 import { GhoSaveIntent } from '../gho-save-intent.util';
 import { getGseLinkedWorkspaceIds } from '../get-gse-linked-workspace-ids.util';
 import { useGseAiRiskAnalysis } from '../hooks/useGseAiRiskAnalysis';
+import { StructuralSourceActions } from '@v2/features/sst-operational/StructuralSourceActions';
 
 export type GhoAddLayout = 'modal' | 'page';
 
@@ -186,6 +187,14 @@ export const GhoFormContent = ({
       }
     >
       <Box sx={{ px: isPage ? 0 : 2, pt: 6, pb: 4 }}>
+        {ghoData.id && (
+          <StructuralSourceActions
+            companyId={companyId}
+            target={{ table: 'HomogeneousGroup', id: ghoData.id }}
+            disabled={isDirty || loading}
+            onChanged={onCloseUnsaved}
+          />
+        )}
         <SFlex gap={8} direction="column">
           <InputForm
             setValue={setValue}

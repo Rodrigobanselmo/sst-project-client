@@ -51,7 +51,6 @@ import {
   hasUsableExtractedIngredients,
   isUnindividualizedDisclosure,
   resolveFispqUndeclaredSubmitBlock,
-  shouldSkipCompositionVersionOnEdit,
   UNINDIVIDUALIZED_COMPOSITION_CHECKBOX_LABEL,
   UNINDIVIDUALIZED_COMPOSITION_HELPER,
   UNINDIVIDUALIZED_COMPOSITION_LABEL,
@@ -66,6 +65,11 @@ import {
 import { ChemicalCurationCreateRiskDialog } from './ChemicalCurationCreateRiskDialog';
 import { resolveChemicalDialogClose } from './chemical-dialog-close.util';
 import { mapChemicalFispqImportError } from './chemical-fispq-import-error.util';
+import {
+  buildChemicalProductAtomicEdit,
+  CHEMICAL_INVENTORY_DECLARATION_HELP,
+} from './chemical-product-atomic-edit.util';
+import { isSstMutationCancelled } from '@v2/features/sst-operational/mutation-decision';
 import {
   pickFispqAiSuggestionContext,
   type ChemicalFispqAiSuggestionContext,
@@ -122,7 +126,6 @@ export const ChemicalProductFormDialog = ({
     createPure,
     createFromFispq,
     updateProduct,
-    createComposition,
     parseFispq,
   } = useMutateChemicalProduct();
 
@@ -139,11 +142,13 @@ export const ChemicalProductFormDialog = ({
     emptyIngredient(),
   ]);
   const [riskOptions, setRiskOptions] = useState<ChemicalRiskOption[]>([]);
-  const [riskSearchByKey, setRiskSearchByKey] = useState<Record<string, string>>(
-    {},
-  );
-  const [pendingRiskFactorByIngredientKey, setPendingRiskFactorByIngredientKey] =
-    useState<PendingRiskFactorByIngredientKey>({});
+  const [riskSearchByKey, setRiskSearchByKey] = useState<
+    Record<string, string>
+  >({});
+  const [
+    pendingRiskFactorByIngredientKey,
+    setPendingRiskFactorByIngredientKey,
+  ] = useState<PendingRiskFactorByIngredientKey>({});
   const [createRiskSession, setCreateRiskSession] =
     useState<CreateRiskFormSession | null>(null);
   const [selectedRisk, setSelectedRisk] = useState<ChemicalRiskOption | null>(
@@ -159,8 +164,10 @@ export const ChemicalProductFormDialog = ({
   const [fispqIssuedAt, setFispqIssuedAt] = useState('');
   const [fispqLanguage, setFispqLanguage] = useState('pt');
   const [fispqPreviewReady, setFispqPreviewReady] = useState(false);
-  const [fispqParseHadZeroUsableIngredients, setFispqParseHadZeroUsableIngredients] =
-    useState(false);
+  const [
+    fispqParseHadZeroUsableIngredients,
+    setFispqParseHadZeroUsableIngredients,
+  ] = useState(false);
   const [undeclaredComposition, setUndeclaredComposition] = useState(false);
   const [undeclaredNote, setUndeclaredNote] = useState('');
   const [isDirty, setIsDirty] = useState(false);
@@ -483,7 +490,9 @@ export const ChemicalProductFormDialog = ({
       occupationalEnrich: null,
       occupationalLoading: Boolean(basePrefill.cas),
       fispqAiContext:
-        mode === 'fispq' ? pickFispqAiSuggestionContext(fispqParse?.preview) : null,
+        mode === 'fispq'
+          ? pickFispqAiSuggestionContext(fispqParse?.preview)
+          : null,
     });
 
     const casCandidate = softNormalizeCas(basePrefill.cas).value;
@@ -618,7 +627,10 @@ export const ChemicalProductFormDialog = ({
       }
     }
 
-    if (isEdit && countPendingRiskFactors(pendingRiskFactorByIngredientKey) > 0) {
+    if (
+      isEdit &&
+      countPendingRiskFactors(pendingRiskFactorByIngredientKey) > 0
+    ) {
       setError(
         'Há fator(es) selecionado(s) aguardando confirmação. Confirme o vínculo ou cancele a seleção antes de salvar.',
       );
@@ -632,24 +644,14 @@ export const ChemicalProductFormDialog = ({
           companyId,
           workspaceId,
           productId: editProduct.id,
-          tradeName: tradeName.trim(),
-          manufacturer: manufacturer.trim() || null,
-        });
-        if (
-          !shouldSkipCompositionVersionOnEdit({
+          ...buildChemicalProductAtomicEdit({
+            tradeName,
+            manufacturer,
+            isPureSubstance: editProduct.isPureSubstance,
             undeclaredComposition,
             ingredients,
-          })
-        ) {
-          await createComposition.mutateAsync({
-            companyId,
-            workspaceId,
-            productId: editProduct.id,
-            sourceType: editProduct.isPureSubstance ? 'PURE' : 'MANUAL',
-            compositionDisclosure: 'DECLARED',
-            ingredients: toPayload(ingredients),
-          });
-        }
+          }),
+        });
         setIsDirty(false);
         closeAfterSave();
         return;
@@ -704,6 +706,7 @@ export const ChemicalProductFormDialog = ({
       setIsDirty(false);
       closeAfterSave();
     } catch (err: any) {
+      if (isSstMutationCancelled(err)) return;
       const payload = err?.response?.data;
       const messages = payload?.errors || payload?.message || payload?.blockers;
       setError(
@@ -726,7 +729,8 @@ export const ChemicalProductFormDialog = ({
     setError(null);
     setFispqPreviewReady(false);
     // Mantém PDF anexado no estado só como referência; produto vai ser criado manualmente.
-    if (fispqParse?.preview?.tradeName) setTradeName(fispqParse.preview.tradeName);
+    if (fispqParse?.preview?.tradeName)
+      setTradeName(fispqParse.preview.tradeName);
     if (fispqParse?.preview?.manufacturer) {
       setManufacturer(fispqParse.preview.manufacturer);
     }
@@ -738,7 +742,6 @@ export const ChemicalProductFormDialog = ({
     createPure.isPending ||
     createFromFispq.isPending ||
     updateProduct.isPending ||
-    createComposition.isPending ||
     parseFispq.isPending;
 
   const blockingReason = (() => {
@@ -748,7 +751,10 @@ export const ChemicalProductFormDialog = ({
       return null;
     }
     if (mode !== 'pure' || isEdit) {
-      if (!undeclaredComposition && Object.keys(compositionState.rowErrors).length) {
+      if (
+        !undeclaredComposition &&
+        Object.keys(compositionState.rowErrors).length
+      ) {
         return 'Corrija os componentes incompletos antes de salvar.';
       }
       if (!undeclaredComposition && compositionState.exceeds) {
@@ -783,9 +789,13 @@ export const ChemicalProductFormDialog = ({
 
   const canSubmit = !blockingReason;
 
-  const renderIngredientEditor = (ingredient: IngredientDraft, index: number) => {
+  const renderIngredientEditor = (
+    ingredient: IngredientDraft,
+    index: number,
+  ) => {
     const rowErrors = compositionState.rowErrors[ingredient.key] || [];
-    const pendingRisk = pendingRiskFactorByIngredientKey[ingredient.key] || null;
+    const pendingRisk =
+      pendingRiskFactorByIngredientKey[ingredient.key] || null;
     const pendingOption = pendingRisk ? pendingToRiskOption(pendingRisk) : null;
     const options = (() => {
       const selected = isEdit
@@ -812,16 +822,20 @@ export const ChemicalProductFormDialog = ({
     return (
       <Stack
         key={ingredient.key}
-        spacing={1.25}
-        p={1.5}
+        spacing={8}
+        p={8}
         border="1px solid"
         borderColor={rowErrors.length ? 'error.light' : 'divider'}
         borderRadius={1}
       >
         <SText fontWeight={600}>Componente {index + 1}</SText>
-        <Stack direction="row" spacing={0.75} flexWrap="wrap">
+        <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
           {ingredient.matchStatus === 'MATCHED' ? (
-            <Chip size="small" color="success" label="Fator vinculado por CAS" />
+            <Chip
+              size="small"
+              color="success"
+              label="Fator vinculado por CAS"
+            />
           ) : null}
           {ingredient.matchStatus === 'NO_MATCH' ? (
             <Chip size="small" color="warning" label="Sem correspondência" />
@@ -838,27 +852,27 @@ export const ChemicalProductFormDialog = ({
         {isEdit ? (
           <Box
             sx={{
-              p: 1.25,
+              p: 8,
               borderRadius: 1,
               bgcolor: 'action.hover',
               border: '1px solid',
               borderColor: pendingRisk ? 'warning.main' : 'primary.main',
             }}
           >
-            <Stack spacing={1}>
+            <Stack spacing={8}>
               {ingredient.riskOption ? (
-                <Alert severity="success" sx={{ py: 0.5 }}>
+                <Alert severity="success" sx={{ py: 4 }}>
                   Fator atual:{' '}
                   <strong>{riskLabel(ingredient.riskOption)}</strong>
                 </Alert>
               ) : (
-                <Alert severity="info" sx={{ py: 0.5 }}>
+                <Alert severity="info" sx={{ py: 4 }}>
                   Componente sem vínculo de fator de risco.
                 </Alert>
               )}
 
               {pendingRisk ? (
-                <Alert severity="warning" sx={{ py: 0.5 }}>
+                <Alert severity="warning" sx={{ py: 4 }}>
                   Fator selecionado (aguardando confirmação):{' '}
                   <strong>{riskLabel(pendingToRiskOption(pendingRisk))}</strong>
                 </Alert>
@@ -889,7 +903,7 @@ export const ChemicalProductFormDialog = ({
                 )}
               />
 
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
                 {pendingRisk ? (
                   <>
                     <Button
@@ -934,18 +948,20 @@ export const ChemicalProductFormDialog = ({
         ) : (
           <Box
             sx={{
-              p: 1.25,
+              p: 8,
               borderRadius: 1,
               bgcolor: 'action.hover',
               border: '1px solid',
               borderColor: 'primary.main',
             }}
           >
-            <Stack spacing={1}>
+            <Stack spacing={8}>
               <Autocomplete
                 options={options}
                 value={ingredient.riskOption || null}
-                onChange={(_, value) => applyRiskToIngredient(ingredient, value)}
+                onChange={(_, value) =>
+                  applyRiskToIngredient(ingredient, value)
+                }
                 onInputChange={(_, value, reason) => {
                   if (reason === 'input') {
                     setRiskSearchByKey((current) => ({
@@ -1035,7 +1051,7 @@ export const ChemicalProductFormDialog = ({
           />
         ) : null}
         {ingredient.concentrationKind === 'RANGE' ? (
-          <Stack direction="row" spacing={1}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={8}>
             <TextField
               type="number"
               label="Mín %"
@@ -1079,377 +1095,407 @@ export const ChemicalProductFormDialog = ({
 
   return (
     <>
-    <Dialog
-      open={open}
-      disableEscapeKeyDown={hasDraft || Boolean(createRiskSession)}
-      onClose={(_event, reason) => requestClose(reason)}
-      fullWidth
-      maxWidth="md"
-      PaperProps={{
-        sx: {
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
-        },
-        onMouseDown: (event) => event.stopPropagation(),
-      }}
-    >
-      <DialogTitle>
-        {isEdit ? 'Editar produto químico' : 'Novo produto químico'}
-      </DialogTitle>
-      <DialogContent
-        sx={{
-          overflowY: 'auto',
-          flex: 1,
-          minHeight: 0,
+      <Dialog
+        open={open}
+        disableEscapeKeyDown={hasDraft || Boolean(createRiskSession)}
+        onClose={(_event, reason) => requestClose(reason)}
+        fullWidth
+        maxWidth="md"
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+          onMouseDown: (event) => event.stopPropagation(),
         }}
       >
-        <Stack spacing={2} mt={1}>
-          {!isEdit ? (
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              value={mode}
-              onChange={(_, value) => {
-                if (!value) return;
-                if (value === 'excel') {
-                  onOpenExcelImport?.();
-                  return;
-                }
-                markDirty();
-                setMode(value);
-              }}
-            >
-              <ToggleButton value="mixture">Mistura manual</ToggleButton>
-              <ToggleButton value="pure">Produto puro por fator</ToggleButton>
-              <ToggleButton value="fispq">Importar FISPQ</ToggleButton>
-              <ToggleButton value="excel">Importar Excel</ToggleButton>
-            </ToggleButtonGroup>
-          ) : null}
-
-          {mode === 'fispq' && !isEdit ? (
-            <Stack spacing={1.5}>
-              <Button variant="outlined" component="label">
-                Selecionar PDF da FISPQ
-                <input
-                  hidden
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  onChange={(e) =>
-                    handleParseFispq(e.target.files?.[0] || null)
-                  }
-                />
-              </Button>
-              {fispqParse ? (
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Chip
-                    size="small"
-                    color={fispqParse.extractable ? 'success' : 'warning'}
-                    label={
-                      fispqParse.extractable
-                        ? 'Texto extraído — revise antes de salvar'
-                        : 'Sem texto extraível'
-                    }
-                  />
-                  <SText fontSize={13}>{fispqParse.fileName}</SText>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      setFispqKeepFile(false);
-                      setFispqParse(null);
-                      setFispqPreviewReady(false);
-                    }}
-                  >
-                    Remover PDF
-                  </Button>
-                </Stack>
-              ) : null}
-              {fispqParse && !fispqParse.extractable ? (
-                <Alert severity="warning">
-                  {fispqParse.message}
-                  <Box mt={1}>
-                    <Button size="small" onClick={continueManualFromFispq}>
-                      Continuar pelo cadastro manual
-                    </Button>
-                  </Box>
-                </Alert>
-              ) : null}
-              {fispqPreviewReady ? (
-                <Alert severity="info">
-                  Preview revisável — nada foi gravado ainda. Confirme os campos
-                  abaixo para criar o produto.
-                </Alert>
-              ) : null}
-            </Stack>
-          ) : null}
-
-          {mode === 'pure' && !isEdit ? (
-            <>
-              <Box
-                sx={{
-                  p: 1.25,
-                  borderRadius: 1,
-                  bgcolor: 'action.hover',
-                  border: '1px solid',
-                  borderColor: 'primary.main',
-                }}
-              >
-                <Autocomplete
-                  options={riskOptions}
-                  value={selectedRisk}
-                  onChange={(_, value) => {
-                    markDirty();
-                    setSelectedRisk(value);
-                    if (!value) return;
-                    if (!tradeNameTouched || !tradeName.trim()) {
-                      setTradeName(value.name);
-                    }
-                  }}
-                  onInputChange={(_, value, reason) => {
-                    if (reason === 'input') setPureRiskSearch(value);
-                  }}
-                  getOptionLabel={riskLabel}
-                  isOptionEqualToValue={(a, b) => a.id === b.id}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Fator de risco"
-                      helperText={
-                        selectedRisk
-                          ? `Selecionado: ${riskLabel(selectedRisk)}`
-                          : 'Pesquise fatores globais e da empresa'
-                      }
-                    />
-                  )}
-                />
-              </Box>
-              <TextField
-                label="Nome comercial (opcional — se vazio usa o nome do fator)"
-                value={tradeName}
-                onChange={(e) => {
-                  markDirty();
-                  setTradeNameTouched(true);
-                  setTradeName(e.target.value);
-                }}
-              />
-            </>
-          ) : null}
-
-          {(mode === 'mixture' ||
-            mode === 'fispq' ||
-            isEdit) &&
-          !(mode === 'fispq' && !fispqParse && !isEdit) ? (
-            <>
-              <TextField
-                label="Nome comercial"
-                value={tradeName}
-                onChange={(e) => {
-                  markDirty();
-                  setTradeName(e.target.value);
-                }}
-                required
-              />
-
-              {mode === 'fispq' && fispqPreviewReady ? (
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                  <TextField
-                    label="Versão FISPQ"
-                    value={fispqVersionLabel}
-                    onChange={(e) => {
-                      markDirty();
-                      setFispqVersionLabel(e.target.value);
-                    }}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Data"
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    value={fispqIssuedAt}
-                    onChange={(e) => {
-                      markDirty();
-                      setFispqIssuedAt(e.target.value);
-                    }}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Idioma"
-                    value={fispqLanguage}
-                    onChange={(e) => {
-                      markDirty();
-                      setFispqLanguage(e.target.value);
-                    }}
-                    fullWidth
-                  />
-                </Stack>
-              ) : null}
-
-              {(mode === 'fispq' &&
-                fispqPreviewReady &&
-                fispqParseHadZeroUsableIngredients) ||
-              (isEdit && undeclaredComposition) ? (
-                <Alert severity="info">
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={undeclaredComposition}
-                        onChange={(event) => {
-                          markDirty();
-                          const checked = event.target.checked;
-                          setUndeclaredComposition(checked);
-                          if (checked) {
-                            setIngredients([]);
-                            setPendingRiskFactorByIngredientKey({});
-                          } else {
-                            setIngredients((current) =>
-                              current.length ? current : [emptyIngredient()],
-                            );
-                          }
-                        }}
-                      />
-                    }
-                    label={UNINDIVIDUALIZED_COMPOSITION_CHECKBOX_LABEL}
-                  />
-                  <FormHelperText sx={{ mx: 0, mt: 0 }}>
-                    {UNINDIVIDUALIZED_COMPOSITION_HELPER}
-                  </FormHelperText>
-                  {undeclaredComposition ? (
-                    <TextField
-                      label="Nota (opcional)"
-                      value={undeclaredNote}
-                      onChange={(e) => {
-                        markDirty();
-                        setUndeclaredNote(e.target.value);
-                      }}
-                      fullWidth
-                      multiline
-                      minRows={2}
-                      sx={{ mt: 1.5 }}
-                      helperText="Registre por que a FISPQ não individualiza a composição, se útil."
-                    />
-                  ) : (
-                    <SText fontSize={13} sx={{ mt: 1 }}>
-                      Sem declaração, a criação permanece bloqueada até você
-                      adicionar componentes utilizáveis.
-                    </SText>
-                  )}
-                </Alert>
-              ) : null}
-
-              {undeclaredComposition ? (
-                <Alert severity="warning">
-                  {UNINDIVIDUALIZED_COMPOSITION_LABEL}. Nenhum componente será
-                  criado e nenhum fator de risco será gerado.
-                </Alert>
-              ) : (
-                <>
-              {ingredients.map((ingredient, index) =>
-                renderIngredientEditor(ingredient, index),
-              )}
-
-              <Alert
-                severity={
-                  compositionState.exceeds
-                    ? 'error'
-                    : compositionState.incomplete
-                      ? 'warning'
-                      : 'success'
-                }
-              >
-                Soma informada (exata): {compositionState.exactSum.toFixed(2)}%
-                {' · '}
-                Restante: {compositionState.remaining.toFixed(2)}%
-                {compositionState.incomplete
-                  ? ' · composição incompleta (< 100%)'
-                  : ''}
-                {compositionState.exceeds ? ' · excedeu 100%' : ''}
-              </Alert>
-                </>
-              )}
-
-              <Button
-                disabled={
-                  !undeclaredComposition &&
-                  !canAddExactComponent(compositionState.exactSum)
-                }
-                onClick={() => {
-                  markDirty();
-                  if (undeclaredComposition) {
-                    setUndeclaredComposition(false);
-                    setIngredients([emptyIngredient()]);
+        <DialogTitle sx={{ px: 12, pt: 12, pb: 8 }}>
+          {isEdit ? 'Editar produto químico' : 'Novo produto químico'}
+        </DialogTitle>
+        <DialogContent
+          sx={{
+            overflowY: 'auto',
+            flex: 1,
+            minHeight: 0,
+            px: 12,
+            pt: 4,
+            pb: 12,
+          }}
+        >
+          <Stack spacing={8} mt={4}>
+            <Alert severity="info">{CHEMICAL_INVENTORY_DECLARATION_HELP}</Alert>
+            {!isEdit ? (
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={mode}
+                onChange={(_, value) => {
+                  if (!value) return;
+                  if (value === 'excel') {
+                    onOpenExcelImport?.();
                     return;
                   }
-                  if (!canAddExactComponent(compositionState.exactSum)) return;
-                  setIngredients((current) => [...current, emptyIngredient()]);
+                  markDirty();
+                  setMode(value);
                 }}
               >
-                {undeclaredComposition
-                  ? 'Adicionar componente (desfazer declaração)'
-                  : canAddExactComponent(compositionState.exactSum)
-                    ? 'Adicionar componente'
-                    : 'Não é possível adicionar componente exato (soma ≥ 100%)'}
-              </Button>
-            </>
-          ) : null}
+                <ToggleButton value="mixture">Mistura manual</ToggleButton>
+                <ToggleButton value="pure">Produto puro por fator</ToggleButton>
+                <ToggleButton value="fispq">Importar FISPQ</ToggleButton>
+                <ToggleButton value="excel">Importar Excel</ToggleButton>
+              </ToggleButtonGroup>
+            ) : null}
 
-          <Autocomplete
-            freeSolo
-            options={manufacturerOptions}
-            value={manufacturer}
-            onInputChange={(_, value) => {
-              markDirty();
-              setManufacturer(value);
-              setManufacturerSearch(value);
-            }}
-            onChange={(_, value) => {
-              markDirty();
-              setManufacturer(typeof value === 'string' ? value : value || '');
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Fabricante"
-                helperText="Sugestões dos fabricantes já usados na empresa"
-              />
-            )}
-          />
+            {mode === 'fispq' && !isEdit ? (
+              <Stack spacing={8}>
+                <Button variant="outlined" component="label">
+                  Selecionar PDF da FISPQ
+                  <input
+                    hidden
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    onChange={(e) =>
+                      handleParseFispq(e.target.files?.[0] || null)
+                    }
+                  />
+                </Button>
+                {fispqParse ? (
+                  <Stack
+                    direction="row"
+                    spacing={4}
+                    alignItems="center"
+                    flexWrap="wrap"
+                    useFlexGap
+                  >
+                    <Chip
+                      size="small"
+                      color={fispqParse.extractable ? 'success' : 'warning'}
+                      label={
+                        fispqParse.extractable
+                          ? 'Texto extraído — revise antes de salvar'
+                          : 'Sem texto extraível'
+                      }
+                    />
+                    <SText fontSize={13}>{fispqParse.fileName}</SText>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setFispqKeepFile(false);
+                        setFispqParse(null);
+                        setFispqPreviewReady(false);
+                      }}
+                    >
+                      Remover PDF
+                    </Button>
+                  </Stack>
+                ) : null}
+                {fispqParse && !fispqParse.extractable ? (
+                  <Alert severity="warning">
+                    {fispqParse.message}
+                    <Box mt={1}>
+                      <Button size="small" onClick={continueManualFromFispq}>
+                        Continuar pelo cadastro manual
+                      </Button>
+                    </Box>
+                  </Alert>
+                ) : null}
+                {fispqPreviewReady ? (
+                  <Alert severity="info">
+                    Preview revisável — nada foi gravado ainda. Confirme os
+                    campos abaixo para criar o produto.
+                  </Alert>
+                ) : null}
+              </Stack>
+            ) : null}
 
-          {error ? (
-            <Alert severity="error" sx={{ whiteSpace: 'pre-wrap' }}>
-              {error}
+            {mode === 'pure' && !isEdit ? (
+              <>
+                <Box
+                  sx={{
+                    p: 8,
+                    borderRadius: 1,
+                    bgcolor: 'action.hover',
+                    border: '1px solid',
+                    borderColor: 'primary.main',
+                  }}
+                >
+                  <Autocomplete
+                    options={riskOptions}
+                    value={selectedRisk}
+                    onChange={(_, value) => {
+                      markDirty();
+                      setSelectedRisk(value);
+                      if (!value) return;
+                      if (!tradeNameTouched || !tradeName.trim()) {
+                        setTradeName(value.name);
+                      }
+                    }}
+                    onInputChange={(_, value, reason) => {
+                      if (reason === 'input') setPureRiskSearch(value);
+                    }}
+                    getOptionLabel={riskLabel}
+                    isOptionEqualToValue={(a, b) => a.id === b.id}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Fator de risco"
+                        helperText={
+                          selectedRisk
+                            ? `Selecionado: ${riskLabel(selectedRisk)}`
+                            : 'Pesquise fatores globais e da empresa'
+                        }
+                      />
+                    )}
+                  />
+                </Box>
+                <TextField
+                  label="Nome comercial (opcional — se vazio usa o nome do fator)"
+                  value={tradeName}
+                  onChange={(e) => {
+                    markDirty();
+                    setTradeNameTouched(true);
+                    setTradeName(e.target.value);
+                  }}
+                />
+              </>
+            ) : null}
+
+            {(mode === 'mixture' || mode === 'fispq' || isEdit) &&
+            !(mode === 'fispq' && !fispqParse && !isEdit) ? (
+              <>
+                <TextField
+                  label="Nome comercial"
+                  value={tradeName}
+                  onChange={(e) => {
+                    markDirty();
+                    setTradeName(e.target.value);
+                  }}
+                  required
+                />
+
+                {mode === 'fispq' && fispqPreviewReady ? (
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={8}>
+                    <TextField
+                      label="Versão FISPQ"
+                      value={fispqVersionLabel}
+                      onChange={(e) => {
+                        markDirty();
+                        setFispqVersionLabel(e.target.value);
+                      }}
+                      fullWidth
+                    />
+                    <TextField
+                      label="Data"
+                      type="date"
+                      InputLabelProps={{ shrink: true }}
+                      value={fispqIssuedAt}
+                      onChange={(e) => {
+                        markDirty();
+                        setFispqIssuedAt(e.target.value);
+                      }}
+                      fullWidth
+                    />
+                    <TextField
+                      label="Idioma"
+                      value={fispqLanguage}
+                      onChange={(e) => {
+                        markDirty();
+                        setFispqLanguage(e.target.value);
+                      }}
+                      fullWidth
+                    />
+                  </Stack>
+                ) : null}
+
+                {(mode === 'fispq' &&
+                  fispqPreviewReady &&
+                  fispqParseHadZeroUsableIngredients) ||
+                (isEdit && undeclaredComposition) ? (
+                  <Alert severity="info">
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={undeclaredComposition}
+                          onChange={(event) => {
+                            markDirty();
+                            const checked = event.target.checked;
+                            setUndeclaredComposition(checked);
+                            if (checked) {
+                              setIngredients([]);
+                              setPendingRiskFactorByIngredientKey({});
+                            } else {
+                              setIngredients((current) =>
+                                current.length ? current : [emptyIngredient()],
+                              );
+                            }
+                          }}
+                        />
+                      }
+                      label={UNINDIVIDUALIZED_COMPOSITION_CHECKBOX_LABEL}
+                    />
+                    <FormHelperText sx={{ mx: 0, mt: 0 }}>
+                      {UNINDIVIDUALIZED_COMPOSITION_HELPER}
+                    </FormHelperText>
+                    {undeclaredComposition ? (
+                      <TextField
+                        label="Nota (opcional)"
+                        value={undeclaredNote}
+                        onChange={(e) => {
+                          markDirty();
+                          setUndeclaredNote(e.target.value);
+                        }}
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        sx={{ mt: 8 }}
+                        helperText="Registre por que a FISPQ não individualiza a composição, se útil."
+                      />
+                    ) : (
+                      <SText fontSize={13} sx={{ mt: 1 }}>
+                        Sem declaração, a criação permanece bloqueada até você
+                        adicionar componentes utilizáveis.
+                      </SText>
+                    )}
+                  </Alert>
+                ) : null}
+
+                {undeclaredComposition ? (
+                  <Alert severity="warning">
+                    {UNINDIVIDUALIZED_COMPOSITION_LABEL}. Nenhum componente será
+                    criado e nenhum fator de risco será gerado.
+                  </Alert>
+                ) : (
+                  <>
+                    {ingredients.map((ingredient, index) =>
+                      renderIngredientEditor(ingredient, index),
+                    )}
+
+                    <Alert
+                      severity={
+                        compositionState.exceeds
+                          ? 'error'
+                          : compositionState.incomplete
+                            ? 'warning'
+                            : 'success'
+                      }
+                    >
+                      Soma informada (exata):{' '}
+                      {compositionState.exactSum.toFixed(2)}%{' · '}
+                      Restante: {compositionState.remaining.toFixed(2)}%
+                      {compositionState.incomplete
+                        ? ' · composição incompleta (< 100%)'
+                        : ''}
+                      {compositionState.exceeds ? ' · excedeu 100%' : ''}
+                    </Alert>
+                  </>
+                )}
+
+                <Button
+                  disabled={
+                    !undeclaredComposition &&
+                    !canAddExactComponent(compositionState.exactSum)
+                  }
+                  onClick={() => {
+                    markDirty();
+                    if (undeclaredComposition) {
+                      setUndeclaredComposition(false);
+                      setIngredients([emptyIngredient()]);
+                      return;
+                    }
+                    if (!canAddExactComponent(compositionState.exactSum))
+                      return;
+                    setIngredients((current) => [
+                      ...current,
+                      emptyIngredient(),
+                    ]);
+                  }}
+                >
+                  {undeclaredComposition
+                    ? 'Adicionar componente (desfazer declaração)'
+                    : canAddExactComponent(compositionState.exactSum)
+                      ? 'Adicionar componente'
+                      : 'Não é possível adicionar componente exato (soma ≥ 100%)'}
+                </Button>
+              </>
+            ) : null}
+
+            <Autocomplete
+              freeSolo
+              options={manufacturerOptions}
+              value={manufacturer}
+              onInputChange={(_, value) => {
+                markDirty();
+                setManufacturer(value);
+                setManufacturerSearch(value);
+              }}
+              onChange={(_, value) => {
+                markDirty();
+                setManufacturer(
+                  typeof value === 'string' ? value : value || '',
+                );
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Fabricante"
+                  helperText="Sugestões dos fabricantes já usados na empresa"
+                />
+              )}
+            />
+
+            {error ? (
+              <Alert severity="error" sx={{ whiteSpace: 'pre-wrap' }}>
+                {error}
+              </Alert>
+            ) : null}
+            {warnings.length ? (
+              <Alert severity="warning">{warnings.join('\n')}</Alert>
+            ) : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions
+          disableSpacing
+          sx={{
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            gap: 8,
+            px: 12,
+            pt: 8,
+            pb: 12,
+          }}
+        >
+          {blockingReason && !pending ? (
+            <Alert severity="warning" sx={{ width: '100%' }}>
+              {blockingReason}
             </Alert>
           ) : null}
-          {warnings.length ? (
-            <Alert severity="warning">{warnings.join('\n')}</Alert>
-          ) : null}
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ flexDirection: 'column', alignItems: 'stretch', gap: 1 }}>
-        {blockingReason && !pending ? (
-          <Alert severity="warning" sx={{ width: '100%' }}>
-            {blockingReason}
-          </Alert>
-        ) : null}
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
-          <Button onClick={handleClose} disabled={pending}>
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            disabled={!canSubmit || pending}
-            onClick={handleSave}
+          <Stack
+            direction="row"
+            spacing={4}
+            justifyContent="flex-end"
+            flexWrap="wrap"
+            useFlexGap
           >
-            {pending
-              ? 'Salvando…'
-              : isEdit
-                ? 'Salvar edição'
-                : mode === 'fispq'
-                  ? 'Confirmar criação pela FISPQ'
-                  : 'Salvar'}
-          </Button>
-        </Stack>
-      </DialogActions>
-    </Dialog>
+            <Button onClick={handleClose} disabled={pending}>
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!canSubmit || pending}
+              onClick={handleSave}
+            >
+              {pending
+                ? 'Salvando…'
+                : isEdit
+                  ? 'Salvar edição'
+                  : mode === 'fispq'
+                    ? 'Confirmar criação pela FISPQ'
+                    : 'Salvar'}
+            </Button>
+          </Stack>
+        </DialogActions>
+      </Dialog>
 
       {createRiskSession ? (
         <ChemicalCurationCreateRiskDialog

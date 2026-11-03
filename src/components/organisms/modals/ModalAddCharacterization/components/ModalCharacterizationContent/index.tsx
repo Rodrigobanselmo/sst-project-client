@@ -102,6 +102,7 @@ export const ModalCharacterizationContent = (
     notPrincipalProfile,
     photos,
     setValue,
+    hydrateFormValue,
     onRemove,
     onEditArrayContent,
     isEdit,
@@ -356,7 +357,7 @@ export const ModalCharacterizationContent = (
                   label="Nome"
                   labelPosition="center"
                   control={control}
-                  setValue={setValue}
+                  setValue={hydrateFormValue}
                   placeholder={'nome do elemento caracterizado...'}
                   name="name"
                   size="small"
@@ -400,7 +401,7 @@ export const ModalCharacterizationContent = (
           >
             <Box sx={{ flex: 1, minWidth: 0, overflow: 'visible' }}>
               <SelectForm
-                setValue={setValue}
+                setValue={hydrateFormValue}
                 control={control}
                 onChange={handleTypeChange}
                 defaultValue={
@@ -594,7 +595,7 @@ export const ModalCharacterizationContent = (
             placeholder={'nome do perfil...'}
             name="profileName"
             size="small"
-            setValue={setValue}
+            setValue={hydrateFormValue}
             firstLetterCapitalize
             startAdornment={
               characterizationData.name?.slice(0, 30) +
@@ -651,7 +652,7 @@ export const ModalCharacterizationContent = (
                 defaultValue={characterizationData.riskInventorySummary || ''}
                 label=""
                 control={control}
-                setValue={setValue}
+                setValue={hydrateFormValue}
                 sx={{ width: '100%' }}
                 placeholder="Texto objetivo sobre o elemento, finalidade e contexto operacional..."
                 name="riskInventorySummary"
@@ -706,7 +707,7 @@ export const ModalCharacterizationContent = (
             />
             <Box sx={{ mt: 2 }}>
               <ModalParametersContentBasic
-                setValue={setValue}
+                setValue={hydrateFormValue}
                 control={control}
                 data={characterizationData}
               />

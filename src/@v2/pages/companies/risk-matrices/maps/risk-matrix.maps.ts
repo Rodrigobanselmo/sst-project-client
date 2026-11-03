@@ -25,10 +25,23 @@ export const RISK_MATRIX_VERSION_STATUS_LABELS: Record<
 export const RISK_MATRIX_PUBLISH_CONFIRMATION = {
   title: 'Publicar versão?',
   message:
-    'Após a publicação, esta versão não poderá mais ser editada. Alterações futuras deverão ser feitas em uma nova versão. A publicação não disponibiliza automaticamente a matriz nos estabelecimentos.',
+    'Após a publicação, a metodologia desta versão não poderá mais ser editada. Alterações nos critérios ou no cálculo exigem uma nova versão. Cores e nomes das classificações podem ser ajustados sem alterar avaliações existentes. A publicação não disponibiliza automaticamente a matriz nos estabelecimentos. As avaliações existentes e os envios do eSocial mantêm a versão já utilizada.',
   confirmText: 'Publicar versão',
   cancelText: 'Cancelar',
 } as const;
+
+export const RISK_MATRIX_NEW_VERSION_ACTION = 'Criar nova versão';
+
+export const RISK_MATRIX_NEW_VERSION_CONFIRMATION = {
+  title: 'Criar nova versão?',
+  message:
+    'Será criado um rascunho a partir da última versão publicada. A versão anterior, as avaliações existentes e os envios do eSocial permanecem preservados. Publicar ou disponibilizar a nova versão não reaplica a matriz aos riscos.',
+  confirmText: 'Criar nova versão',
+  cancelText: 'Cancelar',
+} as const;
+
+export const RISK_MATRIX_VERSION_HISTORY_HELP =
+  'Criar ou publicar uma nova versão preserva as versões anteriores. As avaliações já realizadas mantêm a metodologia utilizada; para adotar a nova versão, altere o risco no cadastro de origem com a decisão e a vigência correspondentes, quando necessárias.';
 
 export const RISK_MATRIX_PUBLISH_SAVE_FIRST_MESSAGE =
   'Salve o rascunho antes de publicar.';
@@ -129,7 +142,10 @@ export const RISK_MATRIX_COVERAGE_TITLES: Record<
 };
 
 export const RISK_MATRIX_AVAILABILITY_DISCLAIMER =
-  'Disponibilizar uma matriz não altera avaliações já realizadas.';
+  'Disponibilizar ou trocar a versão disponível muda as opções para novas avaliações. As avaliações já realizadas mantêm a matriz utilizada.';
+
+export const RISK_MATRIX_AVAILABILITY_APPLY_HELP =
+  'Para mudar um risco já avaliado, aplique a matriz no próprio risco. Quando a condição já tiver sido declarada, o sistema pedirá correção ou nova condição com a data correspondente.';
 
 export const RISK_MATRIX_SIMPLESST_ALWAYS_AVAILABLE =
   'O padrão SimpleSST permanece disponível.';

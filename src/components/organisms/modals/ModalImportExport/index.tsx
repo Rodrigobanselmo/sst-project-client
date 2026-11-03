@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
+import { Alert } from '@mui/material';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -33,6 +34,7 @@ export const ModalImportExport = () => {
     onSetFiles,
     handleSubmit,
     fileData,
+    importCompletion,
     modalName,
   } = props;
 
@@ -42,7 +44,7 @@ export const ModalImportExport = () => {
       text: 'Fazer upload',
       type: 'submit',
       variant: 'contained',
-      onClick: onSubmit,
+      disabled: !!importCompletion,
     },
   ] as IModalButton[];
 
@@ -70,6 +72,11 @@ export const ModalImportExport = () => {
           </DndProvider>
 
           <ModalImportExportButtons {...props} />
+          {importCompletion && (
+            <Alert severity="warning" sx={{ mt: '16px' }}>
+              {importCompletion}
+            </Alert>
+          )}
           <SModalButtons
             loading={isLoading}
             onClose={onClose}

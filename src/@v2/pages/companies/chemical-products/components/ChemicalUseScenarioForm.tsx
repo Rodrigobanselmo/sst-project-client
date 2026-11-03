@@ -62,14 +62,14 @@ function MeasurePairBlock({
       sx={{
         flex: { xs: '1 1 100%', md: '1 1 0' },
         minWidth: { xs: 0, md: 220 },
-        px: 1.25,
-        pt: 0.75,
-        pb: 0.75,
+        px: 8,
+        pt: 6,
+        pb: 6,
         borderRadius: 1,
         bgcolor: 'action.hover',
       }}
     >
-      <Stack direction="row" spacing={0.75} alignItems="flex-start">
+      <Stack direction="row" spacing={4} alignItems="flex-start">
         {children}
       </Stack>
       {helperText ? (
@@ -106,7 +106,7 @@ export const ChemicalUseScenarioForm = ({
 
   return (
     <Stack>
-      <Stack spacing={2.5}>
+      <Stack spacing={8}>
         <Autocomplete
           options={products}
           value={values.product}
@@ -209,7 +209,7 @@ export const ChemicalUseScenarioForm = ({
         useFlexGap
         flexWrap="wrap"
         alignItems="stretch"
-        sx={{ mt: 1.5, mb: 2, gap: 2.5 }}
+        sx={{ mt: 8, mb: 8, gap: 8 }}
       >
         <MeasurePairBlock
           error={frequencyField.error}
@@ -225,7 +225,10 @@ export const ChemicalUseScenarioForm = ({
             error={frequencyField.error}
             sx={{ width: 88, flex: '0 0 88px' }}
           />
-          <FormControl sx={{ flex: '1 1 128px', minWidth: 112 }} disabled={disabled}>
+          <FormControl
+            sx={{ flex: '1 1 128px', minWidth: 112 }}
+            disabled={disabled}
+          >
             <InputLabel>Período</InputLabel>
             <Select
               label="Período"
@@ -281,7 +284,10 @@ export const ChemicalUseScenarioForm = ({
             error={quantityField.error}
             sx={{ width: 88, flex: '0 0 88px' }}
           />
-          <FormControl sx={{ flex: '1 1 96px', minWidth: 80 }} disabled={disabled}>
+          <FormControl
+            sx={{ flex: '1 1 96px', minWidth: 80 }}
+            disabled={disabled}
+          >
             <InputLabel>Unidade</InputLabel>
             <Select
               label="Unidade"
@@ -302,7 +308,7 @@ export const ChemicalUseScenarioForm = ({
           </FormControl>
         </MeasurePairBlock>
       </Stack>
-      <Stack spacing={1.5}>
+      <Stack spacing={8}>
         <TextField
           label="Momento de maior contato"
           value={values.peakContactMoment}

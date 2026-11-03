@@ -1,4 +1,5 @@
 import { useQuery } from 'react-query';
+import { canReadCompanyAuxiliaryData } from 'core/utils/company/company-auxiliary-access';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -19,7 +20,8 @@ export async function queryEstablishmentGroups(companyId: string) {
 }
 
 export function useQueryEstablishmentGroups(enabled = true) {
-  const { companyId } = useGetCompanyId();
+  const { companyId, user } = useGetCompanyId();
+  const canRead = canReadCompanyAuxiliaryData(user);
 
   const { data, ...query } = useQuery(
     [QueryEnum.ESTABLISHMENT_GROUPS, companyId],
@@ -28,10 +30,10 @@ export function useQueryEstablishmentGroups(enabled = true) {
         ? queryEstablishmentGroups(companyId)
         : (emptyArrayReturn() as Promise<IEstablishmentGroup[]>),
     {
-      enabled: !!companyId && enabled,
+      enabled: !!companyId && enabled && canRead,
       staleTime: 1000 * 60 * 5,
     },
   );
 
-  return { ...query, data: data || [] };
+  return { ...query, data: canRead && enabled ? data || [] : [] };
 }

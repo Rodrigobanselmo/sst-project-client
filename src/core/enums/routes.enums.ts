@@ -76,5 +76,8 @@ export enum RoutesEnum {
   PDF_OS = '/pdf/:companyId/:employeeId/os',
   PDF_CAT = '/pdf/:companyId/:employeeId/cat',
   ESOCIAL = '/dashboard/empresas/:companyId/esocial',
+  ESOCIAL_PORTFOLIO = '/dashboard/esocial',
+  ESOCIAL_CERTIFICATES = '/dashboard/configuracoes/certificados-esocial',
+  ESOCIAL_PLATFORM_CERTIFICATE = '/dashboard/configuracoes/certificado-transmissao-esocial',
   DOCUMENTS = '/dashboard/empresas/:companyId/documentos',
 }

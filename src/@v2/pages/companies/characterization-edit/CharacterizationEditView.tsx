@@ -19,6 +19,7 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { getSaveActionColor } from 'core/utils/save-action-color';
 import { isCharacterizationEditorDirty } from 'components/organisms/modals/ModalAddCharacterization/hooks/characterization-editor-dirty';
 
+import { StructuralSourceActions } from '@v2/features/sst-operational/StructuralSourceActions';
 import { CharacterizationEditStepErrorBoundary } from './CharacterizationEditStepErrorBoundary';
 import {
   canApplyCharacterizationWizardStep,
@@ -72,7 +73,8 @@ export const CharacterizationEditView = ({
   onRetry,
 }: CharacterizationEditViewProps) => {
   const isNew = !characterizationId || characterizationId === 'new';
-  const hasMinimumContext = !!companyId && !!workspaceId && !!characterizationId;
+  const hasMinimumContext =
+    !!companyId && !!workspaceId && !!characterizationId;
   const requestedStep = clampCharacterizationWizardStep(initialWizardStep);
   const [localRetryKey, setLocalRetryKey] = useState(0);
 
@@ -386,6 +388,17 @@ export const CharacterizationEditView = ({
             flexDirection: 'column',
           }}
         >
+          {isEditEntity && !isDetailLoading && !isDetailError && (
+            <StructuralSourceActions
+              companyId={companyId}
+              target={{
+                table: 'CompanyCharacterization',
+                id: characterizationData.id,
+              }}
+              disabled={!!hasUnsavedChanges || loading}
+              onChanged={onBack}
+            />
+          )}
           <CharacterizationEditStepErrorBoundary
             title="Falha ao abrir o editor da caracterização."
             onBack={onBack}

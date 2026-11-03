@@ -141,6 +141,7 @@ const SSelect: FC<{ children?: any } & SSelectProps> = ({
       )}
       {label && labelPosition === 'top' && (
         <Typography
+          id={id + '-label'}
           fontSize={14}
           color={error ? 'error.main' : 'grey.600'}
           mb={5}

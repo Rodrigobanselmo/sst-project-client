@@ -5,6 +5,7 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { HistoryEmployeeExamTable } from 'components/organisms/tables/HistoryEmployeeExamTable/HistoryEmployeeExamTable';
+import { ToxicologyRecordPanel } from '@v2/features/sst-operational/ToxicologyRecordPanel';
 
 import { IUseEditEmployee } from '../../hooks/useEditEmployee';
 import { useExamData } from './hooks/useExamData';
@@ -30,11 +31,18 @@ export const ExamHistoryStep = (props: IUseEditEmployee) => {
           Identificação
         </SText> */}
         {employee && (
-          <HistoryEmployeeExamTable
-            employee={employee}
-            employeeId={employee.id}
-            companyId={employee.companyId}
-          />
+          <>
+            <HistoryEmployeeExamTable
+              employee={employee}
+              employeeId={employee.id}
+              companyId={employee.companyId}
+            />
+            <ToxicologyRecordPanel
+              companyId={employee.companyId}
+              employeeId={employee.id}
+              employeeName={employee.name}
+            />
+          </>
         )}
       </AnimatedStep>
       <SModalButtons

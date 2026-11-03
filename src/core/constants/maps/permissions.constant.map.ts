@@ -11,6 +11,18 @@ interface IPermissionsOptions
   extends Record<PermissionEnum, IPermissionsOption> {}
 
 export const permissionsConstantMap = {
+  [PermissionEnum.SST_HISTORY]: {
+    value: PermissionEnum.SST_HISTORY,
+    label: 'Consultar condições eSocial',
+    info: 'Consultar períodos e pendências do eSocial. As edições usam as permissões dos cadastros de origem.',
+    crud: ['r'],
+  },
+  [PermissionEnum.SST_HISTORY_APPROVE]: {
+    value: PermissionEnum.SST_HISTORY_APPROVE,
+    label: 'Configurar envio eSocial',
+    info: 'Definir ou alterar a data a partir da qual este sistema prepara os envios.',
+    crud: ['u'],
+  },
   [PermissionEnum.MASTER]: {
     value: PermissionEnum.MASTER,
     label: 'Master',
@@ -217,6 +229,12 @@ export const permissionsConstantMap = {
     value: PermissionEnum.ESOCIAL,
     label: 'Eventos eSocial',
     info: 'Poder emitir e enviar eventos (XML)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.ESOCIAL_CERTIFICATE]: {
+    value: PermissionEnum.ESOCIAL_CERTIFICATE,
+    label: 'Certificados do eSocial',
+    info: 'Consultar, importar, renovar, vincular e desativar certificados. A autorização de procuração é validada pelo eSocial.',
     crud: ['c', 'r', 'u', 'd'],
   },
   [PermissionEnum.PROF_RESP]: {

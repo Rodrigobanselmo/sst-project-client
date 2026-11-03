@@ -1,23 +1,16 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
+import prettier from 'eslint-config-prettier/flat';
+import prettierPlugin from 'eslint-plugin-prettier';
 
 const eslintConfig = [
-  ...compat.extends(
-    'next/core-web-vitals',
-    'next/typescript',
-    'prettier'
-  ),
+  ...nextVitals,
+  ...nextTypescript,
+  prettier,
   {
+    plugins: { prettier: prettierPlugin },
     rules: {
-      'indent': 'off',
+      indent: 'off',
       'react/display-name': 'off',
       'react/no-children-prop': 'off',
       'prettier/prettier': 'error',
@@ -33,8 +26,8 @@ const eslintConfig = [
       '@typescript-eslint/no-wrapper-object-types': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       'linebreak-style': ['error', 'unix'],
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'always'],
+      quotes: ['error', 'single'],
+      semi: ['error', 'always'],
       'react/prop-types': [0],
     },
     settings: {
@@ -46,4 +39,3 @@ const eslintConfig = [
 ];
 
 export default eslintConfig;
-

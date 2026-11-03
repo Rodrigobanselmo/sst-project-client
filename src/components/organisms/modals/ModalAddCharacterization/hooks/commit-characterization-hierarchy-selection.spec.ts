@@ -1,231 +1,216 @@
-/**
- * Runnable with:
- *   npx tsx src/components/organisms/modals/ModalAddCharacterization/hooks/commit-characterization-hierarchy-selection.spec.ts
- */
-import assert from 'assert';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
-  CharacterizationHierarchyUnlinkError,
-  CharacterizationHierarchyUpsertError,
-  collectCharacterizationLinkIdsToEnd,
+  buildCharacterizationHierarchySelection,
+  CharacterizationHierarchySnapshotError,
   commitCharacterizationHierarchySelection,
-} from './commit-characterization-hierarchy-selection';
-
-function run(name: string, fn: () => void | Promise<void>) {
-  return Promise.resolve()
-    .then(fn)
-    .then(() => {
-      console.log(`✓ ${name}`);
-    })
-    .catch((error) => {
-      console.error(`✗ ${name}`);
-      throw error;
-    });
-}
+} from './commit-characterization-hierarchy-selection.ts';
 
 const workspaceId = 'matriz';
-
-const hierarchies = [
+const characterizationId = 'atividade';
+const original = [
   {
-    id: 'pintura',
-    hierarchyOnHomogeneous: [
-      { id: 11, hierarchyId: 'pintura', workspaceId, endDate: null },
-    ],
-  },
-  {
-    id: 'servicos',
-    hierarchyOnHomogeneous: [
-      { id: 22, hierarchyId: 'servicos', workspaceId, endDate: null },
-      { id: 23, hierarchyId: 'servicos', workspaceId, endDate: '2020-01-01' },
-    ],
-  },
-  {
-    id: 'outro-estab',
+    id: 'cargo-a',
     hierarchyOnHomogeneous: [
       {
-        id: 33,
-        hierarchyId: 'outro-estab',
-        workspaceId: 'filial',
+        id: 22,
+        hierarchyId: 'cargo-a',
+        homogeneousGroupId: characterizationId,
+        workspaceId,
+        startDate: '2026-01-01T09:30:15-03:00',
+        endDate: null,
+      },
+      {
+        id: 20,
+        hierarchyId: 'cargo-a',
+        workspaceId,
+        startDate: '2025-01-01',
+        endDate: '2026-01-01',
+      },
+      {
+        id: 21,
+        hierarchyId: 'cargo-a',
+        workspaceId,
+        endDate: null,
+        deletedAt: '2026-01-01',
+      },
+    ],
+  },
+  {
+    id: 'setor//matriz',
+    hierarchyOnHomogeneous: [
+      { id: 11, workspaceId, startDate: null, endDate: null },
+      { id: 33, hierarchyId: 'setor', workspaceId: 'filial', endDate: null },
+      {
+        id: 44,
+        hierarchyId: 'setor',
+        homogeneousGroupId: 'outra-atividade',
+        workspaceId,
         endDate: null,
       },
     ],
   },
-  {
-    id: 'cargo-a',
-    hierarchyOnHomogeneous: [
-      { id: 41, hierarchyId: 'cargo-a', workspaceId, endDate: null },
-    ],
-  },
-  {
-    id: 'cargo-b',
-    hierarchyOnHomogeneous: [
-      { id: 42, hierarchyId: 'cargo-b', workspaceId, endDate: null },
-    ],
-  },
 ];
+const build = (confirmedHierarchyIds: string[]) =>
+  buildCharacterizationHierarchySelection({
+    hierarchies: original,
+    confirmedHierarchyIds,
+    workspaceId,
+    characterizationId,
+  });
 
 async function main() {
-  await run('desmarcar uma estrutura encerra somente o vínculo dela', () => {
-    assert.deepEqual(
-      collectCharacterizationLinkIdsToEnd({
-        hierarchies,
-        confirmedHierarchyIds: ['pintura', 'cargo-a', 'cargo-b'],
-        workspaceId,
-      }),
-      [22],
-    );
+  const before = JSON.stringify(original);
+  const selection = build([' cargo-b//matriz ', 'cargo-b', 'setor', '']);
+  assert.deepEqual(selection, {
+    hierarchyIds: ['cargo-b', 'setor'],
+    expectedLinks: [
+      { id: 11, hierarchyId: 'setor', startDate: null, endDate: null },
+      {
+        id: 22,
+        hierarchyId: 'cargo-a',
+        startDate: '2026-01-01T12:30:15.000Z',
+        endDate: null,
+      },
+      { id: 33, hierarchyId: 'setor', startDate: null, endDate: null },
+    ],
   });
+  assert.equal(
+    JSON.stringify(original),
+    before,
+    'montar a nova seleção não altera vínculos carregados',
+  );
+  assert.deepEqual(
+    build([]).expectedLinks,
+    selection.expectedLinks,
+    'seleção vazia ainda compara TODOS os vínculos abertos anteriores',
+  );
+  assert.deepEqual(
+    build(['setor']).hierarchyIds,
+    ['setor'],
+    'abrangência de setor não materializa cargos descendentes',
+  );
+  assert.deepEqual(
+    build(['cargo-a']).expectedLinks,
+    selection.expectedLinks,
+    'mantidos e retirados participam da concorrência',
+  );
 
-  await run('manter só uma estrutura encerra os outros vínculos deste estabelecimento', () => {
-    assert.deepEqual(
-      collectCharacterizationLinkIdsToEnd({
-        hierarchies,
-        confirmedHierarchyIds: ['pintura'],
-        workspaceId,
-      }),
-      [22, 41, 42],
-    );
+  const dated = buildCharacterizationHierarchySelection({
+    hierarchies: original,
+    confirmedHierarchyIds: ['cargo-b'],
+    workspaceId,
+    characterizationId,
+    startDate: new Date('2026-04-01T00:00:00Z'),
+    endDate: null,
   });
+  assert.equal(dated.startDate, '2026-04-01T00:00:00.000Z');
+  assert.equal(dated.endDate, null);
+  assert.equal(
+    dated.expectedLinks[1].startDate,
+    '2026-01-01T12:30:15.000Z',
+    'data proposta não reescreve o snapshot',
+  );
 
-  await run('seleção vazia encerra os vínculos ativos deste estabelecimento', () => {
-    assert.deepEqual(
-      collectCharacterizationLinkIdsToEnd({
-        hierarchies,
+  assert.throws(
+    () =>
+      buildCharacterizationHierarchySelection({
+        hierarchies: [
+          {
+            id: 'cargo',
+            hierarchyOnHomogeneous: [{ id: null, endDate: null }],
+          },
+        ],
         confirmedHierarchyIds: [],
         workspaceId,
+        characterizationId,
       }),
-      [11, 22, 41, 42],
-    );
-  });
+    CharacterizationHierarchySnapshotError,
+  );
+  assert.throws(
+    () =>
+      buildCharacterizationHierarchySelection({
+        hierarchies: [
+          {
+            id: 'cargo',
+            hierarchyOnHomogeneous: [
+              { id: 1, startDate: 'inválida', endDate: null },
+            ],
+          },
+        ],
+        confirmedHierarchyIds: [],
+        workspaceId,
+        characterizationId,
+      }),
+    CharacterizationHierarchySnapshotError,
+  );
 
-  await run('substituição de cargos pelo setor não materializa os subordinados', () => {
-    const linkIds = collectCharacterizationLinkIdsToEnd({
-      hierarchies,
-      confirmedHierarchyIds: ['pintura'],
-      workspaceId,
-    });
-    assert.equal(linkIds.includes(41), true);
-    assert.equal(linkIds.includes(42), true);
-    assert.equal(linkIds.includes(11), false);
-    assert.equal(linkIds.includes(99), false);
+  const calls: unknown[] = [];
+  const response = {
+    id: characterizationId,
+    addedLinkIds: [55],
+    endedLinkIds: [22],
+    removedLinkIds: [],
+    unchangedLinkIds: [11],
+  };
+  const applied = await commitCharacterizationHierarchySelection({
+    selection,
+    persist: async (payload) => {
+      calls.push(payload);
+      return response;
+    },
   });
-
-  await run('vínculo de outro estabelecimento permanece', () => {
-    const linkIds = collectCharacterizationLinkIdsToEnd({
-      hierarchies,
-      confirmedHierarchyIds: [],
-      workspaceId,
-    });
-    assert.equal(linkIds.includes(33), false);
-  });
-
-  await run('falha na exclusão não executa o upsert', async () => {
-    let upserted = false;
+  assert.equal(applied, response);
+  assert.deepEqual(
+    calls,
+    [selection],
+    'adição e retirada são enviadas numa única requisição',
+  );
+  for (const code of [
+    'SST_MUTATION_CANCELLED',
+    'SST_CHARACTERIZATION_SELECTION_CONFLICT',
+  ]) {
+    const rejection = Object.assign(new Error(code), { code });
+    let attempts = 0;
     await assert.rejects(
-      () =>
-        commitCharacterizationHierarchySelection({
-          hierarchies,
-          confirmedHierarchyIds: ['pintura'],
-          workspaceId,
-          unlink: async () => {
-            throw new Error('rede');
-          },
-          upsert: async () => {
-            upserted = true;
-          },
-        }),
-      (error: unknown) => error instanceof CharacterizationHierarchyUnlinkError,
-    );
-    assert.equal(upserted, false);
-  });
-
-  await run('exclusão sem resposta não executa o upsert', async () => {
-    let upserted = false;
-    await assert.rejects(
-      () =>
-        commitCharacterizationHierarchySelection({
-          hierarchies,
-          confirmedHierarchyIds: [],
-          workspaceId,
-          unlink: async () => null,
-          upsert: async () => {
-            upserted = true;
-          },
-        }),
-      (error: unknown) => error instanceof CharacterizationHierarchyUnlinkError,
-    );
-    assert.equal(upserted, false);
-  });
-
-  await run('exclusão concluída precede o upsert e a falha seguinte atualiza a tela', async () => {
-    const calls: string[] = [];
-    await assert.rejects(
-      () =>
-        commitCharacterizationHierarchySelection({
-          hierarchies,
-          confirmedHierarchyIds: ['pintura'],
-          workspaceId,
-          unlink: async (ids) => {
-            calls.push(`unlink:${ids.join(',')}`);
-            return { ok: true };
-          },
-          upsert: async () => {
-            calls.push('upsert');
-            throw new Error('upsert');
-          },
-          refreshAfterPartialFailure: async () => {
-            calls.push('refresh');
-          },
-        }),
-      (error: unknown) => error instanceof CharacterizationHierarchyUpsertError,
-    );
-    assert.deepEqual(calls, ['unlink:22,41,42', 'upsert', 'refresh']);
-  });
-
-  await run('inclusão sem remoção não chama a exclusão', async () => {
-    let unlinked = false;
-    await commitCharacterizationHierarchySelection({
-      hierarchies: hierarchies.slice(0, 1),
-      confirmedHierarchyIds: ['pintura', 'novo-cargo'],
-      workspaceId,
-      unlink: async () => {
-        unlinked = true;
-        return { ok: true };
-      },
-      upsert: async () => ({ ok: true }),
-    });
-    assert.equal(unlinked, false);
-  });
-
-  await run('editor e diálogo rápido confirmam pelo mesmo commit', () => {
-    const editor = readFileSync(
-      resolve(
-        'src/components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization.tsx',
-      ),
-      'utf8',
-    );
-    const dialog = readFileSync(
-      resolve(
-        'src/@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationCargoManagerDialog.tsx',
-      ),
-      'utf8',
+      commitCharacterizationHierarchySelection({
+        selection,
+        persist: async () => {
+          attempts++;
+          throw rejection;
+        },
+      }),
+      (error) => error === rejection,
     );
     assert.equal(
-      editor.includes('commitCharacterizationHierarchySelection'),
-      true,
+      attempts,
+      1,
+      'erro/cancelamento não inicia exclusão nem segunda gravação',
     );
-    assert.equal(
-      dialog.includes('commitCharacterizationHierarchySelection'),
-      true,
+    assert.deepEqual(
+      selection,
+      build(['cargo-b', 'setor']),
+      'rascunho e baseline permanecem após falha',
     );
-    assert.equal(editor.includes('deleteGho('), true);
-    assert.equal(dialog.includes('deleteGho('), true);
-    assert.equal(dialog.includes('gseCargoSelect'), false);
-  });
+  }
 
-  console.log('\nAll characterization hierarchy commit tests passed.');
+  for (const path of [
+    'src/components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization.tsx',
+    'src/@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/CharacterizationCargoManagerDialog.tsx',
+  ]) {
+    const source = readFileSync(path, 'utf8');
+    assert.ok(source.includes('commitCharacterizationHierarchySelection'));
+    assert.ok(source.includes('useMutSelectCharacterizationHierarchies'));
+    assert.equal(
+      source.includes('deleteGho('),
+      false,
+      'nenhum chamador volta ao fluxo unlink → upsert',
+    );
+    assert.equal(source.includes('refreshAfterPartialFailure'), false);
+  }
+  console.log(
+    'Characterization hierarchy selection: snapshot, concorrência, datas e commit atômico verificados.',
+  );
 }
 
-main();
+void main();
