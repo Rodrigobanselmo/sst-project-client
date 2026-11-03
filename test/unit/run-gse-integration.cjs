@@ -10,7 +10,11 @@ const files = fs.readdirSync(directory).filter(file => file.endsWith('.spec.ts')
 files.push(path.join(root, 'src/components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/probability-ai-result.util.spec.ts'));
 let failed = 0;
 for (const file of files) {
-  const compiled = esbuild.buildSync({ entryPoints: [file], bundle: true, write: false, platform: 'node', format: 'cjs', packages: 'external', tsconfig: path.join(root, 'tsconfig.json'), logLevel: 'silent' });
+  // Parser/model tests must not initialize Firebase or make HTTP requests merely
+  // by importing the consultative client. Any accidental request fails loudly.
+  const compiled = esbuild.buildSync({ entryPoints: [file], bundle: true, write: false, platform: 'node', format: 'cjs', packages: 'external', tsconfig: path.join(root, 'tsconfig.json'), logLevel: 'silent',
+    alias: { 'core/services/apiClient': path.join(__dirname, 'gse-forbidden-api.cjs') },
+  });
   const result = spawnSync(process.execPath, ['-'], { input: compiled.outputFiles[0].text, encoding: 'utf8', cwd: root, env: { ...process.env, NODE_ENV: 'test' } });
   process.stdout.write(result.stdout || '');
   process.stderr.write(result.stderr || '');
