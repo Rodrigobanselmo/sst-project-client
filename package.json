@@ -5,6 +5,7 @@
     "node": "22"
   },
   "scripts": {
+    "test:ai-accounting": "node --experimental-strip-types --test src/@v2/features/ai-accounting/ai-accounting-notice.spec.ts && node test/ai-accounting/ui.cjs",
     "dev": "next dev --turbo",
     "dev:webpack": "next dev --webpack",
     "build": "rm -rf .next && next build",
@@ -164,6 +165,7 @@
     "babel-plugin-direct-import": "^1.0.0",
     "babel-plugin-import": "^1.13.8",
     "babel-plugin-styled-components": "^2.1.4",
+    "esbuild": "0.28.2",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.1.0",
     "eslint-config-prettier": "^10.1.8",

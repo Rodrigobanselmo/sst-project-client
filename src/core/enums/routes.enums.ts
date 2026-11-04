@@ -1,4 +1,5 @@
 export enum RoutesEnum {
+  AI_CONSUMPTION = '/dashboard/administracao/consumo-ia',
   PRIVACY_POLITICS = '/politicas-de-privacidade',
   TERMS_OF_USE = '/termos-de-uso',
   ABSENTEEISM = '/dashboard/empresas/:companyId/absenteismo/lista',

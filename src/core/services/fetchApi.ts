@@ -1,4 +1,5 @@
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
+import { publishAiAccountingNotice } from '@v2/features/ai-accounting/ai-accounting-notice';
 
 import { signOut } from '../contexts/AuthContext';
 import { AuthTokenError } from './errors/AuthTokenError';
@@ -69,6 +70,12 @@ export function setupAPIClient(ctx = undefined) {
       method: 'get' | 'post' | 'patch' | 'delete';
     },
   ) {
+    if (!response.ok)
+      void response
+        .clone()
+        .json()
+        .then(publishAiAccountingNotice)
+        .catch(() => undefined);
     return new Promise((resolve, reject) => {
       resolve(response.json());
       if (response.ok) {

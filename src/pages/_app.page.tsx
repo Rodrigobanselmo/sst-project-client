@@ -1,4 +1,5 @@
 import { MutationDecisionDialog } from '@v2/features/sst-operational/MutationDecisionDialog';
+import { AiAccountingNotice } from '@v2/features/ai-accounting/AiAccountingNotice';
 import { SstEditSessionBanner } from '@v2/features/sst-operational/SstEditSessionBanner';
 import { CatalogDecisionDialog } from '@v2/features/sst-operational/CatalogDecisionDialog';
 import { StructuralDecisionDialog } from '@v2/features/sst-operational/StructuralRevisionDialog';
@@ -28,6 +29,7 @@ dayjs.extend(relativeTime);
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <DefaultProviders>
+      <AiAccountingNotice />
       <MutationDecisionDialog />
       <CatalogDecisionDialog />
       <StructuralDecisionDialog />

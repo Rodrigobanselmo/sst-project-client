@@ -8,6 +8,7 @@
  * para fase posterior após confirmação de que nenhuma rota/legado os usa.
  */
 export enum DrawerItemsEnum {
+  aiConsumption = 'aiConsumption',
   dashboard = 'dashboard',
   esocialCertificates = 'esocialCertificates',
   esocialPlatformCertificate = 'esocialPlatformCertificate',

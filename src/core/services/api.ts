@@ -1,4 +1,5 @@
 import { askSstDecision } from '@v2/features/sst-operational/mutation-decision';
+import { publishAiAccountingFailure } from '@v2/features/ai-accounting/ai-accounting-notice';
 import { askCatalogDecision } from '@v2/features/sst-operational/catalog-decision';
 import { askStructuralDecision } from '@v2/features/sst-operational/structural-decision';
 import type { CatalogPreview } from '@v2/features/sst-operational/catalog-review-model';
@@ -84,6 +85,8 @@ export function setupAPIClient(ctx = undefined) {
         !browserAuthSession.isCurrent(original.sstAuthGeneration)
       )
         return Promise.reject(new axios.Cancel('A sessão foi encerrada.'));
+      if (error.response?.status === 429)
+        await publishAiAccountingFailure(data);
       if (
         data?.code ===
           'SST_DECLARED_CHARACTERIZATION_STRUCTURE_REQUIRES_REVIEW' &&

@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { parseCookies } from "nookies";
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { publishAiAccountingNotice } from '@v2/features/ai-accounting/ai-accounting-notice';
+import { parseCookies } from 'nookies';
 
-export type RecordingState = "idle" | "recording" | "transcribing";
+export type RecordingState = 'idle' | 'recording' | 'transcribing';
 
 /** Number of bars in the waveform visualization */
 const WAVEFORM_BARS = 30;
@@ -28,11 +29,11 @@ interface UseAudioRecorderReturn {
 // Preferred audio format for optimal compression + quality
 // WebM with Opus codec provides excellent compression for speech
 const PREFERRED_MIME_TYPES = [
-  "audio/webm;codecs=opus",
-  "audio/webm",
-  "audio/ogg;codecs=opus",
-  "audio/mp4",
-  "audio/mpeg",
+  'audio/webm;codecs=opus',
+  'audio/webm',
+  'audio/ogg;codecs=opus',
+  'audio/mp4',
+  'audio/mpeg',
 ];
 
 function getSupportedMimeType(): string {
@@ -42,15 +43,15 @@ function getSupportedMimeType(): string {
     }
   }
   // Fallback to browser default
-  return "";
+  return '';
 }
 
 export function useAudioRecorder(): UseAudioRecorderReturn {
-  const [state, setState] = useState<RecordingState>("idle");
+  const [state, setState] = useState<RecordingState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>(
-    () => Array(WAVEFORM_BARS).fill(0) as number[]
+    () => Array(WAVEFORM_BARS).fill(0) as number[],
   );
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
 
@@ -95,7 +96,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
   // Update waveform visualization
   const updateWaveform = useCallback(() => {
     const analyser = analyserRef.current;
-    if (!analyser || state !== "recording") return;
+    if (!analyser || state !== 'recording') return;
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(dataArray);
@@ -129,7 +130,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
 
   // Start/stop waveform animation based on state
   useEffect(() => {
-    if (state === "recording" && analyserRef.current) {
+    if (state === 'recording' && analyserRef.current) {
       animationFrameRef.current = requestAnimationFrame(updateWaveform);
     }
     return () => {
@@ -188,7 +189,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       // Collect data every second for smoother progress
       mediaRecorder.start(1000);
       mediaRecorderRef.current = mediaRecorder;
-      setState("recording");
+      setState('recording');
 
       // Track duration
       const startTime = Date.now();
@@ -196,31 +197,31 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         setDuration(Math.floor((Date.now() - startTime) / 1000));
       }, 1000);
     } catch (err) {
-      console.error("[AudioRecorder] Error starting:", err);
+      console.error('[AudioRecorder] Error starting:', err);
       cleanup();
-      if ((err as Error).name === "NotAllowedError") {
-        setError("Microphone permission denied");
-      } else if ((err as Error).name === "NotFoundError") {
-        setError("No microphone found");
+      if ((err as Error).name === 'NotAllowedError') {
+        setError('Microphone permission denied');
+      } else if ((err as Error).name === 'NotFoundError') {
+        setError('No microphone found');
       } else {
-        setError("Failed to start recording");
+        setError('Failed to start recording');
       }
     }
   }, [cleanup]);
 
   const stopRecording = useCallback(async (): Promise<string | null> => {
     const mediaRecorder = mediaRecorderRef.current;
-    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
       cleanup();
       return null;
     }
 
     return new Promise((resolve) => {
       mediaRecorder.onstop = async () => {
-        setState("transcribing");
+        setState('transcribing');
 
         // Create blob from chunks BEFORE cleanup (cleanup clears the array)
-        const mimeType = mediaRecorder.mimeType || "audio/webm";
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
 
         // Now cleanup (stop stream, clear refs)
@@ -228,22 +229,22 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
 
         // Skip if too short (< 0.5 seconds or < 1KB)
         if (audioBlob.size < 1024) {
-          setState("idle");
+          setState('idle');
           resolve(null);
           return;
         }
 
         try {
           const cookies = parseCookies();
-          const token = cookies["nextauth.token"];
-          const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+          const token = cookies['nextauth.token'];
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
           const formData = new FormData();
-          const extension = mimeType.includes("webm") ? "webm" : "mp3";
-          formData.append("audio", audioBlob, `recording.${extension}`);
+          const extension = mimeType.includes('webm') ? 'webm' : 'mp3';
+          formData.append('audio', audioBlob, `recording.${extension}`);
 
           const response = await fetch(`${baseUrl}/ai-chat/transcribe`, {
-            method: "POST",
+            method: 'POST',
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -252,16 +253,17 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
 
           if (!response.ok) {
             const data = (await response.json()) as { message?: string };
-            throw new Error(data.message ?? "Transcription failed");
+            publishAiAccountingNotice(data);
+            throw new Error(data.message ?? 'Transcription failed');
           }
 
           const data = (await response.json()) as { text?: string };
-          setState("idle");
+          setState('idle');
           resolve(data.text ?? null);
         } catch (err) {
-          console.error("[AudioRecorder] Transcription error:", err);
-          setError((err as Error).message ?? "Transcription failed");
-          setState("idle");
+          console.error('[AudioRecorder] Transcription error:', err);
+          setError((err as Error).message ?? 'Transcription failed');
+          setState('idle');
           resolve(null);
         }
       };
@@ -272,11 +274,11 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
 
   const cancelRecording = useCallback(() => {
     const mediaRecorder = mediaRecorderRef.current;
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
     }
     cleanup();
-    setState("idle");
+    setState('idle');
     setDuration(0);
   }, [cleanup]);
 
