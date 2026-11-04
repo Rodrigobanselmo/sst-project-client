@@ -85,7 +85,7 @@ const getHomeFormParticipationPercent = (
   return Math.min(100, (totalAnswers / totalParticipants) * 100);
 };
 
-export const useCompanyStep = () => {
+export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetrics?: boolean } = {}) => {
   const { onAccessFilterBase } = useAccess();
   const {
     isGroupConsolidated,
@@ -172,7 +172,7 @@ export const useCompanyStep = () => {
       pagination: { page: 1, limit: 1 },
       filters: consolidatedFormsFilters,
     },
-    { enabled: hasCompany },
+    { enabled: hasCompany && loadSummaryMetrics },
   );
   const { formApplication: formsRelevant } = useFetchBrowseFormApplication(
     {
@@ -186,7 +186,7 @@ export const useCompanyStep = () => {
       ],
       filters: consolidatedFormsFilters,
     },
-    { enabled: hasCompany },
+    { enabled: hasCompany && loadSummaryMetrics },
   );
   const selectedFormsToShow = useMemo(
     () =>
@@ -216,7 +216,7 @@ export const useCompanyStep = () => {
       company.id,
       selectedFormIds,
     ],
-    enabled: hasCompany && !isGroupConsolidated && selectedFormIds.length > 0,
+    enabled: hasCompany && loadSummaryMetrics && !isGroupConsolidated && selectedFormIds.length > 0,
     queryFn: async () => {
       const details = await Promise.all(
         selectedFormIds.map(async (applicationId) => {
@@ -301,6 +301,7 @@ export const useCompanyStep = () => {
     enabled:
       hasCompany &&
       !isGroupConsolidated &&
+      loadSummaryMetrics &&
       actionPlanWorkspaceIds.length > 0 &&
       !isSstCharacterizationStage,
     queryFn: async () => {

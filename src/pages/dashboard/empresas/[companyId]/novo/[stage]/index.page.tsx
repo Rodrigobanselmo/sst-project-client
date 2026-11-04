@@ -1,3 +1,5 @@
+import { shouldLoadSummaryMetrics } from 'core/hooks/action-steps/summary-metrics-enabled';
+import { useRouter } from 'next/router';
 import { Box, Icon } from '@mui/material';
 import { SActionNextButton } from 'components/atoms/SActionNextButton';
 import { SContainer } from 'components/atoms/SContainer';
@@ -102,8 +104,14 @@ const ModalUploadPhoto = dynamic(
   { ssr: false },
 ) as any;
 
-const CompanyPage: NextPage = () => {
-  const props = useCompanyStep();
+const CompanyPage: NextPage = () => (
+  <CompanyWorkspaceCardsProvider><CompanyPageInner /></CompanyWorkspaceCardsProvider>
+);
+
+const CompanyPageInner = () => {
+  const { collapsed, hydrated } = useCompanyWorkspaceCardsCollapsed();
+  const { query } = useRouter();
+  const props = useCompanyStep({ loadSummaryMetrics: shouldLoadSummaryMetrics(query.stage, collapsed, hydrated) });
   const pageTitle = props.isGroupConsolidated
     ? props.businessGroupName || getCompanyName(props.company)
     : getCompanyName(props.company);
@@ -114,9 +122,7 @@ const CompanyPage: NextPage = () => {
 
       <SContainer>
         <CharacterizationInlineEditorProvider>
-          <CompanyWorkspaceCardsProvider>
-            <CompanyPageLayout {...props} />
-          </CompanyWorkspaceCardsProvider>
+          <CompanyPageLayout {...props} />
         </CharacterizationInlineEditorProvider>
       </SContainer>
     </>

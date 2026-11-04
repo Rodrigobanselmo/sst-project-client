@@ -3,8 +3,7 @@ import { SAutocompleteSelect } from '@v2/components/forms/fields/SAutocompleteSe
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import { QueryKeyFormEnum } from '@v2/constants/enums/form-query-key.enum';
-import { useFetchBrowseFormApplication } from '@v2/services/forms/form-application/browse-form-application/hooks/useFetchBrowseFormApplication';
-import { readFormApplication } from '@v2/services/forms/form-application/read-form-application/service/read-form-application.service';
+import { browseFormApplicationOptions } from './form-application-options.service';
 import { useEffect, useMemo, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -47,21 +46,15 @@ export function FormApplicationBrowseAutocomplete({
   const browseEnabled = Boolean(companyId) && enabled;
 
   const {
-    formApplication,
+    data: formApplication,
     isLoading: isBrowseLoading,
     isError: isBrowseError,
     isFetching: isBrowseFetching,
-  } = useFetchBrowseFormApplication(
-    {
-      companyId,
-      pagination: { page: 1, limit: 50 },
-      filters: {
-        search: debouncedSearch || undefined,
-        types: [FormTypeEnum.PSYCHOSOCIAL],
-      },
-    },
-    { enabled: browseEnabled },
-  );
+  } = useFetch({
+    queryKey: [QueryKeyFormEnum.FORM_APPLICATION, companyId, 'document-options', debouncedSearch],
+    queryFn: () => browseFormApplicationOptions({ companyId, search: debouncedSearch || undefined }),
+    enabled: browseEnabled,
+  });
 
   const browseOptions = useMemo<FormApplicationOption[]>(() => {
     const results = formApplication?.results ?? [];
@@ -83,8 +76,6 @@ export function FormApplicationBrowseAutocomplete({
   const shouldHydrate =
     browseEnabled &&
     Boolean(value) &&
-    !isBrowseLoading &&
-    !isBrowseError &&
     !valueInBrowse;
 
   const {
@@ -94,10 +85,8 @@ export function FormApplicationBrowseAutocomplete({
     isFetching: isHydrateFetching,
   } = useFetch({
     queryFn: async () =>
-      readFormApplication({
-        companyId,
-        applicationId: value as string,
-      }),
+      browseFormApplicationOptions({ companyId, applicationId: value as string })
+        .then((result) => result.results.find((item) => item.id === value)),
     queryKey: [
       QueryKeyFormEnum.FORM_APPLICATION,
       companyId,
@@ -135,8 +124,6 @@ export function FormApplicationBrowseAutocomplete({
       if (isBrowseError) return 'error';
       return 'ready';
     }
-    if (isBrowseLoading) return 'loading';
-    if (isBrowseError) return 'error';
     if (selected) return 'ready';
     if (shouldHydrate && (isHydrateLoading || isHydrateFetching)) {
       return 'loading';

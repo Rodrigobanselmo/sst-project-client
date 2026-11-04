@@ -105,10 +105,10 @@ const plugins = [
       requests.push(p);
       let status = 200,
         body = {};
-      if (p === '/applications') {
+      if (p === '/applications' || p.endsWith('/forms/applications/')) {
         if (appMode === 'slow') await pending;
         if (appMode === 'error') status = 503;
-        body = { results: [] };
+        body = { results: u.searchParams.has('applicationId') ? [{ id: 'application-linked', name: 'Aplicação preservada', form: { type: 'PSYCHOSOCIAL' } }] : [] };
       } else if (p === '/application')
         body = {
           id: 'application-linked',

@@ -20,8 +20,8 @@ function CompanyWorkspaceSummarySectionInner({
   hidden = false,
   forceCharacterizationActive = true,
 }: Props) {
-  const companyStep = useCompanyStep();
-  const { collapsed } = useCompanyWorkspaceCardsCollapsed();
+  const { collapsed, hydrated } = useCompanyWorkspaceCardsCollapsed();
+  const companyStep = useCompanyStep({ loadSummaryMetrics: hydrated && !collapsed && !hidden });
   useFetchFeedback(companyStep.isLoading && !companyStep.company?.id);
 
   if (hidden) return null;
