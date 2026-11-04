@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { publishAiAccountingNotice } from '@v2/features/ai-accounting/ai-accounting-notice';
 import { parseCookies } from 'nookies';
 import type { PageContext } from './use-page-context';
 
@@ -158,7 +159,11 @@ export function useAIChatStream(): UseAIChatStreamReturn {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        const failure = await response.json().catch(() => null);
+        publishAiAccountingNotice(failure);
+        throw new Error(
+          failure?.message || 'Não foi possível enviar a mensagem.',
+        );
       }
 
       const reader = response.body?.getReader();
@@ -385,6 +390,7 @@ export function useAIChatStream(): UseAIChatStreamReturn {
                   return updated;
                 });
               } else if (event.type === 'error') {
+                publishAiAccountingNotice(event);
                 setError(event.message);
               }
             } catch {

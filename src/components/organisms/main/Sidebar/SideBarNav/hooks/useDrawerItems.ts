@@ -138,6 +138,14 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.MASTER],
       shouldMatchExactHref: true,
     },
+    [DrawerItemsEnum.aiConsumption]: {
+      text: 'Consumo de IA',
+      description: 'Custos, limites diários e tarifas de IA da plataforma',
+      Icon: MdDashboard,
+      href: RoutesEnum.AI_CONSUMPTION,
+      roles: [RoleEnum.MASTER],
+      shouldMatchExactHref: true,
+    },
     [DrawerItemsEnum.dashboard]: {
       text: 'Empresas',
       description: 'Listagem/seleção de empresas',
@@ -148,7 +156,8 @@ export const useDrawerItems = () => {
     [DrawerItemsEnum.documents]: {
       text: 'Acervo Técnico',
       Icon: SDocumentIcon,
-      description: 'Documentos arquivados, versionados e controle de vencimento',
+      description:
+        'Documentos arquivados, versionados e controle de vencimento',
       href: RoutesEnum.DOCUMENTS,
       shouldMatchExactHref: false,
       roles: [RoleEnum.DOCUMENTS],
@@ -414,7 +423,8 @@ export const useDrawerItems = () => {
     },
     [DrawerItemsEnum.companyManagementDocuments]: {
       text: 'Programas e Laudos',
-      search: 'pgr pcmso periculosidade insalubridade ltcat frps laudos programas',
+      search:
+        'pgr pcmso periculosidade insalubridade ltcat frps laudos programas',
       description: 'PGR, PCMSO, Periculosidade, Insalubridade, LTCAT e FRPS',
       Icon: SDocumentIcon,
       href: RoutesEnum.COMPANY_DOCUMENTS,
@@ -509,7 +519,8 @@ export const useDrawerItems = () => {
       text: 'eSocial · Empresas atendidas',
       image: '/images/esocial-full-logo.png',
       imageType: 'esocial',
-      description: 'Pendências e resultados das empresas com contrato direto ativo',
+      description:
+        'Pendências e resultados das empresas com contrato direto ativo',
       href: RoutesEnum.ESOCIAL_PORTFOLIO,
       permissions: [PermissionEnum.ESOCIAL],
       shouldMatchExactHref: true,
@@ -628,7 +639,9 @@ export const useDrawerItems = () => {
   const onFilterBase = (item: IDrawerBase) => onAccessFilterBase(item, company);
 
   /** Filtra a árvore recursivamente; remove pais sem filhos e sem ação própria. */
-  const filterItemsRecursive = (drawerItems: IDrawerItems[]): IDrawerItems[] => {
+  const filterItemsRecursive = (
+    drawerItems: IDrawerItems[],
+  ): IDrawerItems[] => {
     return drawerItems.reduce<IDrawerItems[]>((acc, item) => {
       if (!onFilterBase(item)) return acc;
 
@@ -822,8 +835,7 @@ export const useDrawerItems = () => {
   const administration: IDrawerSection = {
     data: {
       id: 'administration',
-      search:
-        'Administração usuários permissões bloqueio agenda relatórios',
+      search: 'Administração usuários permissões bloqueio agenda relatórios',
       text: 'Administração',
       roles: [],
     },
@@ -832,6 +844,9 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.esocialCertificates],
       ...(platformCertificateAccess.allowed
         ? [items[DrawerItemsEnum.esocialPlatformCertificate]]
+        : []),
+      ...(platformCertificateAccess.allowed
+        ? [items[DrawerItemsEnum.aiConsumption]]
         : []),
       items[DrawerItemsEnum.accessGroups],
       items[DrawerItemsEnum.block],
