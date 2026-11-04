@@ -51,6 +51,9 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     company,
     creationDateLocked,
     nextVersion,
+    loadingDates,
+    datesError,
+    retryDates,
     onVersionFamilyChange,
     documentFilters,
     setDocumentFilters,
@@ -184,12 +187,21 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
               {isRegenerateMode ? 'Revisão selecionada' : 'Próxima versão'}
             </SText>
             <SText fontSize={18} fontWeight={500}>
-              {formatRevisionDisplayLabel(
-                isRegenerateMode
-                  ? lockedVersion ?? '0.0.0'
-                  : nextVersion ?? '0.0.0',
-              )}
+              {isRegenerateMode
+                ? formatRevisionDisplayLabel(lockedVersion ?? '0.0.0')
+                : loadingDates
+                  ? 'Consultando próxima revisão…'
+                  : datesError
+                    ? 'Não foi possível consultar a próxima revisão.'
+                    : nextVersion
+                      ? formatRevisionDisplayLabel(nextVersion)
+                      : 'Consultando próxima revisão…'}
             </SText>
+            {!isRegenerateMode && datesError && (
+              <SButton variant="outlined" onClick={retryDates}>
+                Tentar novamente
+              </SButton>
+            )}
           </SFlex>
 
           {missingGenerationSnapshot && (

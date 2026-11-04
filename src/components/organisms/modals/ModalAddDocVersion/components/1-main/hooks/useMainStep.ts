@@ -164,6 +164,9 @@ export const useMainStep = ({
     creationDateLocked,
     lockedCreationDate,
     nextVersion,
+    loadingDates,
+    datesError,
+    retryDates,
     onVersionFamilyChange,
   } = useDocumentFormDates({
     data,
@@ -257,6 +260,14 @@ export const useMainStep = ({
   };
 
   const onSubmit = async () => {
+    if (!isRegenerateMode && (loadingDates || datesError || !nextVersion)) {
+      return enqueueSnackbar(
+        datesError
+          ? 'Falha ao consultar a próxima revisão. Tente novamente.'
+          : 'Aguarde a consulta da próxima revisão.',
+        { variant: 'error' },
+      );
+    }
     const isValid = await trigger(fields);
     if (!isValid) return;
 
@@ -299,8 +310,10 @@ export const useMainStep = ({
     if (!data.modelId)
       return setError('model', { message: 'Campo obrigatório' });
 
+    // A lista é opcional; somente um vínculo selecionado/herdado exige hidratação.
     if (
       documentTypeBindsFormApplication(data.type) &&
+      Boolean(formApplicationIdRef.current) &&
       (formApplicationPickerStatusRef.current === 'loading' ||
         formApplicationPickerStatusRef.current === 'error')
     ) {
@@ -670,6 +683,9 @@ export const useMainStep = ({
     creationDateLocked,
     lockedCreationDate,
     nextVersion,
+    loadingDates,
+    datesError,
+    retryDates,
     onVersionFamilyChange,
     documentFilters,
     setDocumentFilters,

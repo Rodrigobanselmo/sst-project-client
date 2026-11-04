@@ -22,7 +22,7 @@ export const useDocumentRiskFilterRisks = ({
 }: UseDocumentRiskFilterRisksParams) => {
   const scopeKey = scopeIds.join(',');
 
-  const { data, isLoading, isFetching } = useQuery(
+  const { data, isLoading, isFetching, isError, refetch } = useQuery(
     [
       QueryEnum.RISK,
       'company',
@@ -49,6 +49,8 @@ export const useDocumentRiskFilterRisks = ({
 
   return {
     risks,
+    isError,
+    refetch,
     isLoading: isLoading || isFetching,
     totalLinkedRisks: (data?.data ?? []).filter((risk) => risk.isPGR).length,
   };

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Checkbox,
@@ -46,7 +46,7 @@ export const DocumentRiskFilterModal = ({
   scopeIds = [],
   value,
 }: DocumentRiskFilterModalProps) => {
-  const { risks, isLoading } = useDocumentRiskFilterRisks({
+  const { risks, isLoading, isError, refetch } = useDocumentRiskFilterRisks({
     companyId,
     workspaceId,
     scopeIds,
@@ -57,13 +57,17 @@ export const DocumentRiskFilterModal = ({
     applyRiskFilterToCheckedState(tree, value),
   );
 
+  const initialized = useRef(false);
   useEffect(() => {
-    if (open) {
+    if (!open) initialized.current = false;
+    if (open && !isLoading && !isError && !initialized.current) {
+      initialized.current = true;
       setChecked(applyRiskFilterToCheckedState(tree, value));
     }
-  }, [open, tree, value]);
+  }, [open, tree, value, isLoading, isError]);
 
   const handleConfirm = () => {
+    if (isLoading || isError || !tree.length) return;
     onConfirm(buildDocumentRiskFilterFromCheckedState(tree, checked));
     onClose();
   };
@@ -77,7 +81,14 @@ export const DocumentRiskFilterModal = ({
           categorias, subcategorias ou fatores que não devem aparecer.
         </SText>
 
-        {isLoading ? (
+        {isError ? (
+          <Box>
+            <SText>
+              Não foi possível carregar os riscos. Suas seleções foram preservadas.
+            </SText>
+            <SButton onClick={() => refetch()}>Tentar novamente</SButton>
+          </Box>
+        ) : isLoading ? (
           <Box display="flex" justifyContent="center" py={10}>
             <CircularProgress size={28} />
           </Box>
@@ -204,7 +215,7 @@ export const DocumentRiskFilterModal = ({
         <SButton variant="outlined" onClick={onClose}>
           Fechar
         </SButton>
-        <SButton onClick={handleConfirm} disabled={isLoading || tree.length === 0}>
+        <SButton onClick={handleConfirm} disabled={isLoading || isError || tree.length === 0}>
           Confirmar
         </SButton>
       </DialogActions>

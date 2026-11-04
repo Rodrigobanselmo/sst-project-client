@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import dayjs from 'dayjs';
@@ -29,8 +29,10 @@ export const useDocumentFormDates = ({
   const [lockedCreationDate, setLockedCreationDate] = useState<Date | null>(
     null,
   );
-  const [nextVersion, setNextVersion] = useState('0.0.0');
-  const [loadingDates, setLoadingDates] = useState(false);
+  const [nextVersion, setNextVersion] = useState<string | undefined>(undefined);
+  const [loadingDates, setLoadingDates] = useState(true);
+  const [datesError, setDatesError] = useState(false);
+  const requestSequence = useRef(0);
 
   const setDateFieldIfChanged = useCallback(
     (name: 'documentCreatedAt' | 'documentDate', value: Date) => {
@@ -47,7 +49,10 @@ export const useDocumentFormDates = ({
       const documentType = data.type ?? doc?.type;
       if (!data.companyId || !data.workspaceId || !documentType) return;
 
+      const requestId = ++requestSequence.current;
       setLoadingDates(true);
+      setDatesError(false);
+      setNextVersion(undefined);
 
       try {
         const [versionsResponse, documentData] = await Promise.all([
@@ -77,6 +82,7 @@ export const useDocumentFormDates = ({
             : Promise.resolve(doc),
         ]);
 
+        if (requestId !== requestSequence.current) return;
         const versions = versionsResponse?.data ?? [];
         const activeOfficialSeries =
           documentData?.officialRevisionSeries ??
@@ -149,9 +155,9 @@ export const useDocumentFormDates = ({
 
         onFamilyDefaultsApplied?.();
       } catch {
-        // falha na API não deve derrubar o modal; mantém defaults locais
+        if (requestId === requestSequence.current) setDatesError(true);
       } finally {
-        setLoadingDates(false);
+        if (requestId === requestSequence.current) setLoadingDates(false);
       }
     },
     [data.companyId, data.id, data.type, data.workspaceId, doc, getValues, onFamilyDefaultsApplied, setData, setDateFieldIfChanged, setValue],
@@ -163,6 +169,9 @@ export const useDocumentFormDates = ({
       setValue('versionFamily', family);
     }
     applyFamilyDefaults(family);
+    return () => {
+      requestSequence.current++;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.companyId, data.workspaceId, data.type, data.id]);
 
@@ -178,6 +187,11 @@ export const useDocumentFormDates = ({
     lockedCreationDate,
     nextVersion,
     loadingDates,
+    datesError,
+    retryDates: () =>
+      applyFamilyDefaults(
+        (getValues('versionFamily') || data.versionFamily || 'test') as DocumentVersionFamily,
+      ),
     onVersionFamilyChange,
   };
 };
