@@ -143,6 +143,8 @@ export function CompanyHomeSummaryCards({
                     disabled={cardProps.disabled}
                     loading={cardProps.loading}
                     statusLabel={cardProps.statusLabel}
+                    feedback={cardProps.feedback}
+                    onFeedbackRetry={cardProps.onFeedbackRetry}
                     participationPercent={cardProps.participationPercent}
                     fillGridCell
                     fillGridCellLaunch

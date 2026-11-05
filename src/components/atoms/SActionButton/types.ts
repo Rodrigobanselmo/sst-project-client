@@ -36,6 +36,9 @@ export interface ISActionButtonProps extends Partial<BoxProps> {
   };
   /** Home operacional — cards de formulários */
   statusLabel?: string;
+  /** Read-only feedback for unavailable card data; never substitutes failed counts. */
+  feedback?: string;
+  onFeedbackRetry?: () => void;
   participationPercent?: number | null;
   formCardId?: string;
   /** Preenche a célula de grid (largura/altura) sem alterar dados */
