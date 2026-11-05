@@ -1,4 +1,10 @@
-import { Box, CircularProgress, Icon, LinearProgress } from '@mui/material';
+import {
+  Button,
+  Box,
+  CircularProgress,
+  Icon,
+  LinearProgress,
+} from '@mui/material';
 import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
 import SText from 'components/atoms/SText';
 
@@ -16,6 +22,8 @@ export const SActionGroupButton = ({
   color,
   infos,
   statusLabel,
+  feedback,
+  onFeedbackRetry,
   participationPercent,
   formCardId: _formCardId,
   fillGridCell,
@@ -94,12 +102,15 @@ export const SActionGroupButton = ({
 
   const launchBodyInfos =
     isLaunchRow && launchHeaderInfo
-      ? infos?.filter((item) => item !== launchHeaderInfo) ?? []
+      ? (infos?.filter((item) => item !== launchHeaderInfo) ?? [])
       : infos;
 
   const launchBodyMid = Math.ceil((launchBodyInfos?.length ?? 0) / 2);
 
-  const renderLaunchInfo = (item: { label: string; value: string | number }) => (
+  const renderLaunchInfo = (item: {
+    label: string;
+    value: string | number;
+  }) => (
     <SText
       key={item.label}
       fontSize={12}
@@ -201,6 +212,24 @@ export const SActionGroupButton = ({
             </>
           )}
         </SFlex>
+        {feedback && !loading && (
+          <Box role="alert" sx={{ px: '8px', py: '8px' }}>
+            <SText fontSize={12} color="error.main">
+              {feedback}
+            </SText>
+            {onFeedbackRetry && (
+              <Button
+                size="small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onFeedbackRetry();
+                }}
+              >
+                Tentar novamente
+              </Button>
+            )}
+          </Box>
+        )}
         {statusLabel && !loading && !isLaunchRow && (
           <Box px={2} pt={1}>
             <SText fontSize={12} color="text.secondary" fontWeight={500}>

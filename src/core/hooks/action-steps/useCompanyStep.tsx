@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 
 import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
@@ -24,8 +25,7 @@ import { readFormApplication } from '@v2/services/forms/form-application/read-fo
 import { resolveClientFormReminderLimit } from '@v2/models/form/helpers/resolve-form-reminder-limit';
 import { isFormReminderEligible } from '@v2/services/forms/form-participants/send-form-reminder';
 import { useFetch } from '@v2/hooks/api/useFetch';
-import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
-import { browseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.service';
+import { api } from 'core/services/apiClient';
 import { useFetchReadAbsenteeismTimelineTotal } from '@v2/services/absenteeism/dashboard/read-absenteeism-timeline-total/hooks/useFetchReadAbsenteeismTimelineTotal';
 import SAbsenteeismIcon from 'assets/icons/SAbsenteeismIcon';
 import { SActionPlanIcon } from 'assets/icons/SActionPlanIcon';
@@ -285,13 +285,17 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
       ) ?? 0,
     [absenteeismTimelineTotal?.results],
   );
-  const { data: actionPlanSummary } = useFetch<{
+  const {
+    data: actionPlanSummary,
+    isError: actionPlanSummaryFailed,
+    refetch: reloadActionPlanSummary,
+  } = useQuery<{
     total: number;
     pending: number;
     progress: number;
     done: number;
     canceled: number;
-  } | null>({
+  }>({
     queryKey: [
       QueryEnum.COMPANY,
       'home-action-plan-summary',
@@ -304,37 +308,15 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
       loadSummaryMetrics &&
       actionPlanWorkspaceIds.length > 0 &&
       !isSstCharacterizationStage,
-    queryFn: async () => {
-      const countByStatus = async (status?: ActionPlanStatusEnum) => {
-        const totals = await Promise.all(
-          actionPlanWorkspaceIds.map(async (workspaceId) => {
-            try {
-              const result = await browseActionPlan({
-                companyId: company.id,
-                workspaceId,
-                pagination: { page: 1, limit: 1 },
-                ...(status ? { filters: { status: [status] } } : {}),
-              });
-              return result.pagination.total || 0;
-            } catch {
-              return 0;
-            }
-          }),
-        );
-
-        return totals.reduce((acc, n) => acc + n, 0);
-      };
-
-      const [total, pending, progress, done, canceled] = await Promise.all([
-        countByStatus(),
-        countByStatus(ActionPlanStatusEnum.PENDING),
-        countByStatus(ActionPlanStatusEnum.PROGRESS),
-        countByStatus(ActionPlanStatusEnum.DONE),
-        countByStatus(ActionPlanStatusEnum.CANCELED),
-      ]);
-
-      return { total, pending, progress, done, canceled };
-    },
+    queryFn: async ({ signal }) =>
+      (
+        await api.get(`/v2/companies/${company.id}/action-plans/home-summary`, {
+          signal,
+        })
+      ).data,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const actionPlanCompletionPercent = useMemo(() => {
@@ -1110,13 +1092,46 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
     if (!isGroupConsolidated) {
       cards.push({
         ...actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN],
-        participationPercent: actionPlanCompletionPercent,
+        participationPercent: actionPlanSummaryFailed
+          ? null
+          : actionPlanCompletionPercent,
+        feedback: actionPlanSummaryFailed
+          ? 'Não foi possível carregar o resumo.'
+          : undefined,
+        onFeedbackRetry: () => {
+          void reloadActionPlanSummary();
+        },
         infos: [
-          { label: 'Total', value: actionPlanSummary?.total ?? '--' },
-          { label: 'Pendente', value: actionPlanSummary?.pending ?? '--' },
-          { label: 'Iniciada', value: actionPlanSummary?.progress ?? '--' },
-          { label: 'Concluída', value: actionPlanSummary?.done ?? '--' },
-          { label: 'Cancelada', value: actionPlanSummary?.canceled ?? '--' },
+          {
+            label: 'Total',
+            value: actionPlanSummaryFailed
+              ? '--'
+              : (actionPlanSummary?.total ?? '--'),
+          },
+          {
+            label: 'Pendente',
+            value: actionPlanSummaryFailed
+              ? '--'
+              : (actionPlanSummary?.pending ?? '--'),
+          },
+          {
+            label: 'Iniciada',
+            value: actionPlanSummaryFailed
+              ? '--'
+              : (actionPlanSummary?.progress ?? '--'),
+          },
+          {
+            label: 'Concluída',
+            value: actionPlanSummaryFailed
+              ? '--'
+              : (actionPlanSummary?.done ?? '--'),
+          },
+          {
+            label: 'Cancelada',
+            value: actionPlanSummaryFailed
+              ? '--'
+              : (actionPlanSummary?.canceled ?? '--'),
+          },
         ],
       });
     }
@@ -1145,11 +1160,13 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
     return cards.filter((action) => onFilterBase(action));
   }, [
     actionPlanCompletionPercent,
+    reloadActionPlanSummary,
     actionPlanSummary?.canceled,
     actionPlanSummary?.done,
     actionPlanSummary?.pending,
     actionPlanSummary?.progress,
     actionPlanSummary?.total,
+    actionPlanSummaryFailed,
     actionsMapStepMemo,
     absenteeismLostDaysTotal,
     absenteeismTotalCount,
@@ -1408,7 +1425,7 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
         items: [
           {
             ...actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN],
-            count: actionPlanSummary?.total || 0,
+            count: actionPlanSummaryFailed ? undefined : actionPlanSummary?.total,
           },
           {
             ...actionsMapStepMemo[CompanyActionEnum.ABSENTEEISM],
@@ -1430,6 +1447,7 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
     ];
   }, [
     actionPlanSummary?.total,
+    actionPlanSummaryFailed,
     actionsMapStepMemo,
     absenteeismTotalCount,
     formsTotal?.pagination.total,
