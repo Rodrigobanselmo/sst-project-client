@@ -27,7 +27,8 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
   const cls = ['org-tree-node'];
 
   const { horizontal, collapsable } = prop;
-  const canExpand = canExpandOrgNode(node);
+  const childrenIds = prop.visibleHierarchy?.children.get(id) ?? node.childrenIds;
+  const canExpand = canExpandOrgNode({ ...node, childrenIds });
   const showEmployeeLeaves = hasOrgEmployeeLeaves(node);
 
   if (!canExpand) {
@@ -44,11 +45,11 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
       horizontal={horizontal ? 1 : 0}
       className={cls.join(' ')}
     >
-      <RenderCard node={node} prop={prop} />
+      <RenderCard node={node} prop={prop} canExpand={canExpand} />
       {(!collapsable || expanded) && (
         <RenderChildren
           nodeId={node.id}
-          list={node.childrenIds}
+          list={childrenIds}
           prop={prop}
           extra={
             showEmployeeLeaves ? (
@@ -57,10 +58,10 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
           }
         />
       )}
-      {node.childrenIds.includes('mock_id') && !expanded && (
+      {collapsable && !expanded && childrenIds.includes('mock_id') && (
         <RenderChildren
           nodeId={node.id}
-          list={node.childrenIds.filter((child) => child === 'mock_id')}
+          list={childrenIds.filter((child) => child === 'mock_id')}
           prop={prop}
         />
       )}

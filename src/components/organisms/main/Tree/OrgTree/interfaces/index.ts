@@ -4,13 +4,16 @@ import { CSSProperties } from 'react';
 import { IGho } from 'core/interfaces/api/IGho';
 
 import { TreeTypeEnum } from '../enums/tree-type.enums';
+import type { VisibleHierarchy } from '../utils/project-visible-hierarchy';
 export interface IOrgTreeProps {
   horizontal?: boolean;
   showGHO?: boolean;
   collapsable?: boolean;
 }
 
-export interface IOrgTreeNodeProps extends IOrgTreeProps {}
+export interface IOrgTreeNodeProps extends IOrgTreeProps {
+  visibleHierarchy?: VisibleHierarchy;
+}
 
 export interface ITreeMapObject {
   parentId: string | number | null;

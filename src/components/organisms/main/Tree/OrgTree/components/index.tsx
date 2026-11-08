@@ -11,7 +11,9 @@ import { RenderNode } from './RenderNode';
 export const TreeNode = (props: IOrgTreeNodeProps) => {
   return (
     <DndProvider backend={HTML5Backend}>
-      <RenderNode id={firstNodeId} prop={props} first />
+      {(props.visibleHierarchy?.roots ?? [firstNodeId]).map((id) => (
+        <RenderNode key={id} id={id} prop={props} first />
+      ))}
     </DndProvider>
   );
 };

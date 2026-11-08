@@ -14,10 +14,12 @@ export function GseReviewNavigation({
   containerRef,
   onChangeZoom,
   environmentWorkspaceId,
+  onRevealTarget,
 }: {
   containerRef: React.RefObject<HTMLDivElement | null>;
   onChangeZoom: (scale: number) => void;
   environmentWorkspaceId?: string;
+  onRevealTarget: (id: string) => void;
 }) {
   const ctx = useGseVisualAssistance();
   const treeNodes = useAppSelector(selectAllHierarchyTreeNodes);
@@ -64,6 +66,7 @@ export function GseReviewNavigation({
       );
       return;
     }
+    onRevealTarget(targets[index]);
     const reveal = [...new Set([...ancestors, ...targets])];
     reveal.forEach((id) => {
       const n = nodes[id];

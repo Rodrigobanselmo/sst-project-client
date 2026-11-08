@@ -35,7 +35,13 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
 export const OrgTree = styled.div<IHorizontal>`
   display: table;
   text-align: center;
-  /* padding-bottom: 1600px; */ //*
+  ${({ horizontal }) =>
+    horizontal &&
+    css`
+      &.org-tree-compact > .org-tree-node-first {
+        display: block;
+      }
+    `}
 
   &:before,
   &:after {

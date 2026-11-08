@@ -38,11 +38,12 @@ import {
 } from '../../../../constants/hierarchy-selection.constant';
 import { usePreventNode } from '../../../../hooks/usePreventNode';
 import { HierarchyDndModeToggle } from '../../../HierarchyDndModeToggle';
-import { HierarchyLegend } from '../../../HierarchyLegend';
 import { STSInput } from './styles';
 import { GhoHeaderProps } from './types';
 
-export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
+export const HierarchyFilter: FC<
+  { children?: React.ReactNode; renderedIds?: ReadonlySet<string | number> } & GhoHeaderProps
+> = ({ children, renderedIds }) => {
   const dispatch = useAppDispatch();
   const { onOpenModal } = useModal();
   const { isValidPermissions } = useAccess();
@@ -110,7 +111,10 @@ export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
     const visibleIds = Object.values(nodes)
       .filter(
         (node) =>
-          !node.hide && isHierarchyNodeSelectable(node) && node.id !== 'mock_id',
+          !node.hide &&
+          (renderedIds?.has(node.id) ?? true) &&
+          isHierarchyNodeSelectable(node) &&
+          node.id !== 'mock_id',
       )
       .map((node) => String(node.id));
     dispatch(setSelectedNodeIds(visibleIds));
@@ -318,7 +322,7 @@ export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
         </>
       )}
 
-      <HierarchyLegend />
+      {children}
     </SFlex>
   );
 };

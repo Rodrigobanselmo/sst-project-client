@@ -1,60 +1,104 @@
-import React, { FC } from 'react';
-
-import { Box } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
-import SText from 'components/atoms/SText';
+import { Box, Button, Typography } from '@mui/material';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
 import { hierarchyNodeVisualIdentity } from '../../constants/hierarchy-node-visual.constant';
+import { TreeTypeEnum } from '../../enums/tree-type.enums';
+import { canHideHierarchyLevel } from '../../utils/project-visible-hierarchy';
 import { resolveHierarchyLegendItems } from '../../utils/resolve-hierarchy-node-type-label';
 
-export const HierarchyLegend: FC = () => {
+export function HierarchyLegend({
+  hiddenLevels,
+  onToggle,
+  onReset,
+}: {
+  hiddenLevels: ReadonlySet<TreeTypeEnum>;
+  onToggle: (type: TreeTypeEnum) => void;
+  onReset: () => void;
+}) {
   const typeLabels = useHierarchyTypeLabels();
   const legendItems = resolveHierarchyLegendItems(typeLabels);
 
   return (
-    <SFlex
-      aria-label="Legenda do organograma"
+    <Box
+      role="group"
+      aria-label="Níveis visíveis do organograma"
       sx={{
+        display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
-        gap: 1.5,
-        minWidth: 0,
-        flex: '1 1 240px',
-        px: 1.5,
-        py: 0.5,
-        borderRadius: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.78)',
-        border: '1px solid',
-        borderColor: 'grey.200',
-        pointerEvents: 'none',
+        gap: 3,
+        mx: 13,
+        mt: 4,
+        mb: 3,
       }}
     >
-      {legendItems.map((item) => {
-        const visual = hierarchyNodeVisualIdentity[item.type];
+      <Typography variant="body2" fontWeight={600}>
+        Níveis visíveis
+      </Typography>
+      {legendItems.map(({ type, label }) => {
+        const visual = hierarchyNodeVisualIdentity[type];
+        const canHide = canHideHierarchyLevel(type);
+        const visible = !hiddenLevels.has(type);
+        const swatch = (
+          <Box
+            component="span"
+            aria-hidden
+            sx={{
+              width: 16,
+              height: 16,
+              borderRadius: '3px',
+              bgcolor: visual.headerBg,
+              border: `2px solid ${visual.border}`,
+              flexShrink: 0,
+            }}
+          />
+        );
+        const itemSx = {
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 2,
+          minHeight: 32,
+          px: 3,
+          fontSize: 13,
+          lineHeight: 1.2,
+          color: visible ? 'text.primary' : 'text.secondary',
+          textTransform: 'none',
+        } as const;
 
-        return (
-          <SFlex key={item.type} center gap={1}>
-            <Box
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: '2px',
-                backgroundColor: visual.headerBg,
-                border: `1px solid ${visual.border}`,
-                flexShrink: 0,
-              }}
-            />
-            <SText
-              color="text.light"
-              fontSize={10}
-              sx={{ lineHeight: 1, whiteSpace: 'nowrap' }}
-            >
-              {item.label}
-            </SText>
-          </SFlex>
+        return canHide ? (
+          <Button
+            key={type}
+            variant="outlined"
+            aria-pressed={visible}
+            onClick={() => onToggle(type)}
+            sx={{
+              ...itemSx,
+              bgcolor: visible ? 'background.paper' : 'transparent',
+              borderColor: 'divider',
+              borderStyle: visible ? 'solid' : 'dashed',
+              textDecoration: visible ? 'none' : 'line-through',
+            }}
+          >
+            {swatch}
+            {label}
+          </Button>
+        ) : (
+          <Box
+            key={type}
+            component="span"
+            title="Este nível fica sempre visível"
+            sx={itemSx}
+          >
+            {swatch}
+            {label}
+          </Box>
         );
       })}
-    </SFlex>
+      {hiddenLevels.size > 0 && (
+        <Button size="small" onClick={onReset} sx={{ textTransform: 'none' }}>
+          Mostrar todos
+        </Button>
+      )}
+    </Box>
   );
-};
+}

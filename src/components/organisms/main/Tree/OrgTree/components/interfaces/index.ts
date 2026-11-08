@@ -21,6 +21,7 @@ export interface IRender {
 }
 
 export interface IRenderCard {
+  canExpand: boolean;
   node: ITreeMapObject;
   prop: IOrgTreeNodeProps;
 }

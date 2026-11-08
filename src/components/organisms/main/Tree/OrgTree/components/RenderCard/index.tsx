@@ -15,7 +15,6 @@ import { useModal } from 'core/hooks/useModal';
 import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
 import { useHierarchyTreeActions } from '../../../../../../../core/hooks/useHierarchyTreeActions';
 import { isHierarchyNodeSelectable } from '../../constants/hierarchy-selection.constant';
-import { canExpandOrgNode } from '../../utils/get-org-employee-leaves';
 import {
   getEstablishmentGroupIdFromTreeId,
   isEstablishmentGroupTreeType,
@@ -26,7 +25,7 @@ import { NodeCard } from './components/NodeCard';
 import { useDnd } from './hooks/useDnd';
 import { STCardArea, STRenderLabel } from './styles';
 
-export const RenderCard = ({ node, prop }: IRenderCard) => {
+export const RenderCard = ({ node, prop, canExpand }: IRenderCard) => {
   const assisted = !!useGseVisualAssistance()?.active;
   const dispatch = useAppDispatch();
   const { setSelectedItem } = useHierarchyTreeActions();
@@ -114,7 +113,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
           menuRef={menuRef}
           node={node}
         />
-        {prop.collapsable && canExpandOrgNode(node) && (
+        {prop.collapsable && canExpand && (
           <RenderBtn prop={prop} node={node} />
         )}
       </STRenderLabel>

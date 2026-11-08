@@ -1,12 +1,14 @@
 import { GseFloatingPanel } from './components/GseVisualAssistance/GseFloatingPanel';
 import { GseReviewNavigation } from './components/GseVisualAssistance/GseReviewNavigation';
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Box, Icon, Stack } from '@mui/material';
 import SSlider from 'components/atoms/SSlider';
 import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
 import {
+  clearSelectedNodeIds,
+  selectAllHierarchyTreeNodes,
   setCopyDndActive,
   setHierarchySearch,
 } from 'store/reducers/hierarchy/hierarchySlice';
@@ -25,6 +27,9 @@ import { TreeNode } from './components';
 import { BottomButton } from './components/BottomButton';
 import { GhoTool } from './components/GhoTool';
 import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
+import { HierarchyLegend } from './components/HierarchyLegend';
+import { TreeTypeEnum } from './enums/tree-type.enums';
+import { projectVisibleHierarchy } from './utils/project-visible-hierarchy';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { MouseControl } from './components/MouseControl';
 import { RiskTool } from './components/RiskTool/RiskTool';
@@ -57,6 +62,38 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
   }, [dispatch]);
 
   const { query } = useRouter();
+  const nodes = useAppSelector(selectAllHierarchyTreeNodes);
+  const [hiddenLevels, setHiddenLevels] = useState<Set<TreeTypeEnum>>(
+    () => new Set(),
+  );
+  useEffect(() => setHiddenLevels(new Set()), [query.companyId]);
+
+  const visibleHierarchy = useMemo(
+    () => hiddenLevels.size
+      ? projectVisibleHierarchy(nodes, hiddenLevels, collapsable)
+      : undefined,
+    [nodes, hiddenLevels, collapsable],
+  );
+
+  const toggleLevel = (type: TreeTypeEnum) => {
+    dispatch(clearSelectedNodeIds());
+    setHiddenLevels((previous) => {
+      const next = new Set(previous);
+      if (!next.delete(type)) next.add(type);
+      return next;
+    });
+  };
+
+  const revealLinkLevel = (id: string) => {
+    const type = nodes[id]?.type;
+    if (!type || !hiddenLevels.has(type)) return;
+    setHiddenLevels((previous) => {
+      const next = new Set(previous);
+      next.delete(type);
+      return next;
+    });
+  };
+
   const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
   const isRiskOpen = Boolean(query.riskGroupId) && !isOrgMultiWorkspace;
   const { onChangeZoom, scale, zoomStyle } = useZoom(orgContainerRef, {
@@ -78,6 +115,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
       <GseReviewNavigation
         containerRef={orgContainerRef}
         onChangeZoom={onChangeZoom}
+        onRevealTarget={revealLinkLevel}
         environmentWorkspaceId={
           showGHO && !assisted && isGhoOpen && !isRiskOpen && !isOrgMultiWorkspace &&
           typeof query.tabWorkspaceId === 'string'
@@ -85,16 +123,25 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
             : undefined
         }
       />
-      {!assisted && <HierarchyFilter />}
-      {query.companyId && !assisted && (
-        <Box sx={{ mx: '16px', mb: '16px' }}>
-          <StructuralArchivedButton
-            companyId={String(query.companyId)}
-            table="Hierarchy"
-            label="Consultar cargos e setores encerrados"
-          />
-        </Box>
+      {!assisted && (
+        <HierarchyFilter renderedIds={visibleHierarchy?.renderedIds}>
+          {query.companyId && (
+            <StructuralArchivedButton
+              companyId={String(query.companyId)}
+              table="Hierarchy"
+              label="Consultar cargos e setores encerrados"
+            />
+          )}
+        </HierarchyFilter>
       )}
+      <HierarchyLegend
+        hiddenLevels={hiddenLevels}
+        onToggle={toggleLevel}
+        onReset={() => {
+          dispatch(clearSelectedNodeIds());
+          setHiddenLevels(new Set());
+        }}
+      />
       <Box sx={{ width: 278, ml: 17 }}>
         <Stack spacing={5} direction="row" sx={{ mb: 1 }} alignItems="center">
           <SSlider
@@ -152,10 +199,19 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
               style={zoomStyle}
               horizontal={horizontal}
             >
-              <OrgTree horizontal={horizontal}>
+              {visibleHierarchy && visibleHierarchy.roots.length === 0 && (
+                <Box role="status" sx={{ color: 'text.secondary' }}>
+                  Nenhum item encontrado nos níveis visíveis.
+                </Box>
+              )}
+              <OrgTree
+                horizontal={horizontal}
+                className={visibleHierarchy ? 'org-tree-compact' : undefined}
+              >
                 <TreeNode
                   horizontal={horizontal}
                   collapsable={collapsable}
+                  visibleHierarchy={visibleHierarchy}
                   {...props}
                 />
               </OrgTree>
