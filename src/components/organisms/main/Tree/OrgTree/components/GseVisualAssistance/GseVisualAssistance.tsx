@@ -1,3 +1,11 @@
+import { fetchActiveHierarchyLinks } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.api';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { getHierarchyIdFromTreeId } from '../../utils/get-copy-hierarchy-destinations';
+import {
+  createStartEndDateDraft,
+  resolveStartEndDates,
+} from 'components/organisms/modals/ModalAddCharacterization/hooks/start-end-date-model';
+import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { preliminaryGseDistribution } from './gse-ai-preliminary';
 import { GseConsultativeInfo } from './GseConsultativeInfo';
 import { useQuery } from 'react-query';
@@ -35,6 +43,7 @@ import {
 } from 'store/reducers/hierarchy/hierarchySlice';
 import { AiAnalyzeGuidanceAudioField } from 'components/organisms/modals/ModalAddCharacterization/components/ModalAiAnalysisContent/AiAnalyzeGuidanceAudioField';
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
+import type { HistoricalGseLinkChange } from './GseVisualAssistance.context';
 import {
   GseVisualAssistanceContext,
   useGseVisualAssistance,
@@ -47,6 +56,8 @@ import {
   scopedExistingGroups,
   generateIntegratedReview,
   addReviewChange,
+  canReviewNode,
+  directGroupIds,
   decideReviewChange,
   decideCreation,
   REVIEW_COLORS,
@@ -77,7 +88,13 @@ export function GseVisualAssistanceProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [persistenceBusy, setPersistenceBusy] = useState(false);
+  const [persistenceBusy, setBusy] = useState(false);
+  const persistenceLock = useRef(false);
+  const setPersistenceBusy = (busy: boolean) => {
+    persistenceLock.current = busy;
+    setBusy(busy);
+  };
+  const multiWorkspace = useOrgMultiWorkspaceMode();
   const [aiAnalysisActive, setAiAnalysisActive] = useState(false);
   const nodes = useAppSelector(selectAllHierarchyTreeNodes),
     selectedWorkspace = useAppSelector(selectWorkplaceId);
@@ -263,10 +280,109 @@ export function GseVisualAssistanceProvider({
       );
     }
   };
-  const propose = (groupId: string, nodeId: string, kind: 'ADD' | 'REMOVE') =>
+  const propose = (
+    groupId: string,
+    nodeId: string,
+    kind: 'ADD' | 'REMOVE',
+    manualAddition = false,
+  ) =>
     update((r) =>
-      addReviewChange(r, nodes, groups, workspaceId, groupId, nodeId, kind),
+      addReviewChange(r, nodes, groups, workspaceId, groupId, nodeId, kind, manualAddition),
     );
+  const directLinkRequiresEndDate = async () => {
+    const { data } = await api.get<{ requiresEndDate: boolean }>(
+      `${ApiRoutesEnum.GHO}/direct-gse-unlink-mode/${companyId}`,
+    );
+    if (typeof data?.requiresEndDate !== 'boolean') throw new Error('Regra de remoção indisponível.');
+    return data.requiresEndDate;
+  };
+  const endDirectLink = async (groupId: string, nodeId: string, day?: string) => {
+    const node = nodes[nodeId];
+    if (
+      !active ||
+      multiWorkspace ||
+      persistenceLock.current ||
+      stale ||
+      !canReviewNode(node, workspaceId) ||
+      groupId !== selectedGroupId ||
+      !directGroupIds(node, groups).includes(groupId)
+    )
+      throw new Error('Selecione um vínculo direto do GSE neste estabelecimento.');
+
+    setPersistenceBusy(true);
+    try {
+      const activeLinks = await fetchActiveHierarchyLinks({
+        companyId,
+        homogeneousGroupId: groupId,
+      });
+      const hierarchyId = getHierarchyIdFromTreeId(nodeId);
+      const matches = activeLinks.links.filter(
+        (link) => link.hierarchyId === hierarchyId && link.endDate === null,
+      );
+      if (activeLinks.homogeneousGroupId !== groupId)
+        throw new Error('A consulta retornou vínculos de outro GSE. Atualize o organograma e tente novamente.');
+      if (matches.length === 0) {
+        await invalidateGhoAndHierarchyFamilies(companyId);
+        throw new Error(`Não há vínculo direto ativo entre “${node.label}” e o GSE selecionado.`);
+      }
+      if (matches.length > 1)
+        throw new Error(`Há mais de um vínculo direto ativo entre “${node.label}” e o GSE selecionado. Nenhum vínculo foi alterado.`);
+      const [link] = matches;
+      if (latest.current.scope !== scope || latest.current.signature !== signature)
+        throw new Error('O contexto do vínculo mudou. Confira a seleção e tente novamente.');
+      if (day === undefined) {
+        await api.post(`${ApiRoutesEnum.GHO}/direct-gse-unlink/${companyId}`, {
+          groupId,
+          hierarchyId,
+          workspaceId,
+          linkId: link.id,
+        });
+        await invalidateGhoAndHierarchyFamilies(companyId);
+        return;
+      }
+      const period = createStartEndDateDraft({
+        startDate: link.startDate ? new Date(link.startDate) : null,
+      });
+      const { endDate } = resolveStartEndDates({
+        ...period,
+        endDate: day,
+        endDateChanged: true,
+      });
+      if (
+        !endDate ||
+        latest.current.scope !== scope ||
+        latest.current.signature !== signature
+      )
+        throw new Error('O contexto do vínculo mudou. Confira a seleção e tente novamente.');
+
+      await api.post(`${ApiRoutesEnum.GHO}/hierarchy-homo/${companyId}`, {
+        ids: [link.id],
+        companyId,
+        endDate,
+      });
+      await invalidateGhoAndHierarchyFamilies(companyId);
+    } finally {
+      setPersistenceBusy(false);
+    }
+  };
+  const changeHistoricalLink = async (groupId: string, nodeId: string, change: HistoricalGseLinkChange) => {
+    if (
+      !active || multiWorkspace || persistenceLock.current || stale ||
+      groupId !== selectedGroupId || !canReviewNode(nodes[nodeId], workspaceId)
+    ) throw new Error('Selecione um cargo ou setor deste estabelecimento e confira o GSE.');
+    setPersistenceBusy(true);
+    try {
+      await api.post(`${ApiRoutesEnum.GHO}/historical-gse-link/${companyId}`, {
+        ...change,
+        groupId,
+        hierarchyId: getHierarchyIdFromTreeId(nodeId),
+        workspaceId,
+      });
+      await invalidateGhoAndHierarchyFamilies(companyId);
+    } finally {
+      setPersistenceBusy(false);
+    }
+  };
   const decide = (id: string, value: ReviewState) =>
     update((r) => decideReviewChange(r, id, value));
   const decideGroup = (id: string, value: ReviewState) => {
@@ -291,6 +407,9 @@ export function GseVisualAssistanceProvider({
       value={{
         persistenceBusy,
         setPersistenceBusy,
+        directLinkRequiresEndDate,
+        endDirectLink,
+        changeHistoricalLink,
         persisted: async (request, result) => {
           const savedScope = scope;
           setSession((previous) =>

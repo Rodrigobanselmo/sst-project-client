@@ -4,6 +4,7 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 import { IGho } from 'core/interfaces/api/IGho';
 
 export interface GhoInputProps extends Omit<Partial<SInputProps>, 'onSearch'> {
+  fillPanelWidth?: boolean;
   isAddLoading?: boolean;
   small?: boolean;
   debounceTime?: number;

@@ -38,6 +38,8 @@ export type WorkspaceBrowseAutocompleteProps = WorkspaceBrowseAutocompleteBase &
     | {
         multiple: true;
         workspaceIds?: string[];
+        eligibleWorkspaceIds?: string[];
+        emptyPlaceholder?: string;
         onChange: (workspaceIds: string[]) => void;
       }
   );
@@ -63,9 +65,15 @@ export function WorkspaceBrowseAutocomplete(
     );
   }, [workspaces?.results]);
 
+  const eligibleWorkspaceIds = props.multiple ? props.eligibleWorkspaceIds : undefined;
   const options = useMemo(
-    () => workspaceList.map((w) => ({ label: w.name, value: w.id })),
-    [workspaceList],
+    () => {
+      const eligibleIds = eligibleWorkspaceIds && new Set(eligibleWorkspaceIds);
+      return workspaceList
+        .filter((workspace) => !eligibleIds || eligibleIds.has(workspace.id))
+        .map((workspace) => ({ label: workspace.name, value: workspace.id }));
+    },
+    [workspaceList, eligibleWorkspaceIds],
   );
 
   if (suppressWhenNotMultiple) {
@@ -87,6 +95,7 @@ export function WorkspaceBrowseAutocomplete(
     <HierarchyWorkspaceMultiAutocomplete
       options={options}
       workspaceIds={props.workspaceIds}
+      emptyPlaceholder={props.emptyPlaceholder}
       onChange={props.onChange}
       compact={compact}
       allowEmptyWorkspace={allowEmptyWorkspace}
@@ -144,6 +153,7 @@ export function WorkspaceBrowseAutocomplete(
 function HierarchyWorkspaceMultiAutocomplete({
   options,
   workspaceIds,
+  emptyPlaceholder = 'Toda a empresa',
   onChange,
   compact,
   allowEmptyWorkspace,
@@ -153,6 +163,7 @@ function HierarchyWorkspaceMultiAutocomplete({
 }: {
   options: WorkspaceOption[];
   workspaceIds?: string[];
+  emptyPlaceholder?: string;
   onChange: (workspaceIds: string[]) => void;
   compact: boolean;
   allowEmptyWorkspace: boolean;
@@ -209,7 +220,7 @@ function HierarchyWorkspaceMultiAutocomplete({
             compact
               ? selected.length
                 ? ''
-                : 'Toda a empresa'
+                : emptyPlaceholder
               : 'Digite para buscar por nome...'
           }
           sx={

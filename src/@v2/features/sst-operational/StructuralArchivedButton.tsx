@@ -34,12 +34,14 @@ export function StructuralArchivedButton({
   workspaceId,
   label = 'Consultar cadastros encerrados',
   disabled = false,
+  fullWidth = false,
 }: {
   companyId: string;
   table: StructuralTable;
   workspaceId?: string;
   label?: string;
   disabled?: boolean;
+  fullWidth?: boolean;
 }) {
   const access = useSstAccess();
   const [open, setOpen] = useState(false);
@@ -64,6 +66,7 @@ export function StructuralArchivedButton({
       <Button
         type="button"
         variant="outlined"
+        fullWidth={fullWidth}
         disabled={disabled}
         onClick={() => {
           setOpen(true);

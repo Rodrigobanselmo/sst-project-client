@@ -20,7 +20,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { StructuralArchivedButton } from '@v2/features/sst-operational/StructuralArchivedButton';
 
-import { useZoom } from '../../../../../core/hooks/useZoom';
+import { MIN_TREE_SCALE, useZoom } from '../../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
 import { BottomButton } from './components/BottomButton';
 import { GhoTool } from './components/GhoTool';
@@ -59,7 +59,9 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
   const { query } = useRouter();
   const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
   const isRiskOpen = Boolean(query.riskGroupId) && !isOrgMultiWorkspace;
-  const { onChangeZoom, onGetScale } = useZoom(orgContainerRef);
+  const { onChangeZoom, scale, zoomStyle } = useZoom(orgContainerRef, {
+    wheelZoom: false,
+  });
 
   return (
     <Box
@@ -76,6 +78,12 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
       <GseReviewNavigation
         containerRef={orgContainerRef}
         onChangeZoom={onChangeZoom}
+        environmentWorkspaceId={
+          showGHO && !assisted && isGhoOpen && !isRiskOpen && !isOrgMultiWorkspace &&
+          typeof query.tabWorkspaceId === 'string'
+            ? query.tabWorkspaceId
+            : undefined
+        }
       />
       {!assisted && <HierarchyFilter />}
       {query.companyId && !assisted && (
@@ -91,8 +99,13 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
         <Stack spacing={5} direction="row" sx={{ mb: 1 }} alignItems="center">
           <SSlider
             color="secondary"
-            defaultValue={100}
-            onChange={(e, v) => onChangeZoom(onGetScale(v as number, 100, 0))}
+            aria-label="Zoom do organograma"
+            min={MIN_TREE_SCALE * 100}
+            max={100}
+            value={Math.round(scale * 100)}
+            onChange={(_, value) => {
+              if (typeof value === 'number') onChangeZoom(value / 100);
+            }}
           />
           <Icon
             sx={{
@@ -136,6 +149,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
             <OrgTreeContainer
               id="org-tree-container"
               ref={orgContainerRef}
+              style={zoomStyle}
               horizontal={horizontal}
             >
               <OrgTree horizontal={horizontal}>
@@ -155,14 +169,17 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
         </GseFloatingPanel>
       )}
       {showGHO && !assisted && (
-        <STGhoBox
-          expanded={!assisted && selectExpanded ? 1 : 0}
-          gho={isGhoOpen ? 1 : 0}
-          risk_init={!assisted && isRiskOpen ? 1 : 0}
-        >
-          {!assisted && isRiskOpen && <RiskTool />}
-          {!isRiskOpen && <GhoTool key="environment" environmentOnly />}
-        </STGhoBox>
+        isRiskOpen ? (
+          <STGhoBox
+            expanded={selectExpanded ? 1 : 0}
+            gho={isGhoOpen ? 1 : 0}
+            risk_init={1}
+          >
+            <RiskTool />
+          </STGhoBox>
+        ) : (
+          <GhoTool key="environment" environmentOnly />
+        )
       )}
     </Box>
   );

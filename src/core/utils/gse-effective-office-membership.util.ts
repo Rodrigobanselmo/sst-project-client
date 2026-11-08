@@ -63,6 +63,20 @@ export function isActiveGseHierarchyLink(link: {
   return !!link && !link.endDate && !link.deletedAt;
 }
 
+/** Usa a lista detalhada quando ela acompanha a projeção do GSE no organograma. */
+export function hasActiveGseTreeLink(
+  links: readonly (GseCoverageLink & { workspaceId?: string | null })[] | undefined,
+  hierarchyId: string,
+  workspaceId: string,
+): boolean {
+  return links?.some(
+    (link) =>
+      link.hierarchyId === hierarchyId &&
+      (!link.workspaceId || link.workspaceId === workspaceId) &&
+      isActiveGseHierarchyLink(link),
+  ) ?? true;
+}
+
 export function formatGseInheritedOriginLabel(params: {
   sourceType?: string | null;
   sourceName?: string | null;

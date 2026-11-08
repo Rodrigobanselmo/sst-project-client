@@ -21,6 +21,7 @@ export const GhoToolTopButtons: FC<
   const assistance = useGseVisualAssistance();
   const dispatch = useAppDispatch();
   const busy = useOrgPanelBusy();
+  const floating = environmentOnly || assistance?.active;
 
   const handleCloseRisk = () => {
     if (busy) return;
@@ -34,10 +35,10 @@ export const GhoToolTopButtons: FC<
 
   return (
     <SFlex
-      data-gse-drag-handle={assistance?.active ? true : undefined}
-      tabIndex={assistance?.active ? 0 : undefined}
+      data-gse-drag-handle={floating ? true : undefined}
+      tabIndex={floating ? 0 : undefined}
       aria-label={
-        assistance?.active
+        floating
           ? 'Mover painel: arraste ou use as setas do teclado'
           : undefined
       }
@@ -60,11 +61,11 @@ export const GhoToolTopButtons: FC<
       <SText
         sx={{ flex: 1, minWidth: 0 }}
         fontSize="0.9rem"
-        color={assistance?.active ? 'text.primary' : 'GrayText'}
+        color={floating ? 'text.primary' : 'GrayText'}
       >
         {environmentOnly ? 'Ambientes' : 'Grupo similar de exposição'}
       </SText>
-      {assistance?.active && (
+      {floating && (
         <Tooltip title="Arraste esta área para mover o painel">
           <Box
             component="span"

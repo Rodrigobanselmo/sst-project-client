@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
+import { addReviewChange } from './gse-integrated-review.model';
 import { summarizeApprovedGseAdditions } from './gse-approved-additions';
 import type { AssistanceContextValue } from './GseVisualAssistance.context';
 import type { ITreeMapObject } from '../../interfaces';
 import { TreeTypeEnum as T } from '../../enums/tree-type.enums';
+import { hasActiveGseTreeLink } from 'core/utils/gse-effective-office-membership.util';
 import type { IGho } from 'core/interfaces/api/IGho';
 const g = {
   id: 'g',
@@ -60,6 +62,17 @@ const test = (name: string, fn: () => void) => {
   count++;
   console.log('PASS', name);
 };
+test('the tree drops ended and deleted links without dropping another active period', () => {
+  const history = [
+    { hierarchyId: 'a', endDate: '2026-11-08' },
+    { hierarchyId: 'a', deletedAt: '2026-11-08' },
+    { hierarchyId: 'a', workspaceId: 'other' },
+    { hierarchyId: 'b' },
+  ];
+  assert.equal(hasActiveGseTreeLink(history, 'a', 'w'), false);
+  assert.equal(hasActiveGseTreeLink(history, 'b', 'w'), true);
+  assert.equal(hasActiveGseTreeLink([...history, { hierarchyId: 'a' }], 'a', 'w'), true);
+});
 test('no approved operations disables confirmation, pending and rejected never count', () => {
   const c = context();
   c.review.changes = [
@@ -76,6 +89,16 @@ test('approved addition enables summary, reopening or rejection removes authoriz
     c.review.changes[0].decision = decision;
     assert.equal(summarizeApprovedGseAdditions(c).applicable, false);
   }
+});
+test('manual addition stages only the selected direct link for confirmation', () => {
+  const c = context();
+  c.nodes['a//w'].ghos = [g];
+  c.review = addReviewChange(c.review, c.nodes, c.groups, 'w', 'g', 'b//w', 'ADD', true);
+  assert.equal(c.review.changes[0].decision, 'accepted');
+  assert.deepEqual(summarizeApprovedGseAdditions(c).existingGroups[0].links.map((link) => link.hierarchyId), ['b']);
+  assert.deepEqual(c.nodes['a//w'].ghos, [g]);
+  c.nodes['s//w'].ghos = [g];
+  assert.throws(() => addReviewChange(c.review, c.nodes, c.groups, 'w', 'g', 'b//w', 'ADD', true), /vínculo superior/);
 });
 test('final reviewed name and only approved links of approved creation appear', () => {
   const c = context();

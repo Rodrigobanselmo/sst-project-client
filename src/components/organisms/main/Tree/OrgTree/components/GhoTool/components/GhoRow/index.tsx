@@ -45,6 +45,7 @@ export const GhoRow = React.memo<GhoRowProps>(
     return (
       <>
         <SFlex
+          data-gho-row
           key={gho.id}
           ref={ref}
           sx={{

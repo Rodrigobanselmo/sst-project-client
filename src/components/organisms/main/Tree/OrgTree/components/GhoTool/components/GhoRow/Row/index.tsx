@@ -58,8 +58,12 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
   const actionHint = isOrgMultiWorkspace
     ? ORG_MULTI_WORKSPACE_DISABLED_HINT
     : undefined;
+  const isEnvironment = data.type === HomoTypeEnum.ENVIRONMENT;
+  const environmentLinkLabel = isSelected
+    ? 'Fechar seleção de vínculos do ambiente'
+    : 'Localizar vínculos do ambiente na árvore';
   const hierarchies =
-    data.type === HomoTypeEnum.ENVIRONMENT
+    isEnvironment
       ? explicitGhoSelectionTreeIds(data)
       : data.hierarchies
         ? data.hierarchies
@@ -162,12 +166,16 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
               title={
                 assisted
                   ? 'Visualizar e revisar vínculos na árvore'
-                  : actionHint || 'Adicionar cargos ao GSE'
+                  : actionHint || (isEnvironment ? environmentLinkLabel : 'Adicionar cargos ao GSE')
               }
             >
               <SIconButton
                 aria-label={
-                  assisted ? `Visualizar vínculos de ${data.name}` : undefined
+                  assisted
+                    ? `Visualizar vínculos de ${data.name}`
+                    : isEnvironment
+                      ? `${environmentLinkLabel}: ${data.name}`
+                      : undefined
                 }
                 disabled={isOrgMultiWorkspace || !!assistance?.persistenceBusy}
                 onClick={() => {

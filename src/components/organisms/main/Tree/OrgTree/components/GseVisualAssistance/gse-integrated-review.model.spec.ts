@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { reconcileSavedReview } from './gse-additive-save';
-import { reviewNavigation, focusReviewRegion } from './gse-review-navigation';
+import { environmentLinkNavigation, reviewNavigation, focusReviewRegion } from './gse-review-navigation';
 import { clampPanelPosition } from './GseFloatingPanel';
 import type { IGho } from 'core/interfaces/api/IGho';
 import type { ITreeMap, ITreeMapObject } from '../../interfaces';
@@ -351,6 +351,15 @@ test('navigation reveals collapsed ancestors and prioritizes suggested nodes wit
   assert(route.ancestors.includes('w'));
   assert.equal(JSON.stringify(nodes), before);
   assert.deepEqual(reviewNavigation(nodes, review, 'wf', 'g').targets, []);
+});
+test('environment navigation includes only explicit links in the current workspace', () => {
+  const nodes = fixture();
+  const links = ['b//w', 's//w', 'b//w', 'missing//w', 'w'];
+  const route = environmentLinkNavigation(nodes, links, 'w');
+  assert.deepEqual(route.targets, ['b//w', 's//w']);
+  assert(route.ancestors.includes('w'));
+  assert(!route.targets.includes('a//w'));
+  assert.deepEqual(environmentLinkNavigation(nodes, links, 'wf').targets, []);
 });
 test('navigation cycles terminate and unrelated groups have no targets', () => {
   const nodes = fixture();

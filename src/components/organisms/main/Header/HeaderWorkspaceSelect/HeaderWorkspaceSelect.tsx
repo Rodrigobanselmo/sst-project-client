@@ -2,11 +2,14 @@ import type { ParsedUrlQuery } from 'querystring';
 import { useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import SArrowUpFilterIcon from 'assets/icons/SArrowUpFilterIcon';
 import { WorkspaceBrowseAutocomplete } from '@v2/components/organisms/workspace/WorkspaceBrowseAutocomplete/WorkspaceBrowseAutocomplete';
 import { documentsHeaderChipShellSx } from '@v2/components/organisms/workspace/documentsHeaderChipSelectPreset';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { DOCUMENTS_LIST_PATHNAME } from '../constants/documentsListRoute';
+import { UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID } from 'components/organisms/main/Tree/OrgTree/utils/attach-establishment-group-layer';
 import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useRouter } from 'next/router';
@@ -21,6 +24,7 @@ import {
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   applyOrgWorkspaceFilterToQuery,
   isOrgMultiWorkspaceMode,
@@ -36,7 +40,6 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const { isHomePage, isGroupConsolidated } = useHomeBusinessGroupScope();
   const companyId = query.companyId as string | undefined;
   const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
-  const hierarchyWorkspaceIds = parseOrgWorkspaceFilterIds(query);
   const workspaceRouteId = query.workspaceId as string | undefined;
 
   const isDocumentsListPage = pathname === DOCUMENTS_LIST_PATHNAME;
@@ -113,7 +116,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     return null;
   }
 
-  if (!isLoadingAllWorkspaces && workspaceCount <= 1) {
+  if (!isHierarchyOrganogramPage && !isLoadingAllWorkspaces && workspaceCount <= 1) {
     return null;
   }
 
@@ -182,49 +185,12 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
 
   if (isHierarchyOrganogramPage) {
     return (
-      <STBox
-        ml={2}
-        display={isTablet ? 'none' : 'flex'}
-        sx={{
-          cursor: 'default',
-          ...documentsHeaderChipShellSx,
-          maxWidth: 420,
-        }}
-        onClick={(e) => e.stopPropagation()}
-        id={IdsEnum.HIERARCHY_ORG_WORKSPACE_NAVBAR}
-      >
-        <SArrowUpFilterIcon
-          sx={{
-            fontSize: '20px',
-            mt: 0,
-            mr: 0.75,
-            flexShrink: 0,
-            transform: 'rotate(-180deg)',
-          }}
-        />
-        <Box sx={{ flex: 1, minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
-          <WorkspaceBrowseAutocomplete
-            multiple
-            companyId={companyId}
-            workspaceIds={hierarchyWorkspaceIds}
-            onChange={(ids) => {
-              const nextQuery = { ...router.query } as ParsedUrlQuery;
-              applyOrgWorkspaceFilterToQuery(nextQuery, ids);
-              void router.replace(
-                {
-                  pathname: router.pathname,
-                  query: nextQuery,
-                },
-                undefined,
-                { shallow: true },
-              );
-            }}
-            allowEmptyWorkspace
-            compact
-            suppressWhenNotMultiple={false}
-          />
-        </Box>
-      </STBox>
+      <OrganogramWorkspaceFilters
+        companyId={companyId}
+        availableWorkspaces={workspaces?.results}
+        isLoading={isLoadingAllWorkspaces}
+        isTablet={isTablet}
+      />
     );
   }
 
@@ -276,6 +242,139 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
           companyId={companyId}
           workspaceId={workspaceRouteId}
           onChange={handleRouteWorkspaceChange}
+          compact
+          suppressWhenNotMultiple={false}
+        />
+      </Box>
+    </STBox>
+  );
+}
+
+const ORG_WORKSPACE_GROUP_QUERY_KEY = 'tabWorkspaceGroupId';
+
+function OrganogramWorkspaceFilters({
+  companyId,
+  availableWorkspaces,
+  isLoading,
+  isTablet,
+}: {
+  companyId: string;
+  availableWorkspaces?: { id: string }[];
+  isLoading: boolean;
+  isTablet: boolean;
+}) {
+  const router = useRouter();
+  const { data: company } = useQueryCompany(companyId);
+  const availableIds = new Set(availableWorkspaces?.map(({ id }) => id));
+  const groups = company.establishmentGroups ?? [];
+  const registeredGroupIds = new Set(groups.map(({ id }) => id));
+  const workspaceIdsByGroup = new Map<string, string[]>();
+  for (const workspace of company.workspace || []) {
+    if (!availableIds.has(workspace.id)) continue;
+    const assignedGroupId = workspace.establishmentGroupId;
+    const groupId =
+      assignedGroupId && registeredGroupIds.has(assignedGroupId)
+        ? assignedGroupId
+        : UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID;
+    const ids = workspaceIdsByGroup.get(groupId) ?? [];
+    ids.push(workspace.id);
+    workspaceIdsByGroup.set(groupId, ids);
+  }
+
+  const groupOptions =
+    groups.length && workspaceIdsByGroup.has(UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID)
+      ? [...groups, { id: UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID, name: 'Sem grupo' }]
+      : groups;
+  const queryGroupId = router.query[ORG_WORKSPACE_GROUP_QUERY_KEY];
+  const selectedIds = parseOrgWorkspaceFilterIds(router.query);
+  const group = groupOptions.find(({ id }) => {
+    if (id !== queryGroupId || !selectedIds.length) return false;
+    const members = workspaceIdsByGroup.get(id);
+    return members && selectedIds.every((workspaceId) => members.includes(workspaceId));
+  });
+  const groupWorkspaceIds = group && workspaceIdsByGroup.get(group.id);
+  const isWholeGroup = groupWorkspaceIds?.length === selectedIds.length;
+
+  if (!groups.length && !isLoading && availableIds.size <= 1) return null;
+
+  const updateFilters = (groupId: string | undefined, workspaceIds: string[]) => {
+    const query = { ...router.query };
+    if (groupId) query[ORG_WORKSPACE_GROUP_QUERY_KEY] = groupId;
+    else delete query[ORG_WORKSPACE_GROUP_QUERY_KEY];
+    applyOrgWorkspaceFilterToQuery(query, workspaceIds);
+    void router.replace({ pathname: router.pathname, query }, undefined, {
+      shallow: true,
+    });
+  };
+
+  return (
+    <STBox
+      ml={2}
+      display={isTablet ? 'none' : 'flex'}
+      sx={{
+        ...documentsHeaderChipShellSx,
+        cursor: 'default',
+        maxWidth: 420,
+        ...(groups.length > 0 && { width: 'clamp(280px, 29vw, 400px)' }),
+      }}
+      onClick={(event) => event.stopPropagation()}
+      id={IdsEnum.HIERARCHY_ORG_WORKSPACE_NAVBAR}
+    >
+      <SArrowUpFilterIcon
+        sx={{
+          fontSize: '20px',
+          mr: 0.75,
+          flexShrink: 0,
+          transform: 'rotate(-180deg)',
+        }}
+      />
+      {!!groups.length && (
+        <Select
+          value={group?.id ?? ''}
+          displayEmpty
+          size="small"
+          inputProps={{ 'aria-label': 'Grupo de estabelecimentos' }}
+          onChange={(event) => {
+            const groupId = event.target.value;
+            const ids = workspaceIdsByGroup.get(groupId);
+            updateFilters(ids ? groupId : undefined, ids ?? []);
+          }}
+          renderValue={() => group?.name ?? 'Grupo de estabelecimentos'}
+          sx={{
+            minWidth: 0,
+            flex: '0 0 48%',
+            fontSize: 11,
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            '& .MuiSelect-select': { py: 0, pl: 1 },
+            '& fieldset': { border: 0 },
+          }}
+        >
+          <MenuItem value="">Todos os grupos</MenuItem>
+          {groupOptions.map(({ id, name }) => (
+            <MenuItem key={id} value={id} disabled={!workspaceIdsByGroup.has(id)}>
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+      )}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <WorkspaceBrowseAutocomplete
+          multiple
+          companyId={companyId}
+          workspaceIds={isWholeGroup ? [] : selectedIds}
+          eligibleWorkspaceIds={groupWorkspaceIds}
+          emptyPlaceholder={
+            group?.id === UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID
+              ? 'Todos sem grupo'
+              : groupWorkspaceIds
+                ? 'Todo o grupo'
+                : undefined
+          }
+          onChange={(ids) =>
+            updateFilters(group?.id, ids.length ? ids : groupWorkspaceIds ?? [])
+          }
+          allowEmptyWorkspace
           compact
           suppressWhenNotMultiple={false}
         />

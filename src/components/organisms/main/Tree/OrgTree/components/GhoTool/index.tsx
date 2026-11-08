@@ -1,4 +1,5 @@
 import { GseSaveConfirmation } from '../GseVisualAssistance/GseSaveConfirmation';
+import { OrgFloatingPanel } from '../GseVisualAssistance/GseFloatingPanel';
 import { Alert, TextField, MenuItem } from '@mui/material';
 import {
   eligibleEnvironmentWorkspaces,
@@ -67,6 +68,11 @@ const homoCharacterizationTabs = new Set<HomoTypeEnum>([
   HomoTypeEnum.EQUIPMENT,
   HomoTypeEnum.ACTIVITIES,
 ]);
+
+const EnvironmentPanelFrame = ({ children }: { children: React.ReactNode }) =>
+  children ? (
+    <OrgFloatingPanel id="environment-floating-panel">{children}</OrgFloatingPanel>
+  ) : null;
 
 const modalPayloadForHomoFilter = (
   homoFilter: HomoTypeEnum,
@@ -369,14 +375,16 @@ export const GhoTool = ({
     environmentWorkspace,
   ]);
 
+  const floating = environmentOnly || assistance?.active;
+  const PanelFrame = environmentOnly ? EnvironmentPanelFrame : React.Fragment;
+  const showPanel = assistance?.active || (isGhoOpen && (environmentOnly || !isOrgMultiWorkspace));
   return (
     <>
-      {(assistance?.active ||
-        (isGhoOpen && (environmentOnly || !isOrgMultiWorkspace))) && (
+      <PanelFrame>{showPanel && (
         <STBoxContainer
           expanded={!assistance?.active && selectExpanded ? 1 : 0}
           sx={
-            assistance?.active
+            floating
               ? {
                   m: 0,
                   width: '100%',
@@ -394,6 +402,7 @@ export const GhoTool = ({
             handleSelectGHO={handleSelectGHO}
             environmentOnly={environmentOnly}
           />
+          {environmentOnly && <Box id="environment-link-navigation-slot" />}
           {assistance?.active && (
             <Box
               sx={{
@@ -422,7 +431,7 @@ export const GhoTool = ({
           )}
           <STTableContainer
             sx={
-              assistance?.active
+              floating
                 ? {
                     display: 'block',
                     flex: 1,
@@ -432,6 +441,13 @@ export const GhoTool = ({
                     overflowX: 'hidden',
                     overscrollBehavior: 'contain',
                     scrollbarGutter: 'stable',
+                    ...(environmentOnly && {
+                      '& [data-gho-row]': {
+                        width: '100%',
+                        minWidth: 0,
+                        gridTemplateColumns: 'minmax(0, 1fr)',
+                      },
+                    }),
                   }
                 : undefined
             }
@@ -439,6 +455,7 @@ export const GhoTool = ({
             {company?.id && (
               <StructuralArchivedButton
                 companyId={company.id}
+                fullWidth={environmentOnly}
                 table={
                   environmentOnly || (filter != null && homoCharacterizationTabs.has(filter))
                     ? 'CompanyCharacterization'
@@ -454,7 +471,7 @@ export const GhoTool = ({
             )}
             {assistance?.active && <GseAssistanceControls />}
             {environmentOnly && !assistance?.active && (
-              <Box sx={{ mb: 2 }}>
+              <Box sx={{ pt: 5, mb: 2 }}>
                 {!environmentWorkspace && (
                   <Alert severity="info">
                     Selecione um estabelecimento para gerenciar Ambientes.
@@ -479,6 +496,7 @@ export const GhoTool = ({
             )}
             {(!environmentOnly || !!environmentWorkspace) && (
               <GhoToolHeader
+                fillPanelWidth={environmentOnly}
                 handleSelectGHO={handleSelectGHO}
                 handleEditGHO={handleEditGHO}
                 handleAddGHO={handleAddGHO}
@@ -498,7 +516,7 @@ export const GhoTool = ({
             <STBoxStack
               expanded={selectExpanded ? 1 : 0}
               sx={
-                assistance?.active
+                floating
                   ? {
                       minHeight: 0,
                       width: '100%',
@@ -528,11 +546,11 @@ export const GhoTool = ({
                 filter={filter}
               />
             </STBoxStack>
-            <GhoToolTreeFilter />
+            <GhoToolTreeFilter fillPanelWidth={environmentOnly} />
           </STTableContainer>
           {assistance?.active && <GseSaveConfirmation />}
         </STBoxContainer>
-      )}
+      )}</PanelFrame>
       <ModalAddProbability />
       <ModalExcelHierarchies />
       <ModalHierarchySanitization />

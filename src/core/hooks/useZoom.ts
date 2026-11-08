@@ -1,73 +1,51 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-import { useDebouncedCallback } from 'use-debounce';
+export const MIN_TREE_SCALE = 0.2;
+const MAX_TREE_SCALE = 1;
 
-import { useControlClick } from './useControlClick';
+const clampScale = (scale: number) =>
+  Math.min(MAX_TREE_SCALE, Math.max(MIN_TREE_SCALE, scale));
 
 export const useZoom = (
   containerRef: React.RefObject<HTMLDivElement | null>,
+  { wheelZoom = true }: { wheelZoom?: boolean } = {},
 ) => {
-  const wheelSumValue = useRef<number>(0);
+  const [scale, setScale] = useState(MAX_TREE_SCALE);
 
-  const { controlKeyPress } = useControlClick();
-  const [scale, setScale] = useState(1);
-
-  const debounceChangeScale = useDebouncedCallback((value: number) => {
-    setScale(value);
-  }, 1000);
-
-  const onChangeZoom = useCallback(
-    (scale: number) => {
-      if (containerRef.current) {
-        const actualScale = scale > 0.2 ? scale : 0.2;
-
-        const translate = `translate(-${
-          Math.ceil(((100 - 100 * actualScale) / 2) * 100) / (100 * actualScale)
-        }%, -${
-          Math.ceil(((100 - 100 * actualScale) / 2) * 100) / (100 * actualScale)
-        }%)`;
-
-        containerRef.current.style.transform = `scale(${actualScale}) ${translate}`;
-        containerRef.current.style.width = `${100 / actualScale}%`;
-        containerRef.current.style.height = `${100 / actualScale}%`;
-      }
-    },
-    [containerRef],
-  );
-
-  const eventListener = useCallback(
-    (event: WheelEvent) => {
-      if (containerRef.current && controlKeyPress.current) {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        const wheelNewValue = wheelSumValue.current + event.deltaY;
-        const maxWheel = wheelNewValue > 10000 ? 10000 : wheelNewValue;
-
-        wheelSumValue.current = wheelNewValue < 0 ? 0 : maxWheel;
-
-        const scale = 1 * (1 - (1 * wheelSumValue.current) / 10000);
-
-        onChangeZoom(scale);
-        // debounceChangeScale(scale);
-      }
-    },
-    [containerRef, controlKeyPress, onChangeZoom],
-  );
+  const onChangeZoom = useCallback((value: number) => {
+    setScale(clampScale(value));
+  }, []);
 
   useEffect(() => {
-    window.addEventListener('wheel', eventListener, { passive: false });
-    return () => {
-      window.removeEventListener('wheel', eventListener);
+    if (!wheelZoom) return;
+
+    const onWheel = (event: WheelEvent) => {
+      const container = containerRef.current;
+      if (
+        !container ||
+        !(event.target instanceof Node) ||
+        !container.contains(event.target) ||
+        !(event.ctrlKey || event.metaKey)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      setScale((current) => clampScale(current - event.deltaY / 10000));
     };
-  }, [eventListener]);
 
-  const onGetScale = (value: number, max: number, min: number) => {
-    if (value > max) return 1;
-    if (value < min) return 0.2;
-    return (value - min) / (max - min);
-  };
+    window.addEventListener('wheel', onWheel, { passive: false });
+    return () => window.removeEventListener('wheel', onWheel);
+  }, [containerRef, wheelZoom]);
 
-  return { onChangeZoom, onGetScale, scale };
+  const offset = Math.ceil((1 - scale) * 5000) / (100 * scale);
+  const zoomStyle = scale === MAX_TREE_SCALE
+    ? undefined
+    : {
+        transform: `scale(${scale}) translate(-${offset}%, -${offset}%)`,
+        width: `${100 / scale}%`,
+        height: `${100 / scale}%`,
+      };
+
+  return { onChangeZoom, scale, zoomStyle };
 };

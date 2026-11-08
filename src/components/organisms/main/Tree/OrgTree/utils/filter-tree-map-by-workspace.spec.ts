@@ -114,7 +114,13 @@ const nested: ITreeMap = {
 
 const nestedOne = filterTreeMapByWorkspace(nested, ['ws-b']);
 assert.deepEqual(nestedOne.seed.childrenIds, ['container']);
+assert.deepEqual(nestedOne.container.childrenIds, ['ws-b']);
 assert.equal(nestedOne['ws-b']?.label, 'B');
+assert.deepEqual(nested.container.childrenIds, ['ws-a', 'ws-b']);
+assert.deepEqual(
+  filterTreeMapByWorkspace(nested, ['ws-b', 'ws-a']).container.childrenIds,
+  ['ws-a', 'ws-b'],
+);
 
 const nestedMissing = filterTreeMapByWorkspace(nested, ['ws-missing']);
 assert.equal(nestedMissing, nested);

@@ -11,6 +11,7 @@ import { GhoSearchInput } from '../GhoSearchInput';
 import { GhoHeaderProps } from './types';
 
 export const GhoToolTreeFilter: FC<{ children?: any } & GhoHeaderProps> = ({
+  fillPanelWidth,
   isAddLoading,
   inputRef,
 }) => {
@@ -25,6 +26,7 @@ export const GhoToolTreeFilter: FC<{ children?: any } & GhoHeaderProps> = ({
   return (
     <SFlex align="center" gap={4} mb={5}>
       <GhoSearchInput
+        fillPanelWidth={fillPanelWidth}
         debounceTime={1000}
         ref={inputRef}
         onSearch={onSearch}

@@ -67,7 +67,7 @@ export function GseSaveConfirmation() {
   const summary =
     pending.current?.summary || summarizeApprovedGseAdditions(ctx);
   const save = async () => {
-    if (inFlight.current || !available || !summary.applicable) return;
+    if (inFlight.current || ctx.persistenceBusy || !available || !summary.applicable) return;
     inFlight.current = true;
     setBusy(true);
     ctx.setPersistenceBusy?.(true);

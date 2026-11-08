@@ -4,6 +4,11 @@ import type { IGho } from 'core/interfaces/api/IGho';
 import type { ITreeMap } from '../../interfaces';
 import type { ReviewState } from './gse-visual-assistance.model';
 import type { IntegratedReview } from './gse-integrated-review.model';
+export type HistoricalGseLinkChange = {
+  previousLinkId: number;
+  expectedEnd: string;
+} & ({ action: 'UNDO_END' } | { action: 'START_NEW_PERIOD'; startDate: string });
+
 export type AssistanceContextValue = {
   aiAnalysisActive?: boolean;
   setAiAnalysisActive?: (active: boolean) => void;
@@ -30,7 +35,10 @@ export type AssistanceContextValue = {
   loading: boolean;
   error: string;
   analyze: () => void;
-  propose: (groupId: string, nodeId: string, kind: 'ADD' | 'REMOVE') => void;
+  propose: (groupId: string, nodeId: string, kind: 'ADD' | 'REMOVE', manualAddition?: boolean) => void;
+  changeHistoricalLink?: (groupId: string, nodeId: string, change: HistoricalGseLinkChange) => Promise<void>;
+  directLinkRequiresEndDate?: () => Promise<boolean>;
+  endDirectLink?: (groupId: string, nodeId: string, endDate?: string) => Promise<void>;
   decide: (id: string, value: ReviewState) => void;
   decideGroup: (id: string, value: ReviewState) => void;
   renameGroup: (id: string, name: string) => void;

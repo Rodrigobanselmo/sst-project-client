@@ -5,6 +5,7 @@ import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IGho } from 'core/interfaces/api/IGho';
 
 export interface GhoHeaderProps {
+  fillPanelWidth?: boolean;
   isAddLoading?: boolean;
   inputRef: any;
   filter: HomoTypeEnum | null;

@@ -1,15 +1,11 @@
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 
 import { ITreeMap } from '../interfaces';
-import { treeNodeCoversWorkspace } from './get-org-workspace-id';
+import { getWorkspaceIdFromTreeNode } from './get-org-workspace-id';
 
 /**
- * Filtro visual da raiz do organograma.
- * 0 ids = empresa inteira; ids existentes = somente esses ramos, na ordem da árvore.
- * Se nenhum id existir na raiz, devolve a árvore intacta (mesmo fallback de 1 id inválido).
- *
- * Não assume que `root.childrenIds` sejam todos workspaces: um filho intermediário
- * é mantido se algum descendente workspace estiver selecionado.
+ * Prunes visible branches while keeping the full node map for tree operations.
+ * No selection or an entirely unknown selection keeps the original tree.
  */
 export function filterTreeMapByWorkspace(
   nodes: ITreeMap,
@@ -20,18 +16,24 @@ export function filterTreeMapByWorkspace(
   const root = nodes[firstNodeId];
   if (!root?.childrenIds?.length) return nodes;
 
-  const nextChildren = root.childrenIds.filter((id) =>
-    workspaceIds.some((workspaceId) =>
-      treeNodeCoversWorkspace(nodes, id, workspaceId),
-    ),
-  );
-  if (!nextChildren.length) return nodes;
+  const selectedIds = new Set(workspaceIds);
+  const updates: ITreeMap = {};
 
-  return {
-    ...nodes,
-    [firstNodeId]: {
-      ...root,
-      childrenIds: nextChildren,
-    },
-  };
+  function keepBranch(id: string | number): boolean {
+    const node = nodes[id];
+    if (!node) return false;
+
+    const workspaceId = getWorkspaceIdFromTreeNode(node);
+    if (workspaceId) return selectedIds.has(workspaceId);
+
+    const children = node.childrenIds || [];
+    const visibleChildren = children.filter(keepBranch);
+    if (visibleChildren.length && visibleChildren.length !== children.length) {
+      updates[id] = { ...node, childrenIds: visibleChildren };
+    }
+    return visibleChildren.length > 0;
+  }
+
+  if (!keepBranch(firstNodeId)) return nodes;
+  return { ...nodes, ...updates };
 }

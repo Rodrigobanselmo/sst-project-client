@@ -21,6 +21,7 @@ import { GhoInputProps } from './types';
 export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
   (
     {
+      fillPanelWidth,
       handleAddGHO,
       handleAddCharacterization,
       characterizationAddTooltip,
@@ -33,6 +34,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
     ref,
   ) => {
     const assisted = !!useGseVisualAssistance()?.active;
+    const stretch = assisted || fillPanelWidth;
     const selectedGho = useAppSelector(selectGhoData);
     const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
     const anchorEl = useRef<HTMLDivElement>(null);
@@ -82,7 +84,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
           fullWidth
           {...props}
           sx={
-            assisted
+            stretch
               ? { width: '100%', minWidth: 0, maxWidth: '100%', ...props.sx }
               : props.sx
           }
@@ -109,7 +111,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
         />
       </>
     );
-    return assisted ? (
+    return stretch ? (
       <Box
         sx={{
           width: '100%',

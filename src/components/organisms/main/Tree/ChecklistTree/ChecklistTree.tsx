@@ -20,7 +20,7 @@ export const ChecklistTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
 
   const orgContainerRef = useRef<HTMLDivElement>(null);
 
-  useZoom(orgContainerRef);
+  const { zoomStyle } = useZoom(orgContainerRef);
 
   return (
     <Box
@@ -35,6 +35,7 @@ export const ChecklistTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
       <OrgTreeContainer
         id="org-tree-container"
         ref={orgContainerRef}
+        style={zoomStyle}
         horizontal={horizontal}
       >
         <OrgTree horizontal={horizontal}>

@@ -24,6 +24,7 @@ import { v4 } from 'uuid';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { SaveEnum } from 'core/enums/save.enum';
 import { ICompany } from 'core/interfaces/api/ICompany';
@@ -34,6 +35,7 @@ import { useMutDeleteHierarchy } from 'core/services/hooks/mutations/checklist/h
 import { useMutUpsertManyHierarchy } from 'core/services/hooks/mutations/checklist/hierarchy/useMutUpsertManyHierarchy';
 import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
+import { hasActiveGseTreeLink } from 'core/utils/gse-effective-office-membership.util';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import {
@@ -285,6 +287,10 @@ export const useHierarchyTreeActions = () => {
                     return hierarchy.workspaceId === workspaceId;
                   });
                 if (!linkedToHierarchy) return false;
+                if (
+                  (gho.type == null || gho.type === HomoTypeEnum.GSE) &&
+                  !hasActiveGseTreeLink(gho.hierarchyOnHomogeneous, values.id, workspaceId)
+                ) return false;
                 if (gho.workspaceIds?.length) {
                   return gho.workspaceIds.includes(workspaceId);
                 }

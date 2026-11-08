@@ -222,6 +222,7 @@ export function addReviewChange(
   groupId: string,
   nodeId: string,
   kind: 'ADD' | 'REMOVE',
+  manualAddition = false,
 ): IntegratedReview {
   if (!canReviewNode(nodes[nodeId], workspaceId))
     throw Error('Selecione uma hierarquia deste estabelecimento.');
@@ -230,6 +231,9 @@ export function addReviewChange(
     !review.newGroups.some((g) => g.id === groupId)
   )
     throw Error('GSE fora da revisão atual.');
+  const accepted = manualAddition && kind === 'ADD' && groups.some((g) => g.id === groupId);
+  if (accepted && inheritedSources(nodes, nodeId, groupId, workspaceId, groups).length)
+    throw Error('Este cargo ou setor já está abrangido por um vínculo superior.');
   const direct = directGroupIds(nodes[nodeId], groups).includes(groupId);
   if (kind === 'REMOVE' && !direct)
     throw Error(
@@ -241,10 +245,12 @@ export function addReviewChange(
     groupId,
     nodeId,
     kind,
-    decision: 'pending',
+    decision: accepted ? 'accepted' : 'pending',
     reason:
       kind === 'ADD'
-        ? 'Inclusão direta proposta na revisão humana; exposição homogênea não confirmada.'
+        ? accepted
+          ? 'Inclusão manual selecionada. Confirme e salve no painel.'
+          : 'Inclusão direta proposta na revisão humana; exposição homogênea não confirmada.'
         : 'Retirada de vínculo direto proposta na revisão humana. A execução dependerá das regras de integridade histórica do PPP/eSocial.',
   };
   return {

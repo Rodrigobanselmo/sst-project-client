@@ -16,6 +16,7 @@ import { GhoSearchInput } from '../GhoSearchInput';
 import { GhoHeaderProps } from './types';
 
 export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
+  fillPanelWidth,
   handleSelectGHO,
   handleEditGHO,
   handleAddGHO,
@@ -47,6 +48,7 @@ export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
   return (
     <SFlex align="center" gap={4} mb={5}>
       <GhoSearchInput
+        fillPanelWidth={fillPanelWidth}
         ref={inputRef}
         handleSelectGHO={handleSelectGHO}
         onSearch={onSearch}

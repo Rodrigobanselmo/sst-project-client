@@ -21,6 +21,21 @@ export function reviewNavigation(
   const targets = [...new Set([...suggested, ...direct])].filter(
     (id) => nodes[id] && canReviewNode(nodes[id], workspaceId),
   );
+  return { targets, ancestors: navigationAncestors(nodes, targets) };
+}
+
+export function environmentLinkNavigation(
+  nodes: ITreeMap,
+  linkIds: string[],
+  workspaceId: string,
+) {
+  const targets = [...new Set(linkIds)].filter((id) =>
+    canReviewNode(nodes[id], workspaceId),
+  );
+  return { targets, ancestors: navigationAncestors(nodes, targets) };
+}
+
+function navigationAncestors(nodes: ITreeMap, targets: string[]) {
   const ancestors = new Set<string>();
   for (const target of targets) {
     let id = String(nodes[target].parentId || '');
@@ -31,7 +46,7 @@ export function reviewNavigation(
       id = String(nodes[id].parentId || '');
     }
   }
-  return { targets, ancestors: [...ancestors] };
+  return [...ancestors];
 }
 
 export function focusReviewRegion(

@@ -47,8 +47,14 @@ function usefulOrganogramTop(panel: HTMLElement | null) {
   const root = panel?.closest('[data-gse-organogram-viewport]');
   return Math.max(80, (root?.getBoundingClientRect().top ?? 72) + 8);
 }
-/** Owns position only. Review data remains in the existing provider. */
-export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
+/** Owns position only. The panel content manages its own state. */
+export function OrgFloatingPanel({
+  children,
+  id,
+}: {
+  children: React.ReactNode;
+  id: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
     null,
@@ -101,7 +107,7 @@ export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
   }, []);
   return (
     <Box
-      id="gse-floating-panel"
+      id={id}
       ref={ref}
       onKeyDown={(e) => {
         if (!(e.target as HTMLElement).matches('[data-gse-drag-handle]'))
@@ -206,4 +212,8 @@ export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
       {children}
     </Box>
   );
+}
+
+export function GseFloatingPanel({ children }: { children: React.ReactNode }) {
+  return <OrgFloatingPanel id="gse-floating-panel">{children}</OrgFloatingPanel>;
 }
