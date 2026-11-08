@@ -43,6 +43,11 @@ import { queryClient } from '../services/queryClient';
 import { v2QueryClient } from '@v2/services/query-client';
 import { resolveActiveCompanyContext } from '../utils/auth/resolve-active-company-context';
 import { subscribeAuthLogout } from './auth-broadcast';
+import { refreshBrowserSession } from './browser-session-refresh';
+import {
+  SessionRefreshRejected,
+  SessionRefreshSuperseded,
+} from './auth-refresh-coordinator';
 import { browserAuthSession } from './auth-session-lifecycle';
 import { purgeSessionDrafts } from './auth-session-policy';
 
@@ -115,39 +120,18 @@ export async function signOut(ctx?: any, options?: { redirect?: boolean }) {
 }
 
 export async function refreshToken(companyId?: string) {
-  const generation = browserAuthSession.capture();
-  const { 'nextauth.refreshToken': refresh_token } = parseCookies();
-  if (
-    typeof window !== 'undefined' &&
-    (!refresh_token || !browserAuthSession.isCurrent(generation))
-  )
-    throw new axios.Cancel('A sessão foi encerrada.');
-
-  const refresh = await api.post('/refresh', { refresh_token, companyId });
-  if (
-    typeof window !== 'undefined' &&
-    (!browserAuthSession.isCurrent(generation) ||
-      parseCookies()['nextauth.refreshToken'] !== refresh_token)
-  )
-    throw new axios.Cancel('A sessão foi encerrada.');
-
-  const { token } = refresh.data;
-
-  setCookie(null, 'nextauth.token', token, {
-    maxAge: 60 * 60 * 25 * 30, // 30 days
-    path: '/',
-  });
-
-  setCookie(null, 'nextauth.refreshToken', refresh.data.refresh_token, {
-    maxAge: 60 * 60 * 25 * 30, // 30 days
-    path: '/',
-  });
-
+  let token: string;
+  try {
+    token = await refreshBrowserSession({ companyId });
+  } catch (error) {
+    if (error instanceof SessionRefreshSuperseded)
+      throw new axios.Cancel('A sessão mudou durante a renovação.');
+    if (error instanceof SessionRefreshRejected) await signOut();
+    throw error;
+  }
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
-
-  return { token, refresh, api };
+  return { token, api };
 }
 
 export function extractUrlTokens() {
@@ -240,13 +224,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         router.replace(RoutesEnum.ONBOARD_USER);
       }
     } catch (error) {
-      if (browserAuthSession.isCurrent(generation) && !axios.isCancel(error))
-        await signOutFunc({ redirect: true });
+      if (browserAuthSession.isCurrent(generation) && !axios.isCancel(error)) {
+        // Only the refresh handler can establish that the session was refused.
+        enqueueSnackbar(
+          'Não foi possível carregar sua sessão. Tente atualizar a página.',
+          { variant: 'error' },
+        );
+      }
     } finally {
       if (browserAuthSession.isGeneration(generation))
         setIsInitializingAuth(false);
     }
-  }, [dispatch, router, signOutFunc]);
+  }, [dispatch, router, enqueueSnackbar]);
 
   useEffect(() => {
     const { 'nextauth.token': token } = parseCookies();

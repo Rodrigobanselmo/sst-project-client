@@ -81,8 +81,8 @@ export function withSSRAuth(
       });
 
       if (isExpiredTokens) {
-        destroyCookie(null, 'nextauth.token', { path: '/' });
-        destroyCookie(null, 'nextauth.refreshToken', { path: '/' });
+        destroyCookie(ctx, 'nextauth.token', { path: '/' });
+        destroyCookie(ctx, 'nextauth.refreshToken', { path: '/' });
 
         return {
           redirect: {
@@ -108,10 +108,9 @@ export function withSSRAuth(
     try {
       return await fn(ctx);
     } catch (err) {
-      if (err instanceof AuthTokenError) {
-        destroyCookie(null, 'nextauth.token', { path: '/' });
-        destroyCookie(null, 'nextauth.refreshToken', { path: '/' });
-      }
+      if (!(err instanceof AuthTokenError)) throw err;
+      destroyCookie(ctx, 'nextauth.token', { path: '/' });
+      destroyCookie(ctx, 'nextauth.refreshToken', { path: '/' });
       return {
         redirect: {
           destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl

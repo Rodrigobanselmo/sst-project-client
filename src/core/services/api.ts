@@ -6,20 +6,25 @@ import type { CatalogPreview } from '@v2/features/sst-operational/catalog-review
 import { sstDecisionCompanyId } from '@v2/features/sst-operational/edit-context';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError } from 'axios';
-import { destroyCookie, parseCookies, setCookie } from 'nookies';
+import { parseCookies, setCookie } from 'nookies';
 
 import { signOut } from '../contexts/AuthContext';
 import { browserAuthSession } from '../contexts/auth-session-lifecycle';
-import { canRequestAfterSessionEnd } from '../contexts/auth-session-policy';
+import {
+  canRequestAfterSessionEnd,
+  isPublicAuthRequest,
+} from '../contexts/auth-session-policy';
+import { refreshBrowserSession } from '../contexts/browser-session-refresh';
+import {
+  SessionRefreshRejected,
+  SessionRefreshSuperseded,
+} from '../contexts/auth-refresh-coordinator';
 import { AuthTokenError } from './errors/AuthTokenError';
 
 export function setupAPIClient(ctx = undefined) {
-  // A client factory owns its refresh queue. SSR clients for different requests
-  // must never settle one another's requests or attach another user's token.
-  let isRefreshing = false;
-  let failedRequestQueue: any[] = [];
-  let isAuthTokenError = false;
+  // SSR requests keep their own cookies and never use the browser coordinator.
   let cookies = parseCookies(ctx);
+  let serverRefresh: Promise<string> | undefined;
   const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     headers: {
@@ -152,139 +157,97 @@ export function setupAPIClient(ctx = undefined) {
         );
         return api(original);
       }
-      if (error.response && error.response.status === 401) {
-        if (error.response.data.type == 'application/json') {
-          const fr = new FileReader();
+      if (
+        error.response?.status !== 401 ||
+        !original ||
+        original.sstAuthRetried ||
+        isPublicAuthRequest(original.method, original.url, original.baseURL)
+      )
+        throw error;
 
-          fr.onload = function () {
-            if (JSON.parse(this.result as string)?.message === 'Unauthorized') {
-              isAuthTokenError = true;
-            } else {
-              rejectAuth();
-            }
-          };
+      const accessToken = String(
+        original.headers?.Authorization ||
+          original.headers?.authorization ||
+          '',
+      ).replace(/^Bearer /, '');
+      if (
+        !accessToken ||
+        accessToken === 'undefined' ||
+        accessToken === 'null' ||
+        /(?:^|\/)refresh(?:\?|$)/.test(original.url || '')
+      )
+        throw error;
 
-          fr.readAsText(error.response.data as unknown as Blob);
-
-          if (!isAuthTokenError) return Promise.reject(error);
+      let message = data?.message;
+      if (typeof Blob !== 'undefined' && data instanceof Blob) {
+        try {
+          message = JSON.parse(await data.text())?.message;
+        } catch {
+          throw error;
         }
+      }
+      if (message !== 'Unauthorized') throw error;
 
-        if (
-          error.response.data?.message === 'Unauthorized' ||
-          isAuthTokenError
-        ) {
-          cookies = parseCookies(ctx);
-          isAuthTokenError = false;
-
-          const { 'nextauth.refreshToken': refresh_token } = cookies;
-          const originalConfig = error.config;
-          const generation = original?.sstAuthGeneration;
-          if (
-            typeof window !== 'undefined' &&
-            (!refresh_token ||
-              typeof generation !== 'number' ||
-              !browserAuthSession.isCurrent(generation))
-          )
-            return Promise.reject(error);
-
-          if (!isRefreshing) {
-            isRefreshing = true;
-
-            api
-              .post('/refresh', { refresh_token })
-              .then((response) => {
-                if (
-                  typeof window !== 'undefined' &&
-                  (!browserAuthSession.isCurrent(generation) ||
-                    parseCookies(ctx)['nextauth.refreshToken'] !==
-                      refresh_token)
-                )
-                  throw new axios.Cancel('A sessão foi encerrada.');
-                const { token } = response.data;
-
-                setCookie(null, 'nextauth.token', token, {
-                  maxAge: 60 * 60 * 25 * 30, // 30 days
+      let token: string;
+      if (typeof window !== 'undefined') {
+        try {
+          token = await refreshBrowserSession({
+            accessToken,
+            generation: original.sstAuthGeneration,
+          });
+        } catch (refreshError) {
+          if (refreshError instanceof SessionRefreshSuperseded)
+            throw new axios.Cancel('A sessão mudou durante a renovação.');
+          if (refreshError instanceof SessionRefreshRejected)
+            await signOut(ctx);
+          throw refreshError;
+        }
+      } else {
+        if (!cookies['nextauth.token']) throw error;
+        if (cookies['nextauth.token'] !== accessToken) {
+          token = cookies['nextauth.token'];
+        } else {
+          if (!cookies['nextauth.refreshToken']) throw new AuthTokenError();
+          serverRefresh ??= axios
+            .post(
+              '/refresh',
+              { refresh_token: cookies['nextauth.refreshToken'] },
+              { baseURL: api.defaults.baseURL, timeout: 15000 },
+            )
+            .then(({ data: session }) => {
+              if (!session?.token || !session?.refresh_token)
+                throw new Error('A API não retornou uma sessão válida.');
+              cookies = {
+                ...cookies,
+                'nextauth.token': session.token,
+                'nextauth.refreshToken': session.refresh_token,
+              };
+              for (const key of ['nextauth.token', 'nextauth.refreshToken'])
+                setCookie(ctx, key, cookies[key], {
+                  maxAge: 60 * 60 * 25 * 30,
                   path: '/',
                 });
-
-                setCookie(
-                  null,
-                  'nextauth.refreshToken',
-                  response.data.refresh_token,
-                  {
-                    maxAge: 60 * 60 * 25 * 30, // 30 days
-                    path: '/',
-                  },
-                );
-
-                api.defaults.headers.common['Authorization'] =
-                  `Bearer ${token}`;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (api.defaults.headers as any)['Authorization'] =
-                  `Bearer ${token}`;
-
-                failedRequestQueue.forEach((request) =>
-                  request.onSuccess(token),
-                );
-                failedRequestQueue = [];
-              })
-              .catch((err) => {
-                failedRequestQueue.forEach((request) => request.onFailure(err));
-                failedRequestQueue = [];
-
-                if (
-                  process.browser &&
-                  !axios.isCancel(err) &&
-                  browserAuthSession.isCurrent(generation)
-                ) {
-                  destroyCookie(null, 'nextauth.token', { path: '/' });
-                  destroyCookie(null, 'nextauth.refreshToken', {
-                    path: '/',
-                  });
-                  signOut(ctx);
-                }
-              })
-              .finally(() => {
-                isRefreshing = false;
-              });
-          }
-
-          return new Promise((resolve, reject) => {
-            failedRequestQueue.push({
-              onSuccess: (token: string) => {
-                if (
-                  typeof window !== 'undefined' &&
-                  !browserAuthSession.isCurrent(generation)
-                ) {
-                  reject(new axios.Cancel('A sessão foi encerrada.'));
-                  return;
-                }
-                if (originalConfig?.headers)
-                  originalConfig.headers['Authorization'] = `Bearer ${token}`;
-
-                resolve(api(originalConfig));
-              },
-              onFailure: (err: AxiosError) => {
-                reject(err);
-              },
+              return session.token;
+            })
+            .catch((refreshError) => {
+              if (refreshError.response?.status === 401)
+                throw new AuthTokenError();
+              throw refreshError;
+            })
+            .finally(() => {
+              serverRefresh = undefined;
             });
-          });
-        } else {
-          rejectAuth();
+          token = await serverRefresh;
         }
       }
 
-      return Promise.reject(error);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
+      original.sstAuthRetried = true;
+      original.headers['Authorization'] = `Bearer ${token}`;
+      return api(original);
     },
   );
 
   return api;
 }
-
-const rejectAuth = () => {
-  if (process.browser) {
-    signOut();
-  } else {
-    return Promise.reject(new AuthTokenError());
-  }
-};
