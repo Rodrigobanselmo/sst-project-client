@@ -73,6 +73,14 @@ import { ChemicalProductsTableFilter } from './ChemicalProductsTableFilter';
 import { ChemicalSurveyImportDialog } from './ChemicalSurveyImportDialog';
 import { ChemicalUseScenariosPanel } from './ChemicalUseScenariosPanel';
 
+const chemicalProductTabs = [
+  { value: 'products', label: 'Produtos' },
+  { value: 'scenarios', label: 'Cenários de uso' },
+  { value: 'prioritization', label: 'Priorização' },
+] as const;
+
+type ChemicalProductView = (typeof chemicalProductTabs)[number]['value'];
+
 export const ChemicalProductsPageContent = ({
   companyId,
 }: {
@@ -117,7 +125,7 @@ export const ChemicalProductsPageContent = ({
   const [excelMenuAnchor, setExcelMenuAnchor] = useState<null | HTMLElement>(
     null,
   );
-  const [viewMode, setViewMode] = useState<'products' | 'scenarios'>('products');
+  const [viewMode, setViewMode] = useState<ChemicalProductView>('products');
   const [scenariosRefreshKey, setScenariosRefreshKey] = useState(0);
   const { isMaster } = useAccess();
 
@@ -362,34 +370,30 @@ export const ChemicalProductsPageContent = ({
             inventário do estabelecimento.
           </SText>
         </Box>
-        <SFlex
-          justifyContent="space-between"
-          alignItems="center"
-          gap={2}
-          flexWrap="wrap"
-        >
-          <Stack direction="row" spacing={1} flexShrink={0}>
-            <Button
-              variant={viewMode === 'products' ? 'contained' : 'outlined'}
-              onClick={() => {
-                setExcelMenuAnchor(null);
-                setViewMode('products');
-              }}
-            >
-              Produtos
-            </Button>
-            <Button
-              variant={viewMode === 'scenarios' ? 'contained' : 'outlined'}
-              onClick={() => {
-                setExcelMenuAnchor(null);
-                setViewMode('scenarios');
-              }}
-              disabled={!workspaceId}
-            >
-              Cenários de uso
-            </Button>
-          </Stack>
+        <STabs
+          aria-label="Produtos químicos"
+          mt={0}
+          mb={0}
+          value={viewMode}
+          options={chemicalProductTabs.map(({ value, label }) => ({
+            value,
+            label,
+            id: `chemical-products-tab-${value}`,
+            'aria-controls': `chemical-products-panel-${value}`,
+          }))}
+          onChange={(_, value: ChemicalProductView) => {
+            setExcelMenuAnchor(null);
+            setViewMode(value);
+          }}
+        />
+      </Box>
 
+      <Box
+        role="tabpanel"
+        id={`chemical-products-panel-${viewMode}`}
+        aria-labelledby={`chemical-products-tab-${viewMode}`}
+      >
+        {viewMode !== 'prioritization' && (
           <Stack
             direction="row"
             spacing={1}
@@ -484,134 +488,140 @@ export const ChemicalProductsPageContent = ({
               </Button>
             )}
           </Stack>
-        </SFlex>
-      </Box>
+        )}
 
-      {viewMode === 'scenarios' && workspaceId ? (
-        <Box mb={3}>
-          <ChemicalUseScenariosPanel
-            companyId={companyId}
-            workspaceId={workspaceId}
-            refreshKey={scenariosRefreshKey}
-          />
-        </Box>
-      ) : null}
+        {viewMode === 'prioritization' && (
+          <Alert severity="info">
+            Nesta aba ficará a análise de riscos químicos por fator de risco e
+            GSE, com os cenários de uso como base. A análise ainda não está
+            disponível.
+          </Alert>
+        )}
 
-      {viewMode === 'products' ? (
-        <>
-          <STableSearch
-            key={searchFieldKey}
-            search={tableFilters.search}
-            autoFocus={false}
-            onSearch={(search) =>
-              setTableFilters((current) => ({ ...current, search }))
-            }
-            inputProps={{
-              placeholder: 'Buscar nome, fabricante, substância ou CAS',
-            }}
-          >
-            <STableSearchContent>
-              {null}
-              <STableColumnsButton
-                showLabel
-                hiddenColumns={hiddenColumns}
-                setHiddenColumns={setHiddenColumns}
-                columns={chemicalProductColumns}
-              />
-              <STableFilterButton text="Filtros">
-                <ChemicalProductsTableFilter
-                  filters={tableFilters}
-                  onFilterChange={(patch) =>
-                    setTableFilters((current) => ({ ...current, ...patch }))
-                  }
-                  includeArchived={includeArchived}
-                  onIncludeArchivedChange={setIncludeArchived}
-                  manufacturers={manufacturers}
+        {viewMode === 'scenarios' && workspaceId ? (
+          <Box mb={3}>
+            <ChemicalUseScenariosPanel
+              companyId={companyId}
+              workspaceId={workspaceId}
+              refreshKey={scenariosRefreshKey}
+            />
+          </Box>
+        ) : null}
+
+        {viewMode === 'products' ? (
+          <>
+            <STableSearch
+              key={searchFieldKey}
+              search={tableFilters.search}
+              autoFocus={false}
+              onSearch={(search) =>
+                setTableFilters((current) => ({ ...current, search }))
+              }
+              inputProps={{
+                placeholder: 'Buscar nome, fabricante, substância ou CAS',
+              }}
+            >
+              <STableSearchContent>
+                {null}
+                <STableColumnsButton
+                  showLabel
+                  hiddenColumns={hiddenColumns}
+                  setHiddenColumns={setHiddenColumns}
+                  columns={chemicalProductColumns}
                 />
-              </STableFilterButton>
-            </STableSearchContent>
-          </STableSearch>
-          {filterChips.length ? (
-            <STableInfoSection>
-              <STableFilterChipList
-                onClean={() => {
-                  setTableFilters({
-                    ...EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS,
-                  });
-                  setTableSort(null);
-                  setSearchFieldKey((key) => key + 1);
-                }}
-              >
-                {filterChips.map((chip) => (
-                  <STableFilterChip
-                    key={chip.key}
-                    leftLabel={chip.leftLabel}
-                    label={chip.label}
-                    onDelete={() => {
-                      if (chip.key === 'sort') {
-                        setTableSort(null);
-                        return;
-                      }
-                      setTableFilters((current) => ({
-                        ...current,
-                        [chip.key]:
-                          EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS[
-                            chip.key as keyof ChemicalProductTableViewFilters
-                          ],
-                      }));
-                    }}
+                <STableFilterButton text="Filtros">
+                  <ChemicalProductsTableFilter
+                    filters={tableFilters}
+                    onFilterChange={(patch) =>
+                      setTableFilters((current) => ({ ...current, ...patch }))
+                    }
+                    includeArchived={includeArchived}
+                    onIncludeArchivedChange={setIncludeArchived}
+                    manufacturers={manufacturers}
                   />
-                ))}
-              </STableFilterChipList>
-            </STableInfoSection>
-          ) : null}
-        </>
-      ) : null}
+                </STableFilterButton>
+              </STableSearchContent>
+            </STableSearch>
+            {filterChips.length ? (
+              <STableInfoSection>
+                <STableFilterChipList
+                  onClean={() => {
+                    setTableFilters({
+                      ...EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS,
+                    });
+                    setTableSort(null);
+                    setSearchFieldKey((key) => key + 1);
+                  }}
+                >
+                  {filterChips.map((chip) => (
+                    <STableFilterChip
+                      key={chip.key}
+                      leftLabel={chip.leftLabel}
+                      label={chip.label}
+                      onDelete={() => {
+                        if (chip.key === 'sort') {
+                          setTableSort(null);
+                          return;
+                        }
+                        setTableFilters((current) => ({
+                          ...current,
+                          [chip.key]:
+                            EMPTY_CHEMICAL_PRODUCT_TABLE_VIEW_FILTERS[
+                              chip.key as keyof ChemicalProductTableViewFilters
+                            ],
+                        }));
+                      }}
+                    />
+                  ))}
+                </STableFilterChipList>
+              </STableInfoSection>
+            ) : null}
+          </>
+        ) : null}
 
-      {viewMode === 'products' && isError ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {(error as Error)?.message ||
-            'Não foi possível carregar os produtos.'}
-        </Alert>
-      ) : null}
+        {viewMode === 'products' && isError ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {(error as Error)?.message ||
+              'Não foi possível carregar os produtos.'}
+          </Alert>
+        ) : null}
 
-      {viewMode === 'products' ? (
-        <ChemicalProductsTable
-          products={products}
-          isLoading={isLoading}
-          hiddenColumns={hiddenColumns}
-          sort={tableSort}
-          onSortField={(field) =>
-            setTableSort((current) => nextChemicalProductTableSort(current, field))
-          }
-          emptyMessage={
-            hasActiveView
-              ? 'Nenhum produto encontrado com os filtros atuais.'
-              : 'Nenhum produto cadastrado neste estabelecimento.'
-          }
-          onOpen={(product) => setSelectedProductId(product.id)}
-          onEdit={async (product) => {
-            try {
-              const detail = await readChemicalProduct({
-                companyId,
-                workspaceId,
-                productId: product.id,
-              });
-              setEditProduct(detail);
-            } catch {
-              window.alert('Não foi possível abrir a edição.');
+        {viewMode === 'products' ? (
+          <ChemicalProductsTable
+            products={products}
+            isLoading={isLoading}
+            hiddenColumns={hiddenColumns}
+            sort={tableSort}
+            onSortField={(field) =>
+              setTableSort((current) => nextChemicalProductTableSort(current, field))
             }
-          }}
-          onArchive={confirmArchive}
-          onDelete={confirmHardDelete}
-          onRestore={confirmRestore}
-          archivePending={archive.isPending}
-          restorePending={restore.isPending}
-          deletePending={hardDelete.isPending}
-        />
-      ) : null}
-
-
+            emptyMessage={
+              hasActiveView
+                ? 'Nenhum produto encontrado com os filtros atuais.'
+                : 'Nenhum produto cadastrado neste estabelecimento.'
+            }
+            onOpen={(product) => setSelectedProductId(product.id)}
+            onEdit={async (product) => {
+              try {
+                const detail = await readChemicalProduct({
+                  companyId,
+                  workspaceId,
+                  productId: product.id,
+                });
+                setEditProduct(detail);
+              } catch {
+                window.alert('Não foi possível abrir a edição.');
+              }
+            }}
+            onArchive={confirmArchive}
+            onDelete={confirmHardDelete}
+            onRestore={confirmRestore}
+            archivePending={archive.isPending}
+            restorePending={restore.isPending}
+            deletePending={hardDelete.isPending}
+          />
+        ) : null}
+      </Box>
 
       <ChemicalProductFormDialog
         open={createOpen || Boolean(editProduct)}

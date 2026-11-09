@@ -145,7 +145,8 @@ export function ExposureGroupAssistantPageContent({
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [operationalView, setOperationalView] =
     useState<OperationalView>('PENDING');
-  const [mainView, setMainView] = useState<AssistantMainView>('DIAGNOSIS');
+  const [selectedMainView, setMainView] =
+    useState<AssistantMainView>('DIAGNOSIS');
   const [selected, setSelected] = useState<InterpretedRecommendation | null>(
     null,
   );
@@ -157,6 +158,20 @@ export function ExposureGroupAssistantPageContent({
     isMaster ||
     (isValidPermissions([PermissionEnum.EMPLOYEE]) &&
       isValidPermissions([PermissionEnum.HOMO_GROUP]));
+  const mainView =
+    selectedMainView === 'INVENTORY_IMPORT' && !canImportInventoryPgr
+      ? 'DIAGNOSIS'
+      : selectedMainView;
+  const assistantTabs: { value: AssistantMainView; label: string }[] = [
+    { value: 'DIAGNOSIS', label: 'Diagnóstico' },
+    { value: 'SIMILARITY', label: 'Propostas de GSE' },
+  ];
+  if (canImportInventoryPgr) {
+    assistantTabs.push({
+      value: 'INVENTORY_IMPORT',
+      label: 'Importar Inventário / PGR',
+    });
+  }
   const { enqueueSnackbar } = useSnackbar();
   const justifyMutation = useMutateJustifyIntegrityReview();
   const reopenMutation = useMutateReopenIntegrityReview();
@@ -500,33 +515,28 @@ export function ExposureGroupAssistantPageContent({
         />
       </CompanyFlowStickySubheader>
 
-      <Stack spacing={2.5} sx={{ mt: 2, px: { xs: 1, md: 0 }, pb: 4 }}>
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant={mainView === 'DIAGNOSIS' ? 'contained' : 'outlined'}
-            size="small"
-            onClick={() => setMainView('DIAGNOSIS')}
-          >
-            Diagnóstico
-          </Button>
-          <Button
-            variant={mainView === 'SIMILARITY' ? 'contained' : 'outlined'}
-            size="small"
-            onClick={() => setMainView('SIMILARITY')}
-          >
-            Propostas de GSE
-          </Button>
-          {canImportInventoryPgr ? (
-            <Button
-              variant={mainView === 'INVENTORY_IMPORT' ? 'contained' : 'outlined'}
-              size="small"
-              onClick={() => setMainView('INVENTORY_IMPORT')}
-            >
-              Importar Inventário / PGR
-            </Button>
-          ) : null}
-        </Stack>
-
+      <Box sx={{ mt: 2, px: { xs: 1, md: 0 } }}>
+        <STabs
+          aria-label="Assistente de GSE"
+          mt={0}
+          mb={2.5}
+          value={mainView}
+          options={assistantTabs.map(({ value, label }) => ({
+            value,
+            label,
+            id: `exposure-group-assistant-tab-${value}`,
+            'aria-controls': `exposure-group-assistant-panel-${value}`,
+          }))}
+          onChange={(_, value: AssistantMainView) => setMainView(value)}
+        />
+      </Box>
+      <Stack
+        role="tabpanel"
+        id={`exposure-group-assistant-panel-${mainView}`}
+        aria-labelledby={`exposure-group-assistant-tab-${mainView}`}
+        spacing={2.5}
+        sx={{ px: { xs: 1, md: 0 }, pb: 4 }}
+      >
         {mainView === 'INVENTORY_IMPORT' ? (
           !workspaceId ? (
             <Alert severity="warning">
