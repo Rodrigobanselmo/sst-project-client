@@ -313,50 +313,53 @@ export const WorkspaceTable: FC<
 
   return (
     <>
-      <SFlex
-        mb={8}
-        mt={40}
-        align="center"
-        sx={{ flexWrap: 'wrap', columnGap: 2, rowGap: 2 }}
-      >
-        <STableTitle mb={0} mt={0} mr={10} variant="h6" icon={SWorkspaceIcon}>
-          Estabelecimentos
-        </STableTitle>
-        <STableAddButton
-          sm
-          onAddClick={handleAddWorkspace}
-          addText={'Adicionar'}
-          identitySquareActions
-        />
+      <SFlex mb={8} mt={40} align="center" gap={6}>
+        <SFlex
+          align="center"
+          sx={{ flex: 1, minWidth: 0, flexWrap: 'wrap', gap: 2 }}
+        >
+          <STableTitle mb={0} mt={0} mr={10} variant="h6" icon={SWorkspaceIcon}>
+            Estabelecimentos
+          </STableTitle>
+          <STableAddButton
+            sm
+            onAddClick={handleAddWorkspace}
+            addText={'Adicionar'}
+            identitySquareActions
+          />
+          <STableButton
+            sm
+            onClick={() => onOpenModal(ModalEnum.ESTABLISHMENT_GROUPS)}
+            text="Grupos de estabelecimentos"
+            icon={FolderCopyOutlinedIcon}
+            tooltip="Grupos de estabelecimentos"
+            variant="outlined"
+            color="transparent"
+            iconColor="grey.600"
+            boxProps={{ sx: { flexShrink: 0 } }}
+            sx={{
+              ...brandIdentityToolbarAddSx,
+              width: 'auto',
+              maxWidth: 'none',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          />
+        </SFlex>
         {data?.id && (
           <StructuralArchivedButton
             companyId={data.id}
             table="Workspace"
             label="Consultar estabelecimentos encerrados"
+            iconOnly
           />
         )}
-        <STableButton
-          sm
-          onClick={() => onOpenModal(ModalEnum.ESTABLISHMENT_GROUPS)}
-          text="Grupos de estabelecimentos"
-          icon={FolderCopyOutlinedIcon}
-          tooltip="Grupos de estabelecimentos"
-          variant="outlined"
-          color="transparent"
-          iconColor="grey.600"
-          boxProps={{ sx: { flexShrink: 0 } }}
-          sx={{
-            ...brandIdentityToolbarAddSx,
-            width: 'auto',
-            maxWidth: 'none',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
-        />
       </SFlex>
       <STableSearch
         key={searchInputKey}
         placeholder="Buscar por nome do estabelecimento..."
+        boxProps={{ sx: { width: 360, maxWidth: '100%', mr: { sm: 4 } } }}
+        toolbarSx={{ flexWrap: 'wrap', rowGap: 2 }}
         autoFocus={false}
         onChange={(e) => handleSearchChange(e.target.value)}
         pinToolbarWithFilter

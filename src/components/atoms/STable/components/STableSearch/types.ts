@@ -24,6 +24,7 @@ export type STableSearchProps = SInputProps & {
   toolbarAfterReload?: ReactNode;
   /** When true, `toolbarBeforeFilter` is pinned to the right with Filtrar. */
   pinToolbarWithFilter?: boolean;
+  toolbarSx?: SxProps<Theme>;
   /** Atualizar / Upload usam fill de identidade. Default: cinza legado. */
   identitySquareActions?: boolean;
   filterButtonSx?: SxProps<Theme>;

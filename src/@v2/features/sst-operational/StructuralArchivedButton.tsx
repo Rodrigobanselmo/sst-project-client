@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from 'react-query';
+import axios from 'axios';
+import RestoreOutlinedIcon from '@mui/icons-material/RestoreOutlined';
 import {
   Alert,
   Box,
@@ -8,12 +10,14 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from '@mui/material';
 
@@ -35,6 +39,7 @@ export function StructuralArchivedButton({
   label = 'Consultar cadastros encerrados',
   disabled = false,
   fullWidth = false,
+  iconOnly = false,
 }: {
   companyId: string;
   table: StructuralTable;
@@ -42,6 +47,7 @@ export function StructuralArchivedButton({
   label?: string;
   disabled?: boolean;
   fullWidth?: boolean;
+  iconOnly?: boolean;
 }) {
   const access = useSstAccess();
   const [open, setOpen] = useState(false);
@@ -61,20 +67,44 @@ export function StructuralArchivedButton({
     },
   );
   if (!access.canReadStructure(table) || !companyId) return null;
+  const response = list.isError && axios.isAxiosError(list.error)
+    ? list.error.response
+    : undefined;
+  const accessDenied = response?.status === 403;
+  const accessMessage: unknown = response?.data?.message;
+  const openArchived = () => {
+    setOpen(true);
+    setCursor(undefined);
+  };
+
   return (
     <>
-      <Button
-        type="button"
-        variant="outlined"
-        fullWidth={fullWidth}
-        disabled={disabled}
-        onClick={() => {
-          setOpen(true);
-          setCursor(undefined);
-        }}
-      >
-        {label}
-      </Button>
+      {iconOnly ? (
+        <Tooltip title={label}>
+          <Box component="span" sx={{ display: 'inline-flex', flexShrink: 0 }}>
+            <IconButton
+              type="button"
+              aria-label={label}
+              aria-haspopup="dialog"
+              disabled={disabled}
+              onClick={openArchived}
+              sx={{ color: 'text.secondary', width: 40, height: 40 }}
+            >
+              <RestoreOutlinedIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Tooltip>
+      ) : (
+        <Button
+          type="button"
+          variant="outlined"
+          fullWidth={fullWidth}
+          disabled={disabled}
+          onClick={openArchived}
+        >
+          {label}
+        </Button>
+      )}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -96,56 +126,70 @@ export function StructuralArchivedButton({
               não são reabertos.
             </Alert>
             {list.isError && (
-              <Alert severity="error">
-                Não foi possível consultar os cadastros encerrados.{' '}
-                <Button onClick={() => list.refetch()}>Tentar novamente</Button>
+              <Alert severity={accessDenied ? 'warning' : 'error'}>
+                {accessDenied ? (
+                  typeof accessMessage === 'string' && accessMessage.trim() ? (
+                    accessMessage
+                  ) : (
+                    'Sua sessão não tem acesso à consulta nesta empresa.'
+                  )
+                ) : (
+                  <>
+                    Não foi possível consultar os cadastros encerrados.{' '}
+                    <Button onClick={() => list.refetch()}>
+                      Tentar novamente
+                    </Button>
+                  </>
+                )}
               </Alert>
             )}
             {list.isLoading && (
               <Typography>Consultando cadastros encerrados…</Typography>
             )}
-            <Box sx={{ overflowX: 'auto' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Cadastro</TableCell>
-                    <TableCell>Encerrado desde</TableCell>
-                    <TableCell>Revisão</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {list.data?.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>
-                        {item.archivedOn
-                          ?.slice(0, 10)
-                          .split('-')
-                          .reverse()
-                          .join('/') || '—'}
-                      </TableCell>
-                      <TableCell>
-                        {access.canUpdateStructure(table) && (
-                          <Button
-                            disabled={list.isFetching || list.isError}
-                            onClick={() => setSelected(item)}
-                          >
-                            Revisar restauração
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {list.data && !list.data.items.length && (
+            {!list.isError && list.data && (
+              <Box sx={{ overflowX: 'auto' }}>
+                <Table size="small">
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={3}>
-                        Nenhum cadastro encerrado nesta consulta.
-                      </TableCell>
+                      <TableCell>Cadastro</TableCell>
+                      <TableCell>Encerrado desde</TableCell>
+                      <TableCell>Revisão</TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </Box>
+                  </TableHead>
+                  <TableBody>
+                    {list.data?.items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>
+                          {item.archivedOn
+                            ?.slice(0, 10)
+                            .split('-')
+                            .reverse()
+                            .join('/') || '—'}
+                        </TableCell>
+                        <TableCell>
+                          {access.canUpdateStructure(table) && (
+                            <Button
+                              disabled={list.isFetching || list.isError}
+                              onClick={() => setSelected(item)}
+                            >
+                              Revisar restauração
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {list.data && !list.data.items.length && (
+                      <TableRow>
+                        <TableCell colSpan={3}>
+                          Nenhum cadastro encerrado nesta consulta.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </Box>
+            )}
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               spacing={8}
@@ -159,7 +203,7 @@ export function StructuralArchivedButton({
                   Voltar à primeira página
                 </Button>
               )}
-              {list.data?.nextCursor && (
+              {!list.isError && list.data?.nextCursor && (
                 <Button
                   disabled={list.isFetching}
                   onClick={() => setCursor(list.data?.nextCursor || undefined)}

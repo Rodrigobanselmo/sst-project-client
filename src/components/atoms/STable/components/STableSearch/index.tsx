@@ -48,6 +48,7 @@ const STableSearch: FC<{ children?: any } & STableSearchProps> = ({
   toolbarAfterAdd,
   toolbarAfterReload,
   pinToolbarWithFilter,
+  toolbarSx,
   identitySquareActions,
   filterButtonSx,
   showFilterPanelActions,
@@ -82,7 +83,7 @@ const STableSearch: FC<{ children?: any } & STableSearchProps> = ({
     ) : null;
 
   return (
-    <SFlex mb={mb} align="center">
+    <SFlex mb={mb} align="center" sx={toolbarSx}>
       <Box {...boxProps}>
         <SInput
           startAdornment={<SearchIcon sx={{ fontSize: '22px', mt: 0 }} />}
