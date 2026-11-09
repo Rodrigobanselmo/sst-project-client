@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import RadarIcon from '@mui/icons-material/Radar';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
@@ -9,6 +11,8 @@ import {
   CircularProgress,
   LinearProgress,
   ListSubheader,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -30,6 +34,7 @@ import { HtmlContentRenderer } from '../../../../../public/answer/components/Htm
 import { FormQuestionPieChart } from './components/FormQuestionPieChart/FormQuestionPieChart';
 import { FormChartTypeSelector } from './components/FormChartTypeSelector/FormChartTypeSelector';
 import { ExecutiveIndicatorsDistributionSection } from './components/ExecutiveIndicatorsDistribution/ExecutiveIndicatorsDistribution';
+import { ScaleIndicatorsRadar } from './components/ScaleIndicatorsRadar/ScaleIndicatorsRadar';
 import { IndicatorsQualityLegend } from './components/IndicatorsQualityLegend/IndicatorsQualityLegend';
 import { IndicatorPercentScale } from './components/IndicatorPercentScale/IndicatorPercentScale';
 import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
@@ -65,6 +70,7 @@ import { resolveParticipantStructuresForGrouping } from './helpers/resolvePartic
 import { buildParticipantGroupingEnrichmentContext } from './helpers/buildParticipantGroupingEnrichmentContext';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
+import { exportFormRadarPdfInBrowser } from './helpers/exportFormRadarPdfInBrowser';
 import { exportFormRiskAnalysisPdfInBrowser } from './helpers/exportFormRiskAnalysisPdfInBrowser';
 import { exportFrpsExplainabilityTechnicalReportPdfInBrowser } from './helpers/exportFrpsExplainabilityTechnicalReportPdfInBrowser';
 import { buildIndicatorsPresentation } from './helpers/buildIndicatorsPdfDataset';
@@ -633,6 +639,16 @@ export const FormQuestionsDashboard = ({
     ],
   );
   const indicatorHierarchy = isIndicatorTab ? dimensionView : null;
+  type IndicatorView = 'bars' | 'radar-scales' | 'radar-dimensions';
+  const [indicatorView, setIndicatorView] = useState<IndicatorView>('bars');
+  const canShowScaleRadar = !!indicatorHierarchy && indicatorLevels.scales;
+  const canShowDimensionRadar =
+    !!indicatorHierarchy && indicatorLevels.dimensions;
+  const activeIndicatorView =
+    (indicatorView === 'radar-scales' && canShowScaleRadar) ||
+    (indicatorView === 'radar-dimensions' && canShowDimensionRadar)
+      ? indicatorView
+      : 'bars';
   const [selectedGroupingQuestion, setSelectedGroupingQuestion] = useState<
     string | null
   >(null);
@@ -1005,6 +1021,75 @@ export const FormQuestionsDashboard = ({
     filterQuestionsWithOptions,
   ]);
 
+  const isShareableLink = formApplication.isShareableLink;
+  const radarGroups = useMemo(() => {
+    if (!indicatorHierarchy || activeIndicatorView === 'bars') return [];
+
+    const dimensionsByScale = new Map<
+      string,
+      FormQuestionGroupWithAnswersBrowseModel[]
+    >();
+    for (const dimension of indicatorHierarchy.results) {
+      const scaleId = indicatorHierarchy.parentGroupIds[dimension.id];
+      if (dimension.identifier || !scaleId) continue;
+      const dimensions = dimensionsByScale.get(scaleId) ?? [];
+      dimensions.push(dimension);
+      dimensionsByScale.set(scaleId, dimensions);
+    }
+
+    return generalQuestionsArrays.map(
+      ({ groupId, groupName, participantCount, questions }) => {
+        const isProtected = !isShareableLink && participantCount < 3;
+        const questionsByScale = new Map<string, typeof questions>();
+        for (const question of questions) {
+          const scale = questionsByScale.get(question.groupId) ?? [];
+          scale.push(question);
+          questionsByScale.set(question.groupId, scale);
+        }
+
+        return {
+          id: groupId,
+          name: groupName,
+          protected: isProtected,
+          scales: Array.from(questionsByScale, ([id, scaleQuestions]) => {
+            const summarize = (items: typeof questions) =>
+              calculateFormIndicatorFromQuestions(isProtected ? [] : items);
+            return {
+              id,
+              name: scaleQuestions[0].groupName.replace(
+                /^Escala\s*[–—-]\s*/i,
+                '',
+              ),
+              ...summarize(scaleQuestions),
+              dimensions: (dimensionsByScale.get(id) ?? []).flatMap(
+                (dimension) => {
+                  const ids = new Set(dimension.questions.map(({ id }) => id));
+                  const dimensionQuestions = scaleQuestions.filter(({ id }) =>
+                    ids.has(id),
+                  );
+                  if (!dimensionQuestions.length) return [];
+
+                  return [
+                    {
+                      id: dimension.id,
+                      name: dimension.name.replace(/^Dimensão\s*[–—-]\s*/i, ''),
+                      ...summarize(dimensionQuestions),
+                    },
+                  ];
+                },
+              ),
+            };
+          }),
+        };
+      },
+    );
+  }, [
+    activeIndicatorView,
+    generalQuestionsArrays,
+    indicatorHierarchy,
+    isShareableLink,
+  ]);
+
   const hasGeneralQuestionsForAnyParticipantGroup = useMemo(
     () =>
       participantGroups.some(
@@ -1024,7 +1109,6 @@ export const FormQuestionsDashboard = ({
     );
   }
 
-  const isShareableLink = formApplication.isShareableLink;
 
   if (
     isShareableLink &&
@@ -1363,29 +1447,44 @@ export const FormQuestionsDashboard = ({
                     setIsExportingIndicatorsPdf(true);
                     setPdfLoadingMessage('Iniciando geração do PDF...');
                     try {
-                      await exportFormIndicatorsPdfInBrowser(
-                        {
-                          accessCompanyId,
-                          formApplication,
-                          formQuestionsAnswers,
-                          dimensionView: indicatorHierarchy,
-                          levels: indicatorLevels,
-                          includeNarrative: canShowNarrative,
-                          selectedGroupingQuestionId: selectedGroupingQuestion,
-                          selectedGroupingLabel,
-                          showOnlyGroupIndicators,
-                          executiveDistributionChartType,
-                          hierarchyGroups,
-                          ...(selectedGroupingQuestion &&
-                          selectedParticipantGroupIdsForView
-                            ? {
-                                visibleParticipantGroupIds:
-                                  selectedParticipantGroupIdsForView,
-                              }
-                            : {}),
-                        },
-                        (message) => setPdfLoadingMessage(message),
-                      );
+                      if (activeIndicatorView === 'bars') {
+                        await exportFormIndicatorsPdfInBrowser(
+                          {
+                            accessCompanyId,
+                            formApplication,
+                            formQuestionsAnswers,
+                            dimensionView: indicatorHierarchy,
+                            levels: indicatorLevels,
+                            includeNarrative: canShowNarrative,
+                            selectedGroupingQuestionId:
+                              selectedGroupingQuestion,
+                            selectedGroupingLabel,
+                            showOnlyGroupIndicators,
+                            executiveDistributionChartType,
+                            hierarchyGroups,
+                            ...(selectedGroupingQuestion &&
+                            selectedParticipantGroupIdsForView
+                              ? {
+                                  visibleParticipantGroupIds:
+                                    selectedParticipantGroupIdsForView,
+                                }
+                              : {}),
+                          },
+                          (message) => setPdfLoadingMessage(message),
+                        );
+                      } else {
+                        await exportFormRadarPdfInBrowser(
+                          {
+                            formName: formApplication.form.name,
+                            applicationName: formApplication.name,
+                            groupingLabel: selectedGroupingLabel,
+                            groups: radarGroups,
+                            byDimension:
+                              activeIndicatorView === 'radar-dimensions',
+                          },
+                          setPdfLoadingMessage,
+                        );
+                      }
                       enqueueSnackbar('PDF gerado com sucesso!', {
                         variant: 'success',
                       });
@@ -1744,8 +1843,57 @@ export const FormQuestionsDashboard = ({
                     isMaster={isMaster}
                   />
                 )}
-                {/* Create a structure grouped by questions first, then by participant groups */}
+                {(canShowScaleRadar || canShowDimensionRadar) && (
+                  <Box>
+                    <ToggleButtonGroup
+                      aria-label="Visualização dos indicadores"
+                      exclusive
+                      size="small"
+                      value={activeIndicatorView}
+                      onChange={(_, value: IndicatorView | null) => {
+                        if (value) setIndicatorView(value);
+                      }}
+                      sx={{
+                        flexWrap: 'wrap',
+                        '& .MuiToggleButton-root': {
+                          textTransform: 'none',
+                          gap: 0.75,
+                          px: 1.5,
+                        },
+                      }}
+                    >
+                      <ToggleButton value="bars">
+                        <BarChartIcon
+                          fontSize="small"
+                          sx={{ transform: 'rotate(90deg)' }}
+                        />
+                        Barras horizontais
+                      </ToggleButton>
+                      {canShowScaleRadar && (
+                        <ToggleButton value="radar-scales">
+                          <RadarIcon fontSize="small" />
+                          Radar por escalas
+                        </ToggleButton>
+                      )}
+                      {canShowDimensionRadar && (
+                        <ToggleButton value="radar-dimensions">
+                          <RadarIcon fontSize="small" />
+                          Radar por dimensões
+                        </ToggleButton>
+                      )}
+                    </ToggleButtonGroup>
+                  </Box>
+                )}
                 {(() => {
+                  if (activeIndicatorView !== 'bars') {
+                    return (
+                      <ScaleIndicatorsRadar
+                        byDimension={activeIndicatorView === 'radar-dimensions'}
+                        groups={radarGroups}
+                      />
+                    );
+                  }
+
                   // Get all unique questions across all participant groups
                   const allQuestions = new Map<
                     string,
@@ -1875,6 +2023,32 @@ export const FormQuestionsDashboard = ({
                   if (!indicatorHierarchy)
                     return groups.map(([id, group]) => renderGroup(id, group));
 
+                  const dimensions = indicatorHierarchy.results.filter(
+                    (group) => !group.identifier,
+                  );
+                  const getScaleDimensions = (
+                    scaleId: string,
+                    scale: FormGroupWithQuestions,
+                  ) =>
+                    dimensions
+                      .filter(
+                        (group) =>
+                          indicatorHierarchy.parentGroupIds[group.id] ===
+                          scaleId,
+                      )
+                      .map((group) => {
+                        const ids = new Set(
+                          group.questions.map((question) => question.id),
+                        );
+                        return {
+                          id: group.id,
+                          groupName: group.name,
+                          questions: scale.questions.filter((question) =>
+                            ids.has(question.id),
+                          ),
+                        };
+                      });
+
                   const renderCompactGroup = (
                     id: string,
                     group: FormGroupWithQuestions,
@@ -1961,38 +2135,20 @@ export const FormQuestionsDashboard = ({
                     </Box>
                   );
 
-                  const dimensions = indicatorHierarchy.results.filter(
-                    (group) => !group.identifier,
-                  );
                   return groups.map(([id, scale]) => {
                     const children = indicatorLevels.dimensions
-                      ? dimensions
-                          .filter(
-                            (group) =>
-                              indicatorHierarchy.parentGroupIds[group.id] ===
-                              id,
-                          )
-                          .map((group) => {
-                            const ids = new Set(
-                              group.questions.map((question) => question.id),
-                            );
-                            const dimension = {
-                              groupName: group.name,
-                              questions: scale.questions.filter((question) =>
-                                ids.has(question.id),
-                              ),
-                            };
-                            return renderCompactGroup(
-                              group.id,
-                              dimension,
-                              showOnlyGroupIndicators ? null : (
-                                <Box sx={{ p: 4 }}>
-                                  {renderQuestions(dimension)}
-                                </Box>
-                              ),
-                              true,
-                            );
-                          })
+                      ? getScaleDimensions(id, scale).map((dimension) => {
+                          return renderCompactGroup(
+                            dimension.id,
+                            dimension,
+                            showOnlyGroupIndicators ? null : (
+                              <Box sx={{ p: 4 }}>
+                                {renderQuestions(dimension)}
+                              </Box>
+                            ),
+                            true,
+                          );
+                        })
                       : showOnlyGroupIndicators
                         ? null
                         : renderQuestions(scale);
