@@ -25,7 +25,7 @@ interface SFormQuestionAccordionProps {
   onCopy?: () => void;
   onDelete?: () => void;
   onAddNewSection?: () => void;
-  onAddNewQuestion: () => void;
+  onAddNewQuestion?: () => void;
   disableQuestionDuplication?: boolean;
   disableQuestionCreation?: boolean;
   disableRequiredSwitch?: boolean;
@@ -117,7 +117,9 @@ export const SFormQuestionAccordion = ({
               name={`sections.${sectionIndex}.items.${questionIndex}.type`}
               renderStartAdornment={({ option }) =>
                 option ? (
-                  <InputAdornment position="start">{option?.icon}</InputAdornment>
+                  <InputAdornment position="start">
+                    {option?.icon}
+                  </InputAdornment>
                 ) : null
               }
               placeholder="Tipo"

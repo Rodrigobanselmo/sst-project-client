@@ -6,6 +6,7 @@ import { FormQuestionTypeEnumTranslate } from '@v2/models/form/translations/form
 import { FormTypeTranslate } from '@v2/models/form/translations/form-type.translation';
 
 export interface IFormModelItem {
+  dimensionId?: string;
   id?: string;
   apiId?: string;
   content: string;
@@ -24,6 +25,8 @@ export interface IFormModelItem {
 }
 
 export interface IFormModelSection {
+  structureGroupId?: string;
+  structureGroupIds?: string[];
   id?: string;
   apiId?: string;
   title: string;
@@ -67,6 +70,8 @@ export const schemaFormModelForms = yup.object({
       yup.object({
         id: yup.string().required('ID é obrigatório'),
         apiId: yup.string().optional(),
+        structureGroupId: yup.string().optional(),
+        structureGroupIds: yup.array().of(yup.string().required()).optional(),
         title: yup.string().required('Título da seção é obrigatório'),
         description: yup.string().optional(),
         items: yup
@@ -75,6 +80,7 @@ export const schemaFormModelForms = yup.object({
             yup.object({
               id: yup.string().required('ID é obrigatório'),
               apiId: yup.string().optional(),
+              dimensionId: yup.string().optional(),
               content: yup
                 .string()
                 .required('Conteúdo de pergunta é obrigatório'),

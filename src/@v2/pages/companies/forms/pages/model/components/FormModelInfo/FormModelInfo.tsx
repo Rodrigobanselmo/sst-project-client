@@ -12,6 +12,7 @@ import { FormModelTypesFilterList } from '@v2/models/form/maps/form-model-type-m
 type Props = {
   containerProps?: SFlexProps;
   isEdit?: boolean;
+  lockType?: boolean;
 };
 
 export const FormModelInfo = (props: Props) => {
@@ -36,6 +37,7 @@ export const FormModelInfo = (props: Props) => {
           label="Tipo"
           placeholder="selecione o tipo"
           name="type"
+          disabled={props.lockType}
           options={FormModelTypesFilterList}
           getOptionLabel={(option) => option.label}
           getOptionValue={(option) => option.value}

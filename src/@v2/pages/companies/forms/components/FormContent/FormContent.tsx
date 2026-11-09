@@ -5,6 +5,8 @@ import { FormModelTable } from './components/FormModelTable/FormModelTable';
 import { FORM_TAB_ENUM } from '@v2/constants/pages/routes';
 import { PreliminaryLibraryContent } from './components/PreliminaryLibraryContent/PreliminaryLibraryContent';
 
+import { FormStructuresContent } from './components/FormStructuresContent/FormStructuresContent';
+
 export const FormContent = ({ companyId }: { companyId: string }) => {
   return (
     <>
@@ -25,6 +27,11 @@ export const FormContent = ({ companyId }: { companyId: string }) => {
             label: 'Biblioteca de Perguntas Preliminares',
             value: FORM_TAB_ENUM.PRELIMINARY_LIBRARY,
             component: <PreliminaryLibraryContent companyId={companyId} />,
+          },
+          {
+            label: 'Estruturas de Escalas e Dimensões',
+            value: FORM_TAB_ENUM.STRUCTURES,
+            component: <FormStructuresContent companyId={companyId} />,
           },
         ]}
       />

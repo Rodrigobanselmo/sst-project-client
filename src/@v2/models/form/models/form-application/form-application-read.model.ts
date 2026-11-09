@@ -1,3 +1,4 @@
+import type { FormIndicatorHierarchy } from '@v2/models/form/form-indicator-hierarchy';
 import { dateUtils } from '@v2/utils/date-utils';
 import { FormQuestionGroupReadModel } from '../shared/form-question-group-read.model';
 import { FormApplicationStatusEnum } from '../../enums/form-status.enum';
@@ -18,7 +19,12 @@ export type IFormApplicationReadModel = {
   updatedAt: Date;
   startedAt: Date | null;
   endedAt: Date | null;
-  form: { id: string; name: string; type: FormTypeEnum };
+  form: {
+    id: string;
+    name: string;
+    type: FormTypeEnum;
+    indicatorHierarchy?: FormIndicatorHierarchy;
+  };
   isShareableLink: boolean;
   isAnonymous: boolean;
   scopeType: FormApplicationScopeTypeEnum;
@@ -52,7 +58,12 @@ export class FormApplicationReadModel {
   updatedAt: Date;
   startedAt: Date | null;
   endedAt: Date | null;
-  form: { id: string; name: string; type: FormTypeEnum };
+  form: {
+    id: string;
+    name: string;
+    type: FormTypeEnum;
+    indicatorHierarchy?: FormIndicatorHierarchy;
+  };
   isShareableLink: boolean;
   isAnonymous: boolean;
   totalParticipants: number;

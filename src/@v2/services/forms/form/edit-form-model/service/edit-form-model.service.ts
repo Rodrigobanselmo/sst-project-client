@@ -1,3 +1,4 @@
+import type { FormDimensionSectionAssignment } from '@v2/models/form/form-indicator-hierarchy';
 import { FormRoutes } from '@v2/constants/routes/forms.routes';
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { api } from 'core/services/apiClient';
@@ -41,6 +42,8 @@ export interface EditFormParams {
   anonymous?: boolean;
   shareableLink?: boolean;
   questionGroups?: IFormQuestionGroup[];
+  sectionAssignments?: FormDimensionSectionAssignment[];
+  dimensionNames?: { id: string; name: string }[];
 }
 
 export async function editFormModel({

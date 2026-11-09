@@ -1,6 +1,6 @@
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { SIconDelete } from '@v2/assets/icons';
 import { SIconAdd } from '@v2/assets/icons/SIconAdd/SIconAdd';
 import { SIconUnfolderMore } from '@v2/assets/icons/SIconUnfolderMore/SIconUnfolderMore';
@@ -21,6 +21,8 @@ interface SFormSectionProps {
   sectionIndex: number;
   sectionNumber: number;
   children: React.ReactNode;
+  sectionMetadata?: React.ReactNode;
+  labelSectionFields?: boolean;
   onDeleteSection?: () => void;
   onMoveSectionUp?: () => void;
   onMoveSectionDown?: () => void;
@@ -46,6 +48,8 @@ export const SFormSectionHeader = ({
   onMinimizeSection,
   isMinimized = false,
   children,
+  sectionMetadata,
+  labelSectionFields = false,
   title,
   hideInputTitle = false,
   descriptionPlaceholder = 'Descrição da seção',
@@ -132,18 +136,27 @@ export const SFormSectionHeader = ({
           <Stack gap={4} my={8}>
             {hideInputTitle ? null : (
               <SInputForm
+                label={labelSectionFields ? 'Título da seção' : undefined}
                 placeholder="Título da seção"
                 name={`sections.${sectionIndex}.title`}
               />
             )}
+            {sectionMetadata}
             {isMinimized ? null : (
-              <SEditorForm
-                name={`sections.${sectionIndex}.description`}
-                placeholder={descriptionPlaceholder}
-                editorContainerProps={{
-                  sx: {},
-                }}
-              />
+              <>
+                {labelSectionFields && (
+                  <Typography variant="caption" color="text.secondary">
+                    Descrição da seção
+                  </Typography>
+                )}
+                <SEditorForm
+                  name={`sections.${sectionIndex}.description`}
+                  placeholder={descriptionPlaceholder}
+                  editorContainerProps={{
+                    sx: {},
+                  }}
+                />
+              </>
             )}
           </Stack>
         </SAccordionBody>

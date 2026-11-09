@@ -1,3 +1,4 @@
+import type { FormDimensionSectionAssignment } from '@v2/models/form/form-indicator-hierarchy';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { Box } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
@@ -7,7 +8,7 @@ import { validateFormOptions } from '@v2/pages/companies/forms/utils/validate-fo
 import { useMutateDeleteFormModel } from '@v2/services/forms/form/delete-form-model/hooks/useMutateDeleteFormModel';
 import { useMutateEditFormModel } from '@v2/services/forms/form/edit-form-model/hooks/useMutateEditFormModel';
 import { useForm } from 'react-hook-form';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
   IFormModelForms,
   schemaFormModelForms,
@@ -87,27 +88,71 @@ export const FormModelEditContent = ({
     },
   });
 
+  const [dimensionNames, setDimensionNames] = useState<Record<string, string>>(
+    {},
+  );
+  const savedDimensionNames = useRef<Record<string, string>>({});
+  const canRenameDimensions =
+    !!form.indicatorHierarchy && (!form.system || isMaster);
+  const [draftSectionAssignments, setDraftSectionAssignments] =
+    useState<FormDimensionSectionAssignment[]>();
+  const [savedSectionAssignments, setSavedSectionAssignments] = useState(
+    form.indicatorHierarchy?.sectionAssignments,
+  );
+  const sectionAssignments = draftSectionAssignments ?? savedSectionAssignments;
+  const changedDimensionNames = Object.entries(dimensionNames)
+    .filter(([id, name]) => savedDimensionNames.current[id] !== name)
+    .map(([id, name]) => ({ id, name }));
+
   const editFormMutation = useMutateEditFormModel();
   const deleteFormMutation = useMutateDeleteFormModel();
   const { showConfirmation } = useConfirmationModal();
   const watchedValues = formHook.watch();
-  const baselineRef = useRef(
-    getFormModelEditorSnapshot(formHook.getValues()),
+  const baselineRef = useRef(getFormModelEditorSnapshot(formHook.getValues()));
+  const isFormDirty = isFormModelEditorDirty(
+    watchedValues,
+    baselineRef.current,
   );
-  const isDirty = isFormModelEditorDirty(watchedValues, baselineRef.current);
+  const isDirty =
+    isFormDirty ||
+    changedDimensionNames.length > 0 ||
+    draftSectionAssignments !== undefined;
 
   const persist = async (data: IFormModelForms) => {
     formHook.clearErrors();
 
-    const hasValidationErrors = validateFormOptions(data, formHook);
+    const hasValidationErrors =
+      isFormDirty && validateFormOptions(data, formHook);
 
-    if (hasValidationErrors) return false;
+    if (
+      hasValidationErrors ||
+      changedDimensionNames.some(
+        ({ name }) => !name.trim() || name.length > 160,
+      )
+    )
+      return false;
 
     const apiData = transformFormDataToApiFormat(data, companyId);
     await editFormMutation.mutateAsync({
-      ...apiData,
+      ...(isFormDirty ? apiData : { companyId, name: form.name }),
       formId: form.id,
+      ...(draftSectionAssignments !== undefined
+        ? { sectionAssignments: draftSectionAssignments }
+        : {}),
+      ...(canRenameDimensions && changedDimensionNames.length
+        ? {
+            dimensionNames: changedDimensionNames.map(({ id, name }) => ({
+              id,
+              name: name.trim(),
+            })),
+          }
+        : {}),
     });
+    if (draftSectionAssignments !== undefined) {
+      setSavedSectionAssignments(draftSectionAssignments);
+      setDraftSectionAssignments(undefined);
+    }
+    savedDimensionNames.current = { ...dimensionNames };
     baselineRef.current = getFormModelEditorSnapshot(formHook.getValues());
     return true;
   };
@@ -141,20 +186,39 @@ export const FormModelEditContent = ({
 
     if (!confirmed) return;
 
-    await deleteFormMutation.mutateAsync({
-      companyId,
-      formId: form.id,
-    });
-
-    router.push(PageRoutes.FORMS.FORMS_MODEL.LIST, {
-      pathParams: { companyId },
-    });
+    deleteFormMutation.mutate(
+      { companyId, formId: form.id },
+      {
+        onSuccess: () => {
+          router.push(PageRoutes.FORMS.FORMS_MODEL.LIST, {
+            pathParams: { companyId },
+          });
+        },
+      },
+    );
   };
 
   return (
     <SForm form={formHook}>
       <FormModelInfo containerProps={{ mb: 16 }} isEdit={true} />
-      <FormModelGroup companyId={companyId} isEdit={true} />
+      <FormModelGroup
+        companyId={companyId}
+        formId={form.id}
+        savedHierarchy={form.indicatorHierarchy}
+        dimensionNames={dimensionNames}
+        sectionAssignments={sectionAssignments}
+        onChangeSectionAssignments={
+          canRenameDimensions ? setDraftSectionAssignments : undefined
+        }
+        onRenameDimension={
+          canRenameDimensions
+            ? (id, name) => {
+                setDimensionNames((current) => ({ ...current, [id]: name }));
+              }
+            : undefined
+        }
+        isEdit={true}
+      />
 
       <FormQuestionsButtons
         onCancel={onCancel}
@@ -165,10 +229,12 @@ export const FormModelEditContent = ({
         errors={formHook.formState.errors}
         loading={editFormMutation.isPending}
       />
-      {(!form.system || isMaster) && (
+      {(form.system ? isMaster : form.companyId === companyId) && (
         <Box mt={4} display="flex" justifyContent="flex-end">
           <SButton
-            text={deleteFormMutation.isPending ? 'Excluindo...' : 'Excluir modelo'}
+            text={
+              deleteFormMutation.isPending ? 'Excluindo...' : 'Excluir modelo'
+            }
             onClick={onDelete}
             color="danger"
             variant="outlined"

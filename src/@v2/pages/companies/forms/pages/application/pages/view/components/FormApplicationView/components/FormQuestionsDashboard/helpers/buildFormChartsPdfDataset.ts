@@ -192,7 +192,8 @@ export function buildFormChartsPdfDataset(params: {
     participantGroups = participantGroups.filter((g) => allow.has(g.id));
   }
 
-  const [identifierGroup, ...generalGroups] = formQuestionsAnswers.results;
+  const identifierGroup = formQuestionsAnswers.results.find((group) => group.identifier);
+  const generalGroups = formQuestionsAnswers.results.filter((group) => !group.identifier);
 
   const identifierQuestions = identifierGroup
     ? buildQuestionsWithOptions([identifierGroup])

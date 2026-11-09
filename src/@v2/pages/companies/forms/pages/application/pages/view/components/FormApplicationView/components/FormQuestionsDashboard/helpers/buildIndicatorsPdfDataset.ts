@@ -1,3 +1,7 @@
+import type {
+  CopsoqLongDimensionView,
+  IndicatorLevels,
+} from './buildCopsoqLongDimensionView';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormAnswerBrowseModel } from '@v2/models/form/models/form-questions-answers/form-answer-browse.model';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
@@ -64,6 +68,8 @@ export type IndicatorsPdfDataset = {
   formGroups: Array<{
     groupId: string;
     groupName: string;
+    depth?: 1;
+    hideGroup?: boolean;
     indicators: IndicatorRowPdf[];
     questions?: Array<{
       questionId: string;
@@ -143,7 +149,7 @@ const calculateIndicatorForQuestions = (
   return calculateFormIndicatorFromQuestions(questionsToAggregate);
 };
 
-export function buildIndicatorsPdfDataset(params: {
+type BuildIndicatorsPdfDatasetParams = {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
   showOnlyGroupIndicators: boolean;
@@ -162,7 +168,11 @@ export function buildIndicatorsPdfDataset(params: {
     grouping: IndicatorsPdfDataset['grouping'];
     participantGroups: ParticipantGroupForIndicators[];
   };
-}): IndicatorsPdfDataset {
+};
+
+export function buildIndicatorsPdfDataset(
+  params: BuildIndicatorsPdfDatasetParams,
+): IndicatorsPdfDataset {
   const {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
@@ -194,7 +204,9 @@ export function buildIndicatorsPdfDataset(params: {
     participantGroups = participantGroups.filter((g) => allow.has(g.id));
   }
 
-  const [, ...generalGroups] = formQuestionsAnswers.results;
+  const generalGroups = formQuestionsAnswers.results.filter(
+    (group) => !group.identifier,
+  );
 
   const generalQuestionsArrays = participantGroups.map((group) => ({
     groupId: group.id,
@@ -330,5 +342,55 @@ export function buildIndicatorsPdfDataset(params: {
       participantCount: pg.participantIds.size,
     })),
     formGroups,
+  };
+}
+
+export function buildIndicatorsPresentation(
+  params: BuildIndicatorsPdfDatasetParams,
+  dimensionView: CopsoqLongDimensionView | null | undefined,
+  levels: IndicatorLevels,
+): IndicatorsPdfDataset {
+  if (!dimensionView) return buildIndicatorsPdfDataset(params);
+
+  const scaleData = buildIndicatorsPdfDataset({
+    ...params,
+    formQuestionsAnswers: dimensionView.scaleResults
+      ? { ...params.formQuestionsAnswers, results: dimensionView.scaleResults }
+      : params.formQuestionsAnswers,
+    showOnlyGroupIndicators:
+      params.showOnlyGroupIndicators || levels.dimensions,
+  });
+  const dimensionData = levels.dimensions
+    ? buildIndicatorsPdfDataset({
+        ...params,
+        formQuestionsAnswers: dimensionView,
+      })
+    : null;
+
+  const formGroups = levels.scales
+    ? scaleData.formGroups.flatMap((scale) => [
+        scale,
+        ...(dimensionData?.formGroups ?? [])
+          .filter(
+            (dimension) =>
+              dimensionView.parentGroupIds[dimension.groupId] === scale.groupId,
+          )
+          .map((dimension) => ({ ...dimension, depth: 1 as const })),
+      ])
+    : (dimensionData?.formGroups ??
+      scaleData.formGroups.map((group) => ({
+        ...group,
+        hideGroup: true,
+        indicators: [],
+      })));
+
+  return {
+    ...scaleData,
+    showOnlyGroupIndicators: params.showOnlyGroupIndicators,
+    formGroups,
+    executiveDistribution: buildExecutiveIndicatorsDistribution({
+      formGroups,
+      showOnlyGroupIndicators: params.showOnlyGroupIndicators,
+    }),
   };
 }

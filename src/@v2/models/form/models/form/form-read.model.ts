@@ -1,3 +1,4 @@
+import type { FormIndicatorHierarchy } from '@v2/models/form/form-indicator-hierarchy';
 import { dateUtils } from '@v2/utils/date-utils';
 import { FormTypeEnum } from '../../enums/form-type.enum';
 import { FormQuestionGroupReadModel } from '../shared/form-question-group-read.model';
@@ -14,6 +15,7 @@ export type IFormReadModel = {
   createdAt: Date;
   updatedAt: Date;
   questionGroups: FormQuestionGroupReadModel[];
+  indicatorHierarchy?: FormIndicatorHierarchy;
 };
 
 export class FormReadModel {
@@ -28,9 +30,11 @@ export class FormReadModel {
   createdAt: Date;
   updatedAt: Date;
   questionGroups: FormQuestionGroupReadModel[];
+  indicatorHierarchy?: FormIndicatorHierarchy;
 
   constructor(params: IFormReadModel) {
     this.id = params.id;
+    this.indicatorHierarchy = params.indicatorHierarchy;
     this.companyId = params.companyId;
     this.name = params.name;
     this.type = params.type;

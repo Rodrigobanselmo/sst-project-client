@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
@@ -66,7 +67,11 @@ import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBro
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 import { exportFormRiskAnalysisPdfInBrowser } from './helpers/exportFormRiskAnalysisPdfInBrowser';
 import { exportFrpsExplainabilityTechnicalReportPdfInBrowser } from './helpers/exportFrpsExplainabilityTechnicalReportPdfInBrowser';
-import { buildIndicatorsPdfDataset } from './helpers/buildIndicatorsPdfDataset';
+import { buildIndicatorsPresentation } from './helpers/buildIndicatorsPdfDataset';
+import {
+  buildCopsoqLongDimensionView,
+  type IndicatorLevels,
+} from './helpers/buildCopsoqLongDimensionView';
 import {
   DEFAULT_FORM_CHART_TYPE,
   type FormChartType,
@@ -116,6 +121,94 @@ interface GroupDashboardIndicatorProps {
   selectedGroupingQuestion?: string | null;
 }
 
+const CompactGroupIndicator = ({
+  score,
+  percentage,
+  questionCount,
+  label,
+  unavailable,
+}: {
+  score: number;
+  percentage: number;
+  questionCount: number;
+  label?: string;
+  unavailable?: string;
+}) => (
+  <Box
+    component="span"
+    sx={{
+      display: 'inline-flex',
+      flex: '1 0 auto',
+      alignItems: 'center',
+      gap: 3,
+      whiteSpace: 'nowrap',
+      fontWeight: 400,
+      fontSize: '0.8125rem',
+    }}
+  >
+    {label && (
+      <Box
+        component="span"
+        sx={{
+          fontWeight: 600,
+          flex: '0 0 var(--indicator-group-width, auto)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {label}
+      </Box>
+    )}
+    {unavailable ? (
+      <Box component="span" sx={{ color: 'text.secondary' }}>
+        {unavailable}
+      </Box>
+    ) : (
+      <>
+        <LinearProgress
+          aria-label={label ? `Indicador de ${label}` : 'Indicador da escala'}
+          variant="determinate"
+          value={percentage}
+          sx={{
+            flex: '1 1 100px',
+            minWidth: 32,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: 'action.disabledBackground',
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: getIndicatorColorFromScore(score),
+              borderRadius: 4,
+            },
+          }}
+        />
+        <Box
+          component="span"
+          sx={{
+            fontWeight: 700,
+            flex: '0 0 var(--indicator-percent-width, auto)',
+            textAlign: 'right',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {percentage}%
+        </Box>
+        <Box
+          component="span"
+          sx={{
+            color: 'text.secondary',
+            flex: '0 0 var(--indicator-score-width, auto)',
+            textAlign: 'right',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          Score: {score.toFixed(3)} · {questionCount}{' '}
+          {questionCount === 1 ? 'pergunta' : 'perguntas'}
+        </Box>
+      </>
+    )}
+  </Box>
+);
+
 // Component for individual participant group indicator
 interface ParticipantGroupIndicatorProps {
   groupData: FormGroupWithQuestions;
@@ -123,6 +216,7 @@ interface ParticipantGroupIndicatorProps {
   participantGroupName: string;
   participantCount: number;
   isShareableLink: boolean;
+  compact?: boolean;
 }
 
 const ParticipantGroupIndicator = ({
@@ -131,21 +225,24 @@ const ParticipantGroupIndicator = ({
   participantGroupName,
   participantCount,
   isShareableLink,
+  compact,
 }: ParticipantGroupIndicatorProps) => {
-  const questionsForCalculation = groupData.questions.flatMap((questionData) => {
-    const participantData = questionData.participantGroupData.find(
-      (pg) => pg.groupId === participantGroupId,
-    );
+  const questionsForCalculation = groupData.questions.flatMap(
+    (questionData) => {
+      const participantData = questionData.participantGroupData.find(
+        (pg) => pg.groupId === participantGroupId,
+      );
 
-    if (!participantData) return [];
+      if (!participantData) return [];
 
-    return [
-      {
-        answers: participantData.question.answers,
-        options: questionData.options,
-      },
-    ];
-  });
+      return [
+        {
+          answers: participantData.question.answers,
+          options: questionData.options,
+        },
+      ];
+    },
+  );
 
   const {
     score: indicatorValue,
@@ -154,6 +251,23 @@ const ParticipantGroupIndicator = ({
   } = calculateFormIndicatorFromQuestions(questionsForCalculation);
 
   const shouldHideData = !isShareableLink && participantCount < 3;
+  if (compact) {
+    return (
+      <CompactGroupIndicator
+        score={indicatorValue}
+        percentage={percentage}
+        questionCount={questionsForCalculation.length}
+        label={participantGroupName}
+        unavailable={
+          shouldHideData
+            ? 'Dados protegidos'
+            : !hasValidAnswers
+              ? 'Sem respostas válidas'
+              : undefined
+        }
+      />
+    );
+  }
 
   return (
     <Box
@@ -276,7 +390,13 @@ const GroupDashboardIndicator = ({
   groupData,
   selectedGroupingQuestion,
   isShareableLink,
-}: GroupDashboardIndicatorProps & { isShareableLink: boolean }) => {
+  hideTitle,
+  compact,
+}: GroupDashboardIndicatorProps & {
+  isShareableLink: boolean;
+  compact?: boolean;
+  hideTitle?: boolean;
+}) => {
   // Check if demographic grouping is active
   const hasMultipleParticipantGroups =
     groupData.questions.length > 0 &&
@@ -286,6 +406,24 @@ const GroupDashboardIndicator = ({
   if (selectedGroupingQuestion && hasMultipleParticipantGroups) {
     // Get unique participant groups from the first question (they should be the same across all questions)
     const participantGroups = groupData.questions[0].participantGroupData;
+
+    if (compact) {
+      return (
+        <>
+          {participantGroups.map((group) => (
+            <ParticipantGroupIndicator
+              key={group.groupId}
+              groupData={groupData}
+              participantGroupId={group.groupId}
+              participantGroupName={group.groupName}
+              participantCount={group.participantCount}
+              isShareableLink={isShareableLink}
+              compact
+            />
+          ))}
+        </>
+      );
+    }
 
     return (
       <SPaper
@@ -308,14 +446,16 @@ const GroupDashboardIndicator = ({
             borderColor: 'primary.100',
           }}
         >
-          <Typography
-            variant="h5"
-            textAlign="center"
-            fontWeight={600}
-            color="primary.main"
-          >
-            Indicadores do Grupo: {groupData.groupName}
-          </Typography>
+          {!hideTitle && (
+            <Typography
+              variant="h5"
+              textAlign="center"
+              fontWeight={600}
+              color="primary.main"
+            >
+              Indicadores do Grupo: {groupData.groupName}
+            </Typography>
+          )}
         </Box>
 
         {/* Show indicators side by side for each participant group */}
@@ -350,7 +490,19 @@ const GroupDashboardIndicator = ({
   const {
     score: indicatorValue,
     percentage,
+    hasValidAnswers,
   } = calculateFormIndicatorFromQuestions(questionsForCalculation);
+
+  if (compact) {
+    return (
+      <CompactGroupIndicator
+        score={indicatorValue}
+        percentage={percentage}
+        questionCount={groupData.questions.length}
+        unavailable={hasValidAnswers ? undefined : 'Sem respostas válidas'}
+      />
+    );
+  }
 
   return (
     <SPaper
@@ -363,9 +515,11 @@ const GroupDashboardIndicator = ({
         borderColor: getIndicatorColorFromScore(indicatorValue),
       }}
     >
-      <Typography variant="h5" textAlign="center" mb={2} color="primary.main">
-        Indicador do Grupo: {groupData.groupName}
-      </Typography>
+      {!hideTitle && (
+        <Typography variant="h5" textAlign="center" mb={2} color="primary.main">
+          Indicador do Grupo: {groupData.groupName}
+        </Typography>
+      )}
 
       <Box
         height={140}
@@ -439,8 +593,16 @@ export const FormQuestionsDashboard = ({
   ] = useState(false);
   const [pdfLoadingMessage, setPdfLoadingMessage] = useState<string>('');
 
-  // Set initial tab based on shareableLink status
+  const isCanceled =
+    formApplication.status === FormApplicationStatusEnum.CANCELED;
+  const isDone = formApplication.status === FormApplicationStatusEnum.DONE;
+  const isPsychosocialForm =
+    formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
+  const canAnalyzeRisks = isPsychosocialForm && isDone;
+
   const getInitialTab = () => {
+    if (isCanceled) return 2;
+
     if (
       formApplication.isShareableLink ||
       formApplication.status === FormApplicationStatusEnum.DONE
@@ -452,15 +614,34 @@ export const FormQuestionsDashboard = ({
   };
 
   const [tabTableIndex, setTabTableIndex] = useState<number>(getInitialTab());
-  // State for managing selected identifier question for grouping
+  const isIndicatorTab = tabTableIndex === 2;
+  const [indicatorLevels, setIndicatorLevels] = useState<IndicatorLevels>({
+    scales: true,
+    dimensions: true,
+  });
+  const dimensionView = useMemo(
+    () =>
+      buildCopsoqLongDimensionView(
+        formApplication.form.id,
+        formQuestionsAnswers,
+        formApplication.form.indicatorHierarchy,
+      ),
+    [
+      formApplication.form.id,
+      formApplication.form.indicatorHierarchy,
+      formQuestionsAnswers,
+    ],
+  );
+  const indicatorHierarchy = isIndicatorTab ? dimensionView : null;
   const [selectedGroupingQuestion, setSelectedGroupingQuestion] = useState<
     string | null
   >(null);
   // State for controlling whether to show only group indicators or individual questions too
   const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
     useState<boolean>(false);
-  const [chartsChartType, setChartsChartType] =
-    useState<FormChartType>(DEFAULT_FORM_CHART_TYPE);
+  const [chartsChartType, setChartsChartType] = useState<FormChartType>(
+    DEFAULT_FORM_CHART_TYPE,
+  );
   const [executiveDistributionChartType, setExecutiveDistributionChartType] =
     useState<FormChartType>(DEFAULT_FORM_CHART_TYPE);
 
@@ -470,10 +651,12 @@ export const FormQuestionsDashboard = ({
     applicationId: formApplication.id,
   });
 
-  const { formQuestionsAnswersRisks } = useFetchBrowseFormQuestionsAnswersRisks({
-    companyId: accessCompanyId,
-    applicationId: formApplication.id,
-  });
+  const { formQuestionsAnswersRisks } = useFetchBrowseFormQuestionsAnswersRisks(
+    {
+      companyId: accessCompanyId,
+      applicationId: formApplication.id,
+    },
+  );
 
   const { formParticipants } = useFetchBrowseFormParticipants({
     companyId: accessCompanyId,
@@ -496,8 +679,8 @@ export const FormQuestionsDashboard = ({
   );
 
   const questionGroups = formQuestionsAnswers?.results ?? [];
-  const identifierGroup = questionGroups[0];
-  const generalGroups = questionGroups.slice(1);
+  const identifierGroup = questionGroups.find((group) => group.identifier);
+  const generalGroups = questionGroups.filter((group) => !group.identifier);
 
   const availableGroupingQuestions = useMemo(() => {
     if (!identifierGroup?.questions) return [];
@@ -522,44 +705,45 @@ export const FormQuestionsDashboard = ({
   const showStructuralGroupingOptions =
     participantStructuresForGrouping.length > 0;
 
-  const groupingSelectOptions = useMemo((): IndicatorsGroupingSelectOption[] => {
-    const options: IndicatorsGroupingSelectOption[] = [];
+  const groupingSelectOptions =
+    useMemo((): IndicatorsGroupingSelectOption[] => {
+      const options: IndicatorsGroupingSelectOption[] = [];
 
-    const questionOptions: IndicatorsGroupingSelectOption[] =
-      availableGroupingQuestions.map((question) => ({
-        kind: 'question',
-        id: question.id,
-        label: question.textWithoutHtml,
-        question,
-      }));
+      const questionOptions: IndicatorsGroupingSelectOption[] =
+        availableGroupingQuestions.map((question) => ({
+          kind: 'question',
+          id: question.id,
+          label: question.textWithoutHtml,
+          question,
+        }));
 
-    if (questionOptions.length > 0) {
-      options.push({
-        kind: 'section',
-        id: INDICATORS_GROUPING_SECTION_IDENTIFICATION_ID,
-        label: 'Identificação',
-      });
-      options.push(...questionOptions);
-    }
+      if (questionOptions.length > 0) {
+        options.push({
+          kind: 'section',
+          id: INDICATORS_GROUPING_SECTION_IDENTIFICATION_ID,
+          label: 'Identificação',
+        });
+        options.push(...questionOptions);
+      }
 
-    if (showStructuralGroupingOptions) {
-      options.push({
-        kind: 'section',
-        id: INDICATORS_GROUPING_SECTION_STRUCTURAL_ID,
-        label: 'Estrutura organizacional',
-        withTopSpacing: questionOptions.length > 0,
-      });
-      options.push(
-        ...STRUCTURAL_INDICATOR_GROUPING_CONFIGS.map((config) => ({
-          kind: 'structural' as const,
-          id: config.key,
-          label: getStructuralIndicatorGroupingLabel(config.key, typeLabels),
-        })),
-      );
-    }
+      if (showStructuralGroupingOptions) {
+        options.push({
+          kind: 'section',
+          id: INDICATORS_GROUPING_SECTION_STRUCTURAL_ID,
+          label: 'Estrutura organizacional',
+          withTopSpacing: questionOptions.length > 0,
+        });
+        options.push(
+          ...STRUCTURAL_INDICATOR_GROUPING_CONFIGS.map((config) => ({
+            kind: 'structural' as const,
+            id: config.key,
+            label: getStructuralIndicatorGroupingLabel(config.key, typeLabels),
+          })),
+        );
+      }
 
-    return options;
-  }, [availableGroupingQuestions, showStructuralGroupingOptions, typeLabels]);
+      return options;
+    }, [availableGroupingQuestions, showStructuralGroupingOptions, typeLabels]);
 
   const selectableGroupingOptions = useMemo(
     () => groupingSelectOptions.filter(isIndicatorsGroupingSelectableOption),
@@ -620,7 +804,11 @@ export const FormQuestionsDashboard = ({
   );
 
   const participantGroupIdsKey = useMemo(
-    () => participantGroups.map((g) => g.id).sort().join('|'),
+    () =>
+      participantGroups
+        .map((g) => g.id)
+        .sort()
+        .join('|'),
     [participantGroups],
   );
 
@@ -684,22 +872,29 @@ export const FormQuestionsDashboard = ({
   );
 
   const indicatorsDatasetForView = useMemo(() => {
-    if (!formQuestionsAnswers) return null;
+    if (!formQuestionsAnswers || !isIndicatorTab) return null;
 
-    return buildIndicatorsPdfDataset({
-      formQuestionsAnswers,
-      selectedGroupingQuestionId: selectedGroupingQuestion,
-      showOnlyGroupIndicators,
-      executiveDistributionChartType,
-      narrativeDiagnosticMarkdown: null,
-      isShareableLink: formApplication.isShareableLink,
-      hierarchyGroups,
-      ...(selectedGroupingQuestion && selectedParticipantGroupIdsForView
-        ? { visibleParticipantGroupIds: selectedParticipantGroupIdsForView }
-        : {}),
-    });
+    return buildIndicatorsPresentation(
+      {
+        formQuestionsAnswers,
+        selectedGroupingQuestionId: selectedGroupingQuestion,
+        showOnlyGroupIndicators,
+        executiveDistributionChartType,
+        narrativeDiagnosticMarkdown: null,
+        isShareableLink: formApplication.isShareableLink,
+        hierarchyGroups,
+        ...(selectedGroupingQuestion && selectedParticipantGroupIdsForView
+          ? { visibleParticipantGroupIds: selectedParticipantGroupIdsForView }
+          : {}),
+      },
+      indicatorHierarchy,
+      indicatorLevels,
+    );
   }, [
     formQuestionsAnswers,
+    indicatorHierarchy,
+    indicatorLevels,
+    isIndicatorTab,
     selectedGroupingQuestion,
     showOnlyGroupIndicators,
     executiveDistributionChartType,
@@ -760,8 +955,25 @@ export const FormQuestionsDashboard = ({
     [filterAnswersByParticipants],
   );
 
-  // Handle group analysis creation (selecting a grouping question)
+  const requireIndicatorLevel =
+    showOnlyGroupIndicators || !!selectedGroupingQuestion;
+  const usesDimensionSections = !!indicatorHierarchy?.scaleResults;
+  const canShowNarrative =
+    !isCanceled &&
+    (!indicatorHierarchy ||
+      (usesDimensionSections
+        ? indicatorLevels.dimensions && !indicatorLevels.scales
+        : indicatorLevels.scales && !indicatorLevels.dimensions));
+  const ensureIndicatorLevel = () => {
+    setIndicatorLevels((levels) =>
+      levels.scales || levels.dimensions
+        ? levels
+        : { scales: true, dimensions: false },
+    );
+  };
+
   const handleCreateGroupAnalysis = (questionId: string) => {
+    if (questionId) ensureIndicatorLevel();
     setSelectedGroupingQuestion(questionId);
   };
 
@@ -771,9 +983,12 @@ export const FormQuestionsDashboard = ({
 
   // Create array of arrays for general questions - one array per participant group
   const generalQuestionsArrays = useMemo(() => {
+    const displayGroups =
+      indicatorHierarchy?.scaleResults?.filter((group) => !group.identifier) ??
+      generalGroups;
     return visibleParticipantGroups.map((group) => {
       const questionsForGroup = filterQuestionsWithOptions(
-        generalGroups,
+        displayGroups,
         group.participantIds,
       );
       return {
@@ -783,7 +998,12 @@ export const FormQuestionsDashboard = ({
         questions: questionsForGroup,
       };
     });
-  }, [visibleParticipantGroups, generalGroups, filterQuestionsWithOptions]);
+  }, [
+    visibleParticipantGroups,
+    generalGroups,
+    indicatorHierarchy,
+    filterQuestionsWithOptions,
+  ]);
 
   const hasGeneralQuestionsForAnyParticipantGroup = useMemo(
     () =>
@@ -809,7 +1029,8 @@ export const FormQuestionsDashboard = ({
   if (
     isShareableLink &&
     identifierQuestions.length === 0 &&
-    !hasGeneralQuestionsForAnyParticipantGroup
+    !hasGeneralQuestionsForAnyParticipantGroup &&
+    !isCanceled
   ) {
     return (
       <SFlex
@@ -864,23 +1085,18 @@ export const FormQuestionsDashboard = ({
     );
   }
 
-  const isPsychosocialForm =
-    formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
-  const isDone = formApplication.status === FormApplicationStatusEnum.DONE;
-
-  const showIdicators = isShareableLink || isDone;
+  const canViewResults = isShareableLink || isDone || isCanceled;
 
   const isGraphsTab = tabTableIndex === 1;
-  const isIndicatorTab = tabTableIndex === 2;
   const isTextAnswersTab = tabTableIndex === 3;
-  const isRisksAnalysisTab = tabTableIndex === 4;
+  const isRisksAnalysisTab = canAnalyzeRisks && tabTableIndex === 4;
   const isHierarchyGroupsTab = tabTableIndex === 5;
   const isParticipantsTab = tabTableIndex === 6;
 
   return (
     <SFlex direction="column" gap={16}>
       {/* Identifier Section */}
-      {showIdicators && identifierQuestions.length > 0 && (
+      {canViewResults && identifierQuestions.length > 0 && (
         <Box sx={{ p: 3 }}>
           <SAccordion
             defaultExpanded={false}
@@ -925,7 +1141,7 @@ export const FormQuestionsDashboard = ({
         </Box>
       )}
 
-      {showIdicators && (
+      {canViewResults && (
         <Box sx={{ p: 3 }}>
           {/* Grouping Section */}
           {groupingSelectOptions.length > 0 &&
@@ -948,8 +1164,14 @@ export const FormQuestionsDashboard = ({
                         label="Selecionar pergunta para agrupar"
                         getOptionLabel={(option) => option.label}
                         getOptionValue={(option) => option.id}
-                        getOptionIsDisabled={(option) => option.kind === 'section'}
-                        renderFullOption={({ option, handleSelect, isSelected }) => {
+                        getOptionIsDisabled={(option) =>
+                          option.kind === 'section'
+                        }
+                        renderFullOption={({
+                          option,
+                          handleSelect,
+                          isSelected,
+                        }) => {
                           if (option.kind === 'section') {
                             return (
                               <ListSubheader
@@ -1000,7 +1222,7 @@ export const FormQuestionsDashboard = ({
                             setSelectedGroupingQuestion(null);
                             return;
                           }
-                          setSelectedGroupingQuestion(option.id);
+                          handleCreateGroupAnalysis(option.id);
                         }}
                         value={selectedGroupingOption}
                         options={groupingSelectOptions}
@@ -1078,10 +1300,43 @@ export const FormQuestionsDashboard = ({
                   gap: 2,
                 }}
               >
+                {dimensionView && (
+                  <>
+                    <SSwitch
+                      label="Mostrar escalas"
+                      value={indicatorLevels.scales}
+                      disabled={
+                        requireIndicatorLevel && !indicatorLevels.dimensions
+                      }
+                      onChange={(_, checked) =>
+                        setIndicatorLevels((levels) => ({
+                          ...levels,
+                          scales: checked,
+                        }))
+                      }
+                    />
+                    <SSwitch
+                      label="Mostrar dimensões"
+                      value={indicatorLevels.dimensions}
+                      disabled={
+                        requireIndicatorLevel && !indicatorLevels.scales
+                      }
+                      onChange={(_, checked) =>
+                        setIndicatorLevels((levels) => ({
+                          ...levels,
+                          dimensions: checked,
+                        }))
+                      }
+                    />
+                  </>
+                )}
                 <SSwitch
                   label="Mostrar apenas indicadores de grupo"
                   value={showOnlyGroupIndicators}
-                  onChange={(_, checked) => setShowOnlyGroupIndicators(checked)}
+                  onChange={(_, checked) => {
+                    if (checked) ensureIndicatorLevel();
+                    setShowOnlyGroupIndicators(checked);
+                  }}
                   formControlProps={{
                     sx: {
                       px: 2,
@@ -1113,6 +1368,9 @@ export const FormQuestionsDashboard = ({
                           accessCompanyId,
                           formApplication,
                           formQuestionsAnswers,
+                          dimensionView: indicatorHierarchy,
+                          levels: indicatorLevels,
+                          includeNarrative: canShowNarrative,
                           selectedGroupingQuestionId: selectedGroupingQuestion,
                           selectedGroupingLabel,
                           showOnlyGroupIndicators,
@@ -1365,16 +1623,17 @@ export const FormQuestionsDashboard = ({
       )}
 
       {/* General Questions Section */}
-      {(hasGeneralQuestionsForAnyParticipantGroup || !isShareableLink) && (
+      {(hasGeneralQuestionsForAnyParticipantGroup ||
+        !isShareableLink ||
+        isCanceled) && (
         <Box sx={{ p: 3 }}>
           <SectionHeader
             icon={<InsertChartIcon sx={{ fontSize: 30 }} />}
-            title={showIdicators ? 'Perguntas Gerais' : 'Participantes'}
+            title={canViewResults ? 'Perguntas Gerais' : 'Participantes'}
           />
           <STabs
             options={[
-              // Show these options only if shareableLink is true OR isDone is true
-              ...(showIdicators
+              ...(canViewResults
                 ? [
                     {
                       label: 'Gráficos',
@@ -1390,7 +1649,7 @@ export const FormQuestionsDashboard = ({
                     },
                   ]
                 : []),
-              ...(isPsychosocialForm && isDone
+              ...(canAnalyzeRisks
                 ? [
                     {
                       label: 'Análise de Riscos',
@@ -1469,13 +1728,15 @@ export const FormQuestionsDashboard = ({
               <SFlex direction="column" gap={24} color="background.paper">
                 {isIndicatorTab && indicatorsDatasetForView ? (
                   <ExecutiveIndicatorsDistributionSection
-                    distribution={indicatorsDatasetForView.executiveDistribution}
+                    distribution={
+                      indicatorsDatasetForView.executiveDistribution
+                    }
                     chartType={executiveDistributionChartType}
                     onChartTypeChange={setExecutiveDistributionChartType}
                   />
                 ) : null}
                 {isIndicatorTab && <IndicatorsQualityLegend />}
-                {isIndicatorTab && (
+                {isIndicatorTab && canShowNarrative && (
                   <IndicatorsNarrativeDiagnosticSection
                     companyId={accessCompanyId}
                     formApplicationId={formApplication.id}
@@ -1486,29 +1747,29 @@ export const FormQuestionsDashboard = ({
                 {/* Create a structure grouped by questions first, then by participant groups */}
                 {(() => {
                   // Get all unique questions across all participant groups
-                  const allQuestions = new Map();
+                  const allQuestions = new Map<
+                    string,
+                    QuestionWithParticipantGroups
+                  >();
 
                   generalQuestionsArrays.forEach((participantGroup) => {
                     participantGroup.questions.forEach((question) => {
                       const key = `${question.groupId}-${question.id}`;
-                      if (!allQuestions.has(key)) {
-                        allQuestions.set(key, {
-                          id: question.id,
-                          groupId: question.groupId,
-                          groupName: question.groupName,
-                          details: question.details,
-                          options: question.options,
-                          participantGroupData: [],
-                        });
-                      }
-
-                      // Add this participant group's data for this question
-                      allQuestions.get(key).participantGroupData.push({
+                      const questionData = allQuestions.get(key) ?? {
+                        id: question.id,
+                        groupId: question.groupId,
+                        groupName: question.groupName,
+                        details: question.details,
+                        options: question.options,
+                        participantGroupData: [],
+                      };
+                      questionData.participantGroupData.push({
                         groupId: participantGroup.groupId,
                         groupName: participantGroup.groupName,
                         participantCount: participantGroup.participantCount,
-                        question: question,
+                        question,
                       });
+                      allQuestions.set(key, questionData);
                     });
                   });
 
@@ -1530,97 +1791,232 @@ export const FormQuestionsDashboard = ({
                     {} as Record<string, FormGroupWithQuestions>,
                   );
 
-                  return Object.entries(questionsByFormGroup).map(
-                    ([groupId, groupData]) => {
-                      const typedGroupData =
-                        groupData as FormGroupWithQuestions;
-                      return (
-                        <Box key={groupId} mb={6}>
-                          <SPaper>
-                            <SText
-                              sx={{
-                                p: 8,
-                                color: '#424242',
-                                borderRadius: 1,
-                                fontWeight: 600,
-                                backgroundColor: 'grey.100',
-                                fontSize: 18,
-                                mb: 4,
-                              }}
-                            >
-                              {typedGroupData.groupName}
-                            </SText>
-                          </SPaper>
+                  const renderIndicator = (groupData: FormGroupWithQuestions) =>
+                    isIndicatorTab && (
+                      <GroupDashboardIndicator
+                        groupData={groupData}
+                        selectedGroupingQuestion={selectedGroupingQuestion}
+                        isShareableLink={isShareableLink}
+                      />
+                    );
 
-                          {/* Group-Level Indicator - shows combined indicator for all questions in this group */}
-                          {isIndicatorTab && (
+                  const renderQuestions = (
+                    groupData: FormGroupWithQuestions,
+                  ) => (
+                    <>
+                      {/* Render each question with all its participant group variations side by side */}
+                      {!showOnlyGroupIndicators &&
+                        groupData.questions.map(
+                          (questionData: QuestionWithParticipantGroups) => (
+                            <SPaper key={questionData.id} mb={6} px={8} py={8}>
+                              <HtmlContentRenderer
+                                content={questionData.details.text}
+                              />
+                              <SDivider sx={{ mt: 8, mb: 4 }} />
+
+                              {/* Show all participant groups for this question side by side */}
+                              <SFlex
+                                gap={4}
+                                display="grid"
+                                gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
+                              >
+                                {questionData.participantGroupData.map(
+                                  (participantData: ParticipantGroupData) => (
+                                    <Box key={participantData.groupId} p={4}>
+                                      <FormQuestionPieChart
+                                        hideQuestionText
+                                        groupName={participantData.groupName}
+                                        question={participantData.question}
+                                        colorScheme="general"
+                                        chartType={
+                                          isGraphsTab
+                                            ? chartsChartType
+                                            : DEFAULT_FORM_CHART_TYPE
+                                        }
+                                        indicators={isIndicatorTab}
+                                        isShareableLink={isShareableLink}
+                                        participantCount={
+                                          participantData.participantCount
+                                        }
+                                      />
+                                    </Box>
+                                  ),
+                                )}
+                              </SFlex>
+                            </SPaper>
+                          ),
+                        )}
+                    </>
+                  );
+
+                  const renderGroup = (
+                    id: string,
+                    groupData: FormGroupWithQuestions,
+                  ) => (
+                    <Box key={id} mb={6}>
+                      <SPaper>
+                        <SText
+                          sx={{
+                            p: 8,
+                            fontWeight: 600,
+                            backgroundColor: 'grey.100',
+                            mb: 4,
+                          }}
+                        >
+                          {groupData.groupName}
+                        </SText>
+                      </SPaper>
+                      {renderIndicator(groupData)}
+                      {renderQuestions(groupData)}
+                    </Box>
+                  );
+
+                  const groups = Object.entries(questionsByFormGroup);
+                  if (!indicatorHierarchy)
+                    return groups.map(([id, group]) => renderGroup(id, group));
+
+                  const renderCompactGroup = (
+                    id: string,
+                    group: FormGroupWithQuestions,
+                    children: ReactNode,
+                    alignDimension = false,
+                  ) => (
+                    <Box
+                      component={children ? 'details' : 'div'}
+                      key={id}
+                      {...(children ? { open: !alignDimension } : {})}
+                      sx={{
+                        mb: 6,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        minWidth: 0,
+                      }}
+                    >
+                      <Box
+                        component={children ? 'summary' : 'div'}
+                        sx={{
+                          cursor: children ? 'pointer' : 'default',
+                          p: 8,
+                          fontWeight: 700,
+                          color: 'text.primary',
+                          backgroundColor: 'background.lightGray',
+                          ...(alignDimension && {
+                            '--indicator-group-width': '18ch',
+                            '--indicator-percent-width': '5ch',
+                            '--indicator-score-width': '28ch',
+                          }),
+                        }}
+                      >
+                        <Box
+                          component="span"
+                          sx={{
+                            display: 'inline-flex',
+                            width: children ? 'calc(100% - 1.1em)' : '100%',
+                            verticalAlign: 'middle',
+                            alignItems: 'center',
+                            gap: 5,
+                            minWidth: 0,
+                          }}
+                        >
+                          <Box
+                            component="span"
+                            title={group.groupName}
+                            sx={{
+                              flex: alignDimension ? '0 0 auto' : '0 1 auto',
+                              width: alignDimension
+                                ? 'clamp(6ch, 32%, 46ch)'
+                                : undefined,
+                              minWidth: '6ch',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {group.groupName}
+                          </Box>
+                          <Box
+                            component="span"
+                            sx={{
+                              display: 'inline-flex',
+                              flex: '1 1 0',
+                              minWidth: 0,
+                              alignItems: 'center',
+                              overflowX: 'auto',
+                              gap: 6,
+                            }}
+                          >
                             <GroupDashboardIndicator
-                              groupData={typedGroupData}
+                              groupData={group}
                               selectedGroupingQuestion={
                                 selectedGroupingQuestion
                               }
                               isShareableLink={isShareableLink}
+                              compact
                             />
-                          )}
-
-                          {/* Render each question with all its participant group variations side by side */}
-                          {!showOnlyGroupIndicators &&
-                            typedGroupData.questions.map(
-                              (questionData: QuestionWithParticipantGroups) => (
-                                <SPaper
-                                  key={questionData.id}
-                                  mb={6}
-                                  px={8}
-                                  py={8}
-                                >
-                                  <HtmlContentRenderer
-                                    content={questionData.details.text}
-                                  />
-                                  <SDivider sx={{ mt: 8, mb: 4 }} />
-
-                                  {/* Show all participant groups for this question side by side */}
-                                  <SFlex
-                                    gap={4}
-                                    display="grid"
-                                    gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
-                                  >
-                                    {questionData.participantGroupData.map(
-                                      (
-                                        participantData: ParticipantGroupData,
-                                      ) => (
-                                        <Box
-                                          key={participantData.groupId}
-                                          p={4}
-                                        >
-                                          <FormQuestionPieChart
-                                            hideQuestionText
-                                            groupName={
-                                              participantData.groupName
-                                            }
-                                            question={participantData.question}
-                                            colorScheme="general"
-                                            chartType={
-                                              isGraphsTab
-                                                ? chartsChartType
-                                                : DEFAULT_FORM_CHART_TYPE
-                                            }
-                                            indicators={isIndicatorTab}
-                                            isShareableLink={isShareableLink}
-                                            participantCount={
-                                              participantData.participantCount
-                                            }
-                                          />
-                                        </Box>
-                                      ),
-                                    )}
-                                  </SFlex>
-                                </SPaper>
-                              ),
-                            )}
+                          </Box>
                         </Box>
-                      );
-                    },
+                      </Box>
+                      {children}
+                    </Box>
                   );
+
+                  const dimensions = indicatorHierarchy.results.filter(
+                    (group) => !group.identifier,
+                  );
+                  return groups.map(([id, scale]) => {
+                    const children = indicatorLevels.dimensions
+                      ? dimensions
+                          .filter(
+                            (group) =>
+                              indicatorHierarchy.parentGroupIds[group.id] ===
+                              id,
+                          )
+                          .map((group) => {
+                            const ids = new Set(
+                              group.questions.map((question) => question.id),
+                            );
+                            const dimension = {
+                              groupName: group.name,
+                              questions: scale.questions.filter((question) =>
+                                ids.has(question.id),
+                              ),
+                            };
+                            return renderCompactGroup(
+                              group.id,
+                              dimension,
+                              showOnlyGroupIndicators ? null : (
+                                <Box sx={{ p: 4 }}>
+                                  {renderQuestions(dimension)}
+                                </Box>
+                              ),
+                              true,
+                            );
+                          })
+                      : showOnlyGroupIndicators
+                        ? null
+                        : renderQuestions(scale);
+
+                    if (!indicatorLevels.scales)
+                      return <Box key={id}>{children}</Box>;
+
+                    return renderCompactGroup(
+                      id,
+                      scale,
+                      children && (
+                        <Box
+                          sx={{
+                            p: 4,
+                            pl: indicatorLevels.dimensions
+                              ? { xs: 4, sm: 12 }
+                              : 4,
+                          }}
+                        >
+                          {children}
+                        </Box>
+                      ),
+                    );
+                  });
                 })()}
               </SFlex>
             )}

@@ -63,7 +63,6 @@ export const FormRiskSelect = ({
         </Box>
       )}
       onSearch={(value: string) => setSearch(value)}
-      onInputChange={(value: string) => console.log(value)}
       placeholder="Selecionar Risco"
       options={risks || []}
     />

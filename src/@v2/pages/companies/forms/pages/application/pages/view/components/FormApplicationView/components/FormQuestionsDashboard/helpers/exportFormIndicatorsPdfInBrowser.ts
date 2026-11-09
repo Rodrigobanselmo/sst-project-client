@@ -1,3 +1,7 @@
+import type {
+  CopsoqLongDimensionView,
+  IndicatorLevels,
+} from './buildCopsoqLongDimensionView';
 import type { DocumentProps } from '@react-pdf/renderer';
 import React from 'react';
 
@@ -26,6 +30,9 @@ export async function exportFormIndicatorsPdfInBrowser(
     selectedGroupingQuestionId: string | null;
     selectedGroupingLabel?: string | null;
     showOnlyGroupIndicators: boolean;
+    dimensionView?: CopsoqLongDimensionView | null;
+    levels?: IndicatorLevels;
+    includeNarrative?: boolean;
     executiveDistributionChartType: FormChartType;
     hierarchyGroups: HierarchyGroupForIndicators[];
     /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
@@ -43,7 +50,7 @@ export async function exportFormIndicatorsPdfInBrowser(
   const { default: PdfFormIndicators } = await import(
     'components/pdfs/documents/formsIndicators/formsIndicators.pdf'
   );
-  const { buildIndicatorsPdfDataset } = await import(
+  const { buildIndicatorsPresentation } = await import(
     './buildIndicatorsPdfDataset'
   );
 
@@ -58,7 +65,9 @@ export async function exportFormIndicatorsPdfInBrowser(
 
   const visibleParticipantGroups = params.selectedGroupingQuestionId
     ? params.visibleParticipantGroupIds
-      ? participantGroups.filter((g) => params.visibleParticipantGroupIds!.includes(g.id))
+      ? participantGroups.filter((g) =>
+          params.visibleParticipantGroupIds!.includes(g.id),
+        )
       : participantGroups
     : participantGroups;
 
@@ -72,11 +81,14 @@ export async function exportFormIndicatorsPdfInBrowser(
   onProgress?.('Carregando diagnóstico narrativo salvo...');
   await yieldToUI();
 
-  const narrativeDiagnostic = await readIndicatorsNarrativeDiagnostic({
-    companyId: params.accessCompanyId,
-    formApplicationId: params.formApplication.id,
-    scope: narrativeScope,
-  });
+  const narrativeDiagnostic =
+    params.includeNarrative === false
+      ? null
+      : await readIndicatorsNarrativeDiagnostic({
+          companyId: params.accessCompanyId,
+          formApplicationId: params.formApplication.id,
+          scope: narrativeScope,
+        });
 
   const narrativeDiagnosticMarkdown =
     narrativeDiagnostic?.status === FormAiAnalysisStatusEnum.DONE &&
@@ -87,18 +99,22 @@ export async function exportFormIndicatorsPdfInBrowser(
       ? narrativeDiagnostic.contentMarkdown
       : null;
 
-  const dataset = buildIndicatorsPdfDataset({
-    formQuestionsAnswers: params.formQuestionsAnswers,
-    selectedGroupingQuestionId: params.selectedGroupingQuestionId,
-    showOnlyGroupIndicators: params.showOnlyGroupIndicators,
-    executiveDistributionChartType: params.executiveDistributionChartType,
-    narrativeDiagnosticMarkdown,
-    isShareableLink: params.formApplication.isShareableLink,
-    hierarchyGroups: params.hierarchyGroups,
-    ...(params.selectedGroupingQuestionId
-      ? { visibleParticipantGroupIds: params.visibleParticipantGroupIds }
-      : {}),
-  });
+  const dataset = buildIndicatorsPresentation(
+    {
+      formQuestionsAnswers: params.formQuestionsAnswers,
+      selectedGroupingQuestionId: params.selectedGroupingQuestionId,
+      showOnlyGroupIndicators: params.showOnlyGroupIndicators,
+      executiveDistributionChartType: params.executiveDistributionChartType,
+      narrativeDiagnosticMarkdown,
+      isShareableLink: params.formApplication.isShareableLink,
+      hierarchyGroups: params.hierarchyGroups,
+      ...(params.selectedGroupingQuestionId
+        ? { visibleParticipantGroupIds: params.visibleParticipantGroupIds }
+        : {}),
+    },
+    params.dimensionView,
+    params.levels ?? { scales: true, dimensions: true },
+  );
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',

@@ -28,8 +28,8 @@ function IndicatorsInterpretationLegendPdf() {
       <Text style={s.legendTitle}>Interpretação do indicador de qualidade</Text>
       <Text style={s.legendBody}>
         O percentual exibido representa a qualidade do indicador com base nas
-        respostas. Percentuais menores indicam condição mais crítica; percentuais
-        maiores, condição mais favorável.
+        respostas. Percentuais menores indicam condição mais crítica;
+        percentuais maiores, condição mais favorável.
       </Text>
       <Text style={s.legendNote}>
         Quanto maior o percentual, mais favorável é o resultado do indicador.
@@ -438,9 +438,9 @@ export default function PdfFormIndicators({
             Distribuição Geral dos Indicadores
           </Text>
           <Text style={s.executiveBody}>
-            Distribuição dos indicadores calculados no recorte atual, classificados
-            conforme as faixas de qualidade. Não representa média geral nem nota
-            única da empresa.
+            Distribuição dos indicadores calculados no recorte atual,
+            classificados conforme as faixas de qualidade. Não representa média
+            geral nem nota única da empresa.
           </Text>
           {data.executiveDistribution.totalIndicators === 0 ? (
             <Text style={s.executiveBody}>
@@ -477,7 +477,9 @@ export default function PdfFormIndicators({
               <Text
                 key={`${index}-${line.text.slice(0, 20)}`}
                 style={
-                  line.kind === 'heading' ? s.narrativeHeadingLine : s.narrativeLine
+                  line.kind === 'heading'
+                    ? s.narrativeHeadingLine
+                    : s.narrativeLine
                 }
               >
                 {line.text}
@@ -493,22 +495,31 @@ export default function PdfFormIndicators({
           </Text>
         ) : (
           data.formGroups.map((group) => (
-            <View key={group.groupId} style={s.groupSection}>
-              <Text style={s.groupTitle}>{group.groupName}</Text>
-              <Text style={s.subsectionLabel}>
-                Indicadores por categoria (grupo do formulário)
-              </Text>
-              <IndicatorRows
-                indicators={group.indicators}
-                groupingActive={groupingActive}
-                keyPrefix={`g-${group.groupId}`}
-              />
+            <View
+              key={group.groupId}
+              style={[
+                s.groupSection,
+                ...(group.depth ? [{ marginLeft: 16 }] : []),
+              ]}
+            >
+              {!group.hideGroup && (
+                <>
+                  <Text style={s.groupTitle}>{group.groupName}</Text>
+                  <IndicatorRows
+                    indicators={group.indicators}
+                    groupingActive={groupingActive}
+                    keyPrefix={`g-${group.groupId}`}
+                  />
+                </>
+              )}
 
               {!data.showOnlyGroupIndicators && group.questions?.length ? (
                 <>
-                  <Text style={[s.subsectionLabel, { marginTop: 8 }]}>
-                    Por pergunta
-                  </Text>
+                  {!group.hideGroup && (
+                    <Text style={[s.subsectionLabel, { marginTop: 8 }]}>
+                      Por pergunta
+                    </Text>
+                  )}
                   {group.questions.map((q) => (
                     <View key={q.questionId} style={s.questionBlock}>
                       <Text style={s.questionTitle}>{q.questionLabel}</Text>

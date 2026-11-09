@@ -3,6 +3,7 @@ export const FORM_TAB_ENUM = {
   MODEL: 'modelos',
   /** Biblioteca de Perguntas Preliminares — slug de URL */
   PRELIMINARY_LIBRARY: 'biblioteca-preliminar',
+  STRUCTURES: 'estruturas',
 };
 
 export const PageRoutes = {

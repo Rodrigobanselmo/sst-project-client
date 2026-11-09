@@ -4,6 +4,8 @@ import { api } from 'core/services/apiClient';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 
+import type { FormStructureInput, FormStructureMode } from '@v2/services/forms/form-structures/form-structures.service';
+
 export interface IFormQuestionOption {
   text: string;
   value?: number;
@@ -17,18 +19,24 @@ export interface IFormQuestionDetails {
 }
 
 export interface IFormQuestion {
+  dimensionId?: string;
   required?: boolean;
   details: IFormQuestionDetails;
   options?: IFormQuestionOption[];
 }
 
 export interface IFormQuestionGroup {
+  structureGroupId?: string;
+  structureGroupIds?: string[];
   name: string;
   description?: string;
   questions: IFormQuestion[];
 }
 
 export interface AddFormParams {
+  structureId?: string;
+  structure?: FormStructureInput;
+  structureMode?: FormStructureMode;
   companyId: string;
   name: string;
   description?: string;

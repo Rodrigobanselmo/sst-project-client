@@ -1,0 +1,460 @@
+{
+  "formId": "cmfbyniih0043c38lge2lmk1m",
+  "dimensionFormId": "p74v6ip6gf7tcbhl1hfuvvnp",
+  "blocks": [
+    {
+      "groupId": "cmfbynink004nc38lysyip2eh",
+      "name": "Escala — Comportamentos Ofensivos",
+      "dimensions": [
+        {
+          "id": "p8qkjgjypmixphkd072ht9cj",
+          "name": "Dimensão — Ameaças de Violência",
+          "questionIds": [
+            "cmfbynjbo00c2c38le57sg2oe",
+            "cmfbynjbg00btc38l9tnxajgk"
+          ]
+        },
+        {
+          "id": "wb5m5dag5a522dkim5zrrdd5",
+          "name": "Dimensão — Assédio Sexual",
+          "questionIds": [
+            "cmfbynjbg00bqc38lytkhmz11",
+            "cmfbynjbt00c5c38llitm6hbp"
+          ]
+        },
+        {
+          "id": "bhbndsttolx57gnpcun7rdhc",
+          "name": "Dimensão — Assédio Virtual",
+          "questionIds": [
+            "cmfbynjbl00bwc38l6mk359tp",
+            "cmfbynjby00c8c38lrpykj4gn"
+          ]
+        },
+        {
+          "id": "uvef273h00la0763rdahhxs5",
+          "name": "Dimensão — Atos Negativos",
+          "questionIds": [
+            "cmfbynjc300cbc38lwwo79qw8",
+            "cmfbynjcb00cnc38lv649kth6"
+          ]
+        },
+        {
+          "id": "wh3dqwrddydfnvcvdgajwjb6",
+          "name": "Dimensão — Bullying",
+          "questionIds": [
+            "cmfbynjc400cec38lh9ssbnwp",
+            "cmfbynjcg00cqc38l2yyvrv90",
+            "cmfbynjc600chc38lhukysa1t"
+          ]
+        },
+        {
+          "id": "vpbh4lh63k793csrrzbjako3",
+          "name": "Dimensão — Conflitos e Desentendimentos",
+          "questionIds": ["cmfbynjc600ckc38ljc4xefnb"]
+        },
+        {
+          "id": "weg7dxn1ov92fh9pri97f8n2",
+          "name": "Dimensão — Provocações Desagradáveis",
+          "questionIds": [
+            "cmfbynjdl00e2c38l1nr2v8ie",
+            "cmfbynjcu00d2c38lybi817po"
+          ]
+        },
+        {
+          "id": "qong24cwkiw15o9o26u37lyx",
+          "name": "Dimensão — Violência Física",
+          "questionIds": [
+            "cmfbynjcm00cwc38l4fht46oi",
+            "cmfgvn95x03b0qptmfrnxgiph"
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "cmfbyo4iq004k8srjatfh0mfc",
+      "name": "Escala — Exigências Laborais",
+      "dimensions": [
+        {
+          "id": "eer72z9cctb9jfc7kenwixql",
+          "name": "Dimensão — Demandas Cognitivas",
+          "questionIds": [
+            "cmfh5wj8503dbqptmiqpna4jz",
+            "cmfh61isg03epqptm23816fjs",
+            "cmfh61iue03eyqptmwq43qd4a",
+            "cmfh61iw203f7qptm3byp1pc6"
+          ]
+        },
+        {
+          "id": "abk3cda5ym6o3082javfpi7d",
+          "name": "Dimensão — Demandas Emocionais",
+          "questionIds": [
+            "cmftznemc00qxr0wbt69s1nh7",
+            "cmfh61ixl03fgqptm27t0hbya",
+            "cmfh61iz703fpqptm6z2e5ful"
+          ]
+        },
+        {
+          "id": "n6zh6kskk6u3nq17a7ru9965",
+          "name": "Dimensão — Demandas para Esconder Emoções",
+          "questionIds": [
+            "cmfh6vj0c03gzqptmnhrxxd90",
+            "cmftzneni00r6r0wbqgxd8qrj",
+            "cmftzneof00rfr0wb1i0ib96h",
+            "cmftznepd00ror0wbygoainlz"
+          ]
+        },
+        {
+          "id": "djnlsl99lfw0ip5mlt242f8m",
+          "name": "Dimensão — Exigências Quantitativas",
+          "questionIds": [
+            "cmftzneqa00rxr0wbw03qo1fe",
+            "cmfbyo4rp005o8srjg2l2iho9",
+            "cmfbyo4rh004t8srjps4p4xmd",
+            "cmfh79lmn03l6qptmhfwdyb7n"
+          ]
+        },
+        {
+          "id": "a2634beroetsxba04e9ahy4m",
+          "name": "Dimensão — Ritmo de Trabalho",
+          "questionIds": [
+            "cmfbyo4t100628srjq3a6mv64",
+            "cmfbyo4t500658srjhhmavs53",
+            "cmfh7f1j403mcqptmbvaqfeu4"
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "cmfbyo4ip004h8srjc4l5yyj3",
+      "name": "Escala — Interface Trabalho-Indivíduo",
+      "dimensions": [
+        {
+          "id": "m1dvix6gfu08nazb5khfkpu3",
+          "name": "Dimensão — Conflito Trabalho-Família",
+          "questionIds": [
+            "cmftwyst000n2r0wbzsjps1nn",
+            "cmftwysub00nbr0wbymlwxuuf",
+            "cmfbyo4rh004w8srj1m5x090s",
+            "cmftwysvd00nkr0wbmvtvs7l3",
+            "cmftwyswe00ntr0wb6p6df8r0"
+          ]
+        },
+        {
+          "id": "gsrx2815aiij1m1pgn3tjjvc",
+          "name": "Dimensão — Insegurança no Trabalho",
+          "questionIds": [
+            "cmfbyo4rp005p8srj6wajo8v5",
+            "cmftwysxg00o2r0wbr47mrclg",
+            "cmfu09uwi00ugr0wbwc3ad7sb",
+            "cmfu09uxt00upr0wbcmr1d34c",
+            "cmftwysyh00obr0wba08phail",
+            "cmfbyo4rh004z8srjes5cp8qd",
+            "cmftwyszi00okr0wb0uqeo532",
+            "cmfbyo4rp005u8srjduq1xbx6"
+          ]
+        },
+        {
+          "id": "blyu0uwjv7szi5sakhvfbym1",
+          "name": "Dimensão — Qualidade do Trabalho",
+          "questionIds": [
+            "cmftwyt0j00otr0wb2wianlso",
+            "cmfu09uyu00uyr0wb8u92n04w"
+          ]
+        },
+        {
+          "id": "pfgicwd6vhty2fd8hpvulgni",
+          "name": "Dimensão — Satisfação no Trabalho",
+          "questionIds": [
+            "cmftwyt1j00p2r0wbqr04p4qh",
+            "cmfu09uzv00v7r0wboemxfvg4",
+            "cmftwyt2l00pbr0wbhpjb06y8",
+            "cmfbyo4rh00588srjaf60l8an",
+            "cmfu09v0w00vgr0wbpjw1zgbt"
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "cmfbynink004qc38l8kz11fwr",
+      "name": "Escala — Organização do Trabalho e Conteúdo",
+      "dimensions": [
+        {
+          "id": "tap1tmtsklg9uxpqoep38g6z",
+          "name": "Dimensão — Compromisso Face ao Local de Trabalho",
+          "questionIds": [
+            "cmfbynj7q007wc38lkxdw7fwe",
+            "cmfbynj7l007kc38lmph3ebwk",
+            "cmfbynj7p007qc38luw6bd2h4",
+            "cmfbynj8q008wc38lb6mhcgi6",
+            "cmfbynj830088c38l7o1xmbhl"
+          ]
+        },
+        {
+          "id": "utdrsksh6j471paqm56z783a",
+          "name": "Dimensão — Controle sobre o Tempo de Trabalho",
+          "questionIds": [
+            "cmfbynj87008hc38lhv2ekbrm",
+            "cmfbynj7r007zc38lfva9oxkl",
+            "cmfbynj8s008zc38l2v7zjb3o",
+            "cmfbynj800082c38lte7iieip",
+            "cmfbynj8p008qc38lw73huaw7"
+          ]
+        },
+        {
+          "id": "iz34866brhhq8yy5nb0siy6a",
+          "name": "Dimensão — Engajamento no Trabalho",
+          "questionIds": [
+            "cmfbynj85008dc38lqmbpfmuy",
+            "cmfbynj8q008tc38l4eq3azrx",
+            "cmfbynj85008cc38lm32rvg6a"
+          ]
+        },
+        {
+          "id": "oxmqqx85jnegwcatdk0nd9hw",
+          "name": "Dimensão — Influência no Trabalho",
+          "questionIds": [
+            "cmfu6p99g01lyr0wbb4e1fawp",
+            "cmfbynj8j008nc38lpfpdfzpi",
+            "cmfbynj8j008kc38l9m5mgdyp",
+            "cmfbynj8x0092c38l3cc1s57j",
+            "cmfbynj93009cc38ltpp2lzdd",
+            "cmfbynj900098c38lzpfq6jf8"
+          ]
+        },
+        {
+          "id": "rr62jmhkq2hkfclayrafd59c",
+          "name": "Dimensão — Possibilidades de Desenvolvimento",
+          "questionIds": [
+            "cmfbynja400aec38ly4looqqx",
+            "cmfbynji700gkc38lkkj4n7v3",
+            "cmfbynjij00gtc38lij10wr9v"
+          ]
+        },
+        {
+          "id": "z3rhcgt3oh6ay0skpmwqdb3x",
+          "name": "Dimensão — Significado do Trabalho",
+          "questionIds": [
+            "cmfbynjhf00fzc38lsdwnwfwr",
+            "cmfbynjhq00g2c38lg1w4drqv"
+          ]
+        },
+        {
+          "id": "vpt715xnyotkrqs3tyq408b2",
+          "name": "Dimensão — Variedade de Trabalho",
+          "questionIds": [
+            "cmfbynjin00gwc38l1g8kvxg1",
+            "cmfbynjia00gqc38lbw37grx2"
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "cmfbynini004bc38ly3tellug",
+      "name": "Escala — Personalidade",
+      "dimensions": [
+        {
+          "id": "xjgj3fniivnxmzo2wic6e5ar",
+          "name": "Dimensão — Autoeficácia",
+          "questionIds": [
+            "cmfbynj58006qc38lt4rryyoz",
+            "cmfbynj7o007nc38lw8w57i2u",
+            "cmfbynj7i007hc38lupm1fuyq",
+            "cmfbynj7q007tc38lpj1fburm",
+            "cmfbynj74007bc38logiso7s3",
+            "cmfbynj7h007ec38lqc9u30c3"
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "cmfbyninh0048c38lpu8fif83",
+      "name": "Escala — Relações Sociais e Liderança",
+      "dimensions": [
+        {
+          "id": "ze9ahqk1bohrdtl0jhtjxfmb",
+          "name": "Dimensão — Apoio Social de Colegas",
+          "questionIds": [
+            "cmfbynj4c005wc38lo9vg6pfa",
+            "cmfbynj94009hc38l9t6xs8fb",
+            "cmfbynj9t009tc38l2u9tg4fl"
+          ]
+        },
+        {
+          "id": "rb0hrqlch8nmdg5fs6aicltq",
+          "name": "Dimensão — Apoio Social de Superiores",
+          "questionIds": [
+            "cmfbynjak00aqc38ljiqveo0e",
+            "cmfbynja100a8c38l1duay6p9",
+            "cmfbynj4s0068c38lssriv4hj"
+          ]
+        },
+        {
+          "id": "u2hu7j1mvmit3f4dgzawp3pb",
+          "name": "Dimensão — Conflitos Laborais",
+          "questionIds": [
+            "cmfbynj4e0062c38lxoxwrdii",
+            "cmfbynj59006tc38lfqofbgw3"
+          ]
+        },
+        {
+          "id": "k1vmrbytwbln70ad02mo5ock",
+          "name": "Dimensão — Previsibilidade",
+          "questionIds": [
+            "cmfbynj4c005zc38l6sfdl9es",
+            "cmfbynj730078c38lf7vjhbnh"
+          ]
+        },
+        {
+          "id": "csvkb68yjp0c5ntm3w5jpn74",
+          "name": "Dimensão — Qualidade da Chefia",
+          "questionIds": [
+            "cmfbynj4v006bc38lim04c85n",
+            "cmfbynj57006gc38l2b35glsk",
+            "cmfbynj57006hc38lr1ji13y7",
+            "cmfbynj57006jc38lntlq506t"
+          ]
+        },
+        {
+          "id": "sx97m5jlnrfvhziwwhwnntya",
+          "name": "Dimensão — Recompensas",
+          "questionIds": [
+            "cmfbynj5i0075c38l037b6i0b",
+            "cmfbynj4m0065c38lado0ylhf",
+            "cmfbynj58006nc38ly6zm0gcg"
+          ]
+        },
+        {
+          "id": "d0vylh400gk5pr6buahbhbip",
+          "name": "Dimensão — Tarefas Ilegítimas",
+          "questionIds": ["cmfbynj59006wc38lelx173z1"]
+        },
+        {
+          "id": "foy51ndguo16k3sxl3371gl6",
+          "name": "Dimensão — Transparência de Papel",
+          "questionIds": [
+            "cmfbynj5e006zc38lt1hmp018",
+            "cmfbynj5f0072c38l8t4g761v",
+            "cmfbynjht00g5c38lu5dtw9g8"
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "cmfbyninj004hc38lxqyvb0n9",
+      "name": "Escala — Saúde e Bem-Estar",
+      "dimensions": [
+        {
+          "id": "te6fwqo4x2jzi5j1n8ce74hk",
+          "name": "Dimensão — Burnout",
+          "questionIds": [
+            "cmfbynj9d009kc38lcjn2b6um",
+            "cmfbynj9m009qc38l755iom7u",
+            "cmfbynj9f009nc38l9zkepba6",
+            "cmfbynj9v009zc38locf2muyl"
+          ]
+        },
+        {
+          "id": "tycda3nm81bhrjr40ihzkvg8",
+          "name": "Dimensão — Estresse Geral",
+          "questionIds": [
+            "cmfbynj9w00a2c38log2mf2pt",
+            "cmfbynja400acc38lmxm5y0yx",
+            "cmfbynjaj00akc38lhsurs69y"
+          ]
+        },
+        {
+          "id": "wp52mxi7bxjkhkvzavav6m95",
+          "name": "Dimensão — Estresse Cognitivo",
+          "questionIds": [
+            "cmfbynjaj00anc38l6ifnrmdv",
+            "cmfbynjak00atc38lp7w9ga5s",
+            "cmfbynjax00b5c38le0i28c14",
+            "cmfbynjbn00bzc38l4y05bey6"
+          ]
+        },
+        {
+          "id": "oi42a6osszw5jjhtdxe33vcg",
+          "name": "Dimensão — Estresse Somático",
+          "questionIds": [
+            "cmfbynjar00azc38lv43jjgt3",
+            "cmfbynjb100b8c38l183z7cl5",
+            "cmfbynjb500bhc38l0ysafex2",
+            "cmfbynjb400bbc38li8bdwpf7"
+          ]
+        },
+        {
+          "id": "xzvkfe4sircy3bulbbbmlae9",
+          "name": "Dimensão — Problemas em Dormir",
+          "questionIds": [
+            "cmfbynjam00awc38lsbyo6mjf",
+            "cmfbynjau00b2c38lplyaqwy5",
+            "cmfbynjb500bec38lqvjmvzu0",
+            "cmfbynjb700bnc38lucbdvmqv"
+          ]
+        },
+        {
+          "id": "ws0d9kofxcu1cnmn33hjhtq9",
+          "name": "Dimensão — Saúde Geral",
+          "questionIds": [
+            "cmfbynjb600bkc38ly3kbnkiz",
+            "cmfbynji000gbc38ljza154af"
+          ]
+        },
+        {
+          "id": "sgn6edby7q50jmur8qnvhl56",
+          "name": "Dimensão — Sintomas Depressivos",
+          "questionIds": [
+            "cmfbynji100ghc38lpqjvaxzm",
+            "cmfbynji000gec38l8z9kn67o",
+            "cmfbynjhy00g8c38l93vlnumb",
+            "cmfbynji900gnc38ljndtr766"
+          ]
+        }
+      ]
+    },
+    {
+      "groupId": "cmfbyninj004kc38lyxfgmyh8",
+      "name": "Escala — Valores no Local de Trabalho",
+      "dimensions": [
+        {
+          "id": "ria5pha6jukniwzldkw10tew",
+          "name": "Dimensão — Confiança Horizontal",
+          "questionIds": [
+            "cmfbynjdx00efc38la2kisv0v",
+            "cmfbynjdx00ecc38lzep7vzau",
+            "cmfbynjen00f2c38l5cibe0n0"
+          ]
+        },
+        {
+          "id": "rsg9hiolppy61czo4bexqxq4",
+          "name": "Dimensão — Confiança Vertical",
+          "questionIds": [
+            "cmfbynjei00ezc38lg104snbz",
+            "cmfbynjeq00f5c38l2q7m4xmj",
+            "cmfbynjf000f8c38lefo9cisl",
+            "cmfbynjfg00fmc38ltjrih79s"
+          ]
+        },
+        {
+          "id": "lu5diq2c5ku5m700li1iw0u8",
+          "name": "Dimensão — Justiça e Respeito Organizacional",
+          "questionIds": [
+            "cmfbynjf500fhc38lxllhos7g",
+            "cmfbynjf100fbc38lueq27seo",
+            "cmfbynjfg00flc38lz05wqo03",
+            "cmfbynjf400fec38l9ff6vr08"
+          ]
+        },
+        {
+          "id": "et0kvhuhqlbyfuv80d90o8zf",
+          "name": "Dimensão — Sentido de Comunidade Social no Trabalho",
+          "questionIds": [
+            "cmfbynjfj00fwc38l8gatzpc2",
+            "cmfbynjfj00fqc38lnvlsmeoo",
+            "cmfbynjfj00ftc38lkey3iyq2"
+          ]
+        }
+      ]
+    }
+  ]
+}
