@@ -45,6 +45,41 @@ export function structureHeadline(structure: InventoryReviewedStructure): string
   return 'Decisão necessária';
 }
 
+export function countDistinctPlanStructures(
+  structures: readonly InventoryReviewedStructure[],
+) {
+  const toCreate = new Set<string>();
+  const toReuse = new Set<string>();
+
+  for (const structure of structures) {
+    if (!structure.included) continue;
+    if (structure.planAction === 'create') {
+      // Apply looks up these root structures by exact name and type in this workspace.
+      toCreate.add(JSON.stringify([structure.appliedType, structure.appliedName]));
+    }
+    if (structure.planAction === 'reuse' && structure.selectedReuseParentHierarchyId) {
+      toReuse.add(structure.selectedReuseParentHierarchyId);
+    }
+  }
+  return { create: toCreate.size, reuse: toReuse.size };
+}
+
+export function linkRoleStructureName(
+  role: InventoryReviewedRole | undefined,
+  structures: InventoryReviewedStructure[],
+): string | null {
+  if (role?.planAction === 'reuse') {
+    const detail = role.candidates.find(
+      (candidate) => candidate.id === role.matchedHierarchyId,
+    )?.detail;
+    return detail?.startsWith('Pai: ') ? detail.slice('Pai: '.length) : null;
+  }
+  if (role?.planAction === 'create') {
+    return roleParentLabel(role, structures)?.name ?? null;
+  }
+  return null;
+}
+
 export function roleParentLabel(
   role: InventoryReviewedRole,
   structures: InventoryReviewedStructure[],

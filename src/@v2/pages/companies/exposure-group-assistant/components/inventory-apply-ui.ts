@@ -1,9 +1,66 @@
-import type { InventoryPgrImportReview } from '@v2/services/security/inventory-pgr-import/service/inventory-pgr-import.types';
+import type {
+  InventoryPgrImportReview,
+  InventoryPreviewIssue,
+  InventoryReviewRoleDecision,
+  InventoryRolePreview,
+} from '@v2/services/security/inventory-pgr-import/service/inventory-pgr-import.types';
 
 export const INVENTORY_PGR_IMPORT_STALE_CODE = 'INVENTORY_PGR_IMPORT_STALE';
 
 export const INVENTORY_PGR_IMPORT_STALE_MESSAGE =
   'A estrutura da empresa mudou desde a revisão. Recalcule o plano antes de importar.';
+
+export function inventoryAcknowledgedIssueTypes(
+  issues: readonly Pick<InventoryPreviewIssue, 'type'>[],
+  acknowledgedRows: ReadonlySet<number>,
+): string[] {
+  const pendingTypes = new Set(
+    issues.filter((_, index) => !acknowledgedRows.has(index)).map(({ type }) => type),
+  );
+  return [...new Set(issues.map(({ type }) => type))].filter(
+    (type) => !pendingTypes.has(type),
+  );
+}
+
+export function inventoryTruncationReview(
+  issue: Pick<InventoryPreviewIssue, 'type' | 'message'>,
+  roles: readonly InventoryRolePreview[],
+  decisions: readonly InventoryReviewRoleDecision[],
+) {
+  if (issue.type !== 'POSSIBLE_TEXT_TRUNCATION') return null;
+  const sourceName = /^O trecho extraído "(.+)" pode estar fragmentado\./.exec(
+    issue.message,
+  )?.[1];
+  if (!sourceName) return null;
+
+  const decisionsByKey = new Map(decisions.map((decision) => [decision.key, decision]));
+  const affected = roles.filter(
+    (role) => role.sourceName === sourceName && decisionsByKey.get(role.key)?.included !== false,
+  );
+  if (!affected.length) return null;
+
+  const corrections: string[] = [];
+  const pending: InventoryRolePreview[] = [];
+  for (const role of affected) {
+    const decision = decisionsByKey.get(role.key);
+    const appliedName = decision?.appliedName?.trim() || '';
+    // Use the same name comparison as the API review.
+    const normalized = appliedName.normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9\s]/g, '')
+      .toUpperCase()
+      .trim();
+
+    if (normalized && normalized !== role.normalizedName &&
+        !decision?.resolvedMatchId && role.matchStatus !== 'EXACT_MATCH') {
+      corrections.push(appliedName);
+    } else {
+      pending.push(role);
+    }
+  }
+
+  return { sourceName, correctedNames: [...new Set(corrections)], pending };
+}
 
 export function canApplyInventoryImportPlan(input: {
   review: InventoryPgrImportReview | null;

@@ -5,6 +5,7 @@ import {
   canApplyInventoryImportPlan,
   INVENTORY_PGR_IMPORT_STALE_CODE,
   INVENTORY_PGR_IMPORT_STALE_MESSAGE,
+  inventoryAcknowledgedIssueTypes,
   inventoryImportApplyErrorMessage,
   inventoryImportApplyHint,
   isInventoryPgrImportStaleError,
@@ -151,3 +152,23 @@ scrollInventoryImportFlowIntoView(null);
 assert.equal(scrolled.length, 1);
 
 console.log('inventory-apply-ui.spec.ts ok');
+
+// Two separate references in the PDF share the same API issue type.
+const observations = [
+  { type: 'IGNORED_INDEX_ENTRY' },
+  { type: 'IGNORED_INDEX_ENTRY' },
+  { type: 'POSSIBLE_TEXT_TRUNCATION' },
+] as const;
+assert.deepEqual(inventoryAcknowledgedIssueTypes(observations, new Set()), []);
+assert.deepEqual(
+  inventoryAcknowledgedIssueTypes(observations, new Set([0, 2])),
+  ['POSSIBLE_TEXT_TRUNCATION'],
+);
+assert.deepEqual(
+  inventoryAcknowledgedIssueTypes(observations, new Set([0, 1, 2])),
+  ['IGNORED_INDEX_ENTRY', 'POSSIBLE_TEXT_TRUNCATION'],
+);
+assert.deepEqual(
+  inventoryAcknowledgedIssueTypes(observations, new Set([1, 2])),
+  ['POSSIBLE_TEXT_TRUNCATION'],
+);

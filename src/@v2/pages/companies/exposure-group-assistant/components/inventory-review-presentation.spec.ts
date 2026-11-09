@@ -7,9 +7,11 @@ import type {
   InventoryReviewedStructure,
 } from '@v2/services/security/inventory-pgr-import/service/inventory-pgr-import.types';
 import {
+  countDistinctPlanStructures,
   groupHeadline,
   linkIgnoreReason,
   linkOperationalStatus,
+  linkRoleStructureName,
   linkStatusLabel,
   roleBlockedReason,
   roleHeadline,
@@ -204,3 +206,32 @@ assert.equal(stepToneLabel('informative'), 'Somente informativa');
 assert.equal(stepToneLabel('pending', 2), 'Requer decisão (2)');
 
 console.log('inventory-review-presentation.spec.ts ok');
+
+const logistics = structure({ key: 'logistics', appliedName: 'Logística' });
+const exposure = structure({ key: 'exposure', appliedName: 'Logística' });
+const reused = structure({ planAction: 'reuse', selectedReuseParentHierarchyId: 'existing' });
+assert.deepEqual(
+  countDistinctPlanStructures([
+    logistics,
+    exposure,
+    structure({ appliedName: 'Logística', appliedType: 'MANAGEMENT' }),
+    structure({ appliedName: 'LOGÍSTICA' }),
+    structure({ appliedName: 'Ignorada', included: false }),
+    reused,
+    { ...reused, key: 'another-proposal' },
+  ]),
+  { create: 3, reuse: 1 },
+);
+assert.equal(
+  linkRoleStructureName(role({ selectedParentName: 'Logística', selectedProposedStructureKey: 'exposure' }), [logistics, exposure]),
+  'Logística',
+);
+assert.equal(
+  linkRoleStructureName(role({
+    planAction: 'reuse',
+    matchedHierarchyId: 'office-1',
+    candidates: [{ id: 'office-1', name: 'Técnico', detail: 'Pai: Maker' }],
+  }), []),
+  'Maker',
+);
+assert.equal(linkRoleStructureName(role({ planAction: 'blocked' }), []), null);

@@ -22,6 +22,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -50,8 +51,10 @@ import type {
 } from '@v2/services/security/inventory-pgr-import/service/inventory-pgr-import.types';
 import {
   canApplyInventoryImportPlan,
+  inventoryAcknowledgedIssueTypes,
   inventoryImportApplyErrorMessage,
   inventoryImportApplyHint,
+  inventoryTruncationReview,
   isInventoryPgrImportStaleError,
   scrollInventoryImportFlowIntoView,
 } from './inventory-apply-ui';
@@ -71,10 +74,12 @@ import {
   unpromotedGseOrigins,
 } from './inventory-structural-evidence';
 import {
+  countDistinctPlanStructures,
   countPendingPlanActions,
   groupHeadline,
   linkIgnoreReason,
   linkOperationalStatus,
+  linkRoleStructureName,
   linkStatusLabel,
   roleBlockedReason,
   roleHeadline,
@@ -249,7 +254,46 @@ export function InventoryPgrImportReviewForm({
   mutateRef.current = mutation.mutateAsync;
   const flowStartRef = useRef<HTMLDivElement>(null);
   const applyingRef = useRef(false);
-  const [decisions, setDecisions] = useState(() => defaultReviewDecisions(preview));
+  const [draftDecisions, setDecisions] = useState(() =>
+    defaultReviewDecisions(preview),
+  );
+  const [acknowledgedRows, setAcknowledgedRows] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const acknowledgeable = useMemo(
+    () =>
+      (preview.issues || []).filter((issue) =>
+        SOFT_ISSUE_TYPES.includes(
+          issue.type as (typeof SOFT_ISSUE_TYPES)[number],
+        ),
+      ),
+    [preview.issues],
+  );
+  const truncationReviews = useMemo(
+    () => acknowledgeable.map((issue) =>
+      inventoryTruncationReview(issue, preview.roles, draftDecisions.roles),
+    ),
+    [acknowledgeable, preview.roles, draftDecisions.roles],
+  );
+  const confirmedRows = useMemo(() => {
+    const confirmed = new Set(acknowledgedRows);
+    truncationReviews.forEach((result, index) => {
+      if (result && result.pending.length === 0) confirmed.add(index);
+    });
+    return confirmed;
+  }, [acknowledgedRows, truncationReviews]);
+  const acknowledgedIssueTypes = useMemo(
+    () => inventoryAcknowledgedIssueTypes(acknowledgeable, confirmedRows),
+    [acknowledgeable, confirmedRows],
+  );
+  const decisions = useMemo(
+    () => ({
+      ...draftDecisions,
+      acknowledgedIssueTypes,
+    }),
+    [draftDecisions, acknowledgedIssueTypes],
+  );
+  const softAcknowledged = confirmedRows.size === acknowledgeable.length;
   const [reviewedDecisionsKey, setReviewedDecisionsKey] = useState<string | null>(
     null,
   );
@@ -276,6 +320,7 @@ export function InventoryPgrImportReviewForm({
 
   useEffect(() => {
     setDecisions(defaultReviewDecisions(preview));
+    setAcknowledgedRows(new Set());
     setReview(null);
     setReviewedDecisionsKey(null);
     setApplyResult(null);
@@ -437,21 +482,6 @@ export function InventoryPgrImportReviewForm({
       ),
     }));
   };
-
-  const acknowledgeable = useMemo(
-    () =>
-      (preview.issues || []).filter((issue) =>
-        SOFT_ISSUE_TYPES.includes(
-          issue.type as (typeof SOFT_ISSUE_TYPES)[number],
-        ),
-      ),
-    [preview.issues],
-  );
-  const softAcknowledged =
-    acknowledgeable.length === 0 ||
-    acknowledgeable.every((issue) =>
-      decisions.acknowledgedIssueTypes.includes(issue.type),
-    );
 
   const goToStep = (step: number) => {
     setActiveStep(step);
@@ -845,20 +875,21 @@ export function InventoryPgrImportReviewForm({
         <SummaryStep
           review={review}
           acknowledgeable={acknowledgeable}
-          softAcknowledged={softAcknowledged}
+          acknowledgedRows={confirmedRows}
+          truncationReviews={truncationReviews}
           importHint={importHint}
           canApply={canApply}
           applyPending={applyMutation.isPending}
           applyResult={applyResult}
           applyError={applyMutation.error}
           onApply={() => void onApply()}
-          onToggleSoft={(checked) =>
-            setDecisions((current) => ({
-              ...current,
-              acknowledgedIssueTypes: checked
-                ? acknowledgeable.map((issue) => issue.type)
-                : [],
-            }))
+          onToggleIssue={(index, checked) =>
+            setAcknowledgedRows((current) => {
+              const next = new Set(current);
+              if (checked) next.add(index);
+              else next.delete(index);
+              return next;
+            })
           }
           mutationError={mutation.isError}
         />
@@ -1851,94 +1882,108 @@ function LinksStep({
   onResolveRole: (roleKey: string) => void;
   onResolveGroup: (groupKey: string) => void;
 }) {
+  const rolesByKey = new Map(review?.roles.map((role) => [role.key, role]));
+
   return (
     <Stack spacing={2}>
       <Alert severity="info">
         Esta tabela é consequência das etapas anteriores. Nada é gravado aqui.
       </Alert>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Incluir</TableCell>
-            <TableCell>Cargo</TableCell>
-            <TableCell>GSE</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Ação</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {toInventoryLinkRows(preview, review).map(({ link, reviewed }) => {
-            const status = linkOperationalStatus({
-              reviewed,
-              fallbackStatus: link.matchStatus,
-            });
-            const included =
-              reviewed?.included ??
-              decisions.links.find(
-                (item) =>
-                  item.roleKey === link.roleKey && item.groupKey === link.groupKey,
-              )?.included !== false;
-            const ignoreReason = linkIgnoreReason(reviewed);
-            return (
-              <TableRow key={`${link.roleKey}:${link.groupKey}`}>
-                <TableCell>
-                  <Checkbox
-                    checked={included && status !== 'ignored'}
-                    disabled={Boolean(reviewed?.excludedBecause)}
-                    onChange={(event) =>
-                      onPatchLink(link.roleKey, link.groupKey, event.target.checked)
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">
-                    {reviewed?.appliedRoleName || link.roleName}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">
-                    {reviewed?.appliedGroupName ||
-                      link.groupName?.trim() ||
-                      'Nome do GSE precisa ser definido'}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Stack spacing={0.5}>
-                    <Chip
-                      size="small"
-                      label={linkStatusLabel(status)}
-                      color={
-                        status === 'ready' || status === 'exists'
-                          ? 'success'
-                          : status === 'ignored'
-                            ? 'default'
-                            : 'warning'
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Incluir</TableCell>
+              <TableCell>Cargo</TableCell>
+              <TableCell>Setor / estrutura</TableCell>
+              <TableCell>GSE</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Ação</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {toInventoryLinkRows(preview, review).map(({ link, reviewed }) => {
+              const status = linkOperationalStatus({
+                reviewed,
+                fallbackStatus: link.matchStatus,
+              });
+              const included =
+                reviewed?.included ??
+                decisions.links.find(
+                  (item) =>
+                    item.roleKey === link.roleKey && item.groupKey === link.groupKey,
+                )?.included !== false;
+              const ignoreReason = linkIgnoreReason(reviewed);
+              const structureName = linkRoleStructureName(
+                rolesByKey.get(link.roleKey),
+                review?.structures ?? [],
+              );
+              return (
+                <TableRow key={`${link.roleKey}:${link.groupKey}`}>
+                  <TableCell>
+                    <Checkbox
+                      checked={included && status !== 'ignored'}
+                      disabled={Boolean(reviewed?.excludedBecause)}
+                      onChange={(event) =>
+                        onPatchLink(link.roleKey, link.groupKey, event.target.checked)
                       }
                     />
-                    {ignoreReason ? (
-                      <Typography variant="caption" color="text.secondary">
-                        {ignoreReason}
-                      </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {reviewed?.appliedRoleName || link.roleName}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {structureName || '—'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {reviewed?.appliedGroupName ||
+                        link.groupName?.trim() ||
+                        'Nome do GSE precisa ser definido'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Stack spacing={0.5}>
+                      <Chip
+                        size="small"
+                        label={linkStatusLabel(status)}
+                        color={
+                          status === 'ready' || status === 'exists'
+                            ? 'success'
+                            : status === 'ignored'
+                              ? 'default'
+                              : 'warning'
+                        }
+                      />
+                      {ignoreReason ? (
+                        <Typography variant="caption" color="text.secondary">
+                          {ignoreReason}
+                        </Typography>
+                      ) : null}
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    {status === 'blocked-role' ? (
+                      <Button size="small" onClick={() => onResolveRole(link.roleKey)}>
+                        Resolver cargo
+                      </Button>
                     ) : null}
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  {status === 'blocked-role' ? (
-                    <Button size="small" onClick={() => onResolveRole(link.roleKey)}>
-                      Resolver cargo
-                    </Button>
-                  ) : null}
-                  {status === 'blocked-gse' ? (
-                    <Button size="small" onClick={() => onResolveGroup(link.groupKey)}>
-                      Resolver GSE
-                    </Button>
-                  ) : null}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                    {status === 'blocked-gse' ? (
+                      <Button size="small" onClick={() => onResolveGroup(link.groupKey)}>
+                        Resolver GSE
+                      </Button>
+                    ) : null}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Stack>
   );
 }
@@ -1946,29 +1991,39 @@ function LinksStep({
 function SummaryStep({
   review,
   acknowledgeable,
-  softAcknowledged,
+  acknowledgedRows,
+  truncationReviews,
   importHint,
   canApply,
   applyPending,
   applyResult,
   applyError,
   onApply,
-  onToggleSoft,
+  onToggleIssue,
   mutationError,
 }: {
   review: InventoryPgrImportReview | null;
   acknowledgeable: InventoryPgrImportPreview['issues'];
-  softAcknowledged: boolean;
+  acknowledgedRows: ReadonlySet<number>;
+  truncationReviews: ReturnType<typeof inventoryTruncationReview>[];
   importHint: string;
   canApply: boolean;
   applyPending: boolean;
   applyResult: InventoryPgrImportApply | null;
   applyError: unknown;
   onApply: () => void;
-  onToggleSoft: (checked: boolean) => void;
+  onToggleIssue: (index: number, checked: boolean) => void;
   mutationError: boolean;
 }) {
   const summary = review?.summary;
+  const structures = countDistinctPlanStructures(review?.structures ?? []);
+  const blockers = review?.blockers.filter(
+    (blocker) =>
+      blocker.hard ||
+      blocker.itemType !== 'extraction' ||
+      !acknowledgeable.some((issue) => issue.type === blocker.code),
+  ) || [];
+  const pendingAcknowledgements = acknowledgeable.length - acknowledgedRows.size;
   const ignored =
     (summary?.structures.skip || 0) +
     (summary?.roles.skip || 0) +
@@ -1978,24 +2033,58 @@ function SummaryStep({
   return (
     <Stack spacing={2}>
       {acknowledgeable.length ? (
-        <Alert severity="warning">
-          <AlertTitle>Avisos do documento</AlertTitle>
-          <Stack spacing={0.75} sx={{ mb: 1 }}>
-            {acknowledgeable.map((issue) => (
-              <Typography key={issue.type} variant="body2">
-                {issue.message}
-              </Typography>
-            ))}
+        <Alert severity="info">
+          <AlertTitle>Observações do documento</AlertTitle>
+          <Stack spacing={2}>
+            {acknowledgeable.map((issue, index) => {
+              const correction = truncationReviews[index];
+              if (correction && correction.pending.length === 0) {
+                return (
+                  <Alert key={`${issue.type}-${index}`} severity="success">
+                    <AlertTitle>Corrigido no plano</AlertTitle>
+                    <Typography variant="body2">
+                      {correction.correctedNames.join(' · ')}
+                    </Typography>
+                    <Typography variant="body2">
+                      Grafia no PDF: {correction.sourceName}
+                    </Typography>
+                  </Alert>
+                );
+              }
+              const checked = acknowledgedRows.has(index);
+              return (
+                <Alert
+                  key={`${issue.type}-${index}`}
+                  severity={checked ? 'success' : 'warning'}
+                >
+                  <Typography variant="body2">{issue.message}</Typography>
+                  {correction?.pending.map((role) => {
+                    const reviewedRole = review?.roles.find(({ key }) => key === role.key);
+                    const sector = reviewedRole?.selectedParentName ||
+                      role.structuralParent?.suggestedName || role.suggestedParentName;
+                    return (
+                      <Typography key={role.key} variant="body2">
+                        {role.sourceName}{sector ? ` — ${sector}` : ''}
+                      </Typography>
+                    );
+                  })}
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={checked}
+                        color={checked ? 'success' : 'primary'}
+                        inputProps={{ 'aria-label': `Ciência: ${issue.message}` }}
+                        onChange={(event) =>
+                          onToggleIssue(index, event.target.checked)
+                        }
+                      />
+                    }
+                    label={checked ? 'Conferido' : 'Estou ciente desta observação'}
+                  />
+                </Alert>
+              );
+            })}
           </Stack>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={softAcknowledged}
-                onChange={(event) => onToggleSoft(event.target.checked)}
-              />
-            }
-            label="Estou ciente. A futura importação gravará somente o que está neste plano; o que o PDF não entregou não será inventado."
-          />
         </Alert>
       ) : null}
       {mutationError ? (
@@ -2006,11 +2095,11 @@ function SummaryStep({
       ) : null}
       {review ? (
         <>
-          <Alert severity={review.readyForFutureApply ? 'success' : 'warning'}>
+          <Alert severity="info">
             <AlertTitle>Resumo operacional do plano</AlertTitle>
             <Typography variant="body2">
-              Estruturas: {review.summary.structures?.create || 0} a criar ·{' '}
-              {review.summary.structures?.reuse || 0} existentes serão utilizadas
+              Estruturas: {structures.create} a criar ·{' '}
+              {structures.reuse} existentes serão utilizadas
             </Typography>
             <Typography variant="body2">
               Cargos: {review.summary.roles.create} a criar ·{' '}
@@ -2027,10 +2116,13 @@ function SummaryStep({
             </Typography>
             <Typography variant="body2">Itens ignorados: {ignored}</Typography>
             <Typography variant="body2">
-              Pendências: {review.summary.pendingBlockers}
+              Confirmações de ciência restantes: {pendingAcknowledgements}
+            </Typography>
+            <Typography variant="body2">
+              Pendências a corrigir: {blockers.length}
             </Typography>
           </Alert>
-          {review.blockers.map((blocker, index) => (
+          {blockers.map((blocker, index) => (
             <Alert
               key={`${blocker.code}-${blocker.itemKey}-${index}`}
               severity={blocker.hard ? 'error' : 'warning'}
@@ -2094,7 +2186,13 @@ function SummaryStep({
             : 'Importar estrutura, cargos e GSEs'}
         </Button>
         <Typography variant="body2" color="text.secondary">
-          {importHint}
+          {!canApply &&
+          !mutationError &&
+          !applyPending &&
+          pendingAcknowledgements > 0 &&
+          blockers.length === 0
+            ? 'Confirme a ciência das observações para habilitar a importação.'
+            : importHint}
         </Typography>
       </Stack>
     </Stack>

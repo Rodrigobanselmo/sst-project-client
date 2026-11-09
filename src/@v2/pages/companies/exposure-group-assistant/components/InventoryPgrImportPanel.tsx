@@ -84,10 +84,8 @@ export function InventoryPgrImportPanel({ companyId, workspaceId }: Props) {
 
       {preview ? (
         <Stack spacing={3}>
-          <Alert
-            severity={preview.extractionQuality?.needsReview ? 'warning' : 'success'}
-          >
-            {preview.message}
+          <Alert severity="info">
+            Prévia da importação. A gravação ocorre após a confirmação final.
           </Alert>
           <InventoryPgrImportReviewForm
             companyId={companyId}
