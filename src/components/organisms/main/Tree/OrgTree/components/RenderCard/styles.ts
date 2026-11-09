@@ -13,6 +13,7 @@ interface ICardCard {
 
 /** Largura única para todos os níveis — evita falsa hierarquia por tamanho. */
 export const HIERARCHY_CARD_WIDTH = '20.625rem'; // ~330px (50% acima de 13.75rem)
+export const HIERARCHY_CARD_RADIUS = '24px';
 
 const FadeInAnimation = keyframes`  
   0% { 
@@ -46,12 +47,10 @@ const getTypeVisualCss = (type?: TreeTypeEnum) => {
       &::before {
         content: '';
         position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background-color: ${visual.accentLeft};
-        border-radius: 5px 0 0 5px;
+        inset: 0;
+        border-left: 4px solid ${visual.accentLeft};
+        border-radius: inherit;
+        pointer-events: none;
       }
     `
       : ''}
@@ -91,7 +90,7 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   color: ${(props) => props.theme.palette.text.main};
   position: relative;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
-  border-radius: 5px;
+  border-radius: ${HIERARCHY_CARD_RADIUS};
   border: 1px solid ${(props) => props.theme.palette.grey[200]};
   white-space: normal;
   word-break: break-word;

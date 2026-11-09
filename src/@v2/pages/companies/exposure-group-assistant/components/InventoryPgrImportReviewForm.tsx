@@ -235,7 +235,16 @@ export function defaultReviewDecisions(
   };
 }
 
+export type InventoryVisualReview = (context: {
+  step: 'structures' | 'roles';
+  review: InventoryPgrImportReview | null;
+  updating: boolean;
+  onSelectStructure: (key: string) => void;
+  onSelectRole: (key: string) => void;
+}) => ReactNode;
+
 type Props = {
+  renderVisualReview?: InventoryVisualReview;
   companyId: string;
   workspaceId: string;
   preview: InventoryPgrImportPreview;
@@ -245,6 +254,7 @@ export function InventoryPgrImportReviewForm({
   companyId,
   workspaceId,
   preview,
+  renderVisualReview,
 }: Props) {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
@@ -542,7 +552,7 @@ export function InventoryPgrImportReviewForm({
     Boolean(review) &&
     reviewedDecisionsKey === JSON.stringify(decisions) &&
     !mutation.isPending;
-  const canApply = canApplyInventoryImportPlan({
+  const canApply = !applyResult && canApplyInventoryImportPlan({
     review,
     reviewSynced,
     reviewPending: mutation.isPending,
@@ -587,61 +597,85 @@ export function InventoryPgrImportReviewForm({
         </Typography>
       ) : null}
 
-      <Stepper
-        nonLinear
-        activeStep={activeStep}
-        alternativeLabel={isMdUp}
-        orientation={isMdUp ? 'horizontal' : 'vertical'}
-        sx={{
-          '& .MuiStepConnector-line': { borderColor: 'grey.400' },
-        }}
-      >
-        {STEP_LABELS.map((label, index) => {
-          const visit = stepVisitState({
-            isActive: activeStep === index,
-            visited: visitedSteps.has(index),
-            pendingCount: stepTones[index]?.count || 0,
-            hasReview: Boolean(review) || index === 0,
-          });
-          return (
-            <Step key={label} completed={false}>
-              <StepButton onClick={() => goToStep(index)}>
-                <StepLabel
-                  StepIconComponent={() => (
-                    <ReviewStepIcon
-                      index={index}
-                      visit={visit}
-                    />
-                  )}
-                  optional={
-                    <Stack spacing={0.25} alignItems={isMdUp ? 'center' : 'flex-start'}>
-                      <Typography variant="caption" color="text.secondary">
-                        {stepToneLabel(
-                          stepTones[index]?.tone || 'informative',
-                          stepTones[index]?.count,
-                        )}
-                      </Typography>
-                      {visit === 'pending' ? (
-                        <Typography variant="caption" color="warning.main" fontWeight={700}>
-                          {stepTones[index]?.count} pendência
-                          {(stepTones[index]?.count || 0) === 1 ? '' : 's'} no plano
-                        </Typography>
-                      ) : null}
-                      {visit === 'resolved' && index > 0 ? (
+      {renderVisualReview ? (
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label="Etapa da revisão"
+          value={activeStep}
+          onChange={(event) => goToStep(Number(event.target.value))}
+        >
+          {STEP_LABELS.map((label, index) => (
+            <MenuItem key={label} value={index}>{index + 1}. {label}</MenuItem>
+          ))}
+        </TextField>
+      ) : (
+        <Stepper
+          nonLinear
+          activeStep={activeStep}
+          alternativeLabel={isMdUp}
+          orientation={isMdUp ? 'horizontal' : 'vertical'}
+          sx={{
+            '& .MuiStepConnector-line': { borderColor: 'grey.400' },
+          }}
+        >
+          {STEP_LABELS.map((label, index) => {
+            const visit = stepVisitState({
+              isActive: activeStep === index,
+              visited: visitedSteps.has(index),
+              pendingCount: stepTones[index]?.count || 0,
+              hasReview: Boolean(review) || index === 0,
+            });
+            return (
+              <Step key={label} completed={false}>
+                <StepButton onClick={() => goToStep(index)}>
+                  <StepLabel
+                    StepIconComponent={() => (
+                      <ReviewStepIcon
+                        index={index}
+                        visit={visit}
+                      />
+                    )}
+                    optional={
+                      <Stack spacing={0.25} alignItems={isMdUp ? 'center' : 'flex-start'}>
                         <Typography variant="caption" color="text.secondary">
-                          Revisada no plano
+                          {stepToneLabel(
+                            stepTones[index]?.tone || 'informative',
+                            stepTones[index]?.count,
+                          )}
                         </Typography>
-                      ) : null}
-                    </Stack>
-                  }
-                >
-                  {label}
-                </StepLabel>
-              </StepButton>
-            </Step>
-          );
-        })}
-      </Stepper>
+                        {visit === 'pending' ? (
+                          <Typography variant="caption" color="warning.main" fontWeight={700}>
+                            {stepTones[index]?.count} pendência
+                            {(stepTones[index]?.count || 0) === 1 ? '' : 's'} no plano
+                          </Typography>
+                        ) : null}
+                        {visit === 'resolved' && index > 0 ? (
+                          <Typography variant="caption" color="text.secondary">
+                            Revisada no plano
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    }
+                  >
+                    {label}
+                  </StepLabel>
+                </StepButton>
+              </Step>
+            );
+          })}
+        </Stepper>
+      )}
+      {renderVisualReview && (activeStep === 1 || activeStep === 2)
+        ? renderVisualReview({
+            step: activeStep === 1 ? 'structures' : 'roles',
+            review,
+            updating: !reviewSynced,
+            onSelectStructure: (key) => goToItem(1, `inventory-structure-${key}`),
+            onSelectRole: (key) => goToItem(2, `inventory-role-${key}`),
+          })
+        : null}
 
       {activeStep === 0 ? (
         <DiagnosisStep preview={preview} />
@@ -906,15 +940,11 @@ export function InventoryPgrImportReviewForm({
         >
           Etapa anterior
         </Button>
-        <Button
-          variant="outlined"
-          disabled={activeStep === STEP_LABELS.length - 1}
-          onClick={() =>
-            goToStep(Math.min(STEP_LABELS.length - 1, activeStep + 1))
-          }
-        >
-          Próxima etapa
-        </Button>
+        {activeStep < STEP_LABELS.length - 1 && (
+          <Button variant="outlined" onClick={() => goToStep(activeStep + 1)}>
+            Próxima etapa
+          </Button>
+        )}
       </Stack>
     </Stack>
   );
@@ -1889,7 +1919,7 @@ function LinksStep({
       <Alert severity="info">
         Esta tabela é consequência das etapas anteriores. Nada é gravado aqui.
       </Alert>
-      <TableContainer>
+      <TableContainer data-inventory-links>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -2175,26 +2205,28 @@ function SummaryStep({
           {inventoryImportApplyErrorMessage(applyError)}
         </Alert>
       ) : null}
-      <Stack spacing={1}>
-        <Button
-          variant="contained"
-          disabled={!canApply || applyPending}
-          onClick={onApply}
-        >
-          {applyPending
-            ? 'Importando…'
-            : 'Importar estrutura, cargos e GSEs'}
-        </Button>
-        <Typography variant="body2" color="text.secondary">
-          {!canApply &&
-          !mutationError &&
-          !applyPending &&
-          pendingAcknowledgements > 0 &&
-          blockers.length === 0
-            ? 'Confirme a ciência das observações para habilitar a importação.'
-            : importHint}
-        </Typography>
-      </Stack>
+      {!applyResult && (
+        <Stack spacing={1}>
+          <Button
+            variant="contained"
+            disabled={!canApply || applyPending}
+            onClick={onApply}
+          >
+            {applyPending
+              ? 'Importando…'
+              : 'Importar estrutura, cargos e GSEs'}
+          </Button>
+          <Typography variant="body2" color="text.secondary">
+            {!canApply &&
+            !mutationError &&
+            !applyPending &&
+            pendingAcknowledgements > 0 &&
+            blockers.length === 0
+              ? 'Confirme a ciência das observações para habilitar a importação.'
+              : importHint}
+          </Typography>
+        </Stack>
+      )}
     </Stack>
   );
 }

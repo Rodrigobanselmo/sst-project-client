@@ -1,6 +1,6 @@
 import { GseFloatingPanel } from './components/GseVisualAssistance/GseFloatingPanel';
 import { GseReviewNavigation } from './components/GseVisualAssistance/GseReviewNavigation';
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Box, Icon, Stack } from '@mui/material';
 import SSlider from 'components/atoms/SSlider';
@@ -17,6 +17,8 @@ import { selectRiskAddExpand } from 'store/reducers/hierarchy/riskAddSlice';
 import SZooInIcon from 'assets/icons/SZooInIcon';
 import SZooOutIcon from 'assets/icons/SZooOutIcon';
 
+import { useAccess } from 'core/hooks/useAccess';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
@@ -25,6 +27,7 @@ import { StructuralArchivedButton } from '@v2/features/sst-operational/Structura
 import { MIN_TREE_SCALE, useZoom } from '../../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
 import { BottomButton } from './components/BottomButton';
+import { InventoryOrganogramPanel } from './components/InventoryOrganogram/InventoryOrganogramPanel';
 import { GhoTool } from './components/GhoTool';
 import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
 import { HierarchyLegend } from './components/HierarchyLegend';
@@ -61,7 +64,20 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
     };
   }, [dispatch]);
 
-  const { query } = useRouter();
+  const { query, pathname } = useRouter();
+  const { isMaster, isValidPermissions } = useAccess();
+  const companyId = typeof query.companyId === 'string' ? query.companyId : '';
+  const canReviewInventory = Boolean(companyId) && pathname.endsWith('/hierarquia') &&
+    (isMaster || (isValidPermissions([PermissionEnum.EMPLOYEE]) &&
+      isValidPermissions([PermissionEnum.HOMO_GROUP])));
+  const scope = JSON.stringify([companyId, query.tabWorkspaceGroupId, query.tabWorkspaceId, query.tabWorkspaceIds]);
+  const [inventoryScope, setInventoryScope] = useState<string | null>(null);
+  const [inventoryCanvas, setInventoryCanvas] = useState<HTMLDivElement | null>(null);
+  const inventoryOpen = canReviewInventory && inventoryScope === scope;
+  const onInventoryChange = useCallback((open: boolean) => {
+    setInventoryScope(open ? scope : null);
+  }, [scope]);
+  useEffect(() => setInventoryScope(null), [scope]);
   const nodes = useAppSelector(selectAllHierarchyTreeNodes);
   const [hiddenLevels, setHiddenLevels] = useState<Set<TreeTypeEnum>>(
     () => new Set(),
@@ -188,7 +204,12 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
           }}
         >
           <LoadingFeedback />
-          {showGHO && <BottomButton />}
+          {showGHO && (
+            <BottomButton
+              inventoryOpen={inventoryOpen}
+              onInventoryChange={canReviewInventory ? onInventoryChange : undefined}
+            />
+          )}
         </Box>
         {(assisted || !selectExpanded || !isRiskOpen) && (
           <>
@@ -199,26 +220,40 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
               style={zoomStyle}
               horizontal={horizontal}
             >
-              {visibleHierarchy && visibleHierarchy.roots.length === 0 && (
-                <Box role="status" sx={{ color: 'text.secondary' }}>
-                  Nenhum item encontrado nos níveis visíveis.
-                </Box>
-              )}
-              <OrgTree
-                horizontal={horizontal}
-                className={visibleHierarchy ? 'org-tree-compact' : undefined}
-              >
-                <TreeNode
-                  horizontal={horizontal}
-                  collapsable={collapsable}
-                  visibleHierarchy={visibleHierarchy}
-                  {...props}
+              {inventoryOpen && (
+                <Box ref={setInventoryCanvas}
+                  sx={{ '&:not(:empty) + [data-live-hierarchy]': { display: 'none' } }}
                 />
-              </OrgTree>
+              )}
+              <Box data-live-hierarchy>
+                {visibleHierarchy && visibleHierarchy.roots.length === 0 && (
+                  <Box role="status" sx={{ color: 'text.secondary' }}>
+                    Nenhum item encontrado nos níveis visíveis.
+                  </Box>
+                )}
+                <OrgTree
+                  horizontal={horizontal}
+                  className={visibleHierarchy ? 'org-tree-compact' : undefined}
+                >
+                  <TreeNode
+                    horizontal={horizontal}
+                    collapsable={collapsable}
+                    visibleHierarchy={visibleHierarchy}
+                    {...props}
+                  />
+                </OrgTree>
+              </Box>
             </OrgTreeContainer>
           </>
         )}
       </Box>
+      {showGHO && inventoryOpen && (
+        <InventoryOrganogramPanel
+          companyId={companyId}
+          canvas={inventoryCanvas}
+          onClose={() => onInventoryChange(false)}
+        />
+      )}
       {showGHO && assisted && (
         <GseFloatingPanel>
           <GhoTool />

@@ -1,3 +1,4 @@
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import LandscapeOutlinedIcon from '@mui/icons-material/LandscapeOutlined';
 import { useGseVisualAssistance } from '../GseVisualAssistance/GseVisualAssistance.context';
 import { useOrgPanelBusy } from '../../hooks/useOrgPanelBusy';
@@ -27,7 +28,10 @@ import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-quer
 
 import { SFlexButton, gseActiveButtonSx } from './styles';
 
-export const BottomButton: FC = () => {
+export const BottomButton: FC<{
+  inventoryOpen?: boolean;
+  onInventoryChange?: (open: boolean) => void;
+}> = ({ inventoryOpen, onInventoryChange }) => {
   const dispatch = useAppDispatch();
   const isGhoOpen = useAppSelector(selectGhoOpen);
   const { query, push, replace, pathname } = useRouter();
@@ -37,7 +41,7 @@ export const BottomButton: FC = () => {
     ? 'GSE'
     : isGhoOpen
       ? 'ENVIRONMENT'
-      : null;
+      : inventoryOpen ? 'INVENTORY' : null;
   const openPanel = (requested: Exclude<OrgPanel, null>) => {
     if (busy) return;
     const next = nextOrgPanel(current, requested, false);
@@ -51,6 +55,7 @@ export const BottomButton: FC = () => {
         open: next === 'ENVIRONMENT',
       }),
     );
+    onInventoryChange?.(next === 'INVENTORY');
     if (!!assistance?.active !== (next === 'GSE')) assistance?.toggle();
     if (next && query.riskGroupId)
       void replace({ pathname, query: withoutOrgRiskPanel(query) }, undefined, {
@@ -65,6 +70,7 @@ export const BottomButton: FC = () => {
     const companyId = query.companyId;
     if (typeof companyId !== 'string' || !companyId) return;
 
+    onInventoryChange?.(false);
     if (assistance?.active) assistance.toggle();
     dispatch(
       setGhoState({
@@ -91,10 +97,11 @@ export const BottomButton: FC = () => {
     tabWorkspaceId,
     busy,
     assistance,
+    onInventoryChange,
   ]);
 
   return (
-    <SFlex>
+    <SFlex sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
       <STooltip
         placement="top"
         title={
@@ -175,6 +182,32 @@ export const BottomButton: FC = () => {
           <SText>Ambiente</SText>
         </SFlexButton>
       </STooltip>
+      {onInventoryChange && (
+        <SFlexButton
+          role="button"
+          tabIndex={busy ? -1 : 0}
+          aria-label="Importar Inventário / PGR"
+          aria-disabled={busy}
+          aria-pressed={current === 'INVENTORY'}
+          active={current === 'INVENTORY' ? 1 : 0}
+          onClick={() => openPanel('INVENTORY')}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openPanel('INVENTORY');
+            }
+          }}
+          gap={3}
+          px={5}
+          py={2}
+          pr={6}
+          center
+          sx={[current === 'INVENTORY' ? gseActiveButtonSx : {}, busy ? { opacity: 0.5, cursor: 'not-allowed' } : {}]}
+        >
+          <UploadFileOutlinedIcon />
+          <SText>Importar Inventário / PGR</SText>
+        </SFlexButton>
+      )}
     </SFlex>
   );
 };

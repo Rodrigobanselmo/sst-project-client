@@ -187,7 +187,22 @@ test('both buttons remain available with empty environment list and while assist
     'src/components/organisms/main/Tree/OrgTree/OrgTree.tsx',
     'utf8',
   );
-  assert.ok(source.includes('{showGHO && <BottomButton />}'));
+  assert.match(source, /showGHO && [(]\s*<BottomButton/);
+});
+test('inventory opens exclusively and closes when switching to Environment', () => {
+  let inventoryOpen = false;
+  const onInventoryChange = (open: boolean) => { inventoryOpen = open; };
+  fixture.assistance.active = true;
+  capture(() => BottomButton({ inventoryOpen, onInventoryChange }));
+  find(captured, (p) => p['aria-label'] === 'Importar Inventário / PGR')!.props.onClick();
+  assert.equal(inventoryOpen, true);
+  assert.equal(fixture.assistance.active, false);
+  assert.equal(fixture.state.gho.open, false);
+
+  capture(() => BottomButton({ inventoryOpen, onInventoryChange }));
+  find(captured, (p) => p['aria-label'] === 'Ambiente')!.props.onClick();
+  assert.equal(inventoryOpen, false);
+  assert.equal(fixture.state.gho.open, true);
 });
 test('additive persistence blocks switching and closing without discarding assistance', () => {
   fixture.assistance.active = true;

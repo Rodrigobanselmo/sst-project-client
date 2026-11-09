@@ -4,7 +4,7 @@ import type { IWorkspace } from 'core/interfaces/api/ICompany';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { parseOrgWorkspaceFilterIds } from 'core/utils/org-workspace-query';
 
-export type OrgPanel = 'GSE' | 'ENVIRONMENT' | null;
+export type OrgPanel = 'GSE' | 'ENVIRONMENT' | 'INVENTORY' | null;
 export function nextOrgPanel(
   current: OrgPanel,
   requested: Exclude<OrgPanel, null>,

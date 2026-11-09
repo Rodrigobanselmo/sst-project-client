@@ -7,13 +7,14 @@ import {
 } from '@mui/material';
 import { SInputFile } from '@v2/components/forms/fields/SInputFile/SInputFile';
 import { useMutPreviewInventoryPgrImport } from '@v2/services/security/inventory-pgr-import/hooks/useMutPreviewInventoryPgrImport';
-import { InventoryPgrImportReviewForm } from './InventoryPgrImportReviewForm';
+import { InventoryPgrImportReviewForm, type InventoryVisualReview } from './InventoryPgrImportReviewForm';
 import type { InventoryPgrImportPreview } from '@v2/services/security/inventory-pgr-import/service/inventory-pgr-import.types';
 import { useState } from 'react';
 
 type Props = {
   companyId: string;
   workspaceId: string;
+  renderVisualReview?: InventoryVisualReview;
 };
 
 function resolveErrorMessage(err: unknown): string {
@@ -25,7 +26,7 @@ function resolveErrorMessage(err: unknown): string {
   return 'Não foi possível processar o PDF. Tente novamente.';
 }
 
-export function InventoryPgrImportPanel({ companyId, workspaceId }: Props) {
+export function InventoryPgrImportPanel({ companyId, workspaceId, renderVisualReview }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<InventoryPgrImportPreview | null>(null);
   const mutation = useMutPreviewInventoryPgrImport();
@@ -52,8 +53,9 @@ export function InventoryPgrImportPanel({ companyId, workspaceId }: Props) {
         Este fluxo parte de um documento técnico já consolidado e propõe cargos,
         GSEs e vínculos Cargo↔GSE para revisão humana. Ele é diferente de
         “Propostas de GSE”, que parte da estrutura já cadastrada no SimpleSST.
-        A revisão monta o plano sem gravar. A importação só acontece no
-        botão final, depois da confirmação humana.
+        {renderVisualReview
+          ? ' Revise estruturas e cargos diretamente na árvore. A gravação ocorre após a confirmação na última etapa.'
+          : ' A revisão monta o plano sem gravar. A importação só acontece no botão final, depois da confirmação humana.'}
       </Alert>
 
       <SInputFile
@@ -85,12 +87,15 @@ export function InventoryPgrImportPanel({ companyId, workspaceId }: Props) {
       {preview ? (
         <Stack spacing={3}>
           <Alert severity="info">
-            Prévia da importação. A gravação ocorre após a confirmação final.
+            {renderVisualReview
+              ? 'Prévia visual. Selecione uma caixa na árvore para localizar sua decisão.'
+              : 'Prévia da importação. A gravação ocorre após a confirmação final.'}
           </Alert>
           <InventoryPgrImportReviewForm
             companyId={companyId}
             workspaceId={workspaceId}
             preview={preview}
+            renderVisualReview={renderVisualReview}
           />
         </Stack>
       ) : null}

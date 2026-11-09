@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button } from '@mui/material';
+import { Box, Button, type Theme } from '@mui/material';
+import type { SystemStyleObject } from '@mui/system';
 export function clampPanelPosition(
   x: number,
   y: number,
@@ -51,9 +52,11 @@ function usefulOrganogramTop(panel: HTMLElement | null) {
 export function OrgFloatingPanel({
   children,
   id,
+  sx,
 }: {
   children: React.ReactNode;
   id: string;
+  sx?: SystemStyleObject<Theme>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(
@@ -184,6 +187,7 @@ export function OrgFloatingPanel({
         flexDirection: 'column',
         '& > div:last-child': { minHeight: 0 },
         '& [data-gse-drag-handle]': { cursor: 'grab', touchAction: 'none' },
+        ...sx,
       }}
     >
       <Button
