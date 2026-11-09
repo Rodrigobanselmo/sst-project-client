@@ -401,6 +401,23 @@ export const GhoTool = ({
           <GhoToolTopButtons
             handleSelectGHO={handleSelectGHO}
             environmentOnly={environmentOnly}
+            archiveAction={company?.id && (
+              <StructuralArchivedButton
+                companyId={company.id}
+                iconOnly
+                table={
+                  environmentOnly || (filter != null && homoCharacterizationTabs.has(filter))
+                    ? 'CompanyCharacterization'
+                    : 'HomogeneousGroup'
+                }
+                workspaceId={environmentOnly ? environmentWorkspace : tabWorkspaceId}
+                label={
+                  environmentOnly || (filter != null && homoCharacterizationTabs.has(filter))
+                    ? 'Consultar ambientes e atividades encerrados'
+                    : 'Consultar GSEs encerrados'
+                }
+              />
+            )}
           />
           {environmentOnly && <Box id="environment-link-navigation-slot" />}
           {assistance?.active && (
@@ -452,23 +469,6 @@ export const GhoTool = ({
                 : undefined
             }
           >
-            {company?.id && (
-              <StructuralArchivedButton
-                companyId={company.id}
-                fullWidth={environmentOnly}
-                table={
-                  environmentOnly || (filter != null && homoCharacterizationTabs.has(filter))
-                    ? 'CompanyCharacterization'
-                    : 'HomogeneousGroup'
-                }
-                workspaceId={environmentOnly ? environmentWorkspace : tabWorkspaceId}
-                label={
-                  environmentOnly || (filter != null && homoCharacterizationTabs.has(filter))
-                    ? 'Consultar ambientes e atividades encerrados'
-                    : 'Consultar GSEs encerrados'
-                }
-              />
-            )}
             {assistance?.active && <GseAssistanceControls />}
             {environmentOnly && !assistance?.active && (
               <Box sx={{ pt: 5, mb: 2 }}>

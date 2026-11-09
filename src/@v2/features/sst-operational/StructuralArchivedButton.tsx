@@ -53,7 +53,7 @@ export function StructuralArchivedButton({
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState<string>();
   const [selected, setSelected] = useState<ArchivedSource>();
-  const list = useQuery<{ items: ArchivedSource[]; nextCursor: string | null }>(
+  const list = useQuery<{ items: ArchivedSource[]; nextCursor: string | null; archiveReadOnly?: true }>(
     ['sst-structural-archived', companyId, table, workspaceId, cursor],
     () =>
       sstGet(
@@ -168,7 +168,7 @@ export function StructuralArchivedButton({
                             .join('/') || '—'}
                         </TableCell>
                         <TableCell>
-                          {access.canUpdateStructure(table) && (
+                          {!list.data.archiveReadOnly && access.canUpdateStructure(table) && (
                             <Button
                               disabled={list.isFetching || list.isError}
                               onClick={() => setSelected(item)}

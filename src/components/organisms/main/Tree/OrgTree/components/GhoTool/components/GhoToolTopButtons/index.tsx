@@ -16,8 +16,8 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { GhoToolTopProps } from './types';
 
 export const GhoToolTopButtons: FC<
-  { children?: any } & GhoToolTopProps & { environmentOnly?: boolean }
-> = ({ handleSelectGHO, environmentOnly = false }) => {
+  GhoToolTopProps & { environmentOnly?: boolean; archiveAction?: React.ReactNode }
+> = ({ handleSelectGHO, environmentOnly = false, archiveAction }) => {
   const assistance = useGseVisualAssistance();
   const dispatch = useAppDispatch();
   const busy = useOrgPanelBusy();
@@ -59,12 +59,13 @@ export const GhoToolTopButtons: FC<
         <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
       </SIconButton>
       <SText
-        sx={{ flex: 1, minWidth: 0 }}
+        sx={{ minWidth: 0 }}
         fontSize="0.9rem"
         color={floating ? 'text.primary' : 'GrayText'}
       >
         {environmentOnly ? 'Ambientes' : 'Grupo similar de exposição'}
       </SText>
+      {archiveAction}
       {floating && (
         <Tooltip title="Arraste esta área para mover o painel">
           <Box
@@ -74,6 +75,7 @@ export const GhoToolTopButtons: FC<
               width: 28,
               height: 16,
               flexShrink: 0,
+              ml: 'auto',
               backgroundImage:
                 'radial-gradient(currentColor 1px, transparent 1px)',
               backgroundSize: '4px 4px',

@@ -139,17 +139,22 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
             : undefined
         }
       />
-      {!assisted && (
-        <HierarchyFilter renderedIds={visibleHierarchy?.renderedIds}>
-          {query.companyId && (
-            <StructuralArchivedButton
-              companyId={String(query.companyId)}
-              table="Hierarchy"
-              label="Consultar cargos e setores encerrados"
-            />
-          )}
-        </HierarchyFilter>
-      )}
+      <HierarchyFilter renderedIds={visibleHierarchy?.renderedIds} actionsOnly={assisted}>
+        {companyId && (
+          <StructuralArchivedButton
+            companyId={companyId}
+            table="Hierarchy"
+            label="Consultar cargos e setores encerrados"
+            iconOnly
+          />
+        )}
+        {showGHO && (
+          <BottomButton
+            inventoryOpen={inventoryOpen}
+            onInventoryChange={canReviewInventory ? onInventoryChange : undefined}
+          />
+        )}
+      </HierarchyFilter>
       <HierarchyLegend
         hiddenLevels={hiddenLevels}
         onToggle={toggleLevel}
@@ -204,12 +209,6 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
           }}
         >
           <LoadingFeedback />
-          {showGHO && (
-            <BottomButton
-              inventoryOpen={inventoryOpen}
-              onInventoryChange={canReviewInventory ? onInventoryChange : undefined}
-            />
-          )}
         </Box>
         {(assisted || !selectExpanded || !isRiskOpen) && (
           <>

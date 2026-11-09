@@ -183,11 +183,15 @@ test('both buttons remain available with empty environment list and while assist
   const html = capture(() => BottomButton({}));
   assert.ok(html.includes('aria-label="GSE"'));
   assert.ok(html.includes('aria-label="Ambiente"'));
+  assert.ok(html.includes('aria-label="Fatores de Risco"'));
+  assert.doesNotMatch(html, />\s*(GSE|Ambiente|Fatores de Risco)\s*</);
   const source = readFileSync(
     'src/components/organisms/main/Tree/OrgTree/OrgTree.tsx',
     'utf8',
   );
-  assert.match(source, /showGHO && [(]\s*<BottomButton/);
+  const toolbar = source.slice(source.indexOf('<HierarchyFilter'), source.indexOf('</HierarchyFilter>'));
+  assert.match(toolbar, /showGHO && [(]\s*<BottomButton/);
+  assert.match(toolbar, /<StructuralArchivedButton[\s\S]*?iconOnly/);
 });
 test('inventory opens exclusively and closes when switching to Environment', () => {
   let inventoryOpen = false;

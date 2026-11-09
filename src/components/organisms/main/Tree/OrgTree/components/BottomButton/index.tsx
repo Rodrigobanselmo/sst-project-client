@@ -9,10 +9,8 @@ import {
 } from '../../org-panels.model';
 import React, { FC, useCallback } from 'react';
 
-import { Icon } from '@mui/material';
+import { Icon, IconButton, Tooltip } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import SText from 'components/atoms/SText';
-import STooltip from 'components/atoms/STooltip';
 import { useRouter } from 'next/router';
 import { selectGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
@@ -26,7 +24,7 @@ import { useOrgMultiWorkspaceMode } from 'core/hooks/useOrgMultiWorkspaceMode';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { ORG_MULTI_WORKSPACE_DISABLED_HINT } from 'core/utils/org-workspace-query';
 
-import { SFlexButton, gseActiveButtonSx } from './styles';
+import { gseActiveButtonSx } from './styles';
 
 export const BottomButton: FC<{
   inventoryOpen?: boolean;
@@ -100,114 +98,46 @@ export const BottomButton: FC<{
     onInventoryChange,
   ]);
 
+  const panelActions = [
+    { panel: 'GSE', label: 'GSE', title: 'Assistência Visual de GSEs', icon: <Icon component={SGhoIcon} /> },
+    { panel: 'ENVIRONMENT', label: 'Ambiente', title: 'Gestão de Ambientes', icon: <LandscapeOutlinedIcon /> },
+    ...(onInventoryChange ? [{
+      panel: 'INVENTORY' as const,
+      label: 'Importar Inventário / PGR',
+      title: 'Importar Inventário / PGR',
+      icon: <UploadFileOutlinedIcon />,
+    }] : []),
+  ] as const;
+
   return (
-    <SFlex sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-      <STooltip
-        placement="top"
-        title={
-          isOrgMultiWorkspace
-            ? ORG_MULTI_WORKSPACE_DISABLED_HINT
-            : 'Ir para Vínculo de Riscos'
-        }
-      >
-        <SFlexButton
-          onClick={
-            isOrgMultiWorkspace || busy ? undefined : handleOpenEntityRisks
-          }
-          active={0}
-          gap={4}
-          px={5}
-          py={2}
-          pr={6}
-          center
-          sx={
-            isOrgMultiWorkspace
-              ? { opacity: 0.5, cursor: 'not-allowed' }
-              : undefined
-          }
-        >
-          <Icon sx={{ color: 'gray.500' }} component={SRiskFactorIcon} />
-          <SText>Fatores de Risco</SText>
-        </SFlexButton>
-      </STooltip>
-      <STooltip placement="top-start" title="Assistência Visual de GSEs">
-        <SFlexButton
-          role="button"
-          tabIndex={busy ? -1 : 0}
-          aria-label="GSE"
-          aria-disabled={busy}
-          aria-pressed={current === 'GSE'}
-          active={current === 'GSE' ? 1 : 0}
-          onClick={() => openPanel('GSE')}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              openPanel('GSE');
-            }
-          }}
-          gap={3}
-          px={5}
-          py={2}
-          pr={6}
-          center
-          sx={[current === 'GSE' ? gseActiveButtonSx : {}, busy ? { opacity: 0.5, cursor: 'not-allowed' } : {}]}
-        >
-          <Icon component={SGhoIcon} />
-          <SText>GSE</SText>
-        </SFlexButton>
-      </STooltip>
-      <STooltip placement="top-start" title="Gestão de Ambientes">
-        <SFlexButton
-          role="button"
-          tabIndex={busy ? -1 : 0}
-          aria-label="Ambiente"
-          aria-disabled={busy}
-          aria-pressed={current === 'ENVIRONMENT'}
-          active={current === 'ENVIRONMENT' ? 1 : 0}
-          onClick={() => openPanel('ENVIRONMENT')}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              openPanel('ENVIRONMENT');
-            }
-          }}
-          gap={3}
-          px={5}
-          py={2}
-          pr={6}
-          center
-          sx={[current === 'ENVIRONMENT' ? gseActiveButtonSx : {}, busy ? { opacity: 0.5, cursor: 'not-allowed' } : {}]}
-        >
-          <LandscapeOutlinedIcon />
-          <SText>Ambiente</SText>
-        </SFlexButton>
-      </STooltip>
-      {onInventoryChange && (
-        <SFlexButton
-          role="button"
-          tabIndex={busy ? -1 : 0}
-          aria-label="Importar Inventário / PGR"
-          aria-disabled={busy}
-          aria-pressed={current === 'INVENTORY'}
-          active={current === 'INVENTORY' ? 1 : 0}
-          onClick={() => openPanel('INVENTORY')}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              openPanel('INVENTORY');
-            }
-          }}
-          gap={3}
-          px={5}
-          py={2}
-          pr={6}
-          center
-          sx={[current === 'INVENTORY' ? gseActiveButtonSx : {}, busy ? { opacity: 0.5, cursor: 'not-allowed' } : {}]}
-        >
-          <UploadFileOutlinedIcon />
-          <SText>Importar Inventário / PGR</SText>
-        </SFlexButton>
-      )}
+    <SFlex role="group" aria-label="Atalhos do organograma" sx={{ flexWrap: 'wrap', gap: 2 }}>
+      <Tooltip title={isOrgMultiWorkspace ? ORG_MULTI_WORKSPACE_DISABLED_HINT : 'Fatores de Risco · Ir para Vínculo de Riscos'}>
+        <span>
+          <IconButton
+            aria-label="Fatores de Risco"
+            disabled={isOrgMultiWorkspace || busy}
+            onClick={handleOpenEntityRisks}
+          >
+            <Icon component={SRiskFactorIcon} />
+          </IconButton>
+        </span>
+      </Tooltip>
+      {panelActions.map(({ panel, label, title, icon }) => (
+        <Tooltip key={panel} title={title}>
+          <span>
+            <IconButton
+              aria-label={label}
+              aria-disabled={busy}
+              aria-pressed={current === panel}
+              disabled={busy}
+              onClick={() => openPanel(panel)}
+              sx={current === panel ? gseActiveButtonSx : undefined}
+            >
+              {icon}
+            </IconButton>
+          </span>
+        </Tooltip>
+      ))}
     </SFlex>
   );
 };

@@ -42,8 +42,8 @@ import { STSInput } from './styles';
 import { GhoHeaderProps } from './types';
 
 export const HierarchyFilter: FC<
-  { children?: React.ReactNode; renderedIds?: ReadonlySet<string | number> } & GhoHeaderProps
-> = ({ children, renderedIds }) => {
+  { children?: React.ReactNode; renderedIds?: ReadonlySet<string | number>; actionsOnly?: boolean } & GhoHeaderProps
+> = ({ children, renderedIds, actionsOnly }) => {
   const dispatch = useAppDispatch();
   const { onOpenModal } = useModal();
   const { isValidPermissions } = useAccess();
@@ -238,89 +238,95 @@ export const HierarchyFilter: FC<
 
   return (
     <SFlex align="center" gap={4} ml={13} mt={10} flexWrap="wrap">
-      <STSInput
-        size="small"
-        inputRef={ref}
-        onChange={(e) => handleSearch(e.target.value)}
-        placeholder={'Pesquisar no organograma...'}
-        subVariant="search"
-        fullWidth
-      />
+      {/* Preserve the action positions while the editing controls are unavailable. */}
+      <Box
+        inert={actionsOnly}
+        sx={{ display: 'contents', visibility: actionsOnly ? 'hidden' : undefined }}
+      >
+        <STSInput
+          size="small"
+          inputRef={ref}
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder={'Pesquisar no organograma...'}
+          subVariant="search"
+          fullWidth
+        />
 
-      <HierarchyDndModeToggle />
+        <HierarchyDndModeToggle />
 
-      {!selectionMode && (
-        <>
-          <STagButton
-            large
-            text="Selecionar"
-            tooltipTitle="Selecionar (Shift + clique)"
-            icon={SCheckIcon}
-            onClick={handleEnterSelectionMode}
-          />
-          <STagButton
-            large
-            tooltipTitle="Importar e exportar o organograma da empresa por planilhas"
-            icon={SUploadIcon}
-            onClick={handleOpenHierarchyModal}
-          />
-          {canSanitize && (
+        {!selectionMode && (
+          <>
             <STagButton
               large
-              text="Sanitizar organograma"
-              tooltipTitle="Localizar e excluir cargos sem utilização (comuns e desenvolvidos)"
-              icon={SDeleteIcon}
-              onClick={handleOpenSanitizationModal}
+              text="Selecionar"
+              tooltipTitle="Selecionar (Shift + clique)"
+              icon={SCheckIcon}
+              onClick={handleEnterSelectionMode}
             />
-          )}
-        </>
-      )}
+            <STagButton
+              large
+              tooltipTitle="Importar e exportar o organograma da empresa por planilhas"
+              icon={SUploadIcon}
+              onClick={handleOpenHierarchyModal}
+            />
+            {canSanitize && (
+              <STagButton
+                large
+                text="Sanitizar organograma"
+                tooltipTitle="Localizar e excluir cargos sem utilização (comuns e desenvolvidos)"
+                icon={SDeleteIcon}
+                onClick={handleOpenSanitizationModal}
+              />
+            )}
+          </>
+        )}
 
-      {selectionMode && (
-        <>
-          <SText
-            fontSize={13}
-            sx={{ whiteSpace: 'nowrap', color: 'text.secondary', px: 1 }}
-          >
-            {selectedCount} selecionado{selectedCount === 1 ? '' : 's'}
-          </SText>
-          <STagButton
-            large
-            text="Selecionar visíveis"
-            tooltipTitle="Selecionar todos os nós visíveis e elegíveis"
-            onClick={handleSelectVisible}
-            disabled={bulkDeleteMutation.isLoading}
-          />
-          <STagButton
-            large
-            text="Limpar"
-            tooltipTitle="Limpar seleção"
-            onClick={handleClearSelection}
-            disabled={!selectedCount || bulkDeleteMutation.isLoading}
-          />
-          <STagButton
-            large
-            text={`Excluir selecionados${
-              selectedCount ? ` (${selectedCount})` : ''
-            }`}
-            tooltipTitle="Excluir nós selecionados"
-            icon={SDeleteIcon}
-            bg="error.main"
-            active
-            loading={bulkDeleteMutation.isLoading}
-            disabled={!selectedCount || bulkDeleteMutation.isLoading}
-            onClick={handleBulkDelete}
-          />
-          <STagButton
-            large
-            text="Cancelar"
-            tooltipTitle="Sair do modo de seleção (Esc)"
-            icon={SCloseIcon}
-            onClick={exitSelectionMode}
-            disabled={bulkDeleteMutation.isLoading}
-          />
-        </>
-      )}
+        {selectionMode && (
+          <>
+            <SText
+              fontSize={13}
+              sx={{ whiteSpace: 'nowrap', color: 'text.secondary', px: 1 }}
+            >
+              {selectedCount} selecionado{selectedCount === 1 ? '' : 's'}
+            </SText>
+            <STagButton
+              large
+              text="Selecionar visíveis"
+              tooltipTitle="Selecionar todos os nós visíveis e elegíveis"
+              onClick={handleSelectVisible}
+              disabled={bulkDeleteMutation.isLoading}
+            />
+            <STagButton
+              large
+              text="Limpar"
+              tooltipTitle="Limpar seleção"
+              onClick={handleClearSelection}
+              disabled={!selectedCount || bulkDeleteMutation.isLoading}
+            />
+            <STagButton
+              large
+              text={`Excluir selecionados${
+                selectedCount ? ` (${selectedCount})` : ''
+              }`}
+              tooltipTitle="Excluir nós selecionados"
+              icon={SDeleteIcon}
+              bg="error.main"
+              active
+              loading={bulkDeleteMutation.isLoading}
+              disabled={!selectedCount || bulkDeleteMutation.isLoading}
+              onClick={handleBulkDelete}
+            />
+            <STagButton
+              large
+              text="Cancelar"
+              tooltipTitle="Sair do modo de seleção (Esc)"
+              icon={SCloseIcon}
+              onClick={exitSelectionMode}
+              disabled={bulkDeleteMutation.isLoading}
+            />
+          </>
+        )}
+      </Box>
 
       {children}
     </SFlex>

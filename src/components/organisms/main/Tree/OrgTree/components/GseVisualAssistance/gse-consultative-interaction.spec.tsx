@@ -77,7 +77,7 @@ test('presentation translates internal terms without changing the original paylo
 });
 test('active GSE and Environment share product yellow with dark contrast and keyboard focus',()=>{
  const sx=gseActiveButtonSx(createTheme())['&&'];assert.equal(sx.backgroundColor,SIMPLESST_PRODUCT_YELLOW);assert.notEqual(sx['& p, & svg'].color,'#fff');assert.ok(sx['&:focus-visible'].outline);
- const source=readFileSync(path.join(process.cwd(),'src/components/organisms/main/Tree/OrgTree/components/BottomButton/index.tsx'),'utf8');assert.ok(source.includes("current === 'GSE' ? gseActiveButtonSx : {}"));assert.ok(source.includes("current === 'ENVIRONMENT' ? gseActiveButtonSx : {}"));
+ const source=readFileSync(path.join(process.cwd(),'src/components/organisms/main/Tree/OrgTree/components/BottomButton/index.tsx'),'utf8');assert.ok(source.includes("current === panel ? gseActiveButtonSx : undefined"));assert.ok(source.includes("panel: 'GSE'"));assert.ok(source.includes("panel: 'ENVIRONMENT'"));
 });
 test('editor opening does not reset/rekey analysis, and reanalysis remains an explicit action with no write bridge',()=>{
  const base=path.join(process.cwd(),'src/components/organisms/main/Tree/OrgTree/components/GseVisualAssistance');
