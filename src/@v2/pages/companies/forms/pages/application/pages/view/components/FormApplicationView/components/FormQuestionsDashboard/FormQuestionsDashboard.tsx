@@ -604,22 +604,29 @@ export const FormQuestionsDashboard = ({
   const isDone = formApplication.status === FormApplicationStatusEnum.DONE;
   const isPsychosocialForm =
     formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
-  const canAnalyzeRisks = isPsychosocialForm && isDone;
+  const isShareableLink = formApplication.isShareableLink;
+  const canViewParticipants =
+    !isShareableLink || formApplication.totalParticipants > 0;
+  const showParticipantSetup =
+    canViewParticipants && formApplication.totalAnswers === 0;
+  const canViewResults =
+    !showParticipantSetup && (isShareableLink || isDone || isCanceled);
+  const canAnalyzeRisks = isPsychosocialForm && isDone && canViewResults;
 
-  const getInitialTab = () => {
-    if (isCanceled) return 2;
-
-    if (
-      formApplication.isShareableLink ||
-      formApplication.status === FormApplicationStatusEnum.DONE
-    ) {
-      return 1; // Gráficos tab
-    } else {
-      return 6; // Participantes tab
-    }
-  };
-
-  const [tabTableIndex, setTabTableIndex] = useState<number>(getInitialTab());
+  const initialTab = showParticipantSetup
+    ? 6
+    : isCanceled
+      ? 2
+      : isShareableLink || isDone
+        ? 1
+        : 6;
+  const [selectedTab, setTabTableIndex] = useState<number | null>(null);
+  const tabTableIndex =
+    selectedTab !== null &&
+    (canViewResults || selectedTab >= 5) &&
+    (selectedTab !== 6 || canViewParticipants)
+      ? selectedTab
+      : initialTab;
   const isIndicatorTab = tabTableIndex === 2;
   const [indicatorLevels, setIndicatorLevels] = useState<IndicatorLevels>({
     scales: true,
@@ -1021,7 +1028,6 @@ export const FormQuestionsDashboard = ({
     filterQuestionsWithOptions,
   ]);
 
-  const isShareableLink = formApplication.isShareableLink;
   const radarGroups = useMemo(() => {
     if (!indicatorHierarchy || activeIndicatorView === 'bars') return [];
 
@@ -1100,8 +1106,8 @@ export const FormQuestionsDashboard = ({
     [participantGroups, generalGroups, filterQuestionsWithOptions],
   );
 
-  // Early return for loading state
-  if (!formQuestionsAnswers) {
+  // Participant setup uses its own queries and does not need answers.
+  if (!formQuestionsAnswers && !showParticipantSetup) {
     return (
       <Box>
         <SSkeleton height={500} />
@@ -1112,6 +1118,7 @@ export const FormQuestionsDashboard = ({
 
   if (
     isShareableLink &&
+    !canViewParticipants &&
     identifierQuestions.length === 0 &&
     !hasGeneralQuestionsForAnyParticipantGroup &&
     !isCanceled
@@ -1168,8 +1175,6 @@ export const FormQuestionsDashboard = ({
       </SFlex>
     );
   }
-
-  const canViewResults = isShareableLink || isDone || isCanceled;
 
   const isGraphsTab = tabTableIndex === 1;
   const isTextAnswersTab = tabTableIndex === 3;
@@ -1723,7 +1728,7 @@ export const FormQuestionsDashboard = ({
 
       {/* General Questions Section */}
       {(hasGeneralQuestionsForAnyParticipantGroup ||
-        !isShareableLink ||
+        canViewParticipants ||
         isCanceled) && (
         <Box sx={{ p: 3 }}>
           <SectionHeader
@@ -1765,8 +1770,7 @@ export const FormQuestionsDashboard = ({
                     },
                   ]
                 : []),
-              // Show Participantes tab only if NOT shareableLink
-              ...(!isShareableLink
+              ...(canViewParticipants
                 ? [
                     {
                       label: 'Participantes',
@@ -1802,7 +1806,7 @@ export const FormQuestionsDashboard = ({
           >
             {isTextAnswersTab ? (
               <FormTextAnswers formGroups={generalGroups} />
-            ) : isRisksAnalysisTab ? (
+            ) : isRisksAnalysisTab && formQuestionsAnswers ? (
               <FormRisksAnalysis
                 formApplication={formApplication}
                 accessCompanyId={accessCompanyId}
