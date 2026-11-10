@@ -35,6 +35,7 @@ import {
   toSurveyProductKeyMap,
   type SurveyProductKeySelection,
 } from './chemical-survey-import-resolution.util';
+import { formatChemicalScenarioQuantity } from './chemical-use-scenario-quantity.util';
 
 type Props = {
   open: boolean;
@@ -117,7 +118,7 @@ const SurveyPreviewScenarioDetail = ({
         {!String(row.quantity || '').trim() &&
         !String(row.quantityUnit || '').trim()
           ? '—'
-          : `${display(row.quantity)}${
+          : `${display(formatChemicalScenarioQuantity(row.quantity))}${
               String(row.quantityUnit || '').trim()
                 ? ` ${String(row.quantityUnit).trim()}`
                 : ''
@@ -353,7 +354,10 @@ export const ChemicalSurveyImportDialog = ({
                                 : `${row.durationMinutes} min`,
                             )}
                             {' · '}
-                            {display(row.quantity)} {display(row.quantityUnit)}
+                            {display(
+                              formatChemicalScenarioQuantity(row.quantity),
+                            )}{' '}
+                            {display(row.quantityUnit)}
                           </TableCell>
                           <TableCell>
                             <Chip

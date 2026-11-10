@@ -72,6 +72,7 @@ import { ChemicalProductsTable } from './ChemicalProductsTable';
 import { ChemicalProductsTableFilter } from './ChemicalProductsTableFilter';
 import { ChemicalSurveyImportDialog } from './ChemicalSurveyImportDialog';
 import { ChemicalUseScenariosPanel } from './ChemicalUseScenariosPanel';
+import { ChemicalPrioritizationPanel } from './ChemicalPrioritizationPanel';
 
 const chemicalProductTabs = [
   { value: 'products', label: 'Produtos' },
@@ -491,11 +492,16 @@ export const ChemicalProductsPageContent = ({
         )}
 
         {viewMode === 'prioritization' && (
-          <Alert severity="info">
-            Nesta aba ficará a análise de riscos químicos por fator de risco e
-            GSE, com os cenários de uso como base. A análise ainda não está
-            disponível.
-          </Alert>
+          <ChemicalPrioritizationPanel
+            key={JSON.stringify([companyId, workspaceId])}
+            companyId={companyId}
+            workspaceId={workspaceId}
+            companyName={company?.name || companyId}
+            workspaceName={
+              workspaces.results.find((workspace) => workspace.id === workspaceId)?.name ||
+              workspaceId
+            }
+          />
         )}
 
         {viewMode === 'scenarios' && workspaceId ? (

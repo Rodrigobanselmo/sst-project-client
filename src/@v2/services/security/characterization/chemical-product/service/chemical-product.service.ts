@@ -874,6 +874,7 @@ export async function browseChemicalUseScenarioBoard(
   params: WorkspaceParams & {
     chemicalProductId?: string;
     search?: string;
+    includePrioritization?: boolean;
   },
 ) {
   const response = await api.get<
@@ -890,6 +891,7 @@ export async function browseChemicalUseScenarioBoard(
       params: {
         chemicalProductId: params.chemicalProductId,
         search: params.search || undefined,
+        includePrioritization: params.includePrioritization ? 'true' : undefined,
       },
     },
   );

@@ -13,6 +13,7 @@ import {
   presentUseScenarioGse,
   USE_SCENARIO_REAL_GSE_NONE_FILTER,
 } from './chemical-use-scenario-gse.util';
+import { parseChemicalScenarioQuantity } from './chemical-use-scenario-quantity.util';
 
 export type UseScenarioBoardViewSortField =
   | 'product'
@@ -126,12 +127,6 @@ function frequencyText(row: ChemicalUseScenarioBoardRow) {
 function durationText(row: ChemicalUseScenarioBoardRow) {
   if (row.durationMinutes == null) return '';
   return String(row.durationMinutes);
-}
-
-function quantityNumeric(row: ChemicalUseScenarioBoardRow) {
-  if (!row.quantity) return null;
-  const parsed = Number(String(row.quantity).replace(',', '.'));
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function sourceRowsNumeric(row: ChemicalUseScenarioBoardRow) {
@@ -330,8 +325,8 @@ export function compareUseScenarioBoardRows(
       );
     case 'quantity':
       return compareNullableNumber(
-        quantityNumeric(left),
-        quantityNumeric(right),
+        parseChemicalScenarioQuantity(left.quantity),
+        parseChemicalScenarioQuantity(right.quantity),
         order,
       );
     case 'sourceRows':

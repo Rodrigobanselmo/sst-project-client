@@ -15,6 +15,7 @@ import {
   type UseScenarioBoardViewSort,
 } from './chemical-use-scenario-board-view.util';
 import { USE_SCENARIO_REAL_GSE_NONE_FILTER } from './chemical-use-scenario-gse.util';
+import { formatChemicalScenarioQuantity } from './chemical-use-scenario-quantity.util';
 
 export const USE_SCENARIO_BOARD_PDF_FILENAME = 'cenarios-de-uso.pdf';
 
@@ -70,7 +71,7 @@ function formatDuration(row: ChemicalUseScenarioBoardRow) {
 
 function formatQuantity(row: ChemicalUseScenarioBoardRow) {
   if (!row.quantity) return '—';
-  return `${row.quantity} ${row.quantityUnit || ''}`.trim();
+  return `${formatChemicalScenarioQuantity(row.quantity)} ${row.quantityUnit || ''}`.trim();
 }
 
 function formatSourceRows(row: ChemicalUseScenarioBoardRow) {

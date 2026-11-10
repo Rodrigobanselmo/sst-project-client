@@ -1003,7 +1003,26 @@ export type ChemicalSurveyPreviewSourceRawLine = {
   manufacturer: string | null;
 };
 
+export type ChemicalPrioritizationFactorData = {
+  severity: number;
+  method: string | null;
+  nr15lt: string | null;
+  twa: string | null;
+  stel: string | null;
+  acgihCeiling: string | null;
+  nioshRel: string | null;
+  nioshStel: string | null;
+  nioshCeiling: string | null;
+  oshaPel: string | null;
+  oshaStel: string | null;
+  oshaCeiling: string | null;
+  aihaWeel: string | null;
+  aihaWeelStel: string | null;
+  aihaWeelCeiling: string | null;
+};
+
 export type ChemicalUseScenarioActivityRiskFactor = {
+  prioritization?: ChemicalPrioritizationFactorData | null;
   id: string;
   name: string;
   cas: string | null;

@@ -5,6 +5,7 @@ import type {
   CreateChemicalUseScenarioPayload,
   UpdateChemicalUseScenarioPayload,
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import { normalizeChemicalScenarioQuantity } from './chemical-use-scenario-quantity.util';
 
 export type ChemicalUseScenarioFormMode = 'create' | 'edit';
 
@@ -287,7 +288,10 @@ export function valuesFromChemicalUseScenario(
     frequencyCount: numberOrEmpty(row.frequencyCount),
     frequencyPeriod: row.frequencyPeriod || '',
     durationMinutes: numberOrEmpty(row.durationMinutes),
-    quantity: row.quantity || '',
+    quantity:
+      normalizeChemicalScenarioQuantity(row.quantity)?.replace('.', ',') ??
+      row.quantity ??
+      '',
     quantityUnit: row.quantityUnit || '',
     peakContactMoment: row.peakContactMoment || '',
     controlMeasures: row.controlMeasures || '',

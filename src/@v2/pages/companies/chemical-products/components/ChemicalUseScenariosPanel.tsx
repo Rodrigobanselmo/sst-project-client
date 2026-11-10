@@ -64,6 +64,7 @@ import { ChemicalUseScenarioFormDialog } from './ChemicalUseScenarioFormDialog';
 import { ChemicalUseScenariosTable } from './ChemicalUseScenariosTable';
 import { ChemicalUseScenariosTableFilter } from './ChemicalUseScenariosTableFilter';
 import { exportUseScenarioBoardPdfInBrowser } from './exportUseScenarioBoardPdfInBrowser';
+import { formatChemicalScenarioQuantity } from './chemical-use-scenario-quantity.util';
 
 type Props = {
   companyId: string;
@@ -486,7 +487,8 @@ export const ChemicalUseScenariosPanel = ({
                 Frequência: {selected.frequencyCount ?? '—'}{' '}
                 {selected.frequencyPeriod || ''} · Duração:{' '}
                 {selected.durationMinutes ?? '—'} min · Quantidade:{' '}
-                {selected.quantity || '—'} {selected.quantityUnit || ''}
+                {formatChemicalScenarioQuantity(selected.quantity) || '—'}{' '}
+                {selected.quantityUnit || ''}
               </SText>
               <SText fontSize={13}>
                 Contato: {selected.peakContactMoment || '—'} · Controles:{' '}

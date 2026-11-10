@@ -24,6 +24,7 @@ import {
   getHiddenChemicalUseScenarioColumn,
 } from './chemical-use-scenario-table-columns';
 import { ChemicalUseScenarioTableHeaderRow } from './ChemicalUseScenarioTableHeaderRow';
+import { formatChemicalScenarioQuantity } from './chemical-use-scenario-quantity.util';
 
 const pendingStatusChipSx = {
   backgroundColor: 'error.main',
@@ -43,7 +44,9 @@ function formatDurationCell(row: ChemicalUseScenarioBoardRow) {
 }
 
 function formatQuantityCell(row: ChemicalUseScenarioBoardRow) {
-  return row.quantity ? `${row.quantity} ${row.quantityUnit || ''}`.trim() : '—';
+  return row.quantity
+    ? `${formatChemicalScenarioQuantity(row.quantity)} ${row.quantityUnit || ''}`.trim()
+    : '—';
 }
 
 function formatSourceRowsCell(row: ChemicalUseScenarioBoardRow) {
