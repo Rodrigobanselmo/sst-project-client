@@ -24,6 +24,10 @@ export interface ICreateExamRisk {
   isReturn?: boolean;
   isDismissal?: boolean;
   validityInMonths?: number | null;
+  biologicalMonitoring?: boolean | null;
+  recommendationPurpose?: string | null;
+  recommendationRationale?: string | null;
+  periodicityJustification?: string | null;
   lowValidityInMonths?: number | null;
   considerBetweenDays?: number | null;
   minRiskDegreeQuantity?: number | null;

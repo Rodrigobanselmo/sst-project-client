@@ -1,5 +1,14 @@
+import {
+  formatExamRiskPurpose,
+  purposeNeedsDescription,
+} from 'core/utils/helpers/examRiskPurpose';
 import { ExamRiskBulkCheckbox } from './ExamRiskBulkSelection';
+import {
+  biologicalPeriodicityWarning,
+  hasBiologicalPeriodicityDeviation,
+} from './exam-risk-library-parameter.util';
 import { recommendationInformationTooltip } from './exam-risk-overview.util';
+import { ExamRiskOverviewEditLibrary } from './ExamRiskOverviewEditLibrary';
 import { ExamRiskDeleteLibrary } from './ExamRiskDeleteLibrary';
 import { ExamRiskDeleteLink } from './ExamRiskDeleteLink';
 import { ExamRiskPublishLibrary } from './ExamRiskPublishLibrary';
@@ -74,6 +83,12 @@ const attributes: {
     format: formatExamEvents,
   },
   {
+    label: 'Finalidade',
+    keys: ['recommendationPurpose', 'recommendationRationale'],
+    format: (c) =>
+      formatExamRiskPurpose(c.recommendationPurpose, c.recommendationRationale),
+  },
+  {
     label: 'Periodicidade',
     keys: ['validityInMonths'],
     format: formatExamPeriodicity,
@@ -100,6 +115,35 @@ const attributes: {
   },
 ];
 
+const groupFor = (key: keyof Config): InlineParameterGroup => {
+  switch (key) {
+    case 'isAdmission':
+      return 'events';
+    case 'isMale':
+      return 'sex';
+    case 'fromAge':
+      return 'age';
+    case 'recommendationPurpose':
+      return 'purpose';
+    default:
+      return key as InlineParameterGroup;
+  }
+};
+
+function hasDifference(left: Config, right: Config, keys: (keyof Config)[]) {
+  return keys.some((key) => {
+    if (
+      key === 'recommendationRationale' &&
+      !(
+        purposeNeedsDescription(left.recommendationPurpose) &&
+        left.recommendationPurpose === right.recommendationPurpose
+      )
+    )
+      return false;
+    return left[key] !== right[key];
+  });
+}
+
 const headerHints = {
   company:
     'Configurações efetivamente adotadas pela empresa para este exame. Podem diferir das recomendações da biblioteca, conforme a avaliação técnica responsável.',
@@ -121,6 +165,46 @@ function HeaderInfo({ text }: { text: string }) {
         }}
       >
         <InfoOutlinedIcon fontSize="small" />
+      </Box>
+    </Tooltip>
+  );
+}
+
+function PeriodicityReferenceInfo({
+  references,
+}: {
+  references: NonNullable<Config['periodicityReferences']>;
+}) {
+  return (
+    <Tooltip
+      describeChild
+      title={
+        <>
+          <strong>{references.some(ref => ref.source === 'TECHNICAL') ? 'Referências da finalidade' : 'Referência normativa'}</strong>
+          {references.map((ref) => (
+            <Box key={`${ref.source}:${ref.state}:${ref.label}`} sx={{ mt: 0.5 }}>
+              {ref.label}
+              {ref.state === 'DRAFT' && ' · Rascunho'}
+              {ref.state === 'IN_REVIEW' && ' · Em revisão'}
+              {ref.detail && ` · ${ref.detail}`}
+            </Box>
+          ))}
+        </>
+      }
+    >
+      <Box
+        component="span"
+        tabIndex={0}
+        role="img"
+        aria-label="Referências da finalidade"
+        sx={{
+          display: 'inline-flex',
+          verticalAlign: 'middle',
+          ml: 0.75,
+          color: 'text.secondary',
+        }}
+      >
+        <InfoOutlinedIcon sx={{ fontSize: 16 }} />
       </Box>
     </Tooltip>
   );
@@ -232,12 +316,15 @@ export function ExamRiskOverviewComparison({
   onAdoptExam?: AdoptCoverageExam;
 }) {
   const [decisionMessage, setDecisionMessage] = useState('');
-  const { isAuthSuccess } = useAuthShow();
+  const { isAuthSuccess, isMasterAdmin } = useAuthShow();
   const canUpdate = isAuthSuccess({
     permissions: [PermissionEnum.EXAM_RISK],
     cruds: 'u',
   });
-  const canDelete = isAuthSuccess({ permissions: [PermissionEnum.EXAM_RISK], cruds: 'd' });
+  const canDelete = isAuthSuccess({
+    permissions: [PermissionEnum.EXAM_RISK],
+    cruds: 'd',
+  });
   const scope = {
     companyId,
     workspaceId,
@@ -274,10 +361,21 @@ export function ExamRiskOverviewComparison({
   const rows = buildExamComparisons(data.recommendedExams, data.adoptedExams);
   return (
     <Box>
-      <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-        {data.adoptedCount} adotados · {data.notAdoptedCount ?? 0} {(data.notAdoptedCount ?? 0) === 1 ? 'não adotado' : 'não adotados'} por decisão da empresa · {data.missingCount} pendentes
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        display="block"
+        mb={1}
+      >
+        {data.adoptedCount} adotados · {data.notAdoptedCount ?? 0}{' '}
+        {(data.notAdoptedCount ?? 0) === 1 ? 'não adotado' : 'não adotados'} por
+        decisão da empresa · {data.missingCount} pendentes
       </Typography>
-      {decisionMessage && <Typography variant="caption" display="block" role="status">{decisionMessage}</Typography>}
+      {decisionMessage && (
+        <Typography variant="caption" display="block" role="status">
+          {decisionMessage}
+        </Typography>
+      )}
       {(reviews.message || reviews.loadError) && (
         <Typography
           variant="caption"
@@ -360,8 +458,10 @@ export function ExamRiskOverviewComparison({
                     (exam) => exam.examId === recommended.examId,
                   ).length === 1 &&
                   data.recommendedExams.filter((exam) =>
-                    exam.matchedAdoptedLinks?.some((match) =>
-                      match.linkId === adopted.linkId && match.examId === adopted.examId,
+                    exam.matchedAdoptedLinks?.some(
+                      (match) =>
+                        match.linkId === adopted.linkId &&
+                        match.examId === adopted.examId,
                     ),
                   ).length === 1 &&
                   data.adoptedExams.filter(
@@ -379,18 +479,9 @@ export function ExamRiskOverviewComparison({
                       data.quantitativeLimitApplicable === true) &&
                     hasComparableParameterInformation(left, attribute.keys) &&
                     hasComparableParameterInformation(right, attribute.keys) &&
-                    attribute.keys.some((key) => left![key] !== right![key]),
+                    hasDifference(left!, right!, attribute.keys),
                 )
-                .map(
-                  (attribute) =>
-                    (attribute.keys[0] === 'isAdmission'
-                      ? 'events'
-                      : attribute.keys[0] === 'isMale'
-                        ? 'sex'
-                        : attribute.keys[0] === 'fromAge'
-                          ? 'age'
-                          : attribute.keys[0]) as InlineParameterGroup,
-                );
+                .map((attribute) => groupFor(attribute.keys[0]));
               const syncProps = {
                 recommended,
                 adopted,
@@ -422,20 +513,34 @@ export function ExamRiskOverviewComparison({
                       <TableCell width="50%">
                         Recomendado pela Biblioteca
                         <HeaderInfo
-                          text={recommendationInformationTooltip(recommended?.notes)}
+                          text={recommendationInformationTooltip(
+                            recommended?.notes,
+                          )}
                         />
-                        {recommended?.recommendationSource && (
-                          <ExamRiskDeleteLibrary scope={scope} exam={recommended} onSaved={refreshAfterSave} />
-                        )}
-                        {!recommended && adopted?.isLocalOnly && adopted.linkId != null && (
-                          <ExamRiskPublishLibrary
-                            key={`${companyId}:${workspaceId}:${adopted.linkId}`}
-                            companyId={companyId}
-                            workspaceId={workspaceId}
-                            linkId={adopted.linkId}
+                        {isMasterAdmin && recommended?.recommendationSource && (
+                          <ExamRiskOverviewEditLibrary
+                            exam={recommended}
                             onSaved={refreshAfterSave}
                           />
                         )}
+                        {recommended?.recommendationSource && (
+                          <ExamRiskDeleteLibrary
+                            scope={scope}
+                            exam={recommended}
+                            onSaved={refreshAfterSave}
+                          />
+                        )}
+                        {!recommended &&
+                          adopted?.isLocalOnly &&
+                          adopted.linkId != null && (
+                            <ExamRiskPublishLibrary
+                              key={`${companyId}:${workspaceId}:${adopted.linkId}`}
+                              companyId={companyId}
+                              workspaceId={workspaceId}
+                              linkId={adopted.linkId}
+                              onSaved={refreshAfterSave}
+                            />
+                          )}
                         <ExamRiskSynchronizeAll
                           destination="library"
                           {...syncProps}
@@ -453,7 +558,12 @@ export function ExamRiskOverviewComparison({
                         )}
                       </TableCell>
                       <TableCell width="50%">
-                        {adopted?.linkId != null && <ExamRiskBulkCheckbox linkId={adopted.linkId} examName={adopted.examName} />}
+                        {adopted?.linkId != null && (
+                          <ExamRiskBulkCheckbox
+                            linkId={adopted.linkId}
+                            examName={adopted.examName}
+                          />
+                        )}
                         Adotado pela empresa
                         {adopted?.linkId != null && (
                           <>
@@ -491,7 +601,13 @@ export function ExamRiskOverviewComparison({
                             scope={scope}
                             examId={adopted.examId}
                             examName={adopted.examName}
-                            link={editableLinks?.find(link => link.id === adopted.linkId && link.examId === adopted.examId && link.riskId === data.riskId && link.companyId === companyId)}
+                            link={editableLinks?.find(
+                              (link) =>
+                                link.id === adopted.linkId &&
+                                link.examId === adopted.examId &&
+                                link.riskId === data.riskId &&
+                                link.companyId === companyId,
+                            )}
                           />
                         )}
                         {!adopted && (
@@ -505,17 +621,29 @@ export function ExamRiskOverviewComparison({
                         )}
                         {!adopted && (
                           <ExamRiskNonAdoption
-                            companyId={companyId} workspaceId={workspaceId} riskId={data.riskId}
-                            exam={recommended} canUpdate={canUpdate}
-                            showAdoptSeparator={Boolean(onAdoptExam) && canAdoptCoverageExam(recommended) && isAuthSuccess({ permissions: [PermissionEnum.EXAM_RISK], cruds: 'c' })}
-                            onSaved={refreshAfterSave} onMessage={setDecisionMessage}
+                            companyId={companyId}
+                            workspaceId={workspaceId}
+                            riskId={data.riskId}
+                            exam={recommended}
+                            canUpdate={canUpdate}
+                            showAdoptSeparator={
+                              Boolean(onAdoptExam) &&
+                              canAdoptCoverageExam(recommended) &&
+                              isAuthSuccess({
+                                permissions: [PermissionEnum.EXAM_RISK],
+                                cruds: 'c',
+                              })
+                            }
+                            onSaved={refreshAfterSave}
+                            onMessage={setDecisionMessage}
                           />
                         )}
                         <ExamRiskSynchronizeAll
                           destination="company"
                           {...syncProps}
                         />
-                        {((!adopted && !isNotAdoptedByDecision(recommended)) || adopted?.isLocalOnly) && (
+                        {((!adopted && !isNotAdoptedByDecision(recommended)) ||
+                          adopted?.isLocalOnly) && (
                           <Typography
                             variant="caption"
                             color="text.secondary"
@@ -565,16 +693,8 @@ export function ExamRiskOverviewComparison({
                       const different =
                         !!left &&
                         !!right &&
-                        attribute.keys.some((key) => left[key] !== right[key]);
-                      const group = (
-                        attribute.keys[0] === 'isAdmission'
-                          ? 'events'
-                          : attribute.keys[0] === 'isMale'
-                            ? 'sex'
-                            : attribute.keys[0] === 'fromAge'
-                              ? 'age'
-                              : attribute.keys[0]
-                      ) as InlineParameterGroup;
+                        hasDifference(left, right, attribute.keys);
+                      const group = groupFor(attribute.keys[0]);
                       const source = recommended?.recommendationSource;
                       const identity: ExamRiskReviewIdentity | undefined =
                         source && adopted?.linkId != null && recommended
@@ -589,7 +709,12 @@ export function ExamRiskOverviewComparison({
                             }
                           : undefined;
                       const review =
-                        available && different && identity && left && right
+                        group !== 'purpose' &&
+                        available &&
+                        different &&
+                        identity &&
+                        left &&
+                        right
                           ? findDisplayedParameterReview(
                               reviews.data,
                               identity,
@@ -626,28 +751,29 @@ export function ExamRiskOverviewComparison({
                         available &&
                         different &&
                         Boolean(recommended?.recommendationSource);
+                      const libraryPeriodicityDeviation =
+                        group === 'validityInMonths' && hasBiologicalPeriodicityDeviation(left);
                       return (
                         <TableRow
                           key={attribute.label}
                           sx={{ bgcolor: 'background.paper' }}
                         >
-                          <TableCell>
+                          <TableCell
+                            sx={libraryPeriodicityDeviation ? { color: 'error.main' } : undefined}
+                          >
                             {recommended?.recommendationSource && left ? (
                               <ExamRiskLibraryInlineParameter
                                 key={`${recommended.recommendationSource.ruleExamId}:${recommended.recommendationSource.ruleUpdatedAt}:${recommended.recommendationSource.itemUpdatedAt}`}
                                 exam={recommended}
                                 prefix={libraryPrefix}
-                                copyFrom={canCopy ? right : undefined}
-                                group={
-                                  (attribute.keys[0] === 'isAdmission'
-                                    ? 'events'
-                                    : attribute.keys[0] === 'isMale'
-                                      ? 'sex'
-                                      : attribute.keys[0] === 'fromAge'
-                                        ? 'age'
-                                        : attribute
-                                            .keys[0]) as InlineParameterGroup
+                                copyFrom={
+                                  canCopy &&
+                                  (group !== 'purpose' ||
+                                    right?.recommendationPurpose)
+                                    ? right
+                                    : undefined
                                 }
+                                group={groupFor(attribute.keys[0])}
                                 confirmedText={attribute.format(left)}
                                 onSaved={refreshAfterSave}
                               />
@@ -656,6 +782,14 @@ export function ExamRiskOverviewComparison({
                                 {libraryPrefix()}
                                 {left ? attribute.format(left) : '—'}
                               </>
+                            )}
+                            {group === 'purpose' && left?.periodicityReferences?.length ? (
+                              <PeriodicityReferenceInfo references={left.periodicityReferences} />
+                            ) : null}
+                            {libraryPeriodicityDeviation && (
+                              <Typography component="span" color="error" variant="caption" sx={{ ml: 1 }}>
+                                {biologicalPeriodicityWarning}
+                              </Typography>
                             )}
                           </TableCell>
                           <TableCell>
@@ -674,19 +808,16 @@ export function ExamRiskOverviewComparison({
                                 <ExamRiskInlineParameter
                                   key={`${companyId}:${workspaceId}:${ownedLink.id}`}
                                   scope={scope}
-                                  group={
-                                    (attribute.keys[0] === 'isAdmission'
-                                      ? 'events'
-                                      : attribute.keys[0] === 'isMale'
-                                        ? 'sex'
-                                        : attribute.keys[0] === 'fromAge'
-                                          ? 'age'
-                                          : attribute
-                                              .keys[0]) as InlineParameterGroup
-                                  }
+                                  group={groupFor(attribute.keys[0])}
                                   link={ownedLink}
                                   prefix={companyPrefix}
-                                  copyFrom={canCopy ? left : undefined}
+                                  copyFrom={
+                                    canCopy &&
+                                    (group !== 'purpose' ||
+                                      left?.recommendationPurpose)
+                                      ? left
+                                      : undefined
+                                  }
                                   confirmedText={
                                     right ? attribute.format(right) : '—'
                                   }

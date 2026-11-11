@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
 
-import { Chip, IconButton } from '@mui/material';
+import { Box, Chip, IconButton } from '@mui/material';
 import { SIconSortArrowDown } from '@v2/assets/icons/SIconSortArrowDown/SIconSortArrowDown';
 import { SIconSortArrowUp } from '@v2/assets/icons/SIconSortArrowUp/SIconSortArrowUp';
 import { SIconUnfolderMore } from '@v2/assets/icons/SIconUnfolderMore/SIconUnfolderMore';
@@ -15,9 +15,10 @@ import { STableRow } from '@v2/components/organisms/STable/common/STableRow/STab
 
 import EditIcon from 'assets/icons/SEditIcon';
 
-import { IExam } from 'core/interfaces/api/IExam';
+import { ExamOriginEnum, IExam } from 'core/interfaces/api/IExam';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { ExamReferenceChips } from './ExamReferenceChips';
 import { ExamColumnEnum, examColumnMap } from './exam-columns';
 import {
   getExamOriginChipSx,
@@ -116,7 +117,10 @@ export const ExamsDataTable: FC<Props> = ({
       hidden: isColumnHidden(hiddenColumns, ExamColumnEnum.NAME),
       header: header(ExamColumnEnum.NAME),
       row: (row) => (
-        <STextRow text={row.name || '-'} tooltipMinLength={28} lineNumber={2} />
+        <Box>
+          <STextRow text={row.name || '-'} tooltipMinLength={28} lineNumber={2} />
+          <ExamReferenceChips exam={row} />
+        </Box>
       ),
     },
     {
@@ -140,14 +144,17 @@ export const ExamsDataTable: FC<Props> = ({
       hidden: isColumnHidden(hiddenColumns, ExamColumnEnum.ORIGIN),
       header: header(ExamColumnEnum.ORIGIN, 'center'),
       row: (row) => {
-        const origin = normalizeExamOrigin(row.origin);
+        const catalogOrigin = normalizeExamOrigin(row.origin);
+        const origin = catalogOrigin === ExamOriginEnum.NR07 && row.references?.length
+          ? (row.system ? ExamOriginEnum.SYSTEM : ExamOriginEnum.CLIENT)
+          : catalogOrigin;
         return (
           <STextRow
             justify="center"
             startAddon={
               <Chip
                 size="small"
-                label={getExamOriginLabel(row.origin)}
+                label={getExamOriginLabel(origin)}
                 sx={getExamOriginChipSx(origin)}
               />
             }

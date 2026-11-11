@@ -47,6 +47,9 @@ type Props = {
   open: boolean;
   rule: IExamRiskRule | null;
   onClose: () => void;
+  onSaved?: (rule: IExamRiskRule) => void;
+  comparisonItemId?: string;
+  semiannualStandard?: boolean;
 };
 
 type ExamDraft = IExamRiskRuleExamInput & { _key: string };
@@ -132,7 +135,7 @@ const scopesWithoutQuantitativeLimit = new Set<ExamRiskRuleScopeEnum>([
   ExamRiskRuleScopeEnum.GROUP,
 ]);
 
-export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
+export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose, onSaved, comparisonItemId, semiannualStandard }) => {
   const isEdit = Boolean(rule);
 
   const [scope, setScope] = useState<ExamRiskRuleScopeEnum>(
@@ -195,7 +198,7 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
           examId: exam.examId ?? undefined,
           examNameSnapshot: exam.examNameSnapshot ?? undefined,
           isAdmission: Boolean(exam.isAdmission),
-          isPeriodic: hasExamApplicability(exam)
+          isPeriodic: comparisonItemId || hasExamApplicability(exam)
             ? Boolean(exam.isPeriodic)
             : true,
           isChange: Boolean(exam.isChange),
@@ -223,7 +226,7 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
       setQuantitativeLimitApplicable(false);
       setExams([]);
     }
-  }, [open, rule]);
+  }, [open, rule, comparisonItemId]);
 
   const riskOptions = useMemo(() => {
     const options = (riskCandidates ?? [])
@@ -321,7 +324,20 @@ export const ExamRiskRuleFormModal: FC<Props> = ({ open, rule, onClose }) => {
   const handleSubmit = () => {
     const payload = buildPayload();
     if (isEdit && rule) {
-      updateMutation.mutate({ id: rule.id, payload }, { onSuccess: onClose });
+      const current = rule.exams.find((exam) => exam.id === comparisonItemId);
+      const edited = exams.find((exam) => exam._key === comparisonItemId);
+      if (semiannualStandard && current && edited && current.examId === edited.examId &&
+        edited.isPeriodic && edited.validityInMonths !== 6 &&
+        (edited.validityInMonths !== current.validityInMonths || !current.isPeriodic) &&
+        !window.confirm('O padrão do sistema para esta indicação é de 6 meses. Deseja salvar a periodicidade divergente?')) return;
+
+      updateMutation.mutate({
+        id: rule.id,
+        payload: {
+          ...payload,
+          ...(comparisonItemId ? { expectedUpdatedAt: rule.updated_at } : {}),
+        },
+      }, { onSuccess: onSaved ?? onClose });
     } else {
       createMutation.mutate(payload, { onSuccess: onClose });
     }

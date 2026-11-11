@@ -4,6 +4,10 @@ import { queryExams } from 'core/services/hooks/queries/useQueryExamsRisk/useQue
 import { isExamRiskQuantityApplicable } from 'core/utils/helpers/isExamRiskQuantityApplicable';
 import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
 import type { IUpdateExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutUpdateExamRisk/useMutUpdateExamRisk';
+import {
+  parseExamRiskPurposeDraft,
+  purposeNeedsDescription,
+} from 'core/utils/helpers/examRiskPurpose';
 import { examRiskSchema } from 'core/utils/schemas/exam.schema';
 
 export type InlineRiskScope = {
@@ -43,6 +47,11 @@ export function hasComparableParameterInformation(
     config &&
       keys.every((key) => {
         const value = config[key];
+        if (
+          key === 'recommendationPurpose' ||
+          key === 'recommendationRationale'
+        )
+          return value === null || typeof value === 'string';
         if (key.startsWith('is')) return typeof value === 'boolean';
         return (
           value === null ||
@@ -56,6 +65,7 @@ export function hasComparableParameterInformation(
 }
 
 export const inlineParameterFields = {
+  purpose: ['recommendationPurpose', 'recommendationRationale'],
   events: ['isAdmission', 'isPeriodic', 'isChange', 'isReturn', 'isDismissal'],
   validityInMonths: ['validityInMonths'],
   sex: ['isMale', 'isFemale'],
@@ -67,6 +77,7 @@ export const inlineParameterFields = {
 export type InlineParameterGroup = keyof typeof inlineParameterFields;
 export type InlineParameterDraft = Record<string, string | boolean>;
 export const inlineParameterLabels: Record<InlineParameterGroup, string> = {
+  purpose: 'Finalidade',
   events: 'Eventos',
   validityInMonths: 'Periodicidade (meses)',
   sex: 'Sexo',
@@ -115,6 +126,18 @@ export function inlineParameterCopyDraft(
   target: Partial<Record<keyof IExamToRisk, unknown>>,
   requirePositivePeriodicity = false,
 ): InlineParameterDraft {
+  if (group === 'purpose') {
+    if (typeof source.recommendationPurpose !== 'string' || !source.recommendationPurpose)
+      throw new Error('A origem não tem finalidade informada.');
+    return {
+      recommendationPurpose: source.recommendationPurpose,
+      recommendationRationale: purposeNeedsDescription(
+        source.recommendationPurpose,
+      )
+        ? (typeof source.recommendationRationale === 'string' ? source.recommendationRationale : '')
+        : '',
+    };
+  }
   for (const field of inlineParameterFields[group]) {
     const value = source[field as keyof IExamToRisk];
     if (
@@ -178,6 +201,22 @@ export async function buildInlineParameterPatch(
   }
   if (!canEditInlineParameter(group, link))
     throw new Error('O critério quantitativo não é aplicável a este risco.');
+  if (group === 'purpose') {
+    const patch = parseExamRiskPurposeDraft(draft);
+    return {
+      id: link.id,
+      examId: link.examId,
+      riskId: link.riskId,
+      companyId: scope.companyId,
+      realCompanyId: scope.companyId,
+      ...patch,
+      biologicalMonitoring: patch.recommendationPurpose
+        ? patch.recommendationPurpose === 'BIOLOGICAL_MONITORING'
+        : null,
+      recommendationSource: patch.recommendationPurpose ? 'MANUAL' : null,
+      publishAsSystemRule: false,
+    };
+  }
   const patch: Record<string, number | boolean | null> = {};
   for (const field of inlineParameterFields[group]) {
     if (field.startsWith('is')) {

@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react';
+import { useQuery } from 'react-query';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { api } from 'core/services/apiClient';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
@@ -45,6 +48,10 @@ export const initialExamRiskState = {
   minRiskDegreeQuantity: null as number | null,
   riskId: '' as string,
   isAll: false,
+  biologicalMonitoring: null as boolean | null,
+  recommendationPurpose: undefined as string | null | undefined,
+  recommendationRationale: undefined as string | null | undefined,
+  periodicityJustification: null as string | null,
   isMale: true,
   isFemale: true,
   isPeriodic: true,
@@ -118,6 +125,84 @@ export const useEditExams = () => {
   const [examData, setExamData] = useState({
     ...initialExamRiskState,
   });
+
+  const { examId, riskId } = examData;
+  const biologicalPeriodicity = useQuery(
+    ['exam-risk-periodicity', companyId, examId, riskId],
+    async () => {
+      const { data } = await api.get<{
+        standardMonths: number | null;
+        references: Array<{
+          source: 'NR_07' | 'ACGIH_BEI';
+          agent: string;
+          table: string | null;
+          version: string | null;
+        }>;
+      }>(
+        `${ApiRoutesEnum.EXAM_RISK}/periodicity/${examId}/${encodeURIComponent(riskId)}/${companyId}`,
+      );
+      return data;
+    },
+    { enabled: !!(companyId && examId && riskId) },
+  );
+  const standardMonths = biologicalPeriodicity.data?.standardMonths;
+  useEffect(() => {
+    if (!examId || !riskId || !standardMonths) return;
+    setExamData((current) => {
+      if (
+        current.id ||
+        current.examId !== examId ||
+        current.riskId !== riskId ||
+        current.biologicalMonitoring != null ||
+        current.recommendationPurpose
+      )
+        return current;
+      return {
+        ...current,
+        biologicalMonitoring: true,
+        recommendationPurpose: 'BIOLOGICAL_MONITORING',
+        publishAsSystemRule: false,
+      };
+    });
+  }, [examId, riskId, standardMonths]);
+  const companyMonths = watch('validityInMonths') ?? examData.validityInMonths;
+  const suggestionContext =
+    examData.id ||
+    !examData.biologicalMonitoring ||
+    !examData.isPeriodic ||
+    !standardMonths ||
+    examData.isAll
+      ? null
+      : `${companyId}:${examId}:${riskId}`;
+  const appliedSuggestion = useRef<{
+    context: string;
+    value: string;
+    previous: string;
+  } | null>(null);
+  const useStandardPeriodicity = () => {
+    if (!suggestionContext || !standardMonths) return;
+    const value = String(standardMonths);
+    appliedSuggestion.current = {
+      context: suggestionContext,
+      value,
+      previous: String(
+        getValues('validityInMonths') ?? examData.validityInMonths ?? '',
+      ),
+    };
+    setValue('validityInMonths', value, { shouldValidate: true });
+  };
+
+  useEffect(() => {
+    const applied = appliedSuggestion.current;
+    if (!applied || applied.context === suggestionContext) return;
+    appliedSuggestion.current = null;
+    if (
+      !examData.id &&
+      String(getValues('validityInMonths')) === applied.value
+    ) {
+      setValue('validityInMonths', applied.previous);
+    }
+  }, [suggestionContext, examData.id, getValues, setValue]);
 
   const createMutation = useMutCreateExamRisk();
   const updateMutation = useMutUpdateExamRisk();
@@ -197,6 +282,7 @@ export const useEditExams = () => {
     onCloseModal(ModalEnum.EXAM_RISK, data);
     setExamData(initialExamRiskState);
     reset();
+    appliedSuggestion.current = null;
     hydratedExamKeyRef.current = '';
     initialDataRef.current = getExamRiskEditorSnapshot(
       initialExamRiskState as any,
@@ -278,6 +364,7 @@ export const useEditExams = () => {
 
     const requiresCanonicalForPublish =
       isMasterAdmin &&
+      examData.biologicalMonitoring !== true &&
       examData.publishAsSystemRule &&
       examData.riskId &&
       !examData.isAll &&
@@ -295,11 +382,55 @@ export const useEditExams = () => {
       return;
     }
 
+    const changedPeriodicity =
+      !examData.id ||
+      examData.isPeriodic !== initialDataRef.current.isPeriodic ||
+      Number(validityInMonths || 0) !==
+        Number(initialDataRef.current.validityInMonths || 0) ||
+      examData.biologicalMonitoring !==
+        (initialDataRef.current.biologicalMonitoring ?? null) ||
+      (examData.periodicityJustification ?? '') !==
+        (initialDataRef.current.periodicityJustification ?? '') ||
+      examData.examId !== initialDataRef.current.examId ||
+      riskId !== initialDataRef.current.riskId;
+    if (
+      changedPeriodicity &&
+      examData.biologicalMonitoring &&
+      examData.isPeriodic &&
+      standardMonths &&
+      Number(validityInMonths) !== standardMonths &&
+      !examData.periodicityJustification?.trim()
+    ) {
+      enqueueSnackbar(
+        'Informe a justificativa da periodicidade adotada pela empresa.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+
+    if (
+      examData.recommendationPurpose === 'OTHER' &&
+      !examData.recommendationRationale?.trim()
+    ) {
+      enqueueSnackbar('Descreva a finalidade do vínculo.', {
+        variant: 'warning',
+      });
+      return;
+    }
+
     const submitData: ICreateExamRisk & { id?: number } = {
       ...examData,
+      publishAsSystemRule: false,
+      recommendationRationale:
+        examData.recommendationRationale === undefined
+          ? undefined
+          : examData.recommendationRationale?.trim() || null,
+      periodicityJustification:
+        examData.periodicityJustification?.trim() || null,
       riskId,
       realCompanyId: companyId,
       ...(isMasterAdmin &&
+      examData.biologicalMonitoring !== true &&
       examData.publishAsSystemRule &&
       examData.riskId &&
       !examData.isAll
@@ -366,6 +497,7 @@ export const useEditExams = () => {
           }
         } else if (
           isMasterAdmin &&
+          examData.biologicalMonitoring !== true &&
           examData.publishAsSystemRule &&
           requiresEquivalenceForPublish({
             risk: examData.risk,
@@ -405,6 +537,7 @@ export const useEditExams = () => {
           }
         } else if (
           isMasterAdmin &&
+          examData.biologicalMonitoring !== true &&
           examData.publishAsSystemRule &&
           requiresEquivalenceForPublish({
             risk: examData.risk,
@@ -501,6 +634,9 @@ export const useEditExams = () => {
     companyId,
     isDirty,
     setSaveIntent,
+    biologicalPeriodicity,
+    companyMonths,
+    useStandardPeriodicity,
   };
 };
 

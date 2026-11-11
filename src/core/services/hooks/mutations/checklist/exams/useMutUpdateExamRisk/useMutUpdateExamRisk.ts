@@ -25,6 +25,11 @@ export interface IUpdateExamRisk {
   isReturn?: boolean;
   isDismissal?: boolean;
   validityInMonths?: number | null;
+  biologicalMonitoring?: boolean | null;
+  recommendationPurpose?: string | null;
+  recommendationRationale?: string | null;
+  recommendationSource?: string | null;
+  periodicityJustification?: string | null;
   lowValidityInMonths?: number | null;
   considerBetweenDays?: number | null;
   fromAge?: number | null;
@@ -73,13 +78,7 @@ export function useMutUpdateExamRisk() {
         return newExam;
       },
       onError: (error: IErrorResp) => {
-        if (error.response.status == 400)
-          enqueueSnackbar('Você não tem permissão para editar esse dado', {
-            variant: 'error',
-          });
-        else {
-          enqueueSnackbar(error.response.data.message, { variant: 'error' });
-        }
+        enqueueSnackbar(error.response?.data?.message || 'Não foi possível atualizar o vínculo.', { variant: 'error' });
       },
     },
   );

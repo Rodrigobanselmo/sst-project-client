@@ -214,7 +214,7 @@ export interface ICreateExamRiskRulePayload {
   exams?: IExamRiskRuleExamInput[];
 }
 
-export type IUpdateExamRiskRulePayload = Partial<ICreateExamRiskRulePayload>;
+export type IUpdateExamRiskRulePayload = Partial<ICreateExamRiskRulePayload> & { expectedUpdatedAt?: string };
 
 export interface IExamRiskRuleRiskCandidate {
   id: string;

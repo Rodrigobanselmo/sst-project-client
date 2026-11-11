@@ -12,6 +12,15 @@ export type ICompanyExamRiskCoverageGroup = {
 };
 
 export type IPcmsoComparableConfig = {
+  periodicityReferences?: Array<{
+    source: 'NR_07' | 'ACGIH_BEI' | 'TECHNICAL';
+    label: string;
+    detail?: string | null;
+    state: 'CONFIRMED' | 'DRAFT' | 'IN_REVIEW';
+    periodicityMonths?: number | null;
+  }>;
+  recommendationPurpose?: string | null;
+  recommendationRationale?: string | null;
   isAdmission: boolean;
   isPeriodic: boolean;
   isChange: boolean;
@@ -42,7 +51,8 @@ export type ICompanyExamRiskCoverageExamSummary = {
   } | null;
   config: IPcmsoComparableConfig | null;
   notes?: string[];
-  recommendationSource?: { ruleId: string; ruleExamId: string; ruleUpdatedAt: string; itemUpdatedAt: string } | null;
+  recommendationSource?: { ruleId: string; purposeEditable?: boolean;
+    ruleExamId: string; ruleUpdatedAt: string; itemUpdatedAt: string } | null;
   matchedAdoptedLinks?: Array<{ examId: number; linkId: number }>;
 };
 

@@ -1,3 +1,7 @@
+import {
+  examRiskPurposes,
+  purposeNeedsDescription,
+} from 'core/utils/helpers/examRiskPurpose';
 import type { Dispatch, SetStateAction } from 'react';
 import {
   Box,
@@ -50,6 +54,47 @@ export function ExamRiskInlineControls({
         }
       }}
     >
+      {group === 'purpose' && (
+        <>
+          <TextField
+            select
+            autoFocus
+            size="small"
+            label="Finalidade"
+            disabled={pending}
+            sx={{ minWidth: 180 }}
+            value={draft.recommendationPurpose ?? ''}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                recommendationPurpose: event.target.value,
+              }))
+            }
+          >
+            <MenuItem value="">Não informada</MenuItem>
+            {Object.entries(examRiskPurposes).map(([value, label]) => (
+              <MenuItem key={value} value={value}>
+                {label}
+              </MenuItem>
+            ))}
+          </TextField>
+          {purposeNeedsDescription(draft.recommendationPurpose) && (
+            <TextField
+              size="small"
+              label="Descrição"
+              disabled={pending}
+              inputProps={{ maxLength: 2000 }}
+              value={draft.recommendationRationale ?? ''}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  recommendationRationale: event.target.value,
+                }))
+              }
+            />
+          )}
+        </>
+      )}
       {(group === 'events' || group === 'sex') &&
         inlineParameterFields[group].map((field, index) => (
           <FormControlLabel

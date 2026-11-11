@@ -23,7 +23,7 @@ import {
   useRef,
 } from 'react';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import {
   Alert,
   Checkbox,
@@ -638,10 +638,10 @@ export const ExamRiskCoverageDecisionBlocks: FC<Props> = ({
                                     )
                                   }
                                 >
-                                  <ExpandMoreIcon
+                                  <ChevronRightIcon
                                     sx={{
                                       transform: expanded
-                                        ? 'rotate(180deg)'
+                                        ? 'rotate(90deg)'
                                         : undefined,
                                     }}
                                   />

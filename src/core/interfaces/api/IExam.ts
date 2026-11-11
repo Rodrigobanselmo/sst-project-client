@@ -41,6 +41,22 @@ export enum ClinicScheduleTypeEnum {
   NONE = 'NONE',
 }
 
+export interface IExamReference {
+  source: 'NR_07' | 'ACGIH_BEI';
+  agent: string | null;
+  determinant: string | null;
+  matrix: string | null;
+  annex: string | null;
+  table: string | null;
+  version: string | null;
+  year: number | null;
+  edition: number | null;
+  page: string | null;
+  label: string | null;
+  status: 'APPLICABLE' | 'DRAFT' | 'REVIEW' | 'INACTIVE';
+  states: string[];
+}
+
 export interface IExam {
   id: number;
   name: string;
@@ -60,6 +76,7 @@ export interface IExam {
   /** Fontes técnicas/normativas acumulativas (ex.: ["NR_07", "ACGIH_BEI"]). */
   originSources?: ExamOriginSourceEnum[];
   esocial27Code?: string | null;
+  references?: IExamReference[];
   /** Item da Tabela 27/eSocial ainda não materializado no catálogo operacional. */
   isEsocialT27Unpublished?: boolean;
   /** Nome oficial do procedimento T27 (sem prefixo de código). */
@@ -98,6 +115,10 @@ export interface IExamToRisk {
   companyId?: string;
   exam?: IExam;
   risk?: IRiskFactors;
+  biologicalMonitoring?: boolean | null;
+  recommendationPurpose?: string | null;
+  recommendationRationale?: string | null;
+  periodicityJustification?: string | null;
 
   isMale?: boolean;
   isFemale?: boolean;

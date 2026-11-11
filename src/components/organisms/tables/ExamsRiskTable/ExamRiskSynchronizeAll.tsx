@@ -1,3 +1,7 @@
+import {
+  changesBiologicalPeriodicity,
+  confirmBiologicalPeriodicityDeviation,
+} from './exam-risk-library-parameter.util';
 import { useEffect, useRef, useState } from 'react';
 import { Button, Typography } from '@mui/material';
 import { useIsMutating, useMutation } from 'react-query';
@@ -94,6 +98,11 @@ export function ExamRiskSynchronizeAll({
   });
   const eligible = groups.filter(
     (group) =>
+      (group !== 'purpose' ||
+        (library
+          ? provenance?.purposeEditable === true &&
+            Boolean(adopted?.config?.recommendationPurpose)
+          : Boolean(recommended?.config?.recommendationPurpose))) &&
       (group !== 'minRiskDegreeQuantity' ||
         quantitativeLimitApplicable === true) &&
       (library
@@ -132,6 +141,13 @@ export function ExamRiskSynchronizeAll({
             source,
             recommended!.config!,
           );
+          let config = recommended!.config!;
+          let needsConfirmation = false;
+          for (const plan of plans) {
+            needsConfirmation = changesBiologicalPeriodicity(config, plan.patch) || needsConfirmation;
+            config = { ...config, ...plan.patch };
+          }
+          if (needsConfirmation && !confirmBiologicalPeriodicityDeviation()) return;
           let itemStamp = provenance!.itemUpdatedAt;
           let ruleStamp = provenance!.ruleUpdatedAt;
           const result = await runSynchronization(plans, async (plan) => {
@@ -160,6 +176,7 @@ export function ExamRiskSynchronizeAll({
                 {
                   group: plan.group,
                   patch: plan.patch,
+                  confirmBiologicalPeriodicityDeviation: needsConfirmation,
                   expectedRuleUpdatedAt: rule.updated_at,
                   expectedItemUpdatedAt: itemStamp,
                 },

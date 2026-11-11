@@ -15,7 +15,13 @@ import {
   type InlineParameterGroup,
   type InlineParameterDraft,
 } from './exam-risk-inline-parameter.util';
-import { buildLibraryParameterPatch } from './exam-risk-library-parameter.util';
+import {
+  biologicalPeriodicityWarning,
+  buildLibraryParameterPatch,
+  changesBiologicalPeriodicity,
+  confirmBiologicalPeriodicityDeviation,
+  hasSemiannualStandard,
+} from './exam-risk-library-parameter.util';
 
 import { savingItems } from './exam-risk-parameter-saving';
 type Props = {
@@ -76,6 +82,8 @@ export function ExamRiskLibraryInlineParameter({
           copyDraft ?? draft,
           exam.config,
         );
+        const needsConfirmation = changesBiologicalPeriodicity(exam.config, patch);
+        if (needsConfirmation && !confirmBiologicalPeriodicityDeviation()) return false;
         await api.patch(
           `/v2/master/exam-risk-rules/${encodeURIComponent(source.ruleId)}/exams/${encodeURIComponent(source.ruleExamId)}`,
           {
@@ -83,8 +91,10 @@ export function ExamRiskLibraryInlineParameter({
             expectedRuleUpdatedAt: source.ruleUpdatedAt,
             expectedItemUpdatedAt: source.itemUpdatedAt,
             patch,
+            confirmBiologicalPeriodicityDeviation: needsConfirmation,
           },
         );
+        return true;
       } finally {
         savingItems.delete(key);
       }
@@ -95,7 +105,7 @@ export function ExamRiskLibraryInlineParameter({
     if (!active.current || pending || savingItems.has(key)) return;
     setError('');
     try {
-      await mutation.mutateAsync(copyDraft);
+      if (!(await mutation.mutateAsync(copyDraft))) return;
     } catch (cause: any) {
       if (active.current)
         setError(
@@ -122,6 +132,7 @@ export function ExamRiskLibraryInlineParameter({
     !isMaster ||
     !source ||
     !exam.config ||
+    (group === 'purpose' && source.purposeEditable !== true) ||
     (group === 'minRiskDegreeQuantity' && !quantitativeApplicable)
   )
     return (
@@ -203,6 +214,15 @@ export function ExamRiskLibraryInlineParameter({
             {confirmedText}
           </ButtonBase>
         )}
+        {editing &&
+          hasSemiannualStandard(exam.config) &&
+          (group === 'validityInMonths' || group === 'events') &&
+          (group === 'events' ? draft.isPeriodic : exam.config.isPeriodic) &&
+          Number(draft.validityInMonths) !== 6 && (
+            <Typography component="span" color="error" variant="caption">
+              {biologicalPeriodicityWarning}
+            </Typography>
+          )}
         {error && (
           <Typography
             component="span"

@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box, Button, Switch } from '@mui/material';
+import {
+  Box,
+  Button,
+  MenuItem,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
@@ -19,6 +27,7 @@ import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
 import { RiskFactorEquivalencePublishBlock } from '../../components/RiskFactorEquivalencePublishBlock';
+import { ExamPeriodicityPanel } from './ExamPeriodicityPanel';
 import { enrichRiskWithSystemFlag } from '../../utils/risk-system-flag.util';
 
 export const ModalExamStep = ({
@@ -31,6 +40,9 @@ export const ModalExamStep = ({
   isMasterAdmin,
   companyId,
   onCopyFromRisk,
+  biologicalPeriodicity,
+  companyMonths,
+  useStandardPeriodicity,
 }: IUseEditExam & { onCopyFromRisk?: () => void }) => {
   const riskType = examData.risk?.type;
 
@@ -148,7 +160,7 @@ export const ModalExamStep = ({
             setValue={(v) => setValue('validityInMonths', String(v))}
             defaultValue={String(examData.validityInMonths ?? '')}
             mask={intMask.apply}
-            label="Peridiocidade (meses)"
+            label="Periodicidade adotada pela empresa (meses)"
             options={[3, 6, 9, 12, 18, 24]}
           />
         </Box>
@@ -214,6 +226,12 @@ export const ModalExamStep = ({
                   error: { ...examData.error, risk: false },
                   risk: option,
                   riskId: option.id,
+                  ...(option.id !== examData.riskId && {
+                    biologicalMonitoring: null,
+                    recommendationPurpose: null,
+                    recommendationRationale: null,
+                    periodicityJustification: null,
+                  }),
                   selectedCanonicalRisk: null,
                   existingEquivalence: null,
                   riskIsCatalogForPublish: false,
@@ -269,6 +287,12 @@ export const ModalExamStep = ({
                 error: { ...examData.error, exam: false },
                 exam: option,
                 examId: option.id,
+                ...(option.id !== examData.examId && {
+                  biologicalMonitoring: null,
+                  recommendationPurpose: null,
+                  recommendationRationale: null,
+                  periodicityJustification: null,
+                }),
                 ...(option.isAttendance && {
                   minRiskDegree: 1,
                   isAdmission: true,
@@ -286,6 +310,7 @@ export const ModalExamStep = ({
             sx={{ mt: 2 }}
           />
           {isMasterAdmin &&
+            examData.biologicalMonitoring !== true &&
             examData.riskId &&
             examData.examId &&
             !examData.isAll && (
@@ -344,6 +369,17 @@ export const ModalExamStep = ({
             )}
         </Box>
 
+        {!!(examData.examId && examData.riskId && !examData.isAll) && (
+          <ExamPeriodicityPanel
+            examData={examData}
+            loading={loading}
+            setExamData={setExamData}
+            useStandardPeriodicity={useStandardPeriodicity}
+            biologicalPeriodicity={biologicalPeriodicity}
+            companyMonths={companyMonths}
+          />
+        )}
+
         <Box ml={6}>
           <SSwitch
             onChange={() => {
@@ -352,6 +388,10 @@ export const ModalExamStep = ({
                 isAll: !examData.isAll,
                 risk: {} as any,
                 riskId: '',
+                biologicalMonitoring: null,
+                recommendationPurpose: null,
+                recommendationRationale: null,
+                periodicityJustification: null,
               });
             }}
             checked={examData.isAll}
