@@ -65,6 +65,8 @@ export const ChemicalProductRoutes = {
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios',
   USE_SCENARIO_BOARD:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/board',
+  PRIORITIZATION_INVENTORY:
+    'v2/companies/:companyId/workspaces/:workspaceId/chemical-prioritization/inventory',
   USE_SCENARIO_PRIORITIZATION_DRAFT:
     'v2/companies/:companyId/workspaces/:workspaceId/chemical-use-scenarios/prioritization-draft',
   USE_SCENARIO_RECONCILE_PREVIEW:

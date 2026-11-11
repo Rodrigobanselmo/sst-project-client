@@ -8,6 +8,7 @@ import {
 } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type { ChemicalUseScenarioBoardRow } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 
+import { ChemicalInventoryTransfer } from './ChemicalInventoryTransfer';
 import type {
   ChemicalScenarioRatingReview,
   ChemicalStelReview,
@@ -213,7 +214,13 @@ export function ChemicalPrioritizationDraftBackup({
   }
   if (!draft) return null;
   return content === saved?.content ? (
-    <Alert severity="success">Rascunho salvo no banco.</Alert>
+    <>
+      <Alert severity="success">Rascunho salvo no banco.</Alert>
+      <ChemicalInventoryTransfer
+        companyId={companyId}
+        workspaceId={workspaceId}
+      />
+    </>
   ) : (
     <Alert severity="info">Salvando rascunho no banco…</Alert>
   );

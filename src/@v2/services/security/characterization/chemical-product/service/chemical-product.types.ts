@@ -1005,6 +1005,7 @@ export type ChemicalSurveyPreviewSourceRawLine = {
 
 export type ChemicalPrioritizationFactorData = {
   severity: number;
+  representAll?: boolean;
   absorptionRoutes?: string | null;
   risk?: string | null;
   symptoms?: string | null;

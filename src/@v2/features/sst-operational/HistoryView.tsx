@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useQuery } from 'react-query';
 import {
   Alert,
@@ -53,17 +54,73 @@ export function HistoryView({
       ),
     { retry: false },
   );
+  const isAssessment = table === 'RiskFactorData';
+  const response =
+    history.isError && history.error && axios.isAxiosError(history.error)
+      ? history.error.response
+      : undefined;
+  const hasHistoryData =
+    Array.isArray(history.data?.periods) &&
+    Array.isArray(history.data?.revisions);
+  const hasNoHistory =
+    (hasHistoryData && history.data.periods.length === 0) ||
+    (response?.status === 404 &&
+      response.data?.message ===
+        'O cadastro ainda não possui uma condição com vigência registrada.');
+  const accessDenied = response?.status === 403;
+  const requiresDirectContract =
+    accessDenied &&
+    response.data?.message === 'Sem contrato direto ativo com a empresa solicitada.';
+  const accessMessage = requiresDirectContract
+    ? 'A consulta do histórico exige um contrato direto ativo entre a organização da sua sessão e esta empresa.'
+    : 'Você não tem acesso ao histórico deste cadastro.';
+  const closeButton = <Button type="button" onClick={onClose}>Voltar ao cadastro</Button>;
+
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="md">
+    <Dialog
+      open
+      onClose={onClose}
+      onClick={(event) => event.stopPropagation()}
+      fullWidth
+      maxWidth="md"
+    >
       <DialogTitle sx={{ px: 12, pt: 12, pb: 6 }}>
-        Histórico do cadastro
+        {isAssessment
+          ? 'Histórico de vigência da avaliação'
+          : 'Histórico do cadastro'}
       </DialogTitle>
       <DialogContent sx={{ px: 12, pb: 12 }}>
-        {history.isError ? (
-          <Alert severity="info">
-            Este cadastro ainda não possui uma condição com vigência registrada.
-            Confira as datas no formulário de origem.
-          </Alert>
+        {history.isLoading ? (
+          <Box role="status">Consultando histórico…</Box>
+        ) : hasNoHistory ? (
+          <Stack spacing={4} alignItems="flex-start">
+            <Alert severity="info">
+              {isAssessment
+                ? 'Ainda não há períodos registrados para esta avaliação. O histórico começa quando uma condição de exposição é registrada com data de início.'
+                : 'Ainda não há períodos de vigência registrados para este cadastro.'}
+            </Alert>
+            {closeButton}
+          </Stack>
+        ) : history.isError || !hasHistoryData ? (
+          <Stack spacing={4} alignItems="flex-start">
+            <Alert severity="error">
+              {accessDenied
+                ? accessMessage
+                : 'Não foi possível consultar o histórico agora. Tente novamente.'}
+            </Alert>
+            <Stack direction="row" spacing={2}>
+              {!accessDenied && (
+                <Button
+                  type="button"
+                  disabled={history.isFetching}
+                  onClick={() => void history.refetch()}
+                >
+                  Tentar novamente
+                </Button>
+              )}
+              {closeButton}
+            </Stack>
+          </Stack>
         ) : (
           <Stack spacing={8} useFlexGap>
             <Alert severity="info">
@@ -129,7 +186,7 @@ export function HistoryView({
                 </TableBody>
               </Table>
             </Box>
-            <Button onClick={onClose}>Voltar ao cadastro</Button>
+            {closeButton}
           </Stack>
         )}
       </DialogContent>

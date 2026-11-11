@@ -3,8 +3,9 @@ import { assessmentPeriodCivilDate } from '@v2/features/sst-operational/civil-da
 import { useSstAccess } from '@v2/features/sst-operational/access';
 import React, { FC, useMemo, useState } from 'react';
 
+import HistoryIcon from '@mui/icons-material/History';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Box, Icon } from '@mui/material';
+import { Box, Icon, IconButton, Tooltip } from '@mui/material';
 import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import SFlex from 'components/atoms/SFlex';
@@ -69,8 +70,9 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const presentation = useSystemRiskMatrixPresentation();
   const selectedGhoId = useAppSelector((state) => state.gho.selected?.id);
   const [editHereOpen, setEditHereOpen] = useState(false);
-  const [historyOpen,setHistoryOpen]=useState(false);
-  const historyAccess=useSstAccess();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const historyAccess = useSstAccess();
+  const historyLabel = 'Histórico de vigência da avaliação';
   const hasData = riskData && riskData.homogeneousGroupId;
   const originLabel =
     showOrigin && !isRepresentAll
@@ -377,6 +379,23 @@ export const RiskToolGSEViewRowRiskBox: FC<
                   : 'Informações gerais'}
               </SText>
             </STooltip>
+            {companyId && riskData?.id && historyAccess.canRead && (
+              <Tooltip title={historyLabel}>
+                <IconButton
+                  aria-label={historyLabel}
+                  type="button"
+                  size="small"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setHistoryOpen(true);
+                  }}
+                  sx={{ flexShrink: 0, p: 0.5, color: 'text.secondary' }}
+                >
+                  <HistoryIcon sx={{ fontSize: 17 }} />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
           </>
           )}
@@ -521,8 +540,14 @@ export const RiskToolGSEViewRowRiskBox: FC<
           </STooltip>
         )
       )}
-    {riskData?.id && historyAccess.canRead && <button type="button" onClick={()=>setHistoryOpen(true)}>Consultar histórico da avaliação</button>}
-    {historyOpen && companyId && riskData?.id && <HistoryView companyId={companyId} table="RiskFactorData" id={riskData.id} onClose={()=>setHistoryOpen(false)}/>}
+    {historyOpen && historyAccess.canRead && companyId && riskData?.id && (
+      <HistoryView
+        companyId={companyId}
+        table="RiskFactorData"
+        id={riskData.id}
+        onClose={() => setHistoryOpen(false)}
+      />
+    )}
     </STBoxItem>
     {showEditHere && riskData && (
       <GseInheritedRiskEditModal

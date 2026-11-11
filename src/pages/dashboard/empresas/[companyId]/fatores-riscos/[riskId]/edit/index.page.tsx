@@ -1,6 +1,8 @@
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { Box, IconButton } from '@mui/material';
+import { useMutation, useQueryClient } from 'react-query';
+import { useSnackbar } from 'notistack';
+import { Box, Chip, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
 import { SContainer } from 'components/atoms/SContainer';
@@ -12,6 +14,13 @@ import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 import { RiskEditorFields } from 'components/organisms/modals/ModalAddRisk/components/RiskEditorFields/RiskEditorFields';
 import { useAddRisk } from 'components/organisms/modals/ModalAddRisk/hooks/useAddRisk';
 import { StackModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useAccess } from 'core/hooks/useAccess';
+import { usePreventAction } from 'core/hooks/usePreventAction';
+import { api } from 'core/services/apiClient';
+import { IErrorResp } from 'core/services/errors/types';
+import { isGlobalCatalogRiskFactor } from 'core/utils/risk-factor-catalog-scope.util';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useDuplicateRiskFactor } from 'core/hooks/useDuplicateRiskFactor';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryRisk';
@@ -22,6 +31,10 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const RiskEditPage: NextPage = () => {
   const router = useRouter();
+  const { isMaster } = useAccess();
+  const { preventWarn } = usePreventAction();
+  const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
   const companyId = router.query.companyId as string;
   const riskId = router.query.riskId as string;
   const {
@@ -61,8 +74,32 @@ const RiskEditPage: NextPage = () => {
     isDirty,
   } = props;
 
+  const isGlobalRisk = isGlobalCatalogRiskFactor(risk ?? undefined);
+  const promotion = useMutation(
+    async (source: { companyId: string; id: string }) => {
+      await api.post(
+        `${ApiRoutesEnum.RISK}/promote/${source.companyId}/${source.id}`,
+      );
+    },
+    {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries([QueryEnum.RISK]);
+        enqueueSnackbar('Fator de risco convertido para o padrão do sistema.', {
+          variant: 'success',
+        });
+      },
+      onError: (error: IErrorResp) => {
+        enqueueSnackbar(
+          error.response?.data?.message ||
+            'Não foi possível converter o fator de risco.',
+          { variant: 'error' },
+        );
+      },
+    },
+  );
+
   const saveActionColor = getSaveActionColor(isDirty);
-  const saveDisabled = isCatalogReadOnly || loading;
+  const saveDisabled = isCatalogReadOnly || loading || promotion.isLoading;
 
   if (isLoading) {
     return (
@@ -137,13 +174,27 @@ const RiskEditPage: NextPage = () => {
               </SPageTitle>
             </SFlex>
             <SFlex align="center" gap={2} flexWrap="wrap" justify="flex-end">
-              <SButton
-                variant="outlined"
+              <Chip
                 size="small"
-                onClick={onCloseUnsaved}
-              >
+                variant="outlined"
+                label={
+                  isGlobalRisk
+                    ? 'Padrão do sistema'
+                    : 'Cadastro local da empresa'
+                }
+              />
+              <SButton variant="outlined" size="small" onClick={onCloseUnsaved}>
                 Cancelar
               </SButton>
+              {canDuplicateRiskFactor && (
+                <SButton
+                  variant="outlined"
+                  size="small"
+                  onClick={() => requestDuplicateRiskFactor(risk)}
+                >
+                  Duplicar
+                </SButton>
+              )}
               <SButton
                 variant="contained"
                 size="small"
@@ -168,13 +219,38 @@ const RiskEditPage: NextPage = () => {
               >
                 Salvar e sair
               </SButton>
-              {canDuplicateRiskFactor && (
+              {isMaster && !isGlobalRisk && (
                 <SButton
                   variant="outlined"
                   size="small"
-                  onClick={() => requestDuplicateRiskFactor(risk)}
+                  loading={promotion.isLoading}
+                  disabled={
+                    isDirty ||
+                    loading ||
+                    promotion.isLoading ||
+                    risk.status !== 'ACTIVE'
+                  }
+                  title={
+                    isDirty
+                      ? 'Salve as alterações antes de converter.'
+                      : undefined
+                  }
+                  onClick={() =>
+                    preventWarn(
+                      `“${risk.name}” ficará disponível para todas as empresas. Os vínculos existentes serão preservados.`,
+                      () =>
+                        promotion.mutate({
+                          companyId: risk.companyId,
+                          id: risk.id,
+                        }),
+                      {
+                        title: 'Converter para o padrão do sistema?',
+                        confirmText: 'Converter',
+                      },
+                    )
+                  }
                 >
-                  Duplicar
+                  Converter para padrão do sistema
                 </SButton>
               )}
               <IconButton

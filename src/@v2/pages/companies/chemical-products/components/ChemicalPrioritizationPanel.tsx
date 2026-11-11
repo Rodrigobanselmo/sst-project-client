@@ -1,3 +1,5 @@
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
+import { formatAxisLevelTooltip } from '@v2/services/security/risk-matrix/presentation/axis-level-tooltip.util';
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ChatBubbleOutline from '@mui/icons-material/ChatBubbleOutline';
@@ -5,6 +7,8 @@ import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 import ChevronRight from '@mui/icons-material/ChevronRight';
 import ErrorOutline from '@mui/icons-material/ErrorOutline';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import { FaSkullCrossbones } from 'react-icons/fa';
+import EditIcon from 'assets/icons/SEditIcon';
 import {
   Alert,
   Box,
@@ -39,7 +43,6 @@ import type {
 import { useAuth } from 'core/contexts/AuthContext';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAccess } from 'core/hooks/useAccess';
-import { canUserEditCatalogRiskFactor } from 'core/utils/risk-factor-catalog-scope.util';
 
 import {
   analyzeChemicalScenario,
@@ -144,6 +147,7 @@ export function ChemicalPrioritizationPanel({
 }: Props) {
   const { user } = useAuth();
   const { isMaster } = useAccess();
+  const systemMatrix = useSystemRiskMatrixPresentation();
   const queryClient = useQueryClient();
   const queryKey = [
     'chemical-prioritization-draft-fixed-quantity',
@@ -1020,6 +1024,15 @@ export function ChemicalPrioritizationPanel({
                                                       },
                                                     )}{' '}
                                                     → {assessment.probability}
+                                                    {assessment.probability && (
+                                                      <>
+                                                        <br />
+                                                        {assessment.probability ===
+                                                        5
+                                                          ? 'Nível 5 para médias de 4,50 a 5,00.'
+                                                          : `Nível ${assessment.probability} para médias de ${Math.max(1, assessment.probability - 0.5).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} até abaixo de ${(assessment.probability + 0.5).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`}
+                                                      </>
+                                                    )}
                                                   </Typography>
                                                 )}
                                               </>
@@ -1064,6 +1077,29 @@ export function ChemicalPrioritizationPanel({
                                     summarizeChemicalAssessments(assessments);
                                   const agentAssessment = assessments[0];
                                   const references = agentAssessment.references;
+                                  const severityCriterion =
+                                    formatAxisLevelTooltip({
+                                      kind: 'S',
+                                      value: agentAssessment.severity,
+                                      coverageKey: 'QUI',
+                                      levels: systemMatrix?.axisLevels,
+                                    });
+                                  const canOpenAgent =
+                                    isMaster ||
+                                    (factor.companyId === companyId &&
+                                      !factor.system &&
+                                      !factor.prioritization?.representAll);
+                                  const hazards = [
+                                    factor.prioritization?.risk &&
+                                      `Risco: ${factor.prioritization.risk}`,
+                                    factor.prioritization?.symptoms &&
+                                      `Sintomas e efeitos: ${factor.prioritization.symptoms}`,
+                                    factor.prioritization?.affectedRegion &&
+                                      `Regiões atingidas: ${factor.prioritization.affectedRegion}`,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' · ');
+
                                   const stelReviewKey = JSON.stringify([
                                     scenario.id,
                                     factor.id,
@@ -1146,6 +1182,27 @@ export function ChemicalPrioritizationPanel({
                                           <ChemicalTriageIndicator
                                             complete={completeInActivity}
                                           />
+                                          {canOpenAgent && (
+                                            <Tooltip title="Abrir cadastro do agente">
+                                              <IconButton
+                                                component="a"
+                                                size="small"
+                                                aria-label={`Abrir cadastro de ${factor.name}`}
+                                                href={RoutesEnum.RISK_EDIT.replace(
+                                                  ':companyId',
+                                                  companyId,
+                                                ).replace(':riskId', factor.id)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                sx={{ p: 0, flexShrink: 0 }}
+                                                onClick={(event) =>
+                                                  event.stopPropagation()
+                                                }
+                                              >
+                                                <EditIcon fontSize="small" />
+                                              </IconButton>
+                                            </Tooltip>
+                                          )}
                                           <Box
                                             component="span"
                                             sx={{
@@ -1162,37 +1219,6 @@ export function ChemicalPrioritizationPanel({
                                               Agente de risco químico —{' '}
                                               {factor.name}
                                             </Typography>
-                                            {[
-                                              factor.prioritization?.risk,
-                                              factor.prioritization?.symptoms,
-                                              factor.prioritization
-                                                ?.affectedRegion,
-                                            ].some(Boolean) && (
-                                              <Tooltip
-                                                describeChild
-                                                title={[
-                                                  factor.prioritization?.risk &&
-                                                    `Risco: ${factor.prioritization.risk}`,
-                                                  factor.prioritization
-                                                    ?.symptoms &&
-                                                    `Sintomas e efeitos: ${factor.prioritization.symptoms}`,
-                                                  factor.prioritization
-                                                    ?.affectedRegion &&
-                                                    `Regiões atingidas: ${factor.prioritization.affectedRegion}`,
-                                                ]
-                                                  .filter(Boolean)
-                                                  .join(' · ')}
-                                              >
-                                                <InfoOutlined
-                                                  fontSize="small"
-                                                  tabIndex={0}
-                                                  sx={{
-                                                    ml: 2,
-                                                    verticalAlign: 'middle',
-                                                  }}
-                                                />
-                                              </Tooltip>
-                                            )}
                                           </Box>
                                         </Typography>
                                       </Box>
@@ -1234,7 +1260,36 @@ export function ChemicalPrioritizationPanel({
                                                 scope="col"
                                                 align="center"
                                               >
-                                                Severidade
+                                                <Box
+                                                  component="span"
+                                                  sx={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                  }}
+                                                >
+                                                  Severidade
+                                                  {hazards && (
+                                                    <Tooltip
+                                                      describeChild
+                                                      title={hazards}
+                                                    >
+                                                      <IconButton
+                                                        size="small"
+                                                        aria-label={`Perigos de ${factor.name}`}
+                                                        sx={{
+                                                          p: 0,
+                                                          color: 'text.primary',
+                                                        }}
+                                                      >
+                                                        <FaSkullCrossbones
+                                                          size={13}
+                                                          aria-hidden
+                                                        />
+                                                      </IconButton>
+                                                    </Tooltip>
+                                                  )}
+                                                </Box>
                                               </TableCell>
                                               <TableCell scope="col">
                                                 Método
@@ -1268,8 +1323,37 @@ export function ChemicalPrioritizationPanel({
                                                 align="center"
                                                 sx={{ fontWeight: 700 }}
                                               >
-                                                {agentAssessment.severity ||
-                                                  'Não informada'}
+                                                {severityCriterion?.criterion ? (
+                                                  <Tooltip
+                                                    describeChild
+                                                    title={`${severityCriterion.heading} · Critério químico da matriz padrão\n${severityCriterion.criterion}`}
+                                                    slotProps={{
+                                                      tooltip: {
+                                                        sx: {
+                                                          whiteSpace:
+                                                            'pre-line',
+                                                          maxWidth: 420,
+                                                        },
+                                                      },
+                                                    }}
+                                                  >
+                                                    <Box
+                                                      component="span"
+                                                      tabIndex={0}
+                                                      sx={{
+                                                        cursor: 'help',
+                                                        textDecoration:
+                                                          'underline dotted',
+                                                        textUnderlineOffset: 3,
+                                                      }}
+                                                    >
+                                                      {agentAssessment.severity}
+                                                    </Box>
+                                                  </Tooltip>
+                                                ) : (
+                                                  agentAssessment.severity ||
+                                                  'Não informada'
+                                                )}
                                               </TableCell>
                                               <TableCell>
                                                 {factor.prioritization
@@ -1373,31 +1457,6 @@ export function ChemicalPrioritizationPanel({
                                           </TableBody>
                                         </Table>
                                       </TableContainer>
-                                      {user &&
-                                        factor.companyId === companyId &&
-                                        canUserEditCatalogRiskFactor({
-                                          risk: factor,
-                                          isMaster,
-                                          userCompanyId: user.companyId,
-                                        }) &&
-                                        (!factor.cas ||
-                                          !factor.prioritization?.severity ||
-                                          !factor.prioritization?.method ||
-                                          !factor.prioritization
-                                            ?.absorptionRoutes ||
-                                          !references?.limits.length) && (
-                                          <Link
-                                            href={RoutesEnum.RISK_EDIT.replace(
-                                              ':companyId',
-                                              companyId,
-                                            ).replace(':riskId', factor.id)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            variant="body2"
-                                          >
-                                            Abrir cadastro do agente
-                                          </Link>
-                                        )}
                                       {references?.lowLimit && (
                                         <Alert severity="warning">
                                           Atenção ao limite abaixo de 1 ppm:{' '}

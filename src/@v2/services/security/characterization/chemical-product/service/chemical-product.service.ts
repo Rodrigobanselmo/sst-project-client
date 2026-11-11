@@ -979,6 +979,43 @@ export async function saveChemicalPrioritizationDraft(
   return response.data;
 }
 
+export type ChemicalInventoryTransferPreview = {
+  fingerprint: string;
+  blocked: string[];
+  candidates: {
+    gseId: string;
+    gse: string;
+    agentId: string;
+    agent: string;
+    origins: {
+      scenarioId: string;
+      source: string;
+      control: string | null;
+      probability: number | null;
+      criterion: string;
+      prioritized: boolean;
+    }[];
+  }[];
+};
+
+export async function previewChemicalInventoryTransfer(pathParams: WorkspaceParams) {
+  const response = await api.get<ChemicalInventoryTransferPreview>(
+    bindUrlParams({ path: ChemicalProductRoutes.PRIORITIZATION_INVENTORY, pathParams }),
+  );
+  return response.data;
+}
+
+export async function applyChemicalInventoryTransfer(
+  pathParams: WorkspaceParams,
+  body: { fingerprint: string; controlTypes: Record<string, 'ADM' | 'ENG'> },
+) {
+  const response = await api.post<{ created: number; updated: number; unchanged: number }>(
+    bindUrlParams({ path: ChemicalProductRoutes.PRIORITIZATION_INVENTORY, pathParams }),
+    body,
+  );
+  return response.data;
+}
+
 export async function previewChemicalUseScenarioGseReconcile(
   params: WorkspaceParams,
 ) {
