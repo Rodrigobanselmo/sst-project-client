@@ -17,7 +17,9 @@ import {
   DialogTitle,
   FormControlLabel,
   IconButton,
+  Link,
   MenuItem,
+  Popover,
   Stack,
   Table,
   TableBody,
@@ -30,26 +32,38 @@ import {
   Typography,
 } from '@mui/material';
 import { browseChemicalUseScenarioBoard } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
-import type { ChemicalUseScenarioBoardRow } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
+import type {
+  ChemicalUseScenarioBoardRow,
+  UpdateChemicalUseScenarioPayload,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import { useAuth } from 'core/contexts/AuthContext';
-import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
-import { resolveMatrixRiskLevel } from 'core/utils/helpers/matriz';
+import { RoutesEnum } from 'core/enums/routes.enums';
+import { useAccess } from 'core/hooks/useAccess';
+import { canUserEditCatalogRiskFactor } from 'core/utils/risk-factor-catalog-scope.util';
 
 import {
   analyzeChemicalScenario,
   areChemicalAssessmentsComplete,
   buildChemicalExclusionReport,
   CHEMICAL_SCENARIO_SCORES,
+  chemicalContactDescriptions,
   confirmedChemicalScenarioRatings,
   describeChemicalScenario,
-  formatChemicalExclusionChapter,
+  formatChemicalCatalogLimit,
   groupChemicalScenarios,
   suggestChemicalScenarioContact,
+  stelReviewFields,
   summarizeChemicalAssessments,
   type ChemicalScenarioAssessment,
   type ChemicalScenarioRatingReview,
+  type ChemicalStelReview,
 } from './chemical-prioritization';
 import { formatChemicalScenarioQuantity } from './chemical-use-scenario-quantity.util';
+import {
+  ChemicalPrioritizationDraftBackup,
+  type ChemicalPrioritizationAnalysis,
+} from './ChemicalPrioritizationDraftBackup';
+import { ChemicalScenarioMissingInput } from './ChemicalScenarioMissingInput';
 import { exportChemicalExclusionPdf } from './exportChemicalExclusionPdf';
 
 type Props = {
@@ -59,17 +73,13 @@ type Props = {
   workspaceName: string;
 };
 
-type Analysis = {
-  rows: ChemicalUseScenarioBoardRow[];
-  ratingReviews: Partial<Record<string, ChemicalScenarioRatingReview>>;
-  contactComments: Partial<Record<string, string>>;
-  reviewed: boolean;
-};
+type Analysis = ChemicalPrioritizationAnalysis;
 
 const emptyAnalysis = {
   rows: undefined,
   ratingReviews: {},
   contactComments: {},
+  stelReviews: {},
   reviewed: false,
 };
 const scores = CHEMICAL_SCENARIO_SCORES;
@@ -81,8 +91,12 @@ const outcomes = {
 
 function requiresContact(assessment: ChemicalScenarioAssessment) {
   return (
-    !assessment.references?.ceiling &&
-    (assessment.severity === 3 || assessment.severity === 4)
+    (assessment.criterion.startsWith('Probabilidade') ||
+      assessment.criterion === 'STEL em revisão') &&
+    typeof assessment.severity === 'number' &&
+    Number.isInteger(assessment.severity) &&
+    assessment.severity >= 3 &&
+    assessment.severity <= 4
   );
 }
 
@@ -129,6 +143,7 @@ export function ChemicalPrioritizationPanel({
   workspaceName,
 }: Props) {
   const { user } = useAuth();
+  const { isMaster } = useAccess();
   const queryClient = useQueryClient();
   const queryKey = [
     'chemical-prioritization-draft-fixed-quantity',
@@ -146,19 +161,24 @@ export function ChemicalPrioritizationPanel({
     enabled: false,
     gcTime: Infinity,
     retry: false,
-    queryFn: async () => ({
-      ...emptyAnalysis,
-      rows: await browseChemicalUseScenarioBoard({
+    queryFn: async () => {
+      const rows = await browseChemicalUseScenarioBoard({
         companyId,
         workspaceId,
         includePrioritization: true,
-      }),
-    }),
+      });
+      return {
+        ...emptyAnalysis,
+        ...queryClient.getQueryData<Analysis>(queryKey),
+        rows,
+      };
+    },
   });
   const {
     rows,
     ratingReviews,
     contactComments = emptyAnalysis.contactComments,
+    stelReviews = emptyAnalysis.stelReviews,
     reviewed,
   } = data ?? emptyAnalysis;
 
@@ -170,6 +190,11 @@ export function ChemicalPrioritizationPanel({
 
   const [exportError, setExportError] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [stelEditor, setStelEditor] = useState<{
+    key: string;
+    anchor: HTMLElement;
+    values: Record<(typeof stelReviewFields)[number][0], string>;
+  } | null>(null);
   const [commentEditor, setCommentEditor] = useState<{
     key: string;
     context: string;
@@ -198,7 +223,7 @@ export function ChemicalPrioritizationPanel({
         group.factor,
         scenario,
         confirmedChemicalScenarioRatings(ratingReviews[scenario.id]),
-        resolveMatrixRiskLevel,
+        stelReviews[JSON.stringify([scenario.id, group.factor.id])],
       ),
     );
     const outcome = summarizeChemicalAssessments(assessments);
@@ -216,6 +241,7 @@ export function ChemicalPrioritizationPanel({
   type ProductActivity = {
     scenario: ChemicalUseScenarioBoardRow;
     assessment: ChemicalScenarioAssessment;
+    complete: boolean;
     needsScores: boolean;
     optionalContact: boolean;
   };
@@ -264,6 +290,8 @@ export function ChemicalPrioritizationPanel({
         assessment: activity?.assessment.probability
           ? activity.assessment
           : assessment,
+        complete:
+          (activity?.complete ?? true) && assessment.outcome !== 'pending',
         needsScores: Boolean(activity?.needsScores || needsScores),
         optionalContact: Boolean(
           activity?.optionalContact ||
@@ -305,7 +333,8 @@ export function ChemicalPrioritizationPanel({
                 inventory: 'exclude',
                 reference: [
                   ...(assessments[0]?.references?.limits ?? []).map(
-                    ({ source, value }) => `${source}: ${value}`,
+                    ({ source, value }) =>
+                      `${source}: ${formatChemicalCatalogLimit(value ?? '', group.factor.prioritization?.unit)}`,
                   ),
                   group.factor.prioritization?.method
                     ? `Método cadastrado: ${group.factor.prioritization.method}`
@@ -341,6 +370,21 @@ export function ChemicalPrioritizationPanel({
 
   return (
     <Stack spacing={4} mt={4}>
+      {user?.id && workspaceId && (
+        <ChemicalPrioritizationDraftBackup
+          key={JSON.stringify(queryKey)}
+          scope={JSON.stringify(queryKey)}
+          companyId={companyId}
+          workspaceId={workspaceId}
+          draft={data}
+          onRestore={(analysis) =>
+            queryClient.setQueryData<Analysis>(
+              queryKey,
+              (current) => current ?? analysis,
+            )
+          }
+        />
+      )}
       <Alert severity="info">
         Analise os cenários por fator de risco e GSE. A pontuação é uma triagem
         qualitativa. A avaliação quantitativa é uma decisão separada.
@@ -465,8 +509,13 @@ export function ChemicalPrioritizationPanel({
                 </Typography>
               </Box>
               <Stack
-                spacing={5}
-                sx={{ pl: { xs: 4, sm: 10 }, pr: { xs: 2, sm: 4 }, py: 4 }}
+                spacing={15}
+                sx={{
+                  pl: { xs: 4, sm: 10 },
+                  pr: { xs: 2, sm: 4 },
+                  pt: 15,
+                  pb: 4,
+                }}
               >
                 {[...gse.products]
                   .sort(([, a], [, b]) => a.name.localeCompare(b.name, 'pt-BR'))
@@ -481,7 +530,6 @@ export function ChemicalPrioritizationPanel({
                         '&[open] > summary .product-expand-icon': {
                           transform: 'rotate(90deg)',
                         },
-                        '& > :not(summary)': { mt: 3 },
                       }}
                     >
                       <Box
@@ -516,13 +564,14 @@ export function ChemicalPrioritizationPanel({
                           <ChemicalTriageIndicator
                             complete={product.complete}
                           />
-                          <span>{product.name}</span>
+                          <span>Produto químico — {product.name}</span>
                         </Typography>
                       </Box>
                       {[...product.activities.values()].map(
                         ({
                           scenario,
                           assessment,
+                          complete,
                           needsScores,
                           optionalContact,
                         }) => {
@@ -545,21 +594,78 @@ export function ChemicalPrioritizationPanel({
                               (optionalContact &&
                                 !needsScores &&
                                 !!draft.contact));
-                          const canConfirmContact =
-                            !!draft.contact &&
-                            !loading &&
-                            (!needsScores ||
-                              !!(
-                                assessment.quantityScore &&
-                                assessment.frequencyScore &&
-                                assessment.durationScore
-                              ));
+                          const canConfirmContact = !!draft.contact && !loading;
+                          const applyScenarioPatch = (
+                            patch: UpdateChemicalUseScenarioPayload,
+                          ) => {
+                            updateAnalysis((current) => ({
+                              ...current,
+                              rows: current.rows.map((row) =>
+                                row.id === scenario.id
+                                  ? { ...row, ...patch }
+                                  : row,
+                              ),
+                              reviewed: false,
+                            }));
+                          };
                           const contactConfirmationStatus = review?.confirmed
                             ? 'Contato confirmado'
                             : 'Confirmação de contato dispensada para este resultado';
                           return (
-                            <Box key={scenario.id} sx={{ '& + &': { mt: 4 } }}>
-                              <TableContainer>
+                            <Box
+                              key={scenario.id}
+                              component="details"
+                              open
+                              sx={{
+                                minWidth: 0,
+                                ml: { xs: 2, sm: 4 },
+                                mt: 10,
+                                '&[open] > summary .activity-expand-icon': {
+                                  transform: 'rotate(90deg)',
+                                },
+                              }}
+                            >
+                              <Box
+                                component="summary"
+                                sx={{
+                                  cursor: 'pointer',
+                                  listStyle: 'none',
+                                  '&::-webkit-details-marker': {
+                                    display: 'none',
+                                  },
+                                  '&:focus-visible': {
+                                    outline: '2px solid',
+                                    outlineColor: 'primary.main',
+                                  },
+                                }}
+                              >
+                                <Typography
+                                  component="h5"
+                                  variant="h4"
+                                  fontWeight={600}
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                  }}
+                                >
+                                  <ChevronRight
+                                    className="activity-expand-icon"
+                                    fontSize="small"
+                                    aria-hidden
+                                    sx={{ flexShrink: 0 }}
+                                  />
+                                  <ChemicalTriageIndicator
+                                    complete={complete}
+                                  />
+                                  <span>
+                                    Atividade —{' '}
+                                    {scenario.activityName ||
+                                      'Atividade não informada'}
+                                  </span>
+                                </Typography>
+                              </Box>
+                              <TableContainer sx={{ mt: 2 }}>
                                 <Table
                                   size="small"
                                   aria-label={`Atividades de ${product.name} em ${gse.name}`}
@@ -567,7 +673,7 @@ export function ChemicalPrioritizationPanel({
                                   <TableHead>
                                     <TableRow>
                                       {[
-                                        'Atividade',
+                                        'Registro da atividade',
                                         'Frequência',
                                         'Duração',
                                         'Quantidade',
@@ -583,13 +689,6 @@ export function ChemicalPrioritizationPanel({
                                   <TableBody>
                                     <TableRow>
                                       <TableCell>
-                                        <Typography
-                                          variant="body2"
-                                          fontWeight={600}
-                                        >
-                                          {scenario.activityName ||
-                                            'Atividade não informada'}
-                                        </Typography>
                                         <Box component="details">
                                           <summary>Controles e origem</summary>
                                           <Typography variant="caption">
@@ -611,6 +710,15 @@ export function ChemicalPrioritizationPanel({
                                           Nota{' '}
                                           {assessment.frequencyScore ?? '—'}
                                         </Typography>
+                                        {assessment.frequencyScore === null && (
+                                          <ChemicalScenarioMissingInput
+                                            field="frequency"
+                                            scenario={scenario}
+                                            companyId={companyId}
+                                            workspaceId={workspaceId}
+                                            onSaved={applyScenarioPatch}
+                                          />
+                                        )}
                                       </TableCell>
                                       <TableCell>
                                         {scenario.durationMinutes == null
@@ -626,6 +734,15 @@ export function ChemicalPrioritizationPanel({
                                         >
                                           Nota {assessment.durationScore ?? '—'}
                                         </Typography>
+                                        {assessment.durationScore === null && (
+                                          <ChemicalScenarioMissingInput
+                                            field="duration"
+                                            scenario={scenario}
+                                            companyId={companyId}
+                                            workspaceId={workspaceId}
+                                            onSaved={applyScenarioPatch}
+                                          />
+                                        )}
                                       </TableCell>
                                       <TableCell>
                                         {formatChemicalScenarioQuantity(
@@ -640,6 +757,15 @@ export function ChemicalPrioritizationPanel({
                                             ? `Nota automática ${assessment.quantityScore}/5`
                                             : 'Sem nota automática'}
                                         </Typography>
+                                        {assessment.quantityScore === null && (
+                                          <ChemicalScenarioMissingInput
+                                            field="quantity"
+                                            scenario={scenario}
+                                            companyId={companyId}
+                                            workspaceId={workspaceId}
+                                            onSaved={applyScenarioPatch}
+                                          />
+                                        )}
                                       </TableCell>
                                       <TableCell>
                                         {scenario.peakContactMoment ||
@@ -684,7 +810,12 @@ export function ChemicalPrioritizationPanel({
                                                     key={score}
                                                     value={String(score)}
                                                   >
-                                                    {score}
+                                                    {score} ·{' '}
+                                                    {
+                                                      chemicalContactDescriptions[
+                                                        score - 1
+                                                      ]
+                                                    }
                                                   </MenuItem>
                                                 ))}
                                               </TextField>
@@ -747,7 +878,7 @@ export function ChemicalPrioritizationPanel({
                                               title={
                                                 canConfirmContact
                                                   ? 'Clique aqui para confirmar o contato'
-                                                  : 'Preencha os dados do cenário e a nota de contato para confirmar'
+                                                  : 'Selecione uma nota de contato para confirmar'
                                               }
                                               describeChild
                                             >
@@ -816,9 +947,104 @@ export function ChemicalPrioritizationPanel({
                                           )}
                                       </TableCell>
                                       <TableCell>
-                                        {assessment.probability
-                                          ? `${assessment.probability}/5`
-                                          : '—'}
+                                        <Stack
+                                          direction="row"
+                                          alignItems="center"
+                                          spacing={1}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            fontWeight={600}
+                                          >
+                                            {assessment.probability
+                                              ? `Probabilidade da atividade ${assessment.probability} de 5 Níveis.`
+                                              : 'Nota pendente'}
+                                          </Typography>
+                                          <Tooltip
+                                            describeChild
+                                            title={
+                                              <>
+                                                {' '}
+                                                <Typography
+                                                  variant="caption"
+                                                  display="block"
+                                                >
+                                                  Mesma nota para todos os
+                                                  agentes desta atividade.
+                                                </Typography>
+                                                <Typography
+                                                  variant="caption"
+                                                  display="block"
+                                                >
+                                                  P = arredondar((F + D + Q + C)
+                                                  / 4)
+                                                  <br />
+                                                  Inteiro mais próximo, com 0,50
+                                                  subindo.
+                                                </Typography>
+                                                <Typography
+                                                  variant="caption"
+                                                  display="block"
+                                                >
+                                                  F{' '}
+                                                  {assessment.frequencyScore ??
+                                                    '—'}{' '}
+                                                  · D{' '}
+                                                  {assessment.durationScore ??
+                                                    '—'}{' '}
+                                                  · Q{' '}
+                                                  {assessment.quantityScore ??
+                                                    '—'}{' '}
+                                                  · C{' '}
+                                                  {assessment.contactScore ??
+                                                    '—'}
+                                                  {!assessment.contactScore &&
+                                                    draft.contact &&
+                                                    ` (contato ${draft.contact}/5 a confirmar)`}
+                                                </Typography>
+                                                {assessment.activityAverage !==
+                                                  null && (
+                                                  <Typography
+                                                    variant="caption"
+                                                    display="block"
+                                                  >
+                                                    ({assessment.frequencyScore}{' '}
+                                                    + {assessment.durationScore}{' '}
+                                                    + {assessment.quantityScore}{' '}
+                                                    + {assessment.contactScore})
+                                                    / 4 ={' '}
+                                                    {assessment.activityAverage.toLocaleString(
+                                                      'pt-BR',
+                                                      {
+                                                        minimumFractionDigits: 2,
+                                                      },
+                                                    )}{' '}
+                                                    → {assessment.probability}
+                                                  </Typography>
+                                                )}
+                                              </>
+                                            }
+                                            slotProps={{
+                                              tooltip: {
+                                                sx: {
+                                                  bgcolor: 'background.paper',
+                                                  color: 'text.primary',
+                                                  border: 1,
+                                                  borderColor: 'divider',
+                                                  boxShadow: 3,
+                                                  fontSize: '0.875rem',
+                                                },
+                                              },
+                                            }}
+                                          >
+                                            <IconButton
+                                              size="small"
+                                              aria-label="Memória de cálculo da probabilidade"
+                                            >
+                                              <InfoOutlined fontSize="small" />
+                                            </IconButton>
+                                          </Tooltip>
+                                        </Stack>
                                       </TableCell>
                                     </TableRow>
                                   </TableBody>
@@ -831,9 +1057,42 @@ export function ChemicalPrioritizationPanel({
                                   );
                                   if (!rows.length) return null;
                                   const { key, factor } = result.group;
-                                  const assessments = rows.map(({ assessment }) => assessment);
-                                  const outcome = summarizeChemicalAssessments(assessments);
-                                  const references = assessments[0]?.references;
+                                  const assessments = rows.map(
+                                    ({ assessment }) => assessment,
+                                  );
+                                  const outcome =
+                                    summarizeChemicalAssessments(assessments);
+                                  const agentAssessment = assessments[0];
+                                  const references = agentAssessment.references;
+                                  const stelReviewKey = JSON.stringify([
+                                    scenario.id,
+                                    factor.id,
+                                  ]);
+                                  const reviewValues = {
+                                    frequency:
+                                      scenario.frequencyCount == null
+                                        ? 'Não informada'
+                                        : [
+                                            scenario.frequencyCount,
+                                            scenario.frequencyPeriod,
+                                          ]
+                                            .filter(Boolean)
+                                            .join(' '),
+                                    duration:
+                                      scenario.durationMinutes == null
+                                        ? 'Não informada'
+                                        : `${scenario.durationMinutes} min`,
+                                    quantity: scenario.quantity
+                                      ? [
+                                          formatChemicalScenarioQuantity(
+                                            scenario.quantity,
+                                          ),
+                                          scenario.quantityUnit,
+                                        ]
+                                          .filter(Boolean)
+                                          .join(' ')
+                                      : 'Não informada',
+                                  };
                                   const completeInActivity =
                                     areChemicalAssessmentsComplete(assessments);
                                   return (
@@ -843,6 +1102,7 @@ export function ChemicalPrioritizationPanel({
                                       open
                                       sx={{
                                         minWidth: 0,
+                                        mt: 10,
                                         ml: { xs: 2, sm: 6 },
                                         pl: { xs: 2, sm: 4 },
                                         borderLeft: 2,
@@ -869,7 +1129,7 @@ export function ChemicalPrioritizationPanel({
                                         }}
                                       >
                                         <Typography
-                                          component="h5"
+                                          component="h6"
                                           variant="body2"
                                           sx={{
                                             display: 'flex',
@@ -899,93 +1159,245 @@ export function ChemicalPrioritizationPanel({
                                               fontWeight={600}
                                               sx={{ display: 'inline' }}
                                             >
+                                              Agente de risco químico —{' '}
                                               {factor.name}
                                             </Typography>
-                                            {' —\u00a0'}
-                                            <strong>
-                                              Dados do Agente:
-                                            </strong>{' '}
-                                            {rows.length}{' '}
-                                            {rows.length === 1
-                                              ? 'cenário'
-                                              : 'cenários'}
-                                            {' —\u00a0'}Severidade{' '}
-                                            {assessments[0]?.severity ??
-                                              'não informada'}
-                                            {factor.cas &&
-                                              ` —\u00a0CAS ${factor.cas}`}
-                                            {' —\u00a0'}
-                                            {references?.limits
-                                              .map(
-                                                ({ source, value }) =>
-                                                  `${source}: ${value}`,
-                                              )
-                                              .join(' —\u00a0') ||
-                                              'Limite não identificado no cadastro'}
-                                            {' —\u00a0'}Método:{' '}
-                                            {factor.prioritization?.method ||
-                                              'não informado'}
+                                            {[
+                                              factor.prioritization?.risk,
+                                              factor.prioritization?.symptoms,
+                                              factor.prioritization
+                                                ?.affectedRegion,
+                                            ].some(Boolean) && (
+                                              <Tooltip
+                                                describeChild
+                                                title={[
+                                                  factor.prioritization?.risk &&
+                                                    `Risco: ${factor.prioritization.risk}`,
+                                                  factor.prioritization
+                                                    ?.symptoms &&
+                                                    `Sintomas e efeitos: ${factor.prioritization.symptoms}`,
+                                                  factor.prioritization
+                                                    ?.affectedRegion &&
+                                                    `Regiões atingidas: ${factor.prioritization.affectedRegion}`,
+                                                ]
+                                                  .filter(Boolean)
+                                                  .join(' · ')}
+                                              >
+                                                <InfoOutlined
+                                                  fontSize="small"
+                                                  tabIndex={0}
+                                                  sx={{
+                                                    ml: 2,
+                                                    verticalAlign: 'middle',
+                                                  }}
+                                                />
+                                              </Tooltip>
+                                            )}
                                           </Box>
-                                          <Tooltip
-                                            describeChild
-                                            title={
-                                              <>
-                                                {Array.from(
-                                                  new Set(
-                                                    rows.map(
-                                                      ({ scenario, assessment }) => {
-                                                        const justification =
-                                                          assessment.priorityWithoutContact
-                                                            ? 'Qualquer nota de contato de 1 a 5 mantém a prioridade. Confirme o contato para concluir a triagem.'
-                                                            : requiresContact(
-                                                                  assessment,
-                                                                ) &&
-                                                                !ratingReviews[
-                                                                  scenario.id
-                                                                ]?.confirmed &&
-                                                                assessment.frequencyScore &&
-                                                                assessment.durationScore &&
-                                                                assessment.quantityScore
-                                                              ? 'Revise e confirme a nota de contato.'
-                                                              : assessment.reason;
-                                                        const level =
-                                                          matrixRiskMap[
-                                                            assessment.level as keyof typeof matrixRiskMap
-                                                          ]?.label ??
-                                                          'sem classificação';
-                                                        return assessment.probability
-                                                          ? `${justification} Probabilidade ${assessment.probability}/5 · ${level}.`
-                                                          : justification;
-                                                      },
-                                                    ),
-                                                  ),
-                                                ).map((justification) => (
-                                                  <Typography
-                                                    key={justification}
-                                                    variant="body2"
-                                                  >
-                                                    <strong>Justificativa:</strong>{' '}
-                                                    {justification}
-                                                  </Typography>
-                                                ))}
-                                              </>
-                                            }
-                                          >
-                                            <Chip
-                                              component="span"
-                                              tabIndex={0}
-                                              sx={{ ml: 'auto', flexShrink: 0 }}
-                                              size="small"
-                                              {...outcomes[outcome]}
-                                              label={
-                                                completeInActivity && outcome === 'pending'
-                                                  ? 'Evidências a revisar'
-                                                  : outcomes[outcome].label
-                                              }
-                                            />
-                                          </Tooltip>
                                         </Typography>
                                       </Box>
+                                      <TableContainer
+                                        sx={{
+                                          border: 1,
+                                          borderColor: 'divider',
+                                          borderRadius: 1,
+                                        }}
+                                      >
+                                        <Table
+                                          size="small"
+                                          aria-label={`Dados técnicos de ${factor.name}`}
+                                          sx={{
+                                            tableLayout: 'fixed',
+                                            minWidth: 1080,
+                                            '& th, & td': {
+                                              verticalAlign: 'top',
+                                              overflowWrap: 'anywhere',
+                                            },
+                                          }}
+                                        >
+                                          <colgroup>
+                                            <col style={{ width: '10%' }} />
+                                            <col style={{ width: '8%' }} />
+                                            <col style={{ width: '14%' }} />
+                                            <col style={{ width: '24%' }} />
+                                            <col style={{ width: '13%' }} />
+                                            <col style={{ width: '9%' }} />
+                                            <col style={{ width: '11%' }} />
+                                            <col style={{ width: '11%' }} />
+                                          </colgroup>
+                                          <TableHead>
+                                            <TableRow>
+                                              <TableCell scope="col">
+                                                CAS
+                                              </TableCell>
+                                              <TableCell
+                                                scope="col"
+                                                align="center"
+                                              >
+                                                Severidade
+                                              </TableCell>
+                                              <TableCell scope="col">
+                                                Método
+                                              </TableCell>
+                                              <TableCell scope="col">
+                                                Limites cadastrados
+                                              </TableCell>
+                                              <TableCell scope="col">
+                                                Vias de absorção
+                                              </TableCell>
+                                              <TableCell
+                                                scope="col"
+                                                align="center"
+                                              >
+                                                Probabilidade
+                                              </TableCell>
+                                              <TableCell scope="col">
+                                                Critério utilizado
+                                              </TableCell>
+                                              <TableCell scope="col">
+                                                Priorização
+                                              </TableCell>
+                                            </TableRow>
+                                          </TableHead>
+                                          <TableBody>
+                                            <TableRow>
+                                              <TableCell>
+                                                {factor.cas || 'Não informado'}
+                                              </TableCell>
+                                              <TableCell
+                                                align="center"
+                                                sx={{ fontWeight: 700 }}
+                                              >
+                                                {agentAssessment.severity ||
+                                                  'Não informada'}
+                                              </TableCell>
+                                              <TableCell>
+                                                {factor.prioritization
+                                                  ?.method || 'Não informado'}
+                                              </TableCell>
+                                              <TableCell>
+                                                {references?.limits
+                                                  .map(
+                                                    ({ source, value }) =>
+                                                      `${source} ${formatChemicalCatalogLimit(value ?? '', factor.prioritization?.unit)}`,
+                                                  )
+                                                  .join(' · ') ||
+                                                  'Sem limites cadastrados'}
+                                              </TableCell>
+                                              <TableCell>
+                                                {factor.prioritization
+                                                  ?.absorptionRoutes ||
+                                                  'Não informadas'}
+                                              </TableCell>
+                                              <TableCell align="center">
+                                                {agentAssessment.probability ??
+                                                  'Pendente'}
+                                              </TableCell>
+                                              <TableCell>
+                                                {[
+                                                  'STEL em revisão',
+                                                  'STEL confirmado',
+                                                  'STEL rejeitado',
+                                                ].includes(
+                                                  agentAssessment.criterion,
+                                                ) ? (
+                                                  <Link
+                                                    component="button"
+                                                    type="button"
+                                                    variant="inherit"
+                                                    aria-haspopup="dialog"
+                                                    aria-expanded={
+                                                      stelEditor?.key ===
+                                                      stelReviewKey
+                                                    }
+                                                    sx={{
+                                                      textAlign: 'left',
+                                                      color: (theme) =>
+                                                        agentAssessment.criterion ===
+                                                        'STEL em revisão'
+                                                          ? theme.palette
+                                                              .mode === 'dark'
+                                                            ? '#fdba74'
+                                                            : '#9a3412'
+                                                          : theme.palette.text
+                                                              .primary,
+                                                    }}
+                                                    onClick={(event) =>
+                                                      setStelEditor({
+                                                        key: stelReviewKey,
+                                                        anchor:
+                                                          event.currentTarget,
+                                                        values: reviewValues,
+                                                      })
+                                                    }
+                                                  >
+                                                    {agentAssessment.criterion ===
+                                                    'STEL em revisão'
+                                                      ? 'STEL necessita de revisão'
+                                                      : agentAssessment.criterion ===
+                                                          'STEL confirmado'
+                                                        ? 'Priorizar para avaliação pelo STEL'
+                                                        : agentAssessment.criterion}
+                                                  </Link>
+                                                ) : (
+                                                  agentAssessment.criterion
+                                                )}
+                                              </TableCell>
+                                              <TableCell>
+                                                <Tooltip
+                                                  describeChild
+                                                  title={agentAssessment.reason}
+                                                  slotProps={{
+                                                    tooltip: {
+                                                      sx: {
+                                                        bgcolor:
+                                                          'background.paper',
+                                                        color: 'text.primary',
+                                                        border: 1,
+                                                        borderColor: 'divider',
+                                                        boxShadow: 3,
+                                                        fontSize: '0.875rem',
+                                                      },
+                                                    },
+                                                  }}
+                                                >
+                                                  <Chip
+                                                    component="span"
+                                                    tabIndex={0}
+                                                    size="small"
+                                                    {...outcomes[outcome]}
+                                                  />
+                                                </Tooltip>
+                                              </TableCell>
+                                            </TableRow>
+                                          </TableBody>
+                                        </Table>
+                                      </TableContainer>
+                                      {user &&
+                                        factor.companyId === companyId &&
+                                        canUserEditCatalogRiskFactor({
+                                          risk: factor,
+                                          isMaster,
+                                          userCompanyId: user.companyId,
+                                        }) &&
+                                        (!factor.cas ||
+                                          !factor.prioritization?.severity ||
+                                          !factor.prioritization?.method ||
+                                          !factor.prioritization
+                                            ?.absorptionRoutes ||
+                                          !references?.limits.length) && (
+                                          <Link
+                                            href={RoutesEnum.RISK_EDIT.replace(
+                                              ':companyId',
+                                              companyId,
+                                            ).replace(':riskId', factor.id)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            variant="body2"
+                                          >
+                                            Abrir cadastro do agente
+                                          </Link>
+                                        )}
                                       {references?.lowLimit && (
                                         <Alert severity="warning">
                                           Atenção ao limite abaixo de 1 ppm:{' '}
@@ -1045,20 +1457,170 @@ export function ChemicalPrioritizationPanel({
           {report.length > 0 && (
             <Box component="details">
               <summary>Texto para o PGR</summary>
-              <TextField
-                fullWidth
-                multiline
-                minRows={4}
-                maxRows={12}
-                label="Texto para copiar para o PGR"
-                value={formatChemicalExclusionChapter(report)}
-                InputProps={{ readOnly: true }}
-                sx={{ mt: 4 }}
-              />
+              <Stack
+                component="section"
+                aria-label="Texto para copiar para o PGR"
+                spacing={6}
+                sx={{
+                  mt: 4,
+                  p: { xs: 4, sm: 6 },
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  userSelect: 'text',
+                }}
+              >
+                <Typography component="p" variant="subtitle1" fontWeight={700}>
+                  Justificativas de fatores químicos não priorizados
+                </Typography>
+                {report.map((entry) => (
+                  <Stack
+                    component="article"
+                    key={entry.key}
+                    spacing={3}
+                    sx={{ borderTop: 1, borderColor: 'divider', pt: 4 }}
+                  >
+                    <Typography
+                      component="h1"
+                      sx={{
+                        fontFamily: 'Georgia, serif',
+                        fontSize: '1.5rem',
+                        fontWeight: 700,
+                        lineHeight: 1.3,
+                        overflowWrap: 'anywhere',
+                      }}
+                    >
+                      {entry.agent}
+                    </Typography>
+                    <Typography variant="body2">
+                      {entry.cas && (
+                        <>
+                          <strong>CAS</strong> {entry.cas} ·{' '}
+                        </>
+                      )}
+                      <strong>GSE</strong> {entry.gse}
+                    </Typography>
+                    {entry.scenarioDetails.map(
+                      ({ product, activity, fields }, index) => (
+                        <Box key={index}>
+                          <Typography
+                            component="h2"
+                            variant="subtitle2"
+                            fontWeight={700}
+                          >
+                            {activity}
+                          </Typography>
+                          <Typography variant="body2">
+                            <strong>Produto químico</strong> · {product}
+                          </Typography>
+                          {fields.map(([label, value]) => (
+                            <Typography key={label} variant="body2">
+                              <strong>{label}</strong> · {value}
+                            </Typography>
+                          ))}
+                        </Box>
+                      ),
+                    )}
+                    <Box
+                      sx={{
+                        borderLeft: 3,
+                        borderColor: 'text.secondary',
+                        pl: 3,
+                        py: 2,
+                      }}
+                    >
+                      <Typography
+                        component="h2"
+                        variant="subtitle1"
+                        fontWeight={700}
+                      >
+                        Justificativa
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ whiteSpace: 'pre-wrap' }}
+                      >
+                        {entry.justification}
+                      </Typography>
+                    </Box>
+                    {entry.reference && (
+                      <Typography variant="body2">
+                        <strong>Limite, método ou referência</strong> ·{' '}
+                        {entry.reference}
+                      </Typography>
+                    )}
+                  </Stack>
+                ))}
+              </Stack>
             </Box>
           )}
         </>
       )}
+      {stelEditor && (
+        <Popover
+          open
+          anchorEl={stelEditor.anchor}
+          onClose={() => setStelEditor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          slotProps={{
+            paper: {
+              role: 'dialog',
+              'aria-labelledby': 'chemical-stel-review-title',
+              sx: { width: 280, maxWidth: 'calc(100vw - 32px)', p: 4 },
+            },
+          }}
+        >
+          <Stack spacing={3}>
+            <Typography
+              id="chemical-stel-review-title"
+              variant="body2"
+              fontWeight={600}
+            >
+              Os dados da atividade justificam priorizar pelo STEL?
+            </Typography>
+            {stelReviewFields.map(([field, label]) => (
+              <TextField
+                key={field}
+                id={`chemical-stel-review-${field}`}
+                select
+                size="small"
+                label={label}
+                helperText={stelEditor.values[field]}
+                value={stelReviews[stelEditor.key]?.[field] ?? ''}
+                onChange={(event) => {
+                  const answer = event.target.value;
+                  updateAnalysis((current) => ({
+                    ...current,
+                    reviewed: false,
+                    stelReviews: {
+                      ...current.stelReviews,
+                      [stelEditor.key]: {
+                        ...current.stelReviews?.[stelEditor.key],
+                        [field]:
+                          answer === 'yes' || answer === 'no'
+                            ? answer
+                            : undefined,
+                      },
+                    },
+                  }));
+                }}
+              >
+                <MenuItem value="">A confirmar</MenuItem>
+                <MenuItem value="yes">Sim</MenuItem>
+                <MenuItem value="no">Não</MenuItem>
+              </TextField>
+            ))}
+            <Button
+              size="small"
+              sx={{ alignSelf: 'flex-end' }}
+              onClick={() => setStelEditor(null)}
+            >
+              Fechar
+            </Button>
+          </Stack>
+        </Popover>
+      )}
+
       {commentEditor && (
         <Dialog
           open

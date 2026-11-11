@@ -961,6 +961,24 @@ export async function updateChemicalUseScenario(
   return response.data;
 }
 
+export async function readChemicalPrioritizationDraft<T>(pathParams: WorkspaceParams) {
+  const response = await api.get<{ revision: number; draft: T | null }>(
+    bindUrlParams({ path: ChemicalProductRoutes.USE_SCENARIO_PRIORITIZATION_DRAFT, pathParams }),
+  );
+  return response.data;
+}
+
+export async function saveChemicalPrioritizationDraft(
+  pathParams: WorkspaceParams,
+  body: { revision: number; draft: object },
+) {
+  const response = await api.put<{ revision: number }>(
+    bindUrlParams({ path: ChemicalProductRoutes.USE_SCENARIO_PRIORITIZATION_DRAFT, pathParams }),
+    body,
+  );
+  return response.data;
+}
+
 export async function previewChemicalUseScenarioGseReconcile(
   params: WorkspaceParams,
 ) {

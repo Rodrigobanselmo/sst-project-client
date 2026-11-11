@@ -1005,7 +1005,12 @@ export type ChemicalSurveyPreviewSourceRawLine = {
 
 export type ChemicalPrioritizationFactorData = {
   severity: number;
+  absorptionRoutes?: string | null;
+  risk?: string | null;
+  symptoms?: string | null;
+  affectedRegion?: string | null;
   method: string | null;
+  unit?: string | null;
   nr15lt: string | null;
   twa: string | null;
   stel: string | null;

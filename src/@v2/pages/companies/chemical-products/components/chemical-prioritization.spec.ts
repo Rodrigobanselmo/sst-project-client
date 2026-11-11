@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveMatrixRiskLevel } from 'core/utils/helpers/matriz';
 import type { ChemicalUseScenarioBoardRow } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import {
   analyzeChemicalScenario,
@@ -9,6 +8,7 @@ import {
   confirmedChemicalScenarioRatings,
   emptyDecision,
   formatChemicalExclusionChapter,
+  formatChemicalCatalogLimit,
   groupChemicalScenarios,
   suggestChemicalScenarioContact,
   summarizeChemicalAssessments,
@@ -141,12 +141,10 @@ const complete = {
 };
 
 test('teto cadastrado e severidade 5 têm precedência, sem exigir notas', () => {
-  const matrix = () => assert.fail('Sem probabilidade para a matriz');
   const result = analyzeChemicalScenario(
     catalog(2, { nr15lt: '0,5 ppm (C)' }),
     scenario,
     {},
-    matrix,
   );
   assert.equal(result.outcome, 'include');
   assert.equal(result.references?.lowLimit?.source, 'NR-15');
@@ -155,13 +153,12 @@ test('teto cadastrado e severidade 5 têm precedência, sem exigir notas', () =>
     catalog(5, { acgihCeiling: '2' }),
     scenario,
     {},
-    matrix,
   );
   assert.equal(both.outcome, 'include');
   assert.match(both.reason, /ACGIH teto: 2/);
   assert.match(both.reason, /Severidade 5, independentemente da probabilidade/);
   assert.equal(
-    analyzeChemicalScenario(catalog(5), scenario, {}, matrix).outcome,
+    analyzeChemicalScenario(catalog(5), scenario, {}).outcome,
     'include',
   );
   assert.equal(
@@ -169,44 +166,33 @@ test('teto cadastrado e severidade 5 têm precedência, sem exigir notas', () =>
       catalog(2, { acgihCeiling: 'Sem limite (referência 5)' }),
       scenario,
       {},
-      matrix,
     ).outcome,
     'exclude',
   );
 });
 
-test('severidades 3 e 4 usam as notas do cenário e somente resultado alto entra', () => {
-  const matrix = (severity: number, probability: number) => {
-    assert.equal(severity, 4);
-    return probability === 4 ? 4 : 3;
-  };
+test('severidades 3 e 4 priorizam por probabilidade 4 ou 5', () => {
   const moderate = analyzeChemicalScenario(
     catalog(4, { twa: '0.5 ppm' }),
     complete,
     { contact: 2 },
-    matrix,
   );
   const high = analyzeChemicalScenario(
     catalog(4),
     { ...complete, quantity: '230' },
-    { contact: 2 },
-    matrix,
+    { contact: 5 },
   );
   assert.equal(moderate.frequencyScore, 3);
   assert.equal(moderate.durationScore, 2);
-  assert.equal(moderate.probability, 3);
+  assert.equal(moderate.activityAverage, 2);
+  assert.equal(moderate.probability, 2);
   assert.equal(moderate.outcome, 'exclude');
   assert.equal(moderate.references?.lowLimit?.source, 'ACGIH TWA');
   assert.equal(high.outcome, 'include');
   assert.equal(summarizeChemicalAssessments([moderate, high]), 'include');
   assert.equal(areChemicalAssessmentsComplete([moderate, high]), true);
 
-  const awaitingContact = analyzeChemicalScenario(
-    catalog(4),
-    complete,
-    {},
-    matrix,
-  );
+  const awaitingContact = analyzeChemicalScenario(catalog(4), complete, {});
   assert.equal(
     summarizeChemicalAssessments([high, awaitingContact]),
     'include',
@@ -215,19 +201,17 @@ test('severidades 3 e 4 usam as notas do cenário e somente resultado alto entra
 });
 
 test('dados ausentes ou inválidos permanecem pendentes, sem inventar notas', () => {
-  const matrix = () => assert.fail('Não avalia cenário incompleto na matriz');
   const incomplete = analyzeChemicalScenario(
     catalog(3),
     { ...complete, quantity: '0' },
     { contact: 1 },
-    matrix,
   );
-  const low = analyzeChemicalScenario(catalog(1), scenario, {}, matrix);
+  const low = analyzeChemicalScenario(catalog(1), scenario, {});
   assert.equal(incomplete.outcome, 'pending');
   assert.equal(incomplete.quantityScore, null);
   assert.equal(summarizeChemicalAssessments([incomplete, low]), 'pending');
   assert.equal(
-    analyzeChemicalScenario(factor, scenario, {}, matrix).outcome,
+    analyzeChemicalScenario(factor, scenario, {}).outcome,
     'pending',
   );
 });
@@ -238,7 +222,6 @@ test('usa faixas fixas de quantidade em litros e quilos, com limites inclusivos'
       catalog(2),
       { ...complete, quantity, quantityUnit },
       {},
-      resolveMatrixRiskLevel,
     ).quantityScore;
   const quantities = [
     '1',
@@ -270,58 +253,87 @@ test('sugere contato para manuseio explícito e deixa descrições incertas sem 
   assert.equal(suggest('Sem contato direto'), undefined);
 });
 
-test('antecipa a prioridade somente se nenhuma nota de contato mudar a decisão', () => {
+test('arredonda uma única vez e identifica o critério que decidiu a triagem', () => {
   const receipt = {
     ...complete,
-    frequencyPeriod: 'Mensal',
+    frequencyCount: 2,
     durationMinutes: 120,
     quantity: '20,000',
   };
-  const assess = (
-    row: ChemicalUseScenarioBoardRow,
-    review?: Parameters<typeof confirmedChemicalScenarioRatings>[0],
-  ) =>
+  const assess = (quantity: string, contact: 4 | 5, severity = 3) =>
     analyzeChemicalScenario(
-      catalog(3),
-      row,
-      confirmedChemicalScenarioRatings(review),
-      resolveMatrixRiskLevel,
+      catalog(severity),
+      { ...receipt, quantity },
+      { contact },
     );
+  const roundedDown = assess('20,000', 4);
+  assert.equal(roundedDown.activityAverage, 4.25);
+  assert.equal(roundedDown.probability, 4);
+  assert.equal(roundedDown.outcome, 'include');
+  assert.equal(roundedDown.criterion, 'Probabilidade 4');
 
-  const unconfirmed = assess(receipt, {
-    ratings: { contact: 1 },
-    confirmed: false,
-  });
-  assert.equal(unconfirmed.quantityScore, 5);
-  assert.equal(unconfirmed.priorityWithoutContact, true);
-  assert.equal(unconfirmed.probability, null);
-  assert.equal(unconfirmed.outcome, 'pending');
-  assert.equal(summarizeChemicalAssessments([unconfirmed]), 'pending');
+  const roundedUp = assess('20,000', 5);
+  assert.equal(roundedUp.activityAverage, 4.5);
+  assert.equal(roundedUp.probability, 5);
+  assert.equal(roundedUp.outcome, 'include');
+  assert.equal(assess('230', 4).activityAverage, 4);
+  assert.equal(assess('20,000', 5, 2).outcome, 'exclude');
+  assert.equal(assess('20,000', 5, 2).criterion, 'Severidade 2');
+  assert.equal(assess('20,000', 5, 1).criterion, 'Severidade 1');
+});
 
-  for (const contact of [1, 2, 3, 4, 5] as const) {
-    const confirmed = assess(receipt, {
-      ratings: { contact },
-      confirmed: true,
-    });
-    assert.equal(confirmed.outcome, 'include');
-    assert.equal(confirmed.probability, 5);
-    assert.equal(confirmed.priorityWithoutContact, false);
-  }
-
-  const lowerQuantity = { ...receipt, quantity: '230' };
-  assert.equal(assess(lowerQuantity).priorityWithoutContact, false);
+test('avalia STEL por atividade, inclusive pico documentado e pequena quantidade', () => {
+  const assess = (changes: Partial<ChemicalUseScenarioBoardRow>) =>
+    analyzeChemicalScenario(
+      catalog(2, { stel: '15 ppm' }),
+      { ...complete, quantity: '230', ...changes },
+      { contact: 2 },
+    );
+  assert.equal(assess({ durationMinutes: 15 }).outcome, 'include');
+  assert.equal(assess({ durationMinutes: 15 }).criterion, 'STEL');
+  assert.equal(assess({ durationMinutes: 16 }).outcome, 'exclude');
   assert.equal(
-    assess(lowerQuantity, { ratings: { contact: 1 }, confirmed: true }).outcome,
-    'exclude',
-  );
-  assert.equal(
-    assess(lowerQuantity, { ratings: { contact: 5 }, confirmed: true }).outcome,
+    assess({
+      durationMinutes: 120,
+      peakContactMoment: 'Pico de 2 min na abertura',
+    }).outcome,
     'include',
   );
   assert.equal(
-    assess({ ...receipt, durationMinutes: 0 }).priorityWithoutContact,
-    false,
+    assess({ quantity: '1000', quantityUnit: 'mL' }).outcome,
+    'pending',
   );
+  assert.equal(
+    assess({ quantity: '230', quantityUnit: 'desconhecida' }).outcome,
+    'pending',
+  );
+});
+
+test('encerra a revisão de STEL somente com três confirmações ou uma rejeição', () => {
+  const assess = (review?: Parameters<typeof analyzeChemicalScenario>[3]) =>
+    analyzeChemicalScenario(
+      catalog(3, { stel: '15 ppm' }),
+      complete,
+      {},
+      review,
+    );
+
+  assert.equal(
+    assess({ frequency: 'yes', duration: 'yes' }).criterion,
+    'STEL em revisão',
+  );
+  const approved = assess({
+    frequency: 'yes',
+    duration: 'yes',
+    quantity: 'yes',
+  });
+  assert.equal(approved.criterion, 'STEL confirmado');
+  assert.equal(approved.outcome, 'include');
+
+  const rejected = assess({ quantity: 'no' });
+  assert.equal(rejected.criterion, 'STEL rejeitado');
+  assert.equal(rejected.outcome, 'exclude');
+  assert.match(rejected.reason, /quantidade/);
 });
 
 test('ordena os grupos primeiro por GSE e depois por fator de risco', () => {
@@ -364,12 +376,17 @@ test('classifica 20,000 litros como vinte mil, sem arredondar quantidades pequen
   assert.equal(parseChemicalScenarioQuantity('20.000,25'), 20000.25);
   assert.equal(parseChemicalScenarioQuantity('1,2,3'), null);
   assert.equal(
-    analyzeChemicalScenario(
-      catalog(3),
-      smallQuantity,
-      {},
-      resolveMatrixRiskLevel,
-    ).quantityScore,
+    analyzeChemicalScenario(catalog(3), smallQuantity, {}).quantityScore,
     1,
+  );
+});
+
+test('exibe a unidade cadastrada para limites numéricos e preserva unidades explícitas', () => {
+  assert.equal(formatChemicalCatalogLimit('8.0', 'ppm'), '8.0 ppm');
+  assert.equal(formatChemicalCatalogLimit('10', 'mg/m3'), '10 mg/m3');
+  assert.equal(formatChemicalCatalogLimit('15 ppm', 'mg/m3'), '15 ppm');
+  assert.equal(
+    formatChemicalCatalogLimit('15', null),
+    '15 (unidade não cadastrada)',
   );
 });

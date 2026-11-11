@@ -116,6 +116,14 @@ export function confirmedChemicalScenarioRatings(
   return review?.confirmed && review.ratings.contact ? review.ratings : {};
 }
 
+export const chemicalContactDescriptions = [
+  'Sistema fechado, sem liberação esperada na operação normal',
+  'Manuseio indireto ou abertura controlada, com baixa possibilidade de liberação',
+  'Abertura ou manuseio com possibilidade de liberação',
+  'Manuseio direto ou abertura com liberação provável',
+  'Manuseio direto intenso ou liberação evidente',
+] as const;
+
 const quantityUnitDivisors = new Map([
   ['ml', 1000],
   ['l', 1],
@@ -171,6 +179,19 @@ function score(value: number, thresholds: readonly number[]): Score {
     thresholds.filter((threshold) => value > threshold).length) as Score;
 }
 
+export function formatChemicalCatalogLimit(
+  value: string,
+  unit?: string | null,
+) {
+  // O cadastro pode trazer a unidade no próprio limite ou no campo do fator.
+  const numericLimit = /^\s*(?:C\s+)?[\d.,]+(?:\s*(?:\(C\)|C))?\s*$/i;
+  if (!numericLimit.test(value)) return value;
+  const catalogUnit = unit?.trim();
+  return catalogUnit
+    ? `${value.trim()} ${catalogUnit}`
+    : `${value.trim()} (unidade não cadastrada)`;
+}
+
 function catalogLimits(factor: ChemicalPrioritizationFactorData) {
   const limits = [
     { source: 'NR-15', value: factor.nr15lt, dedicated: false },
@@ -207,17 +228,35 @@ function catalogLimits(factor: ChemicalPrioritizationFactorData) {
   return {
     ceiling,
     lowLimit,
+    stel: limits.find(
+      ({ source, value }) =>
+        /\bSTEL$/.test(source) &&
+        !!value &&
+        /^\s*(?:[1-9]\d*(?:[.,]\d+)?|0[.,]\d*[1-9]\d*)(?=\s*(?:ppm\b|mg\b|[µμu]g\b|$))/i.test(
+          value,
+        ),
+    ),
     limits: limits.filter(
       ({ value }) => value?.trim() && !/^[\s—–-]+$/.test(value),
     ),
   };
 }
 
+export const stelReviewFields = [
+  ['frequency', 'Frequência'],
+  ['duration', 'Duração'],
+  ['quantity', 'Quantidade'],
+] as const;
+
+export type ChemicalStelReview = Partial<
+  Record<(typeof stelReviewFields)[number][0], 'yes' | 'no'>
+>;
+
 export function analyzeChemicalScenario(
   factor: ChemicalUseScenarioActivityRiskFactor,
   scenario: ChemicalUseScenarioBoardRow,
   ratings: ChemicalScenarioRatings,
-  matrix: (severity: number, probability: number) => number,
+  stelReview?: ChemicalStelReview,
 ) {
   const catalog = factor.prioritization;
   const severity = catalog?.severity;
@@ -236,21 +275,23 @@ export function analyzeChemicalScenario(
       : null;
   const quantityScore = scoreQuantity(scenario);
   const contactScore = ratings.contact ?? null;
-  const baseProbability =
-    frequencyScore && durationScore && quantityScore
-      ? Math.max(Math.ceil((frequencyScore + durationScore) / 2), quantityScore)
+  const activityAverage =
+    frequencyScore && durationScore && quantityScore && contactScore
+      ? (frequencyScore + durationScore + quantityScore + contactScore) / 4
       : null;
   const probability =
-    baseProbability && contactScore
-      ? Math.max(baseProbability, contactScore)
-      : null;
+    activityAverage === null ? null : Math.round(activityAverage);
   const validSeverity =
     severity != null &&
     Number.isInteger(severity) &&
     severity >= 1 &&
     severity <= 5;
-  const level =
-    validSeverity && probability ? matrix(severity, probability) : null;
+  const excludedSeverity = severity === 1 || severity === 2;
+  const prioritizedByProbability =
+    validSeverity &&
+    !excludedSeverity &&
+    probability !== null &&
+    probability >= 4;
   const evidence = {
     severity,
     frequencyScore,
@@ -258,15 +299,7 @@ export function analyzeChemicalScenario(
     quantityScore,
     contactScore,
     probability,
-    priorityWithoutContact:
-      !contactScore &&
-      !references?.ceiling &&
-      (severity === 3 || severity === 4) &&
-      baseProbability !== null &&
-      CHEMICAL_SCENARIO_SCORES.every(
-        (contact) => matrix(severity, Math.max(baseProbability, contact)) >= 4,
-      ),
-    level,
+    activityAverage,
     references,
   };
   const severityReason = 'Severidade 5, independentemente da probabilidade.';
@@ -274,40 +307,99 @@ export function analyzeChemicalScenario(
     return {
       ...evidence,
       outcome: 'include',
+      criterion: 'Valor teto',
       reason: `Valor teto cadastrado · ${references.ceiling.source}: ${references.ceiling.value}.${severity === 5 ? ` ${severityReason}` : ''}`,
     } as const;
   if (severity === 5)
     return {
       ...evidence,
       outcome: 'include',
+      criterion: 'Severidade 5',
       reason: severityReason,
     } as const;
-  if (severity === 1 || severity === 2)
+  if (references?.stel) {
+    // Aceita duração do pico somente quando registrada explicitamente em minutos.
+    const peakMinutes = scenario.peakContactMoment?.match(
+      /^\s*pico\s*(?:de|:)\s*(\d+(?:[.,]\d+)?)\s*(?:minutos?|min)\b/i,
+    );
+    const peakDuration = peakMinutes
+      ? Number(peakMinutes[1].replace(',', '.'))
+      : null;
+    const shortActivity =
+      (duration != null && duration > 0 && duration <= 15) ||
+      (peakDuration != null &&
+        peakDuration > 0 &&
+        peakDuration <= 15 &&
+        (duration == null || peakDuration <= duration));
+    const reference = `${references.stel.source} · ${references.stel.value}`;
+    if (shortActivity && quantityScore != null && quantityScore > 1) {
+      return {
+        ...evidence,
+        outcome: 'include',
+        criterion: 'STEL',
+        reason: `Atividade ou pico de até 15 minutos com STEL cadastrado (${reference}).`,
+      } as const;
+    }
+    if (shortActivity && !prioritizedByProbability) {
+      const rejected = stelReviewFields
+        .filter(([field]) => stelReview?.[field] === 'no')
+        .map(([, label]) => label.toLocaleLowerCase('pt-BR'));
+      if (rejected.length) {
+        return {
+          ...evidence,
+          outcome: 'exclude',
+          criterion: 'STEL rejeitado',
+          reason: `A revisão do STEL (${reference}) não confirmou a priorização pelos seguintes parâmetros · ${rejected.join(', ')}.`,
+        } as const;
+      }
+      if (stelReviewFields.every(([field]) => stelReview?.[field] === 'yes')) {
+        return {
+          ...evidence,
+          outcome: 'include',
+          criterion: 'STEL confirmado',
+          reason: `Frequência, duração e quantidade confirmadas na revisão do STEL (${reference}).`,
+        } as const;
+      }
+      return {
+        ...evidence,
+        outcome: 'pending',
+        criterion: 'STEL em revisão',
+        reason:
+          quantityScore === 1
+            ? `STEL cadastrado (${reference}). A pequena quantidade requer revisão técnica das condições de liberação e justificativa da exceção.`
+            : `STEL cadastrado (${reference}). Confirme a quantidade e a unidade da atividade.`,
+      } as const;
+    }
+  }
+  if (excludedSeverity)
     return {
       ...evidence,
       outcome: 'exclude',
-      reason: `Severidade ${severity}, dentro da faixa excluída pelo critério de priorização.`,
+      criterion: `Severidade ${severity}`,
+      reason: `Severidade ${severity} está na faixa de exclusão da triagem.`,
     } as const;
   if (!validSeverity)
     return {
       ...evidence,
       outcome: 'pending',
+      criterion: 'Severidade pendente',
       reason: 'Severidade do fator indisponível ou não informada.',
     } as const;
-  if (!probability || level == null)
+  if (probability === null)
     return {
       ...evidence,
       outcome: 'pending',
+      criterion: 'Probabilidade pendente',
       reason:
         'Complete a frequência, a duração e a quantidade do cenário e confirme a nota de contato.',
     } as const;
   return {
     ...evidence,
-    outcome: level >= 4 ? 'include' : 'exclude',
-    reason:
-      level >= 4
-        ? `Severidade ${severity}/5 e probabilidade ${probability}/5: resultado alto ou muito alto na matriz SimpleSST.`
-        : `Severidade ${severity}/5 e probabilidade ${probability}/5: resultado moderado ou inferior na matriz SimpleSST.`,
+    outcome: prioritizedByProbability ? 'include' : 'exclude',
+    criterion: `Probabilidade ${probability}`,
+    reason: prioritizedByProbability
+      ? `Probabilidade ${probability} de 5. O critério de probabilidade prioriza com nota 4 ou 5.`
+      : `Probabilidade ${probability} de 5. O critério de probabilidade exige nota 4 ou 5 para priorizar.`,
   } as const;
 }
 
@@ -338,21 +430,48 @@ export function canReportExclusion(decision: ChemicalPrioritizationDecision) {
   );
 }
 
+function chemicalScenarioDetails(scenario: ChemicalUseScenarioBoardRow) {
+  return {
+    product: scenario.product.tradeName,
+    activity: scenario.activityName || 'Atividade não informada',
+    fields: [
+      ['Setor', scenario.sectorSnapshot || 'não informado'],
+      [
+        'Frequência',
+        `${scenario.frequencyCount ?? 'não informada'} ${scenario.frequencyPeriod ?? ''}`.trim(),
+      ],
+      [
+        'Duração',
+        scenario.durationMinutes == null
+          ? 'não informada'
+          : `${scenario.durationMinutes} min`,
+      ],
+      [
+        'Quantidade',
+        scenario.quantity
+          ? [
+              formatChemicalScenarioQuantity(scenario.quantity),
+              scenario.quantityUnit,
+            ]
+              .filter(Boolean)
+              .join(' ')
+          : 'não informada',
+      ],
+      ['Maior contato', scenario.peakContactMoment || 'não informado'],
+      ['Controles existentes', scenario.controlMeasures || 'não informados'],
+      ['Linhas de origem', scenario.sourceRows.join(', ')],
+    ].filter(([, value]) => Boolean(value)),
+  };
+}
+
 export function describeChemicalScenario(
   scenario: ChemicalUseScenarioBoardRow,
 ) {
+  const { product, activity, fields } = chemicalScenarioDetails(scenario);
   return [
-    scenario.product.tradeName,
-    scenario.activityName || 'Atividade não informada',
-    `Setor: ${scenario.sectorSnapshot || 'não informado'}`,
-    `Frequência: ${scenario.frequencyCount ?? 'não informada'} ${scenario.frequencyPeriod ?? ''}`.trim(),
-    `Duração: ${scenario.durationMinutes == null ? 'não informada' : `${scenario.durationMinutes} min`}`,
-    `Quantidade: ${scenario.quantity ? [formatChemicalScenarioQuantity(scenario.quantity), scenario.quantityUnit].filter(Boolean).join(' ') : 'não informada'}`,
-    `Maior contato: ${scenario.peakContactMoment || 'não informado'}`,
-    `Controles existentes: ${scenario.controlMeasures || 'não informados'}`,
-    scenario.sourceRows.length
-      ? `Linhas de origem: ${scenario.sourceRows.join(', ')}`
-      : '',
+    product,
+    activity,
+    ...fields.map(([label, value]) => `${label}: ${value}`),
   ]
     .filter(Boolean)
     .join(' · ');
@@ -371,6 +490,10 @@ export function buildChemicalExclusionReport(
         {
           key,
           title: `${factor.name}${factor.cas ? ` (CAS ${factor.cas})` : ''} · ${gse.name}`,
+          agent: factor.name,
+          cas: factor.cas,
+          gse: gse.name,
+          scenarioDetails: scenarios.map(chemicalScenarioDetails),
           scenarios: scenarios.map(describeChemicalScenario),
           justification: decision.justification.trim(),
           reference: decision.reference.trim(),
