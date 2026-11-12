@@ -1,3 +1,4 @@
+import { HO_MONITORING_PATHNAME } from 'core/constants/company-primary-navigation.constants';
 import type { ParsedUrlQuery } from 'querystring';
 import { useEffect } from 'react';
 
@@ -42,6 +43,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
   const workspaceRouteId = query.workspaceId as string | undefined;
 
+  const isHoMonitoringPage = pathname === HO_MONITORING_PATHNAME;
   const isDocumentsListPage = pathname === DOCUMENTS_LIST_PATHNAME;
   const isActionPlanPage = pathname === '/dashboard/empresas/[companyId]/plano-de-acao';
   const isCharacterizationRootPage =
@@ -100,7 +102,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   // In particular, an eSocial-only reader must not fetch company data merely
   // because the global header is mounted on the eSocial page.
   const needsWorkspaceSelector = !(isHomePage && isGroupConsolidated) && (
-    isDocumentsListPage || isActionPlanPage || isCharacterizationRootPage ||
+    isHoMonitoringPage || isDocumentsListPage || isActionPlanPage || isCharacterizationRootPage ||
     showSstWorkspaceSelector || isGseCharacterizationPage || isChemicalProductsPage ||
     isAssistenteGsePage || isNewDocumentsStagePage || isHierarchyOrganogramPage || routeHasWorkspace
   );
@@ -121,6 +123,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   }
 
   if (
+    isHoMonitoringPage ||
     isDocumentsListPage ||
     isActionPlanPage ||
     isCharacterizationRootPage ||

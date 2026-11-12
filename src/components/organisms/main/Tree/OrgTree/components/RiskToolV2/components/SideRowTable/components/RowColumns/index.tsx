@@ -66,7 +66,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   const actualMatrixLevel = resolveDisplayedOccupationalRisk({
     isQuantity: riskData?.isQuantity,
     level: riskData?.level,
-    severity: risk?.severity,
+    severity: risk?.severity ?? riskData?.evaluatedSeverity,
     probability: riskData?.probability,
     matrixSource: riskData?.matrixSource,
     matrixVersionId: riskData?.matrixVersionId,
@@ -79,7 +79,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
 
   const actualMatrixLevelAfter = resolveDisplayedResidualOccupationalRisk({
     isQuantity: riskData?.isQuantity,
-    severity: risk?.severity,
+    severity: risk?.severity ?? riskData?.evaluatedSeverity,
     probabilityAfter: riskData?.probabilityAfter,
     matrixSource: riskData?.matrixSource,
     matrixVersionId: riskData?.matrixVersionId,

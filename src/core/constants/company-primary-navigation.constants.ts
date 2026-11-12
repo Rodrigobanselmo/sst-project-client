@@ -71,6 +71,7 @@ export type CompanyWorkspaceContextualNavId =
   | 'employees'
   | 'characterization'
   | 'programs'
+  | 'ho-monitoring'
   | 'document-archive'
   | 'action-plan'
   | 'absenteeism'
@@ -103,6 +104,8 @@ function withOptionalWorkspace(
   return `${base}?${query.toString()}`;
 }
 
+export const HO_MONITORING_PATHNAME = '/dashboard/empresas/[companyId]/monitoramento-ho';
+
 export function getDocumentsArchivePath(companyId: string): string {
   return PageRoutes.DOCUMENTS.LIST.replace('[companyId]', companyId);
 }
@@ -119,7 +122,7 @@ export function getFormsAppliedListPath(companyId: string): string {
 }
 
 /**
- * Fonte canônica dos 8 itens da barra contextual.
+ * Fonte canônica dos itens da barra contextual.
  * Grupos: Gestão da Empresa | Operação e Registros.
  */
 export const COMPANY_WORKSPACE_CONTEXTUAL_NAV_ITEMS: CompanyWorkspaceContextualNavItem[] =
@@ -174,6 +177,18 @@ export const COMPANY_WORKSPACE_CONTEXTUAL_NAV_ITEMS: CompanyWorkspaceContextualN
             companyId,
             CompanyActionEnum.DOCUMENTS_GROUP_PAGE,
           ),
+          tabWorkspaceId,
+          true,
+        ),
+    },
+    {
+      id: 'ho-monitoring',
+      label: 'Monitoramento de HO',
+      group: 'management',
+      matchPathnames: [HO_MONITORING_PATHNAME],
+      getHref: ({ companyId, tabWorkspaceId }) =>
+        withOptionalWorkspace(
+          RoutesEnum.HO_MONITORING.replace(':companyId', companyId),
           tabWorkspaceId,
           true,
         ),

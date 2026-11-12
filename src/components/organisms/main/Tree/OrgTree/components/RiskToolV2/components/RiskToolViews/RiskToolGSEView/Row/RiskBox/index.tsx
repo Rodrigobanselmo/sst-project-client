@@ -133,7 +133,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
   const riskTypeKey = (data?.type ?? '').toLowerCase();
   const riskName = data?.name || '';
   const riskTypeLabel = data?.type || '—';
-  const severity = data?.severity;
+  const severity = data?.severity ?? riskData?.evaluatedSeverity;
 
   const isPsicologico = data?.subTypes?.find(
     (subType) => subType?.sub_type?.name === 'Psicossociais',
@@ -170,7 +170,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
       resolveDisplayedOccupationalRisk({
         isQuantity: riskData?.isQuantity,
         level: riskData?.level,
-        severity: data?.severity,
+        severity,
         probability: riskData?.probability,
         matrixSource: riskData?.matrixSource,
         matrixVersionId: riskData?.matrixVersionId,
@@ -181,7 +181,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
         resolvedLegacyBand: riskData?.resolvedLegacyBand,
       }),
     [
-      data?.severity,
+      severity,
       riskData?.isQuantity,
       riskData?.level,
       riskData?.probability,
@@ -213,7 +213,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
       residualProbability
         ? resolveDisplayedResidualOccupationalRisk({
             isQuantity: riskData?.isQuantity,
-            severity: data?.severity,
+            severity,
             probabilityAfter: residualProbability,
             matrixSource: riskData?.matrixSource,
             matrixVersionId: riskData?.matrixVersionId,
@@ -226,7 +226,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
           })
         : null,
     [
-      data?.severity,
+      severity,
       residualProbability,
       riskData?.isQuantity,
       riskData?.matrixSource,

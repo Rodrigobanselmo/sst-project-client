@@ -128,6 +128,7 @@ export interface IRiskData {
   matrixVersionId?: string | null;
   matrixClassificationId?: string | null;
   matrixEvaluatedAt?: string | Date | null;
+  evaluatedSeverity?: number | null;
   resolvedLabel?: string | null;
   resolvedColor?: string | null;
   classificationPresentationColor?: string | null;

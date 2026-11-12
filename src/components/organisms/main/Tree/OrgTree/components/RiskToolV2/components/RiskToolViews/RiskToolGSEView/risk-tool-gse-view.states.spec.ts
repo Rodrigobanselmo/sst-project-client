@@ -224,3 +224,23 @@ assert.equal(
 );
 
 console.log('risk-tool-gse-view.states.spec.ts: ok');
+
+{
+  const localFactor = catalogRisk({
+    id: 'atlas-local-factor',
+    name: 'Fator próprio da empresa',
+    type: RiskEnum.QUI,
+    representAll: false,
+  });
+  const rows = joinRiskToolGseRows({
+    isCatalogFetched: true,
+    riskCatalog: [],
+    riskDataQuery: [{ id: 'exposure-1', riskId: localFactor.id, riskFactor: localFactor } as IRiskData],
+    homoId: 'gse-maker',
+    selectedGhoFilter: emptyFilter,
+    riskGroupId: 'rg1',
+  });
+  assert.deepEqual(rows.map(([data, factor]) => [data.id, factor.id]), [
+    ['exposure-1', localFactor.id],
+  ]);
+}

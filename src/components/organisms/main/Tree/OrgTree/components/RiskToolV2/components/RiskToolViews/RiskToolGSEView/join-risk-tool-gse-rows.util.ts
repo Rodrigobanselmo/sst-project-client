@@ -28,6 +28,7 @@ export function joinRiskToolGseRows(
   if (!Array.isArray(input.riskDataQuery)) return [];
 
   const risk = input.riskCatalog;
+  const catalogById = new Map(risk.map((factor) => [factor.id, factor]));
   const representAllRiskData: [IRiskData, IRiskFactors][] = [];
 
   // Copy before sort — React Query may freeze cached arrays.
@@ -47,7 +48,10 @@ export function joinRiskToolGseRows(
       ),
     )
     .map((riskData) => {
-      const riskFound = risk.find((r) => r.id === riskData.riskId);
+      const linkedFactor = riskData.riskFactor;
+      const riskFound =
+        catalogById.get(riskData.riskId) ??
+        (linkedFactor?.id === riskData.riskId ? linkedFactor : undefined);
 
       if (riskFound?.representAll && riskFound.type === RiskEnum.OUTROS) {
         representAllRiskData[0] = [riskData, riskFound];

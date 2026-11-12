@@ -40,7 +40,7 @@ assert.deepEqual(
 );
 
 const contextual = getCompanyWorkspaceContextualNavItems({ companyId });
-assert.equal(contextual.length, 8);
+assert.equal(contextual.length, 9);
 assert.deepEqual(
   contextual.map((i) => i.label),
   [
@@ -48,13 +48,14 @@ assert.deepEqual(
     'Funcionários',
     'Caracterização',
     'Programas e Laudos',
+    'Monitoramento de HO',
     'Acervo Técnico',
     'Plano de Ação',
     'Absenteísmo',
     'Formulários',
   ],
 );
-assert.equal(contextual.filter((i) => i.group === 'management').length, 5);
+assert.equal(contextual.filter((i) => i.group === 'management').length, 6);
 assert.equal(contextual.filter((i) => i.group === 'operations').length, 3);
 assert.deepEqual(
   contextual.filter((i) => i.group === 'management').map((i) => i.id),
@@ -63,6 +64,7 @@ assert.deepEqual(
     'employees',
     'characterization',
     'programs',
+    'ho-monitoring',
     'document-archive',
   ],
 );
@@ -161,7 +163,7 @@ assert.equal(
   'forms',
 );
 
-assert.equal(COMPANY_WORKSPACE_CONTEXTUAL_NAV_ITEMS.length, 8);
+assert.equal(COMPANY_WORKSPACE_CONTEXTUAL_NAV_ITEMS.length, 9);
 assert.equal(isCompanyPrimaryStage('empresa'), true);
 assert.ok(
   companyPrimaryStagePath(companyId, CompanyActionEnum.COMPANY_GROUP_PAGE).includes(
