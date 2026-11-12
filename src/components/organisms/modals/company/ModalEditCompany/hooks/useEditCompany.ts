@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import deepEqual from 'deep-equal';
 import { useEffect, useRef, useState } from 'react';
 
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
@@ -152,7 +153,7 @@ export const useEditCompany = () => {
   const onSubmitData = async (
     submitData: any,
     nextStep: () => void,
-    { save }: { save?: boolean } = {},
+    { save, onlyChanges }: { save?: boolean; onlyChanges?: boolean } = {},
   ) => {
     // `frpsPrivacy` só muda via PATCH /frps-privacy; nunca no update genérico.
     const safeSubmitData = stripFrpsPrivacyFromCompanyPayload(submitData);
@@ -184,8 +185,26 @@ export const useEditCompany = () => {
         ...safeSubmitData,
       }));
     } else {
+      const payload = onlyChanges
+        ? Object.fromEntries(Object.entries(safeSubmitData).filter(([key, value]) => {
+            if (key === 'id') return true;
+            if (value === undefined) return false;
+            const initial = stripFrpsPrivacyFromCompanyPayload(initialDataRef.current)[key];
+            const normalize = (item: unknown) => item == null ? '' : item;
+            if (key === 'address' && value && typeof value === 'object') {
+              return Object.entries(value).some(([field, entry]) =>
+                !deepEqual(normalize(entry), normalize(initial?.[field]), { strict: true }),
+              );
+            }
+            return !deepEqual(normalize(value), normalize(initial), { strict: true });
+          }))
+        : safeSubmitData;
+      if (onlyChanges && Object.keys(payload).every((key) => key === 'id')) {
+        onClose();
+        return;
+      }
       await updateCompany
-        .mutateAsync(safeSubmitData)
+        .mutateAsync(payload)
         .then(() => {
           onClose();
         })
@@ -195,6 +214,7 @@ export const useEditCompany = () => {
 
   return {
     registerModal,
+    getInitialCompanyData: () => initialDataRef.current,
     onCloseUnsaved,
     onClose,
     companyData,

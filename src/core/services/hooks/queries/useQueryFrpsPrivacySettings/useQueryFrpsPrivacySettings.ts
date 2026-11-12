@@ -21,6 +21,7 @@ export async function queryFrpsPrivacySettings(companyId: string) {
       indicatorsMinParticipants: 3,
       riskAnalysisAiMinParticipants: 3,
       riskAnalysisAiMinParticipantsIsDefault: true,
+      allowPartialResults: false,
       canEdit: false,
     } as IFrpsPrivacySettings)
   );
@@ -42,6 +43,7 @@ export function useQueryFrpsPrivacySettings(
             indicatorsMinParticipants: 3 as const,
             riskAnalysisAiMinParticipants: 3 as const,
             riskAnalysisAiMinParticipantsIsDefault: true,
+            allowPartialResults: false,
             canEdit: false,
           }),
     {
@@ -56,6 +58,7 @@ export function useQueryFrpsPrivacySettings(
       indicatorsMinParticipants: 3 as const,
       riskAnalysisAiMinParticipants: 3 as const,
       riskAnalysisAiMinParticipantsIsDefault: true,
+      allowPartialResults: false,
       canEdit: false,
     },
   };

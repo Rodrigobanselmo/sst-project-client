@@ -15,6 +15,7 @@ import type { HierarchyGroupForIndicators } from './buildParticipantGroupsForInd
 import { buildParticipantGroupsForIndicators } from './buildParticipantGroupsForIndicators';
 import { buildIndicatorsNarrativeDiagnosticScope } from './buildIndicatorsNarrativeDiagnosticScope';
 import type { FormChartType } from './form-chart-type.types';
+import type { buildIndicatorsPdfDataset as buildDataset } from './buildIndicatorsPdfDataset';
 
 /**
  * Gera o PDF de indicadores no navegador com a mesma base da tela
@@ -36,6 +37,7 @@ export async function exportFormIndicatorsPdfInBrowser(
     includeNarrative?: boolean;
     executiveDistributionChartType: FormChartType;
     hierarchyGroups: HierarchyGroupForIndicators[];
+    participantGroupingOverride?: Parameters<typeof buildDataset>[0]['participantGroupingOverride'];
     /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
     visibleParticipantGroupIds?: string[];
   },
@@ -58,7 +60,7 @@ export async function exportFormIndicatorsPdfInBrowser(
   onProgress?.('Processando dados dos indicadores...');
   await yieldToUI();
 
-  const participantGroups = buildParticipantGroupsForIndicators({
+  const participantGroups = params.participantGroupingOverride?.participantGroups ?? buildParticipantGroupsForIndicators({
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     hierarchyGroups: params.hierarchyGroups,
@@ -110,6 +112,7 @@ export async function exportFormIndicatorsPdfInBrowser(
       isShareableLink: params.formApplication.isShareableLink && !params.partialResults,
       partialResults: params.partialResults,
       hierarchyGroups: params.hierarchyGroups,
+      participantGroupingOverride: params.participantGroupingOverride,
       ...(params.selectedGroupingQuestionId
         ? { visibleParticipantGroupIds: params.visibleParticipantGroupIds }
         : {}),

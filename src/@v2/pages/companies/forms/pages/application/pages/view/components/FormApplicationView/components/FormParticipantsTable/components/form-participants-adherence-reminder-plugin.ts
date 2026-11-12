@@ -25,10 +25,11 @@ function createPlugin(
 
       const ctx = chart.ctx;
       ctx.save();
-      ctx.strokeStyle = LINE_COLOR;
+      const textColor = chart.options.color;
+      ctx.strokeStyle = typeof textColor === 'string' ? textColor : LINE_COLOR;
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 3]);
-      ctx.fillStyle = LABEL_COLOR;
+      ctx.fillStyle = typeof textColor === 'string' ? textColor : LABEL_COLOR;
       ctx.font = '10px sans-serif';
       ctx.textBaseline = 'top';
 

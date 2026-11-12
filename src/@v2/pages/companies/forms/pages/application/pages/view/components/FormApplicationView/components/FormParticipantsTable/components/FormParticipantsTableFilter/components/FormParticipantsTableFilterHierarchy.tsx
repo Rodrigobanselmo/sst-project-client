@@ -1,12 +1,11 @@
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SText } from '@v2/components/atoms/SText/SText';
-import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
+import { Button, Dialog, DialogActions, DialogContent } from '@mui/material';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
-import { ActionPlanHierarchyBrowseResultModel } from '@v2/models/security/models/action-plan-hierarchy/action-plan-hierarchy-browse-result.model';
 import { resolveFormHierarchyTypeLabel } from '@v2/models/form/helpers/form-hierarchy-type-presentation.util';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
-import { useInfinityBrowseFormHierarchies } from '@v2/services/forms/hierarchy/browse-form-hierarchies/hooks/useInfinityBrowseFormHierarchies';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { useMemo, useState } from 'react';
+import { OrganizationalGroupingDialog } from '../../../../FormQuestionsDashboard/components/OrganizationalGroupingDialog';
+import type { OrganizationalGroup } from '../../../../FormQuestionsDashboard/helpers/organizationalGrouping';
 
 type HierarchyFilterValue = {
   id: string;
@@ -16,88 +15,95 @@ type HierarchyFilterValue = {
 
 interface FormParticipantsTableFilterHierarchyProps {
   companyId: string;
-  label: string;
   allowedTypes: HierarchyTypeEnum[];
-  workspaceIds?: string[];
+  workspaceIds: string[];
   value: HierarchyFilterValue[];
   onChange: (selected: HierarchyFilterValue[]) => void;
 }
 
-export const FormParticipantsTableFilterHierarchy = ({
+export function FormParticipantsTableFilterHierarchy({
   companyId,
-  label,
   allowedTypes,
   workspaceIds,
   value,
   onChange,
-}: FormParticipantsTableFilterHierarchyProps) => {
+}: FormParticipantsTableFilterHierarchyProps) {
   const typeLabels = useHierarchyTypeLabels();
-  const [search, setSearch] = useState('');
+  const [open, setOpen] = useState(false);
+  const { data: tree, isLoading, isError, refetch } = useQueryHierarchies(companyId, { enabled: open });
 
-  const { hierarchies, isFetching, fetchNextPage } =
-    useInfinityBrowseFormHierarchies({
-      companyId,
-      filters: {
-        search,
-        type: allowedTypes,
-        workspaceIds: workspaceIds?.length ? workspaceIds : undefined,
-      },
-      pagination: {
-        page: 1,
-        limit: 50,
-      },
-    });
+  const { groups, valuesByPath, pathsById } = useMemo(() => {
+    const groups: OrganizationalGroup[] = [];
+    const valuesByPath = new Map<string, HierarchyFilterValue>();
+    const pathsById = new Map<string, string>();
+    const groupsById = new Map<string, OrganizationalGroup>();
 
-  const options = useMemo(() => {
-    return (
-      hierarchies?.pages.reduce((acc, page) => {
-        return [...acc, ...page.results];
-      }, [] as ActionPlanHierarchyBrowseResultModel[]) ?? []
-    );
-  }, [hierarchies?.pages]);
+    function addGroup(id: string): OrganizationalGroup | undefined {
+      const existing = groupsById.get(id);
+      if (existing) return existing;
+      const node = tree[id];
+      const type = node?.type as unknown as HierarchyTypeEnum;
+      if (!node || !allowedTypes.includes(type)) return undefined;
+
+      const parent = node.parentId ? addGroup(node.parentId) : undefined;
+      const path = `${parent?.id ?? ''}/${encodeURIComponent(id)}`;
+      const group = {
+        id: path,
+        name: parent ? `${parent.name} › ${node.name}` : node.name,
+        title: node.name,
+        typeLabel: resolveFormHierarchyTypeLabel(type, typeLabels),
+        parentId: parent?.id ?? null,
+        participantIds: new Set<string>(),
+      };
+      groupsById.set(id, group);
+      groups.push(group);
+      valuesByPath.set(path, { id, name: node.name, type });
+      pathsById.set(id, path);
+      return group;
+    }
+
+    for (const node of Object.values(tree)) {
+      if (!workspaceIds.length || node.workspaceIds?.some((id) => workspaceIds.includes(id))) {
+        addGroup(node.id);
+      }
+    }
+    for (const item of value) addGroup(item.id);
+
+    groups.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+    return { groups, valuesByPath, pathsById };
+  }, [tree, allowedTypes, workspaceIds, typeLabels, value]);
+
+  const close = () => setOpen(false);
 
   return (
-    <SSearchSelectMultiple
-      value={value}
-      onScrollEnd={() => fetchNextPage()}
-      boxProps={{ flex: 1 }}
-      options={options}
-      onSearch={setSearch}
-      loading={isFetching}
-      label={label}
-      popperItemProps={{
-        sx: {
-          p: 0,
-          height: undefined,
-          minHeight: undefined,
-        },
-      }}
-      renderItem={({ option }) => {
-        const type = (option as ActionPlanHierarchyBrowseResultModel).type;
-        const isOffice = type === HierarchyTypeEnum.OFFICE;
-        const fontSize = isOffice ? 14 : 11;
-        return (
-          <SFlex sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
-            <SText fontSize={11} color="grey.700" sx={{ fontWeight: 600 }}>
-              {type
-                ? `${resolveFormHierarchyTypeLabel(type, typeLabels)}:`
-                : ''}
-            </SText>
-            <SText fontSize={fontSize}>{option.name}</SText>
-          </SFlex>
-        );
-      }}
-      getOptionLabel={(option) => option.name}
-      getOptionValue={(option) => option.id}
-      onChange={(option) => {
-        onChange(
-          option.map((res) => ({
-            id: res.id,
-            name: res.name,
-            type: (res as ActionPlanHierarchyBrowseResultModel).type,
-          })),
-        );
-      }}
-    />
+    <>
+      <Button variant="outlined" onClick={() => setOpen(true)}>
+        {value.length ? `Selecionar hierarquias (${value.length})` : 'Selecionar hierarquias'}
+      </Button>
+      {open && (isLoading || isError ? (
+        <Dialog open onClose={close}>
+          <DialogContent>
+            {isError ? 'Não foi possível carregar a estrutura organizacional.' : 'Carregando estrutura organizacional…'}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={close}>Cancelar</Button>
+            {isError && <Button onClick={() => refetch()}>Tentar novamente</Button>}
+          </DialogActions>
+        </Dialog>
+      ) : (
+        <OrganizationalGroupingDialog
+          title="Selecionar setor / hierarquia"
+          groups={groups}
+          counts={null}
+          showRespondents={false}
+          selectedIds={value.flatMap(({ id }) => pathsById.get(id) ?? [])}
+          onClose={close}
+          onApply={(ids) => {
+            onChange(ids.flatMap((id) => valuesByPath.get(id) ?? []));
+            close();
+          }}
+        />
+      ))}
+    </>
   );
-};
+}

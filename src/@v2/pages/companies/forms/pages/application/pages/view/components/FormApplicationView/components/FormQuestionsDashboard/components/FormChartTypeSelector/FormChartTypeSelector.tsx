@@ -34,14 +34,17 @@ export const FormChartTypeSelector = ({
         if (nextValue) onChange(nextValue);
       }}
       aria-label={label}
-      sx={{
+      sx={(theme) => ({
         flexWrap: 'wrap',
         '& .MuiToggleButton-root': {
           textTransform: 'none',
           gap: 0.75,
           px: 1.5,
+          ...(theme.palette.mode === 'dark' && {
+            '& .MuiTypography-root': { color: theme.palette.common.white },
+          }),
         },
-      }}
+      })}
     >
       {FORM_CHART_TYPE_OPTIONS.map((option) => (
         <ToggleButton key={option.value} value={option.value}>

@@ -16,6 +16,7 @@ export const useCompanyContacts = ({
   companyData,
   setCompanyData,
   onClose,
+  isEdit,
   ...rest
 }: IUseAddCompany) => {
   const { trigger, getValues, control, reset } = useFormContext();
@@ -35,6 +36,10 @@ export const useCompanyContacts = ({
   const onSubmit = async ({
     closeAndGoTo,
   }: { closeAndGoTo?: boolean } = {}) => {
+    if (isEdit) {
+      onClose();
+      return;
+    }
     const isValid = await trigger(fields);
 
     if (isValid) {

@@ -90,6 +90,7 @@ import {
   Select,
   SelectChangeEvent,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import {
   useCallback,
@@ -137,6 +138,7 @@ export const FormParticipantsTable = ({
   applicationId: string;
   formApplication?: FormApplicationReadModel;
 }) => {
+  const { palette } = useTheme();
   const typeLabels = useHierarchyTypeLabels();
   const { data: frpsPrivacySettings } = useQueryFrpsPrivacySettings(companyId);
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
@@ -798,6 +800,7 @@ export const FormParticipantsTable = ({
             text="Enviar Todos os Emails"
             icon={<SIconEmail fontSize="16px" />}
             color="info"
+            schema={palette.mode === 'dark' ? { color: 'info.light', borderColor: 'info.light' } : undefined}
             loading={sendFormEmailMutation.isPending}
             disabled={!isAcceptingResponses}
             tooltip={

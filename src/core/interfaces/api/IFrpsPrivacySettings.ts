@@ -4,9 +4,11 @@ export type IFrpsPrivacySettings = {
   indicatorsMinParticipants: 3;
   riskAnalysisAiMinParticipants: FrpsRiskAnalysisAiMinParticipants;
   riskAnalysisAiMinParticipantsIsDefault: boolean;
+  allowPartialResults: boolean;
   canEdit: boolean;
 };
 
 export type IUpdateFrpsPrivacySettings = {
-  riskAnalysisAiMinParticipants: FrpsRiskAnalysisAiMinParticipants;
+  allowPartialResults?: boolean;
+  riskAnalysisAiMinParticipants?: FrpsRiskAnalysisAiMinParticipants;
 };

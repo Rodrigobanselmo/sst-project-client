@@ -40,10 +40,15 @@ export const FormApplicationInfo = ({
         subtitle={formApplication.form.name}
         fontWeight="600"
         accordionProps={{
-          sx: {
+          sx: (theme) => ({
             boxShadow: 'none',
             '&::before': { display: 'none' },
-          },
+            ...(theme.palette.mode === 'dark' && {
+              '& .MuiAccordionSummary-root .MuiTypography-h5': {
+                color: theme.palette.common.white,
+              },
+            }),
+          }),
         }}
         endComponent={
           <SIconButton

@@ -1,3 +1,4 @@
+import deepEqual from 'deep-equal';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
@@ -342,6 +343,11 @@ export const useCoverEdit = ({
   };
 
   const onSubmit = handleSubmit(async (data) => {
+    if (deepEqual(data, form.formState.defaultValues, { strict: true })) {
+      onCloseModal(ModalEnum.COMPANY_EDIT);
+      return;
+    }
+
     const json = buildCoverJson(data);
 
     await upsertCoverMutation.mutateAsync({

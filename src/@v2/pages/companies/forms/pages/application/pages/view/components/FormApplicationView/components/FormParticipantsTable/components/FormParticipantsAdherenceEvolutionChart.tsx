@@ -3,7 +3,7 @@ import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participan
 import {
   groupAdherenceEmailMarkersOnSeries,
 } from '@v2/models/form/helpers/form-participants-adherence-evolution-reminder-markers';
-import { Box } from '@mui/material';
+import { alpha, Box, useTheme } from '@mui/material';
 import {
   BarController,
   BarElement,
@@ -61,6 +61,11 @@ function formatPercent(value: number): string {
 export const FormParticipantsAdherenceEvolutionChart = ({
   evolution,
 }: Props) => {
+  const { palette } = useTheme();
+  const isDark = palette.mode === 'dark';
+  const textColor = palette.text.secondary;
+  const gridColor = alpha(palette.text.primary, isDark ? 0.15 : 0.06);
+  const goalColor = isDark ? textColor : '#546e7a';
   const series = evolution.series;
   const reminderGroups = useMemo(
     () =>
@@ -96,8 +101,8 @@ export const FormParticipantsAdherenceEvolutionChart = ({
         label: 'Novas respostas',
         data: series.map((point) => point.newResponses),
         yAxisID: 'yCount',
-        backgroundColor: 'rgba(25, 118, 210, 0.42)',
-        borderColor: 'rgba(25, 118, 210, 0.85)',
+        backgroundColor: isDark ? 'rgba(100, 181, 246, 0.55)' : 'rgba(25, 118, 210, 0.42)',
+        borderColor: isDark ? '#90caf9' : 'rgba(25, 118, 210, 0.85)',
         borderWidth: 1,
         borderRadius: 3,
         maxBarThickness: 22,
@@ -124,8 +129,8 @@ export const FormParticipantsAdherenceEvolutionChart = ({
         label: `Meta (${formatPercent(goal)}%)`,
         data: series.map(() => goal),
         yAxisID: 'yPercent',
-        borderColor: '#546e7a',
-        backgroundColor: '#546e7a',
+        borderColor: goalColor,
+        backgroundColor: goalColor,
         borderDash: [6, 4],
         pointRadius: 0,
         pointHoverRadius: 0,
@@ -135,11 +140,12 @@ export const FormParticipantsAdherenceEvolutionChart = ({
     }
 
     return { labels, datasets };
-  }, [goal, lineColor, series]);
+  }, [goal, goalColor, isDark, lineColor, series]);
 
   const options = useMemo<ChartOptions<'bar' | 'line'>>(
     () => ({
       responsive: true,
+      color: textColor,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
@@ -187,7 +193,9 @@ export const FormParticipantsAdherenceEvolutionChart = ({
       },
       scales: {
         x: {
+          border: { color: gridColor },
           ticks: {
+            color: textColor,
             autoSkip: true,
             maxTicksLimit: series.length > 60 ? 8 : series.length > 21 ? 10 : 12,
             maxRotation: 0,
@@ -202,29 +210,35 @@ export const FormParticipantsAdherenceEvolutionChart = ({
         },
         yCount: {
           type: 'linear',
+          border: { color: gridColor },
           position: 'left',
           beginAtZero: true,
           ticks: {
+            color: textColor,
             precision: 0,
             font: { size: 11 },
           },
           title: {
+            color: textColor,
             display: true,
             text: 'Novas respostas',
             font: { size: 11 },
           },
-          grid: { color: 'rgba(0,0,0,0.06)' },
+          grid: { color: gridColor },
         },
         yPercent: {
           type: 'linear',
+          border: { color: gridColor },
           position: 'right',
           min: 0,
           max: 100,
           ticks: {
+            color: textColor,
             callback: (value) => `${value}%`,
             font: { size: 11 },
           },
           title: {
+            color: textColor,
             display: true,
             text: 'Adesão acumulada',
             font: { size: 11 },
@@ -233,7 +247,7 @@ export const FormParticipantsAdherenceEvolutionChart = ({
         },
       },
     }),
-    [goal, reminderGroups, series],
+    [goal, gridColor, reminderGroups, series, textColor],
   );
 
   const plugins = useMemo(() => [reminderPlugin], [reminderPlugin]);

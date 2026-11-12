@@ -52,8 +52,8 @@ export const FormParticipantsFilterSummary = ({
         mb: 2,
         borderRadius: 2,
         border: '2px solid',
-        borderColor: 'grey.300',
-        backgroundColor: 'grey.50',
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
       }}
     >
       <Typography
@@ -84,7 +84,7 @@ export const FormParticipantsFilterSummary = ({
               sx={{
                 height: 28,
                 borderRadius: 14,
-                backgroundColor: '#e0e0e0',
+                backgroundColor: 'action.selected',
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: barColor,
                   borderRadius: 14,
@@ -120,15 +120,15 @@ export const FormParticipantsFilterSummary = ({
           </Box>
           <SFlex gap={3} flexWrap="wrap" justifyContent="center" mt={1.25}>
             <Box textAlign="center">
-              <SText fontSize={11} color="grey.600">
+              <SText fontSize={11} color="text.secondary">
                 Participantes
               </SText>
-              <Typography variant="h6" component="span">
+              <Typography variant="h6" component="span" color="text.primary">
                 {summary.totalParticipants}
               </Typography>
             </Box>
             <Box textAlign="center">
-              <SText fontSize={11} color="grey.600">
+              <SText fontSize={11} color="text.secondary">
                 Responderam
               </SText>
               <Typography variant="h6" component="span" color="success.main">
@@ -136,7 +136,7 @@ export const FormParticipantsFilterSummary = ({
               </Typography>
             </Box>
             <Box textAlign="center">
-              <SText fontSize={11} color="grey.600">
+              <SText fontSize={11} color="text.secondary">
                 Não responderam
               </SText>
               <Typography variant="h6" component="span" color="text.secondary">

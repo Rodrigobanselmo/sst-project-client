@@ -2,6 +2,7 @@ import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
 import { usePreventAction } from 'core/hooks/usePreventAction';
+import { dateToDateLessTime } from 'core/utils/date/date-format';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
 import {
@@ -14,6 +15,7 @@ export const useCompanyEdit = ({
   setCompanyData,
   cepMutation,
   onSubmitData,
+  getInitialCompanyData,
   isEdit,
   ...rest
 }: IUseAddCompany) => {
@@ -85,6 +87,40 @@ export const useCompanyEdit = ({
   const onSubmit = async () => {
     const { numAsos, healthSafetyEnvironmentPolicy } = getValues();
 
+    if (isEdit) {
+      const initial = getInitialCompanyData();
+      const doctorId = companyData.doctorResponsible?.id;
+      const asoCount = numAsos === '' || numAsos == null ? undefined : Number(numAsos);
+      const policy = healthSafetyEnvironmentPolicy ?? companyData.healthSafetyEnvironmentPolicy ?? '';
+      const esocialStart = companyData.esocialStart;
+      const changes = {
+        ...(esocialStart &&
+          dateToDateLessTime(esocialStart)?.getTime() !==
+            dateToDateLessTime(initial.esocialStart)?.getTime() && { esocialStart }),
+        ...(companyData.esocialSend !== initial.esocialSend && {
+          esocialSend: companyData.esocialSend,
+        }),
+        ...(doctorId != null && doctorId !== initial.doctorResponsible?.id && {
+          doctorResponsibleId: doctorId,
+        }),
+        ...(asoCount != null && asoCount !== initial.numAsos && { numAsos: asoCount }),
+        ...(companyData.blockResignationExam !== initial.blockResignationExam && {
+          blockResignationExam: companyData.blockResignationExam,
+        }),
+        ...(policy !== (initial.healthSafetyEnvironmentPolicy ?? '') && {
+          healthSafetyEnvironmentPolicy: policy,
+        }),
+      };
+
+      if (!Object.keys(changes).length) {
+        rest.onClose();
+        return;
+      }
+
+      await onSubmitData({ id: companyData.id, ...changes }, nextStep, { save: true });
+      return;
+    }
+
     const submitData = {
       ...companyData,
       numAsos,
@@ -94,7 +130,7 @@ export const useCompanyEdit = ({
       isSavedCreation: !isEdit,
     };
 
-    onSubmitData(submitData, nextStep, { save: true });
+    await onSubmitData(submitData, nextStep, { save: true });
   };
 
   return {

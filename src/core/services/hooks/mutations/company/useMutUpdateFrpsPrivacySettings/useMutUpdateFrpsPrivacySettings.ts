@@ -1,6 +1,8 @@
 import { useMutation } from 'react-query';
 import { useSnackbar } from 'notistack';
 
+import { v2QueryClient } from '@v2/services/query-client';
+import { QueryKeyFormEnum } from '@v2/constants/enums/form-query-key.enum';
 import { FormRoutes } from '@v2/constants/routes/forms.routes';
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -44,10 +46,15 @@ export function useMutUpdateFrpsPrivacySettings() {
     {
       onSuccess: async (result, variables) => {
         if (result) {
-          queryClient.invalidateQueries([
+          queryClient.setQueryData([
             QueryEnum.FRPS_PRIVACY,
             getCompanyId(variables.companyId),
-          ]);
+          ], result);
+          if (variables.allowPartialResults !== undefined) {
+            await v2QueryClient.invalidateQueries({
+              queryKey: [QueryKeyFormEnum.FORM_QUESTIONS_ANSWERS],
+            });
+          }
           enqueueSnackbar('Política de privacidade psicossocial atualizada', {
             variant: 'success',
           });
@@ -55,8 +62,9 @@ export function useMutUpdateFrpsPrivacySettings() {
         return result;
       },
       onError: (error: IErrorResp) => {
+        const message = error.response?.data?.message;
         enqueueSnackbar(
-          error.response?.data?.message ||
+          (Array.isArray(message) ? message.join(' ') : message) ||
             'Não foi possível atualizar a política de privacidade',
           { variant: 'error' },
         );

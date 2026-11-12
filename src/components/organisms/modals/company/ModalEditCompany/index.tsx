@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useCallback, useRef } from 'react';
+import { useTheme } from '@mui/material/styles';
 import { useAccess } from 'core/hooks/useAccess';
 import { IllustrationAdministrationModal } from '../IllustrationAdministration/IllustrationAdministrationModal';
 
@@ -23,6 +24,7 @@ import { JourneysModalCompanyStep } from './components/8-journeys';
 import { useEditCompany } from './hooks/useEditCompany';
 
 export const ModalEditCompany = () => {
+  const theme = useTheme();
   const props = useEditCompany();
   const isEdit = props.isEdit;
   const { isMaster } = useAccess();
@@ -46,17 +48,23 @@ export const ModalEditCompany = () => {
       onClose={closeCompany}
     >
       <SModalPaper
-        sx={
-          isEdit
-            ? {
-                width: { xs: '95vw', lg: 'min(1280px,95vw)' },
-                minWidth: 0,
-                maxWidth: '95vw',
-                maxHeight: '90vh',
-                overflowY: 'auto',
-              }
-            : undefined
-        }
+        sx={{
+          ...(isEdit && {
+            width: { xs: '95vw', lg: 'min(1280px,95vw)' },
+            minWidth: 0,
+            maxWidth: '95vw',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+          }),
+          ...(theme.palette.mode === 'dark' && {
+            '& .MuiFormHelperText-root:not(.Mui-error), & .MuiFormLabel-root:not(.Mui-focused):not(.Mui-error)': {
+              color: theme.palette.text.secondary,
+            },
+            '& img[src="/images/placeholder-image.png"]': {
+              filter: 'invert(1)',
+            },
+          }),
+        }}
         p={8}
         center
       >

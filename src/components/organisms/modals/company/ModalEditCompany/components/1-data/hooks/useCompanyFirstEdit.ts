@@ -7,6 +7,7 @@ import { IUseAddCompany } from '../../../hooks/useEditCompany';
 
 export const useCompanyEdit = ({
   companyData,
+  isEdit,
   onSubmitData,
   ...rest
 }: IUseAddCompany) => {
@@ -57,7 +58,15 @@ export const useCompanyEdit = ({
       } = getValues();
 
       const submitData = {
-        ...companyData,
+        ...(isEdit ? {
+          id: companyData.id,
+          activity_start_date: companyData.activity_start_date,
+          primary_activity: companyData.primary_activity,
+          status: companyData.status,
+          license: companyData.license,
+          isConsulting: companyData.isConsulting,
+          permissions: companyData.permissions,
+        } : companyData),
         name,
         fantasy,
         type,
@@ -70,7 +79,7 @@ export const useCompanyEdit = ({
         unit,
       };
 
-      onSubmitData(submitData, nextStep);
+      onSubmitData(submitData, nextStep, { onlyChanges: true });
     }
   };
 

@@ -9,6 +9,12 @@ import { expandStructuralParticipantGroupsFromHierarchyGroups } from './expandSt
 import { buildStructuralParticipantGroupsForIndicators } from './buildStructuralParticipantGroupsForIndicators';
 import { resolveParticipantStructuresForGrouping } from './resolveParticipantStructuresForGrouping';
 
+import {
+  buildOrganizationalGroups,
+  ORGANIZATIONAL_GROUPING_ID,
+  ORGANIZATIONAL_GROUPING_LABEL,
+} from './organizationalGrouping';
+
 export type HierarchyGroupForIndicators = {
   id: string;
   name: string;
@@ -57,6 +63,10 @@ export function buildParticipantGroupsForIndicators(params: {
     companyLabels,
   } = params;
 
+  if (selectedGroupingQuestionId === ORGANIZATIONAL_GROUPING_ID) {
+    return buildOrganizationalGroups(resolveParticipantStructuresForGrouping(formQuestionsAnswers), companyLabels);
+  }
+
   if (
     selectedGroupingQuestionId &&
     isStructuralIndicatorGroupingKey(selectedGroupingQuestionId)
@@ -91,7 +101,7 @@ export function buildParticipantGroupsForIndicators(params: {
   const effectiveHierarchyGroups = hierarchyGroups;
 
   const results = formQuestionsAnswers?.results ?? [];
-  const [identifierGroup] = results;
+  const identifierGroup = results.find((group) => group.identifier);
 
   if (!identifierGroup) {
     return [
@@ -227,7 +237,17 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
     companyLabels,
   } = params;
 
-  const [identifierGroup] = formQuestionsAnswers.results;
+  const identifierGroup = formQuestionsAnswers.results.find((group) => group.identifier);
+  if (selectedGroupingQuestionId === ORGANIZATIONAL_GROUPING_ID) {
+    return {
+      grouping: {
+        active: true,
+        questionId: selectedGroupingQuestionId,
+        questionLabel: ORGANIZATIONAL_GROUPING_LABEL,
+      },
+      participantGroups: buildParticipantGroupsForIndicators(params),
+    };
+  }
 
   if (!identifierGroup) {
     return {

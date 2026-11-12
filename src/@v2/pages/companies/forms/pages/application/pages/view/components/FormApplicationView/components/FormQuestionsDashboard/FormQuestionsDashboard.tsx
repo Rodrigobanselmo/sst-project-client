@@ -11,7 +11,6 @@ import {
   Button,
   CircularProgress,
   LinearProgress,
-  ListSubheader,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
@@ -55,21 +54,17 @@ import { useFetchBrowseFormQuestionsAnswersRisks } from '@v2/services/forms/form
 import { useFetchBrowseAllFormParticipantsForGrouping } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseAllFormParticipantsForGrouping';
 import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseFormParticipants';
 import {
-  getStructuralIndicatorGroupingConfig,
-  getStructuralIndicatorGroupingLabel,
-  isStructuralIndicatorGroupingKey,
-  STRUCTURAL_INDICATOR_GROUPING_CONFIGS,
-} from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
-import {
   buildParticipantGroupsForIndicators,
   type ParticipantGroupForIndicators,
 } from './helpers/buildParticipantGroupsForIndicators';
 import {
-  INDICATORS_GROUPING_SECTION_IDENTIFICATION_ID,
-  INDICATORS_GROUPING_SECTION_STRUCTURAL_ID,
-  isIndicatorsGroupingSelectableOption,
-  type IndicatorsGroupingSelectOption,
-} from './helpers/indicators-grouping-select.types';
+  buildOrganizationalGroups,
+  ORGANIZATIONAL_GROUPING_ID,
+  ORGANIZATIONAL_GROUPING_LABEL,
+  organizationalPath,
+  organizationalPathIds,
+} from './helpers/organizationalGrouping';
+import { OrganizationalGroupingDialog } from './components/OrganizationalGroupingDialog';
 import { resolveParticipantStructuresForGrouping } from './helpers/resolveParticipantStructuresForGrouping';
 import { buildParticipantGroupingEnrichmentContext } from './helpers/buildParticipantGroupingEnrichmentContext';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
@@ -609,11 +604,10 @@ export const FormQuestionsDashboard = ({
   const isPsychosocialForm =
     formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
   const isShareableLink = formApplication.isShareableLink;
-  const isInProgressPsychosocialForm =
-    isPsychosocialForm &&
-    formApplication.status === FormApplicationStatusEnum.PROGRESS;
+  const isPartialPsychosocialForm =
+    isPsychosocialForm && !isDone;
   const formQuestionsAnswers = useMemo(() => {
-    if (!isInProgressPsychosocialForm || !campaignAnswers) return campaignAnswers;
+    if (!isPartialPsychosocialForm || !campaignAnswers) return campaignAnswers;
 
     return new FormQuestionsAnswersBrowseModel({
       participantStructures: campaignAnswers.participantStructures,
@@ -638,9 +632,10 @@ export const FormQuestionsDashboard = ({
         });
       }),
     });
-  }, [campaignAnswers, isInProgressPsychosocialForm]);
+  }, [campaignAnswers, isPartialPsychosocialForm]);
   const canViewPartialResults =
-    isInProgressPsychosocialForm &&
+    isPartialPsychosocialForm &&
+    campaignAnswers?.allowPartialResults === true &&
     (formQuestionsAnswers?.results.some(
       (group) =>
         !group.identifier &&
@@ -659,24 +654,20 @@ export const FormQuestionsDashboard = ({
     canViewParticipants && formApplication.totalAnswers === 0;
   const canViewResults =
     !showParticipantSetup &&
-    (isInProgressPsychosocialForm
+    (isPartialPsychosocialForm
       ? canViewPartialResults
       : isShareableLink || isDone || isCanceled);
   const canAnalyzeRisks = isPsychosocialForm && isDone && canViewResults;
 
-  const initialTab = showParticipantSetup
-    ? 6
-    : isCanceled
-      ? 2
-      : canViewPartialResults
-        ? 2
-        : isShareableLink || isDone
-          ? 1
-          : 6;
+  const initialResultsTab = isCanceled || canViewPartialResults ? 2 : 1;
+  const initialManagementTab = canViewParticipants ? 6 : 5;
+  const initialTab = canViewResults ? initialResultsTab : initialManagementTab;
   const [selectedTab, setTabTableIndex] = useState<number | null>(null);
   const tabTableIndex =
     selectedTab !== null &&
     (canViewResults || selectedTab >= 5) &&
+    (!isPartialPsychosocialForm || selectedTab !== 3) &&
+    (canAnalyzeRisks || selectedTab !== 4) &&
     (selectedTab !== 6 || canViewParticipants)
       ? selectedTab
       : initialTab;
@@ -710,9 +701,9 @@ export const FormQuestionsDashboard = ({
     (indicatorView === 'radar-dimensions' && canShowDimensionRadar)
       ? indicatorView
       : 'bars';
-  const [selectedGroupingQuestion, setSelectedGroupingQuestion] = useState<
-    string | null
-  >(null);
+  const [identificationQuestionId, setIdentificationQuestionId] = useState<string | null>(null);
+  const [organizationDialogOpen, setOrganizationDialogOpen] = useState(false);
+  const [organizationGroupIds, setOrganizationGroupIds] = useState<string[]>([]);
   // State for controlling whether to show only group indicators or individual questions too
   const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
     useState<boolean>(false);
@@ -779,101 +770,40 @@ export const FormQuestionsDashboard = ({
     [formQuestionsAnswers],
   );
 
-  const showStructuralGroupingOptions =
-    participantStructuresForGrouping.length > 0;
-
-  const groupingSelectOptions =
-    useMemo((): IndicatorsGroupingSelectOption[] => {
-      const options: IndicatorsGroupingSelectOption[] = [];
-
-      const questionOptions: IndicatorsGroupingSelectOption[] =
-        availableGroupingQuestions.map((question) => ({
-          kind: 'question',
-          id: question.id,
-          label: question.textWithoutHtml,
-          question,
-        }));
-
-      if (questionOptions.length > 0) {
-        options.push({
-          kind: 'section',
-          id: INDICATORS_GROUPING_SECTION_IDENTIFICATION_ID,
-          label: 'Identificação',
-        });
-        options.push(...questionOptions);
-      }
-
-      if (showStructuralGroupingOptions) {
-        options.push({
-          kind: 'section',
-          id: INDICATORS_GROUPING_SECTION_STRUCTURAL_ID,
-          label: 'Estrutura organizacional',
-          withTopSpacing: questionOptions.length > 0,
-        });
-        options.push(
-          ...STRUCTURAL_INDICATOR_GROUPING_CONFIGS.map((config) => ({
-            kind: 'structural' as const,
-            id: config.key,
-            label: getStructuralIndicatorGroupingLabel(config.key, typeLabels),
-          })),
-        );
-      }
-
-      return options;
-    }, [availableGroupingQuestions, showStructuralGroupingOptions, typeLabels]);
-
-  const selectableGroupingOptions = useMemo(
-    () => groupingSelectOptions.filter(isIndicatorsGroupingSelectableOption),
-    [groupingSelectOptions],
+  const organizationalGroups = useMemo(
+    () => buildOrganizationalGroups(participantStructuresForGrouping, typeLabels),
+    [participantStructuresForGrouping, typeLabels],
   );
-
-  const selectedGroupingOption = useMemo(
-    () =>
-      selectableGroupingOptions.find(
-        (o) => o.id === selectedGroupingQuestion,
-      ) ?? null,
-    [selectableGroupingOptions, selectedGroupingQuestion],
+  const organizationSelection = useMemo(() => {
+    const available = new Set(organizationalGroups.map(({ id }) => id));
+    return organizationGroupIds.filter((id) => available.has(id));
+  }, [organizationGroupIds, organizationalGroups]);
+  const isOrganizationalGrouping = organizationSelection.length > 0;
+  const selectedGroupingQuestion = isOrganizationalGrouping
+    ? ORGANIZATIONAL_GROUPING_ID
+    : identificationQuestionId;
+  const selectedIdentificationQuestion = availableGroupingQuestions.find(
+    ({ id }) => id === identificationQuestionId,
   );
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || !formQuestionsAnswers) {
-      return;
-    }
-    console.debug('[FormQuestionsDashboard] grouping data', {
-      apiParticipantStructuresLength:
-        formQuestionsAnswers.participantStructures.length,
-      resolvedParticipantStructuresLength:
-        participantStructuresForGrouping.length,
-      groupingSelectOptionsLength: groupingSelectOptions.length,
-      structuralOptionsInSelect: groupingSelectOptions.filter(
-        (o) => o.kind === 'structural',
-      ).length,
-    });
-  }, [
-    formQuestionsAnswers,
-    participantStructuresForGrouping.length,
-    groupingSelectOptions,
-  ]);
-
-  const selectedGroupingLabel = selectedGroupingOption?.label ?? null;
-
-  const groupingQuestion = useMemo(() => {
-    if (selectedGroupingOption?.kind !== 'question') return null;
-    return selectedGroupingOption.question;
-  }, [selectedGroupingOption]);
+  const selectedGroupingLabel = isOrganizationalGrouping
+    ? ORGANIZATIONAL_GROUPING_LABEL
+    : selectedIdentificationQuestion?.textWithoutHtml ?? null;
 
   const participantGroups = useMemo(
-    () =>
-      buildParticipantGroupsForIndicators({
-        formQuestionsAnswers,
-        selectedGroupingQuestionId: selectedGroupingQuestion,
-        hierarchyGroups,
-        groupingEnrichment,
-        companyLabels: typeLabels,
-      }),
+    () => isOrganizationalGrouping
+      ? organizationalGroups
+      : buildParticipantGroupsForIndicators({
+          formQuestionsAnswers,
+          selectedGroupingQuestionId: identificationQuestionId,
+          hierarchyGroups,
+          groupingEnrichment,
+          companyLabels: typeLabels,
+        }),
     [
+      isOrganizationalGrouping,
+      organizationalGroups,
       formQuestionsAnswers,
-      selectedGroupingQuestion,
+      identificationQuestionId,
       hierarchyGroups,
       groupingEnrichment,
       typeLabels,
@@ -885,38 +815,24 @@ export const FormQuestionsDashboard = ({
       companyId: accessCompanyId,
       applicationId: formApplication.id,
       enabled:
-        isStructuralIndicatorGroupingKey(selectedGroupingQuestion) &&
+        (organizationDialogOpen || isOrganizationalGrouping) &&
         !!formParticipants &&
         formParticipants.results.length < formParticipants.pagination.total,
     });
   const campaignParticipants = paginatedParticipants ?? formParticipants;
-
   const campaignEmployeesByGroup = useMemo(() => {
-    if (
-      !isStructuralIndicatorGroupingKey(selectedGroupingQuestion) ||
-      !campaignParticipants ||
-      campaignParticipants.results.length < campaignParticipants.pagination.total
-    ) {
+    if (!campaignParticipants ||
+        campaignParticipants.results.length < campaignParticipants.pagination.total) {
       return null;
     }
-
-    const config = getStructuralIndicatorGroupingConfig(selectedGroupingQuestion);
-    if (!config) return null;
-
     const counts = new Map<string, number>();
     for (const participant of campaignParticipants.results) {
-      const { groupId } = config.resolveGroup({
-        participantsAnswersId: '',
-        companyId: participant.companyId,
-        companyName: null,
-        workspaceId: participant.workspaceId,
-        workspaceName: participant.workspaceName,
-        hierarchies: participant.hierarchies,
-      });
-      counts.set(groupId, (counts.get(groupId) ?? 0) + 1);
+      for (const id of organizationalPathIds(organizationalPath(participant))) {
+        counts.set(id, (counts.get(id) ?? 0) + 1);
+      }
     }
     return counts;
-  }, [campaignParticipants, selectedGroupingQuestion]);
+  }, [campaignParticipants]);
 
   const participantGroupIdsKey = useMemo(
     () =>
@@ -938,13 +854,13 @@ export const FormQuestionsDashboard = ({
 
   const defaultParticipantGroupIds = useMemo(
     () =>
-      (isInProgressPsychosocialForm
+      (isPartialPsychosocialForm
         ? participantGroups
             .filter((group) => group.participantIds.size >= PARTIAL_RESULTS_MINIMUM)
             .slice(0, 1)
         : participantGroups
       ).map((group) => group.id),
-    [isInProgressPsychosocialForm, participantGroups],
+    [isPartialPsychosocialForm, participantGroups],
   );
 
   useEffect(() => {
@@ -959,6 +875,7 @@ export const FormQuestionsDashboard = ({
   }, [selectedGroupingQuestion, groupingSelectionKey, defaultParticipantGroupIds]);
 
   const selectedParticipantGroupIdsForView = useMemo(() => {
+    if (isOrganizationalGrouping) return organizationSelection;
     if (!selectedGroupingQuestion) return null;
     if (groupingSelectionState.key !== groupingSelectionKey) {
       return defaultParticipantGroupIds;
@@ -969,6 +886,8 @@ export const FormQuestionsDashboard = ({
     groupingSelectionKey,
     groupingSelectionState,
     defaultParticipantGroupIds,
+    isOrganizationalGrouping,
+    organizationSelection,
   ]);
 
   const visibleParticipantGroups = useMemo(() => {
@@ -997,6 +916,19 @@ export const FormQuestionsDashboard = ({
     ],
   );
 
+  const participantGroupingOverride = useMemo(() =>
+    selectedGroupingQuestion && selectedGroupingLabel
+      ? {
+          grouping: {
+            active: true as const,
+            questionId: selectedGroupingQuestion,
+            questionLabel: selectedGroupingLabel,
+          },
+          participantGroups,
+        }
+      : undefined,
+  [selectedGroupingQuestion, selectedGroupingLabel, participantGroups]);
+
   const indicatorsDatasetForView = useMemo(() => {
     if (!formQuestionsAnswers || !isIndicatorTab) return null;
 
@@ -1007,9 +939,10 @@ export const FormQuestionsDashboard = ({
         showOnlyGroupIndicators,
         executiveDistributionChartType,
         narrativeDiagnosticMarkdown: null,
-        isShareableLink: isShareableLink && !isInProgressPsychosocialForm,
-        partialResults: isInProgressPsychosocialForm,
+        isShareableLink: isShareableLink && !isPartialPsychosocialForm,
+        partialResults: isPartialPsychosocialForm,
         hierarchyGroups,
+        participantGroupingOverride,
         ...(selectedGroupingQuestion && selectedParticipantGroupIdsForView
           ? { visibleParticipantGroupIds: selectedParticipantGroupIdsForView }
           : {}),
@@ -1026,8 +959,9 @@ export const FormQuestionsDashboard = ({
     showOnlyGroupIndicators,
     executiveDistributionChartType,
     isShareableLink,
-    isInProgressPsychosocialForm,
+    isPartialPsychosocialForm,
     hierarchyGroups,
+    participantGroupingOverride,
     selectedParticipantGroupIdsForView,
   ]);
 
@@ -1060,13 +994,13 @@ export const FormQuestionsDashboard = ({
             answers: filterIndicatorAnswers(
               question.answers,
               filteredParticipantIds,
-              isInProgressPsychosocialForm && !group.identifier
+              isPartialPsychosocialForm && !group.identifier
                 ? new Set(question.options.map(({ id }) => id))
                 : undefined,
             ),
           })),
       ),
-    [isInProgressPsychosocialForm],
+    [isPartialPsychosocialForm],
   );
 
   const requireIndicatorLevel =
@@ -1074,7 +1008,8 @@ export const FormQuestionsDashboard = ({
   const usesDimensionSections = !!indicatorHierarchy?.scaleResults;
   const canShowNarrative =
     !isCanceled &&
-    !isInProgressPsychosocialForm &&
+    !isOrganizationalGrouping &&
+    !isPartialPsychosocialForm &&
     (!indicatorHierarchy ||
       (usesDimensionSections
         ? indicatorLevels.dimensions && !indicatorLevels.scales
@@ -1089,7 +1024,8 @@ export const FormQuestionsDashboard = ({
 
   const handleCreateGroupAnalysis = (questionId: string) => {
     if (questionId) ensureIndicatorLevel();
-    setSelectedGroupingQuestion(questionId);
+    setOrganizationGroupIds([]);
+    setIdentificationQuestionId(questionId);
   };
 
   const identifierQuestions = identifierGroup
@@ -1136,7 +1072,7 @@ export const FormQuestionsDashboard = ({
     }
 
     let radarQuestions = generalQuestionsArrays;
-    if (isInProgressPsychosocialForm && selectedGroupingQuestion && consolidateRadar) {
+    if (isPartialPsychosocialForm && selectedGroupingQuestion && consolidateRadar) {
       const participantIds = new Set<string>();
       for (const group of visibleParticipantGroups) {
         for (const id of group.participantIds) participantIds.add(id);
@@ -1155,7 +1091,7 @@ export const FormQuestionsDashboard = ({
     return radarQuestions.map(
       ({ groupId, groupName, participantCount, questions }) => {
         const isProtected =
-          (!isShareableLink || isInProgressPsychosocialForm) && participantCount < 3;
+          (!isShareableLink || isPartialPsychosocialForm) && participantCount < 3;
         const questionsByScale = new Map<string, typeof questions>();
         for (const question of questions) {
           const scale = questionsByScale.get(question.groupId) ?? [];
@@ -1208,7 +1144,7 @@ export const FormQuestionsDashboard = ({
     selectedGroupingQuestion,
     visibleParticipantGroups,
     indicatorHierarchy,
-    isInProgressPsychosocialForm,
+    isPartialPsychosocialForm,
     isShareableLink,
   ]);
 
@@ -1301,7 +1237,7 @@ export const FormQuestionsDashboard = ({
     <SFlex direction="column" gap={16}>
       {/* Identifier Section */}
       {canViewResults &&
-        !isInProgressPsychosocialForm &&
+        !isPartialPsychosocialForm &&
         identifierQuestions.length > 0 && (
           <Box sx={{ p: 3 }}>
             <SAccordion
@@ -1350,8 +1286,8 @@ export const FormQuestionsDashboard = ({
       {canViewResults && (
         <Box sx={{ p: 3 }}>
           {/* Grouping Section */}
-          {groupingSelectOptions.length > 0 &&
-            hasGeneralQuestionsForAnyParticipantGroup && (
+          {(availableGroupingQuestions.length > 0 || organizationalGroups.length > 0) &&
+            (hasGeneralQuestionsForAnyParticipantGroup || selectedGroupingQuestion) && (
               <Box>
                 <SectionHeader
                   icon={<FilterListIcon sx={{ fontSize: 30 }} />}
@@ -1363,85 +1299,43 @@ export const FormQuestionsDashboard = ({
                   }}
                 >
                   <SFlex direction="column" gap={3}>
-                    {/* Grouping Controls */}
-                    <Box>
-                      <SSearchSelect<IndicatorsGroupingSelectOption>
-                        inputProps={{ sx: { width: 300 } }}
-                        label="Selecionar pergunta para agrupar"
-                        getOptionLabel={(option) => option.label}
-                        getOptionValue={(option) => option.id}
-                        getOptionIsDisabled={(option) =>
-                          option.kind === 'section'
-                        }
-                        renderFullOption={({
-                          option,
-                          handleSelect,
-                          isSelected,
-                        }) => {
-                          if (option.kind === 'section') {
-                            return (
-                              <ListSubheader
-                                key={option.id}
-                                disableSticky
-                                sx={{
-                                  fontWeight: 700,
-                                  fontSize: '0.875rem',
-                                  lineHeight: 1.5,
-                                  color: 'primary.dark',
-                                  pointerEvents: 'none',
-                                  py: 0.5,
-                                  backgroundColor: 'transparent',
-                                  ...(option.withTopSpacing
-                                    ? { mt: 1.5, pt: 1 }
-                                    : {}),
-                                }}
-                              >
-                                {option.label}
-                              </ListSubheader>
-                            );
+                    <SFlex gap={3} flexWrap="wrap" alignItems="center">
+                      {organizationalGroups.length > 0 && (
+                        <Button variant="outlined" onClick={() => setOrganizationDialogOpen(true)}>
+                          Selecionar grupos da estrutura organizacional
+                        </Button>
+                      )}
+                      {availableGroupingQuestions.length > 0 && (
+                        <SSearchSelect<(typeof availableGroupingQuestions)[number]>
+                          inputProps={{ sx: { width: 300, maxWidth: '100%' } }}
+                          label="Agrupar por pergunta de identificação"
+                          options={availableGroupingQuestions}
+                          value={selectedIdentificationQuestion ?? null}
+                          getOptionLabel={(option) => option.textWithoutHtml}
+                          getOptionValue={(option) => option.id}
+                          onChange={(option) => {
+                            if (option) handleCreateGroupAnalysis(option.id);
+                            else setIdentificationQuestionId(null);
+                          }}
+                        />
+                      )}
+                    </SFlex>
+                    {organizationDialogOpen && (
+                      <OrganizationalGroupingDialog
+                        groups={organizationalGroups}
+                        selectedIds={organizationSelection}
+                        counts={campaignEmployeesByGroup}
+                        onClose={() => setOrganizationDialogOpen(false)}
+                        onApply={(ids) => {
+                          if (ids.length) {
+                            ensureIndicatorLevel();
+                            setIdentificationQuestionId(null);
                           }
-                          return (
-                            <Box
-                              key={option.id}
-                              onClick={handleSelect}
-                              sx={{
-                                px: 2,
-                                py: 1,
-                                cursor: 'pointer',
-                                backgroundColor: isSelected
-                                  ? 'action.selected'
-                                  : undefined,
-                                '&:hover': { backgroundColor: 'action.hover' },
-                              }}
-                            >
-                              <Typography
-                                variant="body2"
-                                color={(theme) =>
-                                  theme.palette.mode === 'dark'
-                                    ? theme.palette.common.white
-                                    : undefined
-                                }
-                              >
-                                {option.label}
-                              </Typography>
-                            </Box>
-                          );
+                          setOrganizationGroupIds(ids);
+                          setOrganizationDialogOpen(false);
                         }}
-                        onChange={(option) => {
-                          if (
-                            !option ||
-                            !isIndicatorsGroupingSelectableOption(option)
-                          ) {
-                            setSelectedGroupingQuestion(null);
-                            return;
-                          }
-                          handleCreateGroupAnalysis(option.id);
-                        }}
-                        value={selectedGroupingOption}
-                        options={groupingSelectOptions}
-                        placeholder="selecione uma pergunta de identificação..."
                       />
-                    </Box>
+                    )}
 
                     {/* Selected Grouping Info */}
                     {selectedGroupingQuestion && selectedGroupingLabel && (
@@ -1454,7 +1348,7 @@ export const FormQuestionsDashboard = ({
                         >
                           Agrupando por: {selectedGroupingLabel}
                         </Typography>
-                        <SSearchSelectMultiple<ParticipantGroupForIndicators>
+                        {!isOrganizationalGrouping && <SSearchSelectMultiple<ParticipantGroupForIndicators>
                           label="Grupos exibidos (filtro de visualização e PDF)"
                           placeholder="Pesquisar grupos..."
                           options={participantGroups}
@@ -1466,11 +1360,7 @@ export const FormQuestionsDashboard = ({
                           getOptionLabel={(group) => {
                             const respondents = group.participantIds.size;
                             const respondentLabel = respondents === 1 ? 'respondente' : 'respondentes';
-                            const employees = campaignEmployeesByGroup
-                              ? campaignEmployeesByGroup.get(group.id) ?? 0
-                              : undefined;
-                            const total = employees === undefined ? '' : ` de ${employees}`;
-                            return `${group.name} (${respondents} ${respondentLabel}${total})`;
+                            return `${group.name} (${respondents} ${respondentLabel})`;
                           }}
                           getOptionValue={(g) => g.id}
                           onChange={(selected) => {
@@ -1480,12 +1370,18 @@ export const FormQuestionsDashboard = ({
                             });
                           }}
                           boxProps={{ sx: { maxWidth: '100%' } }}
-                        />
+                        />}
+                        {isOrganizationalGrouping && visibleParticipantGroups.map((group) => (
+                          <Typography key={group.id} variant="body2" color="text.secondary">{group.name}</Typography>
+                        ))}
                         <Button
                           size="small"
                           color="error"
                           startIcon={<ClearIcon />}
-                          onClick={() => setSelectedGroupingQuestion(null)}
+                          onClick={() => {
+                            setIdentificationQuestionId(null);
+                            setOrganizationGroupIds([]);
+                          }}
                           sx={{ mt: 2 }}
                         >
                           Remover agrupamento
@@ -1497,7 +1393,7 @@ export const FormQuestionsDashboard = ({
                     <Box>
                       <Typography variant="body2" color="text.secondary">
                         {selectedGroupingQuestion
-                          ? `Total de ${participantGroups.length} grupos no agrupamento · Exibindo ${visibleParticipantGroups.length}`
+                          ? `Exibindo ${visibleParticipantGroups.length} de ${participantGroups.length} grupos`
                           : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
                       </Typography>
                     </Box>
@@ -1595,7 +1491,7 @@ export const FormQuestionsDashboard = ({
                           {
                             accessCompanyId,
                             formApplication: reportApplication,
-                            partialResults: isInProgressPsychosocialForm,
+                            partialResults: isPartialPsychosocialForm,
                             formQuestionsAnswers,
                             dimensionView: indicatorHierarchy,
                             levels: indicatorLevels,
@@ -1606,6 +1502,7 @@ export const FormQuestionsDashboard = ({
                             showOnlyGroupIndicators,
                             executiveDistributionChartType,
                             hierarchyGroups,
+                            participantGroupingOverride,
                             ...(selectedGroupingQuestion &&
                             selectedParticipantGroupIdsForView
                               ? {
@@ -1694,11 +1591,12 @@ export const FormQuestionsDashboard = ({
                     try {
                       await exportFormChartsPdfInBrowser({
                         formApplication: reportApplication,
-                        partialResults: isInProgressPsychosocialForm,
+                        partialResults: isPartialPsychosocialForm,
                         formQuestionsAnswers,
                         selectedGroupingQuestionId: selectedGroupingQuestion,
                         chartType: chartsChartType,
                         hierarchyGroups,
+                        participantGroupingOverride,
                         ...(selectedGroupingQuestion &&
                         selectedParticipantGroupIdsForView
                           ? {
@@ -1893,7 +1791,7 @@ export const FormQuestionsDashboard = ({
                       label: 'Indicadores',
                       value: 2,
                     },
-                    ...(!isInProgressPsychosocialForm
+                    ...(!isPartialPsychosocialForm
                       ? [{ label: 'Respostas de Texto', value: 3 }]
                       : []),
                   ]
@@ -2040,7 +1938,7 @@ export const FormQuestionsDashboard = ({
                         byDimension={activeIndicatorView === 'radar-dimensions'}
                         groups={radarGroups}
                         onConsolidationChange={
-                          isInProgressPsychosocialForm && selectedGroupingQuestion
+                          isPartialPsychosocialForm && selectedGroupingQuestion
                             ? setConsolidateRadar
                             : undefined
                         }
@@ -2114,6 +2012,7 @@ export const FormQuestionsDashboard = ({
                             <SPaper key={questionData.id} mb={6} px={8} py={8}>
                               <HtmlContentRenderer
                                 content={questionData.details.text}
+                                useThemeTextColor
                               />
                               <SDivider sx={{ mt: 8, mb: 4 }} />
 
@@ -2162,7 +2061,8 @@ export const FormQuestionsDashboard = ({
                           sx={{
                             p: 8,
                             fontWeight: 600,
-                            backgroundColor: 'grey.100',
+                            backgroundColor: 'background.lightGray',
+                            color: 'text.primary',
                             mb: 4,
                           }}
                         >

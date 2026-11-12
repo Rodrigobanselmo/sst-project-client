@@ -18,6 +18,7 @@ import {
 
 export const useCompanyEdit = ({
   companyData,
+  isEdit,
   setCompanyData,
   onSubmitData,
   ...rest
@@ -112,17 +113,17 @@ export const useCompanyEdit = ({
       });
 
       const submitData = {
-        ...companyData,
+        ...(isEdit ? { id: companyData.id } : companyData),
         description,
         operationTime,
         mission: mission ?? '',
         vision: vision ?? '',
         values: values ?? '',
         metadata: mergedMetadata,
-        companyId: companyData.id,
+        ...(!isEdit && { companyId: companyData.id }),
       };
 
-      onSubmitData(submitData, nextStep);
+      onSubmitData(submitData, nextStep, { onlyChanges: true });
     }
   };
 

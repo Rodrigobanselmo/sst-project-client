@@ -26,6 +26,7 @@ export function normalizeFormQuestionsAnswersBrowsePayload(
       : [];
 
   return {
+    allowPartialResults: raw.allowPartialResults === true,
     results: (raw.results ??
       []) as IFormQuestionsAnswersBrowseModel['results'],
     participantStructures,
