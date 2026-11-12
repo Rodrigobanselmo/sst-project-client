@@ -1,3 +1,4 @@
+import { filterIndicatorAnswers } from './filterIndicatorAnswers';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormAnswerBrowseModel } from '@v2/models/form/models/form-questions-answers/form-answer-browse.model';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
@@ -79,20 +80,10 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>?/g, '').trim();
 }
 
-const filterAnswersByParticipants = (
-  answers: FormAnswerBrowseModel[],
-  participantIds: Set<string> | null,
-) => {
-  if (!participantIds) return answers;
-  return answers.filter((answer) =>
-    participantIds.has(answer.participantsAnswersId),
-  );
-};
-
-/** Mesmo critério de `filterQuestionsWithOptions` no FormQuestionsDashboard (gráficos / indicadores). */
 const buildQuestionsWithOptions = (
   groups: FormQuestionsAnswersBrowseModel['results'],
   filteredParticipantIds?: Set<string> | null,
+  partialResults = false,
 ): QuestionForChart[] => {
   return groups.flatMap((group) =>
     group.questions
@@ -114,12 +105,11 @@ const buildQuestionsWithOptions = (
           ...option,
           value: option.value ? 6 - option.value : option.value,
         })),
-        answers: filteredParticipantIds
-          ? filterAnswersByParticipants(
-              question.answers,
-              filteredParticipantIds,
-            )
-          : question.answers,
+        answers: filterIndicatorAnswers(
+          question.answers,
+          filteredParticipantIds,
+          partialResults ? new Set(question.options.map(({ id }) => id)) : undefined,
+        ),
       })),
   );
 };
@@ -148,6 +138,7 @@ function toPieRowPdf(
 
 export function buildFormChartsPdfDataset(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
+  partialResults?: boolean;
   selectedGroupingQuestionId: string | null;
   chartType?: FormChartType;
   isShareableLink: boolean;
@@ -168,6 +159,7 @@ export function buildFormChartsPdfDataset(params: {
     selectedGroupingQuestionId,
     chartType = DEFAULT_FORM_CHART_TYPE,
     isShareableLink,
+    partialResults,
     hierarchyGroups = [],
     visibleParticipantGroupIds,
     participantGroupingOverride,
@@ -196,6 +188,7 @@ export function buildFormChartsPdfDataset(params: {
   const generalGroups = formQuestionsAnswers.results.filter((group) => !group.identifier);
 
   const identifierQuestions = identifierGroup
+    && !partialResults
     ? buildQuestionsWithOptions([identifierGroup])
     : [];
 
@@ -214,7 +207,7 @@ export function buildFormChartsPdfDataset(params: {
     groupId: group.id,
     groupName: group.name,
     participantCount: group.participantIds.size,
-    questions: buildQuestionsWithOptions(generalGroups, group.participantIds),
+    questions: buildQuestionsWithOptions(generalGroups, group.participantIds, partialResults),
   }));
 
   const allQuestions = new Map<string, QuestionWithParticipantGroups>();

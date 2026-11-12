@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
@@ -34,6 +35,7 @@ export const FormApplicationStatusChange = ({
   formApplication,
   companyId,
 }: FormApplicationStatusChangeProps) => {
+  const { palette } = useTheme();
   const { mutate: editFormApplication, isPending } =
     useMutateEditFormApplication();
   const [closingReviewOpen, setClosingReviewOpen] = useState(false);
@@ -66,6 +68,12 @@ export const FormApplicationStatusChange = ({
     (option) => option.value === formApplication.status,
   );
 
+  const statusSchema = FormApplicationStatusMap[formApplication.status].schema;
+  const buttonSchema =
+    palette.mode === 'dark' && formApplication.status === FormApplicationStatusEnum.PROGRESS
+      ? { ...statusSchema, color: 'info.light', borderColor: 'info.light', iconColor: 'info.light' }
+      : statusSchema;
+
   return (
     <>
       <SSearchSelect
@@ -89,7 +97,7 @@ export const FormApplicationStatusChange = ({
             }
             disabled={isPending}
             loading={isPending}
-            schema={FormApplicationStatusMap[formApplication.status].schema}
+            schema={buttonSchema}
           />
         )}
         renderItem={({ option }) => (

@@ -34,8 +34,8 @@ export const ExecutiveIndicatorsDistributionSection = ({
         p: { xs: 6, sm: 8 },
         borderRadius: 2,
         border: '1px solid',
-        borderColor: 'grey.200',
-        backgroundColor: '#fff',
+        borderColor: 'divider',
+        backgroundColor: 'background.paper',
       }}
     >
       <Box

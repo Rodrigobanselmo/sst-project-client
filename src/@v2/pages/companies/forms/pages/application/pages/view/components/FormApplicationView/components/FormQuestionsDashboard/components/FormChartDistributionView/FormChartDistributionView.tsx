@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { ResponsiveBar } from '@nivo/bar';
 import { ResponsivePie } from '@nivo/pie';
 
@@ -19,6 +19,8 @@ export const FormChartDistributionView = ({
   chartType,
   height = 200,
 }: FormChartDistributionViewProps) => {
+  const { palette } = useTheme();
+
   if (rows.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary" textAlign="center">
@@ -47,6 +49,10 @@ export const FormChartDistributionView = ({
             colors={({ data }) => data.color}
             borderRadius={2}
             enableGridY={false}
+            theme={{
+              axis: { ticks: { text: { fill: palette.text.primary } } },
+              grid: { line: { stroke: palette.divider } },
+            }}
             axisBottom={null}
             axisLeft={{
               tickSize: 0,
@@ -61,11 +67,12 @@ export const FormChartDistributionView = ({
               return (
                 <Box
                   sx={{
-                    background: 'white',
+                    backgroundColor: 'background.paper',
                     padding: '8px 12px',
-                    border: '1px solid #ccc',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     borderRadius: '4px',
-                    color: 'black',
+                    color: 'text.primary',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                   }}
                 >
@@ -109,7 +116,7 @@ export const FormChartDistributionView = ({
           activeOuterRadiusOffset={8}
           arcLinkLabel={(data) => `${data.label}`}
           arcLinkLabelsSkipAngle={10}
-          arcLinkLabelsTextColor="#333333"
+          arcLinkLabelsTextColor={palette.text.primary}
           arcLinkLabelsThickness={2}
           arcLinkLabelsColor={{ from: 'color' }}
           colors={{ datum: 'data.color' }}
@@ -124,12 +131,13 @@ export const FormChartDistributionView = ({
           tooltip={({ datum }) => (
             <Box
               sx={{
-                background: 'white',
+                backgroundColor: 'background.paper',
                 padding: '8px 12px',
-                border: '1px solid #ccc',
+                border: '1px solid',
+                borderColor: 'divider',
                 borderRadius: '4px',
                 width: '300px',
-                color: 'black',
+                color: 'text.primary',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
               }}
             >

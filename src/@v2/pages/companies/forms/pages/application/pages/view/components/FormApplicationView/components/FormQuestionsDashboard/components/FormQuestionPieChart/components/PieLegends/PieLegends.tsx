@@ -1,3 +1,5 @@
+import { useTheme } from '@mui/material';
+
 export const PieLegends = ({
   data,
   total,
@@ -9,6 +11,7 @@ export const PieLegends = ({
   }[];
   total: number;
 }) => {
+  const { palette } = useTheme();
   const newData = [...data];
 
   if (total) newData.push({ label: 'Total', color: '', value: total });
@@ -34,7 +37,7 @@ export const PieLegends = ({
               marginBottom: 8,
               marginRight: 16,
               fontSize: 12,
-              color: 'rgb(51, 51, 51)',
+              color: palette.text.primary,
               fontWeight: !item.color ? 600 : 400,
             }}
           >

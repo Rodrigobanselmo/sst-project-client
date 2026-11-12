@@ -16,8 +16,9 @@ export const IndicatorsQualityLegend = () => {
         py: { xs: 5, sm: 6 },
         borderRadius: 2,
         border: '1px solid',
-        borderColor: 'grey.200',
-        backgroundColor: 'grey.50',
+        borderColor: 'divider',
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark' ? 'background.paper' : 'grey.50',
       }}
     >
       <Typography variant="subtitle2" color="text.primary" fontWeight={600} mb={3}>

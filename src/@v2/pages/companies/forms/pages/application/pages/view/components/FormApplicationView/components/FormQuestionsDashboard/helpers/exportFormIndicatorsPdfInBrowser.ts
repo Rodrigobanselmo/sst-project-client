@@ -27,6 +27,7 @@ export async function exportFormIndicatorsPdfInBrowser(
     accessCompanyId: string;
     formApplication: FormApplicationReadModel;
     formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
+    partialResults?: boolean;
     selectedGroupingQuestionId: string | null;
     selectedGroupingLabel?: string | null;
     showOnlyGroupIndicators: boolean;
@@ -106,7 +107,8 @@ export async function exportFormIndicatorsPdfInBrowser(
       showOnlyGroupIndicators: params.showOnlyGroupIndicators,
       executiveDistributionChartType: params.executiveDistributionChartType,
       narrativeDiagnosticMarkdown,
-      isShareableLink: params.formApplication.isShareableLink,
+      isShareableLink: params.formApplication.isShareableLink && !params.partialResults,
+      partialResults: params.partialResults,
       hierarchyGroups: params.hierarchyGroups,
       ...(params.selectedGroupingQuestionId
         ? { visibleParticipantGroupIds: params.visibleParticipantGroupIds }

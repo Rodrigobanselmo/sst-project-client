@@ -21,9 +21,13 @@ import {
 export const ScaleIndicatorsRadar = ({
   groups,
   byDimension,
+  consolidated = false,
+  onConsolidationChange,
 }: {
   groups: RadarGroup[];
   byDimension: boolean;
+  consolidated?: boolean;
+  onConsolidationChange?: (consolidated: boolean) => void;
 }) => {
   const theme = useTheme();
   const [selectedGroupId, setSelectedGroupId] = useState('');
@@ -59,6 +63,28 @@ export const ScaleIndicatorsRadar = ({
           ? 'Selecione uma escala para ver suas dimensões. Quanto mais perto de 100%, mais favorável é a condição na dimensão.'
           : 'Quanto mais perto de 100%, mais favorável é a condição na escala.'}
       </Typography>
+      {onConsolidationChange && (
+        <TextField
+          select
+          label="Recorte do radar"
+          size="small"
+          value={consolidated ? 'consolidated' : 'group'}
+          onChange={(event) =>
+            onConsolidationChange(event.target.value === 'consolidated')
+          }
+          sx={{ mb: 6, mr: { md: 6 }, width: '100%', maxWidth: 360 }}
+        >
+          <MenuItem value="group">Por grupo</MenuItem>
+          <MenuItem value="consolidated">
+            Consolidar grupos selecionados
+          </MenuItem>
+        </TextField>
+      )}
+      {onConsolidationChange && !consolidated && groups.length === 1 && (
+        <Typography variant="body2" sx={{ mb: 6 }}>
+          {group.name}
+        </Typography>
+      )}
       {groups.length > 1 && (
         <TextField
           select

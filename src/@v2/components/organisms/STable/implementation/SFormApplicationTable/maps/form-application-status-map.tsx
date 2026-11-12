@@ -47,7 +47,10 @@ export const FormApplicationStatusMap: Record<
       <SStartAddonIcon
         item={
           <SecurityUpdateGoodOutlinedIcon
-            sx={{ fontSize: 15, color: 'info.main' }}
+            sx={(theme) => ({
+              fontSize: 15,
+              color: theme.palette.mode === 'dark' ? 'info.light' : 'info.main',
+            })}
           />
         }
       />

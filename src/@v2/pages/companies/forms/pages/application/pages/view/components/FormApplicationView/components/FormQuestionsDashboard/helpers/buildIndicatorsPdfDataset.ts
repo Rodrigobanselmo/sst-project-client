@@ -1,3 +1,4 @@
+import { filterIndicatorAnswers } from './filterIndicatorAnswers';
 import type {
   CopsoqLongDimensionView,
   IndicatorLevels,
@@ -83,19 +84,10 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>?/g, '').trim();
 }
 
-const filterAnswersByParticipants = (
-  answers: FormAnswerBrowseModel[],
-  participantIds: Set<string> | null,
-) => {
-  if (!participantIds) return answers;
-  return answers.filter((answer) =>
-    participantIds.has(answer.participantsAnswersId),
-  );
-};
-
 const buildQuestionsWithOptions = (
   groups: FormQuestionsAnswersBrowseModel['results'],
   filteredParticipantIds?: Set<string> | null,
+  partialResults = false,
 ): QuestionForIndicator[] => {
   return groups.flatMap((group) =>
     group.questions
@@ -117,12 +109,11 @@ const buildQuestionsWithOptions = (
           ...option,
           value: option.value ? 6 - option.value : option.value,
         })),
-        answers: filteredParticipantIds
-          ? filterAnswersByParticipants(
-              question.answers,
-              filteredParticipantIds,
-            )
-          : question.answers,
+        answers: filterIndicatorAnswers(
+          question.answers,
+          filteredParticipantIds,
+          partialResults ? new Set(question.options.map(({ id }) => id)) : undefined,
+        ),
       })),
   );
 };
@@ -151,6 +142,7 @@ const calculateIndicatorForQuestions = (
 
 type BuildIndicatorsPdfDatasetParams = {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
+  partialResults?: boolean;
   selectedGroupingQuestionId: string | null;
   showOnlyGroupIndicators: boolean;
   executiveDistributionChartType?: FormChartType;
@@ -180,6 +172,7 @@ export function buildIndicatorsPdfDataset(
     executiveDistributionChartType = DEFAULT_FORM_CHART_TYPE,
     narrativeDiagnosticMarkdown = null,
     isShareableLink,
+    partialResults,
     hierarchyGroups = [],
     visibleParticipantGroupIds,
     participantGroupingOverride,
@@ -212,7 +205,7 @@ export function buildIndicatorsPdfDataset(
     groupId: group.id,
     groupName: group.name,
     participantCount: group.participantIds.size,
-    questions: buildQuestionsWithOptions(generalGroups, group.participantIds),
+    questions: buildQuestionsWithOptions(generalGroups, group.participantIds, partialResults),
   }));
 
   const allQuestions = new Map<string, QuestionWithParticipantGroups>();

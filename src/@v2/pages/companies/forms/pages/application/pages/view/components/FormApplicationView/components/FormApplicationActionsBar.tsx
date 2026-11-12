@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material';
 import { SIconShare } from '@v2/assets/icons/SIconShare/SIconShare';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -24,6 +25,10 @@ export const FormApplicationActionsBar = ({
   companyId: string;
   modelQuestionCount?: number | null;
 }) => {
+  const { palette } = useTheme();
+  const infoButtonSchema = palette.mode === 'dark'
+    ? { color: 'info.light', borderColor: 'info.light' }
+    : undefined;
   const { openModal, closeModal } = useModal();
   const { isMaster } = useAccess();
   const [auditOpen, setAuditOpen] = useState(false);
@@ -71,6 +76,7 @@ export const FormApplicationActionsBar = ({
           onClick={handleOpenShareModal}
           variant="outlined"
           color="info"
+          schema={infoButtonSchema}
         />
       )}
       {formApplication.form?.type === FormTypeEnum.PSYCHOSOCIAL && (
@@ -87,6 +93,7 @@ export const FormApplicationActionsBar = ({
           onClick={() => setAuditOpen(true)}
           variant="outlined"
           color="info"
+          schema={infoButtonSchema}
         />
       )}
       <FormApplicationStatusChange

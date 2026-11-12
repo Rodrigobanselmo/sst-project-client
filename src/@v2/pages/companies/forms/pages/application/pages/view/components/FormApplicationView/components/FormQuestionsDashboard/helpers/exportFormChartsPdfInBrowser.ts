@@ -14,6 +14,7 @@ import type { FormChartType } from './form-chart-type.types';
 export async function exportFormChartsPdfInBrowser(params: {
   formApplication: FormApplicationReadModel;
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
+  partialResults?: boolean;
   selectedGroupingQuestionId: string | null;
   chartType: FormChartType;
   hierarchyGroups: HierarchyGroupForIndicators[];
@@ -30,7 +31,8 @@ export async function exportFormChartsPdfInBrowser(params: {
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     chartType: params.chartType,
-    isShareableLink: params.formApplication.isShareableLink,
+    isShareableLink: params.formApplication.isShareableLink && !params.partialResults,
+    partialResults: params.partialResults,
     hierarchyGroups: params.hierarchyGroups,
     ...(params.selectedGroupingQuestionId
       ? { visibleParticipantGroupIds: params.visibleParticipantGroupIds }
