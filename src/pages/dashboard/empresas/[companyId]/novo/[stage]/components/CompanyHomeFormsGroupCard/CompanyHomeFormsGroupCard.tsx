@@ -36,7 +36,6 @@ export type HomeFormLaunchItem = {
   reminderCount: number;
   reminderLimit: number;
   isAcceptingResponses: boolean;
-  isShareableLink: boolean;
   canSendReminder: boolean;
   infos: { label: string; value: string | number }[];
 };
@@ -396,7 +395,6 @@ export function CompanyHomeFormsGroupCard({
         reminderCount: item.reminderCount,
         reminderLimit: item.reminderLimit,
         isAcceptingResponses: item.isAcceptingResponses,
-        isShareableLink: item.isShareableLink,
         onSuccess: () => {
           void queryClient.invalidateQueries({
             queryKey: [QueryEnum.COMPANY, 'home-forms-details-by-id', companyId],

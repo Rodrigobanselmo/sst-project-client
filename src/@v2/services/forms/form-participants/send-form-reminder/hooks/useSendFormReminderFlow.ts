@@ -14,7 +14,6 @@ type SendFormReminderFlowParams = {
   reminderCount: number;
   reminderLimit?: number | null;
   isAcceptingResponses: boolean;
-  isShareableLink: boolean;
   onSuccess?: (data: SendFormReminderResult) => void;
 };
 
@@ -30,14 +29,13 @@ export const useSendFormReminderFlow = () => {
       reminderCount,
       reminderLimit: reminderLimitParam,
       isAcceptingResponses,
-      isShareableLink,
       onSuccess,
     }: SendFormReminderFlowParams) => {
       const reminderLimit = resolveClientFormReminderLimit({
         reminderLimit: reminderLimitParam,
       });
       if (
-        !isFormReminderEligible({ isAcceptingResponses, isShareableLink }) ||
+        !isFormReminderEligible({ isAcceptingResponses }) ||
         reminderCount >= reminderLimit
       ) {
         return;
@@ -45,7 +43,7 @@ export const useSendFormReminderFlow = () => {
 
       const confirmed = await showConfirmation({
         title: 'Enviar E-mail de Reforço',
-        message: `O e-mail de reforço será enviado apenas para participantes que ainda não responderam ao formulário.\n\nParticipantes que já responderam não receberão.\n\nEste envio consome 1 das ${reminderLimit - reminderCount} rodadas restantes (${reminderCount}/${reminderLimit} utilizadas).`,
+        message: `Após o envio inicial, o reforço será enviado a participantes com e-mail e sem resposta registrada.\n\nEste envio consome 1 das ${reminderLimit - reminderCount} rodadas restantes (${reminderCount}/${reminderLimit} utilizadas).`,
         confirmText: 'Enviar Reforço',
         cancelText: 'Cancelar',
         variant: 'info',

@@ -501,7 +501,6 @@ export const FormParticipantsTable = ({
       reminderCount,
       reminderLimit,
       isAcceptingResponses,
-      isShareableLink: formApplication.isShareableLink,
     });
   }, [
     applicationId,
@@ -815,19 +814,13 @@ export const FormParticipantsTable = ({
             icon={<SIconEmail fontSize="16px" />}
             color="primary"
             loading={isSendingReminder}
-            disabled={
-              !isAcceptingResponses ||
-              formApplication.isShareableLink ||
-              isReminderLimitReached
-            }
+            disabled={!isAcceptingResponses || isReminderLimitReached}
             tooltip={
               isReminderLimitReached
                 ? `Limite de ${reminderLimit} rodadas de reforço atingido`
                 : !isAcceptingResponses
                   ? 'Formulário não está aceitando respostas'
-                  : formApplication.isShareableLink
-                    ? 'Reforço por e-mail não se aplica a link único compartilhável'
-                    : `Enviar e-mail de reforço para quem ainda não respondeu (${reminderCount}/${reminderLimit})`
+                  : 'Após o envio inicial, envia reforço por e-mail a participantes sem resposta registrada.'
             }
           />
           {isMaster && (

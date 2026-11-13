@@ -206,7 +206,6 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
         averageTimeSpent: number | null;
         reminderCount: number;
         reminderLimit: number;
-        isShareableLink: boolean;
       }
     >
   >({
@@ -233,7 +232,6 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
               reminderLimit: application.reminderLimit,
               additionalReminderLimit: application.additionalReminderLimit,
             }),
-            isShareableLink: application.isShareableLink,
           };
         }),
       );
@@ -245,7 +243,6 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
             averageTimeSpent: item.averageTimeSpent,
             reminderCount: item.reminderCount,
             reminderLimit: item.reminderLimit,
-            isShareableLink: item.isShareableLink,
           },
         }),
         {} as Record<
@@ -254,7 +251,6 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
             averageTimeSpent: number | null;
             reminderCount: number;
             reminderLimit: number;
-            isShareableLink: boolean;
           }
         >,
       );
@@ -605,14 +601,10 @@ export const useCompanyStep = ({ loadSummaryMetrics = true }: { loadSummaryMetri
         reminderCount: details?.reminderCount ?? 0,
         reminderLimit: details?.reminderLimit ?? resolveClientFormReminderLimit({}),
         isAcceptingResponses,
-        isShareableLink: details?.isShareableLink ?? true,
         canSendReminder:
           !isGroupConsolidated &&
           details != null &&
-          isFormReminderEligible({
-            isAcceptingResponses,
-            isShareableLink: details.isShareableLink,
-          }),
+          isFormReminderEligible({ isAcceptingResponses }),
         infos: [
           { label: 'Respostas', value: application.totalAnswers ?? '--' },
           {
