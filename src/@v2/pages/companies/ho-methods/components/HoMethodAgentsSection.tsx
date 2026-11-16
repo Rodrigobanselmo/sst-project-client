@@ -36,6 +36,7 @@ type Props = {
   activeAgentLocalId: string | null;
   onChangeActiveAgent: (localId: string) => void;
   onRemoveAgent: (localId: string) => void;
+  requiredRiskFactorId?: string;
   agentPickerRisk: IRiskFactors | null;
   riskOptions: IRiskFactors[];
   loadingRisks: boolean;
@@ -57,6 +58,7 @@ export const HoMethodAgentsSection: FC<Props> = ({
   activeAgentLocalId,
   onChangeActiveAgent,
   onRemoveAgent,
+  requiredRiskFactorId,
   agentPickerRisk,
   riskOptions,
   loadingRisks,
@@ -172,14 +174,16 @@ export const HoMethodAgentsSection: FC<Props> = ({
                     color={isActive ? 'primary' : 'default'}
                     onClick={() => onChangeActiveAgent(agent.localId)}
                   />
-                  <IconButton
-                    size="small"
-                    color="error"
-                    aria-label="Remover agente"
-                    onClick={() => onRemoveAgent(agent.localId)}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
+                  {agent.riskFactorId !== requiredRiskFactorId && (
+                    <IconButton
+                      size="small"
+                      color="error"
+                      aria-label="Remover agente"
+                      onClick={() => onRemoveAgent(agent.localId)}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </Box>
                 {isActive && onChangeAgentCollection && (
                   <AgentCollectionEditor

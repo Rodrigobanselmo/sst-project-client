@@ -44,6 +44,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
     aiSuggestionSourceContext,
     aiSuggestionKnownDataExtras,
     isCatalogReadOnly,
+    isSystemRisk,
   } = props;
   const longTextFieldSx =
     riskEditorLayout === 'inline'
@@ -61,6 +62,10 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
     nioshSearch.status === 'NOT_FOUND' &&
     'cas' in nioshSearch &&
     nioshSearch.cas === (riskData.cas?.trim() || null) &&
+    (('casNormalizationVersion' in nioshSearch && nioshSearch.casNormalizationVersion === 2) ||
+      !/[\d-][^\S\r\n]+[\d-]/.test(riskData.cas ?? '')) &&
+    (('casNumbers' in nioshSearch && Array.isArray(nioshSearch.casNumbers)) ||
+      (riskData.cas?.match(/\b\d{2,7}-\d{2}-\d\b/g)?.length ?? 0) < 2) &&
     'names' in nioshSearch &&
     Array.isArray(nioshSearch.names) &&
     nioshSearch.names.includes(riskData.name?.trim());
@@ -331,7 +336,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
             getOptionLabel={(option) => String(option)}
             inputProps={{
               labelPosition: 'top',
-              placeholder: 'exemplo: quantitativo, qualitativo...',
+              placeholder: 'Informe o método utilizado',
               name: 'unit',
             }}
             setValue={(v) => setValue('unit', String(v))}
@@ -341,24 +346,31 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           />
         </Box>
         <Box mt={8}>
-          <AutocompleteForm
-            name="method"
-            control={control}
-            filterOptions={(x) => x}
-            unmountOnChangeDefault
-            freeSolo
-            fullWidth
-            getOptionLabel={(option) => String(option)}
-            inputProps={{
-              labelPosition: 'top',
-              placeholder: 'exemplo: quantitativo, qualitativo...',
-              name: 'method',
-            }}
-            setValue={(v) => setValue('method', String(v))}
-            defaultValue={riskData.method || ''}
-            label="Método"
-            options={['Quantitativo', 'Qualitativo']}
-          />
+          {type !== RiskEnum.QUI && (
+            <AutocompleteForm
+              name="method"
+              control={control}
+              filterOptions={(x) => x}
+              unmountOnChangeDefault
+              freeSolo
+              fullWidth
+              getOptionLabel={(option) => String(option)}
+              inputProps={{
+                labelPosition: 'top',
+                placeholder: 'Informe o método utilizado',
+                name: 'method',
+              }}
+              setValue={(v) => setValue('method', String(v))}
+              defaultValue={riskData.method || ''}
+              label="Método"
+              options={[]}
+            />
+          )}
+          {type === RiskEnum.QUI && (!showNioshLookup || !riskCompanyId || !riskData.id) && (
+            <Box sx={{ color: 'text.primary' }}>
+              Método · Salve o fator de risco para consultar e vincular métodos.
+            </Box>
+          )}
           {showNioshLookup && riskCompanyId && riskData.id && (
             <Box mt={2}>
               <HoMethodNioshLookup
@@ -371,6 +383,8 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
                 }}
                 recorded={Boolean(hasNioshSearch) && !riskData.method}
                 inRiskEditor
+                legacyMethod={riskData.method}
+                allowCatalogLink={Boolean(isMaster && isSystemRisk)}
                 onRecorded={(evidence) =>
                   setRiskData((current) =>
                     current.id === riskData.id

@@ -265,7 +265,9 @@ export const HoMethodAdvancedSections: FC<Props> = ({
                   }
                   label={
                     <Box>
-                      <Typography variant="body2">{option.label}</Typography>
+                      <Typography variant="body2" color="text.primary">
+                        {option.label}
+                      </Typography>
                       {option.limitOrigin && (
                         <Typography variant="caption" color="text.secondary">
                           Origem: {option.limitOrigin}

@@ -1372,14 +1372,38 @@ export function ChemicalPrioritizationPanel({
                                                 )}
                                               </TableCell>
                                               <TableCell>
-                                                {factor.prioritization
-                                                  ?.method || (
+                                                {factor.prioritization?.linkedMethods?.map((method) => (
+                                                  <Typography
+                                                    key={method.id}
+                                                    variant="caption"
+                                                    display="block"
+                                                    color="text.dark"
+                                                  >
+                                                    {method.institution} {method.methodCode}
+                                                    {method.cas && ` · CAS ${method.cas}`}
+                                                  </Typography>
+                                                ))}
+                                                {factor.prioritization?.method &&
+                                                  !factor.prioritization.linkedMethods?.some(
+                                                    ({ institution, methodCode }) =>
+                                                      factor.prioritization?.method?.trim().toUpperCase() === `${institution} ${methodCode}`,
+                                                  ) && (
+                                                    <Typography
+                                                      variant="caption"
+                                                      display="block"
+                                                      color="text.dark"
+                                                    >
+                                                      {factor.prioritization.method}
+                                                    </Typography>
+                                                  )}
+                                                {(!factor.prioritization?.method || !!factor.prioritization.linkedMethods?.length) && (
                                                     <HoMethodNioshLookup
                                                       key={factor.id}
                                                       companyId={companyId}
                                                       agent={factor}
                                                       recorded={factor.prioritization?.nioshMethodNotFound}
                                                       onRecorded={() => void refetch()}
+                                                      onLinked={() => void refetch()}
                                                     />
                                                   )}
                                               </TableCell>

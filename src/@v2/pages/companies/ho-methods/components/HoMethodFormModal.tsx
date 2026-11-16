@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Alert,
@@ -20,6 +20,7 @@ import { SInputFileDropZone } from '@v2/components/forms/fields/SInputFileDropZo
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { RiskEnum } from 'project/enum/risk.enums';
 import { useFetchHoMethodRiskSearch } from '@v2/services/occupational-hygiene/ho-method/hooks/useFetchHoMethodRiskSearch';
 import { useDebouncedCallback } from 'use-debounce';
 import {
@@ -35,11 +36,13 @@ import {
   resolveHoMethodDocumentUrl,
   searchHoMethodRiskFactors,
   uploadHoMethodDocument,
+  uploadOfficialNioshPdf,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.service';
 import type {
   HoExtractionSolventRecord,
   HoLaboratoryRecord,
   HoMethodRecord,
+  HoMethodNioshParameters,
   HoMethodWritePayload,
   HoSamplerRecord,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
@@ -98,10 +101,21 @@ import {
   type HoMethodCreateRiskAgentSource,
 } from '../utils/ho-method-create-risk.util';
 
+export type NioshMethodDraft = {
+  code: string;
+  title: string;
+  edition: string;
+  url: string;
+  agent: { id: string; name: string };
+  casNumbers: string[];
+};
+
 type HoMethodFormModalProps = {
   open: boolean;
   method: HoMethodRecord | null;
   onClose: () => void;
+  nioshDraft?: NioshMethodDraft;
+  onSaved?: () => void;
 };
 
 const emptyForm = (): HoMethodWritePayload => ({
@@ -140,6 +154,8 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   open,
   method,
   onClose,
+  nioshDraft,
+  onSaved,
 }) => {
   const { companyId } = useGetCompanyId();
   const { isMasterAdmin } = useAuthShow();
@@ -163,6 +179,16 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   const [casSearch, setCasSearch] = useState('');
   const [casInput, setCasInput] = useState('');
   const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [officialPdfAttempt, setOfficialPdfAttempt] = useState(0);
+  const [officialPdfError, setOfficialPdfError] = useState('');
+  const [pdfParameters, setPdfParameters] = useState<HoMethodNioshParameters | null>(null);
+  const autoSelectedCatalog = useRef({ sampler: false, solvent: false });
+  const officialPdfRequest = useRef<{
+    draft: NioshMethodDraft;
+    companyId: string;
+    attempt: number;
+    promise: ReturnType<typeof uploadOfficialNioshPdf>;
+  } | null>(null);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [extraSamplers, setExtraSamplers] = useState<HoSamplerRecord[]>([]);
   const [extraSolvents, setExtraSolvents] = useState<
@@ -437,13 +463,27 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
         }),
       );
     } else {
-      setForm(emptyForm());
+      const matchedCas = nioshDraft?.casNumbers.join('; ') ?? '';
+      const initialAgent = nioshDraft
+        ? createMethodAgentFromRisk({
+            ...nioshDraft.agent,
+            type: RiskEnum.QUI,
+            cas: matchedCas,
+          } as IRiskFactors)
+        : null;
+      const initialAgents = initialAgent ? [initialAgent] : [];
+      setForm({
+        ...emptyForm(),
+        ...syncLegacyAgentFields(initialAgents),
+        methodCode: nioshDraft?.code ?? '',
+        displayName: nioshDraft ? `NIOSH ${nioshDraft.code} — ${nioshDraft.title}` : '',
+      });
       setNumericInputs(emptyNumericInputs());
       setLabNumericInputs({});
-      setMethodAgents([]);
-      setActiveAgentLocalId(null);
+      setMethodAgents(initialAgents);
+      setActiveAgentLocalId(initialAgent?.localId ?? null);
       setAgentPickerRisk(null);
-      setCasInput('');
+      setCasInput(matchedCas);
       setDocumentUrl(null);
     }
 
@@ -454,12 +494,106 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     setSubmitError(null);
     setExtraSamplers([]);
     setExtraSolvents([]);
-  }, [open, method]);
+  }, [open, method, nioshDraft]);
 
-  const inferredOptions = useMemo(
-    () => inferEvaluationOptionsFromRisk(activeAgent?.risk),
-    [activeAgent?.risk],
-  );
+  useEffect(() => {
+    if (!open || !nioshDraft || !companyId) return;
+    let active = true;
+    setUploadingDocument(true);
+    setOfficialPdfError('');
+    const previous = officialPdfRequest.current;
+    const request =
+      previous?.draft === nioshDraft && previous.companyId === companyId &&
+      previous.attempt === officialPdfAttempt
+        ? previous
+        : {
+            draft: nioshDraft,
+            companyId,
+            attempt: officialPdfAttempt,
+            promise: uploadOfficialNioshPdf({
+              companyId,
+              code: nioshDraft.code,
+              edition: nioshDraft.edition,
+            }),
+          };
+    officialPdfRequest.current = request;
+    void request.promise.then((uploaded) => {
+      if (!active) return;
+      setForm((current) => ({
+        ...current,
+        originalDocumentFileId: uploaded.fileId,
+        originalDocumentName: uploaded.name,
+        originalDocumentUploadedAt: uploaded.uploadedAt,
+      }));
+      setDocumentUrl(uploaded.url || null);
+      const parameters = uploaded.parameters;
+      if (!parameters) return;
+      setPdfParameters(parameters);
+      const numericSuggestions = numericInputsFromPayload({
+        ...emptyForm(), ...parameters,
+      });
+      setNumericInputs((current) => ({
+        minimumFlowRate: current.minimumFlowRate || numericSuggestions.minimumFlowRate,
+        maximumFlowRate: current.maximumFlowRate || numericSuggestions.maximumFlowRate,
+        minimumVolume: current.minimumVolume || numericSuggestions.minimumVolume,
+        maximumVolume: current.maximumVolume || numericSuggestions.maximumVolume,
+        storageTemperature: current.storageTemperature || numericSuggestions.storageTemperature,
+        stabilityDays: current.stabilityDays || numericSuggestions.stabilityDays,
+      }));
+      const parameterNotes = [
+        parameters.stabilityText && `Estabilidade (NIOSH): ${parameters.stabilityText}`,
+        parameters.thermalDesorption && 'Extração por dessorção térmica.',
+      ].filter(Boolean).join('\n');
+      setForm((current) => ({
+        ...current,
+        flowRateUnit: parameters.flowRateUnit ?? current.flowRateUnit,
+        volumeUnit: parameters.volumeUnit ?? current.volumeUnit,
+        storageTemperatureUnit: parameters.storageTemperatureUnit ?? current.storageTemperatureUnit,
+        notes: [current.notes, parameterNotes].filter(Boolean).join('\n'),
+      }));
+    }).catch((error) => {
+      if (active) {
+        setOfficialPdfError(getHoMethodApiErrorMessage(error, 'Não foi possível importar o PDF oficial.'));
+      }
+    }).finally(() => {
+      if (active) setUploadingDocument(false);
+    });
+    return () => { active = false; };
+  }, [open, nioshDraft, companyId, officialPdfAttempt]);
+
+  useEffect(() => {
+    if (!pdfParameters) return;
+    const normalize = (value: string) => value.trim().toLowerCase();
+    const sampler = pdfParameters.sampler;
+    const solvent = pdfParameters.extractionSolvent;
+    if (sampler && !loadingSamplers && !autoSelectedCatalog.current.sampler) {
+      const match = samplerOptions.find((item) => normalize(item.name) === normalize(sampler));
+      if (match) {
+        autoSelectedCatalog.current.sampler = true;
+        setForm((current) => current.samplerId ? current : { ...current, samplerId: match.id });
+      }
+    }
+    if (solvent && !loadingSolvents && !autoSelectedCatalog.current.solvent) {
+      const match = solventOptions.find((item) => normalize(item.name) === normalize(solvent));
+      if (match) {
+        autoSelectedCatalog.current.solvent = true;
+        setForm((current) => current.extractionSolventId ? current : { ...current, extractionSolventId: match.id });
+      }
+    }
+  }, [pdfParameters, loadingSamplers, loadingSolvents, samplerOptions, solventOptions]);
+
+  const inferredOptions = useMemo(() => {
+    const options = inferEvaluationOptionsFromRisk(activeAgent?.risk);
+    if (nioshDraft && activeAgent?.riskFactorId === nioshDraft.agent.id) {
+      options.push({
+        evaluationType: HoMethodEvaluationTypeEnum.OTHER,
+        label: 'Outra condição, conforme o método',
+        limitValue: null,
+        limitUnit: null,
+      });
+    }
+    return options;
+  }, [activeAgent, nioshDraft]);
 
   const evaluationDisplayOptions = useMemo(
     () =>
@@ -719,6 +853,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
       updateField('originalDocumentName', uploaded.name);
       updateField('originalDocumentUploadedAt', uploaded.uploadedAt);
       setDocumentUrl(uploaded.url || null);
+      setOfficialPdfError('');
       showSnackBar('Documento original anexado', { type: 'success' });
     } catch (error) {
       showSnackBar(
@@ -731,7 +866,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   };
 
   const handleQuickCreateSampler = async () => {
-    const name = window.prompt('Nome do amostrador');
+    const name = window.prompt('Nome do amostrador', pdfParameters?.sampler ?? '');
     if (!name?.trim()) return;
     try {
       const created = await createHoSampler({ name: name.trim() });
@@ -753,7 +888,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   };
 
   const handleQuickCreateSolvent = async () => {
-    const name = window.prompt('Nome do solvente de extração');
+    const name = window.prompt('Nome do solvente de extração', pdfParameters?.extractionSolvent ?? '');
     if (!name?.trim()) return;
     try {
       const created = await createHoExtractionSolvent({ name: name.trim() });
@@ -812,11 +947,10 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     );
 
     if (Object.keys(labErrors).length > 0) {
+      const message = Object.values(labErrors)[0];
       setFieldErrors((current) => ({ ...current, ...labErrors }));
-      showSnackBar(
-        'Verifique os campos numéricos. Use valores como 0,2 ou 0.2.',
-        { type: 'error' },
-      );
+      setSubmitError(message);
+      showSnackBar(message, { type: 'error' });
       return;
     }
 
@@ -832,20 +966,10 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
       numericInputs,
     });
     if (Object.keys(validationErrors).length > 0) {
+      const message = Object.values(validationErrors)[0];
       setFieldErrors(validationErrors);
-      setSubmitError(
-        validationErrors.maximumFlowRate ||
-          validationErrors.minimumFlowRate ||
-          validationErrors.maximumVolume ||
-          validationErrors.minimumVolume ||
-          validationErrors.storageTemperature ||
-          validationErrors.stabilityDays ||
-          'Verifique os campos destacados antes de salvar.',
-      );
-      showSnackBar(
-        'Verifique os campos numéricos. Use valores como 0,2 ou 0.2.',
-        { type: 'error' },
-      );
+      setSubmitError(message);
+      showSnackBar(message, { type: 'error' });
       return;
     }
 
@@ -865,6 +989,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
         await createMutation.mutateAsync(payload);
       }
       onClose();
+      onSaved?.();
     } catch (error) {
       const message = getHoMethodApiErrorMessage(
         error,
@@ -877,7 +1002,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth scroll="paper">
-      <DialogTitle>
+      <DialogTitle sx={{ color: 'text.primary' }}>
         {isEditing
           ? 'Editar Método de HO — Agentes Químicos'
           : 'Novo Método de HO — Agentes Químicos'}
@@ -894,6 +1019,16 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
           futuramente na Estratégia de Amostragem, respeitando os limites
           permitidos pelo método.
         </Alert>
+
+        {nioshDraft && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            {nioshDraft.agent.name} · CAS {nioshDraft.casNumbers.join('; ')}.{' '}
+            <Link href={nioshDraft.url} target="_blank" rel="noopener noreferrer">
+              Abrir documento oficial do NIOSH
+            </Link>
+            {' '}para revisar as condições de avaliação.
+          </Alert>
+        )}
 
         <Typography variant="subtitle2" gutterBottom>
           Identificação
@@ -969,6 +1104,22 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
             <Typography variant="subtitle2" gutterBottom>
               Documento original
             </Typography>
+            {nioshDraft && uploadingDocument && !form.originalDocumentFileId && (
+              <Alert severity="info" sx={{ mb: 2 }}>Importando o PDF oficial do NIOSH…</Alert>
+            )}
+            {nioshDraft && officialPdfError && (
+              <Alert
+                severity="warning"
+                sx={{ mb: 2 }}
+                action={
+                  <Button size="small" disabled={uploadingDocument} onClick={() => setOfficialPdfAttempt((attempt) => attempt + 1)}>
+                    Tentar novamente
+                  </Button>
+                }
+              >
+                {officialPdfError} Você também pode anexar o arquivo manualmente.
+              </Alert>
+            )}
             {(documentUrl ||
               form.originalDocumentName ||
               form.originalDocumentFileId) && (
@@ -1068,6 +1219,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
             setCasInput(agent?.cas ?? '');
           }}
           onRemoveAgent={handleRemoveAgent}
+          requiredRiskFactorId={nioshDraft?.agent.id}
           agentPickerRisk={agentPickerRisk}
           riskOptions={chemicalRisks}
           loadingRisks={loadingRisks}
@@ -1158,6 +1310,15 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
           Parâmetros originais do método
         </Typography>
         <Grid container spacing={2} mb={3}>
+          {nioshDraft && form.originalDocumentFileId && (
+            <Grid item xs={12}>
+              <Alert severity={pdfParameters ? 'info' : 'warning'}>
+                {pdfParameters
+                  ? 'Revise os parâmetros preenchidos com base no PDF oficial.'
+                  : 'Os parâmetros precisam ser preenchidos a partir da revisão do PDF.'}
+              </Alert>
+            </Grid>
+          )}
           <Grid item xs={12} md={6}>
             <Box display="flex" gap={1}>
               <Box flex={1}>
@@ -1180,6 +1341,11 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
                 +
               </Button>
             </Box>
+            {pdfParameters?.sampler && !form.samplerId && (
+              <Typography variant="caption" color="text.secondary">
+                Amostrador no PDF: {pdfParameters.sampler}. Use + para cadastrá-lo.
+              </Typography>
+            )}
           </Grid>
           {showMethodLevelFlowFields ? (
             <>
@@ -1284,6 +1450,16 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
                 +
               </Button>
             </Box>
+            {pdfParameters?.thermalDesorption && (
+              <Typography variant="caption" color="text.secondary">
+                O PDF indica dessorção térmica, sem solvente de extração.
+              </Typography>
+            )}
+            {pdfParameters?.extractionSolvent && !form.extractionSolventId && (
+              <Typography variant="caption" color="text.secondary">
+                Solvente no PDF: {pdfParameters.extractionSolvent}. Use + para cadastrá-lo.
+              </Typography>
+            )}
           </Grid>
           <Grid item xs={12} md={3}>
             <TextField
@@ -1322,7 +1498,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
               label="Estabilidade (dias)"
               value={numericInputs.stabilityDays}
               error={Boolean(fieldErrors.stabilityDays)}
-              helperText={fieldErrors.stabilityDays}
+              helperText={fieldErrors.stabilityDays || pdfParameters?.stabilityText}
               onChange={(e) =>
                 updateNumericInput('stabilityDays', e.target.value)
               }
@@ -1343,7 +1519,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
         <Button onClick={onClose} disabled={isSaving}>
           Cancelar
         </Button>
-        <Button variant="contained" disabled={isSaving} onClick={handleSubmit}>
+        <Button variant="contained" disabled={isSaving || uploadingDocument} onClick={handleSubmit}>
           {isSaving ? 'Salvando…' : isEditing ? 'Salvar alterações' : 'Cadastrar'}
         </Button>
       </DialogActions>

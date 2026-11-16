@@ -292,6 +292,26 @@ export type HoMethodFileUploadResponse = {
   uploadedAt: string;
 };
 
+export type HoMethodNioshParameters = {
+  sampler: string | null;
+  minimumFlowRate: number | null;
+  maximumFlowRate: number | null;
+  flowRateUnit: string | null;
+  minimumVolume: number | null;
+  maximumVolume: number | null;
+  volumeUnit: string | null;
+  storageTemperature: number | null;
+  storageTemperatureUnit: string | null;
+  stabilityDays: number | null;
+  stabilityText: string | null;
+  extractionSolvent: string | null;
+  thermalDesorption: boolean;
+};
+
+export type HoMethodNioshUploadResponse = HoMethodFileUploadResponse & {
+  parameters: HoMethodNioshParameters | null;
+};
+
 export type HoMethodImportConfidence = 'high' | 'medium' | 'low';
 
 export type HoMethodImportField<T> = {

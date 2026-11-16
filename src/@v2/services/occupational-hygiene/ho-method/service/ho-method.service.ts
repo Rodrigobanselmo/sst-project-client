@@ -8,6 +8,7 @@ import type {
   HoExtractionSolventRecord,
   HoLaboratoryRecord,
   HoMethodFileUploadResponse,
+  HoMethodNioshUploadResponse,
   HoMethodImportParseResult,
   HoMethodAiReviewResult,
   HoMethodImportAiReviewPayload,
@@ -221,6 +222,22 @@ export async function uploadHoMethodDocument(params: {
   );
 
   return response.data;
+}
+
+export async function uploadOfficialNioshPdf(params: {
+  companyId: string;
+  code: string;
+  edition: string;
+}): Promise<HoMethodNioshUploadResponse> {
+  const path = bindUrlParams({
+    path: HoMethodRoutes.UPLOAD,
+    pathParams: { companyId: params.companyId },
+  });
+  const { data } = await api.post<HoMethodNioshUploadResponse>(`${path}/niosh`, {
+    code: params.code,
+    edition: params.edition,
+  });
+  return data;
 }
 
 export async function parseHoMethodPdf(

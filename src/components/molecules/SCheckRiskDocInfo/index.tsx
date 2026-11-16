@@ -42,7 +42,10 @@ export const SCheckRiskDocInfo: FC<{ children?: any } & ISCheckRiskDocInfo> = ({
       sx={{
         display: 'flex',
         '.MuiFormControlLabel-root': {
-          span: { fontSize: 10, input: { fontSize: 10 } },
+          '.MuiFormControlLabel-label': {
+            color: 'text.primary',
+            fontSize: 10,
+          },
           svg: { fontSize: 15 },
         },
       }}

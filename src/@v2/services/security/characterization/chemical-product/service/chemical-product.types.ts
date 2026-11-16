@@ -1012,6 +1012,7 @@ export type ChemicalPrioritizationFactorData = {
   affectedRegion?: string | null;
   method: string | null;
   nioshMethodNotFound?: boolean;
+  linkedMethods?: { id: string; institution: string; methodCode: string; cas: string | null }[];
   unit?: string | null;
   nr15lt: string | null;
   twa: string | null;

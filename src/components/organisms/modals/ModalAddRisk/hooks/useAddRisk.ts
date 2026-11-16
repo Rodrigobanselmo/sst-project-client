@@ -863,6 +863,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     aiSuggestionSourceContext: options?.aiSuggestionSourceContext,
     aiSuggestionKnownDataExtras: options?.aiSuggestionKnownDataExtras,
     isCatalogReadOnly,
+    isSystemRisk: risk?.id === riskData.id && risk?.system === true,
   };
 };
 
