@@ -1011,6 +1011,7 @@ export type ChemicalPrioritizationFactorData = {
   symptoms?: string | null;
   affectedRegion?: string | null;
   method: string | null;
+  nioshMethodNotFound?: boolean;
   unit?: string | null;
   nr15lt: string | null;
   twa: string | null;

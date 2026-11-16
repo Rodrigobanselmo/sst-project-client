@@ -48,7 +48,7 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         </Box>
       </SFlex>
 
-      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+      <Typography color="text.primary" variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
         Limites NR-15
       </Typography>
       <SFlex mt={4}>
@@ -66,7 +66,7 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         </Box>
       </SFlex>
 
-      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+      <Typography color="text.primary" variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
         Limites ACGIH
       </Typography>
       <SFlex mt={4}>
@@ -117,7 +117,7 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         />
       ) : null}
 
-      <Typography variant="subtitle2" sx={{ mt: 1, mb: 1 }}>
+      <Typography color="text.primary" variant="subtitle2" sx={{ mt: 1, mb: 1 }}>
         Limites NIOSH
       </Typography>
       <Typography
@@ -208,7 +208,7 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         ) : null}
       </SFlex>
 
-      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+      <Typography color="text.primary" variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
         Limites OSHA
       </Typography>
       <SFlex mt={4}>
@@ -247,7 +247,7 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         </Box>
       </SFlex>
 
-      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+      <Typography color="text.primary" variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
         Limites AIHA
       </Typography>
       <SFlex mt={4}>

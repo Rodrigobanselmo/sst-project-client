@@ -272,7 +272,10 @@ const RiskEditPage: NextPage = () => {
             sx={{
               mt: 6,
               border: '1px solid',
-              borderColor: 'background.divider',
+              borderColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? theme.palette.background.border
+                  : theme.palette.divider,
               borderRadius: 2,
               p: 8,
               backgroundColor: 'background.paper',

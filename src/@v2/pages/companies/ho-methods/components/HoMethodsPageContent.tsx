@@ -1,3 +1,6 @@
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { HoMethodNioshLookup } from './HoMethodNioshLookup';
+import { hoMethodLinkSx } from './ho-method-link-style';
 import { FC, useEffect, useMemo, useState } from 'react';
 
 import {
@@ -14,8 +17,6 @@ import {
   Link,
   Paper,
   TextField,
-  SxProps,
-  Theme,
   Typography,
 } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -49,16 +50,8 @@ import { HoMethodImportPdfModal } from './HoMethodImportPdfModal';
 const ROWS_PER_PAGE = 10;
 const AGENT_PREVIEW_LIMIT = 4;
 
-/** A cor da marca pode ser clara (ex.: amarelo) e sem contraste sobre fundo branco. */
-const linkSx: SxProps<Theme> = {
-  color: (theme) =>
-    theme.palette.mode === 'dark'
-      ? theme.palette.primary.main
-      : theme.palette.secondary.main,
-  textDecorationColor: 'currentColor',
-};
-
 export const HoMethodsPageContent: FC = () => {
+  const { companyId } = useGetCompanyId();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [agentName, setAgentName] = useState('');
@@ -241,10 +234,11 @@ export const HoMethodsPageContent: FC = () => {
               rel="noopener noreferrer"
               variant="caption"
               display="block"
-              sx={linkSx}
+              sx={hoMethodLinkSx}
             >
-              Consultar métodos no NIOSH NMAM ↗
+              Pesquisa manual no NIOSH NMAM ↗
             </Link>
+            {companyId && <HoMethodNioshLookup companyId={companyId} />}
           </Box>
         </Box>
 
@@ -607,7 +601,7 @@ export const HoMethodsPageContent: FC = () => {
                           href={resolveHoMethodDocumentUrl(method) ?? undefined}
                           target="_blank"
                           rel="noopener"
-                          sx={linkSx}
+                          sx={hoMethodLinkSx}
                         >
                           Visualizar método original
                           {method.originalDocumentName

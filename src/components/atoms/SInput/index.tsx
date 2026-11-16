@@ -89,7 +89,11 @@ export const SInput: FC<{ children?: any } & SInputProps> = ({
               mr: 4,
             })}
           >
-            <Typography fontSize={14} color={error ? 'error.main' : 'grey.600'}>
+            <Typography
+              fontSize={14}
+              data-field-label={error ? undefined : ''}
+              color={error ? 'error.main' : 'grey.600'}
+            >
               {labelSplit[0] || label}
               {isLeft ? ':' : ''}
               {labelSplit[1] == '' && (

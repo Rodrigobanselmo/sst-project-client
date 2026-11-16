@@ -50,6 +50,7 @@ export const RadioFormText = ({
               {label && (
                 <Typography
                   fontSize={14}
+                  data-field-label={error ? undefined : ''}
                   color={error ? 'error.main' : 'grey.600'}
                   mb={3}
                 >

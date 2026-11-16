@@ -114,13 +114,14 @@ export function ChemicalPrioritizationDraftBackup({
           setStatus('conflict');
           return;
         }
-        if (!current && stored.draft) {
+        const draftToRestore = current ?? stored.draft;
+        if (draftToRestore) {
           const rows = await browseChemicalUseScenarioBoard({
             ...params,
             includePrioritization: true,
           });
           if (!active) return;
-          latest.current.onRestore({ ...stored.draft, rows });
+          latest.current.onRestore({ ...draftToRestore, rows });
         }
         setSaved({ revision: stored.revision, content });
         setStatus('ready');

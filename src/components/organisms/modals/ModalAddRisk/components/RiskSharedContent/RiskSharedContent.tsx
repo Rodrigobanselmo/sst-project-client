@@ -2,6 +2,7 @@
 import React, { FC, useMemo, useState } from 'react';
 
 import { Box, Button } from '@mui/material';
+import { HoMethodNioshLookup } from '@v2/pages/companies/ho-methods/components/HoMethodNioshLookup';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
@@ -50,6 +51,19 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
       : { width: ['100%', 600] };
   const { companyId } = useGetCompanyId();
   const { isMaster } = useAccess();
+  const riskCompanyId = companyId || riskData.companyId;
+  const showNioshLookup = type === RiskEnum.QUI && !riskData.isDuplicateDraft;
+  const nioshSearch = riskData.json?.nioshMethodSearch;
+  const hasNioshSearch =
+    nioshSearch &&
+    typeof nioshSearch === 'object' &&
+    'status' in nioshSearch &&
+    nioshSearch.status === 'NOT_FOUND' &&
+    'cas' in nioshSearch &&
+    nioshSearch.cas === (riskData.cas?.trim() || null) &&
+    'names' in nioshSearch &&
+    Array.isArray(nioshSearch.names) &&
+    nioshSearch.names.includes(riskData.name?.trim());
   const [createSubTypeOpen, setCreateSubTypeOpen] = useState(false);
 
   const { subTypes, refetch: refetchSubTypes } = useFetchBrowseRiskSubType({
@@ -119,7 +133,6 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           maxRows={5}
           label="Descrição do risco"
           control={control}
-          sx={{ width: ['100%', 600] }}
           placeholder={'descrição do fator de risco...'}
           setValue={setValue}
           name="name"
@@ -135,7 +148,6 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
             }
             label="Sinônimos"
             control={control}
-            sx={{ width: ['100%', 600] }}
             placeholder={'sinônimos separados por ponto e vírgula (;)...'}
             setValue={setValue}
             name="synonymous"
@@ -347,6 +359,31 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
             label="Método"
             options={['Quantitativo', 'Qualitativo']}
           />
+          {showNioshLookup && riskCompanyId && riskData.id && (
+            <Box mt={2}>
+              <HoMethodNioshLookup
+                key={riskData.id}
+                companyId={riskCompanyId}
+                agent={{
+                  id: riskData.id,
+                  name: riskData.name,
+                  cas: riskData.cas,
+                }}
+                recorded={Boolean(hasNioshSearch) && !riskData.method}
+                inRiskEditor
+                onRecorded={(evidence) =>
+                  setRiskData((current) =>
+                    current.id === riskData.id
+                      ? {
+                          ...current,
+                          json: { ...current.json, nioshMethodSearch: evidence },
+                        }
+                      : current,
+                  )
+                }
+              />
+            </Box>
+          )}
         </Box>
         <Box mt={8}>
           <InputForm

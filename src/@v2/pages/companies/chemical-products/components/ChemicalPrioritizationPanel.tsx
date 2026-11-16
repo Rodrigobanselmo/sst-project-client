@@ -1,3 +1,4 @@
+import { HoMethodNioshLookup } from '../../ho-methods/components/HoMethodNioshLookup';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { formatAxisLevelTooltip } from '@v2/services/security/risk-matrix/presentation/axis-level-tooltip.util';
 import { useMemo, useState } from 'react';
@@ -384,7 +385,8 @@ export function ChemicalPrioritizationPanel({
           onRestore={(analysis) =>
             queryClient.setQueryData<Analysis>(
               queryKey,
-              (current) => current ?? analysis,
+              (current) =>
+                current ? { ...current, rows: analysis.rows } : analysis,
             )
           }
         />
@@ -419,7 +421,7 @@ export function ChemicalPrioritizationPanel({
       )}
       {rows && (
         <>
-          <Typography role="status">
+          <Typography color="text.primary" role="status">
             {results.filter(({ outcome }) => outcome === 'include').length} a
             priorizar · {exclusions.length} a não priorizar ·{' '}
             {results.filter(({ outcome }) => outcome === 'pending').length} com
@@ -427,7 +429,7 @@ export function ChemicalPrioritizationPanel({
           </Typography>
           <Box component="details">
             <summary>Como as notas são calculadas</summary>
-            <Typography variant="body2">
+            <Typography color="text.primary" variant="body2">
               Frequência por semana (5 dias para frequência diária): até 0,25,
               1, 5 e 15 ocorrências, ou acima de 15. Duração por atividade: até
               5, 15, 60 e 240 minutos, ou acima de 240. A nota da quantidade é
@@ -458,7 +460,7 @@ export function ChemicalPrioritizationPanel({
             </Box>
           )}
           {!groups.length && (
-            <Typography>
+            <Typography color="text.primary">
               Nenhum fator associado a um GSE ativo neste estabelecimento.
             </Typography>
           )}
@@ -494,6 +496,7 @@ export function ChemicalPrioritizationPanel({
                 }}
               >
                 <Typography
+                  color="text.dark"
                   component="h3"
                   variant="h2"
                   fontWeight={700}
@@ -549,6 +552,7 @@ export function ChemicalPrioritizationPanel({
                         }}
                       >
                         <Typography
+                          color="text.dark"
                           component="h4"
                           variant="h3"
                           fontWeight={700}
@@ -644,6 +648,7 @@ export function ChemicalPrioritizationPanel({
                                 }}
                               >
                                 <Typography
+                                  color="text.dark"
                                   component="h5"
                                   variant="h4"
                                   fontWeight={600}
@@ -695,7 +700,7 @@ export function ChemicalPrioritizationPanel({
                                       <TableCell>
                                         <Box component="details">
                                           <summary>Controles e origem</summary>
-                                          <Typography variant="caption">
+                                          <Typography color="text.secondary" variant="caption">
                                             {describeChemicalScenario(scenario)}
                                           </Typography>
                                         </Box>
@@ -704,6 +709,7 @@ export function ChemicalPrioritizationPanel({
                                         {scenario.frequencyCount ?? '—'}{' '}
                                         {scenario.frequencyPeriod}
                                         <Typography
+                                          color="text.primary"
                                           variant="body2"
                                           fontWeight={
                                             assessment.frequencyScore
@@ -729,6 +735,7 @@ export function ChemicalPrioritizationPanel({
                                           ? '—'
                                           : `${scenario.durationMinutes} min`}
                                         <Typography
+                                          color="text.primary"
                                           variant="body2"
                                           fontWeight={
                                             assessment.durationScore
@@ -754,6 +761,7 @@ export function ChemicalPrioritizationPanel({
                                         ) || '—'}{' '}
                                         {scenario.quantityUnit}
                                         <Typography
+                                          color="text.primary"
                                           variant="body2"
                                           fontWeight={700}
                                         >
@@ -941,6 +949,7 @@ export function ChemicalPrioritizationPanel({
                                           !needsScores &&
                                           !review?.confirmed && (
                                             <Typography
+                                              color="text.secondary"
                                               variant="caption"
                                               display="block"
                                             >
@@ -957,6 +966,7 @@ export function ChemicalPrioritizationPanel({
                                           spacing={1}
                                         >
                                           <Typography
+                                            color="text.primary"
                                             variant="body2"
                                             fontWeight={600}
                                           >
@@ -970,6 +980,7 @@ export function ChemicalPrioritizationPanel({
                                               <>
                                                 {' '}
                                                 <Typography
+                                                  color="text.secondary"
                                                   variant="caption"
                                                   display="block"
                                                 >
@@ -977,6 +988,7 @@ export function ChemicalPrioritizationPanel({
                                                   agentes desta atividade.
                                                 </Typography>
                                                 <Typography
+                                                  color="text.secondary"
                                                   variant="caption"
                                                   display="block"
                                                 >
@@ -987,6 +999,7 @@ export function ChemicalPrioritizationPanel({
                                                   subindo.
                                                 </Typography>
                                                 <Typography
+                                                  color="text.secondary"
                                                   variant="caption"
                                                   display="block"
                                                 >
@@ -1009,6 +1022,7 @@ export function ChemicalPrioritizationPanel({
                                                 {assessment.activityAverage !==
                                                   null && (
                                                   <Typography
+                                                    color="text.secondary"
                                                     variant="caption"
                                                     display="block"
                                                   >
@@ -1165,6 +1179,7 @@ export function ChemicalPrioritizationPanel({
                                         }}
                                       >
                                         <Typography
+                                          color="text.primary"
                                           component="h6"
                                           variant="body2"
                                           sx={{
@@ -1211,6 +1226,7 @@ export function ChemicalPrioritizationPanel({
                                             }}
                                           >
                                             <Typography
+                                              color="text.dark"
                                               component="span"
                                               variant="h4"
                                               fontWeight={600}
@@ -1357,7 +1373,15 @@ export function ChemicalPrioritizationPanel({
                                               </TableCell>
                                               <TableCell>
                                                 {factor.prioritization
-                                                  ?.method || 'Não informado'}
+                                                  ?.method || (
+                                                    <HoMethodNioshLookup
+                                                      key={factor.id}
+                                                      companyId={companyId}
+                                                      agent={factor}
+                                                      recorded={factor.prioritization?.nioshMethodNotFound}
+                                                      onRecorded={() => void refetch()}
+                                                    />
+                                                  )}
                                               </TableCell>
                                               <TableCell>
                                                 {references?.limits
@@ -1529,7 +1553,7 @@ export function ChemicalPrioritizationPanel({
                   userSelect: 'text',
                 }}
               >
-                <Typography component="p" variant="subtitle1" fontWeight={700}>
+                <Typography color="text.primary" component="p" variant="subtitle1" fontWeight={700}>
                   Justificativas de fatores químicos não priorizados
                 </Typography>
                 {report.map((entry) => (
@@ -1540,6 +1564,7 @@ export function ChemicalPrioritizationPanel({
                     sx={{ borderTop: 1, borderColor: 'divider', pt: 4 }}
                   >
                     <Typography
+                      color="text.primary"
                       component="h1"
                       sx={{
                         fontFamily: 'Georgia, serif',
@@ -1551,7 +1576,7 @@ export function ChemicalPrioritizationPanel({
                     >
                       {entry.agent}
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography color="text.primary" variant="body2">
                       {entry.cas && (
                         <>
                           <strong>CAS</strong> {entry.cas} ·{' '}
@@ -1563,17 +1588,18 @@ export function ChemicalPrioritizationPanel({
                       ({ product, activity, fields }, index) => (
                         <Box key={index}>
                           <Typography
+                            color="text.primary"
                             component="h2"
                             variant="subtitle2"
                             fontWeight={700}
                           >
                             {activity}
                           </Typography>
-                          <Typography variant="body2">
+                          <Typography color="text.primary" variant="body2">
                             <strong>Produto químico</strong> · {product}
                           </Typography>
                           {fields.map(([label, value]) => (
-                            <Typography key={label} variant="body2">
+                            <Typography color="text.primary" key={label} variant="body2">
                               <strong>{label}</strong> · {value}
                             </Typography>
                           ))}
@@ -1589,6 +1615,7 @@ export function ChemicalPrioritizationPanel({
                       }}
                     >
                       <Typography
+                        color="text.primary"
                         component="h2"
                         variant="subtitle1"
                         fontWeight={700}
@@ -1596,6 +1623,7 @@ export function ChemicalPrioritizationPanel({
                         Justificativa
                       </Typography>
                       <Typography
+                        color="text.primary"
                         variant="body2"
                         sx={{ whiteSpace: 'pre-wrap' }}
                       >
@@ -1603,7 +1631,7 @@ export function ChemicalPrioritizationPanel({
                       </Typography>
                     </Box>
                     {entry.reference && (
-                      <Typography variant="body2">
+                      <Typography color="text.primary" variant="body2">
                         <strong>Limite, método ou referência</strong> ·{' '}
                         {entry.reference}
                       </Typography>
@@ -1631,6 +1659,7 @@ export function ChemicalPrioritizationPanel({
         >
           <Stack spacing={3}>
             <Typography
+              color="text.primary"
               id="chemical-stel-review-title"
               variant="body2"
               fontWeight={600}
@@ -1692,7 +1721,7 @@ export function ChemicalPrioritizationPanel({
             Comentário da nota de contato
           </DialogTitle>
           <DialogContent>
-            <Typography variant="body2" mb={4}>
+            <Typography color="text.primary" variant="body2" mb={4}>
               {commentEditor.context}
             </Typography>
             <TextField
