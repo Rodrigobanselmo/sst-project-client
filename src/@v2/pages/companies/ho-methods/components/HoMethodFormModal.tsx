@@ -53,7 +53,8 @@ import {
   HoMethodLaboratoryAvailabilityStatusEnum,
   HoMethodSourceEnum,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryRisk';
 import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import { hoMethodQueryKeys } from '@v2/services/occupational-hygiene/ho-method/hooks/ho-method.query-keys';
 
@@ -582,9 +583,29 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     }
   }, [pdfParameters, loadingSamplers, loadingSolvents, samplerOptions, solventOptions]);
 
+  const draftRiskId = nioshDraft?.agent.id ?? '';
+  const draftRiskQuery = useQuery({
+    queryKey: ['ho-method-draft-risk', companyId, draftRiskId],
+    enabled: open && Boolean(companyId && draftRiskId),
+    refetchOnMount: 'always',
+    queryFn: async () => {
+      const risk = await queryRisk({ companyId: companyId ?? '', id: draftRiskId });
+      if (!risk || risk.id !== draftRiskId || !isChemicalRiskFactor(risk.type)) {
+        throw new Error('Fator de risco químico indisponível.');
+      }
+      return risk;
+    },
+  });
+  const draftLimitsPending = Boolean(nioshDraft && (draftRiskQuery.isFetching || draftRiskQuery.isPending));
+  const draftLimitsUnavailable = Boolean(nioshDraft && draftRiskQuery.isError);
+  const activeAgentIsDraft = Boolean(draftRiskId && activeAgent?.riskFactorId === draftRiskId);
+
   const inferredOptions = useMemo(() => {
-    const options = inferEvaluationOptionsFromRisk(activeAgent?.risk);
-    if (nioshDraft && activeAgent?.riskFactorId === nioshDraft.agent.id) {
+    if (!activeAgentIsDraft) return inferEvaluationOptionsFromRisk(activeAgent?.risk);
+    if (!draftRiskQuery.data || draftLimitsPending || draftLimitsUnavailable) return [];
+
+    const options = inferEvaluationOptionsFromRisk(draftRiskQuery.data);
+    if (!options.length) {
       options.push({
         evaluationType: HoMethodEvaluationTypeEnum.OTHER,
         label: 'Outra condição, conforme o método',
@@ -593,7 +614,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
       });
     }
     return options;
-  }, [activeAgent, nioshDraft]);
+  }, [activeAgent?.risk, activeAgentIsDraft, draftRiskQuery.data, draftLimitsPending, draftLimitsUnavailable]);
 
   const evaluationDisplayOptions = useMemo(
     () =>
@@ -1278,6 +1299,10 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
           }}
           activeAgentLabel={activeAgent?.agentName}
           conditionError={fieldErrors.evaluationConditions}
+          conditionsLoading={activeAgentIsDraft && draftLimitsPending}
+          onRetryConditions={activeAgentIsDraft && draftLimitsUnavailable
+            ? () => void draftRiskQuery.refetch()
+            : undefined}
           laboratories={form.laboratories ?? []}
           onChangeLaboratories={(labs) => updateField('laboratories', labs)}
           labNumericInputs={labNumericInputs}
@@ -1519,7 +1544,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
         <Button onClick={onClose} disabled={isSaving}>
           Cancelar
         </Button>
-        <Button variant="contained" disabled={isSaving || uploadingDocument} onClick={handleSubmit}>
+        <Button variant="contained" disabled={isSaving || uploadingDocument || draftLimitsPending || draftLimitsUnavailable} onClick={handleSubmit}>
           {isSaving ? 'Salvando…' : isEditing ? 'Salvar alterações' : 'Cadastrar'}
         </Button>
       </DialogActions>

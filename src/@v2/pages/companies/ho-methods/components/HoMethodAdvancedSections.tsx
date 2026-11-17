@@ -45,6 +45,8 @@ type Props = {
   onChangeConditions: (conditions: HoMethodEvaluationConditionPayload[]) => void;
   activeAgentLabel?: string;
   conditionError?: string;
+  conditionsLoading?: boolean;
+  onRetryConditions?: () => void;
   laboratories: HoMethodLaboratoryPayload[];
   onChangeLaboratories: (labs: HoMethodLaboratoryPayload[]) => void;
   labNumericInputs: LabNumericInputs;
@@ -126,6 +128,8 @@ export const HoMethodAdvancedSections: FC<Props> = ({
   onChangeConditions,
   activeAgentLabel,
   conditionError,
+  conditionsLoading,
+  onRetryConditions,
   laboratories,
   onChangeLaboratories,
   labNumericInputs,
@@ -241,7 +245,17 @@ export const HoMethodAdvancedSections: FC<Props> = ({
           {conditionError}
         </Alert>
       )}
-      {!evaluationDisplayOptions.length && !(selectedConditions ?? []).length ? (
+      {conditionsLoading ? (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Carregando limites de exposição do fator de risco…
+        </Alert>
+      ) : onRetryConditions ? (
+        <Alert severity="error" sx={{ mb: 3 }} action={
+          <Button size="small" onClick={onRetryConditions}>Tentar novamente</Button>
+        }>
+          Não foi possível carregar os limites de exposição do fator de risco.
+        </Alert>
+      ) : !evaluationDisplayOptions.length && !(selectedConditions ?? []).length ? (
         <Alert severity="warning" sx={{ mb: 3 }}>
           Selecione um fator de risco com limites cadastrados para habilitar os
           tipos de avaliação possíveis.
