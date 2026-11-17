@@ -1,3 +1,7 @@
+import {
+  hasCurrentNioshNotFoundSearch,
+  NIOSH_METHOD_NOT_FOUND_REFERENCE,
+} from 'core/utils/niosh-method-search.util';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from 'react-query';
@@ -356,7 +360,9 @@ function Campaigns({
                                   )
                                   .join(', ')
                               : methods.isSuccess
-                                ? 'Sem vínculo no catálogo'
+                                ? hasCurrentNioshNotFoundSearch(factor)
+                                  ? NIOSH_METHOD_NOT_FOUND_REFERENCE
+                                  : 'Sem vínculo no catálogo'
                                 : 'Consulta pendente'}
                         </TableCell>
                         <TableCell>

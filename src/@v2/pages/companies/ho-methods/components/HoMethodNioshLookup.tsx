@@ -320,7 +320,7 @@ export function HoMethodNioshLookup({
       >
         Pesquisa automática no NIOSH
       </Link>
-      {agent && !linkedMethods.data?.length && linkedId !== agent.id && (recorded || savedId === agent.id) && (
+      {!inRiskEditor && agent && !linkedMethods.data?.length && linkedId !== agent.id && (recorded || savedId === agent.id) && (
         <Typography variant="caption" display="block" color="text.secondary">
           Método não encontrado no NIOSH NMAM
         </Typography>

@@ -94,6 +94,7 @@ export function createCustomTheme(
     onSoftBackground,
   } = interactive;
   const labelColor = customPalette.text.label;
+  const linkColor = mode === 'light' ? customPalette.secondary.main : brand;
 
   return createTheme({
     palette: customPalette as PaletteOptions,
@@ -245,8 +246,18 @@ export function createCustomTheme(
       MuiLink: {
         styleOverrides: {
           root: {
-            color: brand,
+            color: linkColor,
           },
+        },
+      },
+      MuiTypography: {
+        styleOverrides: {
+          root: ({ ownerState }) => ({
+            ...((ownerState.color === 'primary' ||
+              ownerState.color === 'primary.main') && {
+              '&&': { color: linkColor },
+            }),
+          }),
         },
       },
       MuiTab: {

@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useMemo, useState } from 'react';
+import {
+  hasCurrentNioshNotFoundSearch,
+  NIOSH_METHOD_NOT_FOUND_REFERENCE,
+} from 'core/utils/niosh-method-search.util';
 
 import { Box, Button } from '@mui/material';
 import { HoMethodNioshLookup } from '@v2/pages/companies/ho-methods/components/HoMethodNioshLookup';
@@ -54,21 +58,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
   const { isMaster } = useAccess();
   const riskCompanyId = companyId || riskData.companyId;
   const showNioshLookup = type === RiskEnum.QUI && !riskData.isDuplicateDraft;
-  const nioshSearch = riskData.json?.nioshMethodSearch;
-  const hasNioshSearch =
-    nioshSearch &&
-    typeof nioshSearch === 'object' &&
-    'status' in nioshSearch &&
-    nioshSearch.status === 'NOT_FOUND' &&
-    'cas' in nioshSearch &&
-    nioshSearch.cas === (riskData.cas?.trim() || null) &&
-    (('casNormalizationVersion' in nioshSearch && nioshSearch.casNormalizationVersion === 2) ||
-      !/[\d-][^\S\r\n]+[\d-]/.test(riskData.cas ?? '')) &&
-    (('casNumbers' in nioshSearch && Array.isArray(nioshSearch.casNumbers)) ||
-      (riskData.cas?.match(/\b\d{2,7}-\d{2}-\d\b/g)?.length ?? 0) < 2) &&
-    'names' in nioshSearch &&
-    Array.isArray(nioshSearch.names) &&
-    nioshSearch.names.includes(riskData.name?.trim());
+  const hasNioshSearch = hasCurrentNioshNotFoundSearch(riskData);
   const [createSubTypeOpen, setCreateSubTypeOpen] = useState(false);
 
   const { subTypes, refetch: refetchSubTypes } = useFetchBrowseRiskSubType({
@@ -404,6 +394,11 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
               defaultValue={riskData.method ?? ''}
               setValue={setValue}
               label="Referências anotadas"
+              helperText={
+                hasNioshSearch
+                  ? NIOSH_METHOD_NOT_FOUND_REFERENCE
+                  : undefined
+              }
               variant="outlined"
               placeholder="Informe referências de métodos para consulta"
               multiline
