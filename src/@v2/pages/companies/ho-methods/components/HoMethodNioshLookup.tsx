@@ -312,7 +312,11 @@ export function HoMethodNioshLookup({
         component="button"
         type="button"
         variant="caption"
-        onClick={() => { setPendingLink(null); setOpen(true); }}
+        onClick={() => {
+          setPendingLink(null);
+          setOpen(true);
+          if (agent) void run(false);
+        }}
       >
         Pesquisa automática no NIOSH
       </Link>
@@ -334,7 +338,7 @@ export function HoMethodNioshLookup({
             ...(theme.palette.mode === 'dark' && { color: 'text.dark' }),
           })}
         >
-          Pesquisar métodos no NIOSH NMAM
+          {agent ? 'Métodos no NIOSH NMAM' : 'Pesquisar métodos no NIOSH NMAM'}
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={4}>
@@ -377,6 +381,11 @@ export function HoMethodNioshLookup({
             >
               Pesquisa manual no NIOSH ↗
             </Link>
+            {busy && !result && (
+              <Typography role="status" color="text.secondary">
+                Consultando o NIOSH…
+              </Typography>
+            )}
             {error && <Alert severity="error">{error}</Alert>}
             {result && (
               <>
@@ -508,13 +517,15 @@ export function HoMethodNioshLookup({
               Registrar resultado
             </Button>
           )}
-          <Button
-            variant="contained"
-            disabled={!target || busy || !!pendingLink}
-            onClick={() => void run(false)}
-          >
-            {busy ? 'Aguarde…' : 'Pesquisar'}
-          </Button>
+          {!result && (!agent || error) && (
+            <Button
+              variant="contained"
+              disabled={!target || busy}
+              onClick={() => void run(false)}
+            >
+              {busy ? 'Aguarde…' : error ? 'Tentar novamente' : 'Pesquisar'}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
       {nioshDraft && (
