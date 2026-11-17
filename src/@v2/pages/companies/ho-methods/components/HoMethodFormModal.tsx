@@ -2,6 +2,7 @@ import { FC, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Dialog,
@@ -190,8 +191,15 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     attempt: number;
     promise: ReturnType<typeof uploadOfficialNioshPdf>;
   } | null>(null);
+  const [documentDownloadUrl, setDocumentDownloadUrl] = useState<string | null>(null);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [extraSamplers, setExtraSamplers] = useState<HoSamplerRecord[]>([]);
+  const [samplerDialogOpen, setSamplerDialogOpen] = useState(false);
+  const [samplerName, setSamplerName] = useState('');
+  const [samplerSearch, setSamplerSearch] = useState('');
+  const [creatingSampler, setCreatingSampler] = useState(false);
+  const creatingSamplerRequest = useRef(false);
+  const [samplerError, setSamplerError] = useState('');
   const [extraSolvents, setExtraSolvents] = useState<
     HoExtractionSolventRecord[]
   >([]);
@@ -247,6 +255,8 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
 
   const { data: samplers = [], isLoading: loadingSamplers } =
     useFetchBrowseHoSamplers('', open);
+  const { data: searchedSamplers = [], isFetching: searchingSamplers } =
+    useFetchBrowseHoSamplers(samplerSearch.trim(), open && samplerDialogOpen && Boolean(samplerSearch.trim()));
   const { data: solvents = [], isLoading: loadingSolvents } =
     useFetchBrowseHoExtractionSolvents('', open);
   const { data: laboratories = [], isLoading: loadingLaboratories } =
@@ -383,7 +393,10 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setSamplerDialogOpen(false);
+      return;
+    }
 
     if (method) {
       const nextForm = {
@@ -456,6 +469,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
       setActiveAgentLocalId(loadedAgents[0]?.localId ?? null);
       setAgentPickerRisk(null);
       setCasInput(loadedAgents[0]?.cas ?? nextForm.cas ?? '');
+      setDocumentDownloadUrl(null);
       setDocumentUrl(
         resolveHoMethodDocumentUrl({
           id: method.id,
@@ -485,6 +499,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
       setActiveAgentLocalId(initialAgent?.localId ?? null);
       setAgentPickerRisk(null);
       setCasInput(matchedCas);
+      setDocumentDownloadUrl(null);
       setDocumentUrl(null);
     }
 
@@ -527,6 +542,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
         originalDocumentUploadedAt: uploaded.uploadedAt,
       }));
       setDocumentUrl(uploaded.url || null);
+      setDocumentDownloadUrl(uploaded.downloadUrl || null);
       const parameters = uploaded.parameters;
       if (!parameters) return;
       setPdfParameters(parameters);
@@ -874,6 +890,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
       updateField('originalDocumentName', uploaded.name);
       updateField('originalDocumentUploadedAt', uploaded.uploadedAt);
       setDocumentUrl(uploaded.url || null);
+      setDocumentDownloadUrl(uploaded.downloadUrl || null);
       setOfficialPdfError('');
       showSnackBar('Documento original anexado', { type: 'success' });
     } catch (error) {
@@ -886,25 +903,42 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     }
   };
 
+  const openSamplerDialog = () => {
+    setSamplerName(pdfParameters?.sampler ?? '');
+    setSamplerSearch('');
+    setSamplerError('');
+    setSamplerDialogOpen(true);
+  };
+
+  const selectSampler = (sampler: HoSamplerRecord) => {
+    autoSelectedCatalog.current.sampler = true;
+    setExtraSamplers((current) => current.some(({ id }) => id === sampler.id)
+      ? current
+      : [...current, sampler]);
+    updateField('samplerId', sampler.id);
+    setSamplerDialogOpen(false);
+  };
+
+  const duplicateSampler = [...samplerOptions, ...searchedSamplers].find(
+    ({ active, name }) => active && name.localeCompare(samplerName.trim(), 'pt-BR', { sensitivity: 'accent' }) === 0,
+  );
+
   const handleQuickCreateSampler = async () => {
-    const name = window.prompt('Nome do amostrador', pdfParameters?.sampler ?? '');
-    if (!name?.trim()) return;
+    const name = samplerName.trim();
+    if (!name || duplicateSampler || creatingSamplerRequest.current) return;
+    creatingSamplerRequest.current = true;
+    setCreatingSampler(true);
+    setSamplerError('');
     try {
-      const created = await createHoSampler({ name: name.trim() });
-      setExtraSamplers((current) => [...current, created]);
-      await queryClient.invalidateQueries({
-        queryKey: hoMethodQueryKeys.samplers(''),
-      });
-      updateField('samplerId', created.id);
+      const created = await createHoSampler({ name });
+      selectSampler(created);
+      void queryClient.invalidateQueries({ queryKey: hoMethodQueryKeys.samplers('') });
       showSnackBar('Amostrador cadastrado', { type: 'success' });
     } catch (error) {
-      showSnackBar(
-        getHoMethodApiErrorMessage(
-          error,
-          'Não foi possível cadastrar o amostrador',
-        ),
-        { type: 'error' },
-      );
+      setSamplerError(getHoMethodApiErrorMessage(error, 'Não foi possível cadastrar o amostrador.'));
+    } finally {
+      creatingSamplerRequest.current = false;
+      setCreatingSampler(false);
     }
   };
 
@@ -1168,7 +1202,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
                     </Button>
                     <Button
                       component={Link}
-                      href={documentUrl}
+                      href={documentDownloadUrl || documentUrl}
                       target="_blank"
                       rel="noopener"
                       variant="outlined"
@@ -1351,7 +1385,6 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
                   label="Amostrador padrão"
                   options={samplerOptions}
                   loading={loadingSamplers}
-                  filterOptions={(options) => options}
                   value={
                     samplerOptions.find((item) => item.id === form.samplerId) ??
                     null
@@ -1362,13 +1395,13 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
                   }
                 />
               </Box>
-              <Button sx={{ mt: 4 }} onClick={handleQuickCreateSampler}>
+              <Button sx={{ mt: 4 }} onClick={openSamplerDialog} aria-label="Selecionar ou cadastrar amostrador">
                 +
               </Button>
             </Box>
             {pdfParameters?.sampler && !form.samplerId && (
               <Typography variant="caption" color="text.secondary">
-                Amostrador no PDF: {pdfParameters.sampler}. Use + para cadastrá-lo.
+                Amostrador no PDF: {pdfParameters.sampler}. Use + para selecionar um existente ou cadastrar um novo.
               </Typography>
             )}
           </Grid>
@@ -1548,6 +1581,62 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
           {isSaving ? 'Salvando…' : isEditing ? 'Salvar alterações' : 'Cadastrar'}
         </Button>
       </DialogActions>
+      <Dialog
+        open={open && samplerDialogOpen}
+        onClose={() => !creatingSampler && setSamplerDialogOpen(false)}
+        aria-labelledby="ho-sampler-dialog-title"
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle id="ho-sampler-dialog-title">Selecionar ou cadastrar amostrador</DialogTitle>
+        <DialogContent dividers>
+          <Box display="grid" gap={3}>
+            {pdfParameters?.sampler && (
+              <Typography variant="body2">Amostrador no PDF: {pdfParameters.sampler}</Typography>
+            )}
+            <Autocomplete
+              renderInput={(params) => <TextField {...params} label="Buscar amostrador existente" />}
+              noOptionsText="Nenhum amostrador encontrado"
+              loadingText="Buscando amostradores…"
+              options={(samplerSearch.trim() ? searchedSamplers : samplerOptions).filter(({ active }) => active)}
+              filterOptions={samplerSearch.trim() ? (options) => options : undefined}
+              value={null}
+              loading={loadingSamplers || searchingSamplers}
+              disabled={creatingSampler}
+              getOptionLabel={(option) => option.name}
+              onInputChange={(_, value) => setSamplerSearch(value)}
+              onChange={(_, option) => option && selectSampler(option)}
+            />
+            <TextField
+              fullWidth
+              label="Nome do novo amostrador"
+              value={samplerName}
+              disabled={creatingSampler}
+              onChange={(event) => setSamplerName(event.target.value)}
+            />
+            {duplicateSampler && (
+              <Alert severity="info" action={
+                <Button size="small" disabled={creatingSampler} onClick={() => selectSampler(duplicateSampler)}>
+                  Usar existente
+                </Button>
+              }>
+                Já existe um amostrador com esse nome.
+              </Alert>
+            )}
+            {samplerError && <Alert severity="error">{samplerError}</Alert>}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={creatingSampler} onClick={() => setSamplerDialogOpen(false)}>Cancelar</Button>
+          <Button
+            variant="contained"
+            disabled={!samplerName.trim() || Boolean(duplicateSampler) || creatingSampler}
+            onClick={handleQuickCreateSampler}
+          >
+            {creatingSampler ? 'Cadastrando…' : 'Cadastrar novo'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <HoLaboratoryFormModal
         open={laboratoryModalOpen}
         onClose={() => setLaboratoryModalOpen(false)}

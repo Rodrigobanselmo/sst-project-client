@@ -381,7 +381,7 @@ export function HoMethodNioshLookup({
             {result && (
               <>
                 <Typography variant="body2" color="text.primary">
-                  Busca no índice oficial da 4ª e da 5ª edições.
+                  Busca de métodos de amostragem no ar no índice oficial da 4ª e da 5ª edições.
                   {result.casNumbers?.length
                     ? ` CAS consultados: ${result.casNumbers.join('; ')}.`
                     : result.cas && ` CAS: ${result.cas}.`}{' '}
@@ -445,21 +445,20 @@ export function HoMethodNioshLookup({
 
                         return (
                           <li key={`${method.url}:${index}`}>
-                            {canRegister ? (
-                              <Link
-                                sx={hoMethodLinkSx}
-                                component="button"
-                                type="button"
-                                onClick={() => setNioshDraft({ ...method, agent: target, casNumbers })}
-                                aria-label={`Cadastrar e vincular ${label}`}
-                              >
-                                {label} · Cadastrar e vincular
-                              </Link>
-                            ) : (
+                            <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
                               <Link sx={hoMethodLinkSx} href={method.url} target="_blank" rel="noopener noreferrer">
-                                {label}
+                                {label} (PDF)
                               </Link>
-                            )}
+                              {canRegister && (
+                                <Button
+                                  size="small"
+                                  onClick={() => setNioshDraft({ ...method, agent: target, casNumbers })}
+                                  aria-label={`Cadastrar e vincular ${label}`}
+                                >
+                                  Cadastrar e vincular
+                                </Button>
+                              )}
+                            </Box>
                             <Typography variant="caption" display="block" color="text.secondary">
                               {method.edition === '5th' ? '5ª' : '4ª'} edição ·{' '}
                               {method.matchedBy === 'CAS'
@@ -478,7 +477,7 @@ export function HoMethodNioshLookup({
                     >
                       {savedId === target?.id
                         ? 'Resultado registrado no fator de risco.'
-                        : 'Método não encontrado no índice consultado do NIOSH NMAM. Deseja registrar esse resultado no fator de risco?'}
+                        : 'Nenhum método de amostragem no ar foi encontrado no índice consultado do NIOSH NMAM. Deseja registrar esse resultado no fator de risco?'}
                     </Alert>
                     {editUrl && !inRiskEditor && (
                       <Link

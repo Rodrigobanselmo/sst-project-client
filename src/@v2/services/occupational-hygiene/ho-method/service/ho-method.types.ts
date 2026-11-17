@@ -288,7 +288,8 @@ export type HoLaboratoryRecord = {
 export type HoMethodFileUploadResponse = {
   fileId: string;
   name: string;
-  url: string;
+  url: string | null;
+  downloadUrl?: string | null;
   uploadedAt: string;
 };
 
