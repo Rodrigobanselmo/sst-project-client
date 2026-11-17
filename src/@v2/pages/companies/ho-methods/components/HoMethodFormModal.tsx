@@ -442,6 +442,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
           notes: item.notes,
         })),
         laboratories: method.laboratories.map((lab) => ({
+          riskFactorId: lab.riskFactorId ?? null,
           laboratoryId: lab.laboratoryId,
           laboratoryName: lab.laboratoryName,
           availabilityStatus: lab.availabilityStatus,
@@ -1338,6 +1339,10 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
             ? () => void draftRiskQuery.refetch()
             : undefined}
           laboratories={form.laboratories ?? []}
+          laboratoryAgents={methodAgents.map((agent) => ({
+            id: agent.riskFactorId,
+            name: agent.agentName || agent.riskFactorId,
+          }))}
           onChangeLaboratories={(labs) => updateField('laboratories', labs)}
           labNumericInputs={labNumericInputs}
           onChangeLabNumericInputs={setLabNumericInputs}

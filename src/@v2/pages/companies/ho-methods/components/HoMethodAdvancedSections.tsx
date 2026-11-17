@@ -48,6 +48,7 @@ type Props = {
   conditionsLoading?: boolean;
   onRetryConditions?: () => void;
   laboratories: HoMethodLaboratoryPayload[];
+  laboratoryAgents: { id: string; name: string }[];
   onChangeLaboratories: (labs: HoMethodLaboratoryPayload[]) => void;
   labNumericInputs: LabNumericInputs;
   onChangeLabNumericInputs: (inputs: LabNumericInputs) => void;
@@ -131,6 +132,7 @@ export const HoMethodAdvancedSections: FC<Props> = ({
   conditionsLoading,
   onRetryConditions,
   laboratories,
+  laboratoryAgents,
   onChangeLaboratories,
   labNumericInputs,
   onChangeLabNumericInputs,
@@ -327,6 +329,24 @@ export const HoMethodAdvancedSections: FC<Props> = ({
               </IconButton>
             </Box>
             <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Aplicação dos parâmetros do laboratório"
+                  value={lab.riskFactorId ?? ''}
+                  onChange={(event) =>
+                    updateLab(index, { riskFactorId: event.target.value || null })
+                  }
+                >
+                  <MenuItem value="">Todos os agentes vinculados</MenuItem>
+                  {laboratoryAgents.map((agent) => (
+                    <MenuItem key={agent.id} value={agent.id}>
+                      {agent.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
               <Grid item xs={12}>
                 {!lab.laboratoryId && lab.laboratoryName?.trim() && (
                   <Alert severity="warning" sx={{ mb: 1 }}>

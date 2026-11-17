@@ -57,6 +57,7 @@ export type HoMethodEvaluationConditionRecord = {
 };
 
 export type HoMethodLaboratoryRecord = {
+  riskFactorId?: string | null;
   id: string;
   laboratoryId: string | null;
   laboratoryName: string;
@@ -171,6 +172,7 @@ export type HoMethodEvaluationConditionPayload = {
 };
 
 export type HoMethodLaboratoryPayload = {
+  riskFactorId?: string | null;
   laboratoryId?: string | null;
   laboratoryName?: string;
   availabilityStatus?: HoMethodLaboratoryAvailabilityStatusEnum;

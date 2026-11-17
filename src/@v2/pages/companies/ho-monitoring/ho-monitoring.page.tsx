@@ -317,6 +317,7 @@ function Campaigns({
                     const hasLaboratory = linked.some((method) =>
                       method.laboratories.some(
                         (lab) =>
+                          (!lab.riskFactorId || lab.riskFactorId === factor.id) &&
                           lab.availabilityStatus ===
                           HoMethodLaboratoryAvailabilityStatusEnum.AVAILABLE,
                       ),
