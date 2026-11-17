@@ -85,7 +85,6 @@ export function HoMethodNioshLookup({
   onRecorded,
   onLinked,
   inRiskEditor = false,
-  legacyMethod,
   allowCatalogLink = false,
 }: {
   companyId: string;
@@ -93,7 +92,6 @@ export function HoMethodNioshLookup({
   recorded?: boolean;
   onRecorded?: (evidence: NioshSearchEvidence) => void;
   inRiskEditor?: boolean;
-  legacyMethod?: string | null;
   allowCatalogLink?: boolean;
   onLinked?: () => void;
 }) {
@@ -135,16 +133,6 @@ export function HoMethodNioshLookup({
     enabled: inRiskEditor && allowCatalogLink && pickerOpen,
     queryFn: () => browseHoMethods({ status: HoMethodAvailabilityStatusEnum.ACTIVE, search: catalogSearch, limit: 50 }),
   });
-  const legacyLabel = /^(quantitativo|qualitativo)$/i.test(legacyMethod?.trim() ?? '')
-    ? ''
-    : legacyMethod?.trim();
-  const currentMethodLabel = linkedMethods.data?.length
-    ? linkedMethods.data.map((method) => `${method.institution} ${method.methodCode}`).join('; ')
-    : legacyLabel || (linkedMethods.isPending
-      ? 'Carregando métodos…'
-      : linkedMethods.isError
-        ? 'Não foi possível consultar os métodos'
-        : 'Nenhum método disponível para este fator');
   const saveCatalogLink = async () => {
     if (!catalogSelection || !url || catalogSaving) return;
     setCatalogSaving(true);
@@ -233,14 +221,16 @@ export function HoMethodNioshLookup({
   return (
     <>
       {inRiskEditor && (
-        <TextField
-          label="Método"
-          size="small"
-          fullWidth
-          value={currentMethodLabel}
-          InputProps={{ readOnly: true }}
-          sx={{ mb: 2 }}
-        />
+        <Typography variant="subtitle2" color="text.primary" sx={{ mb: 2 }}>
+          Métodos vinculados
+        </Typography>
+      )}
+      {inRiskEditor && !linkedMethods.isError && (
+        linkedMethods.isPending || !linkedMethods.data?.length
+      ) && (
+        <Typography variant="body2" color="text.secondary">
+          {linkedMethods.isPending ? 'Carregando métodos…' : 'Nenhum método vinculado'}
+        </Typography>
       )}
       {!!linkedMethods.data?.length && (
         <Stack spacing={2} mb={2} aria-label="Métodos de HO vinculados">

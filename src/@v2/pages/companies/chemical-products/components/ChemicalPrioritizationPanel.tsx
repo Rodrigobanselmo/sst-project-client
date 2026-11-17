@@ -341,8 +341,12 @@ export function ChemicalPrioritizationPanel({
                     ({ source, value }) =>
                       `${source}: ${formatChemicalCatalogLimit(value ?? '', group.factor.prioritization?.unit)}`,
                   ),
+                  ...(group.factor.prioritization?.linkedMethods ?? []).map(
+                    ({ institution, methodCode, cas }) =>
+                      `Método vinculado: ${institution} ${methodCode}${cas ? ` · CAS ${cas}` : ''}`,
+                  ),
                   group.factor.prioritization?.method
-                    ? `Método cadastrado: ${group.factor.prioritization.method}`
+                    ? `Referências anotadas: ${group.factor.prioritization.method}`
                     : '',
                 ]
                   .filter(Boolean)
@@ -1372,40 +1376,41 @@ export function ChemicalPrioritizationPanel({
                                                 )}
                                               </TableCell>
                                               <TableCell>
-                                                {factor.prioritization?.linkedMethods?.map((method) => (
-                                                  <Typography
-                                                    key={method.id}
-                                                    variant="caption"
-                                                    display="block"
-                                                    color="text.dark"
-                                                  >
-                                                    {method.institution} {method.methodCode}
-                                                    {method.cas && ` · CAS ${method.cas}`}
+                                                {factor.prioritization?.linkedMethods?.length ? (
+                                                  <>
+                                                    <Typography variant="caption" display="block" fontWeight={600} color="text.primary">
+                                                      Métodos vinculados
+                                                    </Typography>
+                                                    {factor.prioritization.linkedMethods.map((method) => (
+                                                      <Typography key={method.id} variant="caption" display="block" color="text.dark">
+                                                        {method.institution} {method.methodCode}
+                                                        {method.cas && ` · CAS ${method.cas}`}
+                                                      </Typography>
+                                                    ))}
+                                                  </>
+                                                ) : (
+                                                  <Typography variant="caption" display="block" color="text.secondary">
+                                                    Nenhum método vinculado
                                                   </Typography>
-                                                ))}
-                                                {factor.prioritization?.method &&
-                                                  !factor.prioritization.linkedMethods?.some(
-                                                    ({ institution, methodCode }) =>
-                                                      factor.prioritization?.method?.trim().toUpperCase() === `${institution} ${methodCode}`,
-                                                  ) && (
-                                                    <Typography
-                                                      variant="caption"
-                                                      display="block"
-                                                      color="text.dark"
-                                                    >
+                                                )}
+                                                {factor.prioritization?.method?.trim() && (
+                                                  <Box sx={{ mt: 2 }}>
+                                                    <Typography variant="caption" display="block" fontWeight={600} color="text.primary">
+                                                      Referências anotadas
+                                                    </Typography>
+                                                    <Typography variant="caption" display="block" color="text.dark" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
                                                       {factor.prioritization.method}
                                                     </Typography>
-                                                  )}
-                                                {(!factor.prioritization?.method || !!factor.prioritization.linkedMethods?.length) && (
-                                                    <HoMethodNioshLookup
-                                                      key={factor.id}
-                                                      companyId={companyId}
-                                                      agent={factor}
-                                                      recorded={factor.prioritization?.nioshMethodNotFound}
-                                                      onRecorded={() => void refetch()}
-                                                      onLinked={() => void refetch()}
-                                                    />
-                                                  )}
+                                                  </Box>
+                                                )}
+                                                <HoMethodNioshLookup
+                                                  key={factor.id}
+                                                  companyId={companyId}
+                                                  agent={factor}
+                                                  recorded={factor.prioritization?.nioshMethodNotFound}
+                                                  onRecorded={() => void refetch()}
+                                                  onLinked={() => void refetch()}
+                                                />
                                               </TableCell>
                                               <TableCell>
                                                 {references?.limits

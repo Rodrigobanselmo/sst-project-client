@@ -383,7 +383,6 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
                 }}
                 recorded={Boolean(hasNioshSearch) && !riskData.method}
                 inRiskEditor
-                legacyMethod={riskData.method}
                 allowCatalogLink={Boolean(isMaster && isSystemRisk)}
                 onRecorded={(evidence) =>
                   setRiskData((current) =>
@@ -397,6 +396,23 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
                 }
               />
             </Box>
+          )}
+          {type === RiskEnum.QUI && (
+            <InputForm
+              name="method"
+              control={control}
+              defaultValue={riskData.method ?? ''}
+              setValue={setValue}
+              label="Referências anotadas"
+              variant="outlined"
+              placeholder="Informe referências de métodos para consulta"
+              multiline
+              minRows={2}
+              maxRows={5}
+              size="small"
+              uneditable={isCatalogReadOnly}
+              sx={{ mt: 4 }}
+            />
           )}
         </Box>
         <Box mt={8}>
