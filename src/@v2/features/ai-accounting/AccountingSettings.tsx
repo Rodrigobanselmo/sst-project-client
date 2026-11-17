@@ -90,11 +90,11 @@ export function BudgetSettings({
   return (
     <Stack spacing={10}>
       <Alert severity="info">
-        Todos os limites são verificados: usuário, empresa e plataforma,
-        inclusive para MASTER e rotinas automáticas. Após atingir o gasto
-        diário, novas chamadas são bloqueadas. A última chamada e chamadas
-        paralelas podem ultrapassar o limite. Zero bloqueia desde a primeira
-        chamada.
+        O Master da plataforma usa o saldo global. O administrador máximo usa
+        o saldo da própria empresa, sujeito ao teto global. Os demais usuários
+        e as rotinas automáticas também seguem seus limites aplicáveis.
+        Ao atingir um limite, novas chamadas são bloqueadas. Chamadas em
+        andamento podem ultrapassar o teto. Saldo zero bloqueia a primeira chamada.
       </Alert>
       <Typography variant="h6">Limites diários em dólares</Typography>
       {notice && <Alert severity="success">{notice}</Alert>}
@@ -116,6 +116,7 @@ export function BudgetSettings({
         <Stack
           direction={{ xs: 'column', md: 'row' }}
           spacing={8}
+          useFlexGap
           sx={{ alignItems: { md: 'flex-start' }, flexWrap: 'wrap' }}
         >
           <TextField
@@ -123,7 +124,7 @@ export function BudgetSettings({
             label="Limite para"
             value={kind}
             onChange={(e) => choose(e.target.value)}
-            sx={{ minWidth: '220px' }}
+            sx={{ width: { xs: '100%', md: 320 }, maxWidth: '100%' }}
           >
             <MenuItem value="GLOBAL">Toda a plataforma</MenuItem>
             <MenuItem value="USER:*">Padrão por usuário</MenuItem>
@@ -161,6 +162,7 @@ export function BudgetSettings({
           )}
           <TextField
             label="Máximo por dia (US$)"
+            sx={{ width: { xs: '100%', md: 320 }, maxWidth: '100%' }}
             value={limit}
             onChange={(e) => setLimit(e.target.value)}
             helperText={

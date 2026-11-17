@@ -182,7 +182,17 @@ export function AiConsumptionPage() {
             ? workflowLabels[row.key] || row.key
             : row.key;
   return (
-    <Stack spacing={12} sx={{ py: '24px', minWidth: 0 }}>
+    <Stack
+      spacing={12}
+      sx={(theme) => ({
+        py: '24px',
+        minWidth: 0,
+        ...(theme.palette.mode === 'dark' && {
+          '& .MuiTypography-root:not(.MuiLink-root, .MuiAlert-root *), & .MuiFormControlLabel-label:not(.Mui-disabled), & .MuiFormHelperText-root:not(.Mui-error, .Mui-disabled)':
+            { color: theme.palette.common.white },
+        }),
+      })}
+    >
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={8}
@@ -301,6 +311,7 @@ export function AiConsumptionPage() {
             </TextField>
           )}
           <TextField
+            sx={{ gridColumnStart: { md: 1 } }}
             label="Pesquisar empresa"
             value={companySearch}
             onChange={(e) => setCompanySearch(e.target.value)}
@@ -319,6 +330,7 @@ export function AiConsumptionPage() {
             ))}
           </TextField>
           <TextField
+            sx={{ gridColumnStart: { md: 1 } }}
             label="Pesquisar usuário"
             value={userSearch}
             onChange={(e) => setUserSearch(e.target.value)}
@@ -339,6 +351,7 @@ export function AiConsumptionPage() {
           <TextField
             select
             label="Fluxo"
+            helperText="Filtra pela funcionalidade que usou IA."
             value={workflow}
             onChange={(e) => setWorkflow(e.target.value)}
           >
@@ -409,11 +422,13 @@ export function AiConsumptionPage() {
         <>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={8}>
             <TextField
+              fullWidth
               label="Pesquisar empresa para configurar limite"
               value={companySearch}
               onChange={(e) => setCompanySearch(e.target.value)}
             />
             <TextField
+              fullWidth
               label="Pesquisar usuário para configurar limite"
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}

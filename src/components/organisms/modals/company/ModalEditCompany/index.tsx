@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useTheme } from '@mui/material/styles';
+import { Box, Tab, Tabs } from '@mui/material';
+import { CompanyAiBudget } from '@v2/features/ai-accounting/CompanyAiBudget';
 import { useAccess } from 'core/hooks/useAccess';
 import { IllustrationAdministrationModal } from '../IllustrationAdministration/IllustrationAdministrationModal';
 
@@ -22,6 +24,69 @@ import { ContactModalCompanyStep } from './components/6-contacts';
 import { CoverModalCompanyStep } from './components/7-cover';
 import { JourneysModalCompanyStep } from './components/8-journeys';
 import { useEditCompany } from './hooks/useEditCompany';
+
+function CompanyAiManagement({
+  company,
+  onClose,
+  registerCloseGuard,
+}: {
+  company: { id: string; name: string };
+  onClose: () => void;
+  registerCloseGuard: (guard: () => boolean) => () => void;
+}) {
+  const [section, setSection] = useState(0);
+  const guard = useRef<(() => boolean) | null>(null);
+  const registerGuard = useCallback(
+    (next: () => boolean) => {
+      guard.current = next;
+      const unregister = registerCloseGuard(next);
+      return () => {
+        guard.current = null;
+        unregister();
+      };
+    },
+    [registerCloseGuard],
+  );
+
+  return (
+    <>
+      <Tabs
+        value={section}
+        onChange={(_, next: number) => {
+          if (!guard.current || guard.current()) setSection(next);
+        }}
+        aria-label="Gestão de IA"
+      >
+        <Tab label="Uso e limites" />
+        <Tab label="Ilustrações com IA" />
+      </Tabs>
+      <Box
+        sx={(theme) => ({
+          pt: 8,
+          ...(theme.palette.mode === 'dark' && {
+            color: theme.palette.common.white,
+            '& .MuiTypography-root:not(.MuiLink-root, .MuiAlert-root *), & .MuiFormControlLabel-label:not(.Mui-disabled), & .MuiFormHelperText-root:not(.Mui-error, .Mui-disabled)':
+              { color: theme.palette.common.white },
+          }),
+        })}
+      >
+        {section === 0 ? (
+          <CompanyAiBudget
+            companyId={company.id}
+            registerCloseGuard={registerGuard}
+          />
+        ) : (
+          <IllustrationAdministrationModal
+            embedded
+            company={company}
+            onClose={onClose}
+            registerCloseGuard={registerGuard}
+          />
+        )}
+      </Box>
+    </>
+  );
+}
 
 export const ModalEditCompany = () => {
   const theme = useTheme();
@@ -57,9 +122,10 @@ export const ModalEditCompany = () => {
             overflowY: 'auto',
           }),
           ...(theme.palette.mode === 'dark' && {
-            '& .MuiFormHelperText-root:not(.Mui-error), & .MuiFormLabel-root:not(.Mui-focused):not(.Mui-error)': {
-              color: theme.palette.text.secondary,
-            },
+            '& .MuiFormHelperText-root:not(.Mui-error), & .MuiFormLabel-root:not(.Mui-focused):not(.Mui-error)':
+              {
+                color: theme.palette.text.secondary,
+              },
             '& img[src="/images/placeholder-image.png"]': {
               filter: 'invert(1)',
             },
@@ -97,9 +163,7 @@ export const ModalEditCompany = () => {
                   { label: 'Contato' },
                   { label: 'Capa do Documento' },
                   { label: 'Jornadas de trabalho' },
-                  ...(showIllustrations
-                    ? [{ label: 'Ilustrações com IA' }]
-                    : []),
+                  ...(showIllustrations ? [{ label: 'Gestão de IA' }] : []),
                 ]}
               />
             ) : null
@@ -116,8 +180,8 @@ export const ModalEditCompany = () => {
           <CoverModalCompanyStep {...props} />
           {isEdit && <JourneysModalCompanyStep {...props} />}
           {showIllustrations && (
-            <IllustrationAdministrationModal
-              embedded
+            <CompanyAiManagement
+              key={props.companyData.id}
               company={{
                 id: props.companyData.id,
                 name: props.companyData.name,
