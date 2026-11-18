@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { useQuery } from 'react-query';
 import {
   Alert,
+  Link,
   Box,
   Button,
   Checkbox,
@@ -37,7 +38,6 @@ import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
 import { HoMethodsPage } from '@v2/pages/companies/ho-methods/ho-methods.page';
 import { useAuth } from 'core/contexts/AuthContext';
 import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
-import { HoMethodLaboratoryAvailabilityStatusEnum } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 
 import {
   CampaignDraft,
@@ -317,24 +317,17 @@ function Campaigns({
                     const availableLaboratories = linked.flatMap((method) =>
                       method.laboratories.filter(
                         (lab) =>
-                          (!lab.riskFactorId ||
-                            lab.riskFactorId === factor.id) &&
-                          lab.availabilityStatus ===
-                            HoMethodLaboratoryAvailabilityStatusEnum.AVAILABLE,
+                          !lab.riskFactorId || lab.riskFactorId === factor.id,
                       ),
                     );
-                    const confirmationDates = availableLaboratories
-                      .map((lab) => lab.lastConfirmationDate?.slice(0, 10))
-                      .filter((date): date is string =>
-                        Boolean(date && /^\d{4}-\d{2}-\d{2}$/.test(date)),
-                      )
-                      .sort();
-                    const latestConfirmation = confirmationDates.at(-1);
-                    const laboratoryLabel = latestConfirmation
-                      ? `Disponível · confirmado em ${latestConfirmation.split('-').reverse().join('/')}`
-                      : availableLaboratories.length
-                        ? 'Disponível no cadastro · sem data de confirmação'
-                        : 'Disponibilidade a confirmar';
+                    const laboratories = [
+                      ...new Map(
+                        availableLaboratories.map((lab) => [
+                          lab.laboratoryId || lab.laboratoryName,
+                          lab,
+                        ]),
+                      ).values(),
+                    ];
                     const level = exposure.level as CampaignRiskLevel;
                     return (
                       <TableRow key={`${factor.id}:${exposure.id}`}>
@@ -384,7 +377,40 @@ function Campaigns({
                             ? 'Cadastrada · revisar aplicação'
                             : 'Revisar referência'}
                         </TableCell>
-                        <TableCell>{laboratoryLabel}</TableCell>
+                        <TableCell>
+                          <Stack direction="row" flexWrap="wrap" gap={4}>
+                            {laboratories.length
+                              ? laboratories.map((lab) => {
+                                  const name =
+                                    lab.laboratoryTradeName ||
+                                    lab.laboratoryName ||
+                                    lab.laboratoryCorporateName ||
+                                    'Laboratório';
+                                  const shortName = /\bsgs\b/i.test(name)
+                                    ? 'SGS'
+                                    : /toxilab/i.test(name)
+                                      ? 'Toxilab'
+                                      : name;
+                                  return lab.laboratoryId ? (
+                                    <Link
+                                      key={lab.laboratoryId}
+                                      href={`/dashboard/empresas/${encodeURIComponent(companyId)}/metodos-ho?tab=laboratories&laboratoryId=${encodeURIComponent(lab.laboratoryId)}&riskFactorId=${encodeURIComponent(factor.id)}`}
+                                      sx={{
+                                        color: (theme) =>
+                                          theme.palette.mode === 'dark'
+                                            ? 'primary.main'
+                                            : 'info.dark',
+                                      }}
+                                    >
+                                      {shortName}
+                                    </Link>
+                                  ) : (
+                                    <span key={name}>{shortName}</span>
+                                  );
+                                })
+                              : '—'}
+                          </Stack>
+                        </TableCell>
                       </TableRow>
                     );
                   })}

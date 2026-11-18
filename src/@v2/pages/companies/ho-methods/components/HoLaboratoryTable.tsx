@@ -1,8 +1,10 @@
+import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Autocomplete,
   Checkbox,
+  Chip,
   Box,
   Button,
   MenuItem,
@@ -78,7 +80,22 @@ const columns = [
 ];
 
 export function HoLaboratoryTable() {
+  const router = useRouter();
   const [laboratoryId, setLaboratoryId] = useState('');
+  const [linkedRiskId, setLinkedRiskId] = useState('');
+  useEffect(() => {
+    if (!router.isReady) return;
+    setLaboratoryId(
+      typeof router.query.laboratoryId === 'string'
+        ? router.query.laboratoryId
+        : '',
+    );
+    setLinkedRiskId(
+      typeof router.query.riskFactorId === 'string'
+        ? router.query.riskFactorId
+        : '',
+    );
+  }, [router.isReady, router.query.laboratoryId, router.query.riskFactorId]);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
@@ -102,7 +119,15 @@ export function HoLaboratoryTable() {
     );
   useEffect(() => {
     setPage(1);
-  }, [laboratoryId, search, selections, presence, pageSize, continuous]);
+  }, [
+    laboratoryId,
+    linkedRiskId,
+    search,
+    selections,
+    presence,
+    pageSize,
+    continuous,
+  ]);
   const [methodId, setMethodId] = useState('');
   const [editingId, setEditingId] = useState('');
   const labs = useFetchBrowseHoLaboratories();
@@ -206,9 +231,13 @@ export function HoLaboratoryTable() {
         row.method[methodKey as keyof typeof row.method] != null,
     })),
   ];
+  const linkedRiskName = allRows.find(
+    (row) => row.agent.riskFactorId === linkedRiskId,
+  )?.agent.agentName;
   const rows = allRows.filter((row) => {
     const text = fields.map((field) => field.value(row)).join(' ');
     return (
+      (!linkedRiskId || row.agent.riskFactorId === linkedRiskId) &&
       normalize(text).includes(normalize(search.trim())) &&
       fields.every(
         (field) =>
@@ -264,6 +293,13 @@ export function HoLaboratoryTable() {
             Tentar novamente
           </Button>
         </Alert>
+      )}
+      {linkedRiskId && (
+        <Chip
+          label={`Agente: ${linkedRiskName || 'selecionado'}`}
+          onDelete={() => setLinkedRiskId('')}
+          sx={{ alignSelf: 'flex-start' }}
+        />
       )}
       <TextField
         select

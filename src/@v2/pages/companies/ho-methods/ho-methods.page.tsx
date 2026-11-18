@@ -1,11 +1,16 @@
-import { FC, useState } from 'react';
+import { useRouter } from 'next/router';
+import { FC, useEffect, useState } from 'react';
 
 import { Box, Tab, Tabs } from '@mui/material';
 import { HoLaboratoryTable } from './components/HoLaboratoryTable';
 import { HoMethodsPageContent } from './components/HoMethodsPageContent';
 
 export const HoMethodsPage: FC = () => {
+  const router = useRouter();
   const [tab, setTab] = useState(0);
+  useEffect(() => {
+    if (router.isReady) setTab(router.query.tab === 'laboratories' ? 1 : 0);
+  }, [router.isReady, router.query.tab]);
   return (
     <Box sx={{ px: { xs: 2, md: 5 }, pb: 10, pt: 2 }}>
       <Tabs
