@@ -1,3 +1,4 @@
+import { GseAssistanceToolbar } from '../../src/components/organisms/main/Tree/OrgTree/components/GseVisualAssistance/GseVisualAssistance';
 import assert from 'node:assert/strict';
 import React from 'react';
 import { SnackbarProvider } from 'notistack';
@@ -53,6 +54,7 @@ const state = (): any => ({
   hierarchy: { nodes: {}, workspaceId: 'w' },
   gho: {
     open: true,
+    panel: 'ENVIRONMENT',
     data: null,
     hierarchies: [],
     search: '',
@@ -153,17 +155,35 @@ const viewProps: any = {
   environmentCompanyId: 'c',
 };
 
-test('GSE button directly opens assistance and clears conventional environment selection', () => {
+test('GSE button opens conventional GSE panel and clears environment selection', () => {
   fixture.state.gho.data = environment();
   fixture.state.gho.selected = environment();
   fixture.state.gho.hierarchies = ['role//w'];
   capture(() => BottomButton({}));
   find(captured, (p) => p['aria-label'] === 'GSE')!.props.onClick();
-  assert.equal(fixture.assistance.active, true);
-  assert.equal(fixture.state.gho.open, false);
+  assert.equal(fixture.assistance.active, false);
+  assert.equal(fixture.state.gho.open, true);
+  assert.equal(fixture.state.gho.panel, 'GSE');
   assert.equal(fixture.state.gho.data, null);
   assert.equal(fixture.state.gho.selected, null);
   assert.deepEqual(fixture.state.gho.hierarchies, []);
+});
+test('help opens assistance and clears manual selection', () => {
+  fixture.state.gho.panel = 'GSE';
+  fixture.state.gho.data = environment();
+  fixture.state.gho.hierarchies = ['role//w'];
+  capture(() => GseAssistanceToolbar());
+  find(captured, p => p['aria-label'] === 'Assistência de GSEs — prévia visual')!.props.onClick();
+  assert.equal(fixture.assistance.active, true);
+  assert.equal(fixture.state.gho.open, false);
+  assert.equal(fixture.state.gho.data, null);
+  assert.deepEqual(fixture.state.gho.hierarchies, []);
+});
+test('traditional GSE list accepts legacy groups without type and excludes environments', () => {
+  fixture.groups = [environment(), environment('legacy-gse', { type: null, name: 'Legacy GSE' })];
+  const html = capture(() => GhoToolView({ ...viewProps, environmentOnly: false, filter: H.GSE }));
+  assert.ok(html.includes('Legacy GSE'));
+  assert.ok(!html.includes('env ('));
 });
 test('Environment button closes assistance and opens conventional panel exclusively', () => {
   fixture.assistance.active = true;

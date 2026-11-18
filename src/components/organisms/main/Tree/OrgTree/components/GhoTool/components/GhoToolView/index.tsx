@@ -129,7 +129,7 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
 
   return (
     <>
-      {!assistance?.active && !environmentOnly && (
+      {!assistance?.active && !environmentOnly && !isOrgHierarquiaContext && (
         <SFlex flexWrap="wrap" align="center" gap={4} mb={5} width="280px">
           {ghoFilters.map((type) => {
             const isGseTab = type === HomoTypeEnum.GSE;
@@ -157,7 +157,7 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
         </SFlex>
       )}
       {ghoOrderedData.map((gho, index) => {
-        if (!assistance?.active && gho.type !== filter && !selectedGhoId)
+        if (!assistance?.active && (gho.type || HomoTypeEnum.GSE) !== filter && !selectedGhoId)
           return null;
 
         return (

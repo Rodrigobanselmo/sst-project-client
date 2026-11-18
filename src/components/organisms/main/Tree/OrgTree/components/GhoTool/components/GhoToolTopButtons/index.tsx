@@ -1,3 +1,4 @@
+import { GseAssistanceToolbar } from '../../../GseVisualAssistance/GseVisualAssistance';
 import { useOrgPanelBusy } from '../../../../hooks/useOrgPanelBusy';
 import { useGseVisualAssistance } from '../../../GseVisualAssistance/GseVisualAssistance.context';
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -21,7 +22,7 @@ export const GhoToolTopButtons: FC<
   const assistance = useGseVisualAssistance();
   const dispatch = useAppDispatch();
   const busy = useOrgPanelBusy();
-  const floating = environmentOnly || assistance?.active;
+  const floating = true;
 
   const handleCloseRisk = () => {
     if (busy) return;
@@ -66,6 +67,7 @@ export const GhoToolTopButtons: FC<
         {environmentOnly ? 'Ambientes' : 'Grupo similar de exposição'}
       </SText>
       {archiveAction}
+      {!environmentOnly && !assistance?.active && <GseAssistanceToolbar />}
       {floating && (
         <Tooltip title="Arraste esta área para mover o painel">
           <Box

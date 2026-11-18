@@ -12,7 +12,7 @@ import React, { FC, useCallback } from 'react';
 import { Icon, IconButton, Tooltip } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { useRouter } from 'next/router';
-import { selectGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
+import { selectGhoOpen, selectGhoPanel, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import SGhoIcon from 'assets/icons/SGhoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
@@ -35,10 +35,11 @@ export const BottomButton: FC<{
   const { query, push, replace, pathname } = useRouter();
   const assistance = useGseVisualAssistance();
   const busy = useOrgPanelBusy();
+  const panel = useAppSelector(selectGhoPanel);
   const current: OrgPanel = assistance?.active
     ? 'GSE'
     : isGhoOpen
-      ? 'ENVIRONMENT'
+      ? panel
       : inventoryOpen ? 'INVENTORY' : null;
   const openPanel = (requested: Exclude<OrgPanel, null>) => {
     if (busy) return;
@@ -50,11 +51,12 @@ export const BottomButton: FC<{
         hierarchies: [],
         search: '',
         searchSelect: '',
-        open: next === 'ENVIRONMENT',
+        open: next === 'GSE' || next === 'ENVIRONMENT',
+        panel: next === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'GSE',
       }),
     );
     onInventoryChange?.(next === 'INVENTORY');
-    if (!!assistance?.active !== (next === 'GSE')) assistance?.toggle();
+    if (assistance?.active) assistance.toggle();
     if (next && query.riskGroupId)
       void replace({ pathname, query: withoutOrgRiskPanel(query) }, undefined, {
         shallow: true,
@@ -99,7 +101,7 @@ export const BottomButton: FC<{
   ]);
 
   const panelActions = [
-    { panel: 'GSE', label: 'GSE', title: 'Assistência Visual de GSEs', icon: <Icon component={SGhoIcon} /> },
+    { panel: 'GSE', label: 'GSE', title: 'Gestão de GSEs', icon: <Icon component={SGhoIcon} /> },
     { panel: 'ENVIRONMENT', label: 'Ambiente', title: 'Gestão de Ambientes', icon: <LandscapeOutlinedIcon /> },
     ...(onInventoryChange ? [{
       panel: 'INVENTORY' as const,

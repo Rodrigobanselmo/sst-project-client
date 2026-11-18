@@ -9,6 +9,7 @@ import { AppState } from '../..';
 
 export interface IGhoState {
   open: boolean;
+  panel: 'GSE' | 'ENVIRONMENT';
   searchSelect: string;
   filter: {
     key: string;
@@ -32,6 +33,7 @@ const initialState: IGhoState = {
     value: '',
   },
   open: false,
+  panel: 'GSE',
   data: null,
 };
 
@@ -140,3 +142,5 @@ export const selectGhoHierarchy =
     );
 
 export default ghoSlice.reducer;
+
+export const selectGhoPanel = (state: AppState) => state.gho.panel;

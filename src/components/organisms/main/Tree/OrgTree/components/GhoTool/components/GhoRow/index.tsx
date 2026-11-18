@@ -28,6 +28,7 @@ export const GhoRow = React.memo<GhoRowProps>(
   }) => {
     const assisted = !!useGseVisualAssistance()?.active;
     const isSelected = selectedGhoId === gho.id;
+    const fillPanelWidth = assisted || !gho.type;
     const { hide, ref } = useObserverHide();
     const searchSelected = useAppSelector(selectGhoSearch);
     const isOrgMultiWorkspace = useOrgMultiWorkspaceMode();
@@ -49,9 +50,9 @@ export const GhoRow = React.memo<GhoRowProps>(
           key={gho.id}
           ref={ref}
           sx={{
-            gridTemplateColumns: assisted ? 'minmax(0, 1fr)' : '285px 1fr',
-            width: assisted ? '100%' : undefined,
-            minWidth: assisted ? 0 : undefined,
+            gridTemplateColumns: fillPanelWidth ? 'minmax(0, 1fr)' : '285px 1fr',
+            width: fillPanelWidth ? '100%' : undefined,
+            minWidth: fillPanelWidth ? 0 : undefined,
             display: displayNone ? 'none' : 'grid',
           }}
           gap={5}

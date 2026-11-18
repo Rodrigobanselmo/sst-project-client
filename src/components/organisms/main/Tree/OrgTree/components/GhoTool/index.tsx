@@ -1,5 +1,5 @@
 import { GseSaveConfirmation } from '../GseVisualAssistance/GseSaveConfirmation';
-import { OrgFloatingPanel } from '../GseVisualAssistance/GseFloatingPanel';
+import { GseFloatingPanel, OrgFloatingPanel } from '../GseVisualAssistance/GseFloatingPanel';
 import { Alert, TextField, MenuItem } from '@mui/material';
 import {
   eligibleEnvironmentWorkspaces,
@@ -375,8 +375,8 @@ export const GhoTool = ({
     environmentWorkspace,
   ]);
 
-  const floating = environmentOnly || assistance?.active;
-  const PanelFrame = environmentOnly ? EnvironmentPanelFrame : React.Fragment;
+  const floating = true;
+  const PanelFrame = environmentOnly ? EnvironmentPanelFrame : assistance?.active ? React.Fragment : GseFloatingPanel;
   const showPanel = assistance?.active || (isGhoOpen && (environmentOnly || !isOrgMultiWorkspace));
   return (
     <>
@@ -496,7 +496,7 @@ export const GhoTool = ({
             )}
             {(!environmentOnly || !!environmentWorkspace) && (
               <GhoToolHeader
-                fillPanelWidth={environmentOnly}
+                fillPanelWidth={floating}
                 handleSelectGHO={handleSelectGHO}
                 handleEditGHO={handleEditGHO}
                 handleAddGHO={handleAddGHO}
@@ -546,7 +546,7 @@ export const GhoTool = ({
                 filter={filter}
               />
             </STBoxStack>
-            <GhoToolTreeFilter fillPanelWidth={environmentOnly} />
+            <GhoToolTreeFilter fillPanelWidth={floating} />
           </STTableContainer>
           {assistance?.active && <GseSaveConfirmation />}
         </STBoxContainer>

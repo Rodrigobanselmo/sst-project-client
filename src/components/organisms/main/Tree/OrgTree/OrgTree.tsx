@@ -5,7 +5,7 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Box, Icon, Stack } from '@mui/material';
 import SSlider from 'components/atoms/SSlider';
 import { useRouter } from 'next/router';
-import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
+import { selectGhoOpen, selectGhoPanel } from 'store/reducers/hierarchy/ghoSlice';
 import {
   clearSelectedNodeIds,
   selectAllHierarchyTreeNodes,
@@ -52,6 +52,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
   const orgContainerRef = useRef<HTMLDivElement>(null);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const isGhoOpen = useAppSelector(selectGhoOpen);
+  const panel = useAppSelector(selectGhoPanel);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -133,7 +134,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
         onChangeZoom={onChangeZoom}
         onRevealTarget={revealLinkLevel}
         environmentWorkspaceId={
-          showGHO && !assisted && isGhoOpen && !isRiskOpen && !isOrgMultiWorkspace &&
+          showGHO && !assisted && isGhoOpen && panel === 'ENVIRONMENT' && !isRiskOpen && !isOrgMultiWorkspace &&
           typeof query.tabWorkspaceId === 'string'
             ? query.tabWorkspaceId
             : undefined
@@ -268,7 +269,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
             <RiskTool />
           </STGhoBox>
         ) : (
-          <GhoTool key="environment" environmentOnly />
+          <GhoTool key={panel} environmentOnly={panel === 'ENVIRONMENT'} />
         )
       )}
     </Box>

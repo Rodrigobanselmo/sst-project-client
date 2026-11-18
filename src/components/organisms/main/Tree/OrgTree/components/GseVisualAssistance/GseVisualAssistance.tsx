@@ -1,3 +1,5 @@
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 import { fetchActiveHierarchyLinks } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.api';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { getHierarchyIdFromTreeId } from '../../utils/get-copy-hierarchy-destinations';
@@ -586,6 +588,7 @@ export function GseGroupLegend() {
 }
 /** Single activation control, mounted only inside the original panel header. */
 export function GseAssistanceToolbar() {
+  const dispatch = useAppDispatch();
   const ctx = useGseVisualAssistance();
   if (!ctx) return null;
   return (
@@ -594,7 +597,10 @@ export function GseAssistanceToolbar() {
         size="small"
         aria-label="Assistência de GSEs — prévia visual"
         aria-pressed={ctx.active}
-        onClick={ctx.toggle}
+        onClick={() => {
+          dispatch(setGhoState({ open: false, panel: 'GSE', data: null, selected: null, hierarchies: [], search: '', searchSelect: '' }));
+          ctx.toggle();
+        }}
         disabled={ctx.persistenceBusy}
         sx={
           ctx.active
