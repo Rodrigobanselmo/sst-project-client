@@ -88,7 +88,7 @@ export function STableColumnsButton<T extends string>({
                   '.MuiFormControlLabel-label': { color: 'text.main' },
                   '.MuiCheckbox-root': {
                     color: 'text.secondary',
-                    '&.Mui-checked': { color: 'primary.identityOn' },
+                    '&.Mui-checked': { color: 'text.main' },
                   },
                 }}
               />

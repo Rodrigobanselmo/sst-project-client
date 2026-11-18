@@ -59,6 +59,7 @@ export async function searchHoMethodRiskFactors(params: {
 
 export function resolveHoMethodDocumentUrl(method: {
   id: string;
+  originalDocumentFileId?: string | null;
   originalDocumentUrl?: string | null;
   originalDocumentDownloadPath?: string | null;
 }): string | null {
@@ -72,7 +73,7 @@ export function resolveHoMethodDocumentUrl(method: {
     return `${base}/${path}`;
   }
 
-  if (method.id) {
+  if (method.id && method.originalDocumentFileId) {
     const base = api.defaults.baseURL?.replace(/\/$/, '') ?? '';
     return `${base}/${HoMethodRoutes.ORIGINAL_DOCUMENT.replace(':id', method.id)}`;
   }
@@ -227,7 +228,7 @@ export async function uploadHoMethodDocument(params: {
 export async function uploadOfficialNioshPdf(params: {
   companyId: string;
   code: string;
-  edition: string;
+  edition?: string;
 }): Promise<HoMethodNioshUploadResponse> {
   const path = bindUrlParams({
     path: HoMethodRoutes.UPLOAD,

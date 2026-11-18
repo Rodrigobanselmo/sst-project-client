@@ -474,6 +474,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
       setDocumentUrl(
         resolveHoMethodDocumentUrl({
           id: method.id,
+          originalDocumentFileId: method.originalDocumentFileId,
           originalDocumentUrl: method.originalDocumentUrl,
           originalDocumentDownloadPath: method.originalDocumentDownloadPath,
         }),
@@ -509,6 +510,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
 
     setFieldErrors({});
     setSubmitError(null);
+    setOfficialPdfError('');
     setExtraSamplers([]);
     setExtraSolvents([]);
   }, [open, method, nioshDraft]);
@@ -578,6 +580,27 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     });
     return () => { active = false; };
   }, [open, nioshDraft, companyId, officialPdfAttempt]);
+
+  const handleLinkOfficialPdf = async () => {
+    if (!companyId || uploadingDocument || !form.methodCode.trim()) return;
+    setUploadingDocument(true);
+    setOfficialPdfError('');
+    try {
+      const uploaded = await uploadOfficialNioshPdf({ companyId, code: form.methodCode.trim() });
+      setForm((current) => ({
+        ...current,
+        originalDocumentFileId: uploaded.fileId,
+        originalDocumentName: uploaded.name,
+        originalDocumentUploadedAt: uploaded.uploadedAt,
+      }));
+      setDocumentUrl(uploaded.url || null);
+      setDocumentDownloadUrl(uploaded.downloadUrl || null);
+    } catch (error) {
+      setOfficialPdfError(getHoMethodApiErrorMessage(error, 'Não foi possível obter o PDF oficial do NIOSH.'));
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
 
   useEffect(() => {
     if (!pdfParameters) return;
@@ -1163,18 +1186,29 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
             {nioshDraft && uploadingDocument && !form.originalDocumentFileId && (
               <Alert severity="info" sx={{ mb: 2 }}>Importando o PDF oficial do NIOSH…</Alert>
             )}
-            {nioshDraft && officialPdfError && (
+            {officialPdfError && (
               <Alert
                 severity="warning"
                 sx={{ mb: 2 }}
                 action={
-                  <Button size="small" disabled={uploadingDocument} onClick={() => setOfficialPdfAttempt((attempt) => attempt + 1)}>
+                  <Button size="small" disabled={uploadingDocument} onClick={() => nioshDraft ? setOfficialPdfAttempt((attempt) => attempt + 1) : void handleLinkOfficialPdf()}>
                     Tentar novamente
                   </Button>
                 }
               >
                 {officialPdfError} Você também pode anexar o arquivo manualmente.
               </Alert>
+            )}
+            {!form.originalDocumentFileId && !documentUrl && form.institution === HoMethodSourceEnum.NIOSH && (
+              <Box sx={{ mb: 2 }}>
+                <Button variant="outlined" disabled={uploadingDocument || !companyId || !form.methodCode.trim()}
+                  onClick={() => void handleLinkOfficialPdf()}>
+                  {uploadingDocument ? 'Buscando PDF no NIOSH…' : 'Vincular PDF automaticamente'}
+                </Button>
+                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                  Busca pelo código no índice oficial NIOSH NMAM. Após anexar, clique em Salvar alterações.
+                </Typography>
+              </Box>
             )}
             {(documentUrl ||
               form.originalDocumentName ||
@@ -1198,6 +1232,11 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
                       rel="noopener"
                       variant="contained"
                       size="small"
+                      sx={{
+                        '&&, &&:hover, &&:focus-visible, &&:visited': {
+                          color: '#111111',
+                        },
+                      }}
                     >
                       Visualizar método original
                     </Button>
