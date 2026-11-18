@@ -46,3 +46,20 @@ test('ceiling, invalid, absent and formula limits do not derive a VMP', () => {
  const ceiling = laboratoryLimits({ ...agent, riskFactor: { nr15lt: '8 T', unit: 'ppm' } });
  assert.equal(ceiling[3], ''); assert.ok(ceiling[2].includes('8 T'));
 });
+
+const { samplerDisplay } = load('src/@v2/pages/companies/ho-methods/utils/ho-sampler-display.ts');
+test('generic XAD-7 aliases preserve masses without assuming chemical treatment', () => {
+ for (const name of ['XAD7-80/40', 'XAD-7 80/40']) {
+  const result = samplerDisplay(name);
+  assert.equal(result.code, '—');
+  assert.equal(result.description, 'XAD-7 80/40');
+  assert.ok(result.tooltip.includes('não foi atribuído automaticamente'));
+ }
+});
+test('sampler identity is shared across laboratory source spellings', () => {
+ for (const name of ['SKC 226-01', '226-01']) {
+  const result = samplerDisplay(name);
+  assert.equal(result.code, 'SKC 226-01');
+  assert.equal(result.description, 'TCA 100/50');
+ }
+});

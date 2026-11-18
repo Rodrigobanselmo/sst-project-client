@@ -70,6 +70,7 @@ export type HoMethodLaboratoryRecord = {
   analyticalNotes: string | null;
   samplerId: string | null;
   samplerName: string | null;
+  samplerDescription?: string | null;
   extractionSolventId: string | null;
   extractionSolventName: string | null;
   minimumFlowRateOverride: number | null;
@@ -134,6 +135,7 @@ export type HoMethodRecord = {
   status: HoMethodAvailabilityStatusEnum;
   samplerId: string | null;
   samplerName: string | null;
+  samplerDescription?: string | null;
   minimumFlowRate: number | null;
   maximumFlowRate: number | null;
   minimumVolume: number | null;

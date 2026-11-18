@@ -1,3 +1,4 @@
+import { samplerDisplay } from '../utils/ho-sampler-display';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -60,7 +61,8 @@ const columns = [
   'CAS',
   'Método',
   'Método analítico',
-  'Amostrador',
+  'Amostrador código',
+  'Amostrador descrição',
   'Vazão mín.',
   'Vazão máx.',
   'Volume mín.',
@@ -76,6 +78,7 @@ const columns = [
   'Disponibilidade',
   'Confirmação',
   'Documento',
+  'Escopo / coleta',
   'Ações',
 ];
 
@@ -168,8 +171,20 @@ export function HoLaboratoryTable() {
       },
       {
         key: 'sampler',
-        label: 'Amostradores',
-        value: (row) => row.lab.samplerName || row.method.samplerName || '—',
+        label: 'Códigos de amostradores',
+        value: (row) =>
+          samplerDisplay(row.lab.samplerName || row.method.samplerName).code,
+      },
+      {
+        key: 'samplerDescription',
+        label: 'Descrições de amostradores',
+        value: (row) =>
+          samplerDisplay(
+            row.lab.samplerName || row.method.samplerName,
+            row.lab.samplerName
+              ? row.lab.samplerDescription
+              : row.method.samplerDescription,
+          ).description,
       },
       {
         key: 'solvent',
@@ -315,6 +330,18 @@ export function HoLaboratoryTable() {
           </MenuItem>
         ))}
       </TextField>
+      {labs.data?.find((lab) => lab.id === selectedId)?.notes && (
+        <Box component="details" sx={{ color: 'text.primary' }}>
+          <Box component="summary" sx={{ cursor: 'pointer' }}>
+            Identificação, orientações e composição dos painéis do laboratório
+          </Box>
+          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
+            {labs.data
+              .find((lab) => lab.id === selectedId)
+              ?.notes?.replace(/^\[[^\]]+\]\s*/, '')}
+          </Typography>
+        </Box>
+      )}
       <Box display="flex" gap={2} flexWrap="wrap" alignItems="center">
         <TextField
           select
@@ -504,6 +531,32 @@ export function HoLaboratoryTable() {
         }}
       >
         <Table
+          sx={{
+            ...Object.fromEntries(
+              columns.flatMap((column, index) =>
+                [
+                  'Vazão mín.',
+                  'Vazão máx.',
+                  'Volume mín.',
+                  'Volume máx.',
+                  'Temperatura',
+                  'Estabilidade (dias)',
+                  'TWA',
+                  'STEL',
+                  'Teto',
+                  'CMPT / jornada',
+                  'VMP',
+                ].includes(column)
+                  ? [
+                      [
+                        `& tr > :nth-child(${index + 1})`,
+                        { textAlign: 'center' },
+                      ],
+                    ]
+                  : [],
+              ),
+            ),
+          }}
           stickyHeader={continuous}
           size="small"
           aria-label="Parâmetros por laboratório, agente e método"
@@ -511,8 +564,30 @@ export function HoLaboratoryTable() {
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column} sx={{ whiteSpace: 'nowrap' }}>
-                  {column}
+                <TableCell
+                  key={column}
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.15,
+                    verticalAlign: 'middle',
+                  }}
+                >
+                  {[
+                    'Vazão mín.',
+                    'Vazão máx.',
+                    'Volume mín.',
+                    'Volume máx.',
+                    'Estabilidade (dias)',
+                    'Amostrador código',
+                    'Amostrador descrição',
+                  ].includes(column)
+                    ? column.split(' ').map((part, index) => (
+                        <span key={part}>
+                          {index > 0 && <br />}
+                          {part}
+                        </span>
+                      ))
+                    : column}
                 </TableCell>
               ))}
             </TableRow>
@@ -520,6 +595,12 @@ export function HoLaboratoryTable() {
           <TableBody>
             {visibleRows.map(({ method, lab, agent }) => {
               const limits = laboratoryLimits(agent);
+              const sampler = samplerDisplay(
+                lab.samplerName || method.samplerName,
+                lab.samplerName
+                  ? lab.samplerDescription
+                  : method.samplerDescription,
+              );
               return (
                 <TableRow key={`${lab.id}:${agent.id}`}>
                   <TableCell sx={{ minWidth: 200 }}>
@@ -553,8 +634,25 @@ export function HoLaboratoryTable() {
                     )}
                   </TableCell>
                   <TableCell>{method.analyticalMethod || '—'}</TableCell>
+                  <TableCell>{sampler.code}</TableCell>
                   <TableCell>
-                    {lab.samplerName || method.samplerName || '—'}
+                    <Tooltip
+                      title={
+                        <Box sx={{ whiteSpace: 'pre-line' }}>
+                          {sampler.tooltip}
+                        </Box>
+                      }
+                      arrow
+                    >
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        tabIndex={0}
+                        sx={{ color: 'inherit' }}
+                      >
+                        {sampler.description}
+                      </Typography>
+                    </Tooltip>
                   </TableCell>
                   <TableCell>
                     {number(
@@ -655,6 +753,26 @@ export function HoLaboratoryTable() {
                     method.originalDocumentUrl
                       ? 'Anexado'
                       : 'PDF original pendente'}
+                  </TableCell>
+                  <TableCell sx={{ minWidth: 180 }}>
+                    <Tooltip
+                      title={
+                        <Box sx={{ whiteSpace: 'pre-wrap' }}>
+                          {lab.analyticalNotes || lab.notes || '—'}
+                        </Box>
+                      }
+                    >
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        tabIndex={0}
+                        sx={{ color: 'inherit' }}
+                      >
+                        {lab.analyticalNotes?.startsWith('Painel:')
+                          ? lab.analyticalNotes.split('\n')[0]
+                          : 'Determinação individual'}
+                      </Typography>
+                    </Tooltip>
                   </TableCell>
                   <TableCell>
                     <Button onClick={() => setEditingId(method.id)}>
