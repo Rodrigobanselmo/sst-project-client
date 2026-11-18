@@ -314,14 +314,27 @@ function Campaigns({
                       factor.stel,
                       factor.acgihCeiling,
                     ].some((value) => value && /\d/.test(value));
-                    const hasLaboratory = linked.some((method) =>
-                      method.laboratories.some(
+                    const availableLaboratories = linked.flatMap((method) =>
+                      method.laboratories.filter(
                         (lab) =>
-                          (!lab.riskFactorId || lab.riskFactorId === factor.id) &&
+                          (!lab.riskFactorId ||
+                            lab.riskFactorId === factor.id) &&
                           lab.availabilityStatus ===
-                          HoMethodLaboratoryAvailabilityStatusEnum.AVAILABLE,
+                            HoMethodLaboratoryAvailabilityStatusEnum.AVAILABLE,
                       ),
                     );
+                    const confirmationDates = availableLaboratories
+                      .map((lab) => lab.lastConfirmationDate?.slice(0, 10))
+                      .filter((date): date is string =>
+                        Boolean(date && /^\d{4}-\d{2}-\d{2}$/.test(date)),
+                      )
+                      .sort();
+                    const latestConfirmation = confirmationDates.at(-1);
+                    const laboratoryLabel = latestConfirmation
+                      ? `Disponível · confirmado em ${latestConfirmation.split('-').reverse().join('/')}`
+                      : availableLaboratories.length
+                        ? 'Disponível no cadastro · sem data de confirmação'
+                        : 'Disponibilidade a confirmar';
                     const level = exposure.level as CampaignRiskLevel;
                     return (
                       <TableRow key={`${factor.id}:${exposure.id}`}>
@@ -371,11 +384,7 @@ function Campaigns({
                             ? 'Cadastrada · revisar aplicação'
                             : 'Revisar referência'}
                         </TableCell>
-                        <TableCell>
-                          {hasLaboratory
-                            ? 'Disponível no cadastro · confirmar'
-                            : 'Disponibilidade a confirmar'}
-                        </TableCell>
+                        <TableCell>{laboratoryLabel}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -405,7 +414,10 @@ function Campaigns({
       <Dialog
         fullScreen
         open={methodsOpen}
-        onClose={() => setMethodsOpen(false)}
+        onClose={() => {
+          setMethodsOpen(false);
+          void methods.refetch();
+        }}
         aria-labelledby="campaign-methods-title"
       >
         <DialogTitle id="campaign-methods-title">
@@ -417,7 +429,12 @@ function Campaigns({
             gap={4}
           >
             Cadastro de Métodos de HO
-            <Button onClick={() => setMethodsOpen(false)}>
+            <Button
+              onClick={() => {
+                setMethodsOpen(false);
+                void methods.refetch();
+              }}
+            >
               Voltar para a campanha
             </Button>
           </Stack>
