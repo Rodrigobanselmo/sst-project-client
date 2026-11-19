@@ -3,6 +3,7 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 /** Subabas do grupo Caracterização na home da empresa (`/novo/sst`). */
 export enum CharacterizationSubTabEnum {
   RISKS = 0,
+  RISK_IMPORT = 8,
   ENVIRONMENTS = 1,
   GSE = 2,
   EXAMS = 3,
@@ -20,6 +21,7 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
   string
 > = {
   [CharacterizationSubTabEnum.RISKS]: 'Riscos',
+  [CharacterizationSubTabEnum.RISK_IMPORT]: 'Importação de riscos',
   [CharacterizationSubTabEnum.ENVIRONMENTS]: 'Elementos Caracterizados',
   [CharacterizationSubTabEnum.GSE]: 'GSE',
   [CharacterizationSubTabEnum.EXAMS]: 'Exames',
@@ -32,6 +34,7 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
 /** Stable panel identity for each enum — independent of visual order. */
 export const CHARACTERIZATION_SUB_TAB_PANEL: Record<
   CharacterizationSubTabEnum,
+  | 'risk-import'
   | 'risks'
   | 'environments'
   | 'gse'
@@ -42,6 +45,7 @@ export const CHARACTERIZATION_SUB_TAB_PANEL: Record<
   | 'risk-inventory'
 > = {
   [CharacterizationSubTabEnum.RISKS]: 'risks',
+  [CharacterizationSubTabEnum.RISK_IMPORT]: 'risk-import',
   [CharacterizationSubTabEnum.ENVIRONMENTS]: 'environments',
   [CharacterizationSubTabEnum.GSE]: 'gse',
   [CharacterizationSubTabEnum.EXAMS]: 'exams',
@@ -56,7 +60,8 @@ export const CHARACTERIZATION_MODULE_LABEL = 'Caracterização';
 /** Valor estável do segmento "Caracterização" no breadcrumb (`useLocation`). */
 export const CHARACTERIZATION_MODULE_ROUTE_VALUE = 'caracterizacao-modulo';
 
-export const COMPANY_SST_PATHNAME = '/dashboard/empresas/[companyId]/novo/[stage]';
+export const COMPANY_SST_PATHNAME =
+  '/dashboard/empresas/[companyId]/novo/[stage]';
 
 export const COMPANY_SST_STAGE = 'sst';
 
@@ -83,7 +88,10 @@ export type CharacterizationSubareaNavItem =
     }
   | {
       kind: 'external';
-      id: 'chemical-products' | 'assistente-gse' | 'characterization-ai-profiles';
+      id:
+        | 'chemical-products'
+        | 'assistente-gse'
+        | 'characterization-ai-profiles';
       label: string;
     };
 
@@ -91,9 +99,6 @@ const CHARACTERIZATION_SUBAREA_TABS = [
   CharacterizationSubTabEnum.RISKS,
   CharacterizationSubTabEnum.GSE,
   CharacterizationSubTabEnum.ENVIRONMENTS,
-  CharacterizationSubTabEnum.ENTITY_RISKS,
-  CharacterizationSubTabEnum.PRIORITIZATION,
-  CharacterizationSubTabEnum.RISK_INVENTORY,
   CharacterizationSubTabEnum.EXAMS,
   CharacterizationSubTabEnum.PROTOCOLS,
 ] as const;
@@ -127,7 +132,9 @@ export function getCharacterizationSubareaNavItems(options?: {
   if (options?.showAiProfiles === false) {
     return items.filter(
       (item) =>
-        !(item.kind === 'external' && item.id === 'characterization-ai-profiles'),
+        !(
+          item.kind === 'external' && item.id === 'characterization-ai-profiles'
+        ),
     );
   }
 
@@ -256,7 +263,7 @@ export function parseCharacterizationActiveTab(
 
   if (
     n >= CharacterizationSubTabEnum.RISKS &&
-    n <= CharacterizationSubTabEnum.RISK_INVENTORY
+    n <= CharacterizationSubTabEnum.RISK_IMPORT
   ) {
     return n as CharacterizationSubTabEnum;
   }

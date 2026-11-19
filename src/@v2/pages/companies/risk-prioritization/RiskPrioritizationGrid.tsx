@@ -1,3 +1,5 @@
+import { useTheme } from '@mui/material';
+import { riskScreenColors } from '../risks/risk-screen-colors';
 import { useMemo } from 'react';
 
 import {
@@ -107,8 +109,8 @@ const stickyKindHeaderSx = {
   bgcolor: 'background.paper',
   borderRight: '1px solid',
   borderBottom: '1px solid',
-  borderRightColor: 'grey.200',
-  borderBottomColor: 'grey.400',
+  borderRightColor: 'var(--risk-screen-grid, #eeeeee)',
+  borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
   p: 0,
 } as const;
 
@@ -123,8 +125,8 @@ const stickyNameHeaderSx = {
   bgcolor: 'background.paper',
   borderRight: '1px solid',
   borderBottom: '1px solid',
-  borderRightColor: 'grey.200',
-  borderBottomColor: 'grey.400',
+  borderRightColor: 'var(--risk-screen-grid, #eeeeee)',
+  borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
   fontWeight: 700,
 } as const;
 
@@ -135,14 +137,14 @@ const stickyKindBodySx = {
   width: KIND_COL_WIDTH,
   minWidth: KIND_COL_WIDTH,
   maxWidth: KIND_COL_WIDTH,
-  bgcolor: 'grey.100',
+  bgcolor: 'var(--risk-screen-band, #f5f5f5)',
   borderRight: '1px solid',
-  borderColor: 'grey.200',
+  borderColor: 'var(--risk-screen-grid, #eeeeee)',
   p: 0,
   textAlign: 'center',
   verticalAlign: 'middle',
   '.MuiTableRow-hover:hover &': {
-    bgcolor: 'grey.100',
+    bgcolor: 'var(--risk-screen-band, #f5f5f5)',
   },
 } as const;
 
@@ -158,7 +160,7 @@ const stickyNameBodySx = {
   px: 1,
   bgcolor: 'background.paper',
   borderRight: '1px solid',
-  borderColor: 'grey.200',
+  borderColor: 'var(--risk-screen-grid, #eeeeee)',
   '.MuiTableRow-hover:hover &': {
     bgcolor: 'background.paper',
   },
@@ -170,17 +172,17 @@ const riskColSx = {
   maxWidth: RISK_COL_WIDTH,
   height: ROW_HEIGHT,
   p: `${CELL_INSET}px`,
-  bgcolor: 'grey.50',
+  bgcolor: 'var(--risk-screen-band, #fafafa)',
   boxSizing: 'border-box',
   borderBottom: '1px solid',
-  borderBottomColor: 'grey.100',
+  borderBottomColor: 'var(--risk-screen-band, #f5f5f5)',
 } as const;
 
 function riskColumnSx(isGroupStart: boolean) {
   return {
     ...riskColSx,
     borderLeft: '1px solid',
-    borderLeftColor: isGroupStart ? 'grey.400' : 'grey.100',
+    borderLeftColor: isGroupStart ? 'var(--risk-screen-grid, #bdbdbd)' : 'var(--risk-screen-band, #f5f5f5)',
   };
 }
 
@@ -223,6 +225,7 @@ export function RiskPrioritizationGrid({
   }, [rows]);
   const tableWidth =
     KIND_COL_WIDTH + NAME_COL_WIDTH + columns.length * RISK_COL_WIDTH;
+  const theme = useTheme();
   const headerStackHeight = GROUP_HEADER_HEIGHT + RISK_HEADER_HEIGHT;
 
   const firstRowIds = new Set(
@@ -237,9 +240,10 @@ export function RiskPrioritizationGrid({
   return (
     <TableContainer
       sx={{
+        ...riskScreenColors(theme),
         maxHeight: 'calc(100vh - 280px)',
         border: '1px solid',
-        borderColor: 'grey.200',
+        borderColor: 'var(--risk-screen-grid, #eeeeee)',
         borderRadius: 1,
         bgcolor: 'background.paper',
       }}
@@ -252,10 +256,10 @@ export function RiskPrioritizationGrid({
           width: tableWidth,
           minWidth: tableWidth,
           '& tbody .MuiTableCell-root': {
-            borderBottomColor: 'grey.100',
+            borderBottomColor: 'var(--risk-screen-band, #f5f5f5)',
           },
           '& tbody .MuiTableRow-root:last-of-type .MuiTableCell-root': {
-            borderBottomColor: 'grey.400',
+            borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
           },
         }}
       >
@@ -290,16 +294,16 @@ export function RiskPrioritizationGrid({
                     height: GROUP_HEADER_HEIGHT,
                     py: 0,
                     px: 0.25,
-                    bgcolor: 'grey.50',
+                    bgcolor: 'var(--risk-screen-band, #fafafa)',
                     fontSize: 10,
                     fontWeight: 700,
                     letterSpacing: 0.2,
                     borderTop: accent ? '3px solid' : '1px solid',
-                    borderTopColor: accent || 'grey.200',
+                    borderTopColor: accent || 'var(--risk-screen-grid, #eeeeee)',
                     borderBottom: '1px solid',
-                    borderBottomColor: 'grey.200',
+                    borderBottomColor: 'var(--risk-screen-grid, #eeeeee)',
                     borderLeft: '1px solid',
-                    borderLeftColor: 'grey.400',
+                    borderLeftColor: 'var(--risk-screen-grid, #bdbdbd)',
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
                     textOverflow: 'ellipsis',
@@ -344,10 +348,10 @@ export function RiskPrioritizationGrid({
                   boxSizing: 'border-box',
                   borderLeft: '1px solid',
                   borderLeftColor: groupStartIds.has(column.id)
-                    ? 'grey.400'
-                    : 'grey.100',
+                    ? 'var(--risk-screen-grid, #bdbdbd)'
+                    : 'var(--risk-screen-band, #f5f5f5)',
                   borderBottom: '1px solid',
-                  borderBottomColor: 'grey.400',
+                  borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
                 }}
               >
                 <Box
@@ -383,7 +387,7 @@ export function RiskPrioritizationGrid({
                         pointerEvents: 'auto',
                         lineHeight: RISK_HEADER_LABEL_LINE_HEIGHT,
                         fontSize: RISK_HEADER_LABEL_FONT_SIZE,
-                        color: 'text.primary',
+                        color: 'var(--risk-screen-ink, #1a202c)',
                       }}
                     >
                       {column.label}
@@ -405,7 +409,7 @@ export function RiskPrioritizationGrid({
                     ...(row.id === lastKindRowId
                       ? {
                           borderBottom: '1px solid',
-                          borderBottomColor: 'grey.400',
+                          borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
                         }
                       : {}),
                   }}
@@ -436,7 +440,7 @@ export function RiskPrioritizationGrid({
                   ...(row.id === lastRowId
                     ? {
                         borderBottom: '1px solid',
-                        borderBottomColor: 'grey.400',
+                        borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
                       }
                     : {}),
                 }}
@@ -446,6 +450,7 @@ export function RiskPrioritizationGrid({
                   fontWeight={600}
                   title={row.label}
                   sx={{
+                    color: 'var(--risk-screen-ink, #1a202c)',
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -479,7 +484,7 @@ export function RiskPrioritizationGrid({
                         ...(isLastRow
                           ? {
                               borderBottom: '1px solid',
-                              borderBottomColor: 'grey.400',
+                              borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
                             }
                           : {}),
                       }}
@@ -501,7 +506,7 @@ export function RiskPrioritizationGrid({
                       ...(isLastRow
                         ? {
                             borderBottom: '1px solid',
-                            borderBottomColor: 'grey.400',
+                            borderBottomColor: 'var(--risk-screen-grid, #bdbdbd)',
                           }
                         : {}),
                     }}
@@ -533,7 +538,7 @@ export function RiskPrioritizationGrid({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          bgcolor: cellColor || 'grey.100',
+                          bgcolor: cellColor || 'var(--risk-screen-band, #f5f5f5)',
                           color: textColor,
                           fontWeight: visible.isPrioritized ? 800 : 700,
                           boxShadow: visible.isPrioritized

@@ -40,7 +40,7 @@ export const SFileDndUpload: FC<{ children?: any } & ISFileDndUpload> = ({
   accept,
   maxFiles,
   onChange,
-  text = 'Arraste ou click aqui \n para selecionar um arquivo',
+  text = 'Arraste ou clique aqui \n para selecionar um arquivo',
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -94,9 +94,15 @@ export const SFileDndUpload: FC<{ children?: any } & ISFileDndUpload> = ({
         <input {...getInputProps()} />
         <SUploadFileIcon
           sx={{
-            color: 'grey.400',
+            color: (theme) =>
+              theme.palette.mode === 'dark' ? '#cbd5e1' : '#64748b',
             fontSize: '2rem',
-            ...(files?.length && { color: 'info.main' }),
+            ...(files?.length && {
+              color: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? '#93c5fd'
+                  : theme.palette.info.main,
+            }),
           }}
         />
         {isDragActive && <p>Solte seu arquivo aqui ...</p>}{' '}
@@ -117,7 +123,16 @@ export const SFileDndUpload: FC<{ children?: any } & ISFileDndUpload> = ({
                 borderColor: 'grey.300',
               }}
             >
-              <SText flex={1} fontSize={14} color="info.main">
+              <SText
+                flex={1}
+                fontSize={14}
+                sx={{
+                  color: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? '#93c5fd'
+                      : theme.palette.info.main,
+                }}
+              >
                 {getFileName(file.name)}
               </SText>
               <SText fontSize={14}>{getFileSizeName(file.size)}</SText>

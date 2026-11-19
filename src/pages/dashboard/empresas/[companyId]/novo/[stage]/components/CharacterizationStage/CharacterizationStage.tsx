@@ -1,3 +1,5 @@
+import { RiskAreaTabs } from '@v2/pages/companies/risk-import/RiskAreaTabs';
+import { RiskImportTabs } from '@v2/pages/companies/risk-import/RiskImportTabs';
 import { Box, BoxProps } from '@mui/material';
 import { CharacterizationEnvironmentsTabContent } from '@v2/pages/companies/characterizations/components/CharacterizationEnvironmentsTabContent/CharacterizationEnvironmentsTabContent';
 import { RiskInventoryTabContent } from '@v2/pages/companies/risk-inventory/RiskInventoryTabContent';
@@ -28,12 +30,13 @@ import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useEnsureCharacterizationTabWorkspace } from 'core/hooks/useEnsureCharacterizationTabWorkspace';
 import { useAccess } from 'core/hooks/useAccess';
 import { useCharacterizationInlineEditorOptional } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
-import { RiskToolByEntityTabContent } from './RiskToolByEntityTabContent';
 
-const formatEstablishmentLabel = (workspace?: {
-  name?: string | null;
-  abbreviation?: string | null;
-} | null) => {
+const formatEstablishmentLabel = (
+  workspace?: {
+    name?: string | null;
+    abbreviation?: string | null;
+  } | null,
+) => {
   if (!workspace?.name?.trim()) return null;
   const name = workspace.name.trim();
   const abbreviation = workspace.abbreviation?.trim();
@@ -54,18 +57,12 @@ function CharacterizationSubTabPanel(props: {
   isAllEstablishments: boolean;
 }) {
   switch (props.tab) {
+    case CharacterizationSubTabEnum.ENTITY_RISKS:
+    case CharacterizationSubTabEnum.RISK_IMPORT:
+    case CharacterizationSubTabEnum.PRIORITIZATION:
+    case CharacterizationSubTabEnum.RISK_INVENTORY:
     case CharacterizationSubTabEnum.RISKS:
-      return (
-        <RiskCompanyTable
-          workspaceId={props.workspaceId}
-          queryEnabled={props.isWorkspaceFilterReady}
-          companyFlowSticky
-          companyFlowBelowTabs
-          enableSectorRiskPresenceMap
-          openRiskToolByRiskV2
-          isAllEstablishments={props.isAllEstablishments}
-        />
-      );
+      return <RiskAreaTabs workspaceId={props.workspaceId} queryEnabled={props.isWorkspaceFilterReady} isAllEstablishments={props.isAllEstablishments} />;
     case CharacterizationSubTabEnum.GSE:
       return (
         <GhoGseTabContent
@@ -79,22 +76,6 @@ function CharacterizationSubTabPanel(props: {
         <CharacterizationEnvironmentsTabContent
           companyFlowSticky
           companyFlowBelowTabs
-        />
-      );
-    case CharacterizationSubTabEnum.ENTITY_RISKS:
-      return <RiskToolByEntityTabContent />;
-    case CharacterizationSubTabEnum.RISK_INVENTORY:
-      return (
-        <RiskInventoryTabContent
-          workspaceId={props.workspaceId}
-          queryEnabled={props.isWorkspaceFilterReady}
-        />
-      );
-    case CharacterizationSubTabEnum.PRIORITIZATION:
-      return (
-        <RiskPrioritizationTabContent
-          workspaceId={props.workspaceId}
-          queryEnabled={props.isWorkspaceFilterReady}
         />
       );
     case CharacterizationSubTabEnum.EXAMS:
@@ -154,7 +135,9 @@ export const CharacterizationStage = ({
   const isInlineCharacterizationEdit = inlineEditor?.isInlineEditOpen ?? false;
   const { isMaster } = useAccess();
 
-  const navItems = getCharacterizationSubareaNavItems({ showAiProfiles: isMaster });
+  const navItems = getCharacterizationSubareaNavItems({
+    showAiProfiles: isMaster,
+  });
   const tabNavItems = navItems.filter(isCharacterizationTabNavItem);
   const tabOptions = navItems.map((item) => ({
     label: item.label,
@@ -183,7 +166,10 @@ export const CharacterizationStage = ({
               options={tabOptions}
               onChangeTab={(step, goToStep) => {
                 const item = navItems[step];
-                if (item?.kind === 'external' && item.id === 'chemical-products') {
+                if (
+                  item?.kind === 'external' &&
+                  item.id === 'chemical-products'
+                ) {
                   if (!companyId) return;
                   const tabWorkspaceId =
                     (router.query.tabWorkspaceId as string | undefined) ||

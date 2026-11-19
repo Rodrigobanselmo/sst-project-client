@@ -1,3 +1,5 @@
+import { useTheme } from '@mui/material';
+import { riskScreenColors } from '../risks/risk-screen-colors';
 import { useMemo, useState } from 'react';
 
 import {
@@ -50,6 +52,7 @@ export function SectorRiskPresenceGrid({
     riskLabel: string;
   }) => void;
 }) {
+  const theme = useTheme();
   const presentation = useMemo(
     () => presentSectorRiskPresence(data, orientation),
     [data, orientation],
@@ -80,14 +83,14 @@ export function SectorRiskPresenceGrid({
     : [];
 
   return (
-    <>
+    <Box sx={riskScreenColors(theme)}>
       <TableContainer
         sx={{
           maxHeight: 'calc(100vh - 280px)',
           overflow: 'auto',
           border: '1px solid',
-          borderColor: SECTOR_RISK_PRESENCE_GRID,
-          bgcolor: SECTOR_RISK_PRESENCE_SURFACE,
+          borderColor: `var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`,
+          bgcolor: `var(--risk-screen-surface, ${SECTOR_RISK_PRESENCE_SURFACE})`,
         }}
       >
         <Table
@@ -111,10 +114,10 @@ export function SectorRiskPresenceGrid({
                   minWidth: NAME_COL_WIDTH,
                   maxWidth: NAME_COL_WIDTH,
                   height: HEADER_HEIGHT,
-                  bgcolor: SECTOR_RISK_PRESENCE_BAND,
-                  color: SECTOR_RISK_PRESENCE_INK,
-                  borderRight: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
-                  borderBottom: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
+                  bgcolor: `var(--risk-screen-band, ${SECTOR_RISK_PRESENCE_BAND})`,
+                  color: `var(--risk-screen-ink, ${SECTOR_RISK_PRESENCE_INK})`,
+                  borderRight: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
+                  borderBottom: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
                   fontWeight: 700,
                 }}
               >
@@ -133,9 +136,9 @@ export function SectorRiskPresenceGrid({
                     maxWidth: MARK_COL_WIDTH,
                     height: HEADER_HEIGHT,
                     p: 0.5,
-                    bgcolor: SECTOR_RISK_PRESENCE_BAND,
-                    borderLeft: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
-                    borderBottom: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
+                    bgcolor: `var(--risk-screen-band, ${SECTOR_RISK_PRESENCE_BAND})`,
+                    borderLeft: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
+                    borderBottom: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
                     borderTop: column.accent ? `3px solid ${column.accent}` : undefined,
                     verticalAlign: 'bottom',
                   }}
@@ -154,7 +157,7 @@ export function SectorRiskPresenceGrid({
                         fontSize: 12,
                         fontWeight: 600,
                         lineHeight: 1.2,
-                        color: SECTOR_RISK_PRESENCE_INK,
+                        color: `var(--risk-screen-ink, ${SECTOR_RISK_PRESENCE_INK})`,
                       }}
                     >
                       {column.label}
@@ -177,10 +180,10 @@ export function SectorRiskPresenceGrid({
                     maxWidth: NAME_COL_WIDTH,
                     height: ROW_HEIGHT,
                     px: 1.5,
-                    bgcolor: SECTOR_RISK_PRESENCE_BAND,
-                    color: SECTOR_RISK_PRESENCE_INK,
-                    borderRight: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
-                    borderBottom: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
+                    bgcolor: `var(--risk-screen-band, ${SECTOR_RISK_PRESENCE_BAND})`,
+                    color: `var(--risk-screen-ink, ${SECTOR_RISK_PRESENCE_INK})`,
+                    borderRight: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
+                    borderBottom: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
                     borderLeft: row.accent ? `3px solid ${row.accent}` : undefined,
                   }}
                 >
@@ -213,9 +216,9 @@ export function SectorRiskPresenceGrid({
                           minWidth: MARK_COL_WIDTH,
                           height: ROW_HEIGHT,
                           p: 0,
-                          bgcolor: SECTOR_RISK_PRESENCE_SURFACE,
-                          borderLeft: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
-                          borderBottom: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
+                          bgcolor: `var(--risk-screen-surface, ${SECTOR_RISK_PRESENCE_SURFACE})`,
+                          borderLeft: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
+                          borderBottom: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
                         }}
                       />
                     );
@@ -238,10 +241,10 @@ export function SectorRiskPresenceGrid({
                         minWidth: MARK_COL_WIDTH,
                         height: ROW_HEIGHT,
                         p: 0,
-                        bgcolor: SECTOR_RISK_PRESENCE_SURFACE,
-                        color: SECTOR_RISK_PRESENCE_INK,
-                        borderLeft: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
-                        borderBottom: `1px solid ${SECTOR_RISK_PRESENCE_GRID}`,
+                        bgcolor: `var(--risk-screen-surface, ${SECTOR_RISK_PRESENCE_SURFACE})`,
+                        color: `var(--risk-screen-ink, ${SECTOR_RISK_PRESENCE_INK})`,
+                        borderLeft: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
+                        borderBottom: `1px solid ${`var(--risk-screen-grid, ${SECTOR_RISK_PRESENCE_GRID})`}`,
                         fontSize: 16,
                         lineHeight: 1,
                       }}
@@ -277,7 +280,7 @@ export function SectorRiskPresenceGrid({
                             font: 'inherit',
                             fontSize: 16,
                             lineHeight: 1,
-                            '&:hover': { bgcolor: SECTOR_RISK_PRESENCE_BAND },
+                            '&:hover': { bgcolor: `var(--risk-screen-band, ${SECTOR_RISK_PRESENCE_BAND})` },
                           }}
                         >
                           {SECTOR_RISK_PRESENCE_MARK}
@@ -292,6 +295,7 @@ export function SectorRiskPresenceGrid({
         </Table>
       </TableContainer>
       <Popover
+        PaperProps={{ sx: riskScreenColors(theme) }}
         open={Boolean(selected)}
         anchorEl={selected?.anchor}
         onClose={() => setSelected(null)}
@@ -299,14 +303,14 @@ export function SectorRiskPresenceGrid({
         transformOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Box sx={{ p: 1.5, maxWidth: 360 }}>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: SECTOR_RISK_PRESENCE_INK }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: `var(--risk-screen-ink, ${SECTOR_RISK_PRESENCE_INK})` }}>
             {selectedRiskLabel}
           </Typography>
           <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
             Setor: {selectedSectorName}
           </Typography>
           <Typography
-            sx={{ fontSize: 12, fontWeight: 700, mt: 1.5, mb: 0.75, color: SECTOR_RISK_PRESENCE_INK }}
+            sx={{ fontSize: 12, fontWeight: 700, mt: 1.5, mb: 0.75, color: `var(--risk-screen-ink, ${SECTOR_RISK_PRESENCE_INK})` }}
           >
             Origens da presença
           </Typography>
@@ -336,7 +340,7 @@ export function SectorRiskPresenceGrid({
                 cursor: 'pointer',
                 fontSize: 11,
                 lineHeight: 1.4,
-                color: SECTOR_RISK_PRESENCE_INK,
+                color: `var(--risk-screen-ink, ${SECTOR_RISK_PRESENCE_INK})`,
                 whiteSpace: 'pre-line',
                 fontFamily: 'inherit',
                 '&:hover': { textDecoration: 'underline' },
@@ -347,6 +351,6 @@ export function SectorRiskPresenceGrid({
           ))}
         </Box>
       </Popover>
-    </>
+    </Box>
   );
 }

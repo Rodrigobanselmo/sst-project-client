@@ -16,7 +16,7 @@ export interface IUploadNewFileConfirm {
 }
 
 export const initialModalImportExport = {
-  title: 'Enviar Aquirvo',
+  title: 'Enviar arquivo',
   subtitle: '',
   accept:
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' as

@@ -42,7 +42,19 @@ export const ApplyResidualOneToAllButton: FC<Props> = ({
           disabled={disabled}
           loading={isApplying}
           onClick={openConfirmAndApply}
-          sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+          sx={{
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            '&.Mui-disabled': {
+              opacity: 1,
+              color: (theme) =>
+                theme.palette.mode === 'dark' ? '#cbd5e1' : '#475569',
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? '#303b4b' : '#e2e8f0',
+              borderColor: (theme) =>
+                theme.palette.mode === 'dark' ? '#64748b' : '#94a3b8',
+            },
+          }}
         >
           Aplicar residual 1 em todos
           {eligibleCount > 0 ? ` (${eligibleCount})` : ''}

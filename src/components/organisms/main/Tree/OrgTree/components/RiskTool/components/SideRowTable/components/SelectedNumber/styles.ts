@@ -25,8 +25,11 @@ export const STSFlex = styled(SFlex)<{ selected?: number; disabled?: number }>`
     props.disabled &&
     css`
       cursor: not-allowed;
-      background-color: ${props.theme.palette.background.disabled};
-      opacity: 0.65;
+      background-color: ${props.theme.palette.mode === 'dark' ? '#303b4b' : '#e2e8f0'};
+      opacity: 1;
+      & .MuiTypography-root {
+        color: ${props.theme.palette.mode === 'dark' ? '#cbd5e1' : '#475569'};
+      }
 
       &:hover {
         filter: none;

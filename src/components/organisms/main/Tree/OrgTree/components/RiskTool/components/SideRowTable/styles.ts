@@ -42,7 +42,18 @@ export const SEndDateBox = styled(Box)<{
       props.inactive
         ? props.theme.palette.error.main
         : props.theme.palette.divider};
-  background-color: ${(props) => props.theme.palette.grey[100]};
+  background-color: ${(props) =>
+    props.theme.palette.mode === 'dark' ? '#252e3c' : '#f1f5f9'};
+  & .MuiTypography-root {
+    color: ${(props) =>
+      props.inactive
+        ? props.theme.palette.mode === 'dark'
+          ? '#ff8a80'
+          : '#b91c1c'
+        : props.theme.palette.mode === 'dark'
+          ? '#cbd5e1'
+          : '#475569'};
+  }
   border-radius: ${(props) => props.theme.shape.borderRadius}px;
   position: relative;
   cursor: pointer;

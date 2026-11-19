@@ -221,7 +221,8 @@ assert.equal(tableSource.includes("presenceView === 'technical'"), true);
 assert.equal(tableSource.includes('<SectorRiskPresenceView'), true);
 assert.equal(tableSource.includes('<RiskTechnicalDataView'), true);
 assert.equal(tableSource.includes('useQueryRisksCompany'), true);
-assert.equal(characterizationSource.includes('enableSectorRiskPresenceMap'), true);
+assert.equal(characterizationSource.includes('<RiskAreaTabs'), true);
+assert.equal(readFileSync(join(here, '../risk-import/RiskAreaTabs.tsx'), 'utf8').includes('enableSectorRiskPresenceMap'), true);
 assert.equal(risksPageSource.includes('enableSectorRiskPresenceMap'), false);
 assert.equal(factorsPageSource.includes('enableSectorRiskPresenceMap'), false);
 

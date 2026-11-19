@@ -43,10 +43,19 @@ export const SCheckRiskDocInfo: FC<{ children?: any } & ISCheckRiskDocInfo> = ({
         display: 'flex',
         '.MuiFormControlLabel-root': {
           '.MuiFormControlLabel-label': {
-            color: 'text.primary',
+            color: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '#e2e8f0'
+                : theme.palette.text.primary,
             fontSize: 10,
           },
           svg: { fontSize: 15 },
+          'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+            color: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '#94a3b8'
+                : theme.palette.grey[400],
+          },
         },
       }}
       {...props}

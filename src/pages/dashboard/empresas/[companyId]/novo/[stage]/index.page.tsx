@@ -145,7 +145,6 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
     showActionPlanLaunchGroup,
     stage,
     stepsActionsList,
-    handleUploadRisk,
     isGroupConsolidated,
     businessGroupName,
   } = props;
@@ -177,15 +176,6 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           headerActions={
             <Box ml="auto" sx={{ flexShrink: 0 }}>
               <SFlex gap={5} flexWrap="wrap" justify="flex-end">
-                <SButton
-                  variant="outlined"
-                  size="small"
-                  color="primary"
-                  onClick={handleUploadRisk}
-                  sx={principalBrandButtonSx}
-                >
-                  Importar Planilha
-                </SButton>
                 <SButton
                   variant="outlined"
                   size="small"

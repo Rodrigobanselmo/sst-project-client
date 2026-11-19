@@ -70,7 +70,7 @@ export const ModalReportSelect: FC = () => {
   const buttons = [
     {
       variant: 'outlined',
-      text: 'Calcelar',
+      text: 'Cancelar',
       onClick: () => onCloseNoSelect(),
     },
   ] as IModalButton[];
@@ -83,7 +83,7 @@ export const ModalReportSelect: FC = () => {
     >
       <SModalPaper
         sx={{
-          backgroundColor: 'grey.200',
+          backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.paper : theme.palette.grey[200],
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',

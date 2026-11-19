@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { FC } from 'react';
 
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
@@ -20,12 +20,10 @@ export type OccupationalRiskResultPillProps = {
   alignSelfStart?: boolean;
 };
 
-export const OccupationalRiskResultPill: FC<OccupationalRiskResultPillProps> = ({
-  label,
-  level,
-  resultColor,
-  alignSelfStart = false,
-}) => {
+export const OccupationalRiskResultPill: FC<
+  OccupationalRiskResultPillProps
+> = ({ label, level, resultColor, alignSelfStart = false }) => {
+  const theme = useTheme();
   const presentation = useSystemRiskMatrixPresentation();
   const customChip = resolveDisplayedOccupationalChipColorsFromHex(resultColor);
   const hasLevel = typeof level === 'number' && level > 0;
@@ -33,7 +31,10 @@ export const OccupationalRiskResultPill: FC<OccupationalRiskResultPillProps> = (
     customChip ??
     (hasLevel
       ? resolveSystemOccupationalChipColors(level, presentation)
-      : { bgcolor: 'grey.200', color: 'text.secondary' });
+      : {
+          bgcolor: theme.palette.mode === 'dark' ? '#303b4b' : '#e2e8f0',
+          color: theme.palette.mode === 'dark' ? '#cbd5e1' : '#475569',
+        });
 
   return (
     <Box

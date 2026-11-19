@@ -1142,7 +1142,7 @@ const tableSourceForScreenOnly = readFileSync(
 assert.equal(tableSourceForScreenOnly.includes('INVENTORY_SCREEN_ONLY_HINT'), true);
 assert.equal(tableSourceForScreenOnly.includes('inventoryOrderColumnScreenOnly'), true);
 assert.equal(tableSourceForScreenOnly.includes('kind: \'optional\''), true);
-assert.equal(tableSourceForScreenOnly.includes("color: 'text.disabled'"), true);
+assert.equal(tableSourceForScreenOnly.includes("var(--risk-screen-muted,"), true);
 assert.equal(tableSourceForScreenOnly.includes("bgcolor: 'action.hover'"), false);
 assert.equal(tableSourceForScreenOnly.includes('opacity: 0.72'), false);
 assert.equal(tableSourceForScreenOnly.includes('DescriptionOutlinedIcon'), false);

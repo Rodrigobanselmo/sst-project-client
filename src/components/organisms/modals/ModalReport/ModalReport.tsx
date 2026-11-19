@@ -152,7 +152,7 @@ export const ModalReport: FC = () => {
   const buttons = [
     {
       variant: 'outlined',
-      text: 'Calcelar',
+      text: 'Cancelar',
       onClick: () => onCloseNoSelect(),
     },
     {
@@ -177,7 +177,7 @@ export const ModalReport: FC = () => {
     >
       <SModalPaper
         sx={{
-          backgroundColor: 'grey.200',
+          backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.paper : theme.palette.grey[200],
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',

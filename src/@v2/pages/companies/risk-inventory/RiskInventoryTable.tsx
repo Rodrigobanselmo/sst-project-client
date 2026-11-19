@@ -1,3 +1,4 @@
+import { riskScreenColors } from '../risks/risk-screen-colors';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Box,
@@ -10,6 +11,7 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { useState, type ReactNode } from 'react';
 
@@ -68,7 +70,7 @@ import {
 
 /** Screen-only (visible, not in Word): mute text, keep normal table background. */
 const screenOnlySx = {
-  color: 'text.disabled',
+  color: 'var(--risk-screen-muted, rgba(0, 0, 0, 0.38))',
 } as const;
 
 const columns = [
@@ -233,7 +235,7 @@ function RiskPill({
   }
 
   if (compact) {
-    const bgcolor = color ? (color.startsWith('#') ? color : `#${color}`) : 'grey.100';
+    const bgcolor = color ? (color.startsWith('#') ? color : `#${color}`) : 'var(--risk-screen-band, #f5f5f5)';
     return (
       <VerticalText
         text={label}
@@ -257,7 +259,7 @@ function RiskPill({
           whiteSpace: 'normal',
           py: 0.5,
         },
-        bgcolor: color ? (color.startsWith('#') ? color : `#${color}`) : 'grey.100',
+        bgcolor: color ? (color.startsWith('#') ? color : `#${color}`) : 'var(--risk-screen-band, #f5f5f5)',
         color: color ? textOn(color) : 'text.primary',
         fontWeight: 600,
       }}
@@ -474,7 +476,7 @@ function UnitHeader({
         gap: 1,
         px: 1.5,
         py: 1.25,
-        bgcolor: 'grey.50',
+        bgcolor: 'var(--risk-screen-band, #fafafa)',
         border: 0,
         borderBottom: expanded ? '1px solid' : 'none',
         borderColor: 'divider',
@@ -536,6 +538,7 @@ export function RiskInventoryTable({
   units: RiskInventoryUnit[];
   columnPreference?: RiskInventoryColumnsPreference | null;
 }) {
+  const theme = useTheme();
   const nativeByKey = new Map(columns.map((column) => [column.key, column]));
   const extrasByKey = new Map(extraLayoutsFor(columnPreference).map((column) => [column.key, column]));
   const optionalsByKey = new Map(optionalLayoutsFor(columnPreference).map((column) => [column.key, column]));
@@ -586,7 +589,15 @@ export function RiskInventoryTable({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{
+      display: 'flex', flexDirection: 'column', gap: 2,
+      ...riskScreenColors(theme),
+      ...(theme.palette.mode === 'dark' ? {
+        '--risk-screen-muted': '#a8b5c7',
+        color: 'var(--risk-screen-ink)',
+        '& .MuiTypography-root': { color: 'inherit' },
+      } : {}),
+    }}>
       {units.map((unit) => {
         const expanded = expandedUnitIds.has(unit.id);
         return (
@@ -659,7 +670,7 @@ export function RiskInventoryTable({
                           fontSize: 11,
                           lineHeight: 1.2,
                           whiteSpace: 'nowrap',
-                          bgcolor: 'grey.50',
+                          bgcolor: 'var(--risk-screen-band, #fafafa)',
                           ...(group.family === 'residual' ? residualDividerSx : {}),
                         }}
                       >

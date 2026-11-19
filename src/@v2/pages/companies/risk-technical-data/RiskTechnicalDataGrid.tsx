@@ -1,3 +1,5 @@
+import { useTheme } from '@mui/material';
+import { riskScreenColors } from '../risks/risk-screen-colors';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip } from '@mui/material';
@@ -24,7 +26,7 @@ import {
   risksForTechnicalGroup,
 } from './risk-technical-data.presentation';
 
-const cellBorder = `1px solid ${RISK_TECHNICAL_DATA_GRID}`;
+const cellBorder = `1px solid var(--risk-screen-grid, ${RISK_TECHNICAL_DATA_GRID})`;
 
 const tagRisk = (risk: RiskTechnicalDataRisk): IRiskFactors =>
   ({
@@ -45,6 +47,7 @@ export function RiskTechnicalDataGrid({
   group: RiskTechnicalDataGroup;
   columnPreference: RiskTechnicalColumnsPreference | null;
 }) {
+  const theme = useTheme();
   const layouts = useMemo(
     () => riskTechnicalLayouts(group, columnPreference),
     [group, columnPreference],
@@ -70,9 +73,10 @@ export function RiskTechnicalDataGrid({
   return (
     <TableContainer
       sx={{
+        ...riskScreenColors(theme),
         width: '100%',
         overflow: 'visible',
-        bgcolor: RISK_TECHNICAL_DATA_SURFACE,
+        bgcolor: `var(--risk-screen-surface, ${RISK_TECHNICAL_DATA_SURFACE})`,
         border: cellBorder,
         borderRadius: 1,
       }}
@@ -228,8 +232,8 @@ function HeaderCell({
         top: stickyTop,
         left: sticky ? 0 : undefined,
         zIndex: sticky ? 4 : 3,
-        bgcolor: RISK_TECHNICAL_DATA_BAND,
-        color: RISK_TECHNICAL_DATA_INK,
+        bgcolor: `var(--risk-screen-band, ${RISK_TECHNICAL_DATA_BAND})`,
+        color: `var(--risk-screen-ink, ${RISK_TECHNICAL_DATA_INK})`,
         fontWeight: 700,
         fontSize: 12,
         verticalAlign: 'bottom',
@@ -271,8 +275,8 @@ function BodyCell({
         zIndex: sticky ? 1 : undefined,
         verticalAlign: column.key === 'type' ? 'middle' : 'top',
         textAlign: column.align,
-        bgcolor: RISK_TECHNICAL_DATA_SURFACE,
-        color: RISK_TECHNICAL_DATA_INK,
+        bgcolor: `var(--risk-screen-surface, ${RISK_TECHNICAL_DATA_SURFACE})`,
+        color: `var(--risk-screen-ink, ${RISK_TECHNICAL_DATA_INK})`,
         borderBottom: cellBorder,
         borderRight: cellBorder,
         px: column.key === 'type' ? 0.25 : 0.75,

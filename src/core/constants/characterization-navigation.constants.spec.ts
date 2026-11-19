@@ -33,9 +33,6 @@ assert.deepEqual(
     'Riscos',
     'GSE',
     'Elementos Caracterizados',
-    'Vínculo de Riscos',
-    'Priorização',
-    'Inventário de Riscos',
     'Exames',
     'Protocolos',
     CHEMICAL_PRODUCTS_NAV_LABEL,
@@ -45,6 +42,12 @@ assert.deepEqual(
 );
 
 const tabIdentityContract = [
+  {
+    label: 'Importação de riscos',
+    tab: CharacterizationSubTabEnum.RISK_IMPORT,
+    active: '8',
+    panel: 'risk-import',
+  },
   {
     label: 'Riscos',
     tab: CharacterizationSubTabEnum.RISKS,
@@ -95,48 +98,18 @@ const tabIdentityContract = [
   },
 ] as const;
 
+const nestedRiskTabs = [CharacterizationSubTabEnum.ENTITY_RISKS, CharacterizationSubTabEnum.RISK_IMPORT, CharacterizationSubTabEnum.PRIORITIZATION, CharacterizationSubTabEnum.RISK_INVENTORY];
 for (const expected of tabIdentityContract) {
-  const item = items.find(
-    (entry) => entry.kind === 'tab' && entry.label === expected.label,
-  );
-  assert.ok(item && item.kind === 'tab', expected.label);
-  assert.equal(item.tab, expected.tab, `${expected.label} enum`);
-  assert.equal(String(item.tab), expected.active, `${expected.label} active`);
-  assert.equal(
-    parseCharacterizationActiveTab(expected.active),
-    expected.tab,
-    `${expected.label} parse active`,
-  );
-  assert.equal(
-    CHARACTERIZATION_SUB_TAB_PANEL[item.tab],
-    expected.panel,
-    `${expected.label} panel`,
-  );
-  assert.equal(
-    getCharacterizationTabFromWizardStep(
-      getCharacterizationWizardStep(expected.tab),
-    ),
-    expected.tab,
-    `${expected.label} wizard roundtrip`,
-  );
+  assert.equal(parseCharacterizationActiveTab(expected.active), expected.tab, `${expected.label} mantém bookmark`);
+  assert.equal(CHARACTERIZATION_SUB_TAB_PANEL[expected.tab], expected.panel);
+  const parent = nestedRiskTabs.includes(expected.tab) ? CharacterizationSubTabEnum.RISKS : expected.tab;
+  assert.equal(getCharacterizationTabFromWizardStep(getCharacterizationWizardStep(expected.tab)), parent, `${expected.label} abre no grupo correto`);
 }
-
-assert.equal(
-  getCharacterizationTabFromWizardStep(2),
-  CharacterizationSubTabEnum.ENVIRONMENTS,
-);
-assert.notEqual(
-  getCharacterizationTabFromWizardStep(2),
-  CharacterizationSubTabEnum.PRIORITIZATION,
-);
-assert.equal(
-  getCharacterizationTabFromWizardStep(4),
-  CharacterizationSubTabEnum.PRIORITIZATION,
-);
-assert.notEqual(
-  getCharacterizationTabFromWizardStep(4),
-  CharacterizationSubTabEnum.EXAMS,
-);
+for (const tab of nestedRiskTabs) {
+  assert.equal(items.some((entry) => entry.kind === 'tab' && entry.tab === tab), false);
+}
+assert.equal(getCharacterizationTabFromWizardStep(2), CharacterizationSubTabEnum.ENVIRONMENTS);
+assert.equal(getCharacterizationTabFromWizardStep(3), CharacterizationSubTabEnum.EXAMS);
 
 assert.equal(CharacterizationSubTabEnum.RISKS, 0);
 assert.equal(CharacterizationSubTabEnum.ENVIRONMENTS, 1);

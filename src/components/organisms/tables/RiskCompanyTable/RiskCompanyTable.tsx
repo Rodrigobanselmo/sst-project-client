@@ -313,7 +313,7 @@ export const RiskCompanyTable: FC<
   const tableColumns = [
     ...(selectedData ? ['15px'] : []),
     ...visibleColumns.map((c) => c.column),
-    ...(!isSelect ? ['44px'] : []),
+    ...(!isSelect ? ['minmax(44px, 1fr)'] : []),
   ].join(' ');
 
   const presenceToggle =
@@ -343,7 +343,7 @@ export const RiskCompanyTable: FC<
         subtitle="Mapa de Presença dos Fatores de Risco por Setor"
         icon={SRiskFactorIcon}
       >
-        Fatores de risco e perigos
+        Perigo ou Fator de Risco Ocupacional (P/FRO)
       </STableTitle>
       {presenceToggle}
     </>
@@ -361,7 +361,7 @@ export const RiskCompanyTable: FC<
     const technicalHeader = (
       <>
         <STableTitle subtitle="Dados técnicos dos fatores de risco" icon={SRiskFactorIcon}>
-          Fatores de risco e perigos
+          Perigo ou Fator de Risco Ocupacional (P/FRO)
         </STableTitle>
         {presenceToggle}
       </>
@@ -422,7 +422,7 @@ export const RiskCompanyTable: FC<
           subtitle="Lista de fatores de risco e perigos identificados na empresa"
           icon={SRiskFactorIcon}
         >
-          Fatores de risco e perigos
+          Perigo ou Fator de Risco Ocupacional (P/FRO)
         </STableTitle>
       )}
       {presenceToggle}
@@ -527,6 +527,7 @@ export const RiskCompanyTable: FC<
                   {renderMainCells(row)}
                   {!isSelect && (
                     <Box
+                      justifySelf="end"
                       onClick={(event) => {
                         event.stopPropagation();
                         onStackOpenModal(ModalEnum.RISK_ADD, row);
@@ -611,7 +612,14 @@ export const RiskCompanyTable: FC<
                       <SFlex gap={'10px'} flexWrap="wrap">
                         <Box
                           sx={{
-                            backgroundColor: 'grey.100',
+                            backgroundColor: (theme) =>
+                              theme.palette.mode === 'dark' ? '#252e3c' : theme.palette.grey[100],
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            '& .MuiTypography-root': {
+                              color: (theme) =>
+                                theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155',
+                            },
                             padding: '5px 10px 0px',
                             borderRadius: 1,
                           }}
@@ -639,7 +647,14 @@ export const RiskCompanyTable: FC<
                             <Box
                               key={docInfo.id}
                               sx={{
-                                backgroundColor: 'grey.100',
+                                backgroundColor: (theme) =>
+                                  theme.palette.mode === 'dark' ? '#252e3c' : theme.palette.grey[100],
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                '& .MuiTypography-root': {
+                                  color: (theme) =>
+                                    theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155',
+                                },
                                 padding: '5px 10px 0px',
                                 borderRadius: 1,
                               }}

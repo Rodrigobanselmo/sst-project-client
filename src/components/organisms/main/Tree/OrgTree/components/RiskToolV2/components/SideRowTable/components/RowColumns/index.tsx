@@ -253,7 +253,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
       {showEndDate && riskData && (
         <SFlex align="center">
           {readOnly ? (
-            <SEndDateBox mt={1} sx={{ cursor: 'default' }}>
+            <SEndDateBox inactive={riskData?.endDate ? 1 : 0} mt={1} sx={{ cursor: 'default' }}>
               <SText
                 fontSize="11px"
                 color={riskData?.endDate ? 'error.main' : 'text.light'}
@@ -271,7 +271,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
           ) : (
             <>
               <STooltip title={'Editar data'}>
-                <SEndDateBox mt={1} onClick={onEditDate}>
+                <SEndDateBox inactive={riskData?.endDate ? 1 : 0} mt={1} onClick={onEditDate}>
                   <SText
                     fontSize="11px"
                     color={riskData?.endDate ? 'error.main' : 'text.light'}

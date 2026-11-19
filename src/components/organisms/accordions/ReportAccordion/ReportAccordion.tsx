@@ -57,7 +57,14 @@ export const ReportAccordion: FC<
         return (
           <Accordion
             key={group.name}
-            sx={{ px: 6 }}
+            sx={(theme) => ({
+              px: 6,
+              ...(theme.palette.mode === 'dark' && {
+                backgroundColor: '#252e3c',
+                color: '#e2e8f0',
+                '& .MuiTypography-root, & .MuiAccordionSummary-expandIconWrapper': { color: '#e2e8f0' },
+              }),
+            })}
             expanded={expanded === group.name || filteredReports.length <= 2}
             onChange={handleChange(group.name)}
           >
@@ -78,7 +85,10 @@ export const ReportAccordion: FC<
                     key={report.name}
                     sx={{
                       cursor: 'pointer',
-                      backgroundColor: 'grey.50',
+                      backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#303b4b' : theme.palette.grey[50],
+                      '& .MuiTypography-root': {
+                        color: (theme) => theme.palette.mode === 'dark' ? '#e2e8f0' : '#475569',
+                      },
                       '&:hover': {
                         filter: 'brightness(0.95)',
                         '> p': {
