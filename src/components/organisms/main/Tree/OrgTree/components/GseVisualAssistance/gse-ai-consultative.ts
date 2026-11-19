@@ -90,16 +90,25 @@ export type AiGseAnalysis = {
     [key: string]: unknown;
   };
 };
+export type AiGseScope = { sectorIds?: string[]; onlyUnlinkedRoles?: boolean };
+export type AiGseScopePreview = { selectedRoles: number; excludedLinkedRoles: number; totalRoles: number; contextCharacters: number; inputCharacters: number; fits: boolean; note: string };
+export async function previewGseAiScope(companyId: string, workspaceId: string, scope: AiGseScope): Promise<AiGseScopePreview> {
+  const response = await api.post<AiGseScopePreview>(`/v2/companies/${encodeURIComponent(companyId)}/workspaces/${encodeURIComponent(workspaceId)}/exposure-group-assistant/ai-consultative/scope-preview`, scope);
+  const value = response.data;
+  if (!value || !Number.isSafeInteger(value.selectedRoles) || !Number.isSafeInteger(value.excludedLinkedRoles) || typeof value.fits !== 'boolean') throw Error('AI_INVALID_RESPONSE_ENVELOPE');
+  return value;
+}
 export async function analyzeGseWithAi(
   companyId: string,
   workspaceId: string,
   guidance: string,
   observations: string,
   preliminaryDistribution: AiPreliminaryGroup[] = [],
+  scope: AiGseScope = {},
 ): Promise<AiGseAnalysis> {
   const response = await api.post<AiGseAnalysis>(
     `/v2/companies/${encodeURIComponent(companyId)}/workspaces/${encodeURIComponent(workspaceId)}/exposure-group-assistant/ai-consultative`,
-    { guidance, observations, preliminaryDistribution },
+    { guidance, observations, preliminaryDistribution, ...scope },
   );
   return parseAiGseAnalysisResponse(response.data, companyId, workspaceId);
 }
@@ -401,6 +410,9 @@ export function parseAiGseAnalysisResponse(
 }
 export function aiConsultativeClientError(error: unknown) {
   const code = error instanceof Error ? error.message : '';
+  if (code === 'GSE_SCOPE_EMPTY') return 'Nenhum cargo pendente neste recorte. Altere os setores ou desmarque o filtro de cargos já vinculados.';
+  if (code === 'GSE_SCOPE_TOO_LARGE') return 'O recorte ainda excede o limite consultivo. Selecione menos setores ou ative o filtro de cargos já vinculados.';
+  if (code === 'GSE_SCOPE_SELECT_SECTOR') return 'Selecione pelo menos um setor para analisar.';
   if (code === 'AI_INVALID_RESPONSE_ENVELOPE')
     return 'A API retornou um formato de análise não reconhecido. Nenhuma proposta foi aceita.';
   if (code === 'AI_SCOPE_MISMATCH')

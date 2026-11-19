@@ -4,6 +4,9 @@ import { GseConsultativeInfo } from './GseConsultativeInfo';
 import React, { useRef, useState } from 'react';
 import {
   Alert,
+  Autocomplete,
+  Checkbox,
+  FormControlLabel,
   Box,
   Button,
   Stack,
@@ -12,6 +15,8 @@ import {
 } from '@mui/material';
 import {
   analyzeGseWithAi,
+  previewGseAiScope,
+  AiGseScopePreview,
   aiConsultativeClientError,
   AiGseAnalysis,
   AiPreliminaryGroup,
@@ -31,8 +36,10 @@ export function GseAiConsultativeAnalysis({
   onLocate,
   preliminaryDistribution = [],
   onAnalysisPresence,
+  sectors = [],
   registrySignature = '', onRefreshRegistry, onEditRole, canEditRole,
 }: {
+  sectors?: { id: string; name: string }[];
   registrySignature?: string;
   onRefreshRegistry?: () => Promise<string>;
   onEditRole?: (id: string, field: 'description' | 'realDescription') => void;
@@ -45,6 +52,14 @@ export function GseAiConsultativeAnalysis({
   disabled: boolean;
   onLocate: (id: string) => void;
 }) {
+  const [sectorMode, setSectorMode] = useState(false);
+  const [sectorIds, setSectorIds] = useState<string[]>([]);
+  const [onlyUnlinkedRoles, setOnlyUnlinkedRoles] = useState(false);
+  const [scopePreview, setScopePreview] = useState<AiGseScopePreview | null>(null);
+  const [checkingScope, setCheckingScope] = useState(false);
+  const scope = { sectorIds: sectorMode ? sectorIds : [], onlyUnlinkedRoles };
+  const scopeSignature = JSON.stringify(scope);
+  React.useEffect(() => { setScopePreview(null); }, [scopeSignature, registrySignature]);
   const [observations, setObservations] = useState(''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
@@ -56,7 +71,7 @@ export function GseAiConsultativeAnalysis({
   const [submittedDeclarations, setSubmittedDeclarations] = useState('');
   const [declarationsAtAnalysis, setDeclarationsAtAnalysis] = useState('');
   const declarationSignature = JSON.stringify(feedback);
-  const localSignature = JSON.stringify([guidance, observations, preliminaryDistribution]);
+  const localSignature = JSON.stringify([guidance, observations, preliminaryDistribution, scope]);
   const request = useRef(0);
   React.useEffect(
     () => () => {
@@ -67,12 +82,21 @@ export function GseAiConsultativeAnalysis({
   );
   const stale =
     !!analysis && (inputAtAnalysis !== localSignature || registryAtAnalysis !== registrySignature);
+  async function checkScope() {
+    if (sectorMode && !sectorIds.length) throw Error('GSE_SCOPE_SELECT_SECTOR');
+    const result = await previewGseAiScope(companyId, workspaceId, scope);
+    setScopePreview(result);
+    if (!result.selectedRoles) throw Error('GSE_SCOPE_EMPTY');
+    if (!result.fits) throw Error('GSE_SCOPE_TOO_LARGE');
+    return result;
+  }
   async function analyze() {
-    if (busy || disabled || !workspaceId) return;
+    if (busy || checkingScope || disabled || !workspaceId) return;
     const current = ++request.current;
     setBusy(true);
     setError('');
     try {
+      await checkScope();
       const selectedStatements = analysis?.status === 'ANALYZED' ? consultativeDecisionStatements(analysis, reviews) : [];
       const declarations = consultativeObservations(observations, feedback, selectedStatements, analysis || undefined);
       const declarationsSnapshot = declarationSignature;
@@ -85,6 +109,7 @@ export function GseAiConsultativeAnalysis({
         guidance,
         declarations,
         preliminaryDistribution,
+        scope,
       );
       if (current !== request.current) return;
       const nextReviews = Object.fromEntries(
@@ -114,6 +139,28 @@ export function GseAiConsultativeAnalysis({
   return (
     <Box sx={{ my: 1, borderTop: '1px solid', borderColor: 'divider', pt: 1 }}>
       <GseAiConsultativeHeading />
+      <Box sx={{ my: 2 }}>
+        <FormControlLabel control={<Checkbox checked={sectorMode} disabled={busy || checkingScope || disabled} onChange={(_, checked) => setSectorMode(checked)} />} label="Selecionar setores para análise" />
+        {sectorMode && <Autocomplete
+          multiple size="small" options={sectors} getOptionLabel={(item) => item.name}
+          isOptionEqualToValue={(a, b) => a.id === b.id}
+          value={sectors.filter((s) => sectorIds.includes(s.id))}
+          onChange={(_, selected) => setSectorIds(selected.map((s) => s.id))}
+          disabled={busy || checkingScope || disabled}
+          renderInput={(params) => <TextField {...params} label="Setores incluídos" helperText="Inclui os cargos e subníveis dos setores selecionados." />}
+        />}
+        <FormControlLabel control={<Checkbox checked={onlyUnlinkedRoles} disabled={busy || checkingScope || disabled} onChange={(_, checked) => setOnlyUnlinkedRoles(checked)} />} label="Analisar somente cargos sem vínculo com GSE" />
+        <Typography variant="caption" display="block">Considera vínculos ativos e salvos, inclusive herdados. Sugestões ainda não salvas não excluem cargos. Os GSEs existentes permanecem como referência resumida; suas composições fora do recorte não serão revisadas.</Typography>
+        <Button size="small" disabled={busy || checkingScope || disabled || !workspaceId} onClick={async () => {
+          setCheckingScope(true); setError('');
+          try { await checkScope(); } catch (e) { setError(aiConsultativeClientError(e)); } finally { setCheckingScope(false); }
+        }}>{checkingScope ? 'Conferindo…' : 'Conferir escopo (sem usar IA)'}</Button>
+        {scopePreview && <Alert severity={scopePreview.fits && scopePreview.selectedRoles ? 'info' : 'warning'}>
+          {scopePreview.selectedRoles} cargos incluídos · {scopePreview.excludedLinkedRoles} excluídos por vínculo salvo · {scopePreview.totalRoles} cargos no estabelecimento.
+          {' '}{scopePreview.fits ? 'O contexto básico cabe no limite.' : 'O recorte excede o limite; selecione menos setores.'}
+          {' '}Observações e prévia serão verificadas novamente antes da análise.
+        </Alert>}
+      </Box>
       <TextField
         fullWidth
         multiline
@@ -130,7 +177,7 @@ export function GseAiConsultativeAnalysis({
       <Button
         variant="contained"
         size="small"
-        disabled={disabled || busy || !workspaceId}
+        disabled={disabled || busy || checkingScope || !workspaceId}
         onClick={analyze}
       >
         {busy ? 'Interpretando atividades…' : analysis ? 'Reanalisar com IA' : 'Analisar com IA'}
