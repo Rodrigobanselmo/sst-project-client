@@ -11,6 +11,7 @@ export const DESCRIPTION_HIERARCHY_TYPES = [
 export type DescriptionHierarchyType =
   (typeof DESCRIPTION_HIERARCHY_TYPES)[number];
 export type DescriptionSuggestionInput = {
+  gseId?: never;
   type: DescriptionHierarchyType;
   name: string;
   additionalGuidance?: string;
@@ -18,12 +19,20 @@ export type DescriptionSuggestionInput = {
   parentId?: string;
   workspaceId?: string;
 };
+export type GseDescriptionSuggestionInput = {
+  gseId: string;
+  name: string;
+  additionalGuidance?: string;
+};
+export type OrganizationalDescriptionInput =
+  | DescriptionSuggestionInput
+  | GseDescriptionSuggestionInput;
 export async function suggestHierarchyDescription(
   companyId: string,
-  input: DescriptionSuggestionInput,
+  input: OrganizationalDescriptionInput,
 ): Promise<{ description: string }> {
   const { data } = await api.post(
-    `/v2/companies/${encodeURIComponent(companyId)}/hierarchy/description-suggestion`,
+    `/v2/companies/${encodeURIComponent(companyId)}/${input.gseId ? 'gse' : 'hierarchy'}/description-suggestion`,
     input,
   );
   return data;

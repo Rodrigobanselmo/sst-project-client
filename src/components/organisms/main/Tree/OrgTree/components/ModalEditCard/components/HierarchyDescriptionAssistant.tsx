@@ -14,7 +14,7 @@ import { useSnackbar } from 'notistack';
 import MicNoneIcon from '@mui/icons-material/MicNone';
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import {
-  DescriptionSuggestionInput,
+  OrganizationalDescriptionInput,
   suggestHierarchyDescription,
 } from '@v2/services/enterprise/hierarchy/suggest-description/suggest-description.service';
 
@@ -23,13 +23,15 @@ export const HIERARCHY_DESCRIPTION_RH_NOTICE =
 
 type Props = {
   companyId: string;
-  input?: DescriptionSuggestionInput;
+  unavailableMessage?: string;
+  input?: OrganizationalDescriptionInput;
   description: string;
   onApply: (description: string) => void;
 };
 
 export function HierarchyDescriptionAssistant({
   companyId,
+  unavailableMessage = 'Informe o nome e salve os vínculos superiores para usar a IA.',
   input,
   description,
   onApply,
@@ -134,7 +136,7 @@ export function HierarchyDescriptionAssistant({
     >
       {!input && (
         <Box component="span" sx={{ fontSize: 12, color: 'text.secondary' }}>
-          Informe o nome e salve os vínculos superiores para usar a IA.
+          {unavailableMessage}
         </Box>
       )}
       <Button

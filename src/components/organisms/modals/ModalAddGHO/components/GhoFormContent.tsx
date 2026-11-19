@@ -1,3 +1,4 @@
+import { HierarchyDescriptionAssistant } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard/components/HierarchyDescriptionAssistant';
 import { EditorProbabilityAiScope } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/EditorProbabilityAiScope';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from 'react';
@@ -23,6 +24,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { buildGseCargoTabRows } from 'core/utils/gse-effective-office-membership.util';
 import {
+  useWatch,
   Control,
   SubmitHandler,
   UseFormHandleSubmit,
@@ -92,6 +94,10 @@ export const GhoFormContent = ({
   createWorkspaceError,
   onWorkspaceEdited,
 }: GhoFormContentProps) => {
+  const [descriptionName, currentDescription] = useWatch({
+    control,
+    name: ['name', 'description'],
+  });
   const router = useRouter();
   const { data: company } = useQueryCompany();
   const hierarchyQuery = useQueryHierarchies();
@@ -209,19 +215,48 @@ export const GhoFormContent = ({
             name="name"
             size="small"
           />
-          <InputForm
-            multiline
-            defaultValue={ghoData.description || ghoQuery.description}
-            minRows={2}
-            setValue={setValue}
-            maxRows={4}
-            label="Descrição"
-            control={control}
-            sx={{ width: '100%' }}
-            placeholder="descrição do GSE..."
-            name="description"
-            size="small"
-          />
+          <Box>
+            {ghoData.id && !loadingQuery && ghoQuery.id === ghoData.id && (
+              <HierarchyDescriptionAssistant
+                key={JSON.stringify([ghoData.id, gseWorkspaceIds, hierarchies])}
+                companyId={companyId}
+                unavailableMessage="Informe o nome e salve as alterações nos estabelecimentos antes de gerar a descrição."
+                input={
+                  descriptionName?.trim() &&
+                  (!ghoData.workspaceIdsTouched ||
+                    JSON.stringify([...ghoData.workspaceIds].sort()) ===
+                      JSON.stringify(
+                        (ghoQuery.workspaces || [])
+                          .map((workspace) => workspace.id)
+                          .sort(),
+                      ))
+                    ? { gseId: ghoData.id, name: descriptionName.trim() }
+                    : undefined
+                }
+                description={currentDescription || ''}
+                onApply={(description) =>
+                  setValue('description', description, {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
+                  })
+                }
+              />
+            )}
+            <InputForm
+              multiline
+              defaultValue={ghoData.description || ghoQuery.description}
+              minRows={2}
+              setValue={setValue}
+              maxRows={4}
+              label="Descrição"
+              control={control}
+              sx={{ width: '100%' }}
+              placeholder="descrição do GSE..."
+              name="description"
+              size="small"
+            />
+          </Box>
           <EditGhoSelects
             ghoQuery={ghoQuery}
             ghoData={ghoData}
