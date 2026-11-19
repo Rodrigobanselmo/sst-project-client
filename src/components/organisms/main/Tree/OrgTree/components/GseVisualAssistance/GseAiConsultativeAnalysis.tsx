@@ -7,6 +7,7 @@ import {
   Autocomplete,
   Checkbox,
   FormControlLabel,
+  MenuItem,
   Box,
   Button,
   Stack,
@@ -36,10 +37,12 @@ export function GseAiConsultativeAnalysis({
   onLocate,
   preliminaryDistribution = [],
   onAnalysisPresence,
-  sectors = [],
+  sectors = [], roles = [], existingGroups = [],
   registrySignature = '', onRefreshRegistry, onEditRole, canEditRole,
 }: {
   sectors?: { id: string; name: string }[];
+  roles?: { id: string; name: string }[];
+  existingGroups?: { id: string; name: string }[];
   registrySignature?: string;
   onRefreshRegistry?: () => Promise<string>;
   onEditRole?: (id: string, field: 'description' | 'realDescription') => void;
@@ -52,12 +55,15 @@ export function GseAiConsultativeAnalysis({
   disabled: boolean;
   onLocate: (id: string) => void;
 }) {
+  const [analysisPurpose, setPurpose] = useState<'REVIEW_EXISTING' | 'FORM_NEW'>('FORM_NEW');
+  const [roleIds, setRoleIds] = useState<string[]>([]);
+  const [existingGroupIds, setExistingGroupIds] = useState<string[]>([]);
   const [sectorMode, setSectorMode] = useState(false);
   const [sectorIds, setSectorIds] = useState<string[]>([]);
   const [onlyUnlinkedRoles, setOnlyUnlinkedRoles] = useState(false);
   const [scopePreview, setScopePreview] = useState<AiGseScopePreview | null>(null);
   const [checkingScope, setCheckingScope] = useState(false);
-  const scope = { sectorIds: sectorMode ? sectorIds : [], onlyUnlinkedRoles };
+  const scope = { analysisPurpose, roleIds, existingGroupIds: analysisPurpose === 'REVIEW_EXISTING' ? existingGroupIds : [], sectorIds: sectorMode ? sectorIds : [], onlyUnlinkedRoles };
   const scopeSignature = JSON.stringify(scope);
   React.useEffect(() => { setScopePreview(null); }, [scopeSignature, registrySignature]);
   const [observations, setObservations] = useState(''),
@@ -97,7 +103,7 @@ export function GseAiConsultativeAnalysis({
     setError('');
     try {
       await checkScope();
-      const selectedStatements = analysis?.status === 'ANALYZED' ? consultativeDecisionStatements(analysis, reviews) : [];
+      const selectedStatements = analysis?.status === 'ANALYZED' && analysis.sources.analysisPurpose === analysisPurpose ? consultativeDecisionStatements(analysis, reviews) : [];
       const declarations = consultativeObservations(observations, feedback, selectedStatements, analysis || undefined);
       const declarationsSnapshot = declarationSignature;
       const inputSnapshot = localSignature;
@@ -140,6 +146,19 @@ export function GseAiConsultativeAnalysis({
     <Box sx={{ my: 1, borderTop: '1px solid', borderColor: 'divider', pt: 1 }}>
       <GseAiConsultativeHeading />
       <Box sx={{ my: 2 }}>
+        <TextField select fullWidth size="small" label="Objetivo da análise" value={analysisPurpose}
+          disabled={busy || checkingScope || disabled} onChange={e => { setPurpose(e.target.value as typeof analysisPurpose); setOnlyUnlinkedRoles(false); }} sx={{ my: 4 }}>
+          <MenuItem value="FORM_NEW">Propor novos GSEs</MenuItem>
+          <MenuItem value="REVIEW_EXISTING">Revisar GSEs existentes</MenuItem>
+        </TextField>
+        <Typography variant="caption" display="block" sx={{ mb: 4 }}>{analysisPurpose === 'FORM_NEW'
+          ? 'Compara os cargos selecionados para propor grupos e subgrupos. Os GSEs existentes são referências; nenhuma criação é automática.'
+          : 'Revisa a composição dos GSEs que abrangem o recorte. Grupos sem integrantes no recorte não geram cartões de diagnóstico.'}</Typography>
+        {analysisPurpose === 'REVIEW_EXISTING' && <Autocomplete multiple size="small" options={existingGroups} getOptionLabel={g => g.name}
+          isOptionEqualToValue={(a,b) => a.id === b.id} value={existingGroups.filter(g => existingGroupIds.includes(g.id))}
+          onChange={(_, selected) => setExistingGroupIds(selected.map(g => g.id))} disabled={busy || checkingScope || disabled}
+          renderInput={params => <TextField {...params} label="GSEs a revisar (opcional)" helperText="Sem seleção, considera os GSEs com cargos no recorte." />} sx={{ mb: 4 }} />}
+
         <FormControlLabel control={<Checkbox checked={sectorMode} disabled={busy || checkingScope || disabled} onChange={(_, checked) => setSectorMode(checked)} />} label="Selecionar setores para análise" />
         {sectorMode && <Autocomplete
           multiple size="small" options={sectors} getOptionLabel={(item) => item.name}
@@ -149,6 +168,10 @@ export function GseAiConsultativeAnalysis({
           disabled={busy || checkingScope || disabled}
           renderInput={(params) => <TextField {...params} label="Setores incluídos" helperText="Inclui os cargos e subníveis dos setores selecionados." />}
         />}
+        <Autocomplete multiple size="small" options={roles} getOptionLabel={r => r.name}
+          isOptionEqualToValue={(a,b) => a.id === b.id} value={roles.filter(r => roleIds.includes(r.id))}
+          onChange={(_, selected) => setRoleIds(selected.map(r => r.id))} disabled={busy || checkingScope || disabled}
+          renderInput={params => <TextField {...params} label="Cargos incluídos (opcional)" helperText="Sem seleção, inclui todos os cargos dos setores escolhidos ou do estabelecimento. Os filtros são combinados." />} sx={{ my: 4 }} />
         <FormControlLabel control={<Checkbox checked={onlyUnlinkedRoles} disabled={busy || checkingScope || disabled} onChange={(_, checked) => setOnlyUnlinkedRoles(checked)} />} label="Analisar somente cargos sem vínculo com GSE" />
         <Typography variant="caption" display="block">Considera vínculos ativos e salvos, inclusive herdados. Sugestões ainda não salvas não excluem cargos. Os GSEs existentes permanecem como referência resumida; suas composições fora do recorte não serão revisadas.</Typography>
         <Button size="small" disabled={busy || checkingScope || disabled || !workspaceId} onClick={async () => {
@@ -180,7 +203,7 @@ export function GseAiConsultativeAnalysis({
         disabled={disabled || busy || checkingScope || !workspaceId}
         onClick={analyze}
       >
-        {busy ? 'Interpretando atividades…' : analysis ? 'Reanalisar com IA' : 'Analisar com IA'}
+        {busy ? 'Interpretando atividades…' : analysisPurpose === 'FORM_NEW' ? 'Propor novos GSEs com IA' : 'Revisar GSEs com IA'}
       </Button>
       {error && <Alert severity="error">{error}</Alert>}
       {analysis?.status === 'UNAVAILABLE' && (
@@ -204,6 +227,7 @@ export function GseAiConsultativeAnalysis({
             em campo. Reanalise após mudanças nos dados. O botão Confirmar e salvar atende às propostas estruturais do painel; ele não aplica as decisões desta seção nem registra histórico de GSE.
           </GseConsultativeInfo>
           {submittedDeclarations && <details><summary>Declarações consideradas nesta avaliação</summary><Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{professionalGseText(submittedDeclarations, analysis)}</Typography><Typography variant="caption">Declarações do profissional não comprovam automaticamente homogeneidade de exposição.</Typography></details>}
+          {stale && <Typography variant="caption">Resultado anterior — não corresponde aos filtros ou ao objetivo atuais.</Typography>}
           {analysis.proposals.length === 0 && (
             <Typography variant="body2">
               Nenhum agrupamento proposto. Verifique as perguntas e situações de

@@ -26,6 +26,8 @@ export function GseAiRegistryBridge(props: React.ComponentProps<typeof GseAiCons
     return node;
   };
   return <GseAiConsultativeAnalysis {...props}
+    roles={Object.values(registry.data).filter(h => ['OFFICE', 'SUB_OFFICE'].includes(String(h.type)) && h.workspaceIds?.includes(props.workspaceId)).map(h => ({ id: h.id, name: h.name })).sort((a,b) => a.name.localeCompare(b.name, 'pt-BR'))}
+    existingGroups={(ctx?.groups || []).map(g => ({ id: g.id, name: g.name }))}
     sectors={Object.values(registry.data).filter((h) => String(h.type) === 'SECTOR' && h.workspaceIds?.includes(props.workspaceId)).map((h) => ({ id: h.id, name: h.name })).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))}
     registrySignature={registrySignature(registry.data, ctx?.groups || [], props.companyId, props.workspaceId)}
     onRefreshRegistry={async () => { const result = await registry.refetch(); if (result.isError) throw Error('Não foi possível atualizar os dados cadastrais. Tente novamente antes de reanalisar.'); return registrySignature(result.data || {}, ctx?.groups || [], props.companyId, props.workspaceId); }}

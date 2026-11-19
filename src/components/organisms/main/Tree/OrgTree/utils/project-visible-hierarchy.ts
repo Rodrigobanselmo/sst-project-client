@@ -20,6 +20,7 @@ export function projectVisibleHierarchy(
   nodes: ITreeMap,
   hiddenLevels: ReadonlySet<TreeTypeEnum>,
   collapsable: boolean,
+  excludedIds: ReadonlySet<NodeId> = new Set(),
 ): VisibleHierarchy {
   const children = new Map<NodeId, NodeId[]>();
   const renderedIds = new Set<NodeId>();
@@ -27,7 +28,7 @@ export function projectVisibleHierarchy(
 
   function visit(id: NodeId, siblings: NodeId[], rendered: boolean) {
     const node = nodes[id];
-    if (!node || node.hide || visited.has(String(id))) return;
+    if (!node || node.hide || excludedIds.has(id) || visited.has(String(id))) return;
     visited.add(String(id));
 
     if (hiddenLevels.has(node.type) && canHideHierarchyLevel(node.type)) {

@@ -32,6 +32,7 @@ import { GhoTool } from './components/GhoTool';
 import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
 import { HierarchyLegend } from './components/HierarchyLegend';
 import { TreeTypeEnum } from './enums/tree-type.enums';
+import { membershipHiddenIds, MembershipFilter } from './utils/filter-hierarchy-membership';
 import { projectVisibleHierarchy } from './utils/project-visible-hierarchy';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { MouseControl } from './components/MouseControl';
@@ -85,11 +86,14 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
   );
   useEffect(() => setHiddenLevels(new Set()), [query.companyId]);
 
+  const [hiddenMemberships, setHiddenMemberships] = useState<Set<MembershipFilter>>(() => new Set());
+  useEffect(() => setHiddenMemberships(new Set()), [companyId]);
+  const excludedIds = useMemo(() => membershipHiddenIds(nodes, hiddenMemberships), [nodes, hiddenMemberships]);
   const visibleHierarchy = useMemo(
-    () => hiddenLevels.size
-      ? projectVisibleHierarchy(nodes, hiddenLevels, collapsable)
+    () => hiddenLevels.size || hiddenMemberships.size
+      ? projectVisibleHierarchy(nodes, hiddenLevels, collapsable, excludedIds)
       : undefined,
-    [nodes, hiddenLevels, collapsable],
+    [nodes, hiddenLevels, hiddenMemberships, collapsable, excludedIds],
   );
 
   const toggleLevel = (type: TreeTypeEnum) => {
@@ -102,6 +106,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
   };
 
   const revealLinkLevel = (id: string) => {
+    if (hiddenMemberships.size) setHiddenMemberships(new Set());
     const type = nodes[id]?.type;
     if (!type || !hiddenLevels.has(type)) return;
     setHiddenLevels((previous) => {
@@ -158,10 +163,16 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
       </HierarchyFilter>
       <HierarchyLegend
         hiddenLevels={hiddenLevels}
+        hiddenMemberships={hiddenMemberships}
+        onToggleMembership={(key) => {
+          dispatch(clearSelectedNodeIds());
+          setHiddenMemberships(previous => { const next = new Set(previous); if (!next.delete(key)) next.add(key); return next; });
+        }}
         onToggle={toggleLevel}
         onReset={() => {
           dispatch(clearSelectedNodeIds());
           setHiddenLevels(new Set());
+          setHiddenMemberships(new Set());
         }}
       />
       <Box sx={{ width: 278, ml: 17 }}>
@@ -228,7 +239,7 @@ const OrgTreeView: FC<{ children?: any } & IOrgTreeProps> = ({
               <Box data-live-hierarchy>
                 {visibleHierarchy && visibleHierarchy.roots.length === 0 && (
                   <Box role="status" sx={{ color: 'text.secondary' }}>
-                    Nenhum item encontrado nos níveis visíveis.
+                    Nenhum item encontrado com os filtros de visualização.
                   </Box>
                 )}
                 <OrgTree

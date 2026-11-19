@@ -1,4 +1,4 @@
-import { Box, Button, Typography, useTheme } from '@mui/material';
+import { Box, Button, Tooltip, Typography, useTheme } from '@mui/material';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
 import { getHierarchyNodeVisual } from '../../constants/hierarchy-node-visual.constant';
@@ -6,11 +6,16 @@ import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { canHideHierarchyLevel } from '../../utils/project-visible-hierarchy';
 import { resolveHierarchyLegendItems } from '../../utils/resolve-hierarchy-node-type-label';
 
+import { MEMBERSHIP_FILTERS, MembershipFilter } from '../../utils/filter-hierarchy-membership';
+
 export function HierarchyLegend({
+  hiddenMemberships, onToggleMembership,
   hiddenLevels,
   onToggle,
   onReset,
 }: {
+  hiddenMemberships: ReadonlySet<MembershipFilter>;
+  onToggleMembership: (key: MembershipFilter) => void;
   hiddenLevels: ReadonlySet<TreeTypeEnum>;
   onToggle: (type: TreeTypeEnum) => void;
   onReset: () => void;
@@ -91,7 +96,17 @@ export function HierarchyLegend({
           </Box>
         );
       })}
-      {hiddenLevels.size > 0 && (
+      <Box role="group" aria-label="Visibilidade por vínculo salvo" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 3 }}>
+        <Typography variant="caption" color="text.secondary">Vínculos visíveis</Typography>
+        {MEMBERSHIP_FILTERS.map(({ key, label }) => {
+          const visible = !hiddenMemberships.has(key);
+          return <Tooltip key={key} title={`${visible ? 'Ocultar' : 'Mostrar'} ${label.toLocaleLowerCase('pt-BR')}. Considera vínculos salvos e herdados; mantém unidades com cargos ainda visíveis.`}>
+            <Button size="small" variant="outlined" aria-pressed={visible} onClick={() => onToggleMembership(key)}
+              sx={{ height: 26, borderRadius: '999px', px: 4, fontSize: 12, textTransform: 'none', color: visible ? 'text.primary' : 'text.secondary', borderColor: 'divider', borderStyle: visible ? 'solid' : 'dashed', textDecoration: visible ? 'none' : 'line-through' }}>{label}</Button>
+          </Tooltip>;
+        })}
+      </Box>
+      {(hiddenLevels.size > 0 || hiddenMemberships.size > 0) && (
         <Button size="small" onClick={onReset} sx={{ textTransform: 'none' }}>
           Mostrar todos
         </Button>

@@ -90,7 +90,7 @@ export type AiGseAnalysis = {
     [key: string]: unknown;
   };
 };
-export type AiGseScope = { sectorIds?: string[]; onlyUnlinkedRoles?: boolean };
+export type AiGseScope = { analysisPurpose?: 'REVIEW_EXISTING' | 'FORM_NEW'; roleIds?: string[]; existingGroupIds?: string[]; sectorIds?: string[]; onlyUnlinkedRoles?: boolean };
 export type AiGseScopePreview = { selectedRoles: number; excludedLinkedRoles: number; totalRoles: number; contextCharacters: number; inputCharacters: number; fits: boolean; note: string };
 export async function previewGseAiScope(companyId: string, workspaceId: string, scope: AiGseScope): Promise<AiGseScopePreview> {
   const response = await api.post<AiGseScopePreview>(`/v2/companies/${encodeURIComponent(companyId)}/workspaces/${encodeURIComponent(workspaceId)}/exposure-group-assistant/ai-consultative/scope-preview`, scope);
