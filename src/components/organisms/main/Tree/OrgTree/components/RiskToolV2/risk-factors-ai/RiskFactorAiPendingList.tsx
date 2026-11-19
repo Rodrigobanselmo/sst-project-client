@@ -1,7 +1,7 @@
 import React from 'react';
 
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
-import { Box, Tooltip } from '@mui/material';
+import { Box, Tooltip, useTheme } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import SText from 'components/atoms/SText';
 
@@ -15,7 +15,10 @@ import {
 import { useRiskFactorsAiOptional } from './RiskFactorsAiProvider';
 import { RiskFactorAiRowRiskData } from './useRiskFactorAiSuggestionActions';
 
-const ACTION_LABEL: Record<Exclude<RiskFactorAiPendingAction, 'approve-probability'>, string> = {
+const ACTION_LABEL: Record<
+  Exclude<RiskFactorAiPendingAction, 'approve-probability'>,
+  string
+> = {
   add: 'Adicionar',
   'confirm-existence': 'Confirmar que existe',
   'accept-recommendation': 'Aceitar recomendação',
@@ -55,6 +58,9 @@ export function RiskFactorAiPendingList({
   handleSelect: (values: Partial<IUpsertRiskData>) => Promise<void> | void;
   readOnly?: boolean;
 }) {
+  const theme = useTheme();
+  const dark = theme.palette.mode === 'dark';
+  const suggestionColor = dark ? '#90caf9' : theme.palette.info.main;
   const ai = useRiskFactorsAiOptional();
   const actions = ai?.suggestions;
   if (!actions || !riskData) return null;
@@ -73,23 +79,31 @@ export function RiskFactorAiPendingList({
             data-testid="risk-factor-ai-pending-item"
             sx={{
               border: '1px dashed',
-              borderColor: 'info.main',
+              borderColor: suggestionColor,
               borderRadius: 1,
               px: 1,
               py: 0.75,
               backgroundColor: 'transparent',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
-              <AutoAwesomeOutlinedIcon sx={{ fontSize: 12, color: 'info.main' }} />
-              <SText fontSize={10} color="info.main">
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}
+            >
+              <AutoAwesomeOutlinedIcon
+                sx={{ fontSize: 12, color: suggestionColor }}
+              />
+              <SText fontSize={10} color={suggestionColor}>
                 Sugestão da IA · {pendingKindLabel(item.action, item.value)}
                 {item.recType && REC_TYPE_LABEL[item.recType]
                   ? ` · ${REC_TYPE_LABEL[item.recType]}`
                   : ''}
               </SText>
             </Box>
-            <Tooltip title={item.rationale || ''} placement="top" disableInteractive>
+            <Tooltip
+              title={item.rationale || ''}
+              placement="top"
+              disableInteractive
+            >
               <span>
                 <SText fontSize={12} sx={{ wordBreak: 'break-word' }}>
                   {item.action === 'approve-probability'
@@ -104,17 +118,28 @@ export function RiskFactorAiPendingList({
               </SText>
             ) : null}
             {!readOnly && (
-              <Box sx={{ display: 'flex', gap: 0.5, mt: 0.75, flexWrap: 'wrap' }}>
+              <Box
+                sx={{ display: 'flex', gap: 0.5, mt: 0.75, flexWrap: 'wrap' }}
+              >
                 <SButton
                   text={actionLabel(item.action, item.value)}
                   variant="outlined"
                   color="info"
+                  schema={
+                    dark
+                      ? { color: suggestionColor, borderColor: suggestionColor }
+                      : undefined
+                  }
                   size="s"
                   loading={applying}
                   disabled={busy}
                   onClick={(event) => {
                     event.stopPropagation();
-                    void actions.accept({ suggestion: item, riskData, handleSelect });
+                    void actions.accept({
+                      suggestion: item,
+                      riskData,
+                      handleSelect,
+                    });
                   }}
                   buttonProps={{ sx: { minWidth: 'auto' } }}
                 />
@@ -122,6 +147,9 @@ export function RiskFactorAiPendingList({
                   text="Descartar"
                   variant="text"
                   color="normal"
+                  schema={
+                    dark ? { color: theme.palette.text.primary } : undefined
+                  }
                   size="s"
                   disabled={applying}
                   onClick={(event) => {

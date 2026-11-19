@@ -29,13 +29,28 @@ export const STBoxInput = styled(Box)`
 export const STGridHeader = styled(STGridExtend)`
   margin-bottom: ${(props) => props.theme.spacing(2)};
   padding: ${(props) => props.theme.spacing(2, 0)};
-  background-color: ${(props) => props.theme.palette.grey[50]};
-  border: 1px solid ${(props) => props.theme.palette.grey[200]};
+  background-color: ${(props) =>
+    props.theme.palette.mode === 'dark'
+      ? props.theme.palette.background.default
+      : props.theme.palette.grey[50]};
+  border: 1px solid
+    ${(props) =>
+      props.theme.palette.mode === 'dark'
+        ? props.theme.palette.divider
+        : props.theme.palette.grey[200]};
   border-radius: ${(props) => props.theme.shape.borderRadius}px;
-  border-bottom: 2px solid ${(props) => props.theme.palette.grey[300]};
+  border-bottom: 2px solid
+    ${(props) =>
+      props.theme.palette.mode === 'dark'
+        ? props.theme.palette.divider
+        : props.theme.palette.grey[300]};
 
   & > * {
-    border-left: 1px solid ${(props) => props.theme.palette.grey[200]};
+    border-left: 1px solid
+      ${(props) =>
+        props.theme.palette.mode === 'dark'
+          ? props.theme.palette.divider
+          : props.theme.palette.grey[200]};
     padding-left: ${(props) => props.theme.spacing(3)};
     padding-right: ${(props) => props.theme.spacing(3)};
     min-width: 0;
