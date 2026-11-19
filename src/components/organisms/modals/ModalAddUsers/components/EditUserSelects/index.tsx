@@ -1,3 +1,5 @@
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import { ChangeUserEmailDialog } from '../ChangeUserEmailDialog';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useState } from 'react';
 
@@ -14,14 +16,17 @@ import { ResetUserPasswordDialog } from '../ResetUserPasswordDialog';
 
 interface IEditUserSelects {
   userData: typeof initialUserState;
+  onEmailChanged: (userId: number, companyId: string, email: string) => void;
   setUserData: React.Dispatch<any>;
 }
 
 export const EditUserSelects: FC<{ children?: any } & IEditUserSelects> = ({
   setUserData,
   userData,
+  onEmailChanged,
 }) => {
   const { user } = useAuth();
+  const [emailOpen, setEmailOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const targetRoles = userData.group?.roles?.length
     ? userData.group.roles
@@ -34,7 +39,7 @@ export const EditUserSelects: FC<{ children?: any } & IEditUserSelects> = ({
   });
 
   return (
-    <SFlex align="flex-start">
+    <SFlex align="flex-start" flexWrap="wrap" gap={4}>
       {canReset && (
         <STagButton
           maxWidth="200px"
@@ -42,6 +47,26 @@ export const EditUserSelects: FC<{ children?: any } & IEditUserSelects> = ({
           icon={LockResetIcon}
           text={'Redefinir senha'}
           onClick={() => setResetOpen(true)}
+        />
+      )}
+      {canReset && userData.email && (
+        <STagButton
+          large
+          icon={EmailOutlinedIcon}
+          text="Trocar e-mail"
+          onClick={() => setEmailOpen(true)}
+        />
+      )}
+      {emailOpen && userData.id && userData.company?.id && (
+        <ChangeUserEmailDialog
+          key={`${userData.id}:${userData.company.id}`}
+          userId={userData.id}
+          companyId={userData.company.id}
+          currentEmail={userData.email}
+          onClose={() => setEmailOpen(false)}
+          onChanged={(email) =>
+            onEmailChanged(userData.id, userData.company!.id, email)
+          }
         />
       )}
       <StatusSelect

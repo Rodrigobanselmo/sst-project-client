@@ -166,8 +166,11 @@ export const useAddUser = () => {
 
   const isModalOpen = isOpen(ModalEnum.USER_ADD);
 
-  const baseCompany =
-    userData.company?.id ? userData.company : queryCompany?.id ? queryCompany : null;
+  const baseCompany = userData.company?.id
+    ? userData.company
+    : queryCompany?.id
+      ? queryCompany
+      : null;
 
   const {
     companyWithGroup,
@@ -279,7 +282,7 @@ export const useAddUser = () => {
         ...initialData,
         roles,
         permissions,
-        sendEmail: initialData.id ? false : initialData.sendEmail ?? true,
+        sendEmail: initialData.id ? false : (initialData.sendEmail ?? true),
         companies: resolveInitialConsultingEditCompanies({
           isConsultingEdit,
           initialCompanies: initialData.companies,
@@ -503,6 +506,17 @@ export const useAddUser = () => {
     }
   };
 
+  const onEmailChanged = (userId: number, companyId: string, email: string) => {
+    if (userData.id !== userId || userData.company?.id !== companyId) return;
+    setUserData((current) =>
+      current.id === userId && current.company?.id === companyId
+        ? { ...current, email }
+        : current,
+    );
+    setValue('email', email);
+    initialDataRef.current = { ...initialDataRef.current, email };
+  };
+
   const onCloseUnsaved = () => {
     const values = getValues();
     if (
@@ -592,6 +606,7 @@ export const useAddUser = () => {
   return {
     registerModal,
     onCloseUnsaved,
+    onEmailChanged,
     onSubmit,
     onClose,
     loading:

@@ -17,6 +17,7 @@ import { IErrorResp } from '../../../../errors/types';
 
 export interface IUpdateUser {
   readonly userId: number;
+  readonly name?: string;
   readonly companyId?: string;
   readonly companiesIds?: string[];
   readonly permissions?: string[];

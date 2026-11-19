@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { STagButton } from 'components/atoms/STagButton';
@@ -22,6 +22,7 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
   const {
     registerModal,
     onCloseUnsaved,
+    onEmailChanged,
     onSubmit,
     loading,
     userData,
@@ -71,7 +72,6 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
         <InputForm
           autoFocus
           setValue={setValue}
-          disabled={isEdit}
           defaultValue={userData.name}
           label={'Nome'}
           control={control}
@@ -80,24 +80,46 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
           name="name"
           size="small"
         />
-        <InputForm
-          setValue={setValue}
-          disabled={isEdit}
-          defaultValue={userData.email}
-          label={'Email'}
-          control={control}
-          sx={{ minWidth: ['100%', 600] }}
-          placeholder={'email do usuário...'}
-          name="email"
-          size="small"
-          {...(!userData.sendEmail && {
-            helperText:
-              'Convidar usuário somente através de link compartilhável',
-          })}
-        />
+        {isEdit ? (
+          <Box
+            component="section"
+            aria-label="E-mail de acesso"
+            sx={{
+              p: 6,
+              bgcolor: 'action.hover',
+              borderRadius: 1,
+              overflowWrap: 'anywhere',
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              E-mail de acesso atual
+            </Typography>
+            <Typography color="text.primary">
+              {userData.email || 'Não informado'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Somente exibição. Para alterar, use o botão “Trocar e-mail”.
+            </Typography>
+          </Box>
+        ) : (
+          <InputForm
+            setValue={setValue}
+            defaultValue={userData.email}
+            label={'Email'}
+            control={control}
+            sx={{ minWidth: ['100%', 600] }}
+            placeholder={'email do usuário...'}
+            name="email"
+            size="small"
+            {...(!userData.sendEmail && {
+              helperText:
+                'Convidar usuário somente através de link compartilhável',
+            })}
+          />
+        )}
       </SFlex>
 
-      <SFlex mt={5} mb={10} gap={5}>
+      <SFlex mt={5} mb={10} gap={5} flexWrap="wrap">
         <Box>
           <STagButton
             maxWidth="200px"
@@ -136,7 +158,11 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
         )}
         {isEdit && (
           <SFlex ml={'auto'} justify="end" gap={5}>
-            <EditUserSelects userData={userData} setUserData={setUserData} />
+            <EditUserSelects
+              userData={userData}
+              setUserData={setUserData}
+              onEmailChanged={onEmailChanged}
+            />
           </SFlex>
         )}
       </SFlex>
