@@ -405,7 +405,35 @@ export function aiConsultativeClientError(error: unknown) {
     return 'A API retornou um formato de análise não reconhecido. Nenhuma proposta foi aceita.';
   if (code === 'AI_SCOPE_MISMATCH')
     return 'A análise retornada não corresponde à empresa e ao estabelecimento selecionados. Nenhuma proposta foi aceita.';
-  return 'Não foi possível executar a análise por IA. Confira a permissão master e a disponibilidade do serviço. A V1 permanece disponível.';
+  const response = (error as { response?: { status?: number; data?: { code?: string; message?: unknown } }; code?: string })?.response;
+  const status = response?.status;
+  const data = response?.data;
+  const accountingMessages: Record<string, string> = {
+    AI_DAILY_BUDGET_EXCEEDED: 'O limite diário de IA foi atingido. Confira o limite global, do usuário e da empresa no controle de IA.',
+    AI_SPENDING_PAUSED: 'O uso de IA está pausado no controle de gastos.',
+    AI_PRICING_UNAVAILABLE: 'O modelo solicitado está sem tarifa válida no controle de IA. Aumentar o limite diário não resolve este bloqueio.',
+    AI_ACCOUNTING_UNAVAILABLE: 'O controle de gastos de IA está indisponível. Nenhuma nova chamada foi autorizada.',
+    AI_ATTRIBUTION_REQUIRED: 'A chamada não identificou corretamente o responsável e a empresa para contabilização.',
+    AI_ENDPOINT_NOT_METERED: 'Esta modalidade de IA ainda não tem medição de gastos configurada.',
+    AI_METERING_REQUIRED: 'A chamada não forneceu a medição exigida pelo controle de gastos.',
+    AI_PROVIDER_NOT_REGISTERED: 'O provedor solicitado não está registrado no controle de IA.',
+  };
+  if (data?.code && accountingMessages[data.code]) return accountingMessages[data.code];
+  if (status === 401) return 'A sessão não foi autenticada para a análise. Entre novamente e tente outra vez.';
+  if (status === 403) return 'A API recusou a autorização para esta análise. Ela exige o papel MASTER, além do acesso à empresa e ao estabelecimento.';
+  if (status === 400 || status === 422) {
+    // Only fixed validation messages are allowed; never echo payloads or occupational data.
+    const messages = Array.isArray(data?.message) ? data.message : [data?.message];
+    if (messages.some((message) => typeof message === 'string' && /preliminaryDistribution.*30/.test(message)))
+      return 'A prévia excede o limite de 30 grupos por análise. Nenhuma chamada à IA foi iniciada.';
+    const safe = ['Distribuição preliminar inválida.', 'Distribuição preliminar fora do escopo.', 'Hierarquia preliminar inválida ou repetida.'];
+    const known = messages.find((message): message is string => typeof message === 'string' && safe.includes(message));
+    return known ? `A API recusou a prévia: ${known} Nenhuma chamada à IA foi iniciada.` : 'A API recusou os dados enviados para análise. Verifique a prévia e o escopo selecionado.';
+  }
+  if (status === 429) return 'A solicitação foi limitada pelo serviço (HTTP 429). Sem o código de orçamento, não é possível atribuir isso ao limite diário cadastrado.';
+  if (status === 504 || (error as { code?: string })?.code === 'ECONNABORTED') return 'A análise excedeu o tempo de espera. Isso não confirma esgotamento do saldo; evite repetir antes de verificar a chamada em andamento.';
+  if (status === 502 || status === 503) return 'O serviço de análise está temporariamente indisponível.';
+  return 'Não foi possível executar a análise por IA. A causa não foi identificada; isso não confirma falta de permissão ou de saldo. A V1 permanece disponível.';
 }
 
 /** Facts of membership are separate from suggestions and local decisions. No persistence operations. */

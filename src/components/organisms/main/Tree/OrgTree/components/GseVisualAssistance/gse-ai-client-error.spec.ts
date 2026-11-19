@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { aiConsultativeClientError } from './gse-ai-consultative';
+const failure = (status: number, data: unknown = {}) => ({ response: { status, data } });
+assert.match(aiConsultativeClientError(failure(429, { code: 'AI_DAILY_BUDGET_EXCEEDED' })), /limite diário.*atingido/);
+assert.match(aiConsultativeClientError(failure(429, { code: 'AI_PRICING_UNAVAILABLE' })), /tarifa válida/);
+assert.match(aiConsultativeClientError(failure(429, { code: 'AI_SPENDING_PAUSED' })), /pausado/);
+assert.match(aiConsultativeClientError(failure(403)), /MASTER/);
+assert.match(aiConsultativeClientError(failure(504)), /tempo de espera/);
+assert.match(aiConsultativeClientError(failure(400, { message: ['preliminaryDistribution must contain no more than 30 elements'] })), /30 grupos/);
+assert.match(aiConsultativeClientError(failure(400, { message: 'Hierarquia preliminar inválida ou repetida.' })), /Hierarquia preliminar/);
+assert.doesNotMatch(aiConsultativeClientError(failure(500, { message: 'sensitive occupational payload' })), /sensitive/);
+assert.doesNotMatch(aiConsultativeClientError(failure(400, { message: 'sensitive occupational payload' })), /sensitive/);
+assert.match(aiConsultativeClientError(failure(429)), /não é possível atribuir/);
+console.log('GSE client diagnostics: budget, authorization, validation, timeout and privacy passed');
