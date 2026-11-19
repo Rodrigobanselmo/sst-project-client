@@ -1,3 +1,4 @@
+import { NodeLabel } from './NodeLabel';
 import { useRouter } from 'next/router';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { canLinkEnvironmentAtWorkspace } from '../../../../org-panels.model';
@@ -24,7 +25,6 @@ import {
 } from 'store/reducers/hierarchy/hierarchySlice';
 
 import SCopyIcon from 'assets/icons/SCopyIcon';
-import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
@@ -44,7 +44,6 @@ import SText from '../../../../../../../../atoms/SText';
 import { hierarchyNodeVisualIdentity } from '../../../../constants/hierarchy-node-visual.constant';
 import { isHierarchyNodeSelectable } from '../../../../constants/hierarchy-selection.constant';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
-import { usePreventNode } from '../../../../hooks/usePreventNode';
 import { ITreeMapObject } from '../../../../interfaces';
 import {
   getEmbeddedWorkspaceIdFromTreeId,
@@ -54,7 +53,7 @@ import { isUngroupedEstablishmentGroupTreeId } from '../../../../utils/attach-es
 import { resolveHierarchyNodeTypeLabel } from '../../../../utils/resolve-hierarchy-node-type-label';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { GhoSelectCard } from './Select/ghoSelect';
-import { STSelectBox } from './styles';
+import { STSelectBox, hierarchyCardControlSx } from './styles';
 import { INodeCardProps } from './types';
 
 const NodeTypeHeader: FC<{ type: TreeTypeEnum; treeId?: string | number }> = ({
@@ -79,40 +78,21 @@ const NodeTypeHeader: FC<{ type: TreeTypeEnum; treeId?: string | number }> = ({
         px: 2,
         py: 0.5,
         borderRadius: '3px',
-        fontSize: isSector || isGroup ? 10.5 : 10,
-        fontWeight: isSector || isGroup ? 800 : 700,
-        letterSpacing: isSector || isGroup ? '0.06em' : '0.04em',
+        fontSize: 8,
+        fontWeight: 700,
+        letterSpacing: '0.04em',
         lineHeight: 1.2,
         textTransform: 'uppercase',
         color: visual.headerColor,
         backgroundColor: visual.headerBg,
         maxWidth: '100%',
-        border: isSector || isGroup ? `1px solid ${visual.border}` : 'none',
+        border: `1px solid ${isSector || isGroup ? visual.border : 'transparent'}`,
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
       }}
     >
       {label}
     </SText>
-  );
-};
-
-const NodeLabel: FC<{ label: string }> = ({ label }) => {
-  return (
-    <STooltip minLength={25} withWrapper enterDelay={600} title={label}>
-      <SText
-        sx={{
-          width: '100%',
-          fontSize: 13,
-          lineHeight: '16px',
-          fontWeight: 600,
-          whiteSpace: 'normal',
-          wordBreak: 'break-word',
-          textAlign: 'left',
-        }}
-        lineNumber={3}
-      >
-        {label}
-      </SText>
-    </STooltip>
   );
 };
 
@@ -167,9 +147,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     getPathById,
     isChild,
     getChildren,
-    removeNodes,
   } = useHierarchyTreeActions();
-  const { preventDelete } = usePreventNode();
   const isSelectedGho = useAppSelector(
     selectGhoHierarchy(getPathById(node.id) as string[]),
   );
@@ -188,15 +166,6 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
 
     createEmptyCard(node.id);
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
-  };
-
-  const handleDeleteCard = (e: MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    if (selectionMode || node.showRef || !node.parentId) return;
-
-    preventDelete(() => removeNodes(node.id), '', {
-      inputConfirm: true,
-    });
   };
 
   const onUpdateGho = (newHierarchyIds: string[]) => {
@@ -310,14 +279,6 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
       TreeTypeEnum.SUB_OFFICE,
     ].includes(node.type);
 
-  const showDeleteButton =
-    !selectionMode &&
-    !node.showRef &&
-    !GhoId &&
-    !!node.parentId &&
-    node.type !== TreeTypeEnum.COMPANY &&
-    node.type !== TreeTypeEnum.ESTABLISHMENT_GROUP;
-
   const showHeaderActions =
     !hide &&
     (showGhoSelectButton ||
@@ -325,8 +286,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
       showCornerGhoBadge ||
       showOptionsSelect ||
       showRefSelect ||
-      showAddButton ||
-      showDeleteButton);
+      showAddButton);
 
   return (
     <Box
@@ -350,10 +310,13 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
           justifyContent="space-between"
           width="100%"
           gap={1}
-          sx={{ minHeight: 22 }}
+          sx={{ minHeight: 16 }}
         >
-          <Box sx={{ minWidth: 0, textAlign: 'left', flexShrink: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, textAlign: 'left', flexShrink: 0, mr: '4px' }}>
             <NodeTypeHeader type={node.type} treeId={node.id} />
+          </Box>
+          <Box sx={{ flex: '1 1 0', minWidth: 0, textAlign: 'left' }}>
+            <NodeLabel label={node.label} groupKey={`${node.parentId || 'root'}:${node.type}`} />
           </Box>
           <SFlex
             gap={1}
@@ -389,25 +352,11 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
                   />
                 )}
                 {(showGhoSelect || showCornerGhoBadge) && (
-                  <GhoSelectCard node={node} cornerBadge />
-                )}
-                {showDeleteButton && (
-                  <Box className="hierarchy-card-delete">
-                    <STagButton
-                      sx={{
-                        pr: 1,
-                        pl: 2,
-                        color: 'grey.500',
-                        '&:hover': { color: 'error.main' },
-                      }}
-                      onClick={handleDeleteCard}
-                      icon={SDeleteIcon}
-                      tooltipTitle="Excluir"
-                    />
-                  </Box>
+                  <GhoSelectCard node={node} cornerBadge sx={hierarchyCardControlSx} />
                 )}
                 {showOptionsSelect && (
                   <OptionsHelpSelect
+                    sx={hierarchyCardControlSx}
                     disabled={!!GhoId}
                     menuRef={menuRef}
                     node={node}
@@ -417,11 +366,9 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
                 {showAddButton && (
                   <Box sx={{ position: 'relative' }}>
                     <STagButton
-                      sx={{ pr: 1, pl: 2 }}
+                      sx={{ pr: 1, pl: 2, ...hierarchyCardControlSx }}
                       onClick={handleAddCard}
                       icon={AddIcon}
-                      active
-                      bg={'success.main'}
                       tooltipTitle="Adicionar"
                     />
                     {showPopperHelp && (
@@ -479,9 +426,11 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
         </SFlex>
       )}
 
-      <Box sx={{ width: '100%', minWidth: 0, textAlign: 'left' }}>
-        <NodeLabel label={node.label} />
-      </Box>
+      {showRefSelect && (
+        <Box sx={{ width: '100%', minWidth: 0, textAlign: 'left' }}>
+          <NodeLabel label={node.label} groupKey={`${node.parentId || 'root'}:${node.type}`} />
+        </Box>
+      )}
 
       {!assisted && showRefSelect && isHierarchy && (
         <SFlex

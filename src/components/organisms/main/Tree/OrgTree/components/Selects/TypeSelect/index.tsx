@@ -46,7 +46,11 @@ export const TypeSelect: FC<{ children?: any } & ITypeSelectProps> = ({
 
   return (
     <STagSelect
-      options={typeOptions}
+      options={typeOptions.map((option) => ({
+        ...option,
+        color: 'text.primary',
+        iconColor: 'text.secondary',
+      }))}
       text={nodeTypesConstant[node.type]?.name}
       large={large}
       icon={MergeTypeIcon}

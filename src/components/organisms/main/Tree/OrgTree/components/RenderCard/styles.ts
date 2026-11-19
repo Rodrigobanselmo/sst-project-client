@@ -1,7 +1,7 @@
 import { css, keyframes } from '@emotion/react';
 import { Box, styled } from '@mui/material';
 
-import { hierarchyNodeVisualIdentity } from '../../constants/hierarchy-node-visual.constant';
+import { getHierarchyNodeVisual } from '../../constants/hierarchy-node-visual.constant';
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
 
 interface ICardCard {
@@ -12,7 +12,7 @@ interface ICardCard {
 }
 
 /** Largura única para todos os níveis — evita falsa hierarquia por tamanho. */
-export const HIERARCHY_CARD_WIDTH = '20.625rem'; // ~330px (50% acima de 13.75rem)
+export const HIERARCHY_CARD_WIDTH = '22.6875rem'; // 363px: 10% wider than the original 330px.
 export const HIERARCHY_CARD_RADIUS = '24px';
 
 const FadeInAnimation = keyframes`  
@@ -30,10 +30,10 @@ const FadeInAnimation = keyframes`
    }
 `;
 
-const getTypeVisualCss = (type?: TreeTypeEnum) => {
+const getTypeVisualCss = (type: TreeTypeEnum | undefined, mode: 'light' | 'dark') => {
   if (!type) return undefined;
 
-  const visual = hierarchyNodeVisualIdentity[type];
+  const visual = getHierarchyNodeVisual(type, mode);
   if (!visual) return undefined;
 
   return css`
@@ -42,7 +42,7 @@ const getTypeVisualCss = (type?: TreeTypeEnum) => {
     box-shadow: ${visual.shadow};
     ${visual.accentLeft
       ? `
-      padding-left: 1.75rem;
+      padding-left: 0.875rem;
 
       &::before {
         content: '';
@@ -75,19 +75,19 @@ export const STCardArea = styled(Box)<{
 
 export const STRenderLabel = styled(Box)<ICardCard>`
   box-sizing: border-box;
-  background-color: white;
+  background-color: ${(props) => props.theme.palette.background.paper};
   cursor: ${(props) => (props.selectionMode ? 'pointer' : 'grab')};
   padding: ${(props) => props.theme.spacing(2, 4)};
-  width: ${HIERARCHY_CARD_WIDTH};
-  min-width: ${HIERARCHY_CARD_WIDTH};
-  max-width: ${HIERARCHY_CARD_WIDTH};
+  width: var(--hierarchy-card-width, ${HIERARCHY_CARD_WIDTH});
+  min-width: var(--hierarchy-card-width, ${HIERARCHY_CARD_WIDTH});
+  max-width: var(--hierarchy-card-width, ${HIERARCHY_CARD_WIDTH});
   min-height: 0;
   height: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   z-index: ${({ theme }) => theme.mixins.nodeLabel};
-  color: ${(props) => props.theme.palette.text.main};
+  color: ${(props) => props.theme.palette.text.primary};
   position: relative;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
   border-radius: ${HIERARCHY_CARD_RADIUS};
@@ -96,7 +96,7 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   word-break: break-word;
   overflow-wrap: anywhere;
 
-  ${(props) => getTypeVisualCss(props.type)}
+  ${(props) => getTypeVisualCss(props.type, props.theme.palette.mode)}
 
   ${(props) =>
     props.isSelected &&
@@ -105,17 +105,6 @@ export const STRenderLabel = styled(Box)<ICardCard>`
         0 0 0 2px ${props.theme.palette.primary.main},
         0 1px 5px rgba(0, 0, 0, 0.15);
     `}
-
-  .hierarchy-card-delete {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-  }
-
-  &:hover .hierarchy-card-delete {
-    opacity: 1;
-    pointer-events: auto;
-  }
 
   &.mock_card {
     border: 1px solid #7de874;

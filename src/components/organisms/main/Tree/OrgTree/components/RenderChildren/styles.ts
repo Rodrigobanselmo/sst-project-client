@@ -26,7 +26,7 @@ export const ChildrenComponent = styled.div<{
     left: 50%;
     width: 0;
     height: 20px;
-    border-right: 1px solid #000;
+    border-right: 1px solid var(--org-tree-line, #000);
   }
 
   &:after {
@@ -48,7 +48,7 @@ export const ChildrenComponent = styled.div<{
         width: 20px;
         height: 0;
         border-left: 0;
-        border-top: 1px solid #000;
+        border-top: 1px solid var(--org-tree-line, #000);
       }
 
       &:after {

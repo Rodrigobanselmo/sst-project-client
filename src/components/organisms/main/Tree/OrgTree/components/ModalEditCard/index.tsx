@@ -4,7 +4,9 @@ import { Wizard } from 'react-use-wizard';
 
 import CircleIcon from '@mui/icons-material/Circle';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { Box } from '@mui/material';
+import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from '@mui/material';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { companyDisplayNameKey, getCompanyDisplayNamePreference, type CompanyDisplayName } from '../../utils/company-display-name';
 import { SDeleteButton } from 'components/molecules/SDeleteButton/SDeleteButton';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
@@ -121,6 +123,11 @@ export const ModalEditCard = () => {
   const { editNodes, removeNodes, createEmptyCard } = useHierarchyTreeActions();
   const editHierarchyMutation = useMutateEditHierarchy();
   const { getCompanyId, companyId } = useGetCompanyId();
+  const { data: displayCompany } = useQueryCompany();
+  const [companyNamePreference, setCompanyNamePreference] = useState<CompanyDisplayName>('legal');
+  useEffect(() => {
+    if (editorOpen && companyId) setCompanyNamePreference(getCompanyDisplayNamePreference(companyId));
+  }, [editorOpen, companyId]);
 
   const { preventDelete } = usePreventNode();
   const { enqueueSnackbar } = useSnackbar();
@@ -137,7 +144,11 @@ export const ModalEditCard = () => {
   //   if (isOpen(ModalEnum.HIERARCHY_TREE_CARD)) onSave();
   // });
 
+  const structuralNameReadOnly = [TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE]
+    .includes(selectedNode?.type || ('' as any));
+
   const onSave = () => {
+    if (structuralNameReadOnly) return;
     if (selectedNode) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
@@ -291,11 +302,11 @@ export const ModalEditCard = () => {
           onClose={onCloseUnsaved}
           // secondIcon={type === TreeTypeEnum.COMPANY ? undefined : SDeleteIcon}
           // secondIconClick={onRemoveNode}
-          onDelete={onRemoveNode}
+          onDelete={structuralNameReadOnly ? undefined : onRemoveNode}
           title={
             <Box width="100%">
               <SFlex mb={2} align="center">
-                <STagAction action={selectedNode?.action} />
+                {structuralNameReadOnly ? <SText fontSize={12} color="text.secondary">Consulta</SText> : <STagAction action={selectedNode?.action} />}
                 <SText>
                   {selectedNode?.action === 'add'
                     ? nodeTypesConstant[type]?.title
@@ -349,6 +360,55 @@ export const ModalEditCard = () => {
           }
         >
           <Box mt={8}>
+            {structuralNameReadOnly ? (
+              <Box sx={{ mb: 10 }}>
+                {type === TreeTypeEnum.COMPANY ? (
+                  <FormControl fullWidth>
+                    <FormLabel sx={{ color: 'text.secondary', fontSize: 12 }}>Nome exibido no organograma</FormLabel>
+                    <RadioGroup
+                      value={companyNamePreference}
+                      onChange={(_, value) => {
+                        const preference = value as CompanyDisplayName;
+                        const label = preference === 'fantasy' ? displayCompany.fantasy : displayCompany.name;
+                        if (!label || !companyId) return;
+                        try {
+                          window.localStorage.setItem(companyDisplayNameKey(companyId), preference);
+                        } catch {
+                          enqueueSnackbar('A preferência será aplicada apenas nesta sessão.', { variant: 'warning' });
+                        }
+                        setCompanyNamePreference(preference);
+                        setEditNodeSelectedItem({ label });
+                        editNodes([{ id: selectedNode.id, label }], true);
+                      }}
+                    >
+                      <FormControlLabel value="legal" control={<Radio size="small" />} label={
+                        <Box sx={{ py: 2 }}>
+                          <SText fontSize={12} color="text.secondary">Razão social</SText>
+                          <SText color="text.primary">{displayCompany.name || selectedNode.label}</SText>
+                        </Box>
+                      } />
+                      <FormControlLabel value="fantasy" disabled={!displayCompany.fantasy?.trim()} control={<Radio size="small" />} label={
+                        <Box sx={{ py: 2 }}>
+                          <SText fontSize={12} color="text.secondary">Nome fantasia</SText>
+                          <SText color="text.primary">{displayCompany.fantasy?.trim() || 'Não informado no cadastro'}</SText>
+                        </Box>
+                      } />
+                    </RadioGroup>
+                    <SText fontSize={12} color="text.secondary">Preferência de exibição salva neste navegador para esta empresa.</SText>
+                  </FormControl>
+                ) : (
+                  <>
+                    <SText fontSize={12} color="text.secondary">Nome</SText>
+                    <SText sx={{ mt: 2, overflowWrap: 'anywhere' }} color="text.primary">{selectedNode.label}</SText>
+                  </>
+                )}
+                <SText fontSize={12} color="text.secondary" sx={{ mt: 4 }}>
+                  {type === TreeTypeEnum.COMPANY
+                    ? 'Para alterar este nome, acesse o cadastro da empresa.'
+                    : 'Para alterar este nome, acesse o cadastro do estabelecimento.'}
+                </SText>
+              </Box>
+            ) : (
             <SInput
               size="small"
               labelPosition="center"
@@ -363,6 +423,7 @@ export const ModalEditCard = () => {
               sx={{ mb: 10 }}
               placeholder={nodeTypesConstant[type]?.placeholder}
             />
+            )}
             {nodeTypesConstant[type]?.placeholderDesc && (
               <>
                 {DESCRIPTION_HIERARCHY_TYPES.includes(type as any) &&
@@ -544,7 +605,11 @@ export const ModalEditCard = () => {
           justifyContent="flex-end"
           gap={5}
         >
-          {selectedNode?.action === 'add' ? (
+          {structuralNameReadOnly ? (
+            <SButton variant="contained" size="small" onClick={onCloseUnsaved}>
+              Fechar
+            </SButton>
+          ) : selectedNode?.action === 'add' ? (
             <SSwitch
               inputRef={switchRef}
               label="Criar mais"
@@ -563,9 +628,11 @@ export const ModalEditCard = () => {
               </SButton>
             </>
           )}
-          <SButton variant={'contained'} size="small" onClick={onSave}>
-            Salvar
-          </SButton>
+          {!structuralNameReadOnly && (
+            <SButton variant={'contained'} size="small" onClick={onSave}>
+              Salvar
+            </SButton>
+          )}
         </Box>
       </SModalPaper>
     </SModal>

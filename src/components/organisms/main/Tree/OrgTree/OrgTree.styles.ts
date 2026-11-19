@@ -33,6 +33,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
 `;
 
 export const OrgTree = styled.div<IHorizontal>`
+  --org-tree-line: ${({ theme }) => theme.palette.mode === 'dark' ? '#94A3B8' : '#000'};
   display: table;
   text-align: center;
   ${({ horizontal }) =>

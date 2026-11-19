@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback } from 'react';
+import { resolveCompanyDisplayName } from 'components/organisms/main/Tree/OrgTree/utils/company-display-name';
 import { useStore } from 'react-redux';
 
 import clone from 'clone';
@@ -216,7 +217,7 @@ export const useHierarchyTreeActions = () => {
 
       treeMap[firstNodeId] = {
         id: firstNodeId,
-        label: company.name,
+        label: resolveCompanyDisplayName(company),
         parentId: null,
         childrenIds: [],
         type: TreeTypeEnum.COMPANY,
