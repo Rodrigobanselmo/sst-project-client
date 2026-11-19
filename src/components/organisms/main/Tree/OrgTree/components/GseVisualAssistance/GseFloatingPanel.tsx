@@ -1,3 +1,4 @@
+import { gsePanelContrastSx } from './gse-review-theme';
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, Button, type Theme } from '@mui/material';
 import type { SystemStyleObject } from '@mui/system';
@@ -176,6 +177,7 @@ export function OrgFloatingPanel({
       }}
       onWheel={(e) => e.stopPropagation()}
       sx={{
+        ...gsePanelContrastSx,
         position: 'fixed',
         zIndex: 1200,
         top: position?.y ?? defaultTop,

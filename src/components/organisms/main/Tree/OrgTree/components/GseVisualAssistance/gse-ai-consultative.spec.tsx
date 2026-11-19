@@ -34,7 +34,7 @@ function test(label: string, fn: () => void) {
 }
 test('AI entry remains in the assistance panel and identifies its consultative scope', () => {
   const html = render();
-  assert.ok(html.includes('Analisar com IA'));
+  assert.ok(html.includes('Propor novos GSEs com IA'));
   assert.ok(html.includes('aria-label="Sobre a análise por IA"'));
   assert.ok(html.includes('Observações do profissional'));
   assert.ok(!html.includes('contextHash'));
@@ -91,7 +91,7 @@ const folder = path.join(
   process.cwd(),
   'src/components/organisms/main/Tree/OrgTree/components/GseVisualAssistance',
 );
-test('AI component has no persistence bridge and prevents late scope results', () => {
+test('AI component stages explicit approvals without direct persistence and prevents late scope results', () => {
   const source = readFileSync(
     path.join(folder, 'GseAiConsultativeAnalysis.tsx'),
     'utf8',
@@ -102,6 +102,8 @@ test('AI component has no persistence bridge and prevents late scope results', (
   assert.ok(source.includes('current !== request.current'));
   assert.ok(source.includes('inputAtAnalysis'));
   assert.ok(source.includes('GseAiProposalCard'));
+  assert.ok(source.includes('onStageProposal'));
+  assert.ok(source.includes('savedProposalIds'));
   const integration = readFileSync(
     path.join(folder, 'GseVisualAssistance.tsx'),
     'utf8',

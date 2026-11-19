@@ -1,3 +1,4 @@
+import { gsePanelContrastSx } from './gse-review-theme';
 import React, { useState } from 'react';
 import { GseAlternativesMatrix } from './GseAlternativesMatrix';
 import { Alert, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack, Typography } from '@mui/material';
@@ -6,7 +7,7 @@ import { aiRolePath, professionalGseText } from './gse-ai-consultative';
 import { structuringLabels, type StructuringAlternative } from './gse-structuring-alternatives';
 
 type Context = { analysis: AiGseAnalysis };
-export const consultativeGroupSx = { my: 2.5, border: '2px solid', borderColor: 'grey.400', borderRadius: 2, bgcolor: 'background.paper', overflow: 'clip', minWidth: 0, overflowWrap: 'anywhere' } as const;
+export const consultativeGroupSx = { ...gsePanelContrastSx, my: 2.5, border: '2px solid', borderColor: 'grey.400', borderRadius: 2, bgcolor: 'background.paper', overflow: 'clip', minWidth: 0, overflowWrap: 'anywhere' } as const;
 /** Immutable comparison state only: never a professional decision or persistence command. */
 export function toggleAlternativeComparison(selected: string[], id: string, checked: boolean): string[] {
   return checked ? Array.from(new Set([...selected, id])) : selected.filter((value) => value !== id);

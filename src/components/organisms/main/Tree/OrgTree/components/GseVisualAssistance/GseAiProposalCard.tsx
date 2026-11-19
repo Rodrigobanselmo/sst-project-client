@@ -1,3 +1,5 @@
+import { gseReviewTone } from './gse-review-theme';
+import { useTheme } from '@mui/material/styles';
 import { GseStructuringAlternatives, consultativeGroupSx } from './GseStructuringAlternatives';
 import { operationalConclusion, professionalPositionLabels, type ProfessionalFeedback } from './gse-consultative-interaction';
 import React from 'react';
@@ -12,7 +14,8 @@ import {
 import { REVIEW_COLORS } from './gse-integrated-review.model';
 import { GseConsultativeInfo } from './GseConsultativeInfo';
 
-export function GseAiProposalCard({ proposal: p, analysis, review, disabled, onEdit, onLocate, feedback, feedbackDisabled, onFeedback, onEditRole, canEditRole, previousManifestation, onConfirmManifestation }: {
+export function GseAiProposalCard({ proposal: p, analysis, review, disabled, saved = false, onEdit, onLocate, feedback, feedbackDisabled, onFeedback, onEditRole, canEditRole, previousManifestation, onConfirmManifestation }: {
+  saved?: boolean;
   proposal: AiGseProposal; analysis: AiGseAnalysis; review: AiGseLocalReview; disabled: boolean;
   previousManifestation?: boolean; onConfirmManifestation?: () => void;
   feedback?: ProfessionalFeedback; feedbackDisabled?: boolean;
@@ -24,7 +27,8 @@ export function GseAiProposalCard({ proposal: p, analysis, review, disabled, onE
   const clarificationRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const text = (v: string) => professionalGseText(v, analysis);
   const state = aiGroupState(p, review);
-  const color = state === 'NEW' ? REVIEW_COLORS.newGroup : state === 'CHANGED' ? REVIEW_COLORS.changedGroup : REVIEW_COLORS.neutral;
+  const theme = useTheme();
+  const color = gseReviewTone(state === 'NEW' ? REVIEW_COLORS.newGroup : state === 'CHANGED' ? REVIEW_COLORS.changedGroup : REVIEW_COLORS.neutral, theme.palette.mode);
   const identity = (analysis.sources.existingGroups as {id:string; name:string}[] | undefined)?.find((g) => g.id === p.existingGroupId);
   const counts = recommendationSummary(p);
   const current = aiGroupCurrent(p, analysis);
@@ -39,7 +43,7 @@ export function GseAiProposalCard({ proposal: p, analysis, review, disabled, onE
       <Typography variant="caption" fontWeight={700}>{state === 'NEW' ? 'NOVO GSE PROPOSTO' : state === 'CHANGED' ? 'GSE EXISTENTE COM ALTERAÇÕES PROPOSTAS' : 'GSE EXISTENTE'}</Typography>
       <Typography component="h3" variant="subtitle2" fontWeight={700} sx={{ my: 0.5, overflowWrap: 'anywhere' }}>{text(identity?.name || review.name)}</Typography>
       <Typography variant="body2"><strong>Situação consultiva: </strong>{state === 'NEW' ? 'Novo GSE proposto pela IA.' : state === 'CHANGED' || p.structuringAlternatives?.some((a) => a.kind !== 'MAINTAIN') ? 'Alterações propostas pela IA — sujeitas à revisão.' : 'Avaliação da composição existente — sem alteração aplicada.'}</Typography>
-      <Typography variant="caption">{state === 'NEW' ? 'Grupo ainda não criado' : 'Identidade e vínculos atuais preservados'} · Proposta consultiva, não aplicada</Typography>
+      <Typography variant="caption">{state === 'NEW' ? (saved ? 'Grupo gravado' : review.decision === 'accepted' ? 'Novo grupo na prévia — use Confirmar e salvar' : 'Grupo ainda não criado') : 'Identidade e vínculos atuais preservados'} · {saved ? 'Criação confirmada no cadastro' : 'Proposta consultiva, não aplicada'}</Typography>
       {p.existingGroupId && <Button size="small" onClick={() => onLocate(p.existingGroupId!)}>Localizar GSE existente</Button>}
     </Box>
     <Box sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 0 }}>
@@ -93,7 +97,7 @@ export function GseAiProposalCard({ proposal: p, analysis, review, disabled, onE
       <TextField inputRef={clarificationRef} fullWidth multiline minRows={2} maxRows={6} size="small" label="Esclarecimentos para uma nova avaliação" value={feedback.clarification} disabled={feedbackDisabled ?? disabled} inputProps={{maxLength:4000}} onChange={(e)=>onFeedback({clarification:e.target.value})} sx={{mt:1}} />
       <Typography variant="caption">Declaração do profissional, sem comprovação automática de exposição. Use Reanalisar com IA para submetê-la junto aos cadastros atualizados.</Typography>
     </Box>}
-    <GseConsultativeInfo label="Significado da avaliação consultiva">Aceitar significa concordar com uma orientação técnica. Não inclui, exclui ou altera vínculos. A gravação convencional exige sua confirmação própria. Rejeitar descarta somente a recomendação temporária.</GseConsultativeInfo>
+    <GseConsultativeInfo label="Significado da avaliação consultiva">Aceitar um novo GSE prepara o grupo e os cargos não rejeitados na prévia de gravação. Nada é gravado até Confirmar e salvar. As demais orientações continuam consultivas.</GseConsultativeInfo>
     {sections.map(({ conclusion, title }) => {
       const list = roleRecommendations(p).filter((r) => r.conclusion === conclusion);
       return list.length ? <details key={conclusion}><summary>{title} ({list.length})</summary>{list.map((r) => {
@@ -130,7 +134,7 @@ export function GseAiProposalCard({ proposal: p, analysis, review, disabled, onE
       <Evidence title="Composição após recomendações aceitas nesta sessão" values={preview.map((id) => text(aiRolePath(analysis, id)))} />
       <Typography variant="caption">Prévia local: nada foi gravado. Pendências, rejeições e informações insuficientes não alteram a composição.</Typography>
     </details>
-    {state === 'NEW' && <Box sx={{ mt: 1 }}><Typography variant="body2">Criação consultiva: {recommendationDecisionLabel[review.decision]}</Typography><Stack direction="row" gap={1}>{(review.decision === 'pending' ? ['accepted','rejected'] : ['pending']).map((next) => <Button key={next} disabled={disabled} size="small" onClick={() => onEdit({ decision: next as 'accepted'|'rejected'|'pending' })}>{next === 'accepted' ? 'Aceitar proposta de novo GSE' : next === 'rejected' ? 'Rejeitar proposta de novo GSE' : 'Reabrir proposta'}</Button>)}</Stack></Box>}
+    {state === 'NEW' && <Box sx={{ mt: 1 }}><Typography variant="body2">Criação consultiva: {saved ? 'Grupo e vínculos gravados' : review.decision === 'accepted' ? 'Aceita — aguardando Confirmar e salvar' : recommendationDecisionLabel[review.decision]}</Typography><Stack direction="row" gap={1}>{(review.decision === 'pending' ? ['accepted','rejected'] : ['pending']).map((next) => <Button key={next} disabled={disabled} size="small" onClick={() => onEdit({ decision: next as 'accepted'|'rejected'|'pending' })}>{next === 'accepted' ? 'Aceitar grupo e cargos para salvar' : next === 'rejected' ? 'Rejeitar proposta de novo GSE' : 'Reabrir proposta'}</Button>)}</Stack></Box>}
     </Box>
   </Box>;
 }

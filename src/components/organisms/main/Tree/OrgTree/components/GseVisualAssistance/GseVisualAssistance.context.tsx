@@ -1,3 +1,4 @@
+import type { AiApprovedGseDraft } from './gse-ai-approved-draft';
 import type { SaveRequest, SaveResult } from './gse-additive-save';
 import { createContext, useContext } from 'react';
 import type { IGho } from 'core/interfaces/api/IGho';
@@ -10,6 +11,8 @@ export type HistoricalGseLinkChange = {
 } & ({ action: 'UNDO_END' } | { action: 'START_NEW_PERIOD'; startDate: string });
 
 export type AssistanceContextValue = {
+  stageAiProposal?: (draft: AiApprovedGseDraft) => void;
+  savedAiProposalIds?: string[];
   aiAnalysisActive?: boolean;
   setAiAnalysisActive?: (active: boolean) => void;
   persistenceBusy?: boolean;

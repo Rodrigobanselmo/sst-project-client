@@ -1,3 +1,5 @@
+import { gsePanelContrastSx } from './gse-review-theme';
+import type { AiApprovedGseDraft } from './gse-ai-approved-draft';
 import { consultativeObservations, consultativeDecisionStatements, consultativeBasis, previousFeedback, declarationSummary, feedbackKey, emptyFeedback, type ConsultativeFeedback } from './gse-consultative-interaction';
 import { GseAiProposalCard } from './GseAiProposalCard';
 import { GseConsultativeInfo } from './GseConsultativeInfo';
@@ -28,7 +30,7 @@ import {
   professionalGseText,
 } from './gse-ai-consultative';
 
-/** Same visual panel; review is ephemeral and intentionally cannot enter V1 persistence. */
+/** AI remains consultative; explicit approval may stage new groups for the separate save confirmation. */
 export function GseAiConsultativeAnalysis({
   companyId,
   workspaceId,
@@ -38,8 +40,11 @@ export function GseAiConsultativeAnalysis({
   preliminaryDistribution = [],
   onAnalysisPresence,
   sectors = [], roles = [], existingGroups = [],
+  onStageProposal, savedProposalIds = [],
   registrySignature = '', onRefreshRegistry, onEditRole, canEditRole,
 }: {
+  onStageProposal?: (draft: AiApprovedGseDraft) => void;
+  savedProposalIds?: string[];
   sectors?: { id: string; name: string }[];
   roles?: { id: string; name: string }[];
   existingGroups?: { id: string; name: string }[];
@@ -55,6 +60,7 @@ export function GseAiConsultativeAnalysis({
   disabled: boolean;
   onLocate: (id: string) => void;
 }) {
+  const draftIds = useRef<Record<string, string>>({});
   const [analysisPurpose, setPurpose] = useState<'REVIEW_EXISTING' | 'FORM_NEW'>('FORM_NEW');
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [existingGroupIds, setExistingGroupIds] = useState<string[]>([]);
@@ -77,7 +83,7 @@ export function GseAiConsultativeAnalysis({
   const [submittedDeclarations, setSubmittedDeclarations] = useState('');
   const [declarationsAtAnalysis, setDeclarationsAtAnalysis] = useState('');
   const declarationSignature = JSON.stringify(feedback);
-  const localSignature = JSON.stringify([guidance, observations, preliminaryDistribution, scope]);
+  const localSignature = JSON.stringify([guidance, observations, preliminaryDistribution.filter(g => !g.key.startsWith('@visual-gse:ai-')), scope]);
   const request = useRef(0);
   React.useEffect(
     () => () => {
@@ -138,12 +144,27 @@ export function GseAiConsultativeAnalysis({
       if (current === request.current) setBusy(false);
     }
   }
+  function draftId(id: string) {
+    const key = `${analysis?.contextHash}:${analysis?.generatedAt}:${id}`;
+    return draftIds.current[key] ||= `@visual-gse:ai-${crypto.randomUUID()}//${workspaceId}`;
+  }
   function edit(id: string, patch: Partial<AiGseLocalReview>) {
-    setReviews((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
+    const proposal = analysis?.proposals.find(p => p.id === id);
+    const next = { ...reviews[id], ...patch };
+    if (patch.decision === 'accepted' && proposal && !proposal.existingGroupId) next.roles = Object.fromEntries(proposal.hierarchyIds.map(roleId => [roleId, next.roles[roleId] === 'rejected' ? 'rejected' : 'accepted']));
+    if (proposal && !proposal.existingGroupId && (patch.decision !== undefined || next.decision === 'accepted')) {
+      try {
+        if (!onStageProposal || stale || disabled || busy) throw Error('A prévia de gravação não está disponível. Confira o escopo antes de aceitar.');
+        const hierarchyIds = proposal.hierarchyIds.filter(roleId => next.roles[roleId] === 'accepted');
+        onStageProposal({ id: draftId(id), name: next.name, description: next.description, hierarchyIds, decision: next.decision });
+        setError('');
+      } catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível preparar a proposta para gravação.'); return; }
+    }
+    setReviews((prev) => ({ ...prev, [id]: next }));
   }
   const labelRole = (id: string) => (analysis ? aiRolePath(analysis, id) : id);
   return (
-    <Box sx={{ my: 1, borderTop: '1px solid', borderColor: 'divider', pt: 1 }}>
+    <Box sx={{ ...gsePanelContrastSx, my: 1, borderTop: '1px solid', borderColor: 'divider', pt: 1 }}>
       <GseAiConsultativeHeading />
       <Box sx={{ my: 2 }}>
         <TextField select fullWidth size="small" label="Objetivo da análise" value={analysisPurpose}
@@ -245,7 +266,8 @@ export function GseAiConsultativeAnalysis({
                   proposal={p}
                   analysis={analysis}
                   review={reviews[p.id]}
-                  disabled={stale || disabled || busy}
+                  saved={savedProposalIds.includes(draftIds.current[`${analysis.contextHash}:${analysis.generatedAt}:${p.id}`])}
+                  disabled={stale || disabled || busy || savedProposalIds.includes(draftIds.current[`${analysis.contextHash}:${analysis.generatedAt}:${p.id}`])}
                   feedbackDisabled={disabled || busy}
                   feedback={feedback[feedbackKey(p)] || emptyFeedback(p)}
                   previousManifestation={!!feedback[feedbackKey(p)] && previousFeedback(feedback[feedbackKey(p)],analysis)}

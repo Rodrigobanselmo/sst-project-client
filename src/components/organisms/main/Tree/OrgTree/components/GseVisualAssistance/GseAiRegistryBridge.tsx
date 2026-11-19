@@ -26,6 +26,8 @@ export function GseAiRegistryBridge(props: React.ComponentProps<typeof GseAiCons
     return node;
   };
   return <GseAiConsultativeAnalysis {...props}
+    onStageProposal={ctx?.stageAiProposal}
+    savedProposalIds={ctx?.savedAiProposalIds}
     roles={Object.values(registry.data).filter(h => ['OFFICE', 'SUB_OFFICE'].includes(String(h.type)) && h.workspaceIds?.includes(props.workspaceId)).map(h => ({ id: h.id, name: h.name })).sort((a,b) => a.name.localeCompare(b.name, 'pt-BR'))}
     existingGroups={(ctx?.groups || []).map(g => ({ id: g.id, name: g.name }))}
     sectors={Object.values(registry.data).filter((h) => String(h.type) === 'SECTOR' && h.workspaceIds?.includes(props.workspaceId)).map((h) => ({ id: h.id, name: h.name })).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))}

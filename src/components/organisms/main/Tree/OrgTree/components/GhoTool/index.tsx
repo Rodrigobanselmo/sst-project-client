@@ -1,3 +1,4 @@
+import { gsePanelContrastSx } from '../GseVisualAssistance/gse-review-theme';
 import { GseSaveConfirmation } from '../GseVisualAssistance/GseSaveConfirmation';
 import { GseFloatingPanel, OrgFloatingPanel } from '../GseVisualAssistance/GseFloatingPanel';
 import { Alert, TextField, MenuItem } from '@mui/material';
@@ -386,6 +387,7 @@ export const GhoTool = ({
           sx={
             floating
               ? {
+                  ...(!environmentOnly ? gsePanelContrastSx : {}),
                   m: 0,
                   width: '100%',
                   height: 'calc(100dvh - 216px)',

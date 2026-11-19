@@ -1,3 +1,5 @@
+import { gseReviewTone } from '../../../../GseVisualAssistance/gse-review-theme';
+import { useTheme } from '@mui/material/styles';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { explicitGhoSelectionTreeIds } from '../../../../../utils/explicit-gho-selection-tree-ids.util';
 import { useGseVisualAssistance } from '../../../../GseVisualAssistance/GseVisualAssistance.context';
@@ -36,6 +38,7 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
   isFirst,
   anchorEl,
 }) => {
+  const theme = useTheme();
   const assistance = useGseVisualAssistance();
   const assisted = !!assistance?.active;
   const visualState = assistance
@@ -85,8 +88,11 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
             ? 'info.main'
             : 'background.divider',
         ...(assisted && {
-          backgroundColor: tone.background,
-          color: tone.color,
+          backgroundColor: gseReviewTone(tone, theme.palette.mode).background,
+          color: gseReviewTone(tone, theme.palette.mode).color,
+          '& .MuiTypography-root': { color: 'inherit' },
+          '& .MuiIconButton-root, & .MuiIconButton-root .MuiSvgIcon-root': { color: 'inherit' },
+          '& .MuiIconButton-root.Mui-disabled': { color: 'text.disabled' },
           display: 'grid',
           gridTemplateColumns: 'minmax(0, 1fr) auto',
           gap: 0.5,
@@ -104,7 +110,7 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
         >
           <SText
             lineNumber={2}
-            sx={assisted ? { color: tone.color } : undefined}
+            sx={assisted ? { color: gseReviewTone(tone, theme.palette.mode).color } : undefined}
           >
             {data.name}
           </SText>
@@ -121,7 +127,7 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
           }
         >
           {proposed
-            ? `${proposed.decision === 'accepted' ? '✓ Criação aprovada para aplicação futura' : proposed.decision === 'rejected' ? 'Criação rejeitada' : 'Novo sugerido · aguardando aprovação'}`
+            ? `${proposed.decision === 'accepted' ? '✓ Novo GSE aprovado · aguardando salvar' : proposed.decision === 'rejected' ? 'Criação rejeitada' : 'Novo sugerido · aguardando aprovação'}`
             : changes.length
               ? `Alterações propostas: +${changes.filter((c) => c.kind === 'ADD').length} / −${changes.filter((c) => c.kind === 'REMOVE').length}`
               : 'Existente · sem alterações'}

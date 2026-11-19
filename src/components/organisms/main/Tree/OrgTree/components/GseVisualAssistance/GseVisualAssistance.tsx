@@ -1,3 +1,4 @@
+import { stageAiApprovedGse, type AiApprovedGseDraft } from './gse-ai-approved-draft';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 import { fetchActiveHierarchyLinks } from '@v2/pages/companies/characterizations/components/CharacterizationTable/quick-actions/characterization-link-cleanup.api';
@@ -97,6 +98,7 @@ export function GseVisualAssistanceProvider({
     setBusy(busy);
   };
   const multiWorkspace = useOrgMultiWorkspaceMode();
+  const [savedAiProposalIds, setSavedAiProposalIds] = useState<string[]>([]);
   const [aiAnalysisActive, setAiAnalysisActive] = useState(false);
   const nodes = useAppSelector(selectAllHierarchyTreeNodes),
     selectedWorkspace = useAppSelector(selectWorkplaceId);
@@ -408,12 +410,22 @@ export function GseVisualAssistanceProvider({
     <GseVisualAssistanceContext.Provider
       value={{
         persistenceBusy,
+        savedAiProposalIds,
+        stageAiProposal: (draft: AiApprovedGseDraft) => {
+          if (persistenceBusy || stale || isLoading || isError || identityUnavailable || !companyId || !workspaceId) throw Error('Aguarde a atualização dos dados ou confira novamente a análise antes de aceitar.');
+          if (savedAiProposalIds.includes(draft.id)) throw Error('Esta proposta já foi gravada. Gerencie o GSE na lista de existentes.');
+          const next = stageAiApprovedGse(review, draft, nodes, workspaceId);
+          if (groups.some(g => g.name.trim().toLocaleLowerCase('pt-BR') === draft.name.trim().toLocaleLowerCase('pt-BR')) && draft.decision === 'accepted') throw Error('Já existe um GSE com esse nome. Revise a proposta antes de criar outro.');
+          setSession({ scope, signature, guidance, review: next });
+          setError('');
+        },
         setPersistenceBusy,
         directLinkRequiresEndDate,
         endDirectLink,
         changeHistoricalLink,
         persisted: async (request, result) => {
           const savedScope = scope;
+          setSavedAiProposalIds(prev => [...new Set([...prev, ...result.createdGroups.map(g => g.temporaryId).filter(id => id.startsWith('@visual-gse:ai-'))])]);
           setSession((previous) =>
             previous?.scope === savedScope
               ? {
