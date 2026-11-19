@@ -179,7 +179,10 @@ export function GseAiConsultativeAnalysis({
           try { await checkScope(); } catch (e) { setError(aiConsultativeClientError(e)); } finally { setCheckingScope(false); }
         }}>{checkingScope ? 'Conferindo…' : 'Conferir escopo (sem usar IA)'}</Button>
         {scopePreview && <Alert severity={scopePreview.fits && scopePreview.selectedRoles ? 'info' : 'warning'}>
-          {scopePreview.selectedRoles} cargos incluídos · {scopePreview.excludedLinkedRoles} excluídos por vínculo salvo · {scopePreview.totalRoles} cargos no estabelecimento.
+          Serão analisados {scopePreview.selectedRoles} cargos{sectorMode ? ` dos setores selecionados: ${sectors.filter(s => sectorIds.includes(s.id)).map(s => s.name).join(', ')}` : ' do recorte selecionado'}.
+          {' '}{scopePreview.excludedLinkedRoles === 0
+            ? 'Nenhum cargo desse recorte foi excluído por vínculo salvo com GSE.'
+            : `${scopePreview.excludedLinkedRoles} cargos desse recorte foram excluídos por já possuírem vínculo salvo com GSE.`}
           {' '}{scopePreview.fits ? 'O contexto básico cabe no limite.' : 'O recorte excede o limite; selecione menos setores.'}
           {' '}Observações e prévia serão verificadas novamente antes da análise.
         </Alert>}
