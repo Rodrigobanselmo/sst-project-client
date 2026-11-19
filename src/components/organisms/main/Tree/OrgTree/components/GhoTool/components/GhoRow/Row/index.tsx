@@ -52,6 +52,7 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
           ? 'changedGroup'
           : 'neutral'
     ];
+  const displayTone = gseReviewTone(tone, theme.palette.mode);
   const proposed = assistance?.review.newGroups.find((g) => g.id === data.id);
   const changes =
     assistance?.review.changes.filter(
@@ -83,13 +84,13 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
       sx={{
         border: isSelected ? ' 2px solid' : ' 1px solid',
         borderColor: assisted
-          ? tone.color
+          ? displayTone.color
           : isSelected
             ? 'info.main'
             : 'background.divider',
         ...(assisted && {
-          backgroundColor: gseReviewTone(tone, theme.palette.mode).background,
-          color: gseReviewTone(tone, theme.palette.mode).color,
+          backgroundColor: displayTone.background,
+          color: displayTone.color,
           '& .MuiTypography-root': { color: 'inherit' },
           '& .MuiIconButton-root, & .MuiIconButton-root .MuiSvgIcon-root': { color: 'inherit' },
           '& .MuiIconButton-root.Mui-disabled': { color: 'text.disabled' },
@@ -110,7 +111,7 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
         >
           <SText
             lineNumber={2}
-            sx={assisted ? { color: gseReviewTone(tone, theme.palette.mode).color } : undefined}
+            sx={assisted ? { color: displayTone.color } : undefined}
           >
             {data.name}
           </SText>
@@ -197,7 +198,7 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
                   sx={{
                     fontSize: '1.2rem',
                     color: assisted
-                      ? tone.color
+                      ? displayTone.color
                       : isSelected
                         ? 'info.main'
                         : '',
@@ -216,9 +217,9 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
             gridColumn: '1 / -1',
             gridRow: 3,
             '& .MuiInputBase-input, & .MuiInputLabel-root, & .MuiButton-root': {
-              color: tone.color,
+              color: displayTone.color,
             },
-            '& .MuiOutlinedInput-notchedOutline': { borderColor: tone.color },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: displayTone.color },
             '& .Mui-disabled': { opacity: 0.55 },
           }}
         >

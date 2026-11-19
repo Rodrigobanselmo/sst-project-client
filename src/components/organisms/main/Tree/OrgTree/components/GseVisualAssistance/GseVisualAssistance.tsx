@@ -460,16 +460,19 @@ export function GseVisualAssistanceProvider({
           await new Promise<void>((resolve) =>
             requestAnimationFrame(() => resolve()),
           );
-          setSession((previous) =>
-            previous?.scope === savedScope &&
-            latest.current.scope === savedScope
-              ? {
-                  ...previous,
-                  signature: latest.current.signature,
-                  guidance: latest.current.guidance,
-                }
-              : previous,
-          );
+          setSession((previous) => {
+            if (previous?.scope !== savedScope || latest.current.scope !== savedScope)
+              return previous;
+            // A completed review must not become stale when the saved links finish
+            // refreshing. Manual additions can start a fresh review from live data.
+            if (!previous.review.newGroups.length && !previous.review.changes.length)
+              return null;
+            return {
+              ...previous,
+              signature: latest.current.signature,
+              guidance: latest.current.guidance,
+            };
+          });
         },
         active,
         aiAnalysisActive,

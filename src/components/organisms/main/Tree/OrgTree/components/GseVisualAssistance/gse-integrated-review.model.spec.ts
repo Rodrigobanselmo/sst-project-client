@@ -612,6 +612,22 @@ test('actual save reconciliation preserves proposals through purple/amber/gray t
   );
   assert.equal(groupVisualState(complete, 'g'), 'EXISTENTE_SEM_ALTERACOES');
 });
+test('manual addition after a completed save starts an accepted additive review', () => {
+  const nodes = fixture();
+  nodes['a//w'].ghos = [];
+  const review = addReviewChange(emptyIntegratedReview(), nodes, [g], 'w', 'g', 'a//w', 'ADD', true);
+  const saved = reconcileSavedReview(review, {
+    commands: [{ kind: 'ADD_LINK', group: { kind: 'EXISTING', id: 'g' }, hierarchyId: 'a' }],
+  } as any, { createdGroups: [] } as any);
+  assert.deepEqual(saved, emptyIntegratedReview());
+  nodes['a//w'].ghos = [g];
+  nodes['b//w'].ghos = [];
+  const next = addReviewChange(emptyIntegratedReview(), nodes, [g], 'w', 'g', 'b//w', 'ADD', true);
+  assert.equal(next.changes.length, 1);
+  assert.equal(next.changes[0].decision, 'accepted');
+  assert.equal(next.changes[0].nodeId, 'b//w');
+  assert.throws(() => addReviewChange(next, nodes, [g], 'w', 'g', 'a//w', 'ADD', true));
+});
 console.log(`${count} integrated model tests passed.`);
 
 test('additive API operational group is selectable only in its own company and workspace', () => {
