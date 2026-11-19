@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import { gseReviewTone } from './gse-review-theme';
 import { useTheme } from '@mui/material/styles';
 import { GseStructuringAlternatives, consultativeGroupSx } from './GseStructuringAlternatives';
@@ -50,6 +51,7 @@ export function GseAiProposalCard({ proposal: p, analysis, review, disabled, sav
     <Typography variant="caption">IA · {aiClassificationLabel(p.classification)}</Typography>
     <TextField fullWidth size="small" label="Nome proposto — revisão consultiva" value={text(review.name)} disabled={disabled} inputProps={{ maxLength: 160 }} onChange={(e) => onEdit({ name: e.target.value })} sx={{ my: 1 }} />
     <TextField fullWidth size="small" multiline minRows={3} maxRows={6} label="Descrição — revisão consultiva" value={text(review.description)} disabled={disabled} inputProps={{ maxLength: 4000 }} onChange={(e) => onEdit({ description: e.target.value })} sx={{ '& textarea': { fontSize: 11, lineHeight: 1.35 }, mb: 1 }} />
+    <DescriptionTextActions text={text(review.description)} label="descrição do GSE em revisão" contextKey={p.id} />
     <details open>
       <summary>Avaliação técnica do GSE</summary>
       <Typography variant="body2"><strong>Caracterização do grupo: </strong>{text(p.groupAssessment?.characterization || p.description)}</Typography>

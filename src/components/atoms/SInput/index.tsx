@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { ChangeEvent, FC } from 'react';
 
@@ -29,6 +30,8 @@ const textDisableInfo = {
 };
 
 export const SInput: FC<{ children?: any } & SInputProps> = ({
+  textActions = false,
+  textActionsContext,
   InputProps,
   circularProps,
   startAdornment,
@@ -167,6 +170,19 @@ export const SInput: FC<{ children?: any } & SInputProps> = ({
           sx={{ ...(disabled ? textDisableInfo : {}), ...sx }}
           {...props}
         />
+        {textActions && (
+          <DescriptionTextActions
+            text={
+              typeof props.value === 'string'
+                ? props.value
+                : typeof props.defaultValue === 'string'
+                  ? props.defaultValue
+                  : ''
+            }
+            label={typeof label === 'string' && label ? label : 'descrição'}
+            contextKey={textActionsContext}
+          />
+        )}
       </Box>
     </div>
   );

@@ -450,6 +450,8 @@ export const ModalEditCard = () => {
                 <SInput
                   value={selectedNode?.description || ''}
                   inputRef={formalDescriptionRef}
+                  textActions
+                  textActionsContext={String(selectedNode.id)}
                   label={'Descrição'}
                   onChange={(e) =>
                     setEditNodeSelectedItem({ description: e.target.value })
@@ -474,6 +476,8 @@ export const ModalEditCard = () => {
                 }
                 multiline
                 labelPosition="center"
+                textActions
+                textActionsContext={String(selectedNode.id)}
                 label={'Descrição real (Entrevista)'}
                 fullWidth
                 size="small"

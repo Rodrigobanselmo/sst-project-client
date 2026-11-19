@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import { gseReviewTone } from '../../../../GseVisualAssistance/gse-review-theme';
 import { useTheme } from '@mui/material/styles';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
@@ -253,6 +254,7 @@ export const Row: FC<{ children?: any } & RowItemsProps> = ({
               },
             }}
           />
+          <DescriptionTextActions text={proposed.description || ''} label="descrição sugerida do GSE" contextKey={String(data.id)} />
           <SFlex sx={{ flexWrap: 'wrap', gap: 1 }}>
             {proposed.decision === 'pending' && (
               <>

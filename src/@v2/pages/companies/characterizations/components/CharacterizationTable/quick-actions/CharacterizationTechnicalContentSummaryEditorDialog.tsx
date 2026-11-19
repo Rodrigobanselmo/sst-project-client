@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import { useEffect, useState } from 'react';
 
 import {
@@ -56,6 +57,7 @@ export function CharacterizationTechnicalContentSummaryEditorDialog({
           placeholder="Resumo para o inventário de riscos…"
           helperText={`${draft.length}/${maxLength}`}
         />
+        <DescriptionTextActions text={draft} label={title} active={open} />
         <Typography variant="caption" color="text.secondary" display="block" mt={1}>
           O resumo é derivado de Descrição, Processos e Considerações.
         </Typography>

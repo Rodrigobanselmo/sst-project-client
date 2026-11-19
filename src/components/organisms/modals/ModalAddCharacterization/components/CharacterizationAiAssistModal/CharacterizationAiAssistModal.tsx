@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
@@ -240,6 +241,7 @@ const TextItemsPreview: React.FC<{
           </Box>
         );
       })}
+      <DescriptionTextActions text={items.map((item) => sanitizeApplicableAssistText(item.text)).filter(Boolean).join('\n')} label="sugestão para o elemento" />
     </Box>
   );
 };

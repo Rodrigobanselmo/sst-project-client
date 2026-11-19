@@ -354,6 +354,7 @@ export function CharacterizationTechnicalContentManagerDialog({
               sx={{ '& > .MuiPaper-root': { p: { xs: 8, sm: 10 }, gap: 8 } }}
             >
               <CharacterizationTechnicalContentFieldCard
+                contextKey={`${companyId}:${characterizationId}`}
                 title="Descrição"
                 filled={flags.hasDescription}
                 content={formatCharacterizationArrayContent(draft.paragraphs)}
@@ -364,6 +365,7 @@ export function CharacterizationTechnicalContentManagerDialog({
                 aiDisabled={saving}
               />
               <CharacterizationTechnicalContentFieldCard
+                contextKey={`${companyId}:${characterizationId}`}
                 title="Processos e Atividades"
                 filled={flags.hasProcesses}
                 content={formatCharacterizationArrayContent(draft.activities)}
@@ -374,6 +376,7 @@ export function CharacterizationTechnicalContentManagerDialog({
                 aiDisabled={saving}
               />
               <CharacterizationTechnicalContentFieldCard
+                contextKey={`${companyId}:${characterizationId}`}
                 title="Considerações"
                 filled={flags.hasConsiderations}
                 content={formatCharacterizationArrayContent(
@@ -386,6 +389,7 @@ export function CharacterizationTechnicalContentManagerDialog({
                 aiDisabled={saving}
               />
               <CharacterizationTechnicalContentFieldCard
+                contextKey={`${companyId}:${characterizationId}`}
                 title="Resumo do Inventário"
                 filled={flags.hasInventorySummary}
                 content={formatPlainContent(draft.riskInventorySummary)}

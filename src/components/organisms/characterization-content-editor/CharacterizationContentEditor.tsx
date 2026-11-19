@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import FormatBoldIcon from '@mui/icons-material/FormatBold';
@@ -201,10 +202,12 @@ type Props = {
   onChange: (value: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
+  textActionsContext?: string;
 };
 
 export function CharacterizationContentEditor({
   label,
+  textActionsContext,
   value,
   onChange,
   placeholder = 'Escreva o conteúdo…',
@@ -501,6 +504,11 @@ export function CharacterizationContentEditor({
           <EditorContent editor={editor} />
         </Box>
       </Box>
+      <DescriptionTextActions
+        text={editor?.getText({ blockSeparator: '\n' }) || ''}
+        label={label || 'descrição do elemento'}
+        contextKey={textActionsContext}
+      />
     </Box>
   );
 }

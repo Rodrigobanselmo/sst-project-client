@@ -249,6 +249,8 @@ export const GhoFormContent = ({
               minRows={2}
               setValue={setValue}
               maxRows={4}
+              textActions
+              textActionsContext={`${companyId}:${ghoData.id}`}
               label="Descrição"
               control={control}
               sx={{ width: '100%' }}

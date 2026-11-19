@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import { useEffect, useRef, useState } from 'react';
 
 import {
@@ -111,6 +112,7 @@ export function CharacterizationTechnicalContentSummaryAiDialog({
               helperText={`${suggestion.length}/1000`}
               inputProps={{ maxLength: 1000 }}
             />
+            <DescriptionTextActions text={suggestion} label="resumo sugerido" active={open} contextKey={`${companyId}:${characterizationId}`} />
             <Typography variant="caption" color="text.secondary" display="block" mt={1}>
               Revise o texto antes de aplicar. Nada é salvo até você confirmar.
             </Typography>

@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -147,7 +148,26 @@ export function HierarchyDescriptionAssistant({
       >
         Gerar descrição com IA
       </Button>
-      <Dialog open={open} onClose={close} fullWidth maxWidth="md">
+      <Dialog
+        open={open}
+        onClose={close}
+        fullWidth
+        maxWidth="md"
+        sx={(theme) =>
+          theme.palette.mode === 'dark'
+            ? {
+                '& .MuiDialogTitle-root': { color: theme.palette.text.primary },
+                '& .MuiFormHelperText-root:not(.Mui-error)': {
+                  color: theme.palette.text.secondary,
+                },
+                '& .MuiFormHelperText-root.Mui-error': {
+                  color: theme.palette.error.light,
+                },
+                '& .MuiAlert-message': { color: theme.palette.text.primary },
+              }
+            : null
+        }
+      >
         <DialogTitle>Sugestão de descrição</DialogTitle>
         <DialogContent>
           <TextField
@@ -214,6 +234,12 @@ export function HierarchyDescriptionAssistant({
                 fullWidth
                 minRows={4}
                 InputProps={{ readOnly: true }}
+              />
+              <DescriptionTextActions
+                text={suggestion}
+                label="descrição sugerida"
+                contextKey={signature}
+                active={open}
               />
             </>
           )}

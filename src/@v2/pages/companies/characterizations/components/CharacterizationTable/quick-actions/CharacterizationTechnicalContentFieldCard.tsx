@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
@@ -21,6 +22,7 @@ export type TechnicalContentEmptyVariant =
 
 type Props = {
   title: string;
+  contextKey?: string;
   filled: boolean;
   /** Texto completo do campo (sem truncar no caller). */
   content: string;
@@ -97,6 +99,7 @@ function EmptyState({ variant }: { variant: TechnicalContentEmptyVariant }) {
  */
 export function CharacterizationTechnicalContentFieldCard({
   title,
+  contextKey,
   filled,
   content,
   onEdit,
@@ -236,6 +239,7 @@ export function CharacterizationTechnicalContentFieldCard({
         )}
       </Box>
 
+      <DescriptionTextActions text={content} label={title} contextKey={contextKey} />
       <Box
         display="flex"
         gap={0.75}

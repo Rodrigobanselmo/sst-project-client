@@ -609,6 +609,7 @@ export const ModalCharacterizationContent = (
         {characterizationData.type && (
           <>
             <CharacterizationContentEditor
+              textActionsContext={`${characterizationData.id}:${characterizationData.name}:${characterizationData.profileName}`}
               label="Descrição"
               placeholder="Descreva..."
               value={characterizationData.paragraphs ?? []}
@@ -655,6 +656,8 @@ export const ModalCharacterizationContent = (
                 setValue={hydrateFormValue}
                 sx={{ width: '100%' }}
                 placeholder="Texto objetivo sobre o elemento, finalidade e contexto operacional..."
+                textActions
+                textActionsContext={String(characterizationData.id)}
                 name="riskInventorySummary"
                 size="small"
                 inputProps={{ maxLength: RISK_INVENTORY_SUMMARY_MAX_LENGTH }}
@@ -687,6 +690,7 @@ export const ModalCharacterizationContent = (
               </SText>
             </SFlex>
             <CharacterizationContentEditor
+              textActionsContext={`${characterizationData.id}:${characterizationData.name}:${characterizationData.profileName}`}
               label={
                 isEnvironment
                   ? 'Processos de Trabalho'
@@ -801,6 +805,7 @@ export const ModalCharacterizationContent = (
               dirty={hasUnsavedChanges}
             />
             <CharacterizationContentEditor
+              textActionsContext={`${characterizationData.id}:${characterizationData.name}:${characterizationData.profileName}`}
               label="Considerações"
               placeholder="Descreva sua consideração..."
               value={characterizationData.considerations ?? []}

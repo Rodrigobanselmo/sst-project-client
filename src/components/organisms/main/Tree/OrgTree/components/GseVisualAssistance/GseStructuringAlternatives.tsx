@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import { gsePanelContrastSx } from './gse-review-theme';
 import React, { useState } from 'react';
 import { GseAlternativesMatrix } from './GseAlternativesMatrix';
@@ -53,6 +54,7 @@ export function GseAlternativeStructure({ option, analysis }: Context & { option
       <RoleList ids={option.currentHierarchyIds} analysis={analysis}/>
       <Typography variant="body2"><strong>Nome sugerido: </strong>{text(option.groups[0].name)}</Typography>
       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}><strong>Descrição preliminar: </strong>{text(option.groups[0].description)}</Typography>
+      <DescriptionTextActions text={text(option.groups[0].description)} label="descrição preliminar do GSE" />
       <Typography variant="body2"><strong>Justificativa da composição: </strong>{text(option.groups[0].justification)}</Typography>
     </Box>
   </Box>;
@@ -74,6 +76,7 @@ export function GseAlternativeStructure({ option, analysis }: Context & { option
             <Typography variant="body2"><strong>Tipo: </strong>{group.existingGroupId ? retained ? 'GSE de origem, com composição proposta.' : 'Aproveitamento de GSE existente.' : 'Novo GSE proposto — ainda não cadastrado.'}</Typography>
             {group.existingGroupId && <Typography variant="body2"><strong>{retained ? 'Identidade atual: ' : 'GSE de destino existente: '}</strong>{existingName ? text(existingName) : 'Identidade não informada; requer validação.'}</Typography>}
             <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mt: 0.5 }}><strong>Descrição preliminar: </strong>{text(group.description)}</Typography>
+            <DescriptionTextActions text={text(group.description)} label="descrição preliminar do GSE" />
             <Label>{retained ? 'Cargos que permaneceriam na origem:' : 'Cargos da origem destinados a este GSE:'}</Label>
             <RoleList ids={group.hierarchyIds} analysis={analysis}/>
             {!retained && group.existingGroupId && <><Label>Composição resultante no escopo analisado:</Label><RoleList ids={group.resultingHierarchyIds} analysis={analysis}/></>}

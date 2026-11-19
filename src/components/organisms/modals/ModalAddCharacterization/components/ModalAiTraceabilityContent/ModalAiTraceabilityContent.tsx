@@ -1,3 +1,4 @@
+import { DescriptionTextActions } from '@v2/components/molecules/DescriptionTextActions/DescriptionTextActions';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -130,6 +131,7 @@ const TextItemsBlock: React.FC<{
           </Box>
         ))}
       </Box>
+      <DescriptionTextActions text={items.map((item) => item.text).join('\n')} label={title} />
     </Box>
   );
 };

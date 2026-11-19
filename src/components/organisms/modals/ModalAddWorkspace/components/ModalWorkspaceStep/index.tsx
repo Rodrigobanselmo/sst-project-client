@@ -100,7 +100,8 @@ export const ModalWorkspaceStep = ({
         control={control}
         sx={{ minWidth: ['100%', 600] }}
         placeholder={'descrição...'}
-        name="description"
+        textActions
+            name="description"
         size="small"
       />
       <Box>

@@ -117,6 +117,7 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             control={control}
             sx={{ minWidth: ['100%', 600] }}
             placeholder={'observação opcional sobre a empresa...'}
+            textActions
             name="description"
             size="small"
           />

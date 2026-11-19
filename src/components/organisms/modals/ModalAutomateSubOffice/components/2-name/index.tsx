@@ -65,6 +65,7 @@ export const SetSubOfficeNameStep = (props: IUseAutomateSubOffice) => {
             placeholder={'descrião das atividades do cargo'}
             size="small"
             smallPlaceholder
+            textActions
             name="description"
             minRows={3}
             maxRows={5}

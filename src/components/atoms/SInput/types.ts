@@ -4,6 +4,8 @@ import { CircularProgressProps } from '@mui/material/CircularProgress';
 import { TextFieldProps } from '@mui/material/TextField';
 
 export type SInputProps = TextFieldProps & {
+  textActions?: boolean;
+  textActionsContext?: string;
   loading?: boolean;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
