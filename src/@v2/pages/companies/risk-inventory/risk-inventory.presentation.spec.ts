@@ -1,3 +1,4 @@
+import { inventoryRecommendationsText } from './risk-inventory.presentation';
 /**
  * Executar:
  * npx tsx src/@v2/pages/companies/risk-inventory/risk-inventory.presentation.spec.ts
@@ -1155,3 +1156,15 @@ assert.equal(tableSourceForScreenOnly.includes('Coluna inativa no Word'), false)
 assert.equal(tableSourceForScreenOnly.includes("verticalAlign: 'bottom'"), true);
 
 console.log('risk-inventory.presentation.spec.ts OK');
+
+// Notas são texto de apresentação: não alteram o vetor de recomendações.
+for (const level of [1, 2, 3, 4, 5, 6]) {
+  const emptyRow = { realRisk: { level }, recommendations: [] } as any;
+  const text = inventoryRecommendationsText(emptyRow);
+  assert.equal(text.includes('Não é necessário cadastrar'), level <= 2);
+  if (level === 3) assert.match(text, /caráter facultativo/);
+  if (level === 4 || level === 5) assert.match(text, /Não foram registradas recomendações adicionais/);
+  assert.equal(text.includes('sistema'), false);
+  assert.deepEqual(emptyRow.recommendations, []);
+  assert.equal(inventoryRecommendationsText({ ...emptyRow, recommendations: ['Medida cadastrada'] }), 'Medida cadastrada');
+}

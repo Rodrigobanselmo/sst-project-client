@@ -56,17 +56,17 @@ describe('calculateSuggestedResidualProbability.util', () => {
 
     it('nunca sugere residual maior que a probabilidade real', () => {
       expect(calculateSuggestedResidualProbability(4, [epi])).toBe(4);
-      expect(calculateSuggestedResidualProbability(1, [])).toBeUndefined();
+      expect(calculateSuggestedResidualProbability(1, [])).toBe(1);
     });
 
-    it('sem recomendações ativas não sugere', () => {
-      expect(calculateSuggestedResidualProbability(3, [])).toBeUndefined();
-      expect(calculateSuggestedResidualProbability(3, undefined)).toBeUndefined();
+    it('sem recomendações ativas conserva a probabilidade real', () => {
+      expect(calculateSuggestedResidualProbability(3, [])).toBe(3);
+      expect(calculateSuggestedResidualProbability(3, undefined)).toBe(3);
       expect(
         calculateSuggestedResidualProbability(3, [
           { recType: RecTypeEnum.EPI, status: StatusEnum.INACTIVE },
         ]),
-      ).toBeUndefined();
+      ).toBe(3);
     });
 
     it('recomendação sem tipo conta peso 0', () => {
@@ -122,7 +122,7 @@ describe('calculateSuggestedResidualProbability.util', () => {
       ).toBeUndefined();
     });
 
-    it('sem recs restantes limpa residual para 0', () => {
+    it('sem recs restantes restaura a probabilidade real', () => {
       expect(
         resolveResidualProbabilityAfterRecChange({
           realProbability: 3,
@@ -130,7 +130,7 @@ describe('calculateSuggestedResidualProbability.util', () => {
           previousRecommendations: [eng],
           nextRecommendations: [],
         }),
-      ).toBe(0);
+      ).toBe(3);
     });
 
     it('residual vazia recebe sugestão automaticamente', () => {

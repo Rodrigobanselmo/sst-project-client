@@ -9,6 +9,7 @@ export const CONTROL_TYPE_WEIGHTS: Record<RecTypeEnum, number> = {
 };
 
 export type ResidualControlRecommendation = {
+  origin?: string | null;
   recType?: RecTypeEnum | string | null;
   status?: StatusEnum | string | null;
 };
@@ -19,9 +20,10 @@ const isValidRealProbability = (value: unknown): value is number =>
   value >= 1 &&
   value <= 6;
 
-const isActiveRecommendation = (
+export const isActiveRecommendation = (
   recommendation: ResidualControlRecommendation,
 ): boolean => {
+  if (recommendation.origin === 'EXISTING_CONTROL') return false;
   const status = recommendation.status;
   if (status == null || status === '') return true;
   return status !== StatusEnum.INACTIVE && status !== StatusEnum.CANCELED;
@@ -69,8 +71,8 @@ export const calculateControlMeasuresWeight = (
  * reducao = Math.floor(pesoTotal)
  * sugerida = max(1, probabilidadeReal - reducao)
  *
- * Retorna `undefined` quando não há probabilidade real válida ou quando
- * não há recomendações ativas (regra atual: residual só faz sentido com recs).
+ * Retorna `undefined` quando não há probabilidade real válida.
+ * Sem recomendações ativas, conserva a probabilidade real (redução zero).
  */
 export const calculateSuggestedResidualProbability = (
   realProbability: number | null | undefined,
@@ -81,7 +83,6 @@ export const calculateSuggestedResidualProbability = (
   const activeRecommendations = (recommendations ?? []).filter(
     isActiveRecommendation,
   );
-  if (!activeRecommendations.length) return undefined;
 
   const pesoTotal = calculateControlMeasuresWeight(activeRecommendations);
   const reducaoProbabilidade = Math.floor(pesoTotal);
@@ -191,7 +192,7 @@ export const decideResidualAutoApply = (params: {
 
 /**
  * Resolve o `probabilityAfter` a persistir após adicionar/remover recomendações.
- * - Sem recs restantes → `0` (preserva limpeza atual do RiskTool)
+ * - Sem recs restantes → probabilidade real (redução zero)
  * - Auto-aplicável → nova sugestão (ou `0` se não houver real válida)
  * - Manual → `undefined` (não sobrescrever; omitir no payload)
  */
@@ -209,7 +210,7 @@ export const resolveResidualProbabilityAfterRecChange = (params: {
   } = params;
 
   const nextActive = (nextRecommendations ?? []).filter(isActiveRecommendation);
-  if (!nextActive.length) return 0;
+  if (!nextActive.length) return isValidRealProbability(realProbability) ? realProbability : 0;
 
   const previousSuggested = calculateSuggestedResidualProbability(
     realProbability,

@@ -4,6 +4,7 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskDat
 import { IRiskDataRow } from '../../../types';
 
 export interface RecColumnProps {
+  occupationalRiskLevel?: number;
   handleSelect: (values: Partial<IUpsertRiskData>, recMed: IRecMed) => void;
   handleRemove: (values: Partial<IUpsertRiskData>) => void;
   data?: IRiskDataRow;

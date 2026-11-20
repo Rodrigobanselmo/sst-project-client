@@ -1,3 +1,4 @@
+import { inventoryRecommendationsText } from './risk-inventory.presentation';
 import { riskScreenColors } from '../risks/risk-screen-colors';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
@@ -369,7 +370,7 @@ function InventoryRow({
         />
       );
     }
-    if (columnId === 'recs') return renderText('recs', formatInventoryLines(row.recommendations));
+    if (columnId === 'recs') return renderText('recs', inventoryRecommendationsText(row));
     if (columnId === 'pAfter') return renderText('pAfter', inventoryResidualProbabilityText(row));
     return (
       <RiskPill

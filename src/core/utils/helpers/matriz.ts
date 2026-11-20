@@ -262,7 +262,14 @@ export function resolveDisplayedResidualOccupationalRisk(params: {
   residualColor?: string | null;
   residualLegacyBand?: number | null;
   residualClassificationPresentationColor?: string | null;
+  currentRisk?: DisplayedOccupationalRisk | null;
+  hasRecommendations?: boolean;
 }): DisplayedOccupationalRisk | null {
+  // Sem redução definida, herda a avaliação atual, inclusive CUSTOM/quantitativa.
+  // Não deriva uma classificação SimpleSST a partir de outra metodologia.
+  if ('currentRisk' in params && (params.hasRecommendations === false || !params.probabilityAfter)) {
+    return params.currentRisk ?? null;
+  }
   const {
     severity,
     probabilityAfter,

@@ -1,3 +1,4 @@
+import { RecommendationGuidance } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/components/RecommendationGuidance';
 import React, { FC, useState } from 'react';
 
 import { Box } from '@mui/material';
@@ -38,6 +39,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   data,
   risk,
   planWorkspaceId,
+  occupationalRiskLevel,
 }) => {
   const { onStackOpenModal } = useModal();
   const { workspaceId: headerWorkspaceId } = useTabWorkspaceId();
@@ -152,6 +154,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
           if (op.id) handleSelect(buildAddPayload(op), op);
         }}
       />
+      <RecommendationGuidance level={occupationalRiskLevel} recommendations={data?.recs} />
       {displayedRecs.map((rec) => {
         const missingType = isRecommendationRecTypeMissing(rec.recType);
         const link = resolveInformativeRecommendationLink({

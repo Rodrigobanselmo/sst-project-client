@@ -1,3 +1,4 @@
+import { recommendationGuidance } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/recommendationGuidance.util';
 import { RISK_TECHNICAL_PHYSICAL_COLUMNS } from '@v2/pages/companies/risk-technical-data/risk-technical-data.presentation';
 import {
   RISK_INVENTORY_EXTRA_COLUMN_KEYS,
@@ -926,4 +927,19 @@ export function inventoryUnitScopeText(scope: string[] | null | undefined): stri
 export function inventoryExposedEmployeeText(count: number | null | undefined): string {
   if (count == null || Number.isNaN(count)) return '0';
   return String(count);
+}
+
+/** Nota de apresentação; não cria uma recomendação nem uma ação. */
+export const MODERATE_RISK_INVENTORY_NOTE =
+  'Para este nível de risco, a definição de recomendações adicionais tem caráter facultativo segundo o critério de priorização adotado. Como boa prática preventiva, podem ser avaliadas medidas que favoreçam sua redução para baixo ou muito baixo, mantendo o acompanhamento e a reavaliação das condições de exposição.';
+export const HIGH_RISK_INVENTORY_NOTE =
+  'Não foram registradas recomendações adicionais para este risco. O nível de risco identificado requer a definição de medidas de prevenção, com prioridade para sua redução e posterior reavaliação.';
+
+export function inventoryRecommendationsText(row: Pick<RiskInventoryRow, 'realRisk' | 'recommendations'>): string {
+  const actual = formatInventoryLines(row.recommendations);
+  if (actual !== INVENTORY_EMPTY) return actual;
+  if (row.realRisk.level === 1 || row.realRisk.level === 2) return recommendationGuidance(row.realRisk.level) ?? INVENTORY_EMPTY;
+  if (row.realRisk.level === 3) return MODERATE_RISK_INVENTORY_NOTE;
+  if (row.realRisk.level === 4 || row.realRisk.level === 5) return HIGH_RISK_INVENTORY_NOTE;
+  return INVENTORY_EMPTY;
 }

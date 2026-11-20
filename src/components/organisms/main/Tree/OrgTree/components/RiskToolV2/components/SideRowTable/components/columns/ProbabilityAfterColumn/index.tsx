@@ -5,6 +5,7 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import {
   calculateSuggestedResidualProbability,
+  isActiveRecommendation,
   decideResidualAutoApply,
   isResidualRowResolvedForWorkspace,
   ResidualAutoApplyTracking,
@@ -29,9 +30,11 @@ export const ProbabilityAfterColumn: FC<
   const isDark = useTheme().palette.mode === 'dark';
   const infoTextColor = isDark ? '#90CAF9' : 'info.main';
   const warningTextColor = isDark ? 'warning.main' : '#8A5A00';
-  let disabled = true;
-
-  if (data && data.recs && data.recs.length) disabled = false;
+  const hasRecommendations = (data?.recs ?? []).some(isActiveRecommendation);
+  const disabled = !data?.probability;
+  const displayedResidual = hasRecommendations
+    ? data?.probabilityAfter || data?.probability
+    : data?.probability;
   const hasCurrentProbability = !!data?.probability;
 
   const recSignature = useMemo(
@@ -93,8 +96,8 @@ export const ProbabilityAfterColumn: FC<
   ]);
 
   const suggestionMessage = residualSuggestionMessage({
-    hasRecommendations: !disabled,
-    residual: data?.probabilityAfter,
+    hasRecommendations,
+    residual: displayedResidual,
     suggested,
   });
 
@@ -114,12 +117,13 @@ export const ProbabilityAfterColumn: FC<
             probabilityAfter: number,
           })
         }
-        selectedNumber={data?.probabilityAfter}
+        selectedNumber={displayedResidual}
+        disabledNumbers={!hasRecommendations ? [1, 2, 3, 4, 5, 6].filter((p) => p !== data?.probability) : undefined}
         disabledGtEqual={
           disabled ? 0 : data?.probability ? data.probability + 1 : 0
         }
         disabledReason={
-          hasCurrentProbability ? RESIDUAL_BLOCKED_REASON : undefined
+          hasCurrentProbability ? (!hasRecommendations ? 'Sem recomendações, o residual acompanha o risco ocupacional atual.' : RESIDUAL_BLOCKED_REASON) : undefined
         }
       />
       {suggestionMessage && (
@@ -151,7 +155,7 @@ export const ProbabilityAfterColumn: FC<
           {suggestionMessage.text}
         </SText>
       )}
-      {!disabled && hasMissingRecType && (
+      {hasRecommendations && hasMissingRecType && (
         <SText
           fontSize={10}
           color={warningTextColor}

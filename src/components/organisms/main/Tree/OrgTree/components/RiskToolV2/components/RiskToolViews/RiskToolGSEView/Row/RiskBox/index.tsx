@@ -1,3 +1,4 @@
+import { isActiveRecommendation } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 import { HistoryView } from '@v2/features/sst-operational/HistoryView';
 import { assessmentPeriodCivilDate } from '@v2/features/sst-operational/civil-date';
 import { useSstAccess } from '@v2/features/sst-operational/access';
@@ -202,19 +203,21 @@ export const RiskToolGSEViewRowRiskBox: FC<
     );
   }, [riskData?.determiningEvidences, riskData?.isQuantity]);
 
-  const hasRecs = !!(riskData?.recs && riskData.recs.length > 0);
+  const hasRecs = (riskData?.recs ?? []).some(isActiveRecommendation);
   const residualProbability =
     hasRecs && riskData?.probabilityAfter
       ? riskData.probabilityAfter
-      : undefined;
+      : riskData?.probability;
 
   const residualMatrix = useMemo(
     () =>
-      residualProbability
+      inherentMatrix
         ? resolveDisplayedResidualOccupationalRisk({
+            currentRisk: inherentMatrix,
+            hasRecommendations: hasRecs,
             isQuantity: riskData?.isQuantity,
             severity,
-            probabilityAfter: residualProbability,
+            probabilityAfter: riskData?.probabilityAfter,
             matrixSource: riskData?.matrixSource,
             matrixVersionId: riskData?.matrixVersionId,
             matrixEvaluatedAt: riskData?.matrixEvaluatedAt,
@@ -227,7 +230,10 @@ export const RiskToolGSEViewRowRiskBox: FC<
         : null,
     [
       severity,
+      inherentMatrix,
+      hasRecs,
       residualProbability,
+      riskData?.probabilityAfter,
       riskData?.isQuantity,
       riskData?.matrixSource,
       riskData?.matrixVersionId,
@@ -468,7 +474,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
                 resultLabel={residualMatrix?.label}
                 resultLevel={residualMatrix?.level}
                 resultColor={residualMatrix?.color}
-                empty={!residualProbability}
+                empty={!residualMatrix}
               />
             </SFlex>
           ) : (

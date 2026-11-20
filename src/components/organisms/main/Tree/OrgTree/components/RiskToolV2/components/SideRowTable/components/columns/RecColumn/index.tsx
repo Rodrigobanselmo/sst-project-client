@@ -1,4 +1,5 @@
 import { RiskColumnAddButton } from '../RiskColumnAddButton';
+import { RecommendationGuidance } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/components/RecommendationGuidance';
 import React, { FC, useMemo, useState } from 'react';
 
 import { Box } from '@mui/material';
@@ -65,6 +66,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   data,
   risk,
   planWorkspaceId,
+  occupationalRiskLevel,
   readOnly,
 }) => {
   const { onStackOpenModal } = useModal();
@@ -237,6 +239,7 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
             items={batchItems}
           />
         </Box>
+        <RecommendationGuidance level={occupationalRiskLevel} recommendations={data?.recs} />
         {displayedRecs.map((rec) => {
           const planStatus = getRecommendationPlanStatus(
             data as IRiskData,

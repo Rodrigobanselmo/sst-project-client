@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
+import { isActiveRecommendation } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/calculateSuggestedResidualProbability.util';
 
 import { Box, CircularProgress, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -79,6 +80,8 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   });
 
   const actualMatrixLevelAfter = resolveDisplayedResidualOccupationalRisk({
+    currentRisk: actualMatrixLevel,
+    hasRecommendations: (riskData?.recs ?? []).some(isActiveRecommendation),
     isQuantity: riskData?.isQuantity,
     severity: risk?.severity ?? riskData?.evaluatedSeverity,
     probabilityAfter: riskData?.probabilityAfter,
@@ -290,6 +293,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
               risk={risk}
               planWorkspaceId={planWorkspaceId}
               readOnly={readOnly}
+              occupationalRiskLevel={actualMatrixLevel?.level}
             />
             {!isRepresentAll ? (
               <>
