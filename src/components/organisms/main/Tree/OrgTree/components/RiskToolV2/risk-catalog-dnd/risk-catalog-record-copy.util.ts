@@ -52,7 +52,9 @@ export function resolveRecordCopyBlockedReason(
   if (item.kind === 'rec') {
     const isCorrespondence = (sourceRiskData?.recs ?? []).some(
       (rec) =>
-        !!rec && String(rec.id) === catalogId && isExistingControlCorrespondence(rec),
+        !!rec &&
+        String(rec.id) === catalogId &&
+        isExistingControlCorrespondence(rec),
     );
     return isCorrespondence ? RECORD_COPY_BLOCKED_EXISTING_CONTROL : undefined;
   }
@@ -72,17 +74,23 @@ export function resolveRecordCopyBlockedReason(
 export function withRecordCopySource(
   item: RiskCatalogDndDragItem,
   sourceRiskData?: IRiskData | null,
+  copyIdentity?: string,
 ): RiskCatalogDndDragItem {
   const catalogId = item.catalogId == null ? '' : String(item.catalogId);
   const sourceRec =
     item.kind === 'rec'
-      ? (sourceRiskData?.recs ?? []).find((rec) => !!rec && String(rec.id) === catalogId)
+      ? (sourceRiskData?.recs ?? []).find(
+          (rec) => !!rec && String(rec.id) === catalogId,
+        )
       : undefined;
 
   return {
     ...item,
-    sourceRiskDataId: sourceRiskData?.id || undefined,
+    sourceRiskDataId: copyIdentity || sourceRiskData?.id || undefined,
     ...(sourceRec?.status ? { catalogStatus: String(sourceRec.status) } : {}),
-    recordCopyBlockedReason: resolveRecordCopyBlockedReason(item, sourceRiskData),
+    recordCopyBlockedReason: resolveRecordCopyBlockedReason(
+      item,
+      sourceRiskData,
+    ),
   };
 }

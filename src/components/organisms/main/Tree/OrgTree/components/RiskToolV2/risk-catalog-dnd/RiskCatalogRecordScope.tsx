@@ -8,6 +8,8 @@ import { IRiskData } from 'core/interfaces/api/IRiskData';
  */
 export type RiskCatalogRecordScopeValue = {
   riskData: IRiskData;
+  /** Stable row identity, including an entity with no persisted evaluation yet. Never sent to the API. */
+  copyIdentity?: string;
   /** Nome do GSE, usado nas mensagens de cópia. */
   label: string;
 };

@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { RiskCatalogRecordScope } from '../../../risk-catalog-dnd/RiskCatalogRecordScope';
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 import React, { FC, useMemo } from 'react';
 
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
@@ -154,33 +156,49 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   };
 
   const handleEditExams = async (exam: IExam) => {
-    onHandleEditExams(exam, (exams) => handleSelect({ exams }), risk?.type, risk ?? undefined);
+    onHandleEditExams(
+      exam,
+      (exams) => handleSelect({ exams }),
+      risk?.type,
+      risk ?? undefined,
+    );
   };
 
+  const copyScope = useMemo(
+    () => ({
+      riskData: riskData || ({ id: '' } as IRiskData),
+      copyIdentity: `hierarchy:${gho.id}:risk:${risk?.id}`,
+      label: gho.name,
+    }),
+    [riskData, gho.id, gho.name, risk?.id],
+  );
+
   return (
-    <RowColumns
-      isSelected={isSelected}
-      hide={hide}
-      handleSelect={handleSelect}
-      handleHelp={handleHelp}
-      handleRemove={handleRemove}
-      riskData={riskData}
-      risk={risk}
-      handleEditEpi={handleEditEpi}
-      handleEditEngs={handleEditEngs}
-      handleEditExams={handleEditExams}
-      isRepresentAll={risk?.representAll}
-      showEndDate
-      isDeleteLoading={isDeleteLoading}
-      handleDeleteRiskData={() =>
-        handleDeleteRiskData?.(riskData?.id as string, gho)
-      }
-      planWorkspaceId={planWorkspaceId}
-      probabilityCountSource={buildProbabilityCountSource(
-        gho,
-        viewData,
-        headerWorkspaceId,
-      )}
-    />
+    <RiskCatalogRecordScope value={copyScope}>
+      <RowColumns
+        isSelected={isSelected}
+        hide={hide}
+        handleSelect={handleSelect}
+        handleHelp={handleHelp}
+        handleRemove={handleRemove}
+        riskData={riskData}
+        risk={risk}
+        handleEditEpi={handleEditEpi}
+        handleEditEngs={handleEditEngs}
+        handleEditExams={handleEditExams}
+        isRepresentAll={risk?.representAll}
+        showEndDate
+        isDeleteLoading={isDeleteLoading}
+        handleDeleteRiskData={() =>
+          handleDeleteRiskData?.(riskData?.id as string, gho)
+        }
+        planWorkspaceId={planWorkspaceId}
+        probabilityCountSource={buildProbabilityCountSource(
+          gho,
+          viewData,
+          headerWorkspaceId,
+        )}
+      />
+    </RiskCatalogRecordScope>
   );
 };

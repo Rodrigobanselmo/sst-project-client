@@ -27,10 +27,18 @@ export const RiskCatalogDraggableItem: FC<RiskCatalogDraggableItemProps> = ({
 
   const dragItem = useMemo(
     () =>
-      recordScope ? withRecordCopySource(item, recordScope.riskData) : item,
+      recordScope
+        ? withRecordCopySource(
+            item,
+            recordScope.riskData,
+            recordScope.copyIdentity,
+          )
+        : item,
     [item, recordScope],
   );
-  const blockedReason = recordScope ? dragItem.recordCopyBlockedReason : undefined;
+  const blockedReason = recordScope
+    ? dragItem.recordCopyBlockedReason
+    : undefined;
   const dragDisabled = !!disabled || !!blockedReason;
 
   const [{ isDragging }, drag] = useDrag(

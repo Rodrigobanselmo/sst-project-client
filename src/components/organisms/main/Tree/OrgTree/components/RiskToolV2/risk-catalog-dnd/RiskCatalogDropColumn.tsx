@@ -39,21 +39,24 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
   const dnd = useRiskCatalogDndOptional();
   const dropLocked = useRiskCatalogDropLock();
   const recordScope = useRiskCatalogRecordScope();
-  const { onDropCatalogItem, onBatchCopyToDestination } = useRiskCatalogDndCopy();
+  const { onDropCatalogItem, onBatchCopyToDestination } =
+    useRiskCatalogDndCopy();
 
   const recordScoped = !!recordScope;
   const destinationRiskDataId = recordScoped
-    ? recordScope.riskData.id
+    ? recordScope.copyIdentity || recordScope.riskData.id
     : riskData?.id;
   const destination = {
     riskId: risk?.id,
     riskDataId: destinationRiskDataId,
     recordScoped,
   };
-  const isOwnSource = (source?: {
-    sourceRiskId: string;
-    sourceRiskDataId?: string;
-  } | null) => !!source && isRiskCatalogSourceSameAsDestination(source, destination);
+  const isOwnSource = (
+    source?: {
+      sourceRiskId: string;
+      sourceRiskDataId?: string;
+    } | null,
+  ) => !!source && isRiskCatalogSourceSameAsDestination(source, destination);
 
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
@@ -62,7 +65,8 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
         if (dropLocked) return false;
         if (!risk?.id) return false;
         if (item.kind !== kind) return false;
-        if (isRiskCatalogSourceSameAsDestination(item, destination)) return false;
+        if (isRiskCatalogSourceSameAsDestination(item, destination))
+          return false;
         if (recordScoped && item.recordCopyBlockedReason) return false;
         return true;
       },
@@ -72,6 +76,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
           risk,
           riskData: riskData as any,
           recordScoped,
+          copyIdentity: destinationRiskDataId,
           label: recordScope?.label,
           handleSelect: async (values) => {
             await handleSelect(values);
@@ -127,6 +132,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
           risk,
           riskData: riskData as any,
           recordScoped,
+          copyIdentity: destinationRiskDataId,
           label: recordScope?.label,
           handleSelect: async (values) => {
             await handleSelect(values);
@@ -183,8 +189,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
     !!risk?.id &&
     !lockedRecord &&
     (!batchSession || !isOwnSource(batchSession));
-  const dimIncompatible =
-    highlightKind != null && highlightKind !== kind;
+  const dimIncompatible = highlightKind != null && highlightKind !== kind;
   const shouldPulse =
     dnd.pulseTarget?.riskId === risk?.id &&
     dnd.pulseTarget?.kind === kind &&
@@ -300,7 +305,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
               lineHeight: 1.2,
             }}
           >
-            {recordScoped ? 'Copiar para este GSE' : 'Copiar para este fator'}
+            {recordScoped ? 'Copiar para esta entidade' : 'Copiar para este fator'}
           </Typography>
           <Typography
             sx={{

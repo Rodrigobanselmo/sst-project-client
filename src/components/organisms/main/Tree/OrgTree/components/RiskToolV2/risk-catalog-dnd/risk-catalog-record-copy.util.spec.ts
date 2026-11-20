@@ -202,10 +202,10 @@ const riskData = (values: Partial<IRiskData>) =>
   const drop = readFileSync(resolve(`${base}/RiskCatalogDropColumn.tsx`), 'utf8');
   assert.match(drop, /recordScoped && item\.recordCopyBlockedReason/);
   assert.match(drop, /if \(dropLocked\) return false;/);
-  assert.match(drop, /'Copiar para este GSE' : 'Copiar para este fator'/);
+  assert.match(drop, /'Copiar para esta entidade' : 'Copiar para este fator'/);
 
   const drag = readFileSync(resolve(`${base}/RiskCatalogDraggableItem.tsx`), 'utf8');
-  assert.match(drag, /recordScope \? withRecordCopySource\(item, recordScope\.riskData\) : item/);
+  assert.match(drag, /withRecordCopySource\(\s*item,\s*recordScope\.riskData,\s*recordScope\.copyIdentity,?\s*\)/);
 
   const batch = readFileSync(resolve(`${base}/RiskCatalogBatchCopyButton.tsx`), 'utf8');
   assert.match(batch, /filter\(\(i\) => !i\.recordCopyBlockedReason\)/);
@@ -213,3 +213,15 @@ const riskData = (values: Partial<IRiskData>) =>
 }
 
 console.log('risk-catalog-record-copy.util.spec.ts ok');
+
+// Hierarchy rows are distinct destinations even before a RiskFactorData exists.
+for (const kind of ['generateSource', 'rec'] as const) {
+  const source = withRecordCopySource(item({ kind }), riskData({}), 'hierarchy:sector-a:risk:r1');
+  assert.equal(isRiskCatalogSourceSameAsDestination(source, {
+    riskId: RISK, recordScoped: true, riskDataId: 'hierarchy:sector-b:risk:r1',
+  }), false);
+  assert.equal(isRiskCatalogSourceSameAsDestination(source, {
+    riskId: RISK, recordScoped: true, riskDataId: 'hierarchy:sector-a:risk:r1',
+  }), true);
+  assert.equal(source.sourceRiskDataId, 'hierarchy:sector-a:risk:r1');
+}

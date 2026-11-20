@@ -42,13 +42,14 @@ type DestinationContext = {
   handleSelect: (values: Partial<IUpsertRiskData>) => Promise<void>;
   /** Visualização por risco: destino é o registro (GSE), não o fator. */
   recordScoped?: boolean;
+  copyIdentity?: string;
   /** Nome exibido do destino (GSE) nas mensagens da visualização por risco. */
   label?: string;
 };
 
 const destinationIdentity = (dest: DestinationContext) => ({
   riskId: dest.risk?.id,
-  riskDataId: dest.riskData?.id,
+  riskDataId: dest.copyIdentity || dest.riskData?.id,
   recordScoped: dest.recordScoped,
 });
 
@@ -61,7 +62,8 @@ const sameRiskCatalogMatch = (
   dest: DestinationContext,
 ): RiskCatalogCopyItemResult | null => {
   if (!dest.recordScoped || item.kind === 'epi') return null;
-  if (item.sourceRiskId !== dest.risk?.id || item.catalogId == null) return null;
+  if (item.sourceRiskId !== dest.risk?.id || item.catalogId == null)
+    return null;
   return {
     status: 'attach_existing',
     match: {
@@ -166,8 +168,7 @@ export const useRiskCatalogDndCopy = () => {
       }
 
       if (item.kind === 'eng' || item.kind === 'adm') {
-        const medType =
-          item.kind === 'eng' ? MedTypeEnum.ENG : MedTypeEnum.ADM;
+        const medType = item.kind === 'eng' ? MedTypeEnum.ENG : MedTypeEnum.ADM;
         const result = await queryRecMed(
           { skip: 0, take: 300 },
           {
@@ -232,7 +233,9 @@ export const useRiskCatalogDndCopy = () => {
       dest: DestinationContext,
     ): Promise<RiskCatalogCopyItemResult> => {
       if (!dest.risk?.id || !item.name?.trim()) return { status: 'invalid' };
-      if (isRiskCatalogSourceSameAsDestination(item, destinationIdentity(dest))) {
+      if (
+        isRiskCatalogSourceSameAsDestination(item, destinationIdentity(dest))
+      ) {
         return { status: 'invalid' };
       }
       if (dest.recordScoped && item.recordCopyBlockedReason) {
@@ -335,8 +338,7 @@ export const useRiskCatalogDndCopy = () => {
         return;
       }
       if (item.kind === 'rec') {
-        const recType =
-          (item.recType as RecTypeEnum) || RecTypeEnum.ADM;
+        const recType = (item.recType as RecTypeEnum) || RecTypeEnum.ADM;
         await dest.handleSelect({
           recAddOnly: [
             {
@@ -527,7 +529,9 @@ export const useRiskCatalogDndCopy = () => {
   const onDropCatalogItem = useCallback(
     async (item: RiskCatalogDndDragItem, dest: DestinationContext) => {
       if (!dest.risk?.id) return;
-      if (isRiskCatalogSourceSameAsDestination(item, destinationIdentity(dest))) {
+      if (
+        isRiskCatalogSourceSameAsDestination(item, destinationIdentity(dest))
+      ) {
         return;
       }
 
@@ -586,9 +590,12 @@ export const useRiskCatalogDndCopy = () => {
                 { variant: 'success' },
               );
             } catch {
-              enqueueSnackbar('Não foi possível cadastrar e adicionar o item.', {
-                variant: 'error',
-              });
+              enqueueSnackbar(
+                'Não foi possível cadastrar e adicionar o item.',
+                {
+                  variant: 'error',
+                },
+              );
             }
           },
           {
@@ -681,10 +688,7 @@ export const useRiskCatalogDndCopy = () => {
             await applyBatchResults(kind, pairs, dest);
 
             enqueueSnackbar(
-              buildRiskCatalogBatchSummaryMessage(
-                stats,
-                destinationRiskName,
-              ),
+              buildRiskCatalogBatchSummaryMessage(stats, destinationRiskName),
               {
                 variant: stats.added > 0 ? 'success' : 'info',
                 style: { whiteSpace: 'pre-line' },
@@ -709,12 +713,7 @@ export const useRiskCatalogDndCopy = () => {
       // preventWarn não expõe onCancel — limpamos ao abrir destino via caller
       // após fechar; o caller passa onFinished só no confirm. Cancel: Escape no provider.
     },
-    [
-      applyBatchResults,
-      enqueueSnackbar,
-      preventWarn,
-      resolveCatalogCopyAction,
-    ],
+    [applyBatchResults, enqueueSnackbar, preventWarn, resolveCatalogCopyAction],
   );
 
   return { onDropCatalogItem, onBatchCopyToDestination };

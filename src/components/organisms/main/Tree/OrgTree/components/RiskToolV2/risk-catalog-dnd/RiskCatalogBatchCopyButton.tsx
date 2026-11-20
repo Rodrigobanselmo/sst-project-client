@@ -26,11 +26,9 @@ type RiskCatalogBatchCopyButtonProps = {
   items: RiskCatalogDndDragItem[];
 };
 
-export const RiskCatalogBatchCopyButton: FC<RiskCatalogBatchCopyButtonProps> = ({
-  kind,
-  risk,
-  items,
-}) => {
+export const RiskCatalogBatchCopyButton: FC<
+  RiskCatalogBatchCopyButtonProps
+> = ({ kind, risk, items }) => {
   const dnd = useRiskCatalogDndOptional();
   const recordScope = useRiskCatalogRecordScope();
   const { enqueueSnackbar } = useSnackbar();
@@ -38,7 +36,9 @@ export const RiskCatalogBatchCopyButton: FC<RiskCatalogBatchCopyButtonProps> = (
   if (!dnd || !risk?.id) return null;
 
   const scopedItems = recordScope
-    ? items.map((i) => withRecordCopySource(i, recordScope.riskData))
+    ? items.map((i) =>
+        withRecordCopySource(i, recordScope.riskData, recordScope.copyIdentity),
+      )
     : items;
   const candidateItems = dedupeRiskCatalogDragItems(
     scopedItems.filter((i) => i.kind === kind && !!i.name?.trim()),
@@ -48,7 +48,8 @@ export const RiskCatalogBatchCopyButton: FC<RiskCatalogBatchCopyButtonProps> = (
     : candidateItems;
   const blockedCount = candidateItems.length - uniqueItems.length;
   const count = uniqueItems.length;
-  const sourceRiskDataId = recordScope?.riskData.id;
+  const sourceRiskDataId =
+    recordScope?.copyIdentity || recordScope?.riskData.id;
 
   const isActive =
     dnd.batchSession?.sourceRiskId === risk.id &&
