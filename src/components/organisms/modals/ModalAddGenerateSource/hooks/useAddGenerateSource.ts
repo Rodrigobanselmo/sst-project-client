@@ -26,6 +26,7 @@ export const initialAddGenerateSourceState = {
   status: StatusEnum.ACTIVE,
   name: '',
   id: '',
+  companyId: '',
   localId: '' as string | number,
   risk: {} as IRiskFactors,
   riskIds: [] as (string | number)[],
@@ -147,6 +148,7 @@ export const useAddGenerateSource = () => {
         .mutateAsync({
           ...submitData,
           id: generateSourceData.id,
+          companyId: generateSourceData.companyId || undefined,
         })
         .catch(() => {});
     }

@@ -72,6 +72,7 @@ export const GenerateSourceSelect: FC<
         name: option?.name || '',
         status: option?.status,
         id: option?.id,
+        companyId: option?.companyId || '',
       },
     );
   };

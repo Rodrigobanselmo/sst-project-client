@@ -46,7 +46,7 @@ export function useMutUpdateGenerateSource() {
 
   return useMutation(
     async (data: ICreateGenerateSource) =>
-      updateGenerateSource(data, user?.companyId),
+      updateGenerateSource(data, data.companyId || user?.companyId),
     {
       onSuccess: async (newGenerateSource) => {
         queryClient.invalidateQueries([QueryEnum.GENERATE_SOURCE]);
