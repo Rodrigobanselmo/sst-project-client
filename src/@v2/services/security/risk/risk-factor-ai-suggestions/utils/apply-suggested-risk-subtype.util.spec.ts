@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { isSameRiskSuggestionIdentity, resolveSuggestedRiskSubtype } from './apply-suggested-risk-subtype.util';
+const identity = { type: 'QUI', name: 'Agent', cas: '8042-47-5' };
+const suggestion = { id: 7, type: 'QUI', name: '[HC/ALI]' };
+const candidates = [suggestion];
+assert.equal(resolveSuggestedRiskSubtype(identity, identity, suggestion, candidates), '7');
+assert.equal(resolveSuggestedRiskSubtype({ ...identity, subType: '8' }, identity, suggestion, candidates), undefined);
+assert.equal(resolveSuggestedRiskSubtype({ ...identity, type: 'ACI' }, identity, suggestion, candidates), undefined);
+assert.equal(resolveSuggestedRiskSubtype({ ...identity, cas: '60-29-7' }, identity, suggestion, candidates), undefined);
+assert.equal(resolveSuggestedRiskSubtype({ ...identity, name: 'Other agent' }, identity, suggestion, candidates), undefined);
+assert.equal(resolveSuggestedRiskSubtype(identity, identity, suggestion, []), undefined);
+assert.equal(resolveSuggestedRiskSubtype(identity, identity, null, candidates), undefined);
+assert.equal(isSameRiskSuggestionIdentity(identity, { ...identity, name: 'Changed' }), false);
+console.log('subtype preservation, catalog validation and stale response checks passed');

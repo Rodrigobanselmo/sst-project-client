@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useMemo, useRef, useState } from 'react';
 
 import {
   Alert,
@@ -30,6 +30,7 @@ import {
   resolveRiskFactorAiSuggestionPromptKey,
 } from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/risk-factor-ai-suggestions-type.util';
 
+import { isSameRiskSuggestionIdentity, resolveSuggestedRiskSubtype } from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/apply-suggested-risk-subtype.util';
 import { RiskFactorAiSuggestionApplyDialog } from './RiskFactorAiSuggestionApplyDialog';
 import type { RiskFactorAiSuggestionApplyMode } from './RiskFactorAiSuggestionApplyDialog';
 import {
@@ -45,6 +46,7 @@ type RiskFactorAiSuggestionButtonProps = {
   watch: UseFormWatch<any>;
   sourceContext?: RiskFactorAiSuggestionSourceContextPayload;
   knownDataExtras?: Partial<RiskFactorAiSuggestionKnownDataPayload>;
+  subtypeCandidates?: { id: number; name: string; type: string }[];
   disabled?: boolean;
   label?: string;
 };
@@ -58,6 +60,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
   sourceContext,
   knownDataExtras,
   disabled,
+  subtypeCandidates = [],
   label = 'Gerar sugestão com IA',
 }) => {
   const { isMaster } = useAccess();
@@ -74,6 +77,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
   >({});
   const masterConfig = masterConfigByType[riskType] ?? {};
   const [pendingSuggestion, setPendingSuggestion] = useState<{
+    suggestedSubtype?: { id: number; name: string; type: string } | null;
     risk: string;
     symptoms: string;
     affectedRegion: string;
@@ -83,6 +87,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
     severityAdjusted?: boolean;
     severityAdjustmentReason?: string;
   } | null>(null);
+  const requestedForm = useRef<RiskFactorAiSuggestionFormSource | null>(null);
   const [showTrace, setShowTrace] = useState(false);
   const [applyWarning, setApplyWarning] = useState<string | null>(null);
 
@@ -100,6 +105,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 
   const applySuggestion = (
     suggestion: {
+      suggestedSubtype?: { id: number; name: string; type: string } | null;
       risk: string;
       symptoms: string;
       affectedRegion: string;
@@ -111,6 +117,12 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
     },
     mode: RiskFactorAiSuggestionApplyMode,
   ) => {
+    const current = buildCurrentFormSnapshot();
+    if (!requestedForm.current || !isSameRiskSuggestionIdentity(current, requestedForm.current)) {
+      setApplyWarning('O fator foi alterado após a consulta. Gere uma nova sugestão para os dados atuais.');
+      return;
+    }
+    const suggestedSubType = resolveSuggestedRiskSubtype(current, requestedForm.current, suggestion.suggestedSubtype, subtypeCandidates);
     const previousFormSeverity = getValues('severity');
     const previousRiskDataSeverity = form.severity;
 
@@ -137,6 +149,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
       });
     };
 
+    if (suggestedSubType) assignField('subType', suggestedSubType);
     assignField('severity', severityString);
     assignField('risk', applied.risk);
     assignField('symptoms', applied.symptoms);
@@ -145,6 +158,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 
     setRiskData((current) => ({
       ...(current as RiskFactorAiSuggestionFormSource),
+      ...(suggestedSubType ? { subType: suggestedSubType } : {}),
       risk: applied.risk,
       symptoms: applied.symptoms,
       affectedRegion: applied.affectedRegion,
@@ -178,6 +192,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
     setApplyWarning(null);
 
     const currentForm = buildCurrentFormSnapshot();
+    requestedForm.current = currentForm;
 
     const masterOverrides = buildMasterAiRequestOverrides(isMaster, masterConfig);
 
@@ -191,6 +206,10 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 
     try {
       const result = await generate(payload);
+      if (!isSameRiskSuggestionIdentity(buildCurrentFormSnapshot(), currentForm)) {
+        setApplyWarning('O fator foi alterado durante a consulta. Gere uma nova sugestão para os dados atuais.');
+        return;
+      }
       const normalizedSeverity = normalizeSuggestedSeverity(result.severity);
 
       if (isMaster) {
@@ -218,6 +237,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 
       if (hasRiskFactorAiSuggestionFieldContent(currentForm)) {
         setPendingSuggestion({
+          suggestedSubtype: normalizedResult.suggestedSubtype,
           risk: normalizedResult.risk,
           symptoms: normalizedResult.symptoms,
           affectedRegion: normalizedResult.affectedRegion,
@@ -275,7 +295,7 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
       ) : null}
 
       <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
-        A sugestão é assistida e deve ser revisada tecnicamente antes de salvar.
+        A sugestão é assistida e deve ser revisada tecnicamente antes de salvar. O subtipo é preenchido apenas quando está vazio, usando o catálogo existente.
       </Typography>
 
       {isMaster && lastResult && (
@@ -287,6 +307,14 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
             formSeverity: watch('severity'),
             riskDataSeverity: form.severity,
           })}
+        </Typography>
+      )}
+
+      {lastResult && (
+        <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+          {lastResult.suggestedSubtype
+            ? `Subtipo sugerido: ${lastResult.suggestedSubtype.name}. Uma seleção existente é preservada.`
+            : 'A IA não identificou um subtipo com segurança. Selecione manualmente, se necessário.'}
         </Typography>
       )}
 

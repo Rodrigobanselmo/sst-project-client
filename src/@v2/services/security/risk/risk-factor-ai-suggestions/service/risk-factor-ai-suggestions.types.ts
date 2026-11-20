@@ -71,6 +71,7 @@ export type RiskFactorAiSuggestionSourceTraceItem = {
 };
 
 export type RiskFactorAiSuggestionResult = {
+  suggestedSubtype?: { id: number; name: string; type: string } | null;
   risk: string;
   symptoms: string;
   affectedRegion: string;

@@ -103,7 +103,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
     }
 
     return [
-      { id: null, name: '-', tooltip: 'Sem subtipo' },
+      { id: '', name: '-', tooltip: 'Sem subtipo' },
       ...merged.map((item) => ({
         id: item.id,
         name: formatRiskSubTypeButtonLabel(item.name),
@@ -176,7 +176,8 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
               }}
               options={subTypeRadioOptions}
               name="subType"
-              columns={5}
+              columns={{ xs: 2, sm: 5 }}
+              sx={{ '& span': { overflowWrap: 'anywhere' } }}
               onChange={(event) => {
                 const rawValue = event.target.value;
                 const nextSubType =
@@ -239,6 +240,9 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
         />
         {isAiSuggestionSupportedRiskType(type) && !isCatalogReadOnly && (
           <RiskFactorAiSuggestionButton
+            subtypeCandidates={(subTypes?.results ?? []).map((item) => ({
+              id: Number(item.id), name: item.name, type: String(type),
+            }))}
             form={riskData}
             setRiskData={(updater) =>
               setRiskData((current) => updater(current as RiskFactorAiSuggestionFormSource) as typeof riskData)

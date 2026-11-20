@@ -36,6 +36,7 @@ export const RiskFactorAiSuggestionApplyDialog: FC<
         <Typography variant="body2" color="text.secondary">
           Já existem valores em Risco, Sintomas, Região atingida, Vias de absorção / entrada no organismo
           ou Severidade. A sugestão permanece no formulário até o salvamento manual.
+          O subtipo sugerido preenche apenas um campo vazio e preserva sua seleção atual.
         </Typography>
         <RadioGroup
           value={mode}
