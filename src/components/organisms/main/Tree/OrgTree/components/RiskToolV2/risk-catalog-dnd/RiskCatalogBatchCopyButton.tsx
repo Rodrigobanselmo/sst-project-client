@@ -100,12 +100,12 @@ export const RiskCatalogBatchCopyButton: FC<
           });
           enqueueSnackbar(
             recordScope
-              ? `Selecione o GSE de destino. Esc cancela.${
+              ? `Selecione os destinos. A cópia permanece ativa após colar. Esc encerra.${
                   blockedCount
                     ? `\n${blockedCount} item(ns) não entram na cópia (correspondência informativa ou medida derivada do Plano).`
                     : ''
                 }`
-              : 'Selecione o fator de destino. Esc cancela.',
+              : 'Selecione os fatores de destino. A cópia permanece ativa após colar. Esc encerra.',
             {
               variant: 'info',
               autoHideDuration: 3500,

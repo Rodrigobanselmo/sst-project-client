@@ -709,9 +709,7 @@ export const useRiskCatalogDndCopy = () => {
         },
       );
 
-      // Se o usuário cancelar o modal, ainda precisamos limpar o modo batch.
-      // preventWarn não expõe onCancel — limpamos ao abrir destino via caller
-      // após fechar; o caller passa onFinished só no confirm. Cancel: Escape no provider.
+      // Confirmar ou cancelar este destino preserva a sessão para outras colagens.
     },
     [applyBatchResults, enqueueSnackbar, preventWarn, resolveCatalogCopyAction],
   );

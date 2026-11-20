@@ -147,7 +147,6 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
                 ? { riskDataId: destinationRiskDataId }
                 : {}),
             });
-            dnd.clearBatchCopy();
           },
         },
       );

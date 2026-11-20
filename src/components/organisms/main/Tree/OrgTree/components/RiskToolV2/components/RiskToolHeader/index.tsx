@@ -1,3 +1,5 @@
+import { HierarchyRiskLevelFilter } from '../HierarchyRiskLevel';
+import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
@@ -39,30 +41,35 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { canRead } = useSstAccess();
+  const esocialLink = canRead ? (
+    <Button
+      size="small"
+      sx={{ ml: 'auto', flexShrink: 0, whiteSpace: 'nowrap' }}
+      onClick={() => router.push(`/dashboard/empresas/${companyId}/esocial`)}
+    >
+      Acompanhamento eSocial
+    </Button>
+  ) : null;
   return (
     <SFlex direction="column" align="stretch" gap={4} mb={8}>
-      {canRead && (
-        <Button
-          size="small"
-          sx={{ alignSelf: 'flex-end', flexShrink: 0, whiteSpace: 'nowrap' }}
-          onClick={() =>
-            router.push(`/dashboard/empresas/${companyId}/esocial`)
-          }
-        >
-          Acompanhamento eSocial
-        </Button>
-      )}
+      {viewType !== ViewTypeEnum.SIMPLE_BY_RISK && esocialLink}
       {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
-        <SideInput
-          id={IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH}
-          ref={inputRef}
-          handleSelectGHO={handleSelectGHO}
-          onSearch={(value) => dispatch(setGhoSearch(value))}
-          handleEditGHO={handleEditGHO}
-          handleAddGHO={handleAddGHO}
-          isAddLoading={isAddLoading}
-          placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
-        />
+        <SFlex align="center" sx={{ flexWrap: 'wrap', gap: 5 }}>
+          <SideInput
+            id={IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH}
+            ref={inputRef}
+            handleSelectGHO={handleSelectGHO}
+            onSearch={(value) => dispatch(setGhoSearch(value))}
+            handleEditGHO={handleEditGHO}
+            handleAddGHO={handleAddGHO}
+            isAddLoading={isAddLoading}
+            placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
+          />
+          {viewDataType === ViewsDataEnum.HIERARCHY && (
+            <HierarchyRiskLevelFilter />
+          )}
+          {esocialLink}
+        </SFlex>
       )}
       <Box width="100%">
         {riskInit && viewType !== ViewTypeEnum.SIMPLE_BY_GROUP && (

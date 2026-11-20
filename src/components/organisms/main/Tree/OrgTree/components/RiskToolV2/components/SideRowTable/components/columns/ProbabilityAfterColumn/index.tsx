@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material';
 import React, { FC, useEffect, useMemo, useRef } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
@@ -25,6 +26,9 @@ const RESIDUAL_BLOCKED_REASON =
 export const ProbabilityAfterColumn: FC<
   { children?: any } & ProbabilityColumnProps
 > = ({ handleSelect, data }) => {
+  const isDark = useTheme().palette.mode === 'dark';
+  const infoTextColor = isDark ? '#90CAF9' : 'info.main';
+  const warningTextColor = isDark ? 'warning.main' : '#8A5A00';
   let disabled = true;
 
   if (data && data.recs && data.recs.length) disabled = false;
@@ -42,8 +46,7 @@ export const ProbabilityAfterColumn: FC<
   );
 
   const suggested = useMemo(
-    () =>
-      calculateSuggestedResidualProbability(data?.probability, data?.recs),
+    () => calculateSuggestedResidualProbability(data?.probability, data?.recs),
     [data?.probability, data?.recs],
   );
 
@@ -96,7 +99,10 @@ export const ProbabilityAfterColumn: FC<
   });
 
   const hasMissingRecType = useMemo(
-    () => (data?.recs ?? []).some((rec) => isRecommendationRecTypeMissing(rec?.recType)),
+    () =>
+      (data?.recs ?? []).some((rec) =>
+        isRecommendationRecTypeMissing(rec?.recType),
+      ),
     [data?.recs],
   );
 
@@ -119,9 +125,17 @@ export const ProbabilityAfterColumn: FC<
       {suggestionMessage && (
         <SText
           fontSize={11}
-          color={suggestionMessage.color}
+          color={
+            suggestionMessage.color === 'info.main'
+              ? infoTextColor
+              : suggestionMessage.color === 'warning.dark'
+                ? warningTextColor
+                : suggestionMessage.color
+          }
           sx={{
-            cursor: suggestionMessage.canApplySuggestion ? 'pointer' : 'default',
+            cursor: suggestionMessage.canApplySuggestion
+              ? 'pointer'
+              : 'default',
             lineHeight: 1.3,
             maxWidth: 170,
           }}
@@ -140,7 +154,7 @@ export const ProbabilityAfterColumn: FC<
       {!disabled && hasMissingRecType && (
         <SText
           fontSize={10}
-          color="warning.main"
+          color={warningTextColor}
           sx={{ lineHeight: 1.3, maxWidth: 170 }}
         >
           {MISSING_REC_TYPE_RESIDUAL_HINT}

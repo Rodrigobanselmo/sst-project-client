@@ -69,27 +69,33 @@ export const SideRow = React.memo<SideRowProps>(
         key={gho.id}
         ref={ref}
         sx={{
-          gridTemplateColumns: '285px 1fr',
+          gridTemplateColumns: 'minmax(0, 1fr)',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          pt: 5,
+          mt: 5,
           display: isToFilter ? 'none' : 'grid',
         }}
         gap={5}
       >
-        <SideRowGho
-          data={gho}
-          viewDataType={viewDataType}
-          isSelected={isSelected}
-          handleEditGHO={handleEditGHO}
-          handleSelectGHO={handleSelectGHO}
-          handleDeleteGHO={handleDeleteGHO}
-          isDeleteLoading={isDeleteLoading}
-          hide={hide}
-          riskData={riskData}
-        />
         <SFlex gap={4} direction="column">
           {isRiskOpen &&
             (!riskDataAll?.length ||
               !!riskDataAll?.every((r) => r.endDate)) && (
               <SideRowTable
+                recordHeading={
+                  <SideRowGho
+                    data={gho}
+                    viewDataType={viewDataType}
+                    isSelected={isSelected}
+                    handleEditGHO={handleEditGHO}
+                    handleSelectGHO={handleSelectGHO}
+                    handleDeleteGHO={handleDeleteGHO}
+                    isDeleteLoading={isDeleteLoading}
+                    hide={hide}
+                    riskData={riskData}
+                  />
+                }
                 isSelected={isSelected}
                 hide={hide}
                 gho={gho}
@@ -105,6 +111,19 @@ export const SideRow = React.memo<SideRowProps>(
             riskDataAll?.map((rd) => {
               return (
                 <SideRowTable
+                  recordHeading={
+                    <SideRowGho
+                      data={gho}
+                      viewDataType={viewDataType}
+                      isSelected={isSelected}
+                      handleEditGHO={handleEditGHO}
+                      handleSelectGHO={handleSelectGHO}
+                      handleDeleteGHO={handleDeleteGHO}
+                      isDeleteLoading={isDeleteLoading}
+                      hide={hide}
+                      riskData={riskData}
+                    />
+                  }
                   key={rd.id}
                   isSelected={isSelected}
                   hide={hide}

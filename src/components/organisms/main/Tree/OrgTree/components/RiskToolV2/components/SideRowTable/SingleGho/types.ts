@@ -1,9 +1,11 @@
+import { ReactNode } from 'react';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 
 import { IHierarchyTreeMapObject } from '../../RiskToolViews/RiskToolRiskView/types';
 
 export interface SideTableProps {
+  recordHeading?: ReactNode;
   isSelected?: boolean;
   gho: IGho | IHierarchyTreeMapObject;
   riskData?: IRiskData;

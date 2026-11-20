@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { BoxProps } from '@mui/material';
 
 import { IEpi } from 'core/interfaces/api/IEpi';
@@ -18,6 +19,7 @@ export interface RowColumnsProps extends BoxProps {
   handleEditEngs: (epi: IRecMed) => Promise<void>;
   handleEditExams: (exam: IExam) => Promise<void>;
   handleHelp: (data: Partial<IUpsertRiskData>) => Promise<void>;
+  recordHeading?: ReactNode;
   isSelected?: boolean;
   hide?: boolean;
   isLoading?: boolean;

@@ -29,6 +29,7 @@ import { SideTableProps } from './types';
 
 export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   gho,
+  recordHeading,
   riskData,
   isSelected,
   hide,
@@ -176,6 +177,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   return (
     <RiskCatalogRecordScope value={copyScope}>
       <RowColumns
+        recordHeading={recordHeading}
         isSelected={isSelected}
         hide={hide}
         handleSelect={handleSelect}

@@ -33,7 +33,8 @@ export const SideRowGho: FC<{ children?: any } & SideItemsProps> = ({
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return;
-    if (isHierarchy) return resolveHierarchyNodeTypeLabel(data.type, typeLabels);
+    if (isHierarchy)
+      return resolveHierarchyNodeTypeLabel(data.type, typeLabels);
 
     if (data.description) {
       const splitValues = data.description.split('(//)');
@@ -70,14 +71,17 @@ export const SideRowGho: FC<{ children?: any } & SideItemsProps> = ({
       >
         <STBoxItemContainer
           sx={{
-            border: isSelected ? ' 2px solid' : ' 1px solid',
+            border: 'none',
+            backgroundColor: 'transparent',
+            p: 0,
             borderColor: isSelected ? 'info.main' : 'background.divider',
-            minHeight: '46px',
+            minHeight: '32px',
           }}
         >
           <Box
             // width="75%"
             overflow="hidden"
+            sx={{ display: 'flex', alignItems: 'center', gap: 4 }}
           >
             <Box
               sx={{
@@ -85,7 +89,7 @@ export const SideRowGho: FC<{ children?: any } & SideItemsProps> = ({
                 overflow: 'hidden',
               }}
             >
-              <SText lineNumber={2} fontSize="13px">
+              <SText lineNumber={2} fontWeight={700} fontSize="14px">
                 {name}
               </SText>
             </Box>

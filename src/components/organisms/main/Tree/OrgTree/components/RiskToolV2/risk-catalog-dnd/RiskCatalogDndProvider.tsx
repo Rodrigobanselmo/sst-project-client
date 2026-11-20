@@ -10,10 +10,13 @@ import React, {
   useState,
 } from 'react';
 
+import { Alert, Button } from '@mui/material';
+
 import { DndContext, DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import {
+  RISK_CATALOG_DND_KIND_LABEL_PLURAL,
   RiskCatalogBatchSession,
   RiskCatalogDndDragItem,
   RiskCatalogDndKind,
@@ -52,12 +55,15 @@ export const RiskCatalogDropLock: FC<{ children: ReactNode }> = ({
 export const useRiskCatalogDropLock = () =>
   useContext(RiskCatalogDropLockContext);
 
-export const useRiskCatalogDndOptional = () => useContext(RiskCatalogDndContext);
+export const useRiskCatalogDndOptional = () =>
+  useContext(RiskCatalogDndContext);
 
 export const useRiskCatalogDnd = () => {
   const ctx = useRiskCatalogDndOptional();
   if (!ctx) {
-    throw new Error('useRiskCatalogDnd must be used within RiskCatalogDndProvider');
+    throw new Error(
+      'useRiskCatalogDnd must be used within RiskCatalogDndProvider',
+    );
   }
   return ctx;
 };
@@ -160,6 +166,21 @@ export const RiskCatalogDndProvider: FC<{ children: ReactNode }> = ({
   return (
     <EnsureHtml5DndProvider>
       <RiskCatalogDndContext.Provider value={value}>
+        {batchSession && (
+          <Alert
+            severity="info"
+            sx={{ position: 'sticky', top: 0, zIndex: 5, mb: 4 }}
+            action={
+              <Button color="inherit" size="small" onClick={clearBatchCopy}>
+                Encerrar cópia
+              </Button>
+            }
+          >
+            Cópia ativa: {batchSession.items.length}{' '}
+            {RISK_CATALOG_DND_KIND_LABEL_PLURAL[batchSession.kind]}. Clique nos
+            destinos para colar. Você pode colar em vários locais. Esc encerra.
+          </Alert>
+        )}
         {children}
       </RiskCatalogDndContext.Provider>
     </EnsureHtml5DndProvider>
