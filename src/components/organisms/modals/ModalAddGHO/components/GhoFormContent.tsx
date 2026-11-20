@@ -1,3 +1,7 @@
+import {
+  riskEditorActionSx,
+  riskEditorSaveActionSx,
+} from 'configs/theme/risk-editor-action';
 import { HierarchyDescriptionAssistant } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard/components/HierarchyDescriptionAssistant';
 import { EditorProbabilityAiScope } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/EditorProbabilityAiScope';
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -193,14 +197,6 @@ export const GhoFormContent = ({
       }
     >
       <Box sx={{ px: isPage ? 0 : 2, pt: 6, pb: 4 }}>
-        {ghoData.id && (
-          <StructuralSourceActions
-            companyId={companyId}
-            target={{ table: 'HomogeneousGroup', id: ghoData.id }}
-            disabled={isDirty || loading}
-            onChanged={onCloseUnsaved}
-          />
-        )}
         <SFlex gap={8} direction="column">
           <InputForm
             setValue={setValue}
@@ -388,19 +384,35 @@ export const GhoFormContent = ({
             contextName={headerContextName}
             onBack={onCloseUnsaved}
           />
+          {ghoData.id && (
+            <StructuralSourceActions
+              compact
+              companyId={companyId}
+              target={{ table: 'HomogeneousGroup', id: ghoData.id }}
+              disabled={isDirty || loading}
+              onChanged={onCloseUnsaved}
+            />
+          )}
           <SFlex
             align="center"
             gap={3}
             flexWrap="wrap"
             justifyContent="flex-end"
-            sx={{ flexShrink: 0 }}
+            sx={{
+              flexShrink: 0,
+            }}
           >
             {ghoData.id && (
-              <SButton variant="outlined" onClick={onRemove}>
+              <SButton
+                sx={riskEditorActionSx}
+                variant="outlined"
+                onClick={onRemove}
+              >
                 Excluir
               </SButton>
             )}
             <SButton
+              sx={riskEditorActionSx}
               variant="outlined"
               style={{ minWidth: 100 }}
               id={IdsEnum.CANCEL_BUTTON}
@@ -412,6 +424,7 @@ export const GhoFormContent = ({
               variant="outlined"
               type="submit"
               color={saveActionColor}
+              sx={riskEditorSaveActionSx(saveActionColor === 'error')}
               style={{ minWidth: 100 }}
               loading={loading}
               disabled={loading}
@@ -426,6 +439,7 @@ export const GhoFormContent = ({
               variant="contained"
               type="submit"
               color={saveActionColor}
+              sx={riskEditorSaveActionSx(saveActionColor === 'error', true)}
               style={{ minWidth: 100 }}
               loading={loading}
               disabled={loading}

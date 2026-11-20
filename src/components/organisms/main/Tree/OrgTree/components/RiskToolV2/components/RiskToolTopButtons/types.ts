@@ -21,6 +21,7 @@ export interface SideTopProps {
   /** Empresa do contexto selecionado (route / riskContextCompanyId). */
   companyId?: string;
   onChangeViewData?: (option: IViewsDataOption) => void;
+  enableViewModes?: boolean;
   hideViewSwitcher?: boolean;
   hideCloseButton?: boolean;
   handleSelectGHO: (

@@ -98,15 +98,29 @@ export function RiskDeclarationFields({
     <Accordion
       disableGutters
       elevation={0}
-      sx={{ border: 1, borderColor: 'divider', mt: 4 }}
+      sx={{
+        border: 0,
+        borderTop: 'none',
+        borderRadius: '0 0 18px 18px !important',
+        '&::before': { display: 'none' },
+        '&.Mui-expanded': { borderTop: '1px solid', borderColor: 'divider' },
+        borderColor: 'divider',
+        mt: 4,
+        color: 'text.primary',
+        '& .MuiFormHelperText-root:not(.Mui-error)': {
+          color: 'text.secondary',
+        },
+      }}
       TransitionProps={{ unmountOnExit: true }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="body2">Condições para o eSocial</Typography>
+        <Typography variant="body2" color="text.primary">
+          Condições para o eSocial
+        </Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ p: 8 }}>
         <Stack spacing={8} useFlexGap>
-          <Typography variant="body2">
+          <Typography variant="body2" color="text.secondary">
             Informações desta avaliação. Salvar atualiza o próprio cadastro; a
             transmissão é confirmada no painel do eSocial. As respostas
             individuais dos EPIs continuam no cadastro de cada equipamento.

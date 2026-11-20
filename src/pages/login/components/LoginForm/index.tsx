@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
@@ -9,7 +9,6 @@ import NextLink from 'next/link';
 import * as Yup from 'yup';
 
 import { useAuth } from 'core/contexts/AuthContext';
-import { useOnlineStatus } from 'core/hooks/useOnlineStatus';
 
 import { SButton } from '../../../../components/atoms/SButton';
 import { InputForm } from '../../../../components/molecules/form/input';
@@ -36,12 +35,20 @@ export const LoginForm: FC = () => {
     resolver: yupResolver(Yup.object().shape({ ...loginSchema })),
   });
 
-  const { isLocal } = useOnlineStatus();
   const { onStackOpenModal } = useModal();
 
   const { mutate, isLoading } = useMutationLogin();
   const resetMutation = useMutResetEmailPass();
-  const [isCaptchaVerified, setIsCaptchaVerified] = useState(isLocal || false);
+  const [isLocalDevelopment, setIsLocalDevelopment] = useState(false);
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const isCaptchaVerified = isLocalDevelopment || captchaVerified;
+
+  useEffect(() => {
+    setIsLocalDevelopment(
+      process.env.NODE_ENV === 'development' &&
+        ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname),
+    );
+  }, []);
 
   const email = watch('email');
 
@@ -50,7 +57,7 @@ export const LoginForm: FC = () => {
   };
 
   function onRecaptchaChange(value: string | null) {
-    setIsCaptchaVerified(!!value);
+    setCaptchaVerified(!!value);
   }
   const { googleSignIn } = useAuth();
   const recaptchaTheme = useTheme().palette.mode === 'dark' ? 'dark' : 'light';
@@ -115,27 +122,29 @@ export const LoginForm: FC = () => {
         >
           Esqueceu sua senha?
         </STForgotButton>
-        <Box
-          sx={{
-            mt: 10,
-            display: 'flex',
-            justifyContent: 'center',
-            width: '100%',
-            maxWidth: '100%',
-            transformOrigin: 'center center',
-            minHeight: 78,
-            '@media (max-width: 380px)': {
-              transform: 'scale(0.86)',
-              minHeight: 66,
-            },
-          }}
-        >
-          <ReCAPTCHAComp
-            sitekey="6Lc7Bu4pAAAAAKDIuEI3EWCamZ5p6GLEjihAMuPI"
-            theme={recaptchaTheme}
-            onChange={onRecaptchaChange}
-          />
-        </Box>
+        {!isLocalDevelopment && (
+          <Box
+            sx={{
+              mt: 10,
+              display: 'flex',
+              justifyContent: 'center',
+              width: '100%',
+              maxWidth: '100%',
+              transformOrigin: 'center center',
+              minHeight: 78,
+              '@media (max-width: 380px)': {
+                transform: 'scale(0.86)',
+                minHeight: 66,
+              },
+            }}
+          >
+            <ReCAPTCHAComp
+              sitekey="6Lc7Bu4pAAAAAKDIuEI3EWCamZ5p6GLEjihAMuPI"
+              theme={recaptchaTheme}
+              onChange={onRecaptchaChange}
+            />
+          </Box>
+        )}
         <SButton
           disabled={!isCaptchaVerified}
           loading={isLoading}
@@ -194,7 +203,12 @@ export const LoginForm: FC = () => {
         <Typography color="text.medium" variant="caption" align="center" mt={8}>
           Não possui conta?
           <NextLink href="/cadastro" passHref>
-            <Link pl={2} underline="hover" color="primary.main" fontWeight={600}>
+            <Link
+              pl={2}
+              underline="hover"
+              color="primary.main"
+              fontWeight={600}
+            >
               Cadastre-se
             </Link>
           </NextLink>

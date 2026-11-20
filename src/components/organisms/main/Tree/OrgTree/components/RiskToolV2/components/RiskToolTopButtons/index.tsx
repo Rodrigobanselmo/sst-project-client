@@ -46,6 +46,7 @@ import {
 } from '../../utils/view-risk-type.constant';
 import { RiskToolTopButtonsSelectRisk } from './SelectRisk';
 import { SuggestCatalogRisksWithAiButton } from './SuggestCatalogRisksWithAiButton';
+import { LinkageMenu } from './LinkageMenu';
 import { SideTopProps } from './types';
 
 export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
@@ -57,9 +58,11 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
   onChangeViewData,
   riskGroupId,
   companyId: companyIdProp,
+  enableViewModes = false,
   hideViewSwitcher = false,
   hideCloseButton = false,
 }) => {
+  const EntityMenu = enableViewModes ? LinkageMenu : SPageMenu;
   const dispatch = useAppDispatch();
   const { asPath, push } = useRouter();
   const { onOpenModal, onCloseModal } = useModal();
@@ -90,8 +93,26 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
 
   return (
     <SFlex direction="column">
-      <SFlex align="center" justify="space-between">
-        <SFlex align="center">
+      {enableViewModes && (
+        <LinkageMenu
+          segmented
+          active={viewType}
+          options={[
+            { value: ViewTypeEnum.SIMPLE_BY_GROUP, label: 'Por entidade' },
+            { value: ViewTypeEnum.SIMPLE_BY_RISK, label: 'Por risco' },
+            { value: ViewTypeEnum.MULTIPLE, label: 'Avançada' },
+          ]}
+          onChange={(value) =>
+            onChangeView?.(viewsRiskOptionsConstant[value as ViewTypeEnum])
+          }
+        />
+      )}
+      <SFlex
+        align="center"
+        justify="space-between"
+        sx={{ flexWrap: 'wrap', gap: 4 }}
+      >
+        <SFlex align="center" sx={{ flexWrap: 'wrap', gap: 3 }}>
           {hideViewSwitcher ? (
             <SText ml={4} fontSize={15} color="text.light" mr={5}>
               {viewsDataOptionsConstant[viewDataType]?.short || ''}
@@ -99,9 +120,13 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
           ) : (
             <>
               <SText ml={4} fontSize={15} color="text.light" mr={5}>
-                Adicionar Risco por:
+                {enableViewModes && viewType === ViewTypeEnum.SIMPLE_BY_RISK
+                  ? 'Visualizar vínculos em:'
+                  : enableViewModes && viewType === ViewTypeEnum.MULTIPLE
+                    ? 'Vincular riscos em:'
+                    : 'Adicionar risco por:'}
               </SText>
-              <SPageMenu
+              <EntityMenu
                 active={viewDataType}
                 options={[
                   ViewsDataEnum.GSE,
@@ -114,9 +139,13 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
                 }))}
                 onChange={(option) =>
                   onChangeViewData &&
-                  viewsDataOptionsConstant[option as unknown as ViewsDataEnum] &&
+                  viewsDataOptionsConstant[
+                    option as unknown as ViewsDataEnum
+                  ] &&
                   onChangeViewData(
-                    viewsDataOptionsConstant[option as unknown as ViewsDataEnum],
+                    viewsDataOptionsConstant[
+                      option as unknown as ViewsDataEnum
+                    ],
                   )
                 }
               />
@@ -127,8 +156,11 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
         <SFlex align="center" gap="1" mb={2}>
           <SFlex center sx={{ ml: 'auto' }}>
             <RiskToolTopButtonsSelectRisk
+              key={companyId}
               riskGroupId={riskGroupId}
               viewType={viewType}
+              companyId={companyId}
+              enableViewModes={enableViewModes}
             />
             <SuggestCatalogRisksWithAiButton
               riskGroupId={riskGroupId}

@@ -85,8 +85,7 @@ export function joinRiskToolGseRows(
   if (input.homoId) data.push(...representAllRiskData);
 
   const sortableData = data.filter(
-    (pair): pair is [IRiskData, IRiskFactors] =>
-      !!pair?.[0] && !!pair?.[1]?.id,
+    (pair): pair is [IRiskData, IRiskFactors] => !!pair?.[0] && !!pair?.[1]?.id,
   );
 
   if (
@@ -96,19 +95,26 @@ export function joinRiskToolGseRows(
     return [...sortableData]
       .sort(([, a], [, b]) => sortNumber(a, b, 'name'))
       .sort(([, a], [, b]) =>
-        sortNumber(a.representAll ? -1 : 1, b.representAll ? -1 : 1),
+        sortNumber(a.representAll ? 1 : 0, b.representAll ? 1 : 0),
       )
       .sort(([, a], [, b]) =>
         sortNumber(
           effectiveRiskOrderForGSEGrid(a),
           effectiveRiskOrderForGSEGrid(b),
         ),
+      )
+      .sort(
+        ([, a], [, b]) => Number(!!a.representAll) - Number(!!b.representAll),
       );
 
-  return [...sortableData].sort(([, a], [, b]) =>
-    sortNumber(
-      effectiveRiskOrderForGSEGrid(a),
-      effectiveRiskOrderForGSEGrid(b),
-    ),
-  );
+  return [...sortableData]
+    .sort(([, a], [, b]) =>
+      sortNumber(
+        effectiveRiskOrderForGSEGrid(a),
+        effectiveRiskOrderForGSEGrid(b),
+      ),
+    )
+    .sort(
+      ([, a], [, b]) => Number(!!a.representAll) - Number(!!b.representAll),
+    );
 }

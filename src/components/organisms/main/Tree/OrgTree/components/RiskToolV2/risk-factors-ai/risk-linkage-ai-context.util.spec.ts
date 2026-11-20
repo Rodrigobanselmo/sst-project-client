@@ -180,6 +180,7 @@ function loadComponent(file: string, dependencies: Record<string, any>) {
     Error,
     require: (name: string) => {
       if (name === 'react') return react;
+      if (name === 'configs/theme/risk-editor-action') return { riskEditorActionSx: {} };
       if (name in dependencies) return dependencies[name];
       if (name === '@mui/material')
         return new Proxy({}, { get: (_, name) => String(name) });
@@ -683,6 +684,7 @@ async function main() {
   }));
   const ownerRefreshes: any[] = [];
   const adapterModule = loadComponent(base + 'RiskLinkageAiProvider.tsx', {
+    './LinkageGeneralAnalysis': { LinkageGeneralAnalysis: 'LinkageGeneralAnalysis' },
     'core/enums/query.enums': { QueryEnum: { GHO: 'gho' } },
     'core/services/queryClient': { queryClient: { invalidateQueries: (key: any) => { ownerRefreshes.push(key); return Promise.resolve(); } } },
     './EditorProbabilityAiScope': { EditorProbabilityAiScope: 'EditorProbabilityAiScope' },
@@ -760,6 +762,14 @@ async function main() {
   assert.equal(provider.props.target.kind, 'gse');
   assert.equal(provider.props.target.workspaceId, 'ws-2');
   assert.equal(provider.props.individualOnly, true);
+  Object.assign(state.riskAdd, { viewType: 'SIMPLE_BY_GROUP' });
+  const generalProvider = nodes(renderAdapter()).find((node) => node.type === 'RiskFactorsAiProvider');
+  assert.equal(generalProvider.props.individualOnly, false);
+  const generalDialog = generalProvider.props.renderGeneral({ onClose: () => undefined });
+  assert.equal(generalDialog.props.context.workspaceId, 'ws-2');
+  assert.equal(generalDialog.props.context.entityId, 'gse-a');
+  Object.assign(state.riskAdd, { viewType: 'SIMPLE_BY_RISK' });
+  assert.equal(nodes(renderAdapter()).find((node) => node.type === 'RiskFactorsAiProvider').props.individualOnly, true);
   const probabilityScope = nodes(adapterTree).find((node) => node.type === 'EditorProbabilityAiScope');
   assert.equal(probabilityScope.props.kind, 'GSE');
   assert.equal(probabilityScope.props.ownerId, 'gse-a');

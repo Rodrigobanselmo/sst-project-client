@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import { riskEditorSearchSx } from 'configs/theme/risk-editor-action';
 import React, { useEffect } from 'react';
 
 import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
@@ -29,6 +31,12 @@ export const SideInput = React.forwardRef<any, SideInputProps>(
 
     return (
       <STSInput
+        sx={riskEditorSearchSx}
+        startAdornment={
+          <SearchRoundedIcon
+            sx={{ color: 'text.secondary', mr: 3, fontSize: 20 }}
+          />
+        }
         endAdornment={
           <>
             {handleAddGHO && (
@@ -50,7 +58,7 @@ export const SideInput = React.forwardRef<any, SideInputProps>(
         variant="outlined"
         onChange={(e) => handleSearch(e.target.value)}
         placeholder={'Pesquisar por GSE...'}
-        subVariant="search"
+        subVariant="standard"
         inputRef={ref}
         fullWidth
         {...props}

@@ -96,7 +96,7 @@ const summarizeRiskDataLabels = (
 };
 
 export const ModalAiAnalysisContent = (
-  props: IUseEditCharacterization & { onCloseDialog?: () => void },
+  props: Pick<IUseEditCharacterization, 'data' | 'hasUnsavedChanges' | 'aiRiskAnalysis'> & { onCloseDialog?: () => void },
 ) => {
   const {
     data: characterizationData,

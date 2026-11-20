@@ -1,4 +1,5 @@
 /* eslint-disable quotes */
+import { riskEditorActionSx } from 'configs/theme/risk-editor-action';
 import React, { FC } from 'react';
 
 import { STagButton } from 'components/atoms/STagButton';
@@ -10,5 +11,17 @@ export const TotalTag: FC = () => {
   const total =
     ghoMulti.selectedIds.length - ghoMulti.selectedDisabledIds.length;
 
-  return <STagButton disabled text={`${total} Selecionados`} large mr={5} />;
+  return (
+    <STagButton
+      sx={{
+        ...riskEditorActionSx,
+        pointerEvents: 'none',
+        '&& .text_main': { color: 'text.secondary' },
+      }}
+      disabled
+      text={`${total} Selecionados`}
+      large
+      mr={5}
+    />
+  );
 };

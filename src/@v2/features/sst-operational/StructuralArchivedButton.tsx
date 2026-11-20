@@ -1,3 +1,4 @@
+import { riskEditorActionSx } from 'configs/theme/risk-editor-action';
 import { useState } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
@@ -40,7 +41,9 @@ export function StructuralArchivedButton({
   disabled = false,
   fullWidth = false,
   iconOnly = false,
+  compact = false,
 }: {
+  compact?: boolean;
   companyId: string;
   table: StructuralTable;
   workspaceId?: string;
@@ -53,7 +56,11 @@ export function StructuralArchivedButton({
   const [open, setOpen] = useState(false);
   const [cursor, setCursor] = useState<string>();
   const [selected, setSelected] = useState<ArchivedSource>();
-  const list = useQuery<{ items: ArchivedSource[]; nextCursor: string | null; archiveReadOnly?: true }>(
+  const list = useQuery<{
+    items: ArchivedSource[];
+    nextCursor: string | null;
+    archiveReadOnly?: true;
+  }>(
     ['sst-structural-archived', companyId, table, workspaceId, cursor],
     () =>
       sstGet(
@@ -67,9 +74,10 @@ export function StructuralArchivedButton({
     },
   );
   if (!access.canReadStructure(table) || !companyId) return null;
-  const response = list.isError && axios.isAxiosError(list.error)
-    ? list.error.response
-    : undefined;
+  const response =
+    list.isError && axios.isAxiosError(list.error)
+      ? list.error.response
+      : undefined;
   const accessDenied = response?.status === 403;
   const accessMessage: unknown = response?.data?.message;
   const openArchived = () => {
@@ -98,6 +106,12 @@ export function StructuralArchivedButton({
         <Button
           type="button"
           variant="outlined"
+          sx={
+            compact
+              ? { ...riskEditorActionSx, fontSize: 11, minHeight: 28, px: 4 }
+              : undefined
+          }
+          size={compact ? 'small' : 'medium'}
           fullWidth={fullWidth}
           disabled={disabled}
           onClick={openArchived}
@@ -168,14 +182,15 @@ export function StructuralArchivedButton({
                             .join('/') || '—'}
                         </TableCell>
                         <TableCell>
-                          {!list.data.archiveReadOnly && access.canUpdateStructure(table) && (
-                            <Button
-                              disabled={list.isFetching || list.isError}
-                              onClick={() => setSelected(item)}
-                            >
-                              Revisar restauração
-                            </Button>
-                          )}
+                          {!list.data.archiveReadOnly &&
+                            access.canUpdateStructure(table) && (
+                              <Button
+                                disabled={list.isFetching || list.isError}
+                                onClick={() => setSelected(item)}
+                              >
+                                Revisar restauração
+                              </Button>
+                            )}
                         </TableCell>
                       </TableRow>
                     ))}

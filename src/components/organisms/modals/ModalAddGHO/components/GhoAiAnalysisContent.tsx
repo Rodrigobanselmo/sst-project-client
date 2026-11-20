@@ -101,6 +101,7 @@ export type GhoAiAnalysisPresentation = 'full' | 'risksTabDialog';
 
 type GhoAiAnalysisContentProps = {
   companyId: string;
+  workspaceId?: string;
   ghoData: typeof initialAddGhoState;
   ghoQuery: IGho;
   aiRiskAnalysis: CharacterizationAiRiskAnalysisState;
@@ -115,6 +116,7 @@ export const GhoAiAnalysisContent = ({
   ghoQuery,
   aiRiskAnalysis,
   presentation = 'full',
+  workspaceId: scopedWorkspaceId,
   onCloseDialog,
 }: GhoAiAnalysisContentProps) => {
   const isRisksTabDialog = presentation === 'risksTabDialog';
@@ -126,7 +128,7 @@ export const GhoAiAnalysisContent = ({
   const { showConfirmation } = useConfirmationModal();
   const { companyId: contextCompanyId, workspaceId: pageWorkspaceId } =
     useGetCompanyId();
-  const routeWorkspaceId = pageWorkspaceId || workspaceIds[0];
+  const routeWorkspaceId = scopedWorkspaceId || pageWorkspaceId || workspaceIds[0];
   const { data: riskGroupData } = useQueryRiskGroupData(companyId || undefined);
   const riskGroupId = useMemo(
     () => getCurrentRiskGroupId(riskGroupData),

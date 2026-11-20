@@ -91,7 +91,7 @@ export const STGridExtend = styled(Box)`
 
 export const StyledGridMultiGho = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
   padding-bottom: ${(props) => props.theme.spacing(25)};
   gap: ${(props) => props.theme.spacing(3, 5)};
 `;

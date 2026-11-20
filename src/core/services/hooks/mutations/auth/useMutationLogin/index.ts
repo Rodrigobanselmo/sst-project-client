@@ -25,7 +25,11 @@ export function useMutationLogin() {
       return resp;
     },
     onError: (error: IErrorResp) => {
-      enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      enqueueSnackbar(
+        error.response?.data?.message ||
+          'Não foi possível conectar ao servidor. Tente novamente em instantes.',
+        { variant: 'error' },
+      );
     },
   });
 }

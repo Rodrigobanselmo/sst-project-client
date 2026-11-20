@@ -1,3 +1,4 @@
+import { RiskColumnAddButton } from '../RiskColumnAddButton';
 import React, { FC, useMemo, useState } from 'react';
 
 import { Box } from '@mui/material';
@@ -172,11 +173,14 @@ export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
       handleSelect={handleSelect}
     >
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <RecSelect
             disabled={!risk?.id}
             onlyInput="rec"
             text={'adicionar'}
+            renderButton={({ onClick }) => (
+              <RiskColumnAddButton onClick={onClick} disabled={!risk?.id} label="Adicionar recomendação" />
+            )}
             onlyFromActualRisks
             tooltipTitle=""
             multiple

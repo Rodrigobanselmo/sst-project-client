@@ -1,3 +1,4 @@
+import { RiskColumnAddButton } from '../RiskColumnAddButton';
 import React, { FC, useMemo } from 'react';
 
 import { Box } from '@mui/material';
@@ -65,11 +66,14 @@ export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
       handleSelect={handleSelect}
     >
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <MedSelect
             disabled={!risk?.id}
             onlyFromActualRisks
             text={'adicionar'}
+            renderButton={({ onClick }) => (
+              <RiskColumnAddButton onClick={onClick} disabled={!risk?.id} label="Adicionar medida administrativa" />
+            )}
             tooltipTitle=""
             multiple
             confirmSelectionOnClose={false}

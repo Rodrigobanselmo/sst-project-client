@@ -1,3 +1,4 @@
+import { riskEditorActionSx } from 'configs/theme/risk-editor-action';
 import { mergeProbabilitySuggestionActions } from './merge-probability-suggestion-actions.util';
 import {
   resolveProbabilityAiResult,
@@ -402,7 +403,7 @@ export function RiskFactorsAiProvider({
                 setScoped(null);
                 setGeneralOpen(true);
               }}
-              buttonProps={{ sx: { minWidth: 'auto' } }}
+              buttonProps={{ sx: riskEditorActionSx }}
             />
           </Box>
         )}

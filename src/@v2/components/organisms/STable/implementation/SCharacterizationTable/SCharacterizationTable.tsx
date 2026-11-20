@@ -131,24 +131,17 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <Box
-          display="flex"
-          alignItems="center"
-          gap={0.5}
-          onClick={(e: MouseEvent) => e.stopPropagation()}
-        >
+        <Box display="flex" alignItems="center" gap={0.5}>
           <Box flex={1} minWidth={0}>
             <STextRow text={row.name} />
           </Box>
           {onQuickRename ? (
             <Tooltip
               title={
-                row.isInactive
-                  ? INACTIVE_ACTION_TOOLTIP
-                  : 'Renomear elemento'
+                row.isInactive ? INACTIVE_ACTION_TOOLTIP : 'Renomear elemento'
               }
             >
-              <span>
+              <span onClick={(e) => e.stopPropagation()}>
                 <IconButton
                   size="small"
                   disabled={row.isInactive}
@@ -247,10 +240,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
             onAdd={() => onQuickPhotos(row, true)}
           />
         ) : (
-          <STextRow
-            justify="center"
-            text={String(row.photos?.length ?? 0)}
-          />
+          <STextRow justify="center" text={String(row.photos?.length ?? 0)} />
         ),
     },
     {
@@ -457,7 +447,10 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         />
       ),
       row: (row) => {
-        const cargo = characterizationCargoPresentation(row, officeCoverageById);
+        const cargo = characterizationCargoPresentation(
+          row,
+          officeCoverageById,
+        );
         const tooltip = (
           <div>
             {cargo.lines.map((line, index) => (
@@ -482,9 +475,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
               shouldShowQuickUnlink((row.hierarchies ?? []).length)
             }
             onQuickUnlink={
-              onQuickUnlinkCargo
-                ? () => onQuickUnlinkCargo(row)
-                : undefined
+              onQuickUnlinkCargo ? () => onQuickUnlinkCargo(row) : undefined
             }
             quickUnlinkLoading={quickUnlinkCargoLoadingId === row.id}
             quickUnlinkTooltip="Remover vínculo do cargo"
@@ -492,9 +483,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         ) : (
           <STextRow
             justify="center"
-            text={
-              cargo.showZeroCount ? '0' : cargo.count || '-'
-            }
+            text={cargo.showZeroCount ? '0' : cargo.count || '-'}
             tooltipTitle={tooltip}
           />
         );
@@ -533,7 +522,9 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
       column: '80px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.EDIT),
       header: (
-        <STableHRow justify="center">{columnMap[columnsEnum.EDIT].label}</STableHRow>
+        <STableHRow justify="center">
+          {columnMap[columnsEnum.EDIT].label}
+        </STableHRow>
       ),
       row: (row) => (
         <SIconButtonRow
@@ -577,8 +568,38 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
                   status={row.isInactive ? 'inactive' : 'none'}
                   clickable
                   onClick={() => onSelectRow(row)}
+                  tabIndex={0}
+                  role="group"
+                  aria-label={`Editar caracterização: ${row.name}`}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onSelectRow(row);
+                    }
+                  }}
                   key={row.id}
                   minHeight={35}
+                  sx={{
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: 2,
+                    },
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: row.isInactive ? 'error.dark' : 'divider',
+                    boxShadow: 'none',
+                    WebkitBoxShadow: 'none',
+                    px: 10,
+                    transition:
+                      'background-color 150ms ease, border-color 150ms ease',
+                    '&:hover': {
+                      borderColor: row.isInactive
+                        ? 'error.dark'
+                        : 'primary.border',
+                    },
+                  }}
                 >
                   {rows.map((render) => render(row))}
                 </STableRow>
@@ -617,8 +638,38 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
                   status={row.isInactive ? 'inactive' : 'none'}
                   clickable
                   onClick={() => onSelectRow(row)}
+                  tabIndex={0}
+                  role="group"
+                  aria-label={`Editar caracterização: ${row.name}`}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onSelectRow(row);
+                    }
+                  }}
                   key={row.id}
                   minHeight={35}
+                  sx={{
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: 2,
+                    },
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: row.isInactive ? 'error.dark' : 'divider',
+                    boxShadow: 'none',
+                    WebkitBoxShadow: 'none',
+                    px: 10,
+                    transition:
+                      'background-color 150ms ease, border-color 150ms ease',
+                    '&:hover': {
+                      borderColor: row.isInactive
+                        ? 'error.dark'
+                        : 'primary.border',
+                    },
+                  }}
                 >
                   {rows.map((render) => render(row))}
                 </STableRow>

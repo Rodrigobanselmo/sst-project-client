@@ -5,12 +5,14 @@ import { useTheme } from '@mui/material';
 
 import { STableButton } from '../../STableButton';
 import { STableAddButtonProps } from './STableAddButtonProps.types';
+import { riskEditorActionSx } from 'configs/theme/risk-editor-action';
 import { brandIdentityToolbarAddSx } from 'configs/theme/brand-identity-fill';
 
 export const STableAddButton: FC<STableAddButtonProps> = ({
   onClick,
   text,
   identityFill = false,
+  polished = false,
 }) => {
   const isDark = useTheme().palette.mode === 'dark';
   const labelColor = isDark ? 'primary.main' : 'text.main';
@@ -31,7 +33,9 @@ export const STableAddButton: FC<STableAddButtonProps> = ({
           color: 'text.primary',
           iconColor: 'grey.600',
         }}
-        buttonProps={{ sx: brandIdentityToolbarAddSx }}
+        buttonProps={{
+          sx: polished ? riskEditorActionSx : brandIdentityToolbarAddSx,
+        }}
       />
     );
   }

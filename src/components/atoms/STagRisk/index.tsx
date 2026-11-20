@@ -48,7 +48,7 @@ export const STagRisk = ({
         maxWidth: chipWidthPx,
         px: '6px',
         py: '2px',
-        borderRadius: '4px',
+        borderRadius: '999px',
         boxSizing: 'border-box',
         whiteSpace: 'nowrap',
         textAlign: 'center',

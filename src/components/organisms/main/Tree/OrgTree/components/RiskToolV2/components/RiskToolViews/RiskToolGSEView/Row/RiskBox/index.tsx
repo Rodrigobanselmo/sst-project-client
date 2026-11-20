@@ -396,6 +396,26 @@ export const RiskToolGSEViewRowRiskBox: FC<
                 </IconButton>
               </Tooltip>
             )}
+            {hasData && !isRepresentAll && (
+              <Box
+                component={readOnly ? 'span' : 'button'}
+                type={readOnly ? undefined : 'button'}
+                title={readOnly ? 'Vigência da avaliação' : 'Editar vigência da avaliação'}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!readOnly) onEditDate();
+                }}
+                sx={{ border: 0, background: 'transparent', color: 'text.secondary',
+                  font: 'inherit', fontSize: 11, p: 0, ml: 2,
+                  cursor: readOnly ? 'default' : 'pointer', flexShrink: 0,
+                  '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main' },
+                }}
+              >
+                início: {assessmentPeriodCivilDate(riskData?.startDate)?.format('DD/MM/YYYY') || 'não informado'}
+                {' · '}
+                {riskData?.endDate ? `válido antes de: ${assessmentPeriodCivilDate(riskData.endDate)?.format('DD/MM/YYYY') || ''}` : 'fim: em aberto'}
+              </Box>
+            )}
           </Box>
           </>
           )}
@@ -507,38 +527,6 @@ export const RiskToolGSEViewRowRiskBox: FC<
             <GseEffectiveOriginActionButtons onOpenOrigin={onOpenOrigin} />
           )}
         </SFlex>
-      )}
-      {expanded && hasData && (
-        readOnly ? (
-          <SFlex
-            className="item_end_date"
-            gap={4}
-            sx={{ opacity: 0.85, cursor: 'default' }}
-          >
-            <SText fontSize="10px" color="text.disabled" noBreak>
-              início: {assessmentPeriodCivilDate(riskData?.startDate)?.format('DD/MM/YYYY') || ''}
-            </SText>
-            <SText fontSize="10px" color="text.disabled" noBreak>
-              {riskData?.endDate ? `válido antes de: ${assessmentPeriodCivilDate(riskData.endDate)?.format('DD/MM/YYYY') || ''}` : 'fim: em aberto'}
-            </SText>
-          </SFlex>
-        ) : (
-          <STooltip title={'Editar data'}>
-            <SFlex
-              className="item_end_date"
-              onClick={onEditDate}
-              gap={4}
-              sx={{ opacity: 0.85 }}
-            >
-              <SText fontSize="10px" color="text.disabled" noBreak>
-                início: {assessmentPeriodCivilDate(riskData?.startDate)?.format('DD/MM/YYYY') || ''}
-              </SText>
-              <SText fontSize="10px" color="text.disabled" noBreak>
-                {riskData?.endDate ? `válido antes de: ${assessmentPeriodCivilDate(riskData.endDate)?.format('DD/MM/YYYY') || ''}` : 'fim: em aberto'}
-              </SText>
-            </SFlex>
-          </STooltip>
-        )
       )}
     {historyOpen && historyAccess.canRead && companyId && riskData?.id && (
       <HistoryView

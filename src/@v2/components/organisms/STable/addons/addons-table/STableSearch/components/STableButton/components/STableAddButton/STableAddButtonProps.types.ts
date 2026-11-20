@@ -6,4 +6,5 @@ export type STableAddButtonProps = {
   text?: string;
   /** Identidade só em hover/focus/pressed (repouso neutro). Default: outlined primary. */
   identityFill?: boolean;
+  polished?: boolean;
 };

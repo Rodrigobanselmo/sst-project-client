@@ -5,6 +5,7 @@ import STooltip from 'components/atoms/STooltip';
 import { IMenuFilterOptions } from 'components/molecules/SMenuSearch/SMenuSimpleFilter/types';
 
 type RiskSelectFilterBarProps = {
+  polished?: boolean;
   mainRow: IMenuFilterOptions[];
   ergonomicRow: IMenuFilterOptions[];
   activeFilters: string[];
@@ -12,15 +13,17 @@ type RiskSelectFilterBarProps = {
 };
 
 const FilterPill: FC<{
+  polished?: boolean;
   option: IMenuFilterOptions;
   isActive: boolean;
   onClick: (e: MouseEvent<HTMLButtonElement>) => void;
-}> = ({ option, isActive, onClick }) => (
+}> = ({ option, isActive, onClick, polished }) => (
   <STooltip title={`Filtrar por ${option.label}`}>
     <Box
       component="button"
       type="button"
       onClick={onClick}
+      aria-pressed={isActive}
       sx={{
         appearance: 'none',
         border: 'none',
@@ -42,6 +45,16 @@ const FilterPill: FC<{
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         textAlign: 'center',
+        ...(polished && {
+          borderRadius: '16px',
+          border: '1px solid',
+          borderColor: isActive ? option.activeColor : 'divider',
+          backgroundColor: isActive ? option.activeColor : 'transparent',
+          color: isActive
+            ? option.activeTextColor || 'common.white'
+            : 'text.secondary',
+          '&:hover': { opacity: 0.85, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' },
+        }),
       }}
     >
       {option.label}
@@ -50,7 +63,7 @@ const FilterPill: FC<{
 );
 
 export const RiskSelectFilterBar: FC<RiskSelectFilterBarProps> = memo(
-  ({ mainRow, ergonomicRow, activeFilters, onClickFilter }) => (
+  ({ mainRow, ergonomicRow, activeFilters, onClickFilter, polished }) => (
     <Box
       sx={{
         ml: 6,
@@ -75,6 +88,7 @@ export const RiskSelectFilterBar: FC<RiskSelectFilterBarProps> = memo(
           <FilterPill
             key={option.filter}
             option={option}
+            polished={polished}
             isActive={activeFilters.includes(option.filter)}
             onClick={(e) => onClickFilter(option.filter, e)}
           />
@@ -91,6 +105,7 @@ export const RiskSelectFilterBar: FC<RiskSelectFilterBarProps> = memo(
           <FilterPill
             key={option.filter}
             option={option}
+            polished={polished}
             isActive={activeFilters.includes(option.filter)}
             onClick={(e) => onClickFilter(option.filter, e)}
           />

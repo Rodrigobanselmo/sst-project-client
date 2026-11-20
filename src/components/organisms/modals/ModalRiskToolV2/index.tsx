@@ -1,3 +1,5 @@
+import { RiskLinkageAiProvider } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-factors-ai/RiskLinkageAiProvider';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import React from 'react';
 
 import SModal from 'components/molecules/SModal';
@@ -23,6 +25,7 @@ import { useModalRiskToolV2 } from './hooks/useModalRiskToolV2';
 import { ModalAddActivity } from '../ModalAddActivity';
 
 export const ModalRiskToolV2 = () => {
+  const { companyId } = useGetCompanyId();
   const { registerModal, onCloseUnsaved, modalName, data } =
     useModalRiskToolV2();
 
@@ -42,7 +45,9 @@ export const ModalRiskToolV2 = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <RiskToolV2 riskGroupId={data.riskGroupId} />
+      <RiskLinkageAiProvider companyId={companyId || ''} riskGroupId={data.riskGroupId}>
+        <RiskToolV2 riskGroupId={data.riskGroupId} />
+      </RiskLinkageAiProvider>
     </SModal>
   );
 };

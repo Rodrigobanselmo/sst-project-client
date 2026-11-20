@@ -1,3 +1,4 @@
+import { RiskColumnAddButton } from '../RiskColumnAddButton';
 import React, { FC, useMemo, useState } from 'react';
 
 import { Box } from '@mui/material';
@@ -44,11 +45,14 @@ export const EpiColumn: FC<{ children?: any } & EpiColumnProps> = ({
       handleSelect={handleSelect}
     >
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <EpiSelect
             asyncLoad
             disabled={!risk?.id}
             text={'adicionar'}
+            renderButton={({ onClick }) => (
+              <RiskColumnAddButton onClick={onClick} disabled={!risk?.id} label="Adicionar EPI" />
+            )}
             tooltipTitle=""
             multiple={false}
             lockSelected

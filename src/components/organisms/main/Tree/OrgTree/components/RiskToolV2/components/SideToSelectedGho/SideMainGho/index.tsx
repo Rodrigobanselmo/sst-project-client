@@ -32,7 +32,8 @@ export const SideMainGho: FC<{ children?: any } & SideItemsProps> = ({
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return;
-    if (isHierarchy) return resolveHierarchyNodeTypeLabel(data.type, typeLabels);
+    if (isHierarchy)
+      return resolveHierarchyNodeTypeLabel(data.type, typeLabels);
 
     if (data.description) {
       const splitValues = data.description.split('(//)');
@@ -75,8 +76,12 @@ export const SideMainGho: FC<{ children?: any } & SideItemsProps> = ({
         {topText && (
           <SText
             sx={{
-              backgroundColor: isEndSelect ? 'grey.400' : 'gray.200',
-              borderRadius: '4px',
+              backgroundColor: 'action.selected',
+              color: 'text.primary',
+              display: 'inline-flex',
+              width: 'fit-content',
+              px: 4,
+              borderRadius: '999px',
               pl: 4,
             }}
             fontSize={12}
@@ -100,7 +105,7 @@ export const SideMainGho: FC<{ children?: any } & SideItemsProps> = ({
             />
           )}
 
-          <SText sx={{ width: '100%' }} lineNumber={2}>
+          <SText sx={{ width: '100%', minWidth: 0, flex: 1 }} lineNumber={2}>
             {name}
           </SText>
           {handleEndSelect && (

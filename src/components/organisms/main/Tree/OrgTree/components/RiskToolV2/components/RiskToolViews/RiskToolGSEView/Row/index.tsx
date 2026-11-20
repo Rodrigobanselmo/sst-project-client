@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { RiskEnum } from 'project/enum/risk.enums';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -39,8 +39,9 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
         stringNormalize(searchSelected),
       );
 
+    const theme = useTheme();
     const expanded = expandCtx ? expandCtx.isExpanded(rowId) : false;
-    const borderColor = riskData?.endDate ? 'error.main' : 'grey.400';
+    const borderColor = riskData?.endDate ? 'error.main' : theme.palette.mode === 'dark' ? '#69778B' : '#C5CBD3';
 
     const isBatchSelecting = !!dnd?.isSelectingDestination && !readOnly;
     const isBatchSource =
@@ -55,14 +56,20 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
         sx={{
           display: isToFilter ? 'none' : 'block',
           width: '100%',
-          mb: 5,
-          border: '1.5px solid',
+          mb: 8,
+          border: '2px solid',
           borderColor: isBatchDestination
             ? 'primary.main'
             : isBatchSource
               ? 'warning.main'
               : borderColor,
-          borderRadius: 1,
+          borderRadius: expanded ? '20px' : '999px',
+          '&& .item_box': {
+            borderRadius: expanded ? '20px 20px 0 0' : '999px',
+            borderBottom: 'none',
+            paddingLeft: '12px',
+            paddingRight: '12px',
+          },
           backgroundColor: isBatchDestination
             ? 'rgba(25, 118, 210, 0.04)'
             : 'background.paper',
@@ -116,6 +123,7 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
           <Box
             sx={{
               width: '100%',
+              borderRadius: '0 0 18px 18px',
               overflowX: 'auto',
               overflowY: 'visible',
               backgroundColor: isBatchDestination

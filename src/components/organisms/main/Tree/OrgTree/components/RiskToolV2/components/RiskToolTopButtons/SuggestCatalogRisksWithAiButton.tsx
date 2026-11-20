@@ -1,3 +1,4 @@
+import { riskEditorActionSx } from 'configs/theme/risk-editor-action';
 import { useMemo, useState } from 'react';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
@@ -39,10 +40,7 @@ type Props = Partial<SideTopProps> & {
  */
 function useIsSystemMaster(): boolean {
   const roles = useAppSelector(selectUserRoles);
-  return useMemo(
-    () => (roles ?? []).includes(RoleEnum.MASTER),
-    [roles],
-  );
+  return useMemo(() => (roles ?? []).includes(RoleEnum.MASTER), [roles]);
 }
 
 export function SuggestCatalogRisksWithAiButton({
@@ -73,8 +71,7 @@ export function SuggestCatalogRisksWithAiButton({
         riskGroupId,
         selectedEntityId: selectedGho?.id,
         routeWorkspaceId:
-          routeWorkspaceId ||
-          (router.query.workspaceId as string | undefined),
+          routeWorkspaceId || (router.query.workspaceId as string | undefined),
         tabWorkspaceId: router.query.tabWorkspaceId as string | undefined,
         entityWorkspaceIds: (selectedGho as { workspaceIds?: string[] } | null)
           ?.workspaceIds,
@@ -185,7 +182,7 @@ export function SuggestCatalogRisksWithAiButton({
           variant="outlined"
           startIcon={<AutoFixHighOutlinedIcon sx={{ fontSize: 16 }} />}
           onClick={() => setOpen(true)}
-          sx={{ textTransform: 'none', whiteSpace: 'nowrap' }}
+          sx={{ ...riskEditorActionSx, whiteSpace: 'nowrap' }}
         >
           ✨ Sugerir riscos com IA
         </Button>

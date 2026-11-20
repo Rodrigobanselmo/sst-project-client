@@ -1,4 +1,13 @@
-import React, { FC, useMemo } from 'react';
+import { ToggleButton, ToggleButtonGroup, Box } from '@mui/material';
+import SText from 'components/atoms/SText';
+import { hierarchyList } from 'core/constants/maps/hierarchy.constant';
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
+import {
+  riskEditorActionSx,
+  riskEditorPrimaryActionSx,
+} from 'configs/theme/risk-editor-action';
+import React, { FC, useMemo, useState } from 'react';
 
 import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
 import { useRouter } from 'next/router';
@@ -34,6 +43,18 @@ export const RiskToolRiskHierarchyView: FC<
 
   const { hierarchyListData } = useListHierarchy();
 
+  const typeLabels = useHierarchyTypeLabels();
+  const [hierarchyLevel, setHierarchyLevel] = useState<HierarchyEnum>(() => {
+    const selectedNode = hierarchyListData().find(
+      (node) =>
+        String(node.id).split('//')[0] === String(selectedGhoId).split('//')[0],
+    );
+    return hierarchyList.some(
+      (level) => level.value === String(selectedNode?.type),
+    )
+      ? (selectedNode!.type as unknown as HierarchyEnum)
+      : HierarchyEnum.SECTOR;
+  });
   const risk = useAppSelector(selectRisk);
 
   //! performance optimization here
@@ -43,7 +64,9 @@ export const RiskToolRiskHierarchyView: FC<
   );
 
   const hierarchyOrderedData = useMemo(() => {
-    const hierarchyArray = hierarchyListData();
+    const hierarchyArray = hierarchyListData().filter(
+      (node) => String(node.type) === hierarchyLevel,
+    );
     if (!hierarchyArray) return [];
     if (!riskData) return hierarchyArray;
     if (riskData.length === 0) return hierarchyArray;
@@ -71,6 +94,7 @@ export const RiskToolRiskHierarchyView: FC<
     );
   }, [
     hierarchyListData,
+    hierarchyLevel,
     riskData,
     selectedGhoFilter.key,
     selectedGhoFilter.value,
@@ -78,6 +102,54 @@ export const RiskToolRiskHierarchyView: FC<
 
   return (
     <>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 4,
+          py: 3,
+        }}
+      >
+        <SText color="text.secondary">Nível hierárquico:</SText>
+        <ToggleButtonGroup
+          exclusive
+          value={hierarchyLevel}
+          aria-label="Nível hierárquico por risco"
+          onChange={(_, value: HierarchyEnum | null) => {
+            if (value) setHierarchyLevel(value);
+          }}
+          sx={{
+            flexWrap: 'wrap',
+            gap: 3,
+            '& .MuiToggleButtonGroup-grouped': {
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: '999px !important',
+              m: 0,
+            },
+          }}
+        >
+          {hierarchyList.map((level) => (
+            <ToggleButton
+              key={level.value}
+              value={level.value}
+              sx={
+                hierarchyLevel === level.value
+                  ? riskEditorPrimaryActionSx
+                  : riskEditorActionSx
+              }
+            >
+              {typeLabels[level.value]}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+      </Box>
+      {!hierarchyOrderedData.length && (
+        <SText color="text.secondary" sx={{ py: 4 }}>
+          Nenhum item cadastrado neste nível hierárquico.
+        </SText>
+      )}
       {hierarchyOrderedData.map((gho) => {
         if (
           [

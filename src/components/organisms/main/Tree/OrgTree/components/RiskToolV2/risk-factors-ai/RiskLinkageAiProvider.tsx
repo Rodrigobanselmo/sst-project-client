@@ -1,3 +1,4 @@
+import { LinkageGeneralAnalysis } from './LinkageGeneralAnalysis';
 import { EditorProbabilityAiScope } from './EditorProbabilityAiScope';
 import React, { useEffect } from 'react';
 import { queryClient } from 'core/services/queryClient';
@@ -194,11 +195,20 @@ function ScopedLinkageAi({
   children: React.ReactNode;
 }) {
   const { context } = scope;
+  const viewType = useAppSelector((state) => String(state.riskAdd.viewType));
+  const canShowGeneral =
+    viewType === 'SIMPLE_BY_GROUP' && context.kind !== 'hierarchy';
   useEffect(() => {
     // A first direct link can persist the hierarchy's typed owner after the GHO cache was loaded.
     if (context.kind === 'hierarchy' && scope.rows.length > 0)
       void queryClient.invalidateQueries([QueryEnum.GHO, context.companyId]);
-  }, [context.kind, context.companyId, context.entityId, signature, scope.rows.length]);
+  }, [
+    context.kind,
+    context.companyId,
+    context.entityId,
+    signature,
+    scope.rows.length,
+  ]);
   const analysis = useCharacterizationAiRiskAnalysisState({
     companyId: context.companyId,
     workspaceId: context.workspaceId,
@@ -242,14 +252,34 @@ function ScopedLinkageAi({
   return (
     <RiskFactorsAiProvider
       target={target}
-      individualOnly
+      individualOnly={!canShowGeneral}
+      renderGeneral={
+        canShowGeneral
+          ? ({ onClose }) => (
+              <LinkageGeneralAnalysis
+                context={context}
+                analysis={analysis}
+                onClose={onClose}
+              />
+            )
+          : undefined
+      }
       occurrenceScope={scope}
     >
       <EditorProbabilityAiScope
         jointWorkspaceScoped
-        kind={context.kind === 'hierarchy' ? 'HIERARCHY' : context.kind === 'gse' ? 'GSE' : 'CHARACTERIZATION'}
-        companyId={context.companyId} workspaceId={context.workspaceId}
-        riskGroupId={context.riskGroupId} ownerId={context.entityId} hierarchyType={context.hierarchyType}
+        kind={
+          context.kind === 'hierarchy'
+            ? 'HIERARCHY'
+            : context.kind === 'gse'
+              ? 'GSE'
+              : 'CHARACTERIZATION'
+        }
+        companyId={context.companyId}
+        workspaceId={context.workspaceId}
+        riskGroupId={context.riskGroupId}
+        ownerId={context.entityId}
+        hierarchyType={context.hierarchyType}
       >
         {children}
       </EditorProbabilityAiScope>

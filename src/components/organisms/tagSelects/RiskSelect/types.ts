@@ -5,6 +5,13 @@ import { BoxProps, MenuProps } from '@mui/material';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 export interface ITypeSelectProps extends BoxProps {
+  polished?: boolean;
+  linkageContext?: {
+    companyId: string;
+    workspaceId?: string;
+    companyName: string;
+    workspaceName?: string;
+  };
   selectedRiskIds?: (string | number)[];
   large?: boolean;
   multiple?: boolean;

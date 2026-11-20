@@ -1,3 +1,7 @@
+import {
+  riskEditorActionSx,
+  riskEditorSearchSx,
+} from 'configs/theme/risk-editor-action';
 import { useRouter } from 'next/router';
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 
@@ -131,8 +135,7 @@ export const CharacterizationTable = ({
   const companyId = router.query.companyId as string;
   const isCharacterizationListRoute =
     router.pathname === CARACTERIZACAO_ROOT_PATHNAME ||
-    (router.pathname === COMPANY_SST_PATHNAME &&
-      router.query.stage === 'sst');
+    (router.pathname === COMPANY_SST_PATHNAME && router.query.stage === 'sst');
 
   const { workspaceId, isWorkspaceFilterReady } =
     useEnsureCharacterizationTabWorkspace({
@@ -156,44 +159,39 @@ export const CharacterizationTable = ({
     defaultLimit,
   } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_CHARACTERIZATION);
 
-  const {
-    characterizations,
-    isLoading,
-    isFetching,
-    isError,
-    refetch,
-  } = useFetchBrowseCharaterizations(
-    {
-      companyId,
-      workspaceId: workspaceId || '',
-      filters: {
-        search: queryParams.search,
-        stageIds: queryParams.stageIds,
-        includeInactive: queryParams.includeInactive === true,
+  const { characterizations, isLoading, isFetching, isError, refetch } =
+    useFetchBrowseCharaterizations(
+      {
+        companyId,
+        workspaceId: workspaceId || '',
+        filters: {
+          search: queryParams.search,
+          stageIds: queryParams.stageIds,
+          includeInactive: queryParams.includeInactive === true,
+        },
+        orderBy: queryParams.orderBy || [
+          {
+            field: CharacterizationOrderByEnum.TYPE,
+            order: 'asc',
+          },
+          {
+            field: CharacterizationOrderByEnum.ORDER,
+            order: 'asc',
+          },
+          {
+            field: CharacterizationOrderByEnum.NAME,
+            order: 'asc',
+          },
+        ],
+        pagination: {
+          page: queryParams.page || 1,
+          limit: pageLimit,
+        },
       },
-      orderBy: queryParams.orderBy || [
-        {
-          field: CharacterizationOrderByEnum.TYPE,
-          order: 'asc',
-        },
-        {
-          field: CharacterizationOrderByEnum.ORDER,
-          order: 'asc',
-        },
-        {
-          field: CharacterizationOrderByEnum.NAME,
-          order: 'asc',
-        },
-      ],
-      pagination: {
-        page: queryParams.page || 1,
-        limit: pageLimit,
+      {
+        enabled: hasWorkspaceSelected && isWorkspaceFilterReady,
       },
-    },
-    {
-      enabled: hasWorkspaceSelected && isWorkspaceFilterReady,
-    },
-  );
+    );
 
   const searchTerm = String(queryParams.search || '').trim();
   const characterizationResults = hasWorkspaceSelected
@@ -201,11 +199,7 @@ export const CharacterizationTable = ({
     : [];
   const hierarchyQuery = useQueryHierarchies(companyId);
   const officeCoverageById = useMemo(() => {
-    if (
-      !hasWorkspaceSelected ||
-      !workspaceId ||
-      !hierarchyQuery.isSuccess
-    ) {
+    if (!hasWorkspaceSelected || !workspaceId || !hierarchyQuery.isSuccess) {
       return undefined;
     }
 
@@ -456,19 +450,25 @@ export const CharacterizationTable = ({
   const tableChrome = (
     <>
       <STableSearch
+        inputProps={{ subVariant: 'standard', sx: riskEditorSearchSx }}
         search={queryParams.search}
         onSearch={(search) => onFilterData({ search, page: 1 })}
       >
         <STableSearchContent>
           {hasWorkspaceSelected && (
             <>
-              <STableAddButton identityFill onClick={handleCharacterizationAdd} />
+              <STableAddButton
+                polished
+                identityFill
+                onClick={handleCharacterizationAdd}
+              />
               <STableButton
                 onClick={handleCharacterizationCopy}
                 text="Importar caracterização"
                 tooltip="Importe uma caracterização existente, trazendo seus dados, fotos e riscos para este estabelecimento."
                 icon={<ContentCopyOutlinedIcon sx={{ fontSize: 16 }} />}
                 {...tableOperationalButtonProps}
+                buttonProps={{ sx: riskEditorActionSx }}
               />
             </>
           )}
@@ -623,9 +623,10 @@ export const CharacterizationTable = ({
       showInitialLoading ||
       showSearchEmpty,
     contentEmpty: undefined,
-    pagination: hasWorkspaceSelected && !showSearchError
-      ? characterizations?.pagination
-      : undefined,
+    pagination:
+      hasWorkspaceSelected && !showSearchError
+        ? characterizations?.pagination
+        : undefined,
     setPage: (page) => onFilterData({ page }),
     setOrderBy: onOrderBy,
     statusButtonProps: {

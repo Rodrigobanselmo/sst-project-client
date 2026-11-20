@@ -1,4 +1,8 @@
 /* eslint-disable quotes */
+import {
+  riskEditorActionSx,
+  riskEditorSaveActionSx,
+} from 'configs/theme/risk-editor-action';
 import React, { FC } from 'react';
 
 import { SButton } from 'components/atoms/SButton';
@@ -27,15 +31,15 @@ export const SaveButton: FC = () => {
       <SButton
         onClick={onDelete}
         style={{ height: '30px' }}
-        sx={{ backgroundColor: 'grey.400' }}
+        sx={riskEditorActionSx}
         loading={saveState.isSaving}
       >
         Limpar dados
       </SButton>
       <SButton
         onClick={save}
-        style={{ height: '30px', maxWidth: '20px' }}
-        sx={!saveState.isEdited ? { backgroundColor: 'grey.400' } : {}}
+        style={{ height: '32px' }}
+        sx={riskEditorSaveActionSx(saveState.isEdited, true)}
         loading={saveState.isSaving}
       >
         Adicionar

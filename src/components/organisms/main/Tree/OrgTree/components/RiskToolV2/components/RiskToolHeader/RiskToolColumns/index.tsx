@@ -37,7 +37,10 @@ export const RiskToolColumns: FC<
 
   return (
     <STGridHeader
-      sx={{ gridTemplateColumns: columns.map((row) => row.grid).join(' ') }}
+      sx={{
+        gridTemplateColumns: columns.map((row) => row.grid).join(' '),
+        px: viewType === ViewTypeEnum.SIMPLE_BY_GROUP ? '10px' : '8px',
+      }}
     >
       {columns.map((column) => {
         const isFilterSelected = selectedGhoFilter.key === column.filterKey;
@@ -55,6 +58,14 @@ export const RiskToolColumns: FC<
               center
               sx={{
                 position: 'relative',
+                ...(isSortable
+                  ? {
+                      '&:hover': {
+                        borderColor: 'primary.border',
+                        backgroundColor: 'action.hover',
+                      },
+                    }
+                  : {}),
                 userSelect: 'none',
                 cursor: isSortable ? 'pointer' : 'default',
               }}

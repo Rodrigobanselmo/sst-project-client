@@ -1,12 +1,24 @@
 import React, { FC, useCallback, useMemo, useState, MouseEvent } from 'react';
 
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
-import { Box, Icon } from '@mui/material';
+import {
+  Box,
+  Button,
+  Icon,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { RiskSelectFilterBar } from './RiskSelectFilterBar';
 import { initialAddRiskState } from 'components/organisms/modals/ModalAddRisk/hooks/useAddRisk';
 import { RiskEnum } from 'project/enum/risk.enums';
+
+import { useQuery } from 'react-query';
+import { QueryEnum } from 'core/enums/query.enums';
+import { queryExams as queryLinkedRisks } from 'core/services/hooks/queries/useQueryRisksCompany/useQueryRisksCompany';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { SScaleFactorPill } from 'components/atoms/SScaleFactorPill';
@@ -27,21 +39,68 @@ import { sortString } from 'core/utils/sorts/string.sort';
 
 import { useQueryAllRisk } from '../../../../core/services/hooks/queries/useQueryRiskAll';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
-import {
-  riskFilterErgonomicRow,
-  riskFilterMainRow,
-} from './constants/filters';
+import { riskFilterErgonomicRow, riskFilterMainRow } from './constants/filters';
 import { ITypeSelectProps } from './types';
+
+const EMPTY_LINKED_RISKS: IRiskFactors[] = [];
 
 export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
   large,
+  linkageContext,
+  polished = false,
   handleSelect,
   selectedRiskIds,
   text,
   multiple = true,
   ...props
 }) => {
+  const polishedAppearance = polished || !!linkageContext;
   const { data } = useQueryAllRisk();
+  const [origin, setOrigin] = useState<'workspace' | 'company' | 'catalog'>(
+    linkageContext?.workspaceId ? 'workspace' : 'company',
+  );
+  const effectiveOrigin =
+    origin === 'workspace' && !linkageContext?.workspaceId ? 'company' : origin;
+  const linkedRisks = useQuery(
+    [
+      QueryEnum.RISK,
+      'company',
+      'linkage-selector',
+      linkageContext?.companyId,
+      effectiveOrigin === 'workspace' ? linkageContext?.workspaceId : undefined,
+    ],
+    async () => {
+      const risks: IRiskFactors[] = [];
+      let count = 0;
+      do {
+        const page = await queryLinkedRisks(
+          { skip: risks.length, take: 200 },
+          {
+            companyId: linkageContext!.companyId,
+            workspaceId:
+              effectiveOrigin === 'workspace'
+                ? linkageContext?.workspaceId
+                : undefined,
+          },
+        );
+        count = page.count;
+        if (!page.data.length && risks.length < count)
+          throw new Error('Incomplete risk list');
+        risks.push(...page.data);
+      } while (risks.length < count);
+      return risks;
+    },
+    {
+      enabled: !!linkageContext?.companyId && effectiveOrigin !== 'catalog',
+      staleTime: 0,
+    },
+  );
+  const scopedData =
+    linkageContext && effectiveOrigin !== 'catalog'
+      ? linkedRisks.isError
+        ? EMPTY_LINKED_RISKS
+        : (linkedRisks.data ?? EMPTY_LINKED_RISKS)
+      : data;
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const { onStackOpenModal } = useModal();
 
@@ -102,9 +161,9 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
   );
 
   const options = useMemo(() => {
-    if (!data) return [];
+    if (!scopedData) return [];
 
-    const filterData = data.filter(
+    const filterData = scopedData.filter(
       (risk) =>
         !risk.representAll ||
         (risk.type === RiskEnum.OUTROS && risk.representAll),
@@ -117,14 +176,60 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
         .map(mapRiskSelectSearchFields);
 
     return filterData.map(mapRiskSelectSearchFields);
-  }, [data, activeFilters]);
+  }, [scopedData, activeFilters]);
 
   return (
     <STagSearchSelect
       options={options}
+      renderButton={
+        polishedAppearance
+          ? ({ onClick, text }) => (
+              <Button
+                disabled={props.disabled}
+                variant="outlined"
+                size="small"
+                onClick={onClick as any}
+                startIcon={<ReportProblemOutlinedIcon />}
+                endIcon={<ExpandMoreIcon />}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: '22px',
+                  borderColor: 'divider',
+                  color: 'text.primary',
+                  px: 6,
+                  py: 3,
+                  minHeight: 38,
+                  maxWidth: 360,
+                  mr: 5,
+                  '& .MuiButton-startIcon': { color: 'text.secondary' },
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {text}
+                </Box>
+              </Button>
+            )
+          : undefined
+      }
       icon={ReportProblemOutlinedIcon}
       multiple={multiple}
-      additionalButton={handleAddRisk}
+      additionalButton={
+        !linkageContext || effectiveOrigin === 'catalog'
+          ? handleAddRisk
+          : undefined
+      }
+      isLoading={
+        !!linkageContext &&
+        effectiveOrigin !== 'catalog' &&
+        linkedRisks.isFetching
+      }
       text={text || (riskLength === '0' ? '' : riskLength)}
       keys={[...RISK_SELECT_FUSE_KEYS]}
       transformSearch={normalizeRiskSelectSearchQuery}
@@ -134,12 +239,90 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
       tooltipTitle={`${riskLength} fatores de risco`}
       listMaxHeight="min(560px, calc(100vh - 200px))"
       renderFilter={() => (
-        <RiskSelectFilterBar
-          mainRow={riskFilterMainRow}
-          ergonomicRow={riskFilterErgonomicRow}
-          activeFilters={activeFilters}
-          onClickFilter={(filter) => handleActiveRisk(filter)}
-        />
+        <>
+          {linkageContext && (
+            <Box sx={{ px: 6, py: 4 }}>
+              <Typography fontSize={12} color="text.secondary" sx={{ mb: 3 }}>
+                {linkageContext.companyName} ·{' '}
+                {effectiveOrigin === 'workspace'
+                  ? linkageContext.workspaceName ||
+                    'Estabelecimento selecionado'
+                  : effectiveOrigin === 'company'
+                    ? 'Todos os estabelecimentos'
+                    : 'Catálogo completo'}
+              </Typography>
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={effectiveOrigin}
+                aria-label="Origem dos fatores de risco"
+                onChange={(_, value) => {
+                  if (value) setOrigin(value);
+                }}
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 2,
+                  '& .MuiToggleButton-root': {
+                    borderRadius: '18px !important',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    textTransform: 'none',
+                    px: 4,
+                    fontSize: 12,
+                  },
+                  '& .Mui-selected': {
+                    bgcolor: 'action.selected',
+                    fontWeight: 600,
+                  },
+                }}
+              >
+                {linkageContext.workspaceId && (
+                  <ToggleButton value="workspace">
+                    Vinculados ao estabelecimento
+                  </ToggleButton>
+                )}
+                <ToggleButton value="company">
+                  Vinculados à empresa
+                </ToggleButton>
+                <ToggleButton value="catalog">Catálogo completo</ToggleButton>
+              </ToggleButtonGroup>
+              {effectiveOrigin !== 'catalog' &&
+                !linkedRisks.isFetching &&
+                (linkedRisks.isError ? (
+                  <Box role="alert" sx={{ mt: 3 }}>
+                    <Typography fontSize={13}>
+                      Não foi possível carregar os riscos vinculados.
+                    </Typography>
+                    <Button size="small" onClick={() => linkedRisks.refetch()}>
+                      Tentar novamente
+                    </Button>
+                  </Box>
+                ) : !linkedRisks.data?.length ? (
+                  <Typography
+                    fontSize={13}
+                    color="text.secondary"
+                    sx={{ mt: 3 }}
+                  >
+                    Nenhum risco vinculado{' '}
+                    {effectiveOrigin === 'workspace'
+                      ? 'neste estabelecimento'
+                      : 'nesta empresa'}
+                    . Consulte{' '}
+                    {effectiveOrigin === 'workspace' ? 'a empresa ou ' : ''}o
+                    catálogo completo nas opções acima.
+                  </Typography>
+                ) : null)}
+            </Box>
+          )}
+          <RiskSelectFilterBar
+            polished={polishedAppearance}
+            mainRow={riskFilterMainRow}
+            ergonomicRow={riskFilterErgonomicRow}
+            activeFilters={activeFilters}
+            onClickFilter={(filter) => handleActiveRisk(filter)}
+          />
+        </>
       )}
       startAdornment={(option: IRiskFactors | undefined) =>
         option ? (

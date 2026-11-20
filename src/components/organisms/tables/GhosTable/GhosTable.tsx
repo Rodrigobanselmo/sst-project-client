@@ -1,3 +1,7 @@
+import {
+  riskEditorActionSx,
+  riskEditorSearchSx,
+} from 'configs/theme/risk-editor-action';
 import { FC, useCallback, useState } from 'react';
 
 import { Box, BoxProps, useTheme } from '@mui/material';
@@ -164,11 +168,15 @@ export const GhosTable: FC<
       {!isSelect && (
         <STableTitle icon={SGhoIcon}>Grupo Similar de Exposição</STableTitle>
       )}
-      <STableSearchV2 onSearch={handleSearchChange} search={search}>
+      <STableSearchV2
+        onSearch={handleSearchChange}
+        search={search}
+        inputProps={{ subVariant: 'standard', sx: riskEditorSearchSx }}
+      >
         {!isSelect && (
           <STableSearchContent>
             <>
-              <STableAddButton identityFill onClick={onAddGHO} />
+              <STableAddButton polished identityFill onClick={onAddGHO} />
               <STableButton
                 onClick={handleImportGse}
                 text="Importar GSE"
@@ -176,6 +184,7 @@ export const GhosTable: FC<
                 icon={<ContentCopyOutlinedIcon sx={{ fontSize: 16 }} />}
                 disabled={!workspaceId}
                 {...tableOperationalButtonProps}
+                buttonProps={{ sx: riskEditorActionSx }}
               />
             </>
           </STableSearchContent>
@@ -198,7 +207,36 @@ export const GhosTable: FC<
       hideLoadMore
       rowsInitialNumber={pageSize}
       renderRow={(row) => (
-        <STableRow onClick={() => onSelectRow(row)} clickable key={row.id}>
+        <STableRow
+          onClick={() => onSelectRow(row)}
+          tabIndex={0}
+          role="group"
+          aria-label={`Editar GSE: ${row.name}`}
+          onKeyDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onSelectRow(row);
+            }
+          }}
+          clickable
+          key={row.id}
+          sx={{
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'primary.main',
+              outlineOffset: 2,
+            },
+            borderRadius: '999px',
+            border: '1px solid',
+            borderColor: 'divider',
+            boxShadow: 'none',
+            WebkitBoxShadow: 'none',
+            px: 10,
+            transition: 'background-color 150ms ease, border-color 150ms ease',
+            '&:hover': { borderColor: 'primary.border' },
+          }}
+        >
           {selectedData && (
             <SCheckBox
               label=""

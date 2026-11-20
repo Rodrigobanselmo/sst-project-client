@@ -1,4 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  riskEditorActionSx,
+  riskEditorPrimaryActionSx,
+} from 'configs/theme/risk-editor-action';
 import React, { FC, useCallback, useMemo, useRef, useState } from 'react';
 import { useStore } from 'react-redux';
 
@@ -167,7 +171,7 @@ export const SideSelectViewContent: FC<
 
   return (
     <>
-      <SFlex mt={5} align="center">
+      <SFlex mt={5} align="center" sx={{ flexWrap: 'wrap', gap: 4 }}>
         <SideInput
           ref={inputSelectedRef}
           onSearch={(value) => dispatch(setGhoSearchSelect(value))}
@@ -175,17 +179,22 @@ export const SideSelectViewContent: FC<
           handleEditGHO={handleEditGHO}
           placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
         />
-        <SFlex align="center" sx={{ ml: 'auto', mr: 5 }}>
+        <SFlex
+          align="center"
+          sx={{ ml: 'auto', mr: 5, flexWrap: 'wrap', gap: 3 }}
+        >
           <TotalTag />
           <STagButton
+            sx={riskEditorActionSx}
             icon={SSwapIcon}
-            text="Inverter desabiitados"
+            text="Inverter desabilitados"
             large
             mr={5}
             tooltipTitle="Todos os items desabilitados seram ativadoes e vice-versa"
             onClick={handleInvertDisabled}
           />
           <STagButton
+            sx={riskEditorActionSx}
             icon={SUncheckBoxIcon}
             tooltipTitle="Remover todos os GHOs ativos"
             mr={5}
@@ -210,7 +219,7 @@ export const SideSelectViewContent: FC<
           );
         })}
       </StyledGridMultiGho>
-      <SFlex align="center">
+      <SFlex align="center" sx={{ flexWrap: 'wrap', gap: 3 }}>
         <SideInput
           ref={inputRef}
           onSearch={(value) => dispatch(setGhoSearch(value))}
@@ -222,6 +231,19 @@ export const SideSelectViewContent: FC<
         {viewDataType === ViewsDataEnum.HIERARCHY &&
           hierarchyList.map((hierarchy) => (
             <STagButton
+              sx={
+                filter === hierarchy.value
+                  ? riskEditorPrimaryActionSx
+                  : riskEditorActionSx
+              }
+              textProps={{
+                sx: {
+                  color:
+                    filter === hierarchy.value
+                      ? 'primary.identityOn'
+                      : 'text.primary',
+                },
+              }}
               active={filter === hierarchy.value}
               key={hierarchy.value}
               tooltipTitle={`filtar por ${typeLabels[hierarchy.value]}`}
@@ -235,7 +257,7 @@ export const SideSelectViewContent: FC<
         <STagButton
           icon={SCheckboxIcon}
           tooltipTitle="Selecione todos os GHOs abaixo"
-          sx={{ ml: 'auto', mr: 5 }}
+          sx={{ ...riskEditorActionSx, ml: 'auto', mr: 5 }}
           large
           text="Selecione todos"
           onClick={handleSelectAll}

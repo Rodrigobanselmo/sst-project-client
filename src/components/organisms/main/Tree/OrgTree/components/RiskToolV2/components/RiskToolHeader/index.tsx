@@ -23,6 +23,8 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   handleEditGHO,
   handleAddGHO,
   handleCopyGHO,
+  isAddLoading,
+  riskInit,
   inputRef,
   viewType,
   ghoQuery,
@@ -34,6 +36,7 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   lockedGhoName,
   disableEditGho = false,
 }) => {
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const { canRead } = useSstAccess();
   return (
@@ -49,7 +52,28 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
           Acompanhamento eSocial
         </Button>
       )}
+      {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
+        <SideInput
+          id={IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH}
+          ref={inputRef}
+          handleSelectGHO={handleSelectGHO}
+          onSearch={(value) => dispatch(setGhoSearch(value))}
+          handleEditGHO={handleEditGHO}
+          handleAddGHO={handleAddGHO}
+          isAddLoading={isAddLoading}
+          placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
+        />
+      )}
       <Box width="100%">
+        {riskInit && viewType !== ViewTypeEnum.SIMPLE_BY_GROUP && (
+          <RiskToolColumns viewType={viewType} />
+        )}
+        {viewType === ViewTypeEnum.MULTIPLE && (
+          <SideRowTableMulti
+            riskGroupId={riskGroupId}
+            viewDataType={viewDataType}
+          />
+        )}
         {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
           <RiskToolGhoHorizontal
             handleSelectGHO={handleSelectGHO}

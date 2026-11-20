@@ -22,6 +22,8 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertManyRiskData';
@@ -32,7 +34,10 @@ import { SideTopProps } from '../types';
 
 export const RiskToolTopButtonsSelectRisk: FC<
   { children?: any } & Partial<SideTopProps>
-> = ({ viewType, riskGroupId }) => {
+> = ({ viewType, riskGroupId, companyId, enableViewModes }) => {
+  const { workspaceId } = useTabWorkspaceId();
+  const { data: company } = useQueryCompany(companyId);
+  const workspace = company.workspace?.find((item) => item.id === workspaceId);
   const dispatch = useAppDispatch();
   const { companyId: userCompanyId } = useGetCompanyId(true);
   const selectedRisks = useAppSelector(selectRisks);
@@ -113,27 +118,24 @@ export const RiskToolTopButtonsSelectRisk: FC<
 
   const isRiskAddUnavailable = isViewTypeGroup && !selectedGho;
 
-  if (isRiskAddUnavailable) {
-    return (
-      <STooltip
-        withWrapper
-        title="Selecione uma entidade para adicionar riscos."
-      >
-        <SFlex align="center" gap={0.75} sx={{ mr: 5, cursor: 'default' }}>
-          <InfoOutlined
-            sx={{ fontSize: 18, color: 'text.secondary' }}
-            aria-hidden
-          />
-          <SText fontSize={13} color="text.secondary" lineNumber={1}>
-            Adicionar riscos
-          </SText>
-        </SFlex>
-      </STooltip>
-    );
-  }
-
   return (
     <RiskSelect
+      polished
+      key={
+        enableViewModes
+          ? `${companyId}:${workspaceId || 'company'}:${viewType}`
+          : undefined
+      }
+      linkageContext={
+        enableViewModes && viewType === ViewTypeEnum.SIMPLE_BY_RISK && companyId
+          ? {
+              companyId,
+              workspaceId,
+              companyName: company.name || 'Empresa selecionada',
+              workspaceName: workspace?.name,
+            }
+          : undefined
+      }
       onClick={() =>
         saveState.isEdited
           ? preventWarn(
@@ -144,7 +146,7 @@ export const RiskToolTopButtonsSelectRisk: FC<
       id={IdsEnum.RISK_SELECT}
       sx={{ minWidth: 230, mr: 5, overflow: 'hidden' }}
       large
-      disabled={false}
+      disabled={!!isRiskAddUnavailable}
       active={!!selectedRisk?.type || !!(isViewTypeGroup && selectedGho)}
       tooltipTitle={
         isViewTypeSelect &&
@@ -167,7 +169,7 @@ export const RiskToolTopButtonsSelectRisk: FC<
           ? 'Adicionar riscos'
           : selectedRisk
             ? textRisk
-            : 'selecione um risco'
+            : 'Selecionar risco'
       }
       multiple={isViewTypeSelect || isViewTypeGroup ? true : false}
     />

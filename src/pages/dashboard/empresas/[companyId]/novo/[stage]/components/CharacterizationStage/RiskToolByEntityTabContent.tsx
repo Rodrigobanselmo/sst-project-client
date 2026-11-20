@@ -115,8 +115,8 @@ export const RiskToolByEntityTabContent = () => {
     >
       <Box sx={{ px: 1, pt: 1, pb: 1.5, flexShrink: 0 }}>
         <SText color="text.secondary" fontSize={13}>
-          Fatores de riscos por entidade — GSE, Elementos Caracterizados e
-          Hierarquia.
+          Vincule fatores de risco por entidade, por risco ou pela visualização
+          avançada.
         </SText>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
@@ -128,6 +128,7 @@ export const RiskToolByEntityTabContent = () => {
             riskGroupId={riskGroupId}
             riskContextCompanyId={companyId || undefined}
             embedded
+            enableViewModes
           />
         </RiskLinkageAiProvider>
       </Box>

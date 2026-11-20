@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useCallback, useEffect, useMemo } from 'react';
 
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { Box, Divider, Icon } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
@@ -20,7 +21,10 @@ import {
 } from 'store/reducers/hierarchy/ghoSlice';
 
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
-import { tableUtilityPillSx } from 'configs/theme/brand-identity-fill';
+import {
+  riskEditorSearchSx,
+  riskEditorActionSx as tableUtilityPillSx,
+} from 'configs/theme/risk-editor-action';
 
 import {
   isSupportedHierarchyType,
@@ -130,7 +134,8 @@ export const GhoOrHierarchySelect = ({
     isHierarchy?: boolean;
     multiple?: boolean;
   }) => {
-  if (isHierarchy) return <HierarchySelect {...props} />;
+  if (isHierarchy)
+    return <HierarchySelect defaultFilter={HierarchyEnum.SECTOR} {...props} />;
   return <GhoSelect {...props} />;
 };
 
@@ -149,7 +154,6 @@ export const RiskToolGhoHorizontal: FC<
   companyId,
   riskGroupId,
   hideGhoPicker = false,
-  lockedGhoName,
   disableEditGho = false,
 }) => {
   const dispatch = useAppDispatch();
@@ -217,16 +221,14 @@ export const RiskToolGhoHorizontal: FC<
 
   const handleApplyCurrentRiskMatrix = useCallback(async () => {
     if (!selected?.id || !riskGroupId) {
-      enqueueSnackbar(
-        'Selecione a origem para aplicar a matriz de risco.',
-        { variant: 'warning' },
-      );
+      enqueueSnackbar('Selecione a origem para aplicar a matriz de risco.', {
+        variant: 'warning',
+      });
       return;
     }
 
     const isGse = viewDataType === ViewsDataEnum.GSE;
-    const isCharacterization =
-      viewDataType === ViewsDataEnum.CHARACTERIZATION;
+    const isCharacterization = viewDataType === ViewsDataEnum.CHARACTERIZATION;
 
     if (!isGse && !isCharacterization) {
       enqueueSnackbar(
@@ -329,9 +331,8 @@ export const RiskToolGhoHorizontal: FC<
           handleSelectGHO(data as any, [(data as IHierarchy).id]);
         } else {
           const hierarchies =
-            (data as IGho).hierarchyOnHomogeneous?.map(
-              (h) => h.hierarchyId,
-            ) || [];
+            (data as IGho).hierarchyOnHomogeneous?.map((h) => h.hierarchyId) ||
+            [];
           handleSelectGHO(data as IGho, hierarchies);
         }
       }
@@ -347,27 +348,18 @@ export const RiskToolGhoHorizontal: FC<
     typeLabels,
   });
   const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
-  const displayName = hideGhoPicker
-    ? lockedGhoName || name || selected?.name || ''
-    : name || '';
 
   return (
     <>
       <SFlex>
-      <SFlex justifyContent="space-between" flex={1} align="center" flexWrap="wrap" gap={2}>
-          {hideGhoPicker ? (
-            <Box minWidth={285}>
-              <SInput
-                variant="outlined"
-                subVariant="search"
-                fullWidth
-                value={displayName}
-                placeholder="GSE"
-                size="small"
-                disabled
-              />
-            </Box>
-          ) : (
+        <SFlex
+          justifyContent="space-between"
+          flex={1}
+          align="center"
+          flexWrap="wrap"
+          gap={2}
+        >
+          {!hideGhoPicker && (
             <GhoOrHierarchySelect
               isHierarchy={isHierarchy}
               tooltipText={(textField) => textField}
@@ -387,9 +379,7 @@ export const RiskToolGhoHorizontal: FC<
                     minWidth={285}
                     maxWidth={800}
                     width={
-                      text?.length
-                        ? Math.max(text.length * 15, 285)
-                        : undefined
+                      text?.length ? Math.max(text.length * 15, 285) : undefined
                     }
                   >
                     <SInput
@@ -400,7 +390,8 @@ export const RiskToolGhoHorizontal: FC<
                         'pesquisar...'
                       }
                       variant="outlined"
-                      subVariant="search"
+                      subVariant="standard"
+                      sx={riskEditorSearchSx}
                       fullWidth
                       value={text}
                       startAdornment={type || ''}
@@ -437,10 +428,39 @@ export const RiskToolGhoHorizontal: FC<
               <SideInput
                 onSearch={(value) => dispatch(setGhoSearchRisk(value))}
                 handleSelectGHO={handleSelectGHO}
-                handleEditGHO={
-                  disableEditGho ? () => undefined : handleEditGHO
-                }
+                handleEditGHO={disableEditGho ? () => undefined : handleEditGHO}
                 placeholder="Pesquisar por risco"
+                {...{
+                  subVariant: 'standard' as const,
+                  startAdornment: (
+                    <SearchRoundedIcon
+                      sx={{ fontSize: 19, color: 'text.secondary' }}
+                    />
+                  ),
+                  inputProps: { 'aria-label': 'Pesquisar por risco' },
+                  sx: {
+                    '&&': { width: '100%' },
+                    '&&&& .MuiOutlinedInput-root': {
+                      borderRadius: '999px',
+                      height: 36,
+                      backgroundColor: 'background.paper',
+                      boxShadow: 'none',
+                      WebkitBoxShadow: 'none',
+                      fontSize: 13,
+                    },
+                    '&&&& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'divider',
+                    },
+                    '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline':
+                      {
+                        borderColor: 'text.secondary',
+                      },
+                    '&&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                      {
+                        borderColor: 'primary.main',
+                      },
+                  },
+                }}
               />
             </Box>
           )}
@@ -487,7 +507,7 @@ export const RiskToolGhoHorizontal: FC<
           {selected && expandCtx?.hasRows && (
             <SButton
               variant="outlined"
-              sx={{ height: 30 }}
+              sx={{ ...tableUtilityPillSx, height: 30 }}
               onClick={() =>
                 expandCtx.allExpanded
                   ? expandCtx.collapseAll()

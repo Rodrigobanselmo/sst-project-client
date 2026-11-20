@@ -1,3 +1,4 @@
+import { RiskColumnAddButton } from '../RiskColumnAddButton';
 import React, { FC } from 'react';
 
 import { Box } from '@mui/material';
@@ -29,12 +30,16 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
 
   return (
     <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
       <ExamSelect
         asyncLoad
         disabled={!risk?.id}
         riskType={risk?.type}
         risk={risk ?? undefined}
         text={'adicionar'}
+            renderButton={({ onClick }) => (
+              <RiskColumnAddButton onClick={onClick} disabled={!risk?.id} label="Adicionar exame" />
+            )}
         tooltipTitle=""
         multiple={false}
         handleSelect={(options: IExam) => {
@@ -47,6 +52,7 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
             );
         }}
       />
+      </Box>
 
       {data?.exams
         ?.filter((exam) => !!exam && typeof exam.id === 'string' && !!exam.id)

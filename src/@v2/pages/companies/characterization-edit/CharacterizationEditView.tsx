@@ -1,3 +1,7 @@
+import {
+  riskEditorActionSx,
+  riskEditorSaveActionSx,
+} from 'configs/theme/risk-editor-action';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
@@ -267,9 +271,12 @@ export const CharacterizationEditView = ({
       gap={3}
       flexWrap="wrap"
       justifyContent="flex-end"
-      sx={{ flexShrink: 0 }}
+      sx={{
+        flexShrink: 0,
+      }}
     >
       <SButton
+        sx={riskEditorActionSx}
         variant="outlined"
         style={{ minWidth: 100 }}
         id={IdsEnum.CANCEL_BUTTON}
@@ -278,6 +285,7 @@ export const CharacterizationEditView = ({
         Cancelar
       </SButton>
       <SButton
+        sx={riskEditorActionSx}
         type="submit"
         variant="outlined"
         id={IdsEnum.ADD_RISK_CHARACTERIZATION_ID}
@@ -287,6 +295,7 @@ export const CharacterizationEditView = ({
         Salvar
       </SButton>
       <SButton
+        sx={riskEditorActionSx}
         type="submit"
         variant="outlined"
         id={IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID}
@@ -301,6 +310,7 @@ export const CharacterizationEditView = ({
         style={{ minWidth: 100 }}
         id={IdsEnum.ADD_CHARACTERIZATION_ID}
         color={saveActionColor}
+        sx={riskEditorSaveActionSx(saveActionColor === 'error')}
         disabled={saveDisabled}
         onClick={() => (saveRef.current = true)}
       >
@@ -311,6 +321,7 @@ export const CharacterizationEditView = ({
         type="submit"
         style={{ minWidth: 100 }}
         color={saveActionColor}
+        sx={riskEditorSaveActionSx(saveActionColor === 'error', true)}
         loading={loading}
         disabled={saveDisabled}
         onClick={() => (saveRef.current = false)}
@@ -335,6 +346,18 @@ export const CharacterizationEditView = ({
         contextName={headerContextName}
         onBack={embedded ? onCloseUnsaved : onBack}
       />
+      {isEditEntity && !isDetailLoading && !isDetailError && (
+        <StructuralSourceActions
+          compact
+          companyId={companyId}
+          target={{
+            table: 'CompanyCharacterization',
+            id: characterizationData.id,
+          }}
+          disabled={!!hasUnsavedChanges || loading}
+          onChanged={onBack}
+        />
+      )}
       {actionButtons}
     </SFlex>
   );
@@ -388,17 +411,6 @@ export const CharacterizationEditView = ({
             flexDirection: 'column',
           }}
         >
-          {isEditEntity && !isDetailLoading && !isDetailError && (
-            <StructuralSourceActions
-              companyId={companyId}
-              target={{
-                table: 'CompanyCharacterization',
-                id: characterizationData.id,
-              }}
-              disabled={!!hasUnsavedChanges || loading}
-              onChanged={onBack}
-            />
-          )}
           <CharacterizationEditStepErrorBoundary
             title="Falha ao abrir o editor da caracterização."
             onBack={onBack}

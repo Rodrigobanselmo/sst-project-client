@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Box, CircularProgress } from '@mui/material';
 import { initialAutomateSubOfficeState } from 'components/organisms/modals/ModalAutomateSubOffice/hooks/useHandleActions';
@@ -34,6 +34,8 @@ import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopy
 import { useHierarchyTreeLoad } from '../../hooks/useHierarchyTreeLoad';
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
+import { SideSelectViewContent } from './components/SideSelectViewContent';
+import { RiskToolRiskView } from './components/RiskToolViews/RiskToolRiskView';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
 import { RiskRowsExpandProvider } from './components/RiskToolViews/RiskToolGSEView/RiskRowsExpandContext';
 import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRiskView/types';
@@ -60,6 +62,7 @@ export type RiskToolV2Props = {
   riskGroupId: string;
   riskContextCompanyId?: string;
   embedded?: boolean;
+  enableViewModes?: boolean;
   lockedViewData?: ViewsDataEnum;
   lockedGhoId?: string;
   lockedGhoName?: string;
@@ -73,6 +76,7 @@ export const RiskToolV2 = ({
   riskGroupId,
   riskContextCompanyId,
   embedded = false,
+  enableViewModes = false,
   lockedViewData,
   lockedGhoId,
   lockedGhoName,
@@ -82,7 +86,7 @@ export const RiskToolV2 = ({
   showEffectiveRisks = false,
 }: RiskToolV2Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { preventDelete } = usePreventAction();
+  const { preventDelete, preventDiscardIf } = usePreventAction();
   const {
     gho: ghoQuery,
     hierarchies: hierarchyMap,
@@ -102,7 +106,9 @@ export const RiskToolV2 = ({
   const { companyId: routerCompanyId } = useGetCompanyId();
   const companyId = riskContextCompanyId || routerCompanyId;
   const { handleAddCharacterization, handleAddEmployees } = usePushRoute();
-  const viewType = ViewTypeEnum.SIMPLE_BY_GROUP;
+  const [viewType, setViewType] = useState(ViewTypeEnum.SIMPLE_BY_GROUP);
+  const isEdited = useAppSelector((state) => state.riskAdd.isEdited);
+  const isSaving = useAppSelector((state) => state.riskAdd.isSaving);
 
   const { query, replace, pathname } = useRouter();
   const { onOpenSelected } = useOpenRiskTool();
@@ -211,7 +217,7 @@ export const RiskToolV2 = ({
   }, [dispatch, viewDataType]);
 
   useEffect(() => {
-    dispatch(setRiskAddState({ isEdited: false }));
+    dispatch(setRiskAddState({ isEdited: false, viewType: ViewTypeEnum.SIMPLE_BY_GROUP }));
     dispatch(setGhoState({ search: '', searchSelect: '', searchRisk: '' }));
     dispatch(
       setGhoFilterValues({
@@ -329,14 +335,15 @@ export const RiskToolV2 = ({
   );
 
   const handleChangeView = (option: IViewsRiskOption) => {
-    dispatch(setRiskAddState({ viewType: option.value, isEdited: false }));
-    dispatch(setGhoState({ search: '', searchSelect: '', searchRisk: '' }));
-    dispatch(
-      setGhoFilterValues({
-        key: '',
-        values: [],
-      }),
-    );
+    if (!enableViewModes || option.value === viewType || isSaving) return;
+    const changeView = () => {
+      setViewType(option.value);
+      dispatch(setRiskAddState({ viewType: option.value, isEdited: false }));
+      dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));
+      dispatch(setGhoState({ search: '', searchSelect: '', searchRisk: '' }));
+      dispatch(setGhoFilterValues({ key: '', values: [] }));
+    };
+    if (!preventDiscardIf(isEdited, changeView)) changeView();
   };
 
   const handleChangeViewData = (
@@ -357,7 +364,10 @@ export const RiskToolV2 = ({
     // Update URL with new viewData parameter and remove stale ghoId
     userSelectedIdRef.current = null;
     if (!embedded) {
-      const newQuery: Record<string, any> = { ...query, viewData: option.value };
+      const newQuery: Record<string, any> = {
+        ...query,
+        viewData: option.value,
+      };
       delete newQuery.ghoId;
       replace({ pathname, query: newQuery }, undefined, { shallow: true });
     }
@@ -418,6 +428,7 @@ export const RiskToolV2 = ({
             fillParent={embedded}
           >
             <RiskToolTopButtons
+              enableViewModes={enableViewModes}
               onChangeView={handleChangeView}
               onChangeViewData={handleChangeViewData}
               viewType={viewType}
@@ -462,7 +473,30 @@ export const RiskToolV2 = ({
                   riskGroupId={riskGroupIdMemo}
                   showEffectiveRisks={showEffectiveRisks}
                   fillParent={embedded}
-                />
+                >
+                  {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
+                    <RiskToolRiskView
+                      handleEditGHO={handleEditGHO}
+                      handleSelectGHO={handleSelectGHO}
+                      handleDeleteGHO={handleDelete}
+                      selectedGhoId={selectedGhoId}
+                      isDeleteLoading={cleanMutation.isLoading}
+                      isRiskOpen
+                      viewDataType={effectiveViewDataType}
+                      riskGroupId={riskGroupIdMemo}
+                    />
+                  )}
+                  {viewType === ViewTypeEnum.MULTIPLE && (
+                    <SideSelectViewContent
+                      viewDataType={effectiveViewDataType}
+                      handleSelectGHO={handleSelectGHO}
+                      handleEditGHO={handleEditGHO}
+                      handleAddGHO={handleAddGHO as any}
+                      inputRef={inputRef}
+                      ghoQuery={ghoQuery}
+                    />
+                  )}
+                </RiskToolStackBody>
               </RiskRowsExpandProvider>
             </STTableContainer>
           </RiskToolWideFrame>
@@ -478,12 +512,14 @@ function RiskToolStackBody({
   riskGroupId,
   showEffectiveRisks,
   fillParent = false,
+  children,
 }: {
   viewType: ViewTypeEnum;
   selectExpanded: boolean;
   riskGroupId: string;
   showEffectiveRisks: boolean;
   fillParent?: boolean;
+  children?: React.ReactNode;
 }) {
   const wideView = !!useRiskToolWideViewOptional()?.wideView;
 
@@ -504,6 +540,7 @@ function RiskToolStackBody({
           : undefined
       }
     >
+      {children}
       {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
         <RiskToolGSEView
           riskGroupId={riskGroupId}

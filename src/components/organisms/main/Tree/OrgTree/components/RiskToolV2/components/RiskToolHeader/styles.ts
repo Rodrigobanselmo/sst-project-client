@@ -29,35 +29,22 @@ export const STBoxInput = styled(Box)`
 export const STGridHeader = styled(STGridExtend)`
   margin-bottom: ${(props) => props.theme.spacing(2)};
   padding: ${(props) => props.theme.spacing(2, 0)};
-  background-color: ${(props) =>
-    props.theme.palette.mode === 'dark'
-      ? props.theme.palette.background.default
-      : props.theme.palette.grey[50]};
-  border: 1px solid
-    ${(props) =>
-      props.theme.palette.mode === 'dark'
-        ? props.theme.palette.divider
-        : props.theme.palette.grey[200]};
-  border-radius: ${(props) => props.theme.shape.borderRadius}px;
-  border-bottom: 2px solid
-    ${(props) =>
-      props.theme.palette.mode === 'dark'
-        ? props.theme.palette.divider
-        : props.theme.palette.grey[300]};
+  background: transparent;
+  border: none;
+  align-items: center;
 
   & > * {
-    border-left: 1px solid
-      ${(props) =>
-        props.theme.palette.mode === 'dark'
-          ? props.theme.palette.divider
-          : props.theme.palette.grey[200]};
-    padding-left: ${(props) => props.theme.spacing(3)};
-    padding-right: ${(props) => props.theme.spacing(3)};
     min-width: 0;
-  }
-
-  & > *:first-of-type {
-    border-left: none;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-self: stretch;
+    border: 2px solid ${(props) =>
+      props.theme.palette.mode === 'dark' ? '#69778B' : '#C5CBD3'};
+    border-radius: 999px;
+    background-color: ${(props) => props.theme.palette.background.paper};
+    padding: ${(props) => props.theme.spacing(3, 5)};
+    min-height: 32px;
   }
 
   p {
@@ -71,7 +58,7 @@ export const StyledSArrowUpFilterIcon = styled(SArrowUpFilterIcon)<{
   filter?: string;
 }>`
   color: ${(props) => props.theme.palette.text.light};
-  margin-left: ${(props) => props.theme.spacing(-2)};
+  margin-left: ${(props) => props.theme.spacing(1)};
 
   ${(props) =>
     props.filter == 'desc' &&
