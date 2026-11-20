@@ -1,3 +1,5 @@
+import { OccupationalSearchSummary } from './OccupationalSearchSummary';
+import { occupationalSearchMessages } from './occupational-search-message';
 import { FC, useMemo } from 'react';
 
 import {
@@ -102,8 +104,8 @@ export const OccupationalLimitReviewDialog: FC<
                 ? ` — ${result.identity.officialName}`
                 : ''}
               . Fontes OEL: NIOSH Pocket Guide e OSHA Chemical Database. MW:
-              PubChem (preferencial) / Chemical_DB. ACGIH, NR-15 e AIHA WEEL
-              não são pesquisados. Nada é salvo automaticamente.
+              PubChem (preferencial) / Chemical_DB. ACGIH, NR-15 e AIHA WEEL não
+              são pesquisados. Nada é salvo automaticamente.
             </Typography>
 
             {result.occupationalData.targetUnit ? (
@@ -122,18 +124,9 @@ export const OccupationalLimitReviewDialog: FC<
                 (fonte: {result.occupationalData.molecularWeight.source}).
                 Premissa de conversão: 25 °C / 1 atm.
               </Typography>
-            ) : (
-              <Alert severity="warning">
-                Peso molecular indisponível — conversões ppm↔mg/m³ exigem
-                revisão manual.
-              </Alert>
-            )}
-
-            {result.occupationalData.notFoundMessage ? (
-              <Alert severity="info">
-                {result.occupationalData.notFoundMessage}
-              </Alert>
             ) : null}
+
+            <OccupationalSearchSummary result={result} />
 
             {(result.occupationalData.unitConflict ||
               result.occupationalData.unitReviewRequired) && (
@@ -276,7 +269,14 @@ export const OccupationalLimitReviewDialog: FC<
                                   : `${actionColor(row)}.main`
                               }
                             >
-                              {actionLabel(row)}
+                              {row.action === 'SKIP_EMPTY_SOURCE' &&
+                              group !== 'UNIT'
+                                ? occupationalSearchMessages(result).find(
+                                    (item) => item.label === group,
+                                  )?.completed
+                                  ? 'Sem valor para aplicar'
+                                  : 'Fonte não consultada com sucesso'
+                                : actionLabel(row)}
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -286,21 +286,19 @@ export const OccupationalLimitReviewDialog: FC<
                 </Box>
               );
             })}
-
-            {(result.occupationalData.warnings || []).slice(0, 6).map((w) => (
-              <Typography
-                key={w}
-                variant="caption"
-                color="text.secondary"
-                display="block"
-              >
-                {w}
-              </Typography>
-            ))}
           </Stack>
         )}
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ flexWrap: 'wrap', gap: 2 }}>
+        {result && fillCount === 0 && (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mr: 'auto' }}
+          >
+            Não há valores novos disponíveis para aplicar ao formulário.
+          </Typography>
+        )}
         <Button onClick={onClose}>Cancelar</Button>
         <Button
           variant="contained"
@@ -350,4 +348,3 @@ export const OccupationalLimitSearchBusy: FC<{ loading: boolean }> = ({
       </Typography>
     </Stack>
   ) : null;
-

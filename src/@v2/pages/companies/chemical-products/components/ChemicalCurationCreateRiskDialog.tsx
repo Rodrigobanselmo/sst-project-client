@@ -1,3 +1,4 @@
+import { OccupationalSearchSummary } from 'components/organisms/modals/ModalAddRisk/components/RiskQuiContent/OccupationalSearchSummary';
 import { FC, useMemo, useState } from 'react';
 
 import {
@@ -150,8 +151,14 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
     },
   });
 
-  const { riskData, setRiskData, handleSubmit, onSubmit, onCloseUnsaved, loading } =
-    props;
+  const {
+    riskData,
+    setRiskData,
+    handleSubmit,
+    onSubmit,
+    onCloseUnsaved,
+    loading,
+  } = props;
 
   const busy = loading || checkingCas || occupationalLoading;
 
@@ -191,7 +198,8 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
                 CAS: {initialData.cas || '— (sem CAS confirmado)'}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Fonte de identidade: PubChem + catálogo interno (etapa anterior).
+                Fonte de identidade: PubChem + catálogo interno (etapa
+                anterior).
               </Typography>
             </Box>
 
@@ -205,7 +213,7 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
               }}
             >
               <Typography variant="subtitle2" fontWeight={700} mb={0.75}>
-                Dados ocupacionais encontrados
+                Consulta de dados ocupacionais
               </Typography>
               {occupationalLoading ? (
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -219,38 +227,41 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
                   Sem CAS confirmado — a pesquisa de limites ocupacionais não é
                   executada.
                 </Alert>
-              ) : occ?.notFoundMessage ? (
-                <Alert severity="info">{occ.notFoundMessage}</Alert>
               ) : (
                 <Stack spacing={1}>
-                  <OccupationalSourceBlock
-                    title="NIOSH Pocket Guide"
-                    url={occ?.niosh?.sourceUrl}
-                    found={Boolean(occ?.niosh?.found)}
-                    lines={[
-                      [
-                        'REL TWA',
-                        formatOccupationalLine(occ?.niosh?.relTwa),
-                      ],
-                      ['STEL', formatOccupationalLine(occ?.niosh?.stel)],
-                      ['Ceiling', formatOccupationalLine(occ?.niosh?.ceiling)],
-                      ['IDLH/IPVS', formatOccupationalLine(occ?.niosh?.idlh)],
-                      [
-                        'Respirador',
-                        formatOccupationalLine(occ?.niosh?.respirator),
-                      ],
-                    ]}
-                  />
-                  <OccupationalSourceBlock
-                    title="OSHA Occupational Chemical Database"
-                    url={occ?.osha?.sourceUrl}
-                    found={Boolean(occ?.osha?.found)}
-                    lines={[
-                      ['PEL TWA', formatOccupationalLine(occ?.osha?.pel)],
-                      ['STEL', formatOccupationalLine(occ?.osha?.stel)],
-                      ['Ceiling', formatOccupationalLine(occ?.osha?.ceiling)],
-                    ]}
-                  />
+                  <OccupationalSearchSummary result={occupationalEnrich} />
+                  {occ?.niosh?.found && (
+                    <OccupationalSourceBlock
+                      title="NIOSH Pocket Guide"
+                      url={occ?.niosh?.sourceUrl}
+                      found={Boolean(occ?.niosh?.found)}
+                      lines={[
+                        ['REL TWA', formatOccupationalLine(occ?.niosh?.relTwa)],
+                        ['STEL', formatOccupationalLine(occ?.niosh?.stel)],
+                        [
+                          'Ceiling',
+                          formatOccupationalLine(occ?.niosh?.ceiling),
+                        ],
+                        ['IDLH/IPVS', formatOccupationalLine(occ?.niosh?.idlh)],
+                        [
+                          'Respirador',
+                          formatOccupationalLine(occ?.niosh?.respirator),
+                        ],
+                      ]}
+                    />
+                  )}
+                  {occ?.osha?.found && (
+                    <OccupationalSourceBlock
+                      title="OSHA Occupational Chemical Database"
+                      url={occ?.osha?.sourceUrl}
+                      found={Boolean(occ?.osha?.found)}
+                      lines={[
+                        ['PEL TWA', formatOccupationalLine(occ?.osha?.pel)],
+                        ['STEL', formatOccupationalLine(occ?.osha?.stel)],
+                        ['Ceiling', formatOccupationalLine(occ?.osha?.ceiling)],
+                      ]}
+                    />
+                  )}
                   {occ?.unitConflict || occ?.unitReviewRequired ? (
                     <Alert severity="warning">
                       Conflito/revisão de unidade — o campo “Unidade” não foi
@@ -259,16 +270,6 @@ export const ChemicalCurationCreateRiskDialog: FC<Props> = ({
                       multiunidade manualmente.
                     </Alert>
                   ) : null}
-                  {(occ?.warnings || []).slice(0, 4).map((warning) => (
-                    <Typography
-                      key={warning}
-                      variant="caption"
-                      color="text.secondary"
-                      display="block"
-                    >
-                      {warning}
-                    </Typography>
-                  ))}
                   <Typography variant="caption" color="text.secondary">
                     NR-15, ACGIH e AIHA WEEL não são preenchidos automaticamente
                     nesta fase.
@@ -377,7 +378,12 @@ function OccupationalSourceBlock(props: {
         {props.url ? (
           <>
             {' · '}
-            <Link href={props.url} target="_blank" rel="noreferrer" fontSize={12}>
+            <Link
+              href={props.url}
+              target="_blank"
+              rel="noreferrer"
+              fontSize={12}
+            >
               fonte
             </Link>
           </>

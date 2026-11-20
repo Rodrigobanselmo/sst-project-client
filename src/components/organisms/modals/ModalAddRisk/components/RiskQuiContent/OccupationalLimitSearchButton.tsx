@@ -114,7 +114,15 @@ export const OccupationalLimitSearchButton: FC<
     () => parseOccupationalSearchAudit(riskData.json),
     [riskData.json],
   );
-  const statusLabel = formatOccupationalSearchStatusLabel(persistedAudit);
+  const statusLabel =
+    persistedAudit?.status === 'INCOMPLETE'
+      ? persistedAudit.providers.some(
+          (provider) =>
+            provider.outcome === 'HIT' || provider.outcome === 'MISS',
+        )
+        ? 'Pesquisa realizada — parte das fontes indisponível'
+        : 'Não foi possível consultar as fontes agora'
+      : formatOccupationalSearchStatusLabel(persistedAudit);
   const statusTooltip = formatOccupationalSearchTooltip(persistedAudit);
 
   const mirrorAuditLocally = (audit: ChemicalOccupationalSearchAudit) => {
@@ -294,7 +302,7 @@ export const OccupationalLimitSearchButton: FC<
                 : persistedAudit?.status === 'REVIEW_REQUIRED'
                   ? 'warning.main'
                   : persistedAudit?.status === 'INCOMPLETE'
-                    ? 'error.main'
+                    ? 'text.secondary'
                     : persistedAudit?.status === 'NOT_FOUND'
                       ? 'text.primary'
                       : 'text.secondary'
