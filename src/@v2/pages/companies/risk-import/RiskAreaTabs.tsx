@@ -12,13 +12,13 @@ import { RiskImportTabs } from './RiskImportTabs';
 
 const tabs = [
   { value: CharacterizationSubTabEnum.RISKS, label: 'Visão geral' },
-  { value: CharacterizationSubTabEnum.RISK_IMPORT, label: 'Importação' },
   { value: CharacterizationSubTabEnum.ENTITY_RISKS, label: 'Vínculo de riscos' },
   { value: CharacterizationSubTabEnum.PRIORITIZATION, label: 'Priorização' },
   {
     value: CharacterizationSubTabEnum.RISK_INVENTORY,
     label: 'Inventário de riscos',
   },
+  { value: CharacterizationSubTabEnum.RISK_IMPORT, label: 'Importação' },
 ];
 
 export function RiskAreaTabs({
