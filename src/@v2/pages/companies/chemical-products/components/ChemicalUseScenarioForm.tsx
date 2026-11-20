@@ -1,3 +1,7 @@
+import {
+  CHEMICAL_SCENARIO_SCORES,
+  chemicalContactDescriptions,
+} from './chemical-prioritization';
 import type { ChemicalProductListItem } from '@v2/services/security/characterization/chemical-product/service/chemical-product.types';
 import type { TechnicalWorkspaceGseOption } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import {
@@ -329,6 +333,34 @@ export const ChemicalUseScenarioForm = ({
           multiline
           minRows={3}
         />
+        <TextField
+          select
+          fullWidth
+          label="Nota de contato"
+          value={values.contactScore}
+          onChange={(event) =>
+            patch(values, onChange, 'contactScore', event.target.value)
+          }
+          disabled={disabled}
+          helperText="Opcional. Ao salvar, esta nota também será utilizada na priorização deste cenário."
+          SelectProps={{
+            sx: { '& .MuiSelect-select': { whiteSpace: 'normal' } },
+            MenuProps: {
+              PaperProps: { sx: { maxWidth: 'calc(100vw - 32px)' } },
+            },
+          }}
+        >
+          <MenuItem value="">Sem nota</MenuItem>
+          {CHEMICAL_SCENARIO_SCORES.map((score) => (
+            <MenuItem
+              key={score}
+              value={String(score)}
+              sx={{ whiteSpace: 'normal' }}
+            >
+              {score} · {chemicalContactDescriptions[score - 1]}
+            </MenuItem>
+          ))}
+        </TextField>
         {error ? <Alert severity="error">{error}</Alert> : null}
       </Stack>
     </Stack>

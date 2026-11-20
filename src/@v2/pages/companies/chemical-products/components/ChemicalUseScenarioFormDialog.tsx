@@ -1,5 +1,7 @@
 import {
   browseTechnicalWorkspaceGses,
+  readChemicalUseScenario,
+  readChemicalPrioritizationDraft,
   createChemicalUseScenario,
   updateChemicalUseScenario,
   type TechnicalWorkspaceGseOption,
@@ -50,6 +52,7 @@ export const ChemicalUseScenarioFormDialog = ({
     emptyChemicalUseScenarioFormValues(),
   );
   const [saving, setSaving] = useState(false);
+  const [loadingScenario, setLoadingScenario] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gseOptions, setGseOptions] = useState<TechnicalWorkspaceGseOption[]>(
     [],
@@ -70,17 +73,56 @@ export const ChemicalUseScenarioFormDialog = ({
 
   useEffect(() => {
     if (!open) return;
+    let cancelled = false;
     setError(null);
     setSaving(false);
     savingRef.current = false;
+    setLoadingScenario(isEdit);
     if (isEdit && scenario) {
       setValues(valuesFromChemicalUseScenario(scenario, activeProducts));
-      return;
+      void Promise.all([
+        readChemicalUseScenario({
+          companyId,
+          workspaceId,
+          scenarioId: scenario.id,
+        }),
+        readChemicalPrioritizationDraft<{
+          ratingReviews?: Record<string, { ratings: { contact?: number } }>;
+        }>({ companyId, workspaceId }),
+      ])
+        .then(([fresh, stored]) => {
+          if (cancelled) return;
+          const next = valuesFromChemicalUseScenario(
+            { ...scenario, ...fresh },
+            activeProducts,
+          );
+          const legacy =
+            stored.draft?.ratingReviews?.[scenario.id]?.ratings.contact;
+          if (
+            next.contactScoreRevision === 0 &&
+            legacy &&
+            [1, 2, 3, 4, 5].includes(legacy)
+          ) {
+            next.contactScore = String(legacy);
+          }
+          setValues(next);
+          setLoadingScenario(false);
+        })
+        .catch(() => {
+          if (!cancelled)
+            setError(
+              'Não foi possível carregar a nota atual. Feche e reabra o cenário para tentar novamente.',
+            );
+        });
+    } else {
+      setValues(emptyChemicalUseScenarioFormValues());
     }
-    setValues(emptyChemicalUseScenarioFormValues());
+    return () => {
+      cancelled = true;
+    };
     // Reset only when the dialog opens or the edited scenario changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, scenario?.id]);
+  }, [open, scenario?.id, companyId, workspaceId]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,7 +149,7 @@ export const ChemicalUseScenarioFormDialog = ({
   };
 
   const save = async () => {
-    if (savingRef.current) return;
+    if (savingRef.current || loadingScenario) return;
     savingRef.current = true;
     setError(null);
     setSaving(true);
@@ -171,7 +213,7 @@ export const ChemicalUseScenarioFormDialog = ({
           productsLoading={productsLoading}
           gseOptions={gseOptions}
           gseOptionsLoading={gseOptionsLoading}
-          disabled={saving}
+          disabled={saving || loadingScenario}
           error={error}
         />
       </DialogContent>
@@ -185,7 +227,7 @@ export const ChemicalUseScenarioFormDialog = ({
         <Button
           variant="contained"
           onClick={() => void save()}
-          disabled={submitBlocked}
+          disabled={submitBlocked || loadingScenario}
         >
           {saving ? 'Salvando...' : 'Salvar'}
         </Button>

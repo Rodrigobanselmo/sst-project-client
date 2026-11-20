@@ -23,6 +23,9 @@ export type ChemicalUseScenarioFormValues = {
   quantityUnit: string;
   peakContactMoment: string;
   controlMeasures: string;
+  contactScore: string;
+  initialContactScore: string;
+  contactScoreRevision: number;
 };
 
 export const MANUAL_USE_SCENARIO_SURVEY_STATUS =
@@ -75,6 +78,9 @@ export function emptyChemicalUseScenarioFormValues(): ChemicalUseScenarioFormVal
     quantityUnit: '',
     peakContactMoment: '',
     controlMeasures: '',
+    contactScore: '',
+    initialContactScore: '',
+    contactScoreRevision: 0,
   };
 }
 
@@ -218,9 +224,17 @@ export function buildCreateChemicalUseScenarioPayload(
     return { ok: false, error: 'Selecione uma unidade válida.' };
   }
 
+  if (
+    values.contactScore !== '' &&
+    !['1', '2', '3', '4', '5'].includes(values.contactScore)
+  ) {
+    return { ok: false, error: 'Selecione uma nota de contato de 1 a 5.' };
+  }
   return {
     ok: true,
     body: {
+      contactScore:
+        values.contactScore === '' ? null : Number(values.contactScore),
       chemicalProductId: values.product.id,
       surveyStatus: MANUAL_USE_SCENARIO_SURVEY_STATUS,
       activityName,
@@ -295,6 +309,9 @@ export function valuesFromChemicalUseScenario(
     quantityUnit: row.quantityUnit || '',
     peakContactMoment: row.peakContactMoment || '',
     controlMeasures: row.controlMeasures || '',
+    contactScore: numberOrEmpty(row.contactScore),
+    initialContactScore: numberOrEmpty(row.contactScore),
+    contactScoreRevision: row.contactScoreRevision ?? 0,
   };
 }
 
@@ -307,13 +324,24 @@ export function buildUpdateChemicalUseScenarioPayload(
 ): BuildUpdateChemicalUseScenarioResult {
   const created = buildCreateChemicalUseScenarioPayload(values);
   if (!created.ok) return created;
-  const { chemicalProductId: _productId, surveyStatus: _status, ...rest } =
-    created.body;
+  const {
+    chemicalProductId: _productId,
+    surveyStatus: _status,
+    contactScore,
+    ...rest
+  } = created.body;
   return {
     ok: true,
     body: {
       ...rest,
       homogeneousGroupId: values.homogeneousGroup?.id ?? null,
+      ...(values.contactScore !== values.initialContactScore ||
+      (values.contactScoreRevision === 0 && values.contactScore !== '')
+        ? {
+            contactScore,
+            expectedContactScoreRevision: values.contactScoreRevision,
+          }
+        : {}),
     },
   };
 }

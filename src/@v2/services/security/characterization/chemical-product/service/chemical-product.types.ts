@@ -919,6 +919,7 @@ export type CreateChemicalUseScenarioPayload = {
   quantity: string | null;
   quantityUnit: string | null;
   peakContactMoment: string | null;
+  contactScore?: number | null;
   controlMeasures: string | null;
 };
 
@@ -934,6 +935,8 @@ export type UpdateChemicalUseScenarioPayload = {
   quantity?: string | null;
   quantityUnit?: string | null;
   peakContactMoment?: string | null;
+  contactScore?: number | null;
+  expectedContactScoreRevision?: number;
   controlMeasures?: string | null;
 };
 
@@ -1076,6 +1079,8 @@ export type ChemicalUseScenarioListItem = {
   quantityUnit: string | null;
   peakContactMoment: string | null;
   controlMeasures: string | null;
+  contactScore?: number | null;
+  contactScoreRevision?: number;
   linachHint: string | null;
   relevanceHint: string | null;
   sourceSheet: string | null;

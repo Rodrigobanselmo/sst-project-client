@@ -1,3 +1,4 @@
+import { restoreScenarioContacts } from './chemical-scenario-contact.util';
 import { HoMethodNioshLookup } from '../../ho-methods/components/HoMethodNioshLookup';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { formatAxisLevelTooltip } from '@v2/services/security/risk-matrix/presentation/axis-level-tooltip.util';
@@ -36,7 +37,10 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { browseChemicalUseScenarioBoard } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
+import {
+  browseChemicalUseScenarioBoard,
+  updateChemicalUseScenario,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type {
   ChemicalUseScenarioBoardRow,
   UpdateChemicalUseScenarioPayload,
@@ -172,11 +176,11 @@ export function ChemicalPrioritizationPanel({
         workspaceId,
         includePrioritization: true,
       });
-      return {
+      return restoreScenarioContacts({
         ...emptyAnalysis,
         ...queryClient.getQueryData<Analysis>(queryKey),
         rows,
-      };
+      });
     },
   });
   const {
@@ -194,6 +198,8 @@ export function ChemicalPrioritizationPanel({
   }
 
   const [exportError, setExportError] = useState(false);
+  const [savingContact, setSavingContact] = useState<string | null>(null);
+  const [contactError, setContactError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [stelEditor, setStelEditor] = useState<{
     key: string;
@@ -326,6 +332,50 @@ export function ChemicalPrioritizationPanel({
     }));
   }
 
+  async function saveScenarioContact(
+    scenario: ChemicalUseScenarioBoardRow,
+    contact: number | null,
+  ) {
+    if (savingContact) return;
+    setSavingContact(scenario.id);
+    setContactError(null);
+    try {
+      const saved = await updateChemicalUseScenario({
+        companyId,
+        workspaceId,
+        scenarioId: scenario.id,
+        contactScore: contact,
+        expectedContactScoreRevision: scenario.contactScoreRevision ?? 0,
+      });
+      updateAnalysis((current) => ({
+        ...current,
+        reviewed: false,
+        rows: current.rows.map((row) =>
+          row.id === saved.id ? { ...row, ...saved } : row,
+        ),
+        ratingReviews: {
+          ...current.ratingReviews,
+          [saved.id]: {
+            ratings: {
+              contact: scores.find((score) => score === saved.contactScore),
+            },
+            confirmed: saved.contactScore != null,
+          },
+        },
+      }));
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: unknown } } })
+        .response?.data?.message;
+      setContactError(
+        typeof message === 'string'
+          ? message
+          : 'Não foi possível salvar a nota de contato. Tente novamente.',
+      );
+    } finally {
+      setSavingContact(null);
+    }
+  }
+
   const exclusions = results.filter(({ outcome }) => outcome === 'exclude');
   const report = reviewed
     ? buildChemicalExclusionReport(
@@ -387,14 +437,15 @@ export function ChemicalPrioritizationPanel({
           workspaceId={workspaceId}
           draft={data}
           onRestore={(analysis) =>
-            queryClient.setQueryData<Analysis>(
-              queryKey,
-              (current) =>
+            queryClient.setQueryData<Analysis>(queryKey, (current) =>
+              restoreScenarioContacts(
                 current ? { ...current, rows: analysis.rows } : analysis,
+              ),
             )
           }
         />
       )}
+      {contactError && <Alert severity="error">{contactError}</Alert>}
       <Alert severity="info">
         Analise os cenários por fator de risco e GSE. A pontuação é uma triagem
         qualitativa. A avaliação quantitativa é uma decisão separada.
@@ -600,13 +651,16 @@ export function ChemicalPrioritizationPanel({
                             draft.contact,
                           ]);
                           const comment = contactComments[commentKey];
+                          const showContact =
+                            needsScores ||
+                            optionalContact ||
+                            scenario.contactScore != null ||
+                            !!draft.contact;
                           const contactConfirmationPending =
                             !review?.confirmed &&
-                            (needsScores ||
-                              (optionalContact &&
-                                !needsScores &&
-                                !!draft.contact));
-                          const canConfirmContact = !!draft.contact && !loading;
+                            (needsScores || !!draft.contact);
+                          const canConfirmContact =
+                            !!draft.contact && !loading && !savingContact;
                           const applyScenarioPatch = (
                             patch: UpdateChemicalUseScenarioPayload,
                           ) => {
@@ -704,7 +758,10 @@ export function ChemicalPrioritizationPanel({
                                       <TableCell>
                                         <Box component="details">
                                           <summary>Controles e origem</summary>
-                                          <Typography color="text.secondary" variant="caption">
+                                          <Typography
+                                            color="text.secondary"
+                                            variant="caption"
+                                          >
                                             {describeChemicalScenario(scenario)}
                                           </Typography>
                                         </Box>
@@ -792,12 +849,13 @@ export function ChemicalPrioritizationPanel({
                                           spacing={2}
                                           sx={{ maxWidth: 240, mt: 2 }}
                                         >
-                                          {(needsScores || optionalContact) && (
+                                          {showContact && (
                                             <>
                                               <TextField
                                                 select
                                                 size="small"
                                                 label="Nota de contato"
+                                                disabled={!!savingContact}
                                                 inputProps={{
                                                   'aria-label': `Nota de contato · ${scenario.activityName} · ${scenario.product.tradeName}`,
                                                 }}
@@ -816,6 +874,11 @@ export function ChemicalPrioritizationPanel({
                                                     ratings: { contact },
                                                     confirmed: false,
                                                   });
+                                                  if (!contact)
+                                                    void saveScenarioContact(
+                                                      scenario,
+                                                      null,
+                                                    );
                                                 }}
                                               >
                                                 <MenuItem value="">
@@ -916,10 +979,10 @@ export function ChemicalPrioritizationPanel({
                                                   disabled={!canConfirmContact}
                                                   color="error"
                                                   onClick={() => {
-                                                    updateContact(scenario.id, {
-                                                      ratings: draft,
-                                                      confirmed: true,
-                                                    });
+                                                    void saveScenarioContact(
+                                                      scenario,
+                                                      draft.contact ?? null,
+                                                    );
                                                   }}
                                                 >
                                                   <ErrorOutline fontSize="small" />
@@ -1376,30 +1439,66 @@ export function ChemicalPrioritizationPanel({
                                                 )}
                                               </TableCell>
                                               <TableCell>
-                                                {factor.prioritization?.linkedMethods?.length ? (
+                                                {factor.prioritization
+                                                  ?.linkedMethods?.length ? (
                                                   <>
-                                                    <Typography variant="caption" display="block" fontWeight={600} color="text.primary">
+                                                    <Typography
+                                                      variant="caption"
+                                                      display="block"
+                                                      fontWeight={600}
+                                                      color="text.primary"
+                                                    >
                                                       Métodos vinculados
                                                     </Typography>
-                                                    {factor.prioritization.linkedMethods.map((method) => (
-                                                      <Typography key={method.id} variant="caption" display="block" color="text.dark">
-                                                        {method.institution} {method.methodCode}
-                                                        {method.cas && ` · CAS ${method.cas}`}
-                                                      </Typography>
-                                                    ))}
+                                                    {factor.prioritization.linkedMethods.map(
+                                                      (method) => (
+                                                        <Typography
+                                                          key={method.id}
+                                                          variant="caption"
+                                                          display="block"
+                                                          color="text.dark"
+                                                        >
+                                                          {method.institution}{' '}
+                                                          {method.methodCode}
+                                                          {method.cas &&
+                                                            ` · CAS ${method.cas}`}
+                                                        </Typography>
+                                                      ),
+                                                    )}
                                                   </>
                                                 ) : (
-                                                  <Typography variant="caption" display="block" color="text.secondary">
+                                                  <Typography
+                                                    variant="caption"
+                                                    display="block"
+                                                    color="text.secondary"
+                                                  >
                                                     Nenhum método vinculado
                                                   </Typography>
                                                 )}
                                                 {factor.prioritization?.method?.trim() && (
                                                   <Box sx={{ mt: 2 }}>
-                                                    <Typography variant="caption" display="block" fontWeight={600} color="text.primary">
+                                                    <Typography
+                                                      variant="caption"
+                                                      display="block"
+                                                      fontWeight={600}
+                                                      color="text.primary"
+                                                    >
                                                       Referências anotadas
                                                     </Typography>
-                                                    <Typography variant="caption" display="block" color="text.dark" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                                                      {factor.prioritization.method}
+                                                    <Typography
+                                                      variant="caption"
+                                                      display="block"
+                                                      color="text.dark"
+                                                      sx={{
+                                                        whiteSpace: 'pre-wrap',
+                                                        overflowWrap:
+                                                          'anywhere',
+                                                      }}
+                                                    >
+                                                      {
+                                                        factor.prioritization
+                                                          .method
+                                                      }
                                                     </Typography>
                                                   </Box>
                                                 )}
@@ -1407,9 +1506,16 @@ export function ChemicalPrioritizationPanel({
                                                   key={factor.id}
                                                   companyId={companyId}
                                                   agent={factor}
-                                                  recorded={factor.prioritization?.nioshMethodNotFound}
-                                                  onRecorded={() => void refetch()}
-                                                  onLinked={() => void refetch()}
+                                                  recorded={
+                                                    factor.prioritization
+                                                      ?.nioshMethodNotFound
+                                                  }
+                                                  onRecorded={() =>
+                                                    void refetch()
+                                                  }
+                                                  onLinked={() =>
+                                                    void refetch()
+                                                  }
                                                 />
                                               </TableCell>
                                               <TableCell>
@@ -1582,7 +1688,12 @@ export function ChemicalPrioritizationPanel({
                   userSelect: 'text',
                 }}
               >
-                <Typography color="text.primary" component="p" variant="subtitle1" fontWeight={700}>
+                <Typography
+                  color="text.primary"
+                  component="p"
+                  variant="subtitle1"
+                  fontWeight={700}
+                >
                   Justificativas de fatores químicos não priorizados
                 </Typography>
                 {report.map((entry) => (
@@ -1628,7 +1739,11 @@ export function ChemicalPrioritizationPanel({
                             <strong>Produto químico</strong> · {product}
                           </Typography>
                           {fields.map(([label, value]) => (
-                            <Typography color="text.primary" key={label} variant="body2">
+                            <Typography
+                              color="text.primary"
+                              key={label}
+                              variant="body2"
+                            >
                               <strong>{label}</strong> · {value}
                             </Typography>
                           ))}
