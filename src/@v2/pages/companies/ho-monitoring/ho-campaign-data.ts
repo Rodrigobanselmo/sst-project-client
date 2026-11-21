@@ -17,6 +17,7 @@ export type CampaignDraft = {
   name: string;
   levels: CampaignRiskLevel[];
   exposureIds: string[];
+  consolidatedCampaignId?: string;
 };
 
 export async function loadChemicalFactors(

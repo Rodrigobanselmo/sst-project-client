@@ -1,3 +1,5 @@
+import { HoDeleteConfirmation } from './ho-delete-confirmation';
+import { HoConsolidation } from './ho-consolidation';
 import {
   hasCurrentNioshNotFoundSearch,
   NIOSH_METHOD_NOT_FOUND_REFERENCE,
@@ -58,12 +60,55 @@ function Campaigns({
   workspaceId: string;
   userId: number;
 }) {
+  const router = useRouter();
+  const activeCampaignId =
+    typeof router.query.hoCampaignId === 'string'
+      ? router.query.hoCampaignId
+      : null;
+  function linkDraftToCampaign(id: string) {
+    if (draft) {
+      try {
+        const next = readDrafts(storageKey).map((item) =>
+          item.id === draft.id ? { ...item, consolidatedCampaignId: id } : item,
+        );
+        localStorage.setItem(storageKey, JSON.stringify(next));
+        setDrafts(next);
+      } catch {
+        setStorageError(true);
+      }
+    }
+  }
+  function openSavedCampaign(id: string) {
+    linkDraftToCampaign(id);
+    setDraft(null);
+    void router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, hoCampaignId: id },
+      },
+      undefined,
+      { shallow: true },
+    );
+  }
+  function backToCampaigns() {
+    const { hoCampaignId: _, ...query } = router.query;
+    void router.push({ pathname: router.pathname, query }, undefined, {
+      shallow: true,
+    });
+  }
   const storageKey = `sst:ho-campaigns:v1:${userId}:${companyId}:${workspaceId}`;
   const [drafts, setDrafts] = useState<CampaignDraft[]>([]);
   const [draft, setDraft] = useState<CampaignDraft | null>(null);
   const [methodsOpen, setMethodsOpen] = useState(false);
   const [storageError, setStorageError] = useState(false);
+  const [draftToDelete, setDraftToDelete] = useState<CampaignDraft | null>(
+    null,
+  );
+  const [draftDeleteError, setDraftDeleteError] = useState('');
   useEffect(() => {
+    setDraftToDelete(null);
+    setDraftDeleteError('');
+    setDraft(null);
     try {
       setDrafts(readDrafts(storageKey));
     } catch {
@@ -95,6 +140,8 @@ function Campaigns({
   const selected = candidates.filter(({ exposure }) =>
     draft?.exposureIds.includes(exposure.id),
   );
+
+  const visibleDrafts = drafts.filter((item) => !item.consolidatedCampaignId);
 
   const allCandidatesSelected = selected.length === candidates.length;
 
@@ -140,6 +187,36 @@ function Campaigns({
     }
   }
 
+  function removeDraft() {
+    if (!draftToDelete) return;
+    try {
+      const next = readDrafts(storageKey).filter(
+        (item) => item.id !== draftToDelete.id,
+      );
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      setDrafts(next);
+      setDraftToDelete(null);
+      setDraftDeleteError('');
+    } catch {
+      setDraftDeleteError(
+        'Não foi possível excluir o rascunho deste navegador. Tente novamente.',
+      );
+    }
+  }
+
+  const consolidation = (
+    <HoConsolidation
+      companyId={companyId}
+      workspaceId={workspaceId}
+      draft={draft}
+      activeCampaignId={activeCampaignId}
+      onOpenCampaign={openSavedCampaign}
+      onConsolidated={linkDraftToCampaign}
+      onBack={backToCampaigns}
+    />
+  );
+  if (activeCampaignId) return consolidation;
+
   return (
     <Stack spacing={8}>
       {storageError && (
@@ -147,29 +224,38 @@ function Campaigns({
           Não foi possível acessar os rascunhos deste navegador.
         </Alert>
       )}
+      {!draft && (
+        <Box>
+          <Button
+            variant="contained"
+            onClick={() =>
+              setDraft({
+                id: crypto.randomUUID(),
+                name: '',
+                levels: defaultLevels,
+                exposureIds: [],
+              })
+            }
+          >
+            Nova campanha
+          </Button>
+        </Box>
+      )}
+      {consolidation}
       {!draft ? (
         <>
-          <Box>
-            <Button
-              variant="contained"
-              onClick={() =>
-                setDraft({
-                  id: crypto.randomUUID(),
-                  name: '',
-                  levels: defaultLevels,
-                  exposureIds: [],
-                })
-              }
-            >
-              Nova campanha
-            </Button>
-          </Box>
-          {!drafts.length && (
-            <Typography color="text.secondary">
-              Nenhuma campanha salva neste estabelecimento.
-            </Typography>
+          {!!visibleDrafts.length && (
+            <Box>
+              <Typography component="h2" variant="h6">
+                Rascunhos neste navegador
+              </Typography>
+              <Typography color="text.secondary">
+                Etapa inicial, antes da consolidação. Ao consolidar, o rascunho
+                passa a ter uma campanha salva no sistema.
+              </Typography>
+            </Box>
           )}
-          {drafts.map((item) => (
+          {visibleDrafts.map((item) => (
             <Paper key={item.id} variant="outlined" sx={{ p: 8 }}>
               <Stack
                 direction="row"
@@ -183,7 +269,26 @@ function Campaigns({
                     {item.exposureIds.length} exposições · Rascunho local
                   </Typography>
                 </Box>
-                <Button onClick={() => setDraft(item)}>Retomar</Button>
+                <Stack
+                  direction="row"
+                  flexWrap="wrap"
+                  gap={4}
+                  alignItems="center"
+                >
+                  <Button onClick={() => setDraft(item)}>
+                    Continuar rascunho
+                  </Button>
+                  <Button
+                    color="error"
+                    onClick={() => {
+                      setDraftDeleteError('');
+                      setDraftToDelete(item);
+                    }}
+                    aria-label={`Excluir rascunho ${item.name}`}
+                  >
+                    Excluir rascunho
+                  </Button>
+                </Stack>
               </Stack>
             </Paper>
           ))}
@@ -437,6 +542,13 @@ function Campaigns({
           </Stack>
         </>
       )}
+      <HoDeleteConfirmation
+        name={draftToDelete?.name ?? null}
+        kind="draft"
+        error={draftDeleteError}
+        onCancel={() => setDraftToDelete(null)}
+        onConfirm={removeDraft}
+      />
       <Dialog
         fullScreen
         open={methodsOpen}
