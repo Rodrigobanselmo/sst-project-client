@@ -77,6 +77,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
     <SFlex direction="column" gap={4}>
       <SFlex gap={3} flexWrap="wrap">
         <SPaper
+          className="polished-form-panel"
           sx={{
             borderRadius: 2,
             minWidth: 200,
@@ -106,6 +107,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
         </SPaper>
 
         <SPaper
+          className="polished-form-panel"
           sx={{
             p: 3,
             borderRadius: 2,
@@ -130,6 +132,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
 
         {participationGoal && (
           <SPaper
+            className="polished-form-panel"
             sx={{
               p: 3,
               borderRadius: 2,
@@ -144,7 +147,13 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
               align="center"
               justify="center"
             >
-              <Box sx={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+              <Box
+                sx={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  flexShrink: 0,
+                }}
+              >
                 <CircularProgress
                   variant="determinate"
                   value={100}
@@ -177,10 +186,14 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
               </SText>
             </SFlex>
             <SFlex direction="column" gap={0.5} mt={1.5} align="center">
-              <SText sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}>
+              <SText
+                sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}
+              >
                 {campaignRespondedCount}/{goalParticipants} {goalCountLabel}
               </SText>
-              <SText sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}>
+              <SText
+                sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}
+              >
                 faltam {remainingForGoal} para atingir {participationGoal}%
               </SText>
             </SFlex>
@@ -188,6 +201,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
         )}
 
         <SPaper
+          className="polished-form-panel"
           sx={{
             p: 3,
             borderRadius: 2,

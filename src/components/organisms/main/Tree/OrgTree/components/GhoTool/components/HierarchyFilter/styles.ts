@@ -14,25 +14,26 @@ export const STGridItem = styled(STGridExtend)`
 
 export const STSInput = styled(SInput)`
   width: ${(props) => props.theme.spacing(143)};
-  box-shadow: 0 1px 5px rgb(0 0 0 / 15%);
+  max-width: 100%;
+  border-radius: 999px;
+  box-shadow: none;
 
-  &&& .MuiOutlinedInput-notchedOutline {
-    border-color: ${(props) => props.theme.palette.background.border};
+  &&&& .MuiOutlinedInput-root {
+    border-radius: 999px;
+    box-shadow: none;
+    min-height: 32px;
+  }
+
+  &&&& .MuiOutlinedInput-notchedOutline {
+    border-radius: 999px;
+    border-color: ${(props) => props.theme.palette.divider};
     border-width: 1px;
   }
 
-  &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-    border-color: ${(props) => props.theme.palette.gray[500]};
-  }
-  &:hover {
-    &&& .MuiOutlinedInput-notchedOutline {
-      border-color: ${(props) => props.theme.palette.background.border};
-      border-width: 2px;
-    }
-    &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-      border-color: ${(props) => props.theme.palette.gray[500]};
-      opacity: 1;
-    }
+  &&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+  &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: ${(props) => props.theme.palette.primary.main};
+    border-width: 1px;
   }
 `;
 

@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
@@ -80,30 +81,33 @@ export const FormModelTable = ({ companyId }: { companyId: string }) => {
     getLeftLabel: ({ field }) => orderByFormModelTranslation[field],
   });
 
-  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
-    useTableState({
-      data: queryParams,
-      setData: setQueryParams,
-      chipMap: {
-        search: null,
-        types: (value) => ({
-          leftLabel: 'Tipo',
-          label: value,
-          onDelete: () =>
-            setQueryParams({
-              page: 1,
-              types: queryParams.types?.filter((type) => type !== value),
-            }),
-        }),
-      },
-      cleanData: {
-        search: '',
-        types: [],
-        orderBy: [],
-        page: 1,
-        limit: defaultLimit,
-      },
-    });
+  const {
+    onCleanData: resetFromTableState,
+    onFilterData,
+    paramsChipList,
+  } = useTableState({
+    data: queryParams,
+    setData: setQueryParams,
+    chipMap: {
+      search: null,
+      types: (value) => ({
+        leftLabel: 'Tipo',
+        label: value,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            types: queryParams.types?.filter((type) => type !== value),
+          }),
+      }),
+    },
+    cleanData: {
+      search: '',
+      types: [],
+      orderBy: [],
+      page: 1,
+      limit: defaultLimit,
+    },
+  });
 
   const onCleanData = useCallback(() => {
     resetPersistedLimit();
@@ -114,71 +118,96 @@ export const FormModelTable = ({ companyId }: { companyId: string }) => {
 
   return (
     <>
-      <STableSearch
-        search={queryParams.search}
-        onSearch={(search) => onFilterData({ search })}
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: 'none',
+          },
+        }}
       >
-        <STableSearchContent>
-          <div ref={addMenuAnchorRef}>
-            <STableAddButton
-              identityFill
-              onClick={() =>
-                setAddMenuAnchor(addMenuAnchorRef.current)
-              }
-            />
-          </div>
-          <Menu
-            anchorEl={addMenuAnchor}
-            open={Boolean(addMenuAnchor)}
-            onClose={() => setAddMenuAnchor(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-          >
-            <MenuItem
-              onClick={() => {
-                setAddMenuAnchor(null);
-                onFormModelAdd();
-              }}
+        <STableSearch
+          autoFocus={false}
+          inputProps={{
+            sx: {
+              '&&&& .MuiOutlinedInput-root': {
+                borderRadius: '999px',
+                boxShadow: 'none',
+              },
+              '&&&& .MuiOutlinedInput-notchedOutline': {
+                borderRadius: '999px',
+                borderWidth: '1px',
+                borderColor: 'divider',
+              },
+              '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                { borderWidth: '1px', borderColor: 'primary.main' },
+            },
+          }}
+          search={queryParams.search}
+          onSearch={(search) => onFilterData({ search })}
+        >
+          <STableSearchContent>
+            <div ref={addMenuAnchorRef}>
+              <STableAddButton
+                identityFill
+                onClick={() => setAddMenuAnchor(addMenuAnchorRef.current)}
+              />
+            </div>
+            <Menu
+              anchorEl={addMenuAnchor}
+              open={Boolean(addMenuAnchor)}
+              onClose={() => setAddMenuAnchor(null)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
             >
-              <ListItemIcon>
-                <NoteAddOutlined fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Formulário em branco" />
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setAddMenuAnchor(null);
-                setDuplicateDialogOpen(true);
-              }}
-            >
-              <ListItemIcon>
-                <ContentCopyOutlined fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Copiar modelo existente" />
-            </MenuItem>
-          </Menu>
-          <FormModelDuplicateDialog
-            open={duplicateDialogOpen}
-            onClose={() => setDuplicateDialogOpen(false)}
-            companyId={companyId}
-          />
-          <STableColumnsButton
-            showLabel
-            hiddenColumns={hiddenColumns}
-            setHiddenColumns={setHiddenColumns}
-            columns={commentColumns}
-            tableButtonProps={tableUtilityPillButtonProps}
-          />
-          <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
-            <FormModelTableFilter
-              data={formModel?.filters}
-              onFilterData={onFilterData}
-              filters={queryParams}
+              <MenuItem
+                onClick={() => {
+                  setAddMenuAnchor(null);
+                  onFormModelAdd();
+                }}
+              >
+                <ListItemIcon>
+                  <NoteAddOutlined fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Formulário em branco" />
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  setAddMenuAnchor(null);
+                  setDuplicateDialogOpen(true);
+                }}
+              >
+                <ListItemIcon>
+                  <ContentCopyOutlined fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Copiar modelo existente" />
+              </MenuItem>
+            </Menu>
+            <FormModelDuplicateDialog
+              open={duplicateDialogOpen}
+              onClose={() => setDuplicateDialogOpen(false)}
               companyId={companyId}
             />
-          </STableFilterButton>
-        </STableSearchContent>
-      </STableSearch>
+            <STableColumnsButton
+              showLabel
+              hiddenColumns={hiddenColumns}
+              setHiddenColumns={setHiddenColumns}
+              columns={commentColumns}
+              tableButtonProps={tableUtilityPillButtonProps}
+            />
+            <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
+              <FormModelTableFilter
+                data={formModel?.filters}
+                onFilterData={onFilterData}
+                filters={queryParams}
+                companyId={companyId}
+              />
+            </STableFilterButton>
+          </STableSearchContent>
+        </STableSearch>
+      </Box>
       <STableInfoSection>
         <STableFilterChipList onClean={onCleanData}>
           {[...orderChipList, ...paramsChipList]?.map((chip) => (

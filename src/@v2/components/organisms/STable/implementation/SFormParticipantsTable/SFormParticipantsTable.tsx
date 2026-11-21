@@ -283,6 +283,14 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
             renderRow={(row) => {
               return (
                 <STableRow
+                  sx={{
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 'none',
+                    minHeight: 48,
+                    px: 5,
+                  }}
                   clickable
                   onClick={() => onSelectRow(row)}
                   key={row.id}

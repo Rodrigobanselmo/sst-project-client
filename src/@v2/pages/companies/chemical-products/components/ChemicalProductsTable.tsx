@@ -91,7 +91,11 @@ function formatConcentration(item: {
 
 function ingredientsTooltip(product: ChemicalProductListItem) {
   const rows = product.ingredients || [];
-  if (isUnindividualizedDisclosure(product.activeComposition?.compositionDisclosure)) {
+  if (
+    isUnindividualizedDisclosure(
+      product.activeComposition?.compositionDisclosure,
+    )
+  ) {
     const note = product.activeComposition?.compositionDisclosureNote?.trim();
     return note
       ? `${UNINDIVIDUALIZED_COMPOSITION_LABEL}\n${note}`
@@ -201,7 +205,12 @@ function IngredientsSummaryCell({
           </SText>
         )}
         {extraLabel ? (
-          <Chip size="small" color="primary" variant="outlined" label={extraLabel} />
+          <Chip
+            size="small"
+            color="primary"
+            variant="outlined"
+            label={extraLabel}
+          />
         ) : null}
         {firstHasNoRiskFactor || product.hasUnlinkedIngredient ? (
           <Tooltip title={UNLINKED_RISK_FACTOR_CHIP_TOOLTIP}>
@@ -270,7 +279,12 @@ export function ChemicalProductsTable({
         />
       ),
       row: (row) => (
-        <STextRow fontSize={13} lineNumber={2} tooltipMinLength={20} text={row.tradeName} />
+        <STextRow
+          fontSize={13}
+          lineNumber={2}
+          tooltipMinLength={20}
+          text={row.tradeName}
+        />
       ),
     },
     {
@@ -380,7 +394,9 @@ export function ChemicalProductsTable({
             size="small"
             label={formatChemicalProductStatusLabel(row.status)}
             sx={
-              row.status === 'ACTIVE' ? activeStatusChipSx : archivedStatusChipSx
+              row.status === 'ACTIVE'
+                ? activeStatusChipSx
+                : archivedStatusChipSx
             }
           />
         </SFlex>
@@ -453,6 +469,12 @@ export function ChemicalProductsTable({
               key={row.id}
               minHeight={52}
               sx={{
+                borderRadius: '28px',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 'none',
+                px: 5,
+                '& button': { borderRadius: '999px', textTransform: 'none' },
                 '&:hover': {
                   backgroundColor: 'background.box',
                 },

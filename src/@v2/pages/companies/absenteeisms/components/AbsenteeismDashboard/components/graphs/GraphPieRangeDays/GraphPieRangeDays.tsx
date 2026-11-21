@@ -44,7 +44,7 @@ export const GraphPieRangeDays = ({ companyId, ...props }: Props) => {
 
   return (
     <Box width={'100%'}>
-      <SPaper sx={{ p: 10 }}>
+      <SPaper shadow={false} sx={{ borderRadius: '24px', p: 10 }}>
         <GraphTitle title="Dias de afastamento" />
         <Box height={350} maxWidth={600}>
           {data?.results && !isLoading && (

@@ -71,7 +71,7 @@ export const Graph = ({ data, title }: Props) => {
 
   return (
     <Box width={'100%'}>
-      <SPaper sx={{ p: 2 }}>
+      <SPaper shadow={false} sx={{ borderRadius: '24px', p: 2 }}>
         <GraphTitle
           title={title}
           textProps={{

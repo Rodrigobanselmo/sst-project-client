@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { FC } from 'react';
 
 import { useTheme } from '@mui/material';
@@ -141,14 +142,16 @@ export const SFormModelTable: FC<IFormModelTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <STagRow
-          justify="center"
-          lineNumber={1}
-          text={FormModelTypesMap[row.type].label}
-          backgroundColor={typeTagPresentation.backgroundColor}
-          color={typeTagPresentation.color}
-          borderColor={typeTagPresentation.borderColor}
-        />
+        <Box sx={{ '& > div': { borderRadius: '999px' } }}>
+          <STagRow
+            justify="center"
+            lineNumber={1}
+            text={FormModelTypesMap[row.type].label}
+            backgroundColor={typeTagPresentation.backgroundColor}
+            color={typeTagPresentation.color}
+            borderColor={typeTagPresentation.borderColor}
+          />
+        </Box>
       ),
     },
 
@@ -202,7 +205,14 @@ export const SFormModelTable: FC<IFormModelTableTableProps> = ({
                   clickable
                   onClick={() => onSelectRow(row)}
                   key={row.id}
-                  minHeight={35}
+                  minHeight={48}
+                  sx={{
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 'none',
+                    px: 5,
+                  }}
                 >
                   {rows.map((render) => render(row))}
                 </STableRow>

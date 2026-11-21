@@ -39,7 +39,10 @@ export const TableEmployeeTotal = ({ companyId, ...props }: Props) => {
     resetPersistedLimit,
     createPageSizeChangeHandler,
     defaultLimit,
-  } = useTablePageLimit(params.limit, persistKeys.LIMIT_ABSENTEEISM_EMPLOYEE_TOTAL);
+  } = useTablePageLimit(
+    params.limit,
+    persistKeys.LIMIT_ABSENTEEISM_EMPLOYEE_TOTAL,
+  );
 
   const { data, isLoading } = useFetchBrowseAbsenteeismEmployeeTotal({
     companyId,
@@ -67,22 +70,25 @@ export const TableEmployeeTotal = ({ companyId, ...props }: Props) => {
       orderByAbsenteeismEmployeeTotalTranslation[field],
   });
 
-  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
-    useTableState({
-      data: params,
-      setData: setParamsPrev,
-      chipMap: {
-        search: null,
-        hierarchiesIds: null,
-      },
-      cleanData: {
-        search: '',
-        orderBy: [],
-        hierarchiesIds: [],
-        page: 1,
-        limit: defaultLimit,
-      },
-    });
+  const {
+    onCleanData: resetFromTableState,
+    onFilterData,
+    paramsChipList,
+  } = useTableState({
+    data: params,
+    setData: setParamsPrev,
+    chipMap: {
+      search: null,
+      hierarchiesIds: null,
+    },
+    cleanData: {
+      search: '',
+      orderBy: [],
+      hierarchiesIds: [],
+      page: 1,
+      limit: defaultLimit,
+    },
+  });
 
   const onCleanData = useCallback(() => {
     resetPersistedLimit();
@@ -107,7 +113,7 @@ export const TableEmployeeTotal = ({ companyId, ...props }: Props) => {
   };
 
   return (
-    <SPaper sx={{ p: 10 }}>
+    <SPaper shadow={false} sx={{ borderRadius: '24px', p: 10 }}>
       <SFlex justify="space-between">
         <GraphTitle
           title="Funcionários com mais atestados"

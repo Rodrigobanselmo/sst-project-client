@@ -1,9 +1,9 @@
+import { Box } from '@mui/material';
 import { SIconEdit } from '@v2/assets/icons/SIconEdit/SIconEdit';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
-import { InfoCardAvatar } from '@v2/components/organisms/SInfoCard/components/InfoCardAvatar/InfoCardAvatar';
 import { InfoCardSection } from '@v2/components/organisms/SInfoCard/components/InfoCardSection/InfoCardSection';
 import { InfoCardExpandableText } from '@v2/components/organisms/SInfoCard/components/InfoCardText/InfoCardExpandableText';
 import { InfoCardText } from '@v2/components/organisms/SInfoCard/components/InfoCardText/InfoCardText';
@@ -32,16 +32,68 @@ export const FormApplicationInfo = ({
     formApplication.participants.companies.length > 0;
 
   return (
-    <SPaper mb={mb}>
+    <SPaper
+      className="polished-form-panel"
+      shadow={false}
+      mb={mb}
+      sx={{ borderRadius: '24px', overflow: 'hidden', p: 0 }}
+    >
       <SAccordion
         defaultExpanded={false}
-        icon={<InfoCardAvatar icon={<SIconDocument />} />}
+        icon={
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              flexShrink: 0,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'background.box',
+              color: 'text.secondary',
+            }}
+          >
+            <SIconDocument />
+          </Box>
+        }
         title={formApplication.name}
         subtitle={formApplication.form.name}
         fontWeight="600"
         accordionProps={{
           sx: (theme) => ({
             boxShadow: 'none',
+            border: 0,
+            p: 0,
+            backgroundColor: 'transparent',
+            '&.Mui-expanded': { m: 0 },
+            '&& .MuiAccordionSummary-root': {
+              backgroundColor: 'transparent',
+              borderRadius: '24px',
+              minHeight: 76,
+              px: 6,
+              gap: 4,
+              '&.Mui-expanded': {
+                minHeight: 76,
+                backgroundColor: 'transparent',
+              },
+              '&:hover': { backgroundColor: 'background.box' },
+            },
+            '& .MuiAccordionSummary-content, & .MuiAccordionSummary-content.Mui-expanded':
+              { my: 4, alignItems: 'center', gap: 4, minWidth: 0 },
+            '& .MuiAccordionSummary-content > div:first-of-type': {
+              width: 36,
+              height: 36,
+              flexShrink: 0,
+              mr: 0,
+            },
+            '& .MuiAccordionDetails-root': {
+              px: 6,
+              pb: 4,
+              pt: 0,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+            },
             '&::before': { display: 'none' },
             ...(theme.palette.mode === 'dark' && {
               '& .MuiAccordionSummary-root .MuiTypography-h5': {
@@ -69,7 +121,8 @@ export const FormApplicationInfo = ({
               text={formApplication.formatCreatedAt}
             />
           </InfoCardSection>
-          {(formApplication.formatStartedAt || formApplication.formatEndedAt) && (
+          {(formApplication.formatStartedAt ||
+            formApplication.formatEndedAt) && (
             <>
               <SDivider />
               <InfoCardSection numColumns={2}>

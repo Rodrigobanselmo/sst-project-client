@@ -23,7 +23,7 @@ export const GraphBarTotal = ({ companyId, ...props }: Props) => {
 
   return (
     <Box width={'100%'}>
-      <SPaper sx={{ p: 10 }}>
+      <SPaper shadow={false} sx={{ borderRadius: '24px', p: 10 }}>
         <GraphTitle title="Total de Atestados / Dias Ausentes por Mês" />
         <Box height={408}>
           {data?.results && !isLoading && (

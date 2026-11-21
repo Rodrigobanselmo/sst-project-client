@@ -134,7 +134,9 @@ export const RiskCompanyTable: FC<
   openRiskToolByRiskV2 = false,
 }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
-  const [presenceView, setPresenceView] = useState<'list' | 'presence' | 'technical'>('list');
+  const [presenceView, setPresenceView] = useState<
+    'list' | 'presence' | 'technical'
+  >('list');
   const [openId, setOpenId] = useState('');
   const { data: riskGroupData } = useQueryRiskGroupData();
 
@@ -305,9 +307,7 @@ export const RiskCompanyTable: FC<
       if (col.id === 'type') {
         return <STagRisk key="type" hideRiskName riskFactor={row} />;
       }
-      return (
-        <TextIconRow key="name" clickable text={row.name || '-'} />
-      );
+      return <TextIconRow key="name" clickable text={row.name || '-'} />;
     });
 
   const tableColumns = [
@@ -328,7 +328,20 @@ export const RiskCompanyTable: FC<
         }}
         sx={{
           mb: 2,
-          '& .MuiToggleButton-root': { textTransform: 'none', px: 1.5 },
+          gap: 2,
+          flexWrap: 'wrap',
+          '& .MuiToggleButtonGroup-grouped': {
+            textTransform: 'none',
+            px: 5,
+            borderRadius: '999px !important',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&.Mui-selected': {
+              backgroundColor: 'primary.light',
+              color: 'text.primary',
+              borderColor: 'primary.main',
+            },
+          },
         }}
       >
         <ToggleButton value="list">Lista</ToggleButton>
@@ -349,7 +362,11 @@ export const RiskCompanyTable: FC<
     </>
   );
 
-  if (enableSectorRiskPresenceMap && presenceView === 'technical' && !isSelect) {
+  if (
+    enableSectorRiskPresenceMap &&
+    presenceView === 'technical' &&
+    !isSelect
+  ) {
     const technical = (
       <RiskTechnicalDataView
         companyId={companyId}
@@ -360,7 +377,10 @@ export const RiskCompanyTable: FC<
     );
     const technicalHeader = (
       <>
-        <STableTitle subtitle="Dados técnicos dos fatores de risco" icon={SRiskFactorIcon}>
+        <STableTitle
+          subtitle="Dados técnicos dos fatores de risco"
+          icon={SRiskFactorIcon}
+        >
           Perigo ou Fator de Risco Ocupacional (P/FRO)
         </STableTitle>
         {presenceToggle}
@@ -426,28 +446,60 @@ export const RiskCompanyTable: FC<
         </STableTitle>
       )}
       {presenceToggle}
-      <STableSearch
-        onAddClick={onAddRisk}
-        onChange={(e) => handleSearchChange(e.target.value)}
-        loadingReload={loadRisks || isFetching || isRefetching}
-        onReloadClick={onRefetchThrottle}
-        identitySquareActions
-        pinToolbarWithFilter
-        mb={2}
-        toolbarBeforeFilter={
-          !isSelect ? (
-            <STableColumnsButton<RiskIdentifiedColumnId>
-              showLabel
-              columns={columnPickerItems}
-              hiddenColumns={
-                hiddenColumns as Record<RiskIdentifiedColumnId, boolean>
-              }
-              setHiddenColumns={setHiddenColumnsFromPicker}
-              tableButtonProps={tableUtilityPillButtonProps}
-            />
-          ) : undefined
-        }
-      />
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
+        }}
+      >
+        <STableSearch
+          autoFocus={false}
+          boxProps={{ sx: { width: { xs: 200, md: 340 }, flexShrink: 0 } }}
+          inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+          sx={{
+            '&&&& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+              boxShadow: 'none',
+              backgroundColor: 'background.paper',
+            },
+            '&&&& .MuiOutlinedInput-notchedOutline': {
+              borderWidth: '1px',
+              borderColor: 'divider',
+              borderRadius: '999px',
+            },
+            '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+              {
+                borderWidth: '1px',
+                borderColor: 'primary.main',
+              },
+          }}
+          onAddClick={onAddRisk}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          loadingReload={loadRisks || isFetching || isRefetching}
+          onReloadClick={onRefetchThrottle}
+          identitySquareActions
+          pinToolbarWithFilter
+          mb={2}
+          toolbarBeforeFilter={
+            !isSelect ? (
+              <STableColumnsButton<RiskIdentifiedColumnId>
+                showLabel
+                columns={columnPickerItems}
+                hiddenColumns={
+                  hiddenColumns as Record<RiskIdentifiedColumnId, boolean>
+                }
+                setHiddenColumns={setHiddenColumnsFromPicker}
+                tableButtonProps={tableUtilityPillButtonProps}
+              />
+            ) : undefined
+          }
+        />
+      </Box>
       <SFlex justify="flex-end" align="center" mb={8}>
         <SSwitch
           onChange={() => {
@@ -463,7 +515,7 @@ export const RiskCompanyTable: FC<
   );
 
   const tableHeader = (
-    <STableHeader>
+    <STableHeader sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
       {selectedData && <STableHRow key="check-col" />}
       {visibleColumns.map((col) => (
         <TableSortColumnHeader<RiskIdentifiedListSortBy>
@@ -507,125 +559,173 @@ export const RiskCompanyTable: FC<
       rowsInitialNumber={pageSize}
       contentEmpty={emptyMessage}
       renderRow={(row) => {
-            const isOpen = showOrigins || openId === row.id;
-            return (
-              <>
-                <STableRow
-                  onClick={() => onSelectRow(row)}
-                  clickable
-                  key={row.id}
-                  minHeight={40}
+        const isOpen = showOrigins || openId === row.id;
+        return (
+          <>
+            <STableRow
+              onClick={() => onSelectRow(row)}
+              clickable
+              key={row.id}
+              minHeight={48}
+              sx={{
+                borderRadius: isOpen ? '24px' : '999px',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 'none',
+                px: 5,
+              }}
+            >
+              {selectedData && (
+                <SCheckBox
+                  label=""
+                  checked={!!selectedData.find((exam) => exam.id === row.id)}
+                />
+              )}
+              {renderMainCells(row)}
+              {!isSelect && (
+                <Box
+                  justifySelf="end"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onStackOpenModal(ModalEnum.RISK_ADD, row);
+                  }}
+                  onMouseDown={(event) => event.stopPropagation()}
                 >
-                  {selectedData && (
-                    <SCheckBox
-                      label=""
-                      checked={
-                        !!selectedData.find((exam) => exam.id === row.id)
-                      }
-                    />
-                  )}
-                  {renderMainCells(row)}
-                  {!isSelect && (
-                    <Box
-                      justifySelf="end"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onStackOpenModal(ModalEnum.RISK_ADD, row);
-                      }}
-                      onMouseDown={(event) => event.stopPropagation()}
-                    >
-                      <IconButtonRow
-                        icon={<EditIcon />}
-                        tooltipTitle="Editar fator de risco"
-                        aria-label="Editar fator de risco"
-                      />
-                    </Box>
-                  )}
-                  {isOpen && !!row.riskFactorData?.length && (
-                    <Box gridColumn="1 / -1" mb={6} mt={-1}>
-                      <RiskOriginsBulkRemoveMenu
-                        risk={row}
-                        riskFactorData={row.riskFactorData ?? []}
-                        riskGroupId={riskGroupId}
-                      />
-                    </Box>
-                  )}
-                  {isOpen && (
-                    <Box gridColumn="1 / -1" mb={6} mt={-1}>
-                      {row?.riskFactorData?.map((riskData) => {
-                        return (
-                          <SFlex
-                            direction="row"
-                            align="center"
-                            key={riskData.id}
-                            gap={2}
+                  <IconButtonRow
+                    icon={<EditIcon />}
+                    tooltipTitle="Editar fator de risco"
+                    aria-label="Editar fator de risco"
+                  />
+                </Box>
+              )}
+              {isOpen && !!row.riskFactorData?.length && (
+                <Box gridColumn="1 / -1" mb={6} mt={-1}>
+                  <RiskOriginsBulkRemoveMenu
+                    risk={row}
+                    riskFactorData={row.riskFactorData ?? []}
+                    riskGroupId={riskGroupId}
+                  />
+                </Box>
+              )}
+              {isOpen && (
+                <Box gridColumn="1 / -1" mb={6} mt={-1}>
+                  {row?.riskFactorData?.map((riskData) => {
+                    return (
+                      <SFlex
+                        direction="row"
+                        align="center"
+                        key={riskData.id}
+                        gap={2}
+                      >
+                        <SText lineHeight="1.4rem" fontSize={11} mt={0}>
+                          <b>Origem:</b>{' '}
+                          <SText
+                            component="span"
+                            sx={{
+                              borderRadius: '4px',
+                              mr: 1,
+                              backgroundColor: 'background.box',
+                              px: 3,
+                              py: '1px',
+                              border: '1px solid',
+                              borderColor: 'grey.400',
+                              '&:hover': {
+                                textDecoration: 'underline',
+                              },
+                            }}
+                            fontSize={11}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenRiskToolSelected({
+                                homogeneousGroup: riskData.homogeneousGroup,
+                                riskFactor: row,
+                                riskGroupId,
+                                byRiskV2: openRiskToolByRiskV2,
+                              });
+                            }}
                           >
-                            <SText lineHeight="1.4rem" fontSize={11} mt={0}>
-                              <b>Origem:</b>{' '}
-                              <SText
-                                component="span"
-                                sx={{
-                                  borderRadius: '4px',
-                                  mr: 1,
-                                  backgroundColor: 'background.box',
-                                  px: 3,
-                                  py: '1px',
-                                  border: '1px solid',
-                                  borderColor: 'grey.400',
-                                  '&:hover': {
-                                    textDecoration: 'underline',
-                                  },
-                                }}
-                                fontSize={11}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onOpenRiskToolSelected({
-                                    homogeneousGroup: riskData.homogeneousGroup,
-                                    riskFactor: row,
-                                    riskGroupId,
-                                    byRiskV2: openRiskToolByRiskV2,
-                                  });
-                                }}
-                              >
-                                {riskData.origin || ''}
-                              </SText>
-                            </SText>
-                            <STag
-                              action={
-                                String(
-                                  riskData.level,
-                                ) as unknown as ITagActionColors
-                              }
-                              minHeight={10}
-                              display="inline-block"
-                              text={''}
-                              minWidth={10}
-                              sx={{ p: 0, m: 0 }}
-                            />
-                          </SFlex>
-                        );
-                      })}
+                            {riskData.origin || ''}
+                          </SText>
+                        </SText>
+                        <STag
+                          action={
+                            String(
+                              riskData.level,
+                            ) as unknown as ITagActionColors
+                          }
+                          minHeight={10}
+                          display="inline-block"
+                          text={''}
+                          minWidth={10}
+                          sx={{ p: 0, m: 0 }}
+                        />
+                      </SFlex>
+                    );
+                  })}
+                </Box>
+              )}
+              {isOpen && (
+                <Box gridColumn="1 / -1" mb={6} mt={-1}>
+                  <SFlex gap={'10px'} flexWrap="wrap">
+                    <Box
+                      sx={{
+                        backgroundColor: (theme) =>
+                          theme.palette.mode === 'dark'
+                            ? '#252e3c'
+                            : theme.palette.grey[100],
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '& .MuiTypography-root': {
+                          color: (theme) =>
+                            theme.palette.mode === 'dark'
+                              ? '#e2e8f0'
+                              : '#334155',
+                        },
+                        padding: '5px 10px 0px',
+                        borderRadius: 1,
+                      }}
+                    >
+                      <SText fontSize={13} mb={-2}>
+                        Empresa
+                      </SText>
+                      <SCheckRiskDocInfo
+                        onUnmount={upsertRiskDocInfo.isError}
+                        onSelectCheck={(docInfo) =>
+                          onChangeRiskDocInfo({
+                            ...docInfo,
+                            riskId: row.id,
+                          })
+                        }
+                        riskDocInfo={getRiskDoc(row, {
+                          companyId,
+                        })}
+                      />
                     </Box>
-                  )}
-                  {isOpen && (
-                    <Box gridColumn="1 / -1" mb={6} mt={-1}>
-                      <SFlex gap={'10px'} flexWrap="wrap">
+
+                    {row?.docInfo?.map((docInfo) => {
+                      if (!docInfo.hierarchyId) return null;
+                      return (
                         <Box
+                          key={docInfo.id}
                           sx={{
                             backgroundColor: (theme) =>
-                              theme.palette.mode === 'dark' ? '#252e3c' : theme.palette.grey[100],
+                              theme.palette.mode === 'dark'
+                                ? '#252e3c'
+                                : theme.palette.grey[100],
                             border: '1px solid',
                             borderColor: 'divider',
                             '& .MuiTypography-root': {
                               color: (theme) =>
-                                theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155',
+                                theme.palette.mode === 'dark'
+                                  ? '#e2e8f0'
+                                  : '#334155',
                             },
                             padding: '5px 10px 0px',
                             borderRadius: 1,
                           }}
                         >
                           <SText fontSize={13} mb={-2}>
-                            Empresa
+                            (Cargo) {docInfo?.hierarchy?.name}
                           </SText>
                           <SCheckRiskDocInfo
                             onUnmount={upsertRiskDocInfo.isError}
@@ -633,56 +733,21 @@ export const RiskCompanyTable: FC<
                               onChangeRiskDocInfo({
                                 ...docInfo,
                                 riskId: row.id,
+                                hierarchyId: docInfo.hierarchyId,
                               })
                             }
-                            riskDocInfo={getRiskDoc(row, {
-                              companyId,
-                            })}
+                            riskDocInfo={docInfo}
                           />
                         </Box>
-
-                        {row?.docInfo?.map((docInfo) => {
-                          if (!docInfo.hierarchyId) return null;
-                          return (
-                            <Box
-                              key={docInfo.id}
-                              sx={{
-                                backgroundColor: (theme) =>
-                                  theme.palette.mode === 'dark' ? '#252e3c' : theme.palette.grey[100],
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                '& .MuiTypography-root': {
-                                  color: (theme) =>
-                                    theme.palette.mode === 'dark' ? '#e2e8f0' : '#334155',
-                                },
-                                padding: '5px 10px 0px',
-                                borderRadius: 1,
-                              }}
-                            >
-                              <SText fontSize={13} mb={-2}>
-                                (Cargo) {docInfo?.hierarchy?.name}
-                              </SText>
-                              <SCheckRiskDocInfo
-                                onUnmount={upsertRiskDocInfo.isError}
-                                onSelectCheck={(docInfo) =>
-                                  onChangeRiskDocInfo({
-                                    ...docInfo,
-                                    riskId: row.id,
-                                    hierarchyId: docInfo.hierarchyId,
-                                  })
-                                }
-                                riskDocInfo={docInfo}
-                              />
-                            </Box>
-                          );
-                        })}
-                      </SFlex>
-                    </Box>
-                  )}
-                </STableRow>
-              </>
-            );
-          }}
+                      );
+                    })}
+                  </SFlex>
+                </Box>
+              )}
+            </STableRow>
+          </>
+        );
+      }}
     />
   );
 

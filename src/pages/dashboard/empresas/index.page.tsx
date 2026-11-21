@@ -52,10 +52,24 @@ export const CompaniesWizard = () => {
           />
         }
       >
-        <SWizardBox sx={{ px: 5, py: 10 }}>
+        <SWizardBox
+          sx={{
+            px: 0,
+            py: 10,
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+          }}
+        >
           <CompaniesTable hideTitle />
         </SWizardBox>
-        <SWizardBox sx={{ px: 5, py: 10 }}>
+        <SWizardBox
+          sx={{
+            px: 0,
+            py: 10,
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+          }}
+        >
           <CompanyGroupsTable hideTitle />
         </SWizardBox>
       </Wizard>

@@ -13,7 +13,10 @@ import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { useFetchBrowseChemicalProducts } from '@v2/services/security/characterization/chemical-product/hooks/useFetchBrowseChemicalProducts';
 import { useMutateChemicalProduct } from '@v2/services/security/characterization/chemical-product/hooks/useMutateChemicalProduct';
-import { getChemicalProductDeletionEligibility, readChemicalProduct } from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
+import {
+  getChemicalProductDeletionEligibility,
+  readChemicalProduct,
+} from '@v2/services/security/characterization/chemical-product/service/chemical-product.service';
 import type {
   ChemicalProductDetail,
   ChemicalProductListItem,
@@ -163,13 +166,8 @@ export const ChemicalProductsPageContent = ({
     { companyId, workspaceId, includeArchived },
     Boolean(workspaceId),
   );
-  const {
-    archive,
-    restore,
-    hardDelete,
-    downloadExcelTemplate,
-    exportExcel,
-  } = useMutateChemicalProduct();
+  const { archive, restore, hardDelete, downloadExcelTemplate, exportExcel } =
+    useMutateChemicalProduct();
 
   const loadedProducts = (data || []) as ChemicalProductListItem[];
   const manufacturers = useMemo(
@@ -242,7 +240,11 @@ export const ChemicalProductsPageContent = ({
       const data = err?.response?.data;
       const message = data?.message;
       if (typeof message === 'string') return message;
-      if (message && typeof message === 'object' && typeof message.message === 'string') {
+      if (
+        message &&
+        typeof message === 'object' &&
+        typeof message.message === 'string'
+      ) {
         return message.message;
       }
       if (Array.isArray(data?.blockers) && data.blockers.length) {
@@ -288,8 +290,7 @@ export const ChemicalProductsPageContent = ({
     } catch (err: any) {
       const message = readErrorMessage(err);
       const suggestArchive =
-        err?.response?.data?.suggestArchive === true ||
-        /arquiv/i.test(message);
+        err?.response?.data?.suggestArchive === true || /arquiv/i.test(message);
       if (suggestArchive) {
         const archiveInstead = window.confirm(
           `${message}\n\nDeseja arquivar o produto?`,
@@ -390,6 +391,17 @@ export const ChemicalProductsPageContent = ({
       </Box>
 
       <Box
+        sx={
+          viewMode === 'products'
+            ? {
+                '& button': {
+                  borderRadius: '999px',
+                  boxShadow: 'none',
+                  textTransform: 'none',
+                },
+              }
+            : undefined
+        }
         role="tabpanel"
         id={`chemical-products-panel-${viewMode}`}
         aria-labelledby={`chemical-products-tab-${viewMode}`}
@@ -498,8 +510,9 @@ export const ChemicalProductsPageContent = ({
             workspaceId={workspaceId}
             companyName={company?.name || companyId}
             workspaceName={
-              workspaces.results.find((workspace) => workspace.id === workspaceId)?.name ||
-              workspaceId
+              workspaces.results.find(
+                (workspace) => workspace.id === workspaceId,
+              )?.name || workspaceId
             }
           />
         )}
@@ -525,6 +538,23 @@ export const ChemicalProductsPageContent = ({
               }
               inputProps={{
                 placeholder: 'Buscar nome, fabricante, substância ou CAS',
+                sx: {
+                  '&&&& .MuiOutlinedInput-root': {
+                    borderRadius: '999px',
+                    boxShadow: 'none',
+                    backgroundColor: 'background.paper',
+                  },
+                  '&&&& .MuiOutlinedInput-notchedOutline': {
+                    borderWidth: '1px',
+                    borderColor: 'divider',
+                    borderRadius: '999px',
+                  },
+                  '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                    {
+                      borderWidth: '1px',
+                      borderColor: 'primary.main',
+                    },
+                },
               }}
             >
               <STableSearchContent>
@@ -599,7 +629,9 @@ export const ChemicalProductsPageContent = ({
             hiddenColumns={hiddenColumns}
             sort={tableSort}
             onSortField={(field) =>
-              setTableSort((current) => nextChemicalProductTableSort(current, field))
+              setTableSort((current) =>
+                nextChemicalProductTableSort(current, field),
+              )
             }
             emptyMessage={
               hasActiveView

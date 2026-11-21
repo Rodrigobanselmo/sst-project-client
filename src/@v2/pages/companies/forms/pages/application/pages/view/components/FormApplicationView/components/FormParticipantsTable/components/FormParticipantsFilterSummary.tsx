@@ -45,6 +45,7 @@ export const FormParticipantsFilterSummary = ({
 
   return (
     <SPaper
+      className="polished-form-panel"
       sx={{
         px: 2.5,
         pt: 2,

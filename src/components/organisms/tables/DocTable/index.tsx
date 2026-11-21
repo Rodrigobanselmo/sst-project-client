@@ -205,7 +205,12 @@ export const DocTable: FC<
   );
   const [hiddenColumns, setHiddenColumns] = useState<
     Partial<Record<DocTableColumnId, boolean>>
-  >(() => loadHiddenDocVersionsColumns() as Partial<Record<DocTableColumnId, boolean>>);
+  >(
+    () =>
+      loadHiddenDocVersionsColumns() as Partial<
+        Record<DocTableColumnId, boolean>
+      >,
+  );
   const [familyFilter, setFamilyFilter] = useState<DocTableFamilyFilter>(() =>
     loadDocVersionsFamilyFilter(),
   );
@@ -356,8 +361,7 @@ export const DocTable: FC<
     );
   }, [familyFilteredDocs, sortForData]);
 
-  const totalCount =
-    familyFilter === 'all' ? count : familyFilteredDocs.length;
+  const totalCount = familyFilter === 'all' ? count : familyFilteredDocs.length;
 
   const pagedDocs = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -385,23 +389,20 @@ export const DocTable: FC<
     return () => window.clearInterval(intervalId);
   }, [hasProcessingVersions, refetch]);
 
-  const getDeleteConfirmMessage = useCallback(
-    (doc: IRiskDocument) => {
-      const processing = doc.status === StatusEnum.PROCESSING;
-      const downloadExpired = isTestDownloadExpired(doc);
+  const getDeleteConfirmMessage = useCallback((doc: IRiskDocument) => {
+    const processing = doc.status === StatusEnum.PROCESSING;
+    const downloadExpired = isTestDownloadExpired(doc);
 
-      if (processing) {
-        return 'Este documento ainda está em processamento. Tem certeza que deseja excluí-lo?';
-      }
+    if (processing) {
+      return 'Este documento ainda está em processamento. Tem certeza que deseja excluí-lo?';
+    }
 
-      if (!downloadExpired) {
-        return 'Este documento ainda está disponível para download. Tem certeza que deseja excluí-lo?';
-      }
+    if (!downloadExpired) {
+      return 'Este documento ainda está disponível para download. Tem certeza que deseja excluí-lo?';
+    }
 
-      return 'Tem certeza que deseja excluir este documento?';
-    },
-    [],
-  );
+    return 'Tem certeza que deseja excluir este documento?';
+  }, []);
 
   const handleDeleteDoc = useCallback(
     (doc: IRiskDocument) => {
@@ -428,16 +429,19 @@ export const DocTable: FC<
         return;
       }
 
-      preventDelete(
-        async () => {
-          await deleteDocVersion
-            .mutateAsync({ id: doc.id, companyId })
-            .catch(() => {});
-        },
-        getDeleteConfirmMessage(doc),
-      );
+      preventDelete(async () => {
+        await deleteDocVersion
+          .mutateAsync({ id: doc.id, companyId })
+          .catch(() => {});
+      }, getDeleteConfirmMessage(doc));
     },
-    [companyId, deleteDocVersion, getDeleteConfirmMessage, isMaster, preventDelete],
+    [
+      companyId,
+      deleteDocVersion,
+      getDeleteConfirmMessage,
+      isMaster,
+      preventDelete,
+    ],
   );
 
   const handleEditStatus = (_status: StatusEnum) => {
@@ -548,7 +552,8 @@ export const DocTable: FC<
 
   const handlePromoteToOfficial = useCallback(
     async (doc: IRiskDocument) => {
-      if (!companyId || !isPromoteToOfficialEnabledForDocumentType(type)) return;
+      if (!companyId || !isPromoteToOfficialEnabledForDocumentType(type))
+        return;
       if (!isUnofficialDocumentVersion(doc.version)) return;
       if (doc.status === StatusEnum.PROCESSING) return;
 
@@ -588,7 +593,9 @@ export const DocTable: FC<
   const handleResetUnofficialVersions = useCallback(() => {
     if (!documentData?.id || !companyId) return;
 
-    const versionLabels = unofficialVersions.map((doc) => doc.version).join(', ');
+    const versionLabels = unofficialVersions
+      .map((doc) => doc.version)
+      .join(', ');
 
     preventDelete(
       async () => {
@@ -622,7 +629,9 @@ export const DocTable: FC<
       title: 'Iniciar nova série oficial?',
       message: `As versões oficiais atuais (${activeOfficialVersions
         .map((doc) => doc.version)
-        .join(', ')}) permanecerão preservadas na lista.\n\nA próxima versão oficial sugerida voltará para 1.0.0 em uma nova série, sem misturar a tabela de revisões com a série anterior.`,
+        .join(
+          ', ',
+        )}) permanecerão preservadas na lista.\n\nA próxima versão oficial sugerida voltará para 1.0.0 em uma nova série, sem misturar a tabela de revisões com a série anterior.`,
       confirmText: 'Reiniciar série',
       cancelText: 'Cancelar',
       variant: 'warning',
@@ -782,7 +791,12 @@ export const DocTable: FC<
           <StatusSelect
             key="status"
             large
-            sx={{ minWidth: '110px', maxWidth: '130px' }}
+            sx={{
+              minWidth: '110px',
+              maxWidth: '130px',
+              borderRadius: '999px',
+              boxShadow: 'none',
+            }}
             selected={row.status}
             loading={processing}
             statusOptions={[]}
@@ -835,16 +849,19 @@ export const DocTable: FC<
                 downloadExpired ? EXPIRED_DOWNLOAD_TOOLTIP : undefined
               }
               icon={SDownloadIcon}
-              sx={{ flexShrink: 0, justifySelf: 'end' }}
+              sx={{
+                flexShrink: 0,
+                justifySelf: 'end',
+                borderRadius: '999px',
+                boxShadow: 'none',
+              }}
             />
             {(supportsPromoteToOfficial || showTestVersionActions) &&
               (showTestVersionActions ? (
                 <IconButtonRow
                   icon={<SReloadIcon />}
                   tooltipTitle={
-                    processing
-                      ? 'Revisão em processamento'
-                      : 'Editar revisão'
+                    processing ? 'Revisão em processamento' : 'Editar revisão'
                   }
                   sx={actionIconButtonSx}
                   disabled={processing}
@@ -921,84 +938,121 @@ export const DocTable: FC<
           </SText>
         </STableTitle>
       )}
-      <STableSearch
-        key={searchInputKey}
-        onAddClick={() => onGenerateVersion()}
-        onChange={(e) => handleSearchChange(e.target.value)}
-        identitySquareActions
-        pinToolbarWithFilter
-        onReloadClick={() => {
-          refetch();
-          queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
         }}
-        loadingReload={isLoading || isFetching || isRefetching}
-        toolbarAfterAdd={
-          <FormControl size="small" sx={{ minWidth: 130, ml: 2 }}>
-            <Select
-              value={familyFilter}
-              onChange={onFamilyFilterChange}
-              displayEmpty
-              sx={{
-                height: BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
-                fontSize: 13,
-                '& .MuiSelect-select': { py: 0.5 },
-              }}
-            >
-              <MenuItem value="all">Tipo: {FAMILY_FILTER_LABELS.all}</MenuItem>
-              <MenuItem value="test">Tipo: {FAMILY_FILTER_LABELS.test}</MenuItem>
-              <MenuItem value="official">
-                Tipo: {FAMILY_FILTER_LABELS.official}
-              </MenuItem>
-            </Select>
-          </FormControl>
-        }
-        toolbarBeforeFilter={
-          <STableColumnsButton<DocTableColumnId>
-            showLabel
-            columns={columnPickerItems}
-            hiddenColumns={
-              hiddenColumns as Record<DocTableColumnId, boolean>
-            }
-            setHiddenColumns={setHiddenColumnsFromPicker}
-            tableButtonProps={tableUtilityPillButtonProps}
-          />
-        }
-        toolbarAfterReload={
-          workspaceId && documentData?.id ? (
-            <>
-              <STableButton
-                tooltip="Reiniciar versões de teste"
-                text="Reset teste"
-                icon={ReplayOutlined}
-                onClick={handleResetUnofficialVersions}
-                loading={resetUnofficialVersions.isLoading}
-                disabled={unofficialVersions.length === 0}
-                variant="outlined"
-                color="transparent"
-                iconColor="inherit"
-                sx={pgrResetOperationalSx}
-              />
-              <STableButton
-                tooltip="Iniciar nova série oficial"
-                text="Reset oficial"
-                icon={ReplayOutlined}
-                onClick={handleResetOfficialSeries}
-                loading={resetOfficialSeries.isLoading}
-                disabled={activeOfficialVersions.length === 0}
-                variant="outlined"
-                color="transparent"
-                iconColor="inherit"
-                sx={pgrResetOperationalSx}
-              />
-            </>
-          ) : undefined
-        }
-      />
+      >
+        <STableSearch
+          autoFocus={false}
+          boxProps={{ sx: { width: { xs: 200, md: 340 }, flexShrink: 0 } }}
+          inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+          sx={{
+            '&&&& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+              boxShadow: 'none',
+              backgroundColor: 'background.paper',
+            },
+            '&&&& .MuiOutlinedInput-notchedOutline': {
+              borderWidth: '1px',
+              borderColor: 'divider',
+              borderRadius: '999px',
+            },
+            '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+              {
+                borderWidth: '1px',
+                borderColor: 'primary.main',
+              },
+          }}
+          key={searchInputKey}
+          onAddClick={() => onGenerateVersion()}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          identitySquareActions
+          pinToolbarWithFilter
+          onReloadClick={() => {
+            refetch();
+            queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
+          }}
+          loadingReload={isLoading || isFetching || isRefetching}
+          toolbarAfterAdd={
+            <FormControl size="small" sx={{ minWidth: 130, ml: 2 }}>
+              <Select
+                value={familyFilter}
+                onChange={onFamilyFilterChange}
+                displayEmpty
+                sx={{
+                  borderRadius: '999px',
+                  backgroundColor: 'background.paper',
+                  '& fieldset': { borderColor: 'divider' },
+                  height: BRAND_IDENTITY_TOOLBAR_ACTION_HEIGHT,
+                  fontSize: 13,
+                  '& .MuiSelect-select': { py: 0.5 },
+                }}
+              >
+                <MenuItem value="all">
+                  Tipo: {FAMILY_FILTER_LABELS.all}
+                </MenuItem>
+                <MenuItem value="test">
+                  Tipo: {FAMILY_FILTER_LABELS.test}
+                </MenuItem>
+                <MenuItem value="official">
+                  Tipo: {FAMILY_FILTER_LABELS.official}
+                </MenuItem>
+              </Select>
+            </FormControl>
+          }
+          toolbarBeforeFilter={
+            <STableColumnsButton<DocTableColumnId>
+              showLabel
+              columns={columnPickerItems}
+              hiddenColumns={hiddenColumns as Record<DocTableColumnId, boolean>}
+              setHiddenColumns={setHiddenColumnsFromPicker}
+              tableButtonProps={tableUtilityPillButtonProps}
+            />
+          }
+          toolbarAfterReload={
+            workspaceId && documentData?.id ? (
+              <>
+                <STableButton
+                  tooltip="Reiniciar versões de teste"
+                  text="Reset teste"
+                  icon={ReplayOutlined}
+                  onClick={handleResetUnofficialVersions}
+                  loading={resetUnofficialVersions.isLoading}
+                  disabled={unofficialVersions.length === 0}
+                  variant="outlined"
+                  color="transparent"
+                  iconColor="inherit"
+                  sx={pgrResetOperationalSx}
+                />
+                <STableButton
+                  tooltip="Iniciar nova série oficial"
+                  text="Reset oficial"
+                  icon={ReplayOutlined}
+                  onClick={handleResetOfficialSeries}
+                  loading={resetOfficialSeries.isLoading}
+                  disabled={activeOfficialVersions.length === 0}
+                  variant="outlined"
+                  color="transparent"
+                  iconColor="inherit"
+                  sx={pgrResetOperationalSx}
+                />
+              </>
+            ) : undefined
+          }
+        />
+      </Box>
     </>
   );
 
   const tableHeader = (
-    <STableHeader>
+    <STableHeader sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
       {visibleColumns.map((col) =>
         col.id === 'actions' ? (
           <STableHRow key={col.id} justifyContent={col.justifyContent}>
@@ -1031,14 +1085,18 @@ export const DocTable: FC<
         return (
           <STableRow
             key={row.id}
-            sx={
-              isOfficialRow
-                ? (theme) => ({
-                    borderLeft: `3px solid ${alpha(theme.palette.primary.main, 0.35)}`,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.035),
-                  })
-                : undefined
-            }
+            sx={(theme) => ({
+              borderRadius: '999px',
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: 'none',
+              minHeight: 48,
+              px: 5,
+              ...(isOfficialRow && {
+                borderLeft: `3px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+                backgroundColor: alpha(theme.palette.primary.main, 0.035),
+              }),
+            })}
           >
             {visibleColumns.map((col) => renderCell(col, row))}
           </STableRow>

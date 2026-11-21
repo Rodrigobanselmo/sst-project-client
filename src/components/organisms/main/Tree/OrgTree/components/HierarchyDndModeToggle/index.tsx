@@ -20,6 +20,7 @@ export const HierarchyDndModeToggle: FC = () => {
   return (
     <SFlex align="center" gap={2}>
       <STagButton
+        sx={{ borderRadius: '999px', boxShadow: 'none', px: 5, minWidth: 32 }}
         large
         text="Mover"
         icon={OpenWithOutlinedIcon}
@@ -28,6 +29,7 @@ export const HierarchyDndModeToggle: FC = () => {
         onClick={() => dispatch(setCopyDndActive(false))}
       />
       <STagButton
+        sx={{ borderRadius: '999px', boxShadow: 'none', px: 5, minWidth: 32 }}
         large
         text="Copiar"
         icon={SCopyIcon}

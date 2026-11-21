@@ -35,7 +35,47 @@ export function FormStructuresContent({ companyId }: { companyId: string }) {
   const current = selection === 'new' ? undefined : (selection ?? undefined);
 
   return (
-    <Stack gap={4}>
+    <Stack
+      gap={4}
+      sx={{
+        '& button': {
+          borderRadius: '999px',
+          boxShadow: 'none',
+          textTransform: 'none',
+        },
+        '& .MuiTable-root': {
+          backgroundColor: 'transparent',
+          borderCollapse: 'separate',
+          borderSpacing: '0 8px',
+        },
+        '& .MuiTableHead-root, & .MuiTableBody-root, & .MuiTableRow-root': {
+          backgroundColor: 'transparent',
+        },
+        '& .MuiTableHead-root .MuiTableCell-root': {
+          backgroundColor: 'transparent',
+        },
+        '& .MuiTableBody-root .MuiTableCell-root': {
+          backgroundColor: 'background.paper',
+          borderTop: '1px solid',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          py: 4,
+          '&:first-of-type': {
+            borderLeft: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '999px 0 0 999px',
+            pl: 6,
+          },
+          '&:last-of-type': {
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '0 999px 999px 0',
+            pr: 6,
+          },
+          '&:only-of-type': { borderRadius: '999px' },
+        },
+      }}
+    >
       <Stack
         direction="row"
         alignItems="center"
@@ -54,7 +94,14 @@ export function FormStructuresContent({ companyId }: { companyId: string }) {
         <Alert severity="error">Não foi possível carregar as estruturas.</Alert>
       )}
       {structures.data && (
-        <Paper sx={{ overflowX: 'auto' }}>
+        <Paper
+          elevation={0}
+          sx={{
+            overflowX: 'auto',
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+          }}
+        >
           <Table size="small">
             <TableHead>
               <TableRow>

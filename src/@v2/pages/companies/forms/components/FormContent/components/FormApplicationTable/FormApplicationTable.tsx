@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
@@ -74,30 +75,33 @@ export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
     getLeftLabel: ({ field }) => orderByFormApplicationTranslation[field],
   });
 
-  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
-    useTableState({
-      data: queryParams,
-      setData: setQueryParams,
-      chipMap: {
-        search: null,
-        status: (value) => ({
-          leftLabel: 'Status',
-          label: value,
-          onDelete: () =>
-            setQueryParams({
-              page: 1,
-              status: queryParams.status?.filter((type) => type !== value),
-            }),
-        }),
-      },
-      cleanData: {
-        search: '',
-        status: [],
-        orderBy: [],
-        page: 1,
-        limit: defaultLimit,
-      },
-    });
+  const {
+    onCleanData: resetFromTableState,
+    onFilterData,
+    paramsChipList,
+  } = useTableState({
+    data: queryParams,
+    setData: setQueryParams,
+    chipMap: {
+      search: null,
+      status: (value) => ({
+        leftLabel: 'Status',
+        label: value,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            status: queryParams.status?.filter((type) => type !== value),
+          }),
+      }),
+    },
+    cleanData: {
+      search: '',
+      status: [],
+      orderBy: [],
+      page: 1,
+      limit: defaultLimit,
+    },
+  });
 
   const onCleanData = useCallback(() => {
     resetPersistedLimit();
@@ -108,29 +112,56 @@ export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
 
   return (
     <>
-      <STableSearch
-        search={queryParams.search}
-        onSearch={(search) => onFilterData({ search })}
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: 'none',
+          },
+        }}
       >
-        <STableSearchContent>
-          <STableAddButton identityFill onClick={onFormApplicationAdd} />
-          <STableColumnsButton
-            showLabel
-            hiddenColumns={hiddenColumns}
-            setHiddenColumns={setHiddenColumns}
-            columns={commentColumns}
-            tableButtonProps={tableUtilityPillButtonProps}
-          />
-          <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
-            <FormApplicationTableFilter
-              data={formApplication?.filters}
-              onFilterData={onFilterData}
-              filters={queryParams}
-              companyId={companyId}
+        <STableSearch
+          autoFocus={false}
+          inputProps={{
+            sx: {
+              '&&&& .MuiOutlinedInput-root': {
+                borderRadius: '999px',
+                boxShadow: 'none',
+              },
+              '&&&& .MuiOutlinedInput-notchedOutline': {
+                borderRadius: '999px',
+                borderWidth: '1px',
+                borderColor: 'divider',
+              },
+              '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                { borderWidth: '1px', borderColor: 'primary.main' },
+            },
+          }}
+          search={queryParams.search}
+          onSearch={(search) => onFilterData({ search })}
+        >
+          <STableSearchContent>
+            <STableAddButton identityFill onClick={onFormApplicationAdd} />
+            <STableColumnsButton
+              showLabel
+              hiddenColumns={hiddenColumns}
+              setHiddenColumns={setHiddenColumns}
+              columns={commentColumns}
+              tableButtonProps={tableUtilityPillButtonProps}
             />
-          </STableFilterButton>
-        </STableSearchContent>
-      </STableSearch>
+            <STableFilterButton tableButtonProps={tableUtilityPillButtonProps}>
+              <FormApplicationTableFilter
+                data={formApplication?.filters}
+                onFilterData={onFilterData}
+                filters={queryParams}
+                companyId={companyId}
+              />
+            </STableFilterButton>
+          </STableSearchContent>
+        </STableSearch>
+      </Box>
       <STableInfoSection>
         <STableFilterChipList onClean={onCleanData}>
           {[...orderChipList, ...paramsChipList]?.map((chip) => (

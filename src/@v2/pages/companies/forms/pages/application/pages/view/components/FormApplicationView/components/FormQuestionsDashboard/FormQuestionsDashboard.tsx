@@ -1,4 +1,7 @@
-import { filterIndicatorAnswers, PARTIAL_RESULTS_MINIMUM } from './helpers/filterIndicatorAnswers';
+import {
+  filterIndicatorAnswers,
+  PARTIAL_RESULTS_MINIMUM,
+} from './helpers/filterIndicatorAnswers';
 import type { ReactNode } from 'react';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import RadarIcon from '@mui/icons-material/Radar';
@@ -432,6 +435,7 @@ const GroupDashboardIndicator = ({
 
     return (
       <SPaper
+        className="polished-form-panel"
         sx={{
           mb: 6,
           p: 6,
@@ -511,6 +515,7 @@ const GroupDashboardIndicator = ({
 
   return (
     <SPaper
+      className="polished-form-panel"
       sx={{
         p: 3,
         mb: 4,
@@ -604,8 +609,7 @@ export const FormQuestionsDashboard = ({
   const isPsychosocialForm =
     formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
   const isShareableLink = formApplication.isShareableLink;
-  const isPartialPsychosocialForm =
-    isPsychosocialForm && !isDone;
+  const isPartialPsychosocialForm = isPsychosocialForm && !isDone;
   const formQuestionsAnswers = useMemo(() => {
     if (!isPartialPsychosocialForm || !campaignAnswers) return campaignAnswers;
 
@@ -701,9 +705,13 @@ export const FormQuestionsDashboard = ({
     (indicatorView === 'radar-dimensions' && canShowDimensionRadar)
       ? indicatorView
       : 'bars';
-  const [identificationQuestionId, setIdentificationQuestionId] = useState<string | null>(null);
+  const [identificationQuestionId, setIdentificationQuestionId] = useState<
+    string | null
+  >(null);
   const [organizationDialogOpen, setOrganizationDialogOpen] = useState(false);
-  const [organizationGroupIds, setOrganizationGroupIds] = useState<string[]>([]);
+  const [organizationGroupIds, setOrganizationGroupIds] = useState<string[]>(
+    [],
+  );
   // State for controlling whether to show only group indicators or individual questions too
   const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
     useState<boolean>(false);
@@ -771,7 +779,8 @@ export const FormQuestionsDashboard = ({
   );
 
   const organizationalGroups = useMemo(
-    () => buildOrganizationalGroups(participantStructuresForGrouping, typeLabels),
+    () =>
+      buildOrganizationalGroups(participantStructuresForGrouping, typeLabels),
     [participantStructuresForGrouping, typeLabels],
   );
   const organizationSelection = useMemo(() => {
@@ -787,18 +796,19 @@ export const FormQuestionsDashboard = ({
   );
   const selectedGroupingLabel = isOrganizationalGrouping
     ? ORGANIZATIONAL_GROUPING_LABEL
-    : selectedIdentificationQuestion?.textWithoutHtml ?? null;
+    : (selectedIdentificationQuestion?.textWithoutHtml ?? null);
 
   const participantGroups = useMemo(
-    () => isOrganizationalGrouping
-      ? organizationalGroups
-      : buildParticipantGroupsForIndicators({
-          formQuestionsAnswers,
-          selectedGroupingQuestionId: identificationQuestionId,
-          hierarchyGroups,
-          groupingEnrichment,
-          companyLabels: typeLabels,
-        }),
+    () =>
+      isOrganizationalGrouping
+        ? organizationalGroups
+        : buildParticipantGroupsForIndicators({
+            formQuestionsAnswers,
+            selectedGroupingQuestionId: identificationQuestionId,
+            hierarchyGroups,
+            groupingEnrichment,
+            companyLabels: typeLabels,
+          }),
     [
       isOrganizationalGrouping,
       organizationalGroups,
@@ -821,8 +831,11 @@ export const FormQuestionsDashboard = ({
     });
   const campaignParticipants = paginatedParticipants ?? formParticipants;
   const campaignEmployeesByGroup = useMemo(() => {
-    if (!campaignParticipants ||
-        campaignParticipants.results.length < campaignParticipants.pagination.total) {
+    if (
+      !campaignParticipants ||
+      campaignParticipants.results.length <
+        campaignParticipants.pagination.total
+    ) {
       return null;
     }
     const counts = new Map<string, number>();
@@ -856,7 +869,9 @@ export const FormQuestionsDashboard = ({
     () =>
       (isPartialPsychosocialForm
         ? participantGroups
-            .filter((group) => group.participantIds.size >= PARTIAL_RESULTS_MINIMUM)
+            .filter(
+              (group) => group.participantIds.size >= PARTIAL_RESULTS_MINIMUM,
+            )
             .slice(0, 1)
         : participantGroups
       ).map((group) => group.id),
@@ -872,7 +887,11 @@ export const FormQuestionsDashboard = ({
       key: groupingSelectionKey,
       ids: defaultParticipantGroupIds,
     });
-  }, [selectedGroupingQuestion, groupingSelectionKey, defaultParticipantGroupIds]);
+  }, [
+    selectedGroupingQuestion,
+    groupingSelectionKey,
+    defaultParticipantGroupIds,
+  ]);
 
   const selectedParticipantGroupIdsForView = useMemo(() => {
     if (isOrganizationalGrouping) return organizationSelection;
@@ -916,18 +935,20 @@ export const FormQuestionsDashboard = ({
     ],
   );
 
-  const participantGroupingOverride = useMemo(() =>
-    selectedGroupingQuestion && selectedGroupingLabel
-      ? {
-          grouping: {
-            active: true as const,
-            questionId: selectedGroupingQuestion,
-            questionLabel: selectedGroupingLabel,
-          },
-          participantGroups,
-        }
-      : undefined,
-  [selectedGroupingQuestion, selectedGroupingLabel, participantGroups]);
+  const participantGroupingOverride = useMemo(
+    () =>
+      selectedGroupingQuestion && selectedGroupingLabel
+        ? {
+            grouping: {
+              active: true as const,
+              questionId: selectedGroupingQuestion,
+              questionLabel: selectedGroupingLabel,
+            },
+            participantGroups,
+          }
+        : undefined,
+    [selectedGroupingQuestion, selectedGroupingLabel, participantGroups],
+  );
 
   const indicatorsDatasetForView = useMemo(() => {
     if (!formQuestionsAnswers || !isIndicatorTab) return null;
@@ -1072,7 +1093,11 @@ export const FormQuestionsDashboard = ({
     }
 
     let radarQuestions = generalQuestionsArrays;
-    if (isPartialPsychosocialForm && selectedGroupingQuestion && consolidateRadar) {
+    if (
+      isPartialPsychosocialForm &&
+      selectedGroupingQuestion &&
+      consolidateRadar
+    ) {
       const participantIds = new Set<string>();
       for (const group of visibleParticipantGroups) {
         for (const id of group.participantIds) participantIds.add(id);
@@ -1080,18 +1105,21 @@ export const FormQuestionsDashboard = ({
       const displayGroups =
         indicatorHierarchy.scaleResults?.filter((group) => !group.identifier) ??
         generalGroups;
-      radarQuestions = [{
-        groupId: 'radar-consolidated-selection',
-        groupName: 'Consolidado dos grupos selecionados',
-        participantCount: participantIds.size,
-        questions: filterQuestionsWithOptions(displayGroups, participantIds),
-      }];
+      radarQuestions = [
+        {
+          groupId: 'radar-consolidated-selection',
+          groupName: 'Consolidado dos grupos selecionados',
+          participantCount: participantIds.size,
+          questions: filterQuestionsWithOptions(displayGroups, participantIds),
+        },
+      ];
     }
 
     return radarQuestions.map(
       ({ groupId, groupName, participantCount, questions }) => {
         const isProtected =
-          (!isShareableLink || isPartialPsychosocialForm) && participantCount < 3;
+          (!isShareableLink || isPartialPsychosocialForm) &&
+          participantCount < 3;
         const questionsByScale = new Map<string, typeof questions>();
         for (const question of questions) {
           const scale = questionsByScale.get(question.groupId) ?? [];
@@ -1182,6 +1210,7 @@ export const FormQuestionsDashboard = ({
         width="100%"
       >
         <SPaper
+          className="polished-form-panel"
           sx={{
             p: 6,
             width: '100%',
@@ -1256,6 +1285,7 @@ export const FormQuestionsDashboard = ({
             >
               <SAccordionBody>
                 <SPaper
+                  className="polished-form-panel"
                   sx={{
                     p: 3,
                   }}
@@ -1286,14 +1316,17 @@ export const FormQuestionsDashboard = ({
       {canViewResults && (
         <Box sx={{ p: 3 }}>
           {/* Grouping Section */}
-          {(availableGroupingQuestions.length > 0 || organizationalGroups.length > 0) &&
-            (hasGeneralQuestionsForAnyParticipantGroup || selectedGroupingQuestion) && (
+          {(availableGroupingQuestions.length > 0 ||
+            organizationalGroups.length > 0) &&
+            (hasGeneralQuestionsForAnyParticipantGroup ||
+              selectedGroupingQuestion) && (
               <Box>
                 <SectionHeader
                   icon={<FilterListIcon sx={{ fontSize: 30 }} />}
                   title="Agrupar por Identificação"
                 />
                 <SPaper
+                  className="polished-form-panel"
                   sx={{
                     p: 10,
                   }}
@@ -1301,12 +1334,17 @@ export const FormQuestionsDashboard = ({
                   <SFlex direction="column" gap={3}>
                     <SFlex gap={3} flexWrap="wrap" alignItems="center">
                       {organizationalGroups.length > 0 && (
-                        <Button variant="outlined" onClick={() => setOrganizationDialogOpen(true)}>
+                        <Button
+                          variant="outlined"
+                          onClick={() => setOrganizationDialogOpen(true)}
+                        >
                           Selecionar grupos da estrutura organizacional
                         </Button>
                       )}
                       {availableGroupingQuestions.length > 0 && (
-                        <SSearchSelect<(typeof availableGroupingQuestions)[number]>
+                        <SSearchSelect<
+                          (typeof availableGroupingQuestions)[number]
+                        >
                           inputProps={{ sx: { width: 300, maxWidth: '100%' } }}
                           label="Agrupar por pergunta de identificação"
                           options={availableGroupingQuestions}
@@ -1348,32 +1386,44 @@ export const FormQuestionsDashboard = ({
                         >
                           Agrupando por: {selectedGroupingLabel}
                         </Typography>
-                        {!isOrganizationalGrouping && <SSearchSelectMultiple<ParticipantGroupForIndicators>
-                          label="Grupos exibidos (filtro de visualização e PDF)"
-                          placeholder="Pesquisar grupos..."
-                          options={participantGroups}
-                          value={participantGroups.filter((g) =>
-                            (selectedParticipantGroupIdsForView ?? []).includes(
-                              g.id,
-                            ),
-                          )}
-                          getOptionLabel={(group) => {
-                            const respondents = group.participantIds.size;
-                            const respondentLabel = respondents === 1 ? 'respondente' : 'respondentes';
-                            return `${group.name} (${respondents} ${respondentLabel})`;
-                          }}
-                          getOptionValue={(g) => g.id}
-                          onChange={(selected) => {
-                            setGroupingSelectionState({
-                              key: groupingSelectionKey,
-                              ids: selected.map((g) => g.id),
-                            });
-                          }}
-                          boxProps={{ sx: { maxWidth: '100%' } }}
-                        />}
-                        {isOrganizationalGrouping && visibleParticipantGroups.map((group) => (
-                          <Typography key={group.id} variant="body2" color="text.secondary">{group.name}</Typography>
-                        ))}
+                        {!isOrganizationalGrouping && (
+                          <SSearchSelectMultiple<ParticipantGroupForIndicators>
+                            label="Grupos exibidos (filtro de visualização e PDF)"
+                            placeholder="Pesquisar grupos..."
+                            options={participantGroups}
+                            value={participantGroups.filter((g) =>
+                              (
+                                selectedParticipantGroupIdsForView ?? []
+                              ).includes(g.id),
+                            )}
+                            getOptionLabel={(group) => {
+                              const respondents = group.participantIds.size;
+                              const respondentLabel =
+                                respondents === 1
+                                  ? 'respondente'
+                                  : 'respondentes';
+                              return `${group.name} (${respondents} ${respondentLabel})`;
+                            }}
+                            getOptionValue={(g) => g.id}
+                            onChange={(selected) => {
+                              setGroupingSelectionState({
+                                key: groupingSelectionKey,
+                                ids: selected.map((g) => g.id),
+                              });
+                            }}
+                            boxProps={{ sx: { maxWidth: '100%' } }}
+                          />
+                        )}
+                        {isOrganizationalGrouping &&
+                          visibleParticipantGroups.map((group) => (
+                            <Typography
+                              key={group.id}
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {group.name}
+                            </Typography>
+                          ))}
                         <Button
                           size="small"
                           color="error"
@@ -1405,6 +1455,7 @@ export const FormQuestionsDashboard = ({
           {/* Switch to toggle between showing individual questions and only group indicators */}
           {isIndicatorTab && (
             <SPaper
+              className="polished-form-panel"
               sx={{
                 mt: 5,
                 p: 10,
@@ -1550,6 +1601,7 @@ export const FormQuestionsDashboard = ({
 
           {isGraphsTab && (
             <SPaper
+              className="polished-form-panel"
               sx={{
                 mt: 5,
                 p: 10,
@@ -1625,6 +1677,7 @@ export const FormQuestionsDashboard = ({
 
           {isRisksAnalysisTab && (
             <SPaper
+              className="polished-form-panel"
               sx={{
                 mt: 5,
                 p: 10,
@@ -1830,6 +1883,7 @@ export const FormQuestionsDashboard = ({
           />
 
           <SPaper
+            className="polished-form-panel"
             sx={
               isParticipantsTab ||
               isGraphsTab ||
@@ -2009,7 +2063,13 @@ export const FormQuestionsDashboard = ({
                       {!showOnlyGroupIndicators &&
                         groupData.questions.map(
                           (questionData: QuestionWithParticipantGroups) => (
-                            <SPaper key={questionData.id} mb={6} px={8} py={8}>
+                            <SPaper
+                              className="polished-form-panel"
+                              key={questionData.id}
+                              mb={6}
+                              px={8}
+                              py={8}
+                            >
                               <HtmlContentRenderer
                                 content={questionData.details.text}
                                 useThemeTextColor
@@ -2056,7 +2116,7 @@ export const FormQuestionsDashboard = ({
                     groupData: FormGroupWithQuestions,
                   ) => (
                     <Box key={id} mb={6}>
-                      <SPaper>
+                      <SPaper className="polished-form-panel">
                         <SText
                           sx={{
                             p: 8,

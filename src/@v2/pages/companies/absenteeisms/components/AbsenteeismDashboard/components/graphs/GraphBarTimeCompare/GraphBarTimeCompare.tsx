@@ -55,7 +55,7 @@ export const GraphBarTimeCompare = ({ companyId }: Props) => {
 
   return (
     <Box width={'100%'} mb={10}>
-      <SPaper sx={{ p: 10 }}>
+      <SPaper shadow={false} sx={{ borderRadius: '24px', p: 10 }}>
         <SFlex justify="space-between" align={'center'}>
           <SFlex gap={10} align={'center'}>
             <GraphTitle title="Histórico Absenteísmo" />

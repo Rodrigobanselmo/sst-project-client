@@ -168,7 +168,65 @@ export const PreliminaryLibraryContent = ({
   };
 
   return (
-    <SFlex direction="column" gap={3}>
+    <SFlex
+      direction="column"
+      gap={3}
+      sx={{
+        '& .MuiOutlinedInput-root': {
+          borderRadius: '999px',
+          boxShadow: 'none',
+          backgroundColor: 'background.paper',
+        },
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
+        '& .MuiSelect-select': {
+          backgroundColor: 'transparent',
+          borderRadius: 'inherit',
+          '&:focus': {
+            backgroundColor: 'transparent',
+            borderRadius: 'inherit',
+          },
+        },
+        '& button': {
+          borderRadius: '999px',
+          boxShadow: 'none',
+          textTransform: 'none',
+        },
+        '& .MuiTable-root': {
+          backgroundColor: 'transparent',
+          borderCollapse: 'separate',
+          borderSpacing: '0 8px',
+        },
+        '& .MuiTableHead-root, & .MuiTableBody-root, & .MuiTableRow-root': {
+          backgroundColor: 'transparent',
+        },
+        '& .MuiTableHead-root .MuiTableCell-root': {
+          backgroundColor: 'transparent',
+        },
+        '& .MuiTableBody-root .MuiTableCell-root': {
+          backgroundColor: 'background.paper',
+          borderTop: '1px solid',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          py: 4,
+          '&:first-of-type': {
+            borderLeft: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '999px 0 0 999px',
+            pl: 6,
+          },
+          '&:last-of-type': {
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '0 999px 999px 0',
+            pr: 6,
+          },
+          '&:only-of-type': { borderRadius: '999px' },
+        },
+        '& .MuiTableBody-root .MuiTableRow-root:hover .MuiTableCell-root': {
+          backgroundColor: 'background.box',
+        },
+      }}
+    >
       <Box>
         <Typography variant="h6" component="h2" gutterBottom>
           Biblioteca de Perguntas Preliminares
@@ -183,7 +241,11 @@ export const PreliminaryLibraryContent = ({
       <Paper
         square
         elevation={0}
-        sx={{ borderBottom: 1, borderColor: 'divider' }}
+        sx={{
+          borderBottom: 1,
+          borderColor: 'divider',
+          backgroundColor: 'transparent',
+        }}
       >
         <Tabs
           value={innerTab}

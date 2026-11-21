@@ -121,7 +121,12 @@ export const EmployeesTable: FC<
   );
   const [hiddenColumns, setHiddenColumns] = useState<
     Partial<Record<EmployeeTableColumnId, boolean>>
-  >(() => loadHiddenEmployeeColumns() as Partial<Record<EmployeeTableColumnId, boolean>>);
+  >(
+    () =>
+      loadHiddenEmployeeColumns() as Partial<
+        Record<EmployeeTableColumnId, boolean>
+      >,
+  );
 
   const [pageSize, setPageSize] = useState(() =>
     typeof rowsPerPageProp === 'number'
@@ -416,9 +421,7 @@ export const EmployeesTable: FC<
       case 'employee':
         return <TextEmployeeRow key="employee" employee={employee} />;
       case 'company':
-        return (
-          <TextCompanyRow key="company" company={employee.company} />
-        );
+        return <TextCompanyRow key="company" company={employee.company} />;
       case 'setor':
         return (
           <TextIconRow
@@ -449,7 +452,10 @@ export const EmployeesTable: FC<
         );
       case 'establishments':
         return (
-          <EmployeeEstablishmentsCell key="establishments" employee={employee} />
+          <EmployeeEstablishmentsCell
+            key="establishments"
+            employee={employee}
+          />
         );
       case 'validity':
         return isSchedule ? (
@@ -483,7 +489,7 @@ export const EmployeesTable: FC<
           <StatusSelect
             key="status"
             large={false}
-            sx={{ maxWidth: '130px' }}
+            sx={{ maxWidth: '130px', borderRadius: '999px', boxShadow: 'none' }}
             iconProps={{ sx: { fontSize: 10 } }}
             textProps={{ fontSize: 10 }}
             selected={row.statusStep || row.status}
@@ -515,40 +521,72 @@ export const EmployeesTable: FC<
   return (
     <Box {...props}>
       <STableTitle icon={BadgeIcon}>Funcionários</STableTitle>
-      <STableSearch
-        onAddClick={onAddEmployee}
-        onExportClick={onExportClick}
-        onImportClick={onImportClick}
-        onChange={(e) => handleSearchChange(e.target.value)}
-        loadingReload={loadEmployees || isFetching || isRefetching}
-        onReloadClick={onRefetchThrottle}
-        identitySquareActions
-        pinToolbarWithFilter
-        filterButtonSx={tableConfigControlSx}
-        toolbarBeforeFilter={
-          <STableColumnsButton<EmployeeTableColumnId>
-            showLabel
-            columns={columnPickerItems}
-            hiddenColumns={
-              hiddenColumns as Record<EmployeeTableColumnId, boolean>
-            }
-            setHiddenColumns={setHiddenColumnsFromPicker}
-            tableButtonProps={{
-              variant: 'outlined',
-              color: 'paper',
-              schema: {
-                backgroundColor: 'transparent',
-                borderColor: 'grey.600',
-                color: 'text.primary',
-                iconColor: 'grey.600',
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
+        }}
+      >
+        <STableSearch
+          autoFocus={false}
+          boxProps={{ sx: { width: { xs: 200, md: 340 }, flexShrink: 0 } }}
+          inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+          sx={{
+            '&&&& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+              boxShadow: 'none',
+              backgroundColor: 'background.paper',
+            },
+            '&&&& .MuiOutlinedInput-notchedOutline': {
+              borderWidth: '1px',
+              borderColor: 'divider',
+              borderRadius: '999px',
+            },
+            '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+              {
+                borderWidth: '1px',
+                borderColor: 'primary.main',
               },
-              textProps: { color: 'text.primary' },
-              buttonProps: { sx: tableConfigControlSx },
-            }}
-          />
-        }
-        filterProps={{ filters: employeeFilterList, ...filterProps }}
-      />
+          }}
+          onAddClick={onAddEmployee}
+          onExportClick={onExportClick}
+          onImportClick={onImportClick}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          loadingReload={loadEmployees || isFetching || isRefetching}
+          onReloadClick={onRefetchThrottle}
+          identitySquareActions
+          pinToolbarWithFilter
+          filterButtonSx={tableConfigControlSx}
+          toolbarBeforeFilter={
+            <STableColumnsButton<EmployeeTableColumnId>
+              showLabel
+              columns={columnPickerItems}
+              hiddenColumns={
+                hiddenColumns as Record<EmployeeTableColumnId, boolean>
+              }
+              setHiddenColumns={setHiddenColumnsFromPicker}
+              tableButtonProps={{
+                variant: 'outlined',
+                color: 'paper',
+                schema: {
+                  backgroundColor: 'transparent',
+                  borderColor: 'grey.600',
+                  color: 'text.primary',
+                  iconColor: 'grey.600',
+                },
+                textProps: { color: 'text.primary' },
+                buttonProps: { sx: tableConfigControlSx },
+              }}
+            />
+          }
+          filterProps={{ filters: employeeFilterList, ...filterProps }}
+        />
+      </Box>
       <FilterTagList filterProps={filterProps} />
       {selectedIds.length > 0 ? (
         <SFlex
@@ -589,7 +627,8 @@ export const EmployeesTable: FC<
         </SFlex>
       ) : (
         <SText fontSize={12} color="text.secondary" mt={1} mb={1}>
-          Use os checkboxes para selecionar funcionários. “Selecionar todos” atua somente na página atual.
+          Use os checkboxes para selecionar funcionários. “Selecionar todos”
+          atua somente na página atual.
         </SText>
       )}
       <STable
@@ -597,7 +636,9 @@ export const EmployeesTable: FC<
         rowsNumber={pageSize}
         columns={gridTemplate}
       >
-        <STableHeader>
+        <STableHeader
+          sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+        >
           <STableHRow>
             <TableCheckSelectAll
               isSelected={isAllPageSelected}
@@ -634,6 +675,14 @@ export const EmployeesTable: FC<
               <STableRow
                 onClick={() => onEditEmployee(row)}
                 clickable
+                sx={{
+                  borderRadius: '999px',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: 'none',
+                  minHeight: 48,
+                  px: 5,
+                }}
                 key={row.id}
               >
                 <Box onClick={(e) => e.stopPropagation()}>

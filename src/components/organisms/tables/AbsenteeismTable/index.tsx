@@ -1,6 +1,6 @@
 import { FC, Fragment, useCallback, useMemo, useState } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import {
   STable,
@@ -49,7 +49,10 @@ import {
   saveAbsenteeismSort,
   StoredAbsenteeismSort,
 } from './absenteeismTable.storage';
-import { AbsenteeismListSortBy, AbsenteeismTableColumnId } from './absenteeismTable.types';
+import {
+  AbsenteeismListSortBy,
+  AbsenteeismTableColumnId,
+} from './absenteeismTable.types';
 
 type ColumnDef = {
   id: AbsenteeismTableColumnId;
@@ -297,34 +300,63 @@ export const AbsenteeismsTable: FC<
 
   return (
     <>
-      <STableSearch
-        key={searchInputKey}
-        autoFocus={false}
-        onAddClick={onAddAbsenteeism}
-        identitySquareActions
-        pinToolbarWithFilter
-        filterButtonSx={tableUtilityPillSx}
-        filterProps={{ filters: absenteeismFilterList, ...filterProps }}
-        toolbarBeforeFilter={
-          <STableColumnsButton<AbsenteeismTableColumnId>
-            showLabel
-            columns={columnPickerItems}
-            hiddenColumns={
-              hiddenColumns as Record<AbsenteeismTableColumnId, boolean>
-            }
-            setHiddenColumns={setHiddenColumnsFromPicker}
-            tableButtonProps={tableUtilityPillButtonProps}
-          />
-        }
-        onChange={(e) => handleSearchChange(e.target.value)}
-      />
-      <FilterTagList filterProps={filterProps} />
-      <STable
-        loading={loadGroup}
-        rowsNumber={pageSize}
-        columns={gridTemplate}
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
+        }}
       >
-        <STableHeader>
+        <STableSearch
+          boxProps={{ sx: { width: { xs: 200, md: 340 }, flexShrink: 0 } }}
+          inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+          sx={{
+            '&&&& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+              boxShadow: 'none',
+              backgroundColor: 'background.paper',
+            },
+            '&&&& .MuiOutlinedInput-notchedOutline': {
+              borderWidth: '1px',
+              borderColor: 'divider',
+              borderRadius: '999px',
+            },
+            '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+              {
+                borderWidth: '1px',
+                borderColor: 'primary.main',
+              },
+          }}
+          key={searchInputKey}
+          autoFocus={false}
+          onAddClick={onAddAbsenteeism}
+          identitySquareActions
+          pinToolbarWithFilter
+          filterButtonSx={tableUtilityPillSx}
+          filterProps={{ filters: absenteeismFilterList, ...filterProps }}
+          toolbarBeforeFilter={
+            <STableColumnsButton<AbsenteeismTableColumnId>
+              showLabel
+              columns={columnPickerItems}
+              hiddenColumns={
+                hiddenColumns as Record<AbsenteeismTableColumnId, boolean>
+              }
+              setHiddenColumns={setHiddenColumnsFromPicker}
+              tableButtonProps={tableUtilityPillButtonProps}
+            />
+          }
+          onChange={(e) => handleSearchChange(e.target.value)}
+        />
+      </Box>
+      <FilterTagList filterProps={filterProps} />
+      <STable loading={loadGroup} rowsNumber={pageSize} columns={gridTemplate}>
+        <STableHeader
+          sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+        >
           {visibleColumns.map((col) =>
             col.id === 'edit' ? (
               <STableHRow key={col.id} justifyContent={col.justifyContent}>
@@ -353,6 +385,14 @@ export const AbsenteeismsTable: FC<
             <STableRow
               onClick={() => onSelectRow(row)}
               clickable
+              sx={{
+                borderRadius: '999px',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 'none',
+                minHeight: 48,
+                px: 5,
+              }}
               key={row.id}
             >
               {visibleColumns.map((col) => (

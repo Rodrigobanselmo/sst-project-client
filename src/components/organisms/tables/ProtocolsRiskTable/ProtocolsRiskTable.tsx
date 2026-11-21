@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
@@ -69,11 +69,7 @@ export const ProtocolsRiskTable: FC<
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryProtocolsRisk(
-    page,
-    { search, ...query },
-    rowsPerPage,
-  );
+  } = useQueryProtocolsRisk(page, { search, ...query }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
   const copyProtocolMutation = useMutCopyProtocolRisk();
@@ -140,8 +136,8 @@ export const ProtocolsRiskTable: FC<
               Aqui você pode relacionar protocolos a riscos especificos
               <SText fontSize={11}>
                 (Exemplo: Todos os cargos que possuirem o risco de Trabalho em
-                altura e tiver um protocolo vinculado, todos os empregados
-                terão essa indicação no ASO)
+                altura e tiver um protocolo vinculado, todos os empregados terão
+                essa indicação no ASO)
               </SText>
             </>
           }
@@ -150,18 +146,50 @@ export const ProtocolsRiskTable: FC<
           Relação de Protocolos
         </STableTitle>
       )}
-      <STableSearch
-        onAddClick={onAddProtocol}
-        onExportClick={onImportProtocols}
-        onReloadClick={onRefetchThrottle}
-        loadingReload={loadProtocols || isFetching || isRefetching}
-        onChange={(e) => handleSearchChange(e.target.value)}
-        identitySquareActions
-      />
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
+        }}
+      >
+        <STableSearch
+          autoFocus={false}
+          boxProps={{ sx: { width: { xs: 200, md: 340 }, flexShrink: 0 } }}
+          inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+          sx={{
+            '&&&& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+              boxShadow: 'none',
+              backgroundColor: 'background.paper',
+            },
+            '&&&& .MuiOutlinedInput-notchedOutline': {
+              borderWidth: '1px',
+              borderColor: 'divider',
+              borderRadius: '999px',
+            },
+            '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+              {
+                borderWidth: '1px',
+                borderColor: 'primary.main',
+              },
+          }}
+          onAddClick={onAddProtocol}
+          onExportClick={onImportProtocols}
+          onReloadClick={onRefetchThrottle}
+          loadingReload={loadProtocols || isFetching || isRefetching}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          identitySquareActions
+        />
+      </Box>
     </>
   );
   const tableHeader = (
-    <STableHeader>
+    <STableHeader sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
       {selectedData && <STableHRow></STableHRow>}
       <STableHRow>Protocolo</STableHRow>
       <STableHRow>Risco</STableHRow>
@@ -170,36 +198,44 @@ export const ProtocolsRiskTable: FC<
   );
   const tableBody = (
     <STableBody<(typeof protocols)[0]>
-          rowsData={protocols}
-          hideLoadMore
-          rowsInitialNumber={rowsPerPage}
-          renderRow={(row) => {
-            return (
-              <STableRow
-                onClick={() => onSelectRow(row)}
-                clickable
-                key={row.id}
-              >
-                {selectedData && (
-                  <SCheckBox
-                    label=""
-                    checked={
-                      !!selectedData.find((protocol) => protocol.id === row.id)
-                    }
-                  />
-                )}
-                <TextIconRow clickable text={row.protocol?.name || '-'} />
-                <TextIconRow clickable text={row.risk?.name || '-'} />
-                <IconButtonRow
-                  icon={<EditIcon />}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditProtocol(row);
-                  }}
-                />
-              </STableRow>
-            );
-          }}
+      rowsData={protocols}
+      hideLoadMore
+      rowsInitialNumber={rowsPerPage}
+      renderRow={(row) => {
+        return (
+          <STableRow
+            onClick={() => onSelectRow(row)}
+            clickable
+            sx={{
+              borderRadius: '999px',
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: 'none',
+              minHeight: 48,
+              px: 5,
+            }}
+            key={row.id}
+          >
+            {selectedData && (
+              <SCheckBox
+                label=""
+                checked={
+                  !!selectedData.find((protocol) => protocol.id === row.id)
+                }
+              />
+            )}
+            <TextIconRow clickable text={row.protocol?.name || '-'} />
+            <TextIconRow clickable text={row.risk?.name || '-'} />
+            <IconButtonRow
+              icon={<EditIcon />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditProtocol(row);
+              }}
+            />
+          </STableRow>
+        );
+      }}
     />
   );
   const tablePagination = (

@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { FC } from 'react';
 
 import { SDownloadRow } from '../../addons/addons-rows/SDownloadRow/SDownloadRow';
@@ -82,16 +83,20 @@ export const SFormApplicationTable: FC<IFormApplicationTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <STagRow
-          justify="center"
-          lineNumber={1}
-          backgroundColor={
-            FormApplicationStatusMap[row.status].schema.backgroundColor
-          }
-          color={FormApplicationStatusMap[row.status].schema.color}
-          borderColor={FormApplicationStatusMap[row.status].schema.borderColor}
-          text={FormApplicationStatusMap[row.status].label}
-        />
+        <Box sx={{ '& > div': { borderRadius: '999px' } }}>
+          <STagRow
+            justify="center"
+            lineNumber={1}
+            backgroundColor={
+              FormApplicationStatusMap[row.status].schema.backgroundColor
+            }
+            color={FormApplicationStatusMap[row.status].schema.color}
+            borderColor={
+              FormApplicationStatusMap[row.status].schema.borderColor
+            }
+            text={FormApplicationStatusMap[row.status].label}
+          />
+        </Box>
       ),
     },
 
@@ -202,7 +207,14 @@ export const SFormApplicationTable: FC<IFormApplicationTableTableProps> = ({
                   clickable
                   onClick={() => onSelectRow(row)}
                   key={row.id}
-                  minHeight={35}
+                  minHeight={48}
+                  sx={{
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 'none',
+                    px: 5,
+                  }}
                 >
                   {rows.map((render) => render(row))}
                 </STableRow>

@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { FC } from 'react';
 
 import { DocumentControlBrowseResultModel } from '@v2/models/enterprise/models/document-control/document-control/document-control-browse-result.model';
@@ -49,7 +50,11 @@ export const SDocumentControlTable: FC<IDocumentControlTableTableProps> = ({
           text={columnMap[columnsEnum.TYPE].label}
         />
       ),
-      row: (row) => <STagRow justify="center" lineNumber={1} text={row.type} />,
+      row: (row) => (
+        <Box sx={{ '& > div': { borderRadius: '999px' } }}>
+          <STagRow justify="center" lineNumber={1} text={row.type} />
+        </Box>
+      ),
     },
     // NAME
     {
@@ -189,7 +194,14 @@ export const SDocumentControlTable: FC<IDocumentControlTableTableProps> = ({
                   clickable
                   onClick={() => onSelectRow(row)}
                   key={row.id}
-                  minHeight={35}
+                  minHeight={48}
+                  sx={{
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 'none',
+                    px: 5,
+                  }}
                 >
                   {rows.map((render) => render(row))}
                 </STableRow>

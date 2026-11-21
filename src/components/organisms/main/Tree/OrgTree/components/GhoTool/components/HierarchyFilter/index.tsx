@@ -42,7 +42,11 @@ import { STSInput } from './styles';
 import { GhoHeaderProps } from './types';
 
 export const HierarchyFilter: FC<
-  { children?: React.ReactNode; renderedIds?: ReadonlySet<string | number>; actionsOnly?: boolean } & GhoHeaderProps
+  {
+    children?: React.ReactNode;
+    renderedIds?: ReadonlySet<string | number>;
+    actionsOnly?: boolean;
+  } & GhoHeaderProps
 > = ({ children, renderedIds, actionsOnly }) => {
   const dispatch = useAppDispatch();
   const { onOpenModal } = useModal();
@@ -184,45 +188,43 @@ export const HierarchyFilter: FC<
           removeNodesFromTree(result.deletedIds);
           exitSelectionMode();
         },
-        (
-          <Box>
-            <SText fontSize={14} mb={2}>
-              Selecionados: {preview.requested} · Podem ser excluídos:{' '}
-              {deletableCount} · Bloqueados: {blockedCount}
+        <Box>
+          <SText fontSize={14} mb={2}>
+            Selecionados: {preview.requested} · Podem ser excluídos:{' '}
+            {deletableCount} · Bloqueados: {blockedCount}
+          </SText>
+          {!!typeLines.length && (
+            <SText fontSize={13} mb={2}>
+              Resumo: {typeLines.join(', ')}.
             </SText>
-            {!!typeLines.length && (
-              <SText fontSize={13} mb={2}>
-                Resumo: {typeLines.join(', ')}.
+          )}
+          {blockedCount > 0 && (
+            <Box mb={2}>
+              <SText fontSize={13} mb={1}>
+                {blockedCount}{' '}
+                {blockedCount === 1
+                  ? 'item não pode ser excluído'
+                  : 'itens não podem ser excluídos'}{' '}
+                (permanecerão no organograma):
               </SText>
-            )}
-            {blockedCount > 0 && (
-              <Box mb={2}>
-                <SText fontSize={13} mb={1}>
-                  {blockedCount}{' '}
-                  {blockedCount === 1
-                    ? 'item não pode ser excluído'
-                    : 'itens não podem ser excluídos'}{' '}
-                  (permanecerão no organograma):
+              {blockedPreview.map((item) => (
+                <SText key={item.id} fontSize={13} color="text.secondary">
+                  • {item.name}
+                  {item.type ? ` (${item.type})` : ''}: {item.reason}
                 </SText>
-                {blockedPreview.map((item) => (
-                  <SText key={item.id} fontSize={13} color="text.secondary">
-                    • {item.name}
-                    {item.type ? ` (${item.type})` : ''}: {item.reason}
-                  </SText>
-                ))}
-                {blockedCount > 5 && (
-                  <SText fontSize={13} color="text.secondary" mt={1}>
-                    … e mais {blockedCount - 5} item(ns)
-                  </SText>
-                )}
-              </Box>
-            )}
-            <SText fontSize={13} color="error.main">
-              Esta ação é irreversível. Os nós válidos serão excluídos em uma
-              única operação; os bloqueados não serão alterados.
-            </SText>
-          </Box>
-        ),
+              ))}
+              {blockedCount > 5 && (
+                <SText fontSize={13} color="text.secondary" mt={1}>
+                  … e mais {blockedCount - 5} item(ns)
+                </SText>
+              )}
+            </Box>
+          )}
+          <SText fontSize={13} color="error.main">
+            Esta ação é irreversível. Os nós válidos serão excluídos em uma
+            única operação; os bloqueados não serão alterados.
+          </SText>
+        </Box>,
         {
           title: 'Excluir selecionados?',
           confirmText: `Excluir ${deletableCount}`,
@@ -241,7 +243,10 @@ export const HierarchyFilter: FC<
       {/* Preserve the action positions while the editing controls are unavailable. */}
       <Box
         inert={actionsOnly}
-        sx={{ display: 'contents', visibility: actionsOnly ? 'hidden' : undefined }}
+        sx={{
+          display: 'contents',
+          visibility: actionsOnly ? 'hidden' : undefined,
+        }}
       >
         <STSInput
           size="small"
@@ -257,6 +262,12 @@ export const HierarchyFilter: FC<
         {!selectionMode && (
           <>
             <STagButton
+              sx={{
+                borderRadius: '999px',
+                boxShadow: 'none',
+                px: 5,
+                minWidth: 32,
+              }}
               large
               text="Selecionar"
               tooltipTitle="Selecionar (Shift + clique)"
@@ -264,6 +275,12 @@ export const HierarchyFilter: FC<
               onClick={handleEnterSelectionMode}
             />
             <STagButton
+              sx={{
+                borderRadius: '999px',
+                boxShadow: 'none',
+                px: 5,
+                minWidth: 32,
+              }}
               large
               tooltipTitle="Importar e exportar o organograma da empresa por planilhas"
               icon={SUploadIcon}
@@ -271,6 +288,12 @@ export const HierarchyFilter: FC<
             />
             {canSanitize && (
               <STagButton
+                sx={{
+                  borderRadius: '999px',
+                  boxShadow: 'none',
+                  px: 5,
+                  minWidth: 32,
+                }}
                 large
                 text="Sanitizar organograma"
                 tooltipTitle="Localizar e excluir cargos sem utilização (comuns e desenvolvidos)"
@@ -290,6 +313,12 @@ export const HierarchyFilter: FC<
               {selectedCount} selecionado{selectedCount === 1 ? '' : 's'}
             </SText>
             <STagButton
+              sx={{
+                borderRadius: '999px',
+                boxShadow: 'none',
+                px: 5,
+                minWidth: 32,
+              }}
               large
               text="Selecionar visíveis"
               tooltipTitle="Selecionar todos os nós visíveis e elegíveis"
@@ -297,6 +326,12 @@ export const HierarchyFilter: FC<
               disabled={bulkDeleteMutation.isLoading}
             />
             <STagButton
+              sx={{
+                borderRadius: '999px',
+                boxShadow: 'none',
+                px: 5,
+                minWidth: 32,
+              }}
               large
               text="Limpar"
               tooltipTitle="Limpar seleção"
@@ -304,6 +339,12 @@ export const HierarchyFilter: FC<
               disabled={!selectedCount || bulkDeleteMutation.isLoading}
             />
             <STagButton
+              sx={{
+                borderRadius: '999px',
+                boxShadow: 'none',
+                px: 5,
+                minWidth: 32,
+              }}
               large
               text={`Excluir selecionados${
                 selectedCount ? ` (${selectedCount})` : ''
@@ -317,6 +358,12 @@ export const HierarchyFilter: FC<
               onClick={handleBulkDelete}
             />
             <STagButton
+              sx={{
+                borderRadius: '999px',
+                boxShadow: 'none',
+                px: 5,
+                minWidth: 32,
+              }}
               large
               text="Cancelar"
               tooltipTitle="Sair do modo de seleção (Esc)"

@@ -39,7 +39,41 @@ export const FormApplicationView = ({
   };
 
   return (
-    <>
+    <SFlex
+      direction="column"
+      sx={{
+        '&&&& .MuiAccordion-root': {
+          borderRadius: '24px',
+          boxShadow: 'none',
+          overflow: 'hidden',
+        },
+        '&&&& button': {
+          borderRadius: '999px',
+          boxShadow: 'none',
+          textTransform: 'none',
+        },
+        '&&&& .polished-form-panel': {
+          borderRadius: '24px',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: 'none',
+          WebkitBoxShadow: 'none',
+        },
+        '&&&& .MuiOutlinedInput-root': {
+          borderRadius: '999px',
+          boxShadow: 'none',
+        },
+        '&&&& .MuiOutlinedInput-notchedOutline': {
+          borderRadius: '999px',
+          borderWidth: '1px',
+          borderColor: 'divider',
+        },
+        '&&&& .MuiSelect-select': {
+          backgroundColor: 'transparent',
+          borderRadius: 'inherit',
+        },
+      }}
+    >
       <FormApplicationInfo
         mb={[20]}
         formApplication={formApplication}
@@ -76,6 +110,6 @@ export const FormApplicationView = ({
           />
         </SFlex>
       )}
-    </>
+    </SFlex>
   );
 };

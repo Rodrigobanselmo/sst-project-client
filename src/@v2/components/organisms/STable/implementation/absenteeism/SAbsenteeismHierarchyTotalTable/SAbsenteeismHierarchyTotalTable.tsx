@@ -281,7 +281,19 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
             rows={data}
             renderRow={(row, index) => {
               return (
-                <STableRow schema="grey" key={index} minHeight={35}>
+                <STableRow
+                  sx={{
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 'none',
+                    minHeight: 40,
+                    px: 5,
+                  }}
+                  schema="grey"
+                  key={index}
+                  minHeight={35}
+                >
                   {rows.map((render) => render(row))}
                 </STableRow>
               );

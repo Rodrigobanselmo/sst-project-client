@@ -288,7 +288,7 @@ export const WorkspaceTable: FC<
           <StatusSelect
             key="status"
             large
-            sx={{ maxWidth: '120px' }}
+            sx={{ maxWidth: '120px', borderRadius: '999px', boxShadow: 'none' }}
             selected={row.status}
             disabled
             statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
@@ -313,7 +313,21 @@ export const WorkspaceTable: FC<
 
   return (
     <>
-      <SFlex mb={8} mt={40} align="center" gap={6}>
+      <SFlex
+        mb={8}
+        mt={40}
+        align="center"
+        gap={6}
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
+        }}
+      >
         <SFlex
           align="center"
           sx={{ flex: 1, minWidth: 0, flexWrap: 'wrap', gap: 2 }}
@@ -361,6 +375,24 @@ export const WorkspaceTable: FC<
         boxProps={{ sx: { width: 360, maxWidth: '100%', mr: { sm: 4 } } }}
         toolbarSx={{ flexWrap: 'wrap', rowGap: 2 }}
         autoFocus={false}
+        inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+        sx={{
+          '&&&& .MuiOutlinedInput-root': {
+            borderRadius: '999px',
+            boxShadow: 'none',
+            backgroundColor: 'background.paper',
+          },
+          '&&&& .MuiOutlinedInput-notchedOutline': {
+            borderWidth: '1px',
+            borderColor: 'divider',
+            borderRadius: '999px',
+          },
+          '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+            {
+              borderWidth: '1px',
+              borderColor: 'primary.main',
+            },
+        }}
         onChange={(e) => handleSearchChange(e.target.value)}
         pinToolbarWithFilter
         toolbarBeforeFilter={
@@ -376,7 +408,9 @@ export const WorkspaceTable: FC<
         }
       />
       <STable loading={isLoading} rowsNumber={pageSize} columns={gridTemplate}>
-        <STableHeader>
+        <STableHeader
+          sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+        >
           {visibleColumns.map((col) =>
             col.id === 'edit' ? (
               <STableHRow key={col.id} justifyContent={col.justifyContent}>
@@ -402,7 +436,17 @@ export const WorkspaceTable: FC<
           hideLoadMore
           rowsInitialNumber={pageSize}
           renderRow={(row) => (
-            <STableRow key={row.id}>
+            <STableRow
+              key={row.id}
+              sx={{
+                borderRadius: '999px',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 'none',
+                minHeight: 48,
+                px: 5,
+              }}
+            >
               {visibleColumns.map((col) => renderCell(col, row))}
             </STableRow>
           )}

@@ -56,7 +56,10 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
     resetPersistedLimit,
     createPageSizeChangeHandler,
     defaultLimit,
-  } = useTablePageLimit(params.limit, persistKeys.LIMIT_ABSENTEEISM_HIERARCHY_TOTAL);
+  } = useTablePageLimit(
+    params.limit,
+    persistKeys.LIMIT_ABSENTEEISM_HIERARCHY_TOTAL,
+  );
 
   const { data, isLoading } = useFetchBrowseAbsenteeismHierarchyTotal({
     companyId,
@@ -85,24 +88,27 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
       orderByAbsenteeismHierarchyTotalTranslation[field],
   });
 
-  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
-    useTableState({
-      data: params,
-      setData: setParamsPrev,
-      chipMap: {
-        search: null,
-        type: null,
-        hierarchiesIds: null,
-      },
-      cleanData: {
-        search: '',
-        type: null,
-        orderBy: [],
-        hierarchiesIds: [],
-        page: 1,
-        limit: defaultLimit,
-      },
-    });
+  const {
+    onCleanData: resetFromTableState,
+    onFilterData,
+    paramsChipList,
+  } = useTableState({
+    data: params,
+    setData: setParamsPrev,
+    chipMap: {
+      search: null,
+      type: null,
+      hierarchiesIds: null,
+    },
+    cleanData: {
+      search: '',
+      type: null,
+      orderBy: [],
+      hierarchiesIds: [],
+      page: 1,
+      limit: defaultLimit,
+    },
+  });
 
   const onCleanData = useCallback(() => {
     resetPersistedLimit();
@@ -165,7 +171,10 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
   }, [data]);
 
   return (
-    <SPaper sx={{ p: 10, overflow: 'scroll' }}>
+    <SPaper
+      shadow={false}
+      sx={{ borderRadius: '24px', p: 10, overflow: 'scroll' }}
+    >
       <SFlex justify="space-between">
         <GraphTitle
           title="Cargos/Setores com mais atestados"

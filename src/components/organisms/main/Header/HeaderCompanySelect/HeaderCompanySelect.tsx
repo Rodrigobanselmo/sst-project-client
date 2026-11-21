@@ -149,6 +149,12 @@ export function HeaderCompanySelect(): JSX.Element | null {
       sx={{
         cursor: 'default',
         ...documentsHeaderChipShellSx,
+        borderRadius: '999px',
+        boxShadow: 'none',
+        border: '1px solid',
+        borderColor: 'divider',
+        minHeight: 32,
+        '&:hover, &:focus-within': { borderColor: 'primary.main' },
       }}
       onClick={(e) => e.stopPropagation()}
       id={IdsEnum.COMPANY_SELECT_NAVBAR}
@@ -169,7 +175,9 @@ export function HeaderCompanySelect(): JSX.Element | null {
             style: { maxHeight: listMaxHeightPx },
             sx: headerChipCompactListSx(listMaxHeightPx),
           }}
-          componentsProps={headerChipCompactPaperComponentsProps(listMaxHeightPx)}
+          componentsProps={headerChipCompactPaperComponentsProps(
+            listMaxHeightPx,
+          )}
           label=""
           placeholder={value ? '' : 'Selecione a empresa'}
           options={options}
@@ -190,10 +198,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
 
             if (option.company) {
               if (isHomePage) {
-                if (
-                  option.company.id !== companyId ||
-                  isGroupConsolidated
-                ) {
+                if (option.company.id !== companyId || isGroupConsolidated) {
                   void applyHomeCompanySelection(
                     option.company,
                     businessGroupId,

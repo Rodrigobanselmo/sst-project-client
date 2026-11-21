@@ -45,7 +45,8 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
 
   const isHoMonitoringPage = pathname === HO_MONITORING_PATHNAME;
   const isDocumentsListPage = pathname === DOCUMENTS_LIST_PATHNAME;
-  const isActionPlanPage = pathname === '/dashboard/empresas/[companyId]/plano-de-acao';
+  const isActionPlanPage =
+    pathname === '/dashboard/empresas/[companyId]/plano-de-acao';
   const isCharacterizationRootPage =
     pathname === CHARACTERIZATION_AMBIENTES_PATHNAME;
   const isSstCharacterizationPage =
@@ -58,8 +59,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const showSstWorkspaceSelector =
     isSstCharacterizationPage &&
     sstActiveTab !== CharacterizationSubTabEnum.PROTOCOLS;
-  const isGseCharacterizationPage =
-    pathname === CHARACTERIZATION_GSE_PATHNAME;
+  const isGseCharacterizationPage = pathname === CHARACTERIZATION_GSE_PATHNAME;
   const isChemicalProductsPage = pathname === CHEMICAL_PRODUCTS_PATHNAME;
   const isAssistenteGsePage = pathname === ASSISTENTE_GSE_PATHNAME;
   const isNewDocumentsStagePage =
@@ -76,7 +76,10 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   useEffect(() => {
     if (!isHierarchyOrganogramPage) return;
     if (!isMultiOrgWorkspace) return;
-    if (leftoverSingularWorkspaceId == null || leftoverSingularWorkspaceId === '')
+    if (
+      leftoverSingularWorkspaceId == null ||
+      leftoverSingularWorkspaceId === ''
+    )
       return;
 
     const nextQuery = { ...query } as ParsedUrlQuery;
@@ -84,11 +87,9 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
       nextQuery,
       parseOrgWorkspaceFilterIds(query),
     );
-    void router.replace(
-      { pathname, query: nextQuery },
-      undefined,
-      { shallow: true },
-    );
+    void router.replace({ pathname, query: nextQuery }, undefined, {
+      shallow: true,
+    });
   }, [
     isHierarchyOrganogramPage,
     isMultiOrgWorkspace,
@@ -101,14 +102,25 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   // Only pages with an actual workspace selector need this optional lookup.
   // In particular, an eSocial-only reader must not fetch company data merely
   // because the global header is mounted on the eSocial page.
-  const needsWorkspaceSelector = !(isHomePage && isGroupConsolidated) && (
-    isHoMonitoringPage || isDocumentsListPage || isActionPlanPage || isCharacterizationRootPage ||
-    showSstWorkspaceSelector || isGseCharacterizationPage || isChemicalProductsPage ||
-    isAssistenteGsePage || isNewDocumentsStagePage || isHierarchyOrganogramPage || routeHasWorkspace
+  const needsWorkspaceSelector =
+    !(isHomePage && isGroupConsolidated) &&
+    (isHoMonitoringPage ||
+      isDocumentsListPage ||
+      isActionPlanPage ||
+      isCharacterizationRootPage ||
+      showSstWorkspaceSelector ||
+      isGseCharacterizationPage ||
+      isChemicalProductsPage ||
+      isAssistenteGsePage ||
+      isNewDocumentsStagePage ||
+      isHierarchyOrganogramPage ||
+      routeHasWorkspace);
+  const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces(
+    {
+      companyId: companyId || '',
+    },
+    { enabled: needsWorkspaceSelector },
   );
-  const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
-    companyId: companyId || '',
-  }, { enabled: needsWorkspaceSelector });
 
   const workspaceCount = workspaces?.results?.length ?? 0;
 
@@ -118,7 +130,11 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     return null;
   }
 
-  if (!isHierarchyOrganogramPage && !isLoadingAllWorkspaces && workspaceCount <= 1) {
+  if (
+    !isHierarchyOrganogramPage &&
+    !isLoadingAllWorkspaces &&
+    workspaceCount <= 1
+  ) {
     return null;
   }
 
@@ -140,6 +156,12 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
         sx={{
           cursor: 'default',
           ...documentsHeaderChipShellSx,
+          borderRadius: '999px',
+          boxShadow: 'none',
+          border: '1px solid',
+          borderColor: 'divider',
+          minHeight: 32,
+          '&:hover, &:focus-within': { borderColor: 'primary.main' },
         }}
         onClick={(e) => e.stopPropagation()}
         id={IdsEnum.DOCUMENTS_WORKSPACE_NAVBAR}
@@ -227,6 +249,12 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
       sx={{
         cursor: 'default',
         ...documentsHeaderChipShellSx,
+        borderRadius: '999px',
+        boxShadow: 'none',
+        border: '1px solid',
+        borderColor: 'divider',
+        minHeight: 32,
+        '&:hover, &:focus-within': { borderColor: 'primary.main' },
       }}
       onClick={(e) => e.stopPropagation()}
       id={IdsEnum.WORKSPACE_SELECT_NAVBAR}
@@ -285,22 +313,32 @@ function OrganogramWorkspaceFilters({
   }
 
   const groupOptions =
-    groups.length && workspaceIdsByGroup.has(UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID)
-      ? [...groups, { id: UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID, name: 'Sem grupo' }]
+    groups.length &&
+    workspaceIdsByGroup.has(UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID)
+      ? [
+          ...groups,
+          { id: UNGROUPED_ESTABLISHMENT_GROUP_TREE_ID, name: 'Sem grupo' },
+        ]
       : groups;
   const queryGroupId = router.query[ORG_WORKSPACE_GROUP_QUERY_KEY];
   const selectedIds = parseOrgWorkspaceFilterIds(router.query);
   const group = groupOptions.find(({ id }) => {
     if (id !== queryGroupId || !selectedIds.length) return false;
     const members = workspaceIdsByGroup.get(id);
-    return members && selectedIds.every((workspaceId) => members.includes(workspaceId));
+    return (
+      members &&
+      selectedIds.every((workspaceId) => members.includes(workspaceId))
+    );
   });
   const groupWorkspaceIds = group && workspaceIdsByGroup.get(group.id);
   const isWholeGroup = groupWorkspaceIds?.length === selectedIds.length;
 
   if (!groups.length && !isLoading && availableIds.size <= 1) return null;
 
-  const updateFilters = (groupId: string | undefined, workspaceIds: string[]) => {
+  const updateFilters = (
+    groupId: string | undefined,
+    workspaceIds: string[],
+  ) => {
     const query = { ...router.query };
     if (groupId) query[ORG_WORKSPACE_GROUP_QUERY_KEY] = groupId;
     else delete query[ORG_WORKSPACE_GROUP_QUERY_KEY];
@@ -316,6 +354,12 @@ function OrganogramWorkspaceFilters({
       display={isTablet ? 'none' : 'flex'}
       sx={{
         ...documentsHeaderChipShellSx,
+        borderRadius: '999px',
+        boxShadow: 'none',
+        border: '1px solid',
+        borderColor: 'divider',
+        minHeight: 32,
+        '&:hover, &:focus-within': { borderColor: 'primary.main' },
         cursor: 'default',
         maxWidth: 420,
         ...(groups.length > 0 && { width: 'clamp(280px, 29vw, 400px)' }),
@@ -355,7 +399,11 @@ function OrganogramWorkspaceFilters({
         >
           <MenuItem value="">Todos os grupos</MenuItem>
           {groupOptions.map(({ id, name }) => (
-            <MenuItem key={id} value={id} disabled={!workspaceIdsByGroup.has(id)}>
+            <MenuItem
+              key={id}
+              value={id}
+              disabled={!workspaceIdsByGroup.has(id)}
+            >
               {name}
             </MenuItem>
           ))}
@@ -375,7 +423,10 @@ function OrganogramWorkspaceFilters({
                 : undefined
           }
           onChange={(ids) =>
-            updateFilters(group?.id, ids.length ? ids : groupWorkspaceIds ?? [])
+            updateFilters(
+              group?.id,
+              ids.length ? ids : (groupWorkspaceIds ?? []),
+            )
           }
           allowEmptyWorkspace
           compact

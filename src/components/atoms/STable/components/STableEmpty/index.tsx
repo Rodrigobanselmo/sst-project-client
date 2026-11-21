@@ -7,23 +7,20 @@ import SText from 'components/atoms/SText';
 import { STableEmptyProps } from './types';
 
 const STableEmpty: FC<{ children?: any } & STableEmptyProps> = ({
-  content = (
-    <>
-      Nenhum dado <br /> encontrado
-    </>
-  ),
+  content = <>Nenhum dado encontrado</>,
   ...props
 }) => (
   <SFlex
     sx={{
-      borderRadius: 1,
+      borderRadius: '999px',
+      minHeight: 48,
       p: 5,
       py: 3,
       opacity: 0.8,
       border: '1px solid',
-      borderColor: 'grey.200',
+      borderColor: 'divider',
       backgroundColor: 'background.paper',
-      boxShadow: '0px 0px 2px rgba(0, 0, 0, 0.15)',
+      boxShadow: 'none',
     }}
     align="center"
     {...props}

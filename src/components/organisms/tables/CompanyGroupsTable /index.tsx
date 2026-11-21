@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import {
   STable,
   STableBody,
@@ -68,16 +68,51 @@ export const CompanyGroupsTable: FC<
       {!isSelect && !hideTitle && (
         <STableTitle icon={SCompanyGroupIcon}>Grupos Empresariais</STableTitle>
       )}
-      <STableSearch
-        onAddClick={onAddCompanyGroup}
-        onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
+        }}
+      >
+        <STableSearch
+          autoFocus={false}
+          boxProps={{ sx: { width: { xs: 200, md: 340 }, flexShrink: 0 } }}
+          inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+          sx={{
+            '&&&& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+              boxShadow: 'none',
+              backgroundColor: 'background.paper',
+            },
+            '&&&& .MuiOutlinedInput-notchedOutline': {
+              borderWidth: '1px',
+              borderColor: 'divider',
+              borderRadius: '999px',
+            },
+            '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+              {
+                borderWidth: '1px',
+                borderColor: 'primary.main',
+              },
+          }}
+          identitySquareActions
+          onAddClick={onAddCompanyGroup}
+          onChange={(e) => handleSearchChange(e.target.value)}
+        />
+      </Box>
       <STable
         loading={loadGroup}
         rowsNumber={rowsPerPage}
         columns="minmax(150px, 2fr) minmax(200px, 4fr) 100px"
       >
-        <STableHeader>
+        <STableHeader
+          sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+        >
           <STableHRow>Nome</STableHRow>
           <STableHRow>Descrição</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
@@ -91,6 +126,14 @@ export const CompanyGroupsTable: FC<
               <STableRow
                 onClick={() => onSelectRow(row)}
                 clickable
+                sx={{
+                  borderRadius: '999px',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: 'none',
+                  minHeight: 48,
+                  px: 5,
+                }}
                 key={row.id}
               >
                 <TextIconRow clickable text={row.name} />

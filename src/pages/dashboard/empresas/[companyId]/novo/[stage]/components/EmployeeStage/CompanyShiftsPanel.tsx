@@ -92,7 +92,10 @@ export const CompanyShiftsPanel: FC<CompanyShiftsPanelProps> = ({
 
     if (
       isEditing &&
-      didCompanyShiftDurationChange(draft.originalDurationMinutes, durationMinutes)
+      didCompanyShiftDurationChange(
+        draft.originalDurationMinutes,
+        durationMinutes,
+      )
     ) {
       const confirmed = window.confirm(COMPANY_SHIFT_DURATION_CHANGE_WARNING);
       if (!confirmed) return;
@@ -109,13 +112,29 @@ export const CompanyShiftsPanel: FC<CompanyShiftsPanelProps> = ({
   };
 
   return (
-    <Box mb={4} p={2} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+    <Box
+      mb={4}
+      p={2}
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '20px',
+        p: 5,
+        '& .MuiOutlinedInput-root': {
+          borderRadius: '999px',
+          boxShadow: 'none',
+          backgroundColor: 'background.paper',
+        },
+        '& .MuiOutlinedInput-notchedOutline': { borderRadius: '999px' },
+        '& button': { borderRadius: '999px', boxShadow: 'none' },
+      }}
+    >
       <SText fontSize={16} fontWeight={600} mb={1}>
         {title}
       </SText>
       <SText fontSize={12} color="text.secondary" mb={2}>
-        Duração da jornada em minutos. Deixe em branco quando a jornada ainda não estiver
-        estruturada.
+        Duração da jornada em minutos. Deixe em branco quando a jornada ainda
+        não estiver estruturada.
       </SText>
       {shifts.map((shift) => (
         <Box key={shift.id} display="flex" gap={2} alignItems="center" mb={1}>
@@ -123,14 +142,22 @@ export const CompanyShiftsPanel: FC<CompanyShiftsPanelProps> = ({
             {shift.name}
           </SText>
           <SText fontSize={13} color="text.secondary">
-            {shift.durationMinutes ? `${shift.durationMinutes} min` : 'Jornada não estruturada'}
+            {shift.durationMinutes
+              ? `${shift.durationMinutes} min`
+              : 'Jornada não estruturada'}
           </SText>
           <SButton size="small" variant="text" onClick={() => startEdit(shift)}>
             Editar
           </SButton>
         </Box>
       ))}
-      <Box display="flex" flexWrap="wrap" gap={2} mt={2} alignItems="flex-start">
+      <Box
+        display="flex"
+        flexWrap="wrap"
+        gap={2}
+        mt={2}
+        alignItems="flex-start"
+      >
         {!isEditing ? (
           <TextField
             select
@@ -155,7 +182,9 @@ export const CompanyShiftsPanel: FC<CompanyShiftsPanelProps> = ({
           size="small"
           label="Nome do turno"
           value={draft.name}
-          onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
+          onChange={(event) =>
+            setDraft((current) => ({ ...current, name: event.target.value }))
+          }
           sx={{ minWidth: 200 }}
         />
         <TextField
@@ -163,7 +192,10 @@ export const CompanyShiftsPanel: FC<CompanyShiftsPanelProps> = ({
           label="Descrição"
           value={draft.description}
           onChange={(event) =>
-            setDraft((current) => ({ ...current, description: event.target.value }))
+            setDraft((current) => ({
+              ...current,
+              description: event.target.value,
+            }))
           }
           sx={{ minWidth: 240, flex: 1 }}
         />
@@ -173,7 +205,10 @@ export const CompanyShiftsPanel: FC<CompanyShiftsPanelProps> = ({
           value={draft.duration}
           inputProps={{ inputMode: 'numeric' }}
           onChange={(event) =>
-            setDraft((current) => ({ ...current, duration: event.target.value }))
+            setDraft((current) => ({
+              ...current,
+              duration: event.target.value,
+            }))
           }
         />
         <SButton variant="contained" onClick={onSave} loading={save.isLoading}>

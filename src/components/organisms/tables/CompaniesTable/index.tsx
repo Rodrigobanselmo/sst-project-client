@@ -1,7 +1,7 @@
 import { FC, Fragment, useCallback, useMemo, useState } from 'react';
 
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
-import { BoxProps, FormControlLabel, Switch } from '@mui/material';
+import { Box, BoxProps, FormControlLabel, Switch } from '@mui/material';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
@@ -55,7 +55,10 @@ import {
   saveCompaniesSort,
   StoredCompaniesSort,
 } from './companiesTable.storage';
-import { CompaniesListSortBy, CompaniesTableColumnId } from './companiesTable.types';
+import {
+  CompaniesListSortBy,
+  CompaniesTableColumnId,
+} from './companiesTable.types';
 
 type ColumnDef = {
   id: CompaniesTableColumnId;
@@ -272,7 +275,7 @@ export const CompaniesTable: FC<
         return (
           <StatusSelect
             large
-            sx={{ maxWidth: '120px' }}
+            sx={{ maxWidth: '120px', borderRadius: '999px', boxShadow: 'none' }}
             selected={row.status}
             disabled
             statusOptions={[]}
@@ -288,52 +291,81 @@ export const CompaniesTable: FC<
       {!isSelect && !hideTitle && (
         <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
       )}
-      <STableSearch
-        key={searchInputKey}
-        autoFocus={false}
-        filterProps={{ filters: companyFilterList, ...filterProps }}
-        filterButtonSx={tableUtilityPillSx}
-        {...(!isSelect && {
-          identitySquareActions: true,
-          pinToolbarWithFilter: true,
-          onAddClick: () => onStackOpenModal(ModalEnum.COMPANY_EDIT),
-          toolbarAfterAdd: isMaster ? (
-            <FormControlLabel
-              sx={{ mr: 0, ml: 2, whiteSpace: 'nowrap' }}
-              control={
-                <Switch
-                  size="small"
-                  checked={includeInactive}
-                  onChange={(e) => {
-                    setIncludeInactive(e.target.checked);
-                    setPage(1);
-                  }}
-                />
-              }
-              label="Incluir inativas"
-            />
-          ) : undefined,
-          toolbarBeforeFilter: (
-            <STableColumnsButton<CompaniesTableColumnId>
-              showLabel
-              columns={columnPickerItems}
-              hiddenColumns={
-                hiddenColumns as Record<CompaniesTableColumnId, boolean>
-              }
-              setHiddenColumns={setHiddenColumnsFromPicker}
-              tableButtonProps={tableUtilityPillButtonProps}
-            />
-          ),
-        })}
-        onChange={(e) => handleSearchChange(e.target.value)}
-      />
-      <FilterTagList filterProps={filterProps} />
-      <STable
-        loading={isLoading}
-        rowsNumber={pageSize}
-        columns={gridTemplate}
+      <Box
+        sx={{
+          '&&&& button': {
+            borderRadius: '999px',
+            minHeight: 32,
+            borderColor: 'divider',
+            backgroundColor: 'background.paper',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+          },
+        }}
       >
-        <STableHeader>
+        <STableSearch
+          key={searchInputKey}
+          autoFocus={false}
+          boxProps={{ sx: { width: { xs: 200, md: 340 }, flexShrink: 0 } }}
+          inputProps={{ style: { height: '13px', fontSize: '14px' } }}
+          sx={{
+            '&&&& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+              boxShadow: 'none',
+              backgroundColor: 'background.paper',
+            },
+            '&&&& .MuiOutlinedInput-notchedOutline': {
+              borderWidth: '1px',
+              borderColor: 'divider',
+              borderRadius: '999px',
+            },
+            '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+              {
+                borderWidth: '1px',
+                borderColor: 'primary.main',
+              },
+          }}
+          filterProps={{ filters: companyFilterList, ...filterProps }}
+          filterButtonSx={tableUtilityPillSx}
+          {...(!isSelect && {
+            identitySquareActions: true,
+            pinToolbarWithFilter: true,
+            onAddClick: () => onStackOpenModal(ModalEnum.COMPANY_EDIT),
+            toolbarAfterAdd: isMaster ? (
+              <FormControlLabel
+                sx={{ mr: 0, ml: 2, whiteSpace: 'nowrap' }}
+                control={
+                  <Switch
+                    size="small"
+                    checked={includeInactive}
+                    onChange={(e) => {
+                      setIncludeInactive(e.target.checked);
+                      setPage(1);
+                    }}
+                  />
+                }
+                label="Incluir inativas"
+              />
+            ) : undefined,
+            toolbarBeforeFilter: (
+              <STableColumnsButton<CompaniesTableColumnId>
+                showLabel
+                columns={columnPickerItems}
+                hiddenColumns={
+                  hiddenColumns as Record<CompaniesTableColumnId, boolean>
+                }
+                setHiddenColumns={setHiddenColumnsFromPicker}
+                tableButtonProps={tableUtilityPillButtonProps}
+              />
+            ),
+          })}
+          onChange={(e) => handleSearchChange(e.target.value)}
+        />
+      </Box>
+      <FilterTagList filterProps={filterProps} />
+      <STable loading={isLoading} rowsNumber={pageSize} columns={gridTemplate}>
+        <STableHeader
+          sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+        >
           {selectedData && <STableHRow />}
           {visibleColumns.map((col) =>
             col.id === 'edit' ? (
@@ -363,6 +395,17 @@ export const CompaniesTable: FC<
             return (
               <STableRow
                 clickable
+                sx={{
+                  borderRadius: '999px',
+                  border: '1px solid',
+                  borderColor:
+                    row.status === StatusEnum.INACTIVE
+                      ? 'error.dark'
+                      : 'divider',
+                  boxShadow: 'none',
+                  minHeight: 48,
+                  px: 5,
+                }}
                 onClick={() => onSelectRow(row)}
                 key={row.id}
                 status={

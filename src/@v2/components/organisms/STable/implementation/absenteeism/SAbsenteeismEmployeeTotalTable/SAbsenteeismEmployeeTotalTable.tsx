@@ -111,6 +111,14 @@ export const SAbsenteeismEmployeeTotalTable: FC<IAbsenteeismTableProps> = ({
             renderRow={(row) => {
               return (
                 <STableRow
+                  sx={{
+                    borderRadius: '999px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    boxShadow: 'none',
+                    minHeight: 40,
+                    px: 5,
+                  }}
                   clickable
                   schema="grey"
                   onClick={() => onSelectRow(row)}

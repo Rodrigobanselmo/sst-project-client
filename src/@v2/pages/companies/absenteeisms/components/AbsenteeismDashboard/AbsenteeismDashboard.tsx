@@ -25,9 +25,32 @@ export const AbsenteeismDashboard = ({ companyId }: { companyId: string }) => {
   });
 
   return (
-    <Box width={'100%'}>
+    <Box
+      width={'100%'}
+      sx={{
+        '&&&& .MuiOutlinedInput-root': {
+          borderRadius: '999px',
+          boxShadow: 'none',
+          backgroundColor: 'background.paper',
+        },
+        '&&&& .MuiOutlinedInput-notchedOutline': {
+          borderRadius: '999px',
+          borderWidth: '1px',
+          borderColor: 'divider',
+        },
+        '&&&& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline, &&&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+          { borderWidth: '1px', borderColor: 'primary.main' },
+        '& button': { borderRadius: '999px', boxShadow: 'none' },
+        '& .MuiButtonGroup-root': {
+          gap: 2,
+          flexWrap: 'wrap',
+          boxShadow: 'none',
+        },
+        '& .MuiButtonGroup-grouped': { borderRadius: '999px !important' },
+      }}
+    >
       <GraphBarTimeCompare companyId={companyId} />
-      <SFlex gap={6} pb={8}>
+      <SFlex gap={6} pb={8} flexWrap="wrap">
         <SSearchSelect
           label="Ano"
           boxProps={{ width: '100px' }}
