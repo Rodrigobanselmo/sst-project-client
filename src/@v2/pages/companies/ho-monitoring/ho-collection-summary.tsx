@@ -1,3 +1,4 @@
+import { SamplingSettings } from './ho-sampling-strategy';
 import {
   SamplingActivities,
   ExposureActivities,
@@ -56,6 +57,15 @@ export type CollectionSummaryRow = {
   plannedMinutes: number | null;
   resultCount: number | null;
   suggestedMinimum: number | null;
+  shortReference?: {
+    reference: string;
+    recommendedCount: number | null;
+    resultCount: number;
+    label: string;
+    url: string | null;
+    interpretation: string;
+  } | null;
+  shortSuggestion?: ShortCollectionDecision | null;
   shortAssessment: string | null;
   limits: string[];
   totalSamplers: number | null;
@@ -92,6 +102,8 @@ export type ShortCollectionDecision = {
   resultCount: number;
   durationMinutes: number;
   justification: string;
+  overrideJustification?: string;
+  reviewRequired?: boolean;
 };
 export type CollectionSelection = {
   combinedIds: string[];
@@ -99,6 +111,7 @@ export type CollectionSelection = {
 };
 export function HoCollectionSummary({
   rows,
+  sampling,
   combined = [],
   selection,
   saveSelection,
@@ -107,6 +120,7 @@ export function HoCollectionSummary({
   save,
 }: {
   rows: CollectionSummaryRow[];
+  sampling?: SamplingSettings;
   combined?: CombinedCollection[];
   selection?: CollectionSelection;
   saveSelection: (selection: CollectionSelection) => Promise<void>;
@@ -180,14 +194,31 @@ export function HoCollectionSummary({
       };
     });
   }
-  const [decisions, setDecisions] = useState<ShortCollectionDecision[]>(saved);
+  const initialDecisions = () => [
+    ...saved,
+    ...rows.flatMap((r) =>
+      r.shortSuggestion &&
+      !saved.some(
+        (d) =>
+          d.exposureId === r.exposureId &&
+          d.evaluationType === r.evaluationType,
+      )
+        ? [r.shortSuggestion]
+        : [],
+    ),
+  ];
+  const [decisions, setDecisions] =
+    useState<ShortCollectionDecision[]>(initialDecisions);
   const [peakOpen, setPeakOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   useEffect(() => {
-    setDecisions(saved);
-  }, [JSON.stringify(saved)]);
+    setDecisions(initialDecisions());
+  }, [
+    JSON.stringify(saved),
+    JSON.stringify(rows.map((r) => r.shortSuggestion)),
+  ]);
   const shortRows = rows.filter((r) =>
     ['STEL', 'CEILING', 'ACGIH_CEILING', 'NR15_TETO', 'VMP'].includes(
       r.evaluationType,
@@ -228,6 +259,61 @@ export function HoCollectionSummary({
   return (
     <Stack spacing={10}>
       <Typography variant="h6">3.4 Resumo do planejamento por GSE</Typography>
+      {sampling?.distribution && (
+        <Paper variant="outlined" sx={{ p: 8 }}>
+          <Stack spacing={4}>
+            <Typography fontWeight={700}>
+              Período e distribuição salvos na etapa 3.3
+            </Typography>
+            <Typography>
+              {sampling.distribution.startDate.split('-').reverse().join('/')} a{' '}
+              {sampling.distribution.endDate.split('-').reverse().join('/')} ·{' '}
+              {sampling.distribution.plannedDays} dias previstos de coleta.
+            </Typography>
+            <Typography variant="body2">
+              Mínimo de {sampling.distribution.minimumWorkersPerGroup}{' '}
+              trabalhador(es) distinto(s) por GSE. Seleção:{' '}
+              {
+                {
+                  random: 'aleatória',
+                  most_exposed: 'maior exposição prevista',
+                  representative: 'representativa das condições',
+                  custom: 'critério profissional específico',
+                }[sampling.distribution.workerSelection]
+              }
+              . Variabilidade:{' '}
+              {
+                {
+                  unknown: 'desconhecida',
+                  low: 'baixa',
+                  moderate: 'moderada',
+                  high: 'alta',
+                }[sampling.distribution.expectedVariability]
+              }
+              .
+            </Typography>
+            {sampling.distribution.shifts.map((s, i) => (
+              <Typography key={i}>
+                {s.name}: {s.startTime}–{s.endTime}
+                {s.endTime < s.startTime ? ' (termina no dia seguinte)' : ''}
+              </Typography>
+            ))}
+            <Typography variant="body2">
+              {sampling.distribution.shortScheduling === 'prefer_same_day'
+                ? 'STEL/pico preferencialmente nos mesmos dias de TWA, sem obrigação de coincidência.'
+                : 'STEL/pico em dias independentes conforme as atividades críticas.'}
+            </Typography>
+          </Stack>
+        </Paper>
+      )}
+      {rows.some((r) => r.shortSuggestion) && (
+        <Alert severity="info">
+          Atividades vinculadas geraram sugestões já marcadas de STEL/pico.
+          Revise se representam condições críticas e confirme em “Confirmar e
+          salvar avaliações de pico”. As sugestões ainda não são decisões
+          salvas.
+        </Alert>
+      )}
       <Alert severity="info">
         Calculado a partir da etapa 3.3 salva e dos métodos confirmados. TWA:
         alvo de 90% do volume máximo por amostrador, respeitando vazão e volume
@@ -267,7 +353,9 @@ export function HoCollectionSummary({
                 quantidade total de resultados prevista nesta campanha. STEL
                 começa com referência de 15 minutos. Teto/VMP devem cobrir o
                 pico real no menor tempo permitido pelo método (até 15 minutos
-                nesta tela). Decisões ainda não preenchidas continuam pendentes.
+                nesta tela). A quantidade é independente do número de TWA; a
+                coincidência dos dias é preferencial, não obrigatória. Decisões
+                sem atividade confirmada continuam pendentes.
               </Typography>
               {shortRows.map((row) => {
                 const decision = decisions.find(
@@ -342,7 +430,7 @@ export function HoCollectionSummary({
                               value={decision.resultCount}
                               disabled={busy}
                               inputProps={{
-                                min: row.suggestedMinimum ?? 1,
+                                min: 1,
                                 max: 10000,
                                 step: 1,
                               }}
@@ -368,6 +456,57 @@ export function HoCollectionSummary({
                           </>
                         )}
                       </Stack>
+                      {decision?.reviewRequired && (
+                        <Alert severity="warning">
+                          Etapa 3.3 alterada: a decisão anterior foi preservada.
+                          Revise quantidade, atividade e distribuição e confirme
+                          novamente.
+                        </Alert>
+                      )}
+                      {row.shortReference && (
+                        <Typography variant="body2">
+                          {row.shortReference.label}.{' '}
+                          {row.shortReference.url && (
+                            <a
+                              href={row.shortReference.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Consultar referência
+                            </a>
+                          )}{' '}
+                          {row.shortReference.interpretation}
+                        </Typography>
+                      )}
+                      {decision?.planned &&
+                        decision.resultCount <
+                          Math.max(
+                            row.suggestedMinimum ?? 1,
+                            row.shortReference?.recommendedCount ?? 1,
+                          ) && (
+                          <>
+                            <Alert severity="warning">
+                              Quantidade inferior à recomendação: decisão
+                              profissional independente, com justificativa
+                              obrigatória.
+                            </Alert>
+                            <TextField
+                              fullWidth
+                              label="Justificativa da redução de quantidade"
+                              required
+                              multiline
+                              minRows={2}
+                              value={decision.overrideJustification ?? ''}
+                              disabled={busy}
+                              onChange={(e) =>
+                                update(row, {
+                                  overrideJustification: e.target.value,
+                                })
+                              }
+                              inputProps={{ maxLength: 4000 }}
+                            />
+                          </>
+                        )}
                       {decision && (
                         <TextField
                           label={
@@ -399,14 +538,22 @@ export function HoCollectionSummary({
                       (d) =>
                         !d.justification.trim() ||
                         !Number.isInteger(d.resultCount) ||
-                        d.resultCount <
-                          (d.planned
-                            ? (shortRows.find(
+                        d.resultCount < 1 ||
+                        (d.planned &&
+                          d.resultCount <
+                            Math.max(
+                              shortRows.find(
                                 (r) =>
                                   r.exposureId === d.exposureId &&
                                   r.evaluationType === d.evaluationType,
-                              )?.suggestedMinimum ?? 1)
-                            : 1) ||
+                              )?.suggestedMinimum ?? 1,
+                              shortRows.find(
+                                (r) =>
+                                  r.exposureId === d.exposureId &&
+                                  r.evaluationType === d.evaluationType,
+                              )?.shortReference?.recommendedCount ?? 1,
+                            ) &&
+                          !d.overrideJustification?.trim()) ||
                         d.resultCount > 10000 ||
                         !Number.isFinite(d.durationMinutes) ||
                         d.durationMinutes < 0.001 ||
@@ -418,8 +565,30 @@ export function HoCollectionSummary({
                     setError('');
                     setMessage('');
                     try {
-                      await save(decisions);
-                      setMessage('Decisões salvas. Resumo recalculado.');
+                      await save(
+                        decisions.map(
+                          ({
+                            exposureId,
+                            evaluationType,
+                            planned,
+                            resultCount,
+                            durationMinutes,
+                            justification,
+                            overrideJustification,
+                          }) => ({
+                            exposureId,
+                            evaluationType,
+                            planned,
+                            resultCount,
+                            durationMinutes,
+                            justification,
+                            overrideJustification,
+                          }),
+                        ),
+                      );
+                      setMessage(
+                        'Decisões confirmadas e salvas. Resumo recalculado.',
+                      );
                     } catch (error: any) {
                       const detail = error?.response?.data?.message;
                       setError(
@@ -433,7 +602,9 @@ export function HoCollectionSummary({
                     }
                   }}
                 >
-                  {busy ? 'Salvando...' : 'Salvar decisões e recalcular resumo'}
+                  {busy
+                    ? 'Salvando...'
+                    : 'Confirmar e salvar avaliações de pico'}
                 </Button>
               </Box>
             </Stack>
@@ -767,7 +938,24 @@ export function HoCollectionSummary({
                                       }}
                                     />
                                   )}
-                                  {number(row.resultCount)}
+                                  {number(
+                                    row.resultCount ??
+                                      decisions.find(
+                                        (d) =>
+                                          d.exposureId === row.exposureId &&
+                                          d.evaluationType ===
+                                            row.evaluationType &&
+                                          d.planned,
+                                      )?.resultCount,
+                                  )}
+                                  {row.shortSuggestion && (
+                                    <Typography
+                                      variant="body2"
+                                      color="info.main"
+                                    >
+                                      Sugestão do sistema — confirmar e salvar
+                                    </Typography>
+                                  )}
                                   {['TWA', 'TWA_CMPT'].includes(
                                     row.evaluationType,
                                   ) &&
@@ -778,10 +966,10 @@ export function HoCollectionSummary({
                                     )}
                                   {row.suggestedMinimum != null && (
                                     <Typography variant="body2">
-                                      Mínimo de referência:{' '}
-                                      {row.suggestedMinimum} por
-                                      condição/atividade crítica; confirmar
-                                      distribuição.
+                                      {row.shortReference?.reference ===
+                                      'fundacentro'
+                                        ? `Referência Fundacentro: seis ou mais resultados e distribuição por operação/atividade crítica repetitiva. Confirmar atendimento ao guia; não equivale a repetir seis em qualquer atividade cadastrada.`
+                                        : `Quantidade inicial sugerida: ${row.suggestedMinimum} por exposição na campanha. Distribuir entre as condições críticas pertinentes; não é exigência de ${row.suggestedMinimum} para cada atividade cadastrada.`}
                                     </Typography>
                                   )}
                                 </TableCell>

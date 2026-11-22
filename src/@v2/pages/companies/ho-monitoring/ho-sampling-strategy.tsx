@@ -1,3 +1,15 @@
+import { HoPlanningSection } from './ho-planning-section';
+import {
+  ShortSamplingPolicy,
+  SamplingDistribution,
+  defaultShortPolicy,
+  defaultDistribution,
+  policyValid,
+  distributionValid,
+  ShortSamplingCriteria,
+  SamplingDistributionFields,
+  aihaUrl,
+} from './ho-sampling-criteria';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -31,6 +43,9 @@ const coverageSliderSx = {
 };
 
 export type SamplingSettings = {
+  stelPolicy?: ShortSamplingPolicy;
+  ceilingPolicy?: ShortSamplingPolicy;
+  distribution?: SamplingDistribution;
   version: 1;
   shiftId: number | null;
   shiftName: string;
@@ -59,10 +74,10 @@ const strategies = [
   },
   {
     id: 'fundacentro',
-    name: 'Fundacentro — recomendação do guia',
+    name: 'Fundacentro + AIHA/ABHO — seis avaliações iniciais (recomendado pelo SimpleSST)',
     minimum: 6,
     description:
-      'Pelo menos seis resultados representativos por GSE e parâmetro avaliado. A variabilidade pode exigir ampliação.',
+      'Seis resultados iniciais de jornada por GSE e agente. Fundacentro adota mínimo de seis; AIHA/ABHO apresenta seis a dez como prática aprimorada para GES nas categorias de exposição 2 ou 3. A variabilidade pode exigir ampliação.',
     source: 'Carvalho, Fundacentro, 2018 — seções 8.3.9 a 8.3.11.',
     url: guide,
   },
@@ -127,6 +142,13 @@ export function HoSamplingStrategy({
   ) => Promise<void>;
 }) {
   const shifts = useQueryCompanyShifts();
+  const [stelPolicy, setStelPolicy] =
+    useState<ShortSamplingPolicy>(defaultShortPolicy);
+  const [ceilingPolicy, setCeilingPolicy] =
+    useState<ShortSamplingPolicy>(defaultShortPolicy);
+  const [distribution, setDistribution] =
+    useState<SamplingDistribution>(defaultDistribution);
+  const [datesValid, setDatesValid] = useState(true);
   const [shift, setShift] = useState('');
   const [duration, setDuration] = useState('');
   const [coverage, setCoverage] = useState(75);
@@ -142,6 +164,9 @@ export function HoSamplingStrategy({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
+    setStelPolicy(saved?.stelPolicy ?? defaultShortPolicy());
+    setCeilingPolicy(saved?.ceilingPolicy ?? defaultShortPolicy());
+    setDistribution(saved?.distribution ?? defaultDistribution());
     setShift(
       saved
         ? saved.shiftId === null
@@ -151,7 +176,7 @@ export function HoSamplingStrategy({
     );
     setDuration(saved ? String(saved.durationMinutes) : '');
     setCoverage(saved?.coveragePercent ?? 75);
-    setStrategyId(saved?.strategyId ?? '');
+    setStrategyId(saved?.strategyId ?? 'fundacentro');
     setCount(String(saved?.resultCount ?? 6));
     setJustification(saved?.justification ?? '');
     setExceptions(
@@ -173,13 +198,16 @@ export function HoSamplingStrategy({
   const validCount =
     !!strategy &&
     Number.isInteger(Number(count)) &&
-    Number(count) >= strategy.minimum;
+    Number(count) >= 1 &&
+    Number(count) <= 10000;
+  const twaOverride =
+    !!strategy && (strategyId === 'custom' || Number(count) < strategy.minimum);
   return (
     <Stack spacing={10}>
       <Typography variant="h6">3.3 Estratégia de amostragem</Typography>
       <Alert severity={saved ? 'success' : 'info'}>
         {saved
-          ? 'Estratégia salva na campanha. Use Salvar etapa 3.3 após novas alterações.'
+          ? 'Dados salvos recuperados. As alterações e os novos critérios só serão registrados ao salvar a etapa 3.3.'
           : 'Preencha e salve a etapa 3.3 para manter estes dados ao atualizar a página.'}
       </Alert>
       {message && <Alert severity="success">{message}</Alert>}
@@ -190,11 +218,8 @@ export function HoSamplingStrategy({
         sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}
       >
         <Stack spacing={10}>
-          <Paper variant="outlined" sx={{ p: 10 }}>
+          <HoPlanningSection title="Jornada de trabalho e cobertura da avaliação">
             <Stack spacing={8}>
-              <Typography variant="h6">
-                Jornada e cobertura da avaliação de jornada
-              </Typography>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={8}>
                 <TextField
                   select
@@ -279,15 +304,12 @@ export function HoSamplingStrategy({
                 referência do limite.
               </Typography>
             </Stack>
-          </Paper>
-          <Paper variant="outlined" sx={{ p: 10 }}>
+          </HoPlanningSection>
+          <HoPlanningSection title="Quantidade de avaliações — TWA / CMPT (jornada de trabalho)">
             <Stack spacing={8}>
-              <Typography variant="h6">
-                Estratégia de quantidade e distribuição das avaliações
-              </Typography>
               <TextField
                 select
-                label="Estratégia de referência"
+                label="Referência de quantidade — TWA / CMPT"
                 value={strategyId}
                 onChange={(e) => {
                   setStrategyId(e.target.value);
@@ -301,7 +323,10 @@ export function HoSamplingStrategy({
               >
                 {strategies.map((s) => (
                   <MenuItem
-                    sx={{ whiteSpace: 'normal' }}
+                    sx={{
+                      whiteSpace: 'normal',
+                      fontWeight: s.id === 'fundacentro' ? 700 : 400,
+                    }}
                     key={s.id}
                     value={s.id}
                   >
@@ -329,26 +354,81 @@ export function HoSamplingStrategy({
                     type="number"
                     value={count}
                     onChange={(e) => setCount(e.target.value)}
-                    inputProps={{ min: strategy.minimum, step: 1 }}
+                    inputProps={{ min: 1, max: 10000, step: 1 }}
                     error={!validCount}
-                    helperText={`Mínimo desta opção: ${strategy.minimum}. Um resultado de jornada pode exigir vários tubos ou filtros consecutivos.`}
+                    helperText={`Quantidade recomendada nesta opção: ${strategy.minimum}. Um resultado de jornada pode exigir vários tubos ou filtros consecutivos.`}
                   />
                 </>
               )}
+              {twaOverride && (
+                <Alert severity="warning">
+                  Decisão profissional independente: quantidade personalizada ou
+                  inferior à recomendação. A referência original e a quantidade
+                  adotada ficarão registradas.
+                </Alert>
+              )}
+              {strategyId === 'fundacentro' && (
+                <Typography variant="body2">
+                  Referência complementar:{' '}
+                  <a
+                    href={aihaUrl + '#page=23'}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Princípios de Boas Práticas, AIHA (2025), tradução e
+                    publicação ABHO, páginas 22–23
+                  </a>
+                  . As categorias AIHA não equivalem automaticamente aos níveis
+                  qualitativos de risco do sistema.
+                </Typography>
+              )}
               <TextField
-                label="Justificativa técnica e distribuição prevista das avaliações"
+                label={
+                  twaOverride
+                    ? 'Justificativa obrigatória da decisão profissional — TWA'
+                    : 'Observações sobre a quantidade TWA (opcional)'
+                }
+                required={twaOverride}
                 multiline
                 minRows={3}
                 value={justification}
                 onChange={(e) => setJustification(e.target.value)}
-                helperText="Registre dias, trabalhadores, variabilidade esperada e fundamento dos critérios personalizados."
+                helperText="Datas, trabalhadores e turnos são definidos no bloco de distribuição. Aqui justifique uma quantidade personalizada ou inferior à recomendada."
               />
               <Typography variant="body2" color="text.secondary">
                 Petrobras: opção pendente de validação do documento e da edição.
                 Não aplicamos quantitativos ainda não confirmados.
               </Typography>
             </Stack>
-          </Paper>
+          </HoPlanningSection>
+          <HoPlanningSection title="Quantidade de avaliações — STEL (curta duração)">
+            <ShortSamplingCriteria
+              type="STEL"
+              value={stelPolicy}
+              onChange={setStelPolicy}
+            />
+          </HoPlanningSection>
+          <HoPlanningSection title="Quantidade de avaliações — Teto / Ceiling e condições de pico (VMP)">
+            <ShortSamplingCriteria
+              type="Teto"
+              value={ceilingPolicy}
+              onChange={setCeilingPolicy}
+            />
+            <Alert severity="info" sx={{ mt: 8 }}>
+              VMP permanece identificado separadamente no resumo; não é
+              transformado em teto ou STEL. Quando presente, a quantidade de
+              avaliações de pico segue este planejamento, com ajuste
+              profissional específico.
+            </Alert>
+          </HoPlanningSection>
+          <HoPlanningSection title="Período e distribuição das avaliações">
+            <SamplingDistributionFields
+              value={distribution}
+              onChange={setDistribution}
+              shifts={shifts.data}
+              onDatesValid={setDatesValid}
+            />
+          </HoPlanningSection>
           {strategyId === 'french' && (
             <Paper variant="outlined" sx={{ p: 10 }}>
               <Stack spacing={6}>
@@ -394,15 +474,15 @@ export function HoSamplingStrategy({
               das três rodadas francesas.
             </Alert>
           )}
-          <Paper variant="outlined" sx={{ p: 10 }}>
+          <HoPlanningSection
+            title="Exceções da cobertura por exposição (jornada de trabalho)"
+            defaultExpanded={false}
+          >
             <Stack spacing={8}>
-              <Typography variant="h6">
-                Exceções à cobertura por exposição
-              </Typography>
               <Typography variant="body2">
-                Todas as barras começam com a cobertura geral de 75%. Ajuste
-                para a direita ou para a esquerda quando necessário. Alterações
-                na regra geral atualizam as exposições ainda não personalizadas.
+                As barras herdam a cobertura geral de {coverage}%. Ajuste para a
+                direita ou para a esquerda quando necessário. Alterações na
+                regra geral atualizam as exposições ainda não personalizadas.
                 Reduções exigem justificativa, incluindo duração e repetição do
                 ciclo.
               </Typography>
@@ -471,7 +551,7 @@ export function HoSamplingStrategy({
                 </Stack>
               ))}
             </Stack>
-          </Paper>
+          </HoPlanningSection>
           <Alert severity="info">
             STEL, teto e VMP serão planejados por condição de exposição e
             atividade crítica. Ausência de pico aparente não gera dispensa
@@ -499,6 +579,12 @@ export function HoSamplingStrategy({
               }
             />
           </Stack>
+          {(!distributionValid(distribution) || !datesValid) && (
+            <Alert severity="info">
+              Complete o período, os dias de coleta e os horários dos turnos
+              para salvar o planejamento estruturado.
+            </Alert>
+          )}
           <Box>
             <Button
               variant="contained"
@@ -507,7 +593,11 @@ export function HoSamplingStrategy({
                 !shift ||
                 !validDuration ||
                 !validCount ||
-                (strategyId === 'custom' && !justification.trim()) ||
+                (twaOverride && !justification.trim()) ||
+                !policyValid(stelPolicy) ||
+                !policyValid(ceilingPolicy) ||
+                !distributionValid(distribution) ||
+                !datesValid ||
                 Object.entries(exceptions).some(
                   ([id, percent]) =>
                     percent < coverage && !exceptionNotes[id]?.trim(),
@@ -519,6 +609,9 @@ export function HoSamplingStrategy({
                 setMessage('');
                 try {
                   await save({
+                    stelPolicy,
+                    ceilingPolicy,
+                    distribution,
                     shiftId: shift === 'campaign' ? null : Number(shift),
                     durationMinutes: minutes,
                     coveragePercent: coverage,

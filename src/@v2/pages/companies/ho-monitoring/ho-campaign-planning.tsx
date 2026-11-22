@@ -706,6 +706,7 @@ export function HoCampaignPlanning({
       )}{' '}
       {step === 4 && (
         <HoCollectionSummary
+          sampling={data.planning?.sampling}
           key={campaignId}
           rows={data.collectionSummary ?? []}
           combined={data.combinedCollections ?? []}
