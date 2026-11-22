@@ -72,7 +72,9 @@ export type Campaign = {
 
 function planningStatus(campaign: Campaign) {
   return campaign.planning?.step === 'METHODS_CONFIRMED'
-    ? '3.2 concluída · Parâmetros de coleta pendentes'
+    ? campaign.planning.sampling
+      ? '3.3 Estratégia salva · Parâmetros de coleta pendentes'
+      : '3.2 concluída · Estratégia de amostragem pendente'
     : campaign.planning
       ? '3.2 Escolha de métodos pendente'
       : '3.1 Escolha de laboratórios pendente';
@@ -323,7 +325,9 @@ export function HoConsolidation({
                     Etapa atual: planejamento da coleta
                   </Typography>
                   {activeCampaign.planning?.step === 'METHODS_CONFIRMED'
-                    ? 'Laboratórios e métodos estão confirmados. A próxima etapa (3.3) será definir amostrador, vazão, tempo e volume adotados. O plano de coleta ainda depende desses parâmetros.'
+                    ? activeCampaign.planning.sampling
+                      ? 'Jornada, estratégia e coberturas estão salvas na etapa 3.3. O plano ainda depende da definição dos parâmetros de coleta: amostrador, vazão, tempo e volume.'
+                      : 'Laboratórios e métodos estão confirmados. Defina a jornada, a estratégia e as coberturas na etapa 3.3.'
                     : 'Defina os laboratórios em 3.1 e compare os métodos em 3.2. Depois serão definidos os parâmetros adotados de coleta: amostrador, vazão, tempo e volume.'}
                 </Alert>
               ) : (
