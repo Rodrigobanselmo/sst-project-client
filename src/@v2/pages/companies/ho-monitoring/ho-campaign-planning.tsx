@@ -10,6 +10,9 @@ import {
   Paper,
   Radio,
   Stack,
+  Step,
+  StepButton,
+  Stepper,
   Table,
   TableBody,
   TableCell,
@@ -217,38 +220,64 @@ export function HoCampaignPlanning({
     );
   return (
     <Stack spacing={8}>
-      <Stack direction="row" spacing={4} sx={{ flexWrap: 'wrap', gap: 4 }}>
-        <Button
-          variant={step === 1 ? 'contained' : 'outlined'}
-          onClick={() => setStep(1)}
+      <Box
+        component="nav"
+        aria-label="Etapas do planejamento da coleta"
+        sx={{ overflowX: 'auto', py: 4 }}
+      >
+        <Stepper
+          nonLinear
+          alternativeLabel
+          activeStep={step - 1}
+          sx={{ minWidth: 560 }}
         >
-          3.1 Laboratórios
-        </Button>
-        <Button
-          variant={step === 2 ? 'contained' : 'outlined'}
-          disabled={!data.planning}
-          onClick={() => setStep(2)}
-        >
-          3.2 Métodos
-        </Button>
-        <Button
-          variant={step === 3 ? 'contained' : 'outlined'}
-          disabled={data.planning?.step !== 'METHODS_CONFIRMED'}
-          onClick={() => setStep(3)}
-        >
-          3.3 Estratégia de amostragem
-        </Button>
-        <Button
-          variant={step === 4 ? 'contained' : 'outlined'}
-          disabled={
-            !data.planning?.sampling ||
-            data.planning.step !== 'METHODS_CONFIRMED'
-          }
-          onClick={() => setStep(4)}
-        >
-          3.4 Resumo por GSE
-        </Button>
-      </Stack>
+          {[
+            {
+              label: '3.1 Laboratórios',
+              enabled: true,
+              completed: !!data.planning,
+            },
+            {
+              label: '3.2 Métodos',
+              enabled: !!data.planning,
+              completed: data.planning?.step === 'METHODS_CONFIRMED',
+            },
+            {
+              label: '3.3 Estratégia de amostragem',
+              enabled: data.planning?.step === 'METHODS_CONFIRMED',
+              completed:
+                data.planning?.step === 'METHODS_CONFIRMED' &&
+                !!data.planning.sampling,
+            },
+            {
+              label: '3.4 Resumo por GSE',
+              enabled:
+                data.planning?.step === 'METHODS_CONFIRMED' &&
+                !!data.planning.sampling,
+              completed: false,
+            },
+          ].map((item, index) => (
+            <Step
+              key={item.label}
+              completed={item.completed}
+              disabled={!item.enabled}
+            >
+              <StepButton
+                onClick={() => setStep(index + 1)}
+                aria-current={step === index + 1 ? 'step' : undefined}
+                sx={{
+                  '& .MuiStepLabel-label': {
+                    fontSize: '0.875rem',
+                    fontWeight: step === index + 1 ? 600 : 400,
+                  },
+                }}
+              >
+                {item.label}
+              </StepButton>
+            </Step>
+          ))}
+        </Stepper>
+      </Box>
       {error && <Alert severity="error">{error}</Alert>}
       {success && <Alert severity="success">{success}</Alert>}
       <Box hidden={step >= 3}>

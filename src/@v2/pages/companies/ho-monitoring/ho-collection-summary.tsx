@@ -938,22 +938,53 @@ export function HoCollectionSummary({
                                       }}
                                     />
                                   )}
-                                  {number(
-                                    row.resultCount ??
-                                      decisions.find(
-                                        (d) =>
-                                          d.exposureId === row.exposureId &&
-                                          d.evaluationType ===
-                                            row.evaluationType &&
-                                          d.planned,
-                                      )?.resultCount,
-                                  )}
-                                  {row.shortSuggestion && (
-                                    <Typography
-                                      variant="body2"
-                                      color="info.main"
+                                  <Tooltip
+                                    arrow
+                                    title={
+                                      row.suggestedMinimum == null
+                                        ? ''
+                                        : `${row.shortReference?.reference === 'fundacentro' ? 'Referência Fundacentro: seis ou mais resultados e análise estatística por atividade crítica repetitiva.' : `Quantidade inicial sugerida: ${row.suggestedMinimum} por exposição na campanha. Distribuir entre as condições críticas pertinentes; não é exigência dessa quantidade para cada atividade.`} ${row.shortSuggestion ? 'Sugestão do sistema — confirmar e salvar.' : ''}`
+                                    }
+                                  >
+                                    <Box
+                                      component="span"
+                                      tabIndex={
+                                        row.suggestedMinimum != null
+                                          ? 0
+                                          : undefined
+                                      }
+                                      sx={{
+                                        borderBottom:
+                                          row.suggestedMinimum != null
+                                            ? '1px dotted'
+                                            : undefined,
+                                      }}
                                     >
-                                      Sugestão do sistema — confirmar e salvar
+                                      {number(
+                                        row.resultCount ??
+                                          decisions.find(
+                                            (d) =>
+                                              d.exposureId === row.exposureId &&
+                                              d.evaluationType ===
+                                                row.evaluationType &&
+                                              d.planned,
+                                          )?.resultCount,
+                                      )}
+                                    </Box>
+                                  </Tooltip>
+                                  {row.suggestedMinimum != null && (
+                                    <Typography variant="body2">
+                                      {activities.find(
+                                        (a) => a.exposureId === row.exposureId,
+                                      )?.activities.length
+                                        ? activities
+                                            .find(
+                                              (a) =>
+                                                a.exposureId === row.exposureId,
+                                            )!
+                                            .activities.map((a) => a.name)
+                                            .join('; ')
+                                        : 'Pendente de definir as atividades de pico de exposição'}
                                     </Typography>
                                   )}
                                   {['TWA', 'TWA_CMPT'].includes(
@@ -964,14 +995,6 @@ export function HoCollectionSummary({
                                         Contemplado na coleta combinada
                                       </Typography>
                                     )}
-                                  {row.suggestedMinimum != null && (
-                                    <Typography variant="body2">
-                                      {row.shortReference?.reference ===
-                                      'fundacentro'
-                                        ? `Referência Fundacentro: seis ou mais resultados e distribuição por operação/atividade crítica repetitiva. Confirmar atendimento ao guia; não equivale a repetir seis em qualquer atividade cadastrada.`
-                                        : `Quantidade inicial sugerida: ${row.suggestedMinimum} por exposição na campanha. Distribuir entre as condições críticas pertinentes; não é exigência de ${row.suggestedMinimum} para cada atividade cadastrada.`}
-                                    </Typography>
-                                  )}
                                 </TableCell>
                                 <TableCell>
                                   {number(row.calculation.flowLMin)}
