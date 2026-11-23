@@ -1,3 +1,14 @@
+import { HoVolumeCalculation } from './ho-volume-calculation';
+import { createPortal } from 'react-dom';
+import { downloadHoAdaptationsPdf } from './ho-adaptations-pdf';
+import { MethodAdaptationTooltip } from './ho-method-adaptation-tooltip';
+import { methodAdaptation, shortLaboratory, skcBreakthroughReference } from './ho-method-adaptation';
+import {
+  PlanningPendingList,
+  PlanningReadiness,
+  collectionRowId,
+} from './ho-planning-pending';
+import { SamplingResourcesSummary } from './ho-sampling-resources';
 import { SamplingSettings } from './ho-sampling-strategy';
 import {
   SamplingActivities,
@@ -39,6 +50,7 @@ const expansionArrowSx = {
 };
 
 export type CollectionSummaryRow = {
+  preliminary?: boolean;
   exposureId: string;
   group: string;
   agent: string;
@@ -53,6 +65,7 @@ export type CollectionSummaryRow = {
   stabilityDays?: number;
   storageTemperature?: number;
   storageTemperatureUnit?: string;
+  coverageDecision?: {minutes:number;justification:string;confirmed:boolean}|null;
   coveragePercent: number | null;
   plannedMinutes: number | null;
   resultCount: number | null;
@@ -70,6 +83,17 @@ export type CollectionSummaryRow = {
   limits: string[];
   totalSamplers: number | null;
   notes: string[];
+  methodAdaptation?: { flow:number;volume:number;minutes:number;samplers:number;field:string;threshold:number|null } | null;
+  adaptationAssumed?: boolean;
+  alternatives?: {laboratory:string;method:string;flowLMin:number;volumeLitres:number;minutes:number}[];
+  bounds?: {
+    minimumFlowRate?: number | null;
+    maximumFlowRate?: number | null;
+    flowRateUnit?: string | null;
+    minimumVolume?: number | null;
+    maximumVolume?: number | null;
+    volumeUnit?: string | null;
+  };
   calculation: {
     flowLMin: number | null;
     minutesPerSampler: number | null;
@@ -96,6 +120,7 @@ const types: Record<string, string> = {
   PENDING: 'Tipo de limite pendente',
 };
 export type ShortCollectionDecision = {
+  acceptMethodAdaptation?: boolean;
   exposureId: string;
   evaluationType: string;
   planned: boolean;
@@ -110,7 +135,14 @@ export type CollectionSelection = {
   individualExposureIds: string[];
 };
 export function HoCollectionSummary({
+  reportCampaignId = '',
+  phase = 'definition',
+  savePlan,
+  onContinue,
   rows,
+  readiness,
+  onResolve,
+  onDraftChange,
   sampling,
   combined = [],
   selection,
@@ -119,6 +151,13 @@ export function HoCollectionSummary({
   saved,
   save,
 }: {
+  reportCampaignId?: string;
+  phase?: 'definition' | 'review';
+  savePlan: (decisions: ShortCollectionDecision[], selection: CollectionSelection) => Promise<void>;
+  onContinue: () => void;
+  readiness: PlanningReadiness;
+  onResolve: (step: number) => void;
+  onDraftChange: (dirty: boolean) => void;
   rows: CollectionSummaryRow[];
   sampling?: SamplingSettings;
   combined?: CombinedCollection[];
@@ -142,7 +181,9 @@ export function HoCollectionSummary({
         individualExposureIds: defaultIndividuals(),
       },
   );
-  const [selectionDirty, setSelectionDirty] = useState(false);
+  const [, setSelectionDirty] = useState(false);
+  const selectionKey=(v:CollectionSelection)=>JSON.stringify([[...v.combinedIds].sort(),[...v.individualExposureIds].sort()]);
+  const selectionDirty=!selection || selectionKey(selected)!==selectionKey(selection);
   const [selectionBusy, setSelectionBusy] = useState(false);
   const [selectionMessage, setSelectionMessage] = useState('');
   const [selectionError, setSelectionError] = useState('');
@@ -214,11 +255,20 @@ export function HoCollectionSummary({
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   useEffect(() => {
-    setDecisions(initialDecisions());
+    setDecisions(old => initialDecisions().map(d => saved.some(s=>s.exposureId===d.exposureId && s.evaluationType===d.evaluationType) ? d : {...d,...(old.find(o=>o.exposureId===d.exposureId && o.evaluationType===d.evaluationType) ?? {})}));
   }, [
     JSON.stringify(saved),
     JSON.stringify(rows.map((r) => r.shortSuggestion)),
   ]);
+  const decisionKey=(items:ShortCollectionDecision[])=>JSON.stringify(items.map(d=>[d.exposureId,d.evaluationType,d.planned,d.resultCount,d.durationMinutes,d.justification.trim(),d.overrideJustification?.trim()??'',!!d.acceptMethodAdaptation,!!d.reviewRequired]).sort((a,b)=>String(a[0])+String(a[1])>String(b[0])+String(b[1])?1:-1));
+  const planDirty=selectionDirty || decisionKey(decisions)!==decisionKey(saved) || saved.some(d=>d.reviewRequired);
+  useEffect(()=>{onDraftChange(planDirty);},[planDirty]);
+  const rowPending = (row: CollectionSummaryRow) =>
+    readiness.pending.filter(
+      (p) =>
+        p.exposureId === row.exposureId &&
+        p.evaluationType === row.evaluationType,
+    );
   const shortRows = rows.filter((r) =>
     ['STEL', 'CEILING', 'ACGIH_CEILING', 'NR15_TETO', 'VMP'].includes(
       r.evaluationType,
@@ -256,9 +306,38 @@ export function HoCollectionSummary({
     });
   }
   const groups = [...new Set(rows.map((row) => row.group))];
+
+
   return (
     <Stack spacing={10}>
-      <Typography variant="h6">3.4 Resumo do planejamento por GSE</Typography>
+
+
+      <Typography variant="h6">
+        {phase === 'definition' ? '3.4 Definição das coletas' : '3.5 Conferência do plano por GSE'}
+      </Typography>
+      {phase === 'review' && <PlanningPendingList value={readiness} onResolve={onResolve} />}
+      {phase === 'definition' && <Alert severity="info">Defina as coletas de jornada, STEL, Teto e VMP. Ao terminar, use “Salvar coletas e avançar” para abrir a conferência do plano na etapa 3.5.</Alert>}
+      {phase === 'definition' && <Accordion defaultExpanded variant="outlined"><AccordionSummary expandIcon={<ChevronRightIcon />} sx={{...expansionArrowSx,flexDirection:'row-reverse',gap:4}}><Typography fontWeight={700}>Coletas de jornada — TWA / CMPT</Typography></AccordionSummary><AccordionDetails>
+        {combined.map(s=><Box key={s.id}><Checkbox disabled={busy} checked={selected.combinedIds.includes(s.id)} onChange={(_,checked)=>toggleCombined(s,checked)} />Combinar: {s.group} · {s.agent}</Box>)}
+        {rows.filter(r=>['TWA','TWA_CMPT'].includes(r.evaluationType)).map(r=><Box key={r.exposureId}><Checkbox disabled={busy || covered.has(r.exposureId)} checked={!covered.has(r.exposureId) && selected.individualExposureIds.includes(r.exposureId)} onChange={(_,checked)=>{setSelectionDirty(true);setSelected(old=>({...old,individualExposureIds:checked?[...new Set([...old.individualExposureIds,r.exposureId])]:old.individualExposureIds.filter(id=>id!==r.exposureId)}));}} />{r.group} · {r.agent} · {r.resultCount} resultados {covered.has(r.exposureId) ? '(incluído na combinação)' : ''}</Box>)}
+      </AccordionDetails></Accordion>}
+      <Box hidden={phase !== 'definition'}>
+      {selectionDirty && (
+        <Alert severity="info">
+          Há escolhas alteradas. Use “Salvar coletas e avançar” para abrir a conferência da etapa 3.5.
+        </Alert>
+      )}
+      <Accordion variant="outlined" disableGutters>
+        <AccordionSummary expandIcon={<ChevronRightIcon />} sx={{...expansionArrowSx,flexDirection:'row-reverse',gap:4}}>
+          <Typography fontWeight={700}>Resumo da estratégia e critérios de planejamento</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Stack spacing={6}>
+      {sampling?.resources && (
+        <Paper variant="outlined" sx={{ p: 8 }}>
+          <SamplingResourcesSummary value={sampling.resources} />
+        </Paper>
+      )}
       {sampling?.distribution && (
         <Paper variant="outlined" sx={{ p: 8 }}>
           <Stack spacing={4}>
@@ -308,7 +387,7 @@ export function HoCollectionSummary({
       )}
       {rows.some((r) => r.shortSuggestion) && (
         <Alert severity="info">
-          Atividades vinculadas geraram sugestões já marcadas de STEL/pico.
+          Avaliações STEL/pico aplicáveis receberam sugestões já marcadas.
           Revise se representam condições críticas e confirme em “Confirmar e
           salvar avaliações de pico”. As sugestões ainda não são decisões
           salvas.
@@ -329,6 +408,9 @@ export function HoCollectionSummary({
         são critérios distintos: não some tubos automaticamente se uma mesma
         coleta puder atender ambos.
       </Alert>
+          </Stack>
+        </AccordionDetails>
+      </Accordion>
       {shortRows.length > 0 && (
         <Accordion
           variant="outlined"
@@ -357,26 +439,29 @@ export function HoCollectionSummary({
                 coincidência dos dias é preferencial, não obrigatória. Decisões
                 sem atividade confirmada continuam pendentes.
               </Typography>
-              {shortRows.map((row) => {
+              {[...new Set(shortRows.map(row=>row.group))].map(group=><Accordion key={group} defaultExpanded disableGutters variant="outlined">
+                <AccordionSummary expandIcon={<ChevronRightIcon />} sx={{...expansionArrowSx,flexDirection:'row-reverse',gap:4}}><Typography fontWeight={700}>{group}</Typography></AccordionSummary>
+                <AccordionDetails>
+              {shortRows.filter(row=>row.group===group).map((row) => {
                 const decision = decisions.find(
                   (d) =>
                     d.exposureId === row.exposureId &&
                     d.evaluationType === row.evaluationType,
                 );
+                const realDurations = [...new Set((activities.find((a) => a.exposureId === row.exposureId)?.activities ?? []).map((a) => a.durationMinutes).filter((v): v is number => typeof v === 'number' && v > 0 && v < 15))];
                 return (
-                  <Box
+                  <Accordion
+                    defaultExpanded
+                    disableGutters
+                    variant="outlined"
                     key={`${row.exposureId}:${row.evaluationType}`}
-                    sx={{
-                      borderTop: '1px solid',
-                      borderColor: 'divider',
-                      pt: 8,
-                    }}
+                    id={`peak-${collectionRowId(row.exposureId, row.evaluationType)}`}
                   >
+                    <AccordionSummary expandIcon={<ChevronRightIcon />} sx={{...expansionArrowSx,flexDirection:'row-reverse',gap:4}}>
+                      <Typography fontWeight={600}>{row.agent} · {types[row.evaluationType] || row.evaluationType}</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
                     <Stack spacing={6}>
-                      <Typography fontWeight={600}>
-                        {row.group} · {row.agent} ·{' '}
-                        {types[row.evaluationType] || row.evaluationType}
-                      </Typography>
                       <SamplingActivities
                         activities={
                           activities.find(
@@ -395,7 +480,7 @@ export function HoCollectionSummary({
                           value={
                             decision ? (decision.planned ? 'yes' : 'no') : ''
                           }
-                          disabled={busy}
+                          disabled={phase === 'review' || busy}
                           onChange={(event) => {
                             if (!event.target.value)
                               setDecisions((old) =>
@@ -428,7 +513,7 @@ export function HoCollectionSummary({
                               type="number"
                               label="Quantidade de resultados"
                               value={decision.resultCount}
-                              disabled={busy}
+                              disabled={phase === 'review' || busy}
                               inputProps={{
                                 min: 1,
                                 max: 10000,
@@ -440,22 +525,33 @@ export function HoCollectionSummary({
                                 })
                               }
                             />
-                            <TextField
+                            {row.evaluationType === 'STEL' ? (
+                              <TextField fullWidth select label="Estratégia de duração do STEL" value={decision.durationMinutes} disabled={phase === 'review' || busy} helperText="Sem duração real informada, o sistema adota 15 minutos. O tempo real só pode ser escolhido quando menor que 15 minutos." onChange={(event) => update(row, { durationMinutes: Number(event.target.value) })}>
+                                <MenuItem value={15}>Tempo padrão do sistema — 15 minutos</MenuItem>
+                                {[...new Set([...realDurations, ...(decision.durationMinutes > 0 && decision.durationMinutes < 15 ? [decision.durationMinutes] : [])])].map((duration) => <MenuItem key={duration} value={duration}>Tempo real da atividade — {duration.toLocaleString('pt-BR')} min</MenuItem>)}
+                              </TextField>
+                            ) : <TextField
                               fullWidth
                               type="number"
                               label="Tempo da atividade / coleta (min)"
                               value={decision.durationMinutes}
-                              disabled={busy}
+                              disabled={phase === 'review' || busy}
                               inputProps={{ min: 0.001, max: 15, step: 0.001 }}
                               onChange={(event) =>
                                 update(row, {
                                   durationMinutes: Number(event.target.value),
                                 })
                               }
-                            />
+                            />}
                           </>
                         )}
                       </Stack>
+                      {decision?.planned && methodAdaptation(row) && <Box sx={{p:3,bgcolor:'rgba(244,67,54,0.08)'}}>
+                        <Typography component="div" fontWeight={700}>Condições fora do método que exigem sua decisão:</Typography>
+                        {methodAdaptation(row)!.deviations.map(reason=><Typography component="div" variant="body2" key={reason} sx={{mt:2}}>• {reason}</Typography>)}
+                        <Checkbox checked={decision.acceptMethodAdaptation === true} onChange={(_,checked)=>update(row,{acceptMethodAdaptation:checked,durationMinutes:15})} inputProps={{'aria-label':`Assumir adaptação — ${row.agent} — ${row.group} — ${row.evaluationType}`}} />
+                        <Typography component="span" variant="body2">Ao marcar, declaro ciência dos desvios acima e aceito usar essa adaptação no planejamento. A decisão será registrada com responsável e data ao salvar. Sem marcar, a proposta não será usada no dimensionamento.</Typography>
+                      </Box>}
                       {decision?.reviewRequired && (
                         <Alert severity="warning">
                           Etapa 3.3 alterada: a decisão anterior foi preservada.
@@ -497,7 +593,7 @@ export function HoCollectionSummary({
                               multiline
                               minRows={2}
                               value={decision.overrideJustification ?? ''}
-                              disabled={busy}
+                              disabled={phase === 'review' || busy}
                               onChange={(e) =>
                                 update(row, {
                                   overrideJustification: e.target.value,
@@ -517,23 +613,35 @@ export function HoCollectionSummary({
                           multiline
                           minRows={2}
                           value={decision.justification}
-                          disabled={busy}
+                          disabled={phase === 'review' || busy}
                           onChange={(event) =>
                             update(row, { justification: event.target.value })
                           }
                         />
                       )}
                     </Stack>
-                  </Box>
+                    </AccordionDetails>
+                  </Accordion>
                 );
               })}
+              </AccordionDetails></Accordion>)}
               {error && <Alert severity="error">{error}</Alert>}
               {message && <Alert severity="success">{message}</Alert>}
+
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+      )}
+      {error && <Alert severity="error">{error}</Alert>}
+      {decisions.some(d=>d.planned && d.acceptMethodAdaptation !== true && !!methodAdaptation(rows.find(r=>r.exposureId===d.exposureId && r.evaluationType===d.evaluationType)!)) && <Alert severity="warning">Há condições fora do método ainda não aceitas. Confira as explicações nas avaliações acima e marque somente as adaptações que decidir assumir, ou escolha outra condição/método antes de avançar.</Alert>}
               <Box>
+                <Stack direction="row" spacing={4} useFlexGap flexWrap="wrap">
+                <Button disabled={busy} onClick={()=>onResolve(3)}>Voltar para 3.3</Button>
                 <Button
                   variant="contained"
                   disabled={
-                    busy ||
+                    busy || !planDirty || decisions.length !== shortRows.length ||
+                    decisions.some(d=>d.planned && d.acceptMethodAdaptation !== true && !!methodAdaptation(rows.find(r=>r.exposureId===d.exposureId && r.evaluationType===d.evaluationType)!)) ||
                     decisions.some(
                       (d) =>
                         !d.justification.trim() ||
@@ -565,7 +673,7 @@ export function HoCollectionSummary({
                     setError('');
                     setMessage('');
                     try {
-                      await save(
+                      await savePlan(
                         decisions.map(
                           ({
                             exposureId,
@@ -575,6 +683,7 @@ export function HoCollectionSummary({
                             durationMinutes,
                             justification,
                             overrideJustification,
+                            acceptMethodAdaptation,
                           }) => ({
                             exposureId,
                             evaluationType,
@@ -583,8 +692,10 @@ export function HoCollectionSummary({
                             durationMinutes,
                             justification,
                             overrideJustification,
+                            acceptMethodAdaptation: planned && !!methodAdaptation(rows.find(r=>r.exposureId===exposureId && r.evaluationType===evaluationType)!) && acceptMethodAdaptation === true,
                           }),
                         ),
+                        selected,
                       );
                       setMessage(
                         'Decisões confirmadas e salvas. Resumo recalculado.',
@@ -604,13 +715,14 @@ export function HoCollectionSummary({
                 >
                   {busy
                     ? 'Salvando...'
-                    : 'Confirmar e salvar avaliações de pico'}
+                    : 'Salvar coletas e avançar para 3.5'}
                 </Button>
+                {!planDirty && <Button variant="contained" disabled={busy} onClick={()=>onResolve(5)}>Avançar para 3.5 — coletas salvas</Button>}
+                </Stack>
+                <Typography variant="caption" display="block">{planDirty?'Há definições de coleta ainda não salvas ou que precisam ser confirmadas.':'Coletas salvas. Nenhuma alteração pendente.'}</Typography>
               </Box>
-            </Stack>
-          </AccordionDetails>
-        </Accordion>
-      )}
+      </Box>
+      <Box hidden={phase !== 'review'}>
       <Typography>
         {groups.length} grupos/origens · {rows.length} linhas por tipo de
         avaliação. Quantitativos por linha; compartilhamento de coletas e
@@ -628,7 +740,8 @@ export function HoCollectionSummary({
       >
         <Button
           variant="contained"
-          disabled={selectionBusy || !selectionDirty}
+          sx={{display:'none'}}
+          disabled={selectionBusy || (!selectionDirty && !!selection)}
           onClick={async () => {
             setSelectionBusy(true);
             setSelectionError('');
@@ -699,7 +812,8 @@ export function HoCollectionSummary({
                 selectedIds={selected.combinedIds}
                 onToggle={toggleCombined}
                 activities={activities}
-                busy={selectionBusy}
+                rows={rows}
+                busy={phase === 'review' || selectionBusy}
               />
               {[
                 ...new Map(
@@ -747,7 +861,7 @@ export function HoCollectionSummary({
                         {agent.agent}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        CAS {agent.cas || 'não informado'}
+                        CAS {agent.cas || 'não informado'} — <Box component="strong" sx={{ fontWeight: 700 }}>{agent.method}</Box> —
                       </Typography>
                       <Box onClick={(event) => event.stopPropagation()}>
                         <SamplingActivities
@@ -784,6 +898,7 @@ export function HoCollectionSummary({
                         sx={{
                           minWidth: 2150,
                           '& td, & th': { verticalAlign: 'top', minWidth: 125 },
+                          '& td, & th, & td .MuiTypography-root, & th .MuiTypography-root, & td .MuiButton-root': { lineHeight: 1.15 },
                           '& th': { fontWeight: 600 },
                           '& td:first-of-type, & th:first-of-type': {
                             position: 'sticky',
@@ -826,6 +941,10 @@ export function HoCollectionSummary({
                             .map((row) => (
                               <TableRow
                                 key={`${row.exposureId}:${row.evaluationType}`}
+                                id={collectionRowId(
+                                  row.exposureId,
+                                  row.evaluationType,
+                                )}
                                 sx={
                                   ['TWA', 'TWA_CMPT'].includes(
                                     row.evaluationType,
@@ -836,10 +955,77 @@ export function HoCollectionSummary({
                                           { color: 'text.disabled' },
                                         opacity: 0.6,
                                       }
-                                    : undefined
+                                    : rowPending(row).length
+                                      ? {
+                                          scrollMarginTop: '90px',
+                                          ...Object.fromEntries(
+                                            [
+                                              ['flow', 3],
+                                              ['volume', 5],
+                                              ['duration', 4],
+                                            ]
+                                              .filter(([field]) =>
+                                                rowPending(row).some((p) =>
+                                                  (!methodAdaptation(row) && p.fields.includes(
+                                                    String(field),
+                                                  )) || (field === 'flow' && !methodAdaptation(row) && !row.calculation.flowLMin) || (field === 'volume' && !methodAdaptation(row) && !row.calculation.volumeLitres),
+                                                ),
+                                              )
+                                              .map(([, index]) => [
+                                                `& > .MuiTableCell-root:nth-of-type(${index})`,
+                                                {
+                                                  bgcolor: 'rgba(255, 171, 0, 0.08)',
+                                                  boxShadow: 'inset 0 0 0 1px rgba(255, 171, 0, 0.35)',
+                                                },
+                                              ]),
+                                          ),
+                                        }
+                                      : undefined
                                 }
                               >
                                 <TableCell>
+                                  {rowPending(row).length > 0 && (
+                                    <Typography
+                                      variant="body2"
+                                      fontWeight={700}
+                                    >
+                                      {rowPending(row).every(p=>p.fields.every(f=>f==='decision')) || methodAdaptation(row) ? 'Avaliação sugerida — confirmar e salvar' : 'Resolver pendência técnica'}
+                                    </Typography>
+                                  )}
+                                  {rowPending(row).length > 0 && (
+                                    <Stack spacing={2}>
+                                      <Box component="details">
+                                        <Box component="summary" sx={{ cursor: 'pointer', fontSize: '0.75rem' }}>
+                                          {rowPending(row).every(p=>p.fields.every(f=>f==='decision')) || methodAdaptation(row) ? 'Confirmação do planejamento' : 'Por que está pendente?'}
+                                        </Box>
+                                        {rowPending(row).flatMap((p) => p.reasons).map((reason) => (
+                                          <Typography variant="caption" component="div" key={reason}>
+                                            {reason}
+                                          </Typography>
+                                        ))}
+                                      </Box>
+                                      {shortRows.includes(row) && (
+                                        <Button
+                                          size="small"
+                                          component="a"
+                                          href={`#peak-${collectionRowId(row.exposureId, row.evaluationType)}`}
+                                          onClick={() => { setPeakOpen(true); onResolve(4); }}
+                                        >
+                                          {rowPending(row).every(p=>p.fields.every(f=>f==='decision')) || methodAdaptation(row) ? 'Revisar sugestão da coleta' : 'Revisar parâmetros da coleta'}
+                                        </Button>
+                                      )}
+                                      {!methodAdaptation(row) && rowPending(row).some((p) =>
+                                        p.fields.includes('method'),
+                                      ) && (
+                                        <Button
+                                          size="small"
+                                          onClick={() => onResolve(2)}
+                                        >
+                                          Rever ou substituir método na 3.2
+                                        </Button>
+                                      )}
+                                    </Stack>
+                                  )}
                                   <Chip
                                     size="small"
                                     label={
@@ -873,7 +1059,7 @@ export function HoCollectionSummary({
                                             )
                                           }
                                           disabled={
-                                            selectionBusy ||
+                                            phase === 'review' || selectionBusy ||
                                             covered.has(row.exposureId)
                                           }
                                           onChange={(_, checked) => {
@@ -915,7 +1101,7 @@ export function HoCollectionSummary({
                                             row.evaluationType &&
                                           d.planned,
                                       )}
-                                      disabled={busy}
+                                      disabled={phase === 'review' || busy}
                                       onChange={(_, checked) => {
                                         if (checked)
                                           update(row, { planned: true });
@@ -996,16 +1182,33 @@ export function HoCollectionSummary({
                                       </Typography>
                                     )}
                                 </TableCell>
-                                <TableCell>
-                                  {number(row.calculation.flowLMin)}
-                                </TableCell>
-                                <TableCell>
-                                  {row.coveragePercent != null && (
-                                    <Typography variant="body2">
-                                      {row.coveragePercent}% da jornada
+                                <TableCell sx={methodAdaptation(row)?.field === 'flow' ? {bgcolor:'rgba(244,67,54,0.08) !important', boxShadow:'inset 0 0 0 1px rgba(244,67,54,0.25) !important'} : undefined}>
+                                  {methodAdaptation(row)?.field === 'flow' ? <Tooltip title={<MethodAdaptationTooltip row={row} />}><Box component="span" sx={{fontWeight:700, color:'error.dark', bgcolor:'rgba(244,67,54,0.08)', p:1, cursor:'help'}}>{number(methodAdaptation(row)!.flow)}*</Box></Tooltip> : number(methodAdaptation(row)?.flow ?? row.calculation.flowLMin)}
+                                  <Typography variant="caption" component="div" color="text.secondary">
+                                    Método: mín. {number(row.bounds?.minimumFlowRate)} · máx. {number(row.bounds?.maximumFlowRate)} {row.bounds?.flowRateUnit || '(unidade não informada)'}
+                                  </Typography>
+                                  {rowPending(row).some((p) =>
+                                    p.fields.includes('flow'),
+                                  ) && (
+                                    <Typography variant="caption" component="div">
+                                      {methodAdaptation(row)?.field === 'flow' ? (row.adaptationAssumed ? 'Adaptação assumida no planejamento' : 'Adaptação sugerida — confirmar estratégia') : 'Revisar vazão do método'}
                                     </Typography>
                                   )}
-                                  {number(row.plannedMinutes, ' min')}
+                                </TableCell>
+                                <TableCell sx={row.calculation.note.includes('Coleta ampliada') ? { bgcolor: 'rgba(33, 150, 243, 0.08) !important', boxShadow: 'inset 0 0 0 1px rgba(33, 150, 243, 0.25) !important' } : undefined}>
+                                  {row.coveragePercent != null && (
+                                    <Typography variant="body2">
+                                      {number(row.coveragePercent, '%')} da jornada
+                                    </Typography>
+                                  )}
+                                  {row.calculation.note.includes('Coleta ampliada') ? (
+                                    <Tooltip title={`Ajuste automático resolvido: ${row.calculation.note}`}>
+                                      <Typography component="span" variant="body2" sx={{ cursor: 'help', borderBottom: '1px dotted', borderColor: 'info.main' }}>
+                                        {number(row.plannedMinutes, ' min')}
+                                      </Typography>
+                                    </Tooltip>
+                                  ) : number(methodAdaptation(row)?.minutes ?? row.plannedMinutes, ' min')}
+                                  {row.coverageDecision?.confirmed && <Tooltip title={`Decisão salva na 3.3: ${row.coverageDecision.justification}`}><Typography variant="caption" component="div" color="info.main" sx={{mt:2,cursor:'help'}}>Cobertura personalizada confirmada na 3.3</Typography></Tooltip>}
                                   {row.evaluationType === 'STEL' && (
                                     <Typography variant="body2">
                                       Referência padrão de 15 min; confirmar
@@ -1013,8 +1216,18 @@ export function HoCollectionSummary({
                                     </Typography>
                                   )}
                                 </TableCell>
-                                <TableCell>
-                                  {number(row.calculation.volumeLitres)}
+                                <TableCell sx={methodAdaptation(row)?.field === 'volume' ? {bgcolor:'rgba(244,67,54,0.08) !important', boxShadow:'inset 0 0 0 1px rgba(244,67,54,0.25) !important'} : undefined}>
+                                  <HoVolumeCalculation
+                                    flow={methodAdaptation(row)?.flow ?? row.calculation.flowLMin}
+                                    minutes={methodAdaptation(row) ? methodAdaptation(row)!.minutes / methodAdaptation(row)!.samplers : row.calculation.minutesPerSampler}
+                                    totalMinutes={methodAdaptation(row)?.minutes ?? row.plannedMinutes}
+                                    samplers={methodAdaptation(row)?.samplers ?? row.calculation.samplersPerResult}
+                                    volume={methodAdaptation(row)?.volume ?? row.calculation.volumeLitres}
+                                    result={methodAdaptation(row)?.field === 'volume' ? <Tooltip title={<MethodAdaptationTooltip row={row} />}><Box component="span" sx={{fontWeight:700,color:'error.dark',cursor:'help'}}>{number(methodAdaptation(row)!.volume, ' L')}*</Box></Tooltip> : undefined}
+                                  />
+                                  <Typography variant="caption" component="div" color="text.secondary" sx={{mt:4,mb:3}}>
+                                    <Box component="strong">Método:</Box> mín. {number(row.bounds?.minimumVolume)} · máx. {number(row.bounds?.maximumVolume)} {row.bounds?.volumeUnit || '(unidade não informada)'}
+                                  </Typography>
                                   <Typography variant="body2">
                                     Alvo:{' '}
                                     {number(
@@ -1035,7 +1248,7 @@ export function HoCollectionSummary({
                                     ' min/tubo',
                                   )}
                                   <Typography variant="body2">
-                                    {row.calculation.changesAtMinutes.length
+                                    {row.coverageDecision?.confirmed ? 'Distribuir as coletas conforme a estratégia registrada na 3.3.' : row.calculation.changesAtMinutes.length
                                       ? `Trocar aos ${row.calculation.changesAtMinutes.map((v) => number(v)).join('; ')} minutos desde o início.`
                                       : row.calculation.samplersPerResult === 1
                                         ? 'Sem troca durante o resultado.'
@@ -1043,9 +1256,7 @@ export function HoCollectionSummary({
                                   </Typography>
                                 </TableCell>
                                 <TableCell>
-                                  {row.laboratory}
-                                  <br />
-                                  {row.method}
+                                  {shortLaboratory(row.laboratory)} ({row.method})
                                 </TableCell>
                                 <TableCell>
                                   {row.sampler || 'Não informado'}
@@ -1074,12 +1285,13 @@ export function HoCollectionSummary({
                                 <TableCell
                                   sx={{ minWidth: '320px !important' }}
                                 >
-                                  <Typography variant="body2">
+                                  <Typography variant="body2" component="div">
                                     {row.calculation.note}
+                                  {methodAdaptation(row) && <Box sx={{mt:2, p:2, bgcolor:'rgba(244,67,54,0.08)'}}><Typography variant="caption" component="div">{methodAdaptation(row)!.note}</Typography><a href={skcBreakthroughReference} target="_blank" rel="noreferrer">Referência SKC</a>{methodAdaptation(row)!.threshold === 10 && <a href="https://www.cdc.gov/niosh/docs/2003-154/pdfs/1603.pdf" target="_blank" rel="noreferrer"> · NIOSH 1603, item 13</a>}</Box>}
                                   </Typography>
                                   {row.shortAssessment && (
                                     <Typography variant="body2">
-                                      {row.shortAssessment}
+                                      {row.shortAssessment.startsWith('Pendente de decisão') && (rowPending(row).every(p=>p.fields.every(f=>f==='decision')) || methodAdaptation(row)) ? 'Avaliação sugerida e dimensionada; confirme e salve a decisão do planejamento.' : row.shortAssessment}
                                     </Typography>
                                   )}
                                   {row.notes.length > 0 && (
@@ -1124,6 +1336,24 @@ export function HoCollectionSummary({
           práticos de bomba exigem recalcular os volumes.
         </Typography>
       </Box>
+      <Stack direction="row" spacing={4} useFlexGap flexWrap="wrap">
+      <Button onClick={()=>onResolve(4)}>Voltar para 3.4</Button>
+      <Button variant="contained" disabled={!readiness.ready || planDirty} onClick={onContinue}>Avançar para 3.6 — Dimensionamento</Button>
+      </Stack>
+      <Typography variant="caption">Conferência dos dados salvos; esta etapa não exige nova gravação.</Typography>
+      </Box>
     </Stack>
   );
+}
+
+export function HoAdaptationDocumentActions({rows,campaignId}:{rows:CollectionSummaryRow[];campaignId:string}) {
+ const [target,setTarget]=useState<HTMLElement|null>(null);
+ const [error,setError]=useState('');
+ useEffect(()=>{setTarget(document.getElementById(`ho-campaign-documents-${campaignId}`));},[campaignId]);
+ const download=async(kind:'complete'|'laboratory')=>{try{setError('');await downloadHoAdaptationsPdf(rows,campaignId,kind);}catch{setError('Não foi possível gerar o PDF. Tente novamente.');}};
+ return target && rows.some(row=>methodAdaptation(row)) ? createPortal(<>
+  <Button variant="outlined" onClick={()=>download('complete')}>Baixar relatório completo da campanha</Button>
+  <Button variant="outlined" onClick={()=>download('laboratory')}>Baixar consulta simplificada ao laboratório</Button>
+  {error && <Alert severity="error">{error}</Alert>}
+ </>,target):null;
 }

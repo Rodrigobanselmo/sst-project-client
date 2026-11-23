@@ -1,3 +1,12 @@
+import { coveragePreview, singleSamplerSuggestion } from './ho-coverage-preview';
+import type { CollectionSummaryRow } from './ho-collection-summary';
+import {
+  SamplingResources,
+  SamplingResourcesDraft,
+  defaultSamplingResources,
+  resourcesValid,
+  SamplingResourcesFields,
+} from './ho-sampling-resources';
 import { HoPlanningSection } from './ho-planning-section';
 import {
   ShortSamplingPolicy,
@@ -10,11 +19,13 @@ import {
   SamplingDistributionFields,
   aihaUrl,
 } from './ho-sampling-criteria';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Box,
   Button,
+  Checkbox,
+  FormControlLabel,
   Chip,
   Dialog,
   DialogActions,
@@ -43,6 +54,7 @@ const coverageSliderSx = {
 };
 
 export type SamplingSettings = {
+  resources?: SamplingResources;
   stelPolicy?: ShortSamplingPolicy;
   ceilingPolicy?: ShortSamplingPolicy;
   distribution?: SamplingDistribution;
@@ -56,6 +68,8 @@ export type SamplingSettings = {
   justification: string;
   exceptions: {
     exposureId: string;
+    durationMinutes?: number;
+    coverageConfirmed?: boolean;
     coveragePercent: number;
     justification: string;
   }[];
@@ -134,7 +148,13 @@ export function HoSamplingStrategy({
   exposures,
   saved,
   save,
+  methodRows = [],
+  onBack,
+  onContinue,
 }: {
+  methodRows?: CollectionSummaryRow[];
+  onBack: () => void;
+  onContinue: () => void;
   exposures: Exposure[];
   saved?: SamplingSettings;
   save: (
@@ -142,6 +162,9 @@ export function HoSamplingStrategy({
   ) => Promise<void>;
 }) {
   const shifts = useQueryCompanyShifts();
+  const [resources, setResources] = useState<SamplingResourcesDraft>(
+    defaultSamplingResources,
+  );
   const [stelPolicy, setStelPolicy] =
     useState<ShortSamplingPolicy>(defaultShortPolicy);
   const [ceilingPolicy, setCeilingPolicy] =
@@ -157,6 +180,9 @@ export function HoSamplingStrategy({
   const [justification, setJustification] = useState('');
   const [open, setOpen] = useState(false);
   const [exceptions, setExceptions] = useState<Record<string, number>>({});
+  const [coverageConfirmed,setCoverageConfirmed]=useState<Record<string,boolean>>({});
+  const suggestedOnce=useRef(new Set<string>());
+  const [exceptionMinutes,setExceptionMinutes]=useState<Record<string,number>>({});
   const [exceptionNotes, setExceptionNotes] = useState<Record<string, string>>(
     {},
   );
@@ -164,6 +190,9 @@ export function HoSamplingStrategy({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
+    setCoverageConfirmed(Object.fromEntries((saved?.exceptions??[]).map(e=>[e.exposureId,e.coverageConfirmed??true])));
+    setExceptionMinutes(Object.fromEntries((saved?.exceptions??[]).filter(e=>e.durationMinutes!=null).map(e=>[e.exposureId,e.durationMinutes!])));
+    setResources(saved?.resources ?? defaultSamplingResources());
     setStelPolicy(saved?.stelPolicy ?? defaultShortPolicy());
     setCeilingPolicy(saved?.ceilingPolicy ?? defaultShortPolicy());
     setDistribution(saved?.distribution ?? defaultDistribution());
@@ -190,11 +219,32 @@ export function HoSamplingStrategy({
       ),
     );
   }, [saved]);
+  const payload={resources,stelPolicy,ceilingPolicy,distribution,shiftId:shift==='campaign'?null:Number(shift),durationMinutes:Number(duration),coveragePercent:coverage,strategyId,resultCount:Number(count),justification:justification.trim(),exceptions:Object.entries(exceptions).map(([exposureId,coveragePercent])=>({exposureId,coveragePercent,...(exceptionMinutes[exposureId]!=null?{durationMinutes:exceptionMinutes[exposureId],coverageConfirmed:coverageConfirmed[exposureId]??false}:{}),justification:(exceptionNotes[exposureId]??'').trim()})).sort((a,b)=>a.exposureId.localeCompare(b.exposureId))};
+  const stable=(v:unknown):string=>JSON.stringify(v,(_,value)=>value && typeof value==='object' && !Array.isArray(value)?Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b))):value);
+  const baseline=saved?{resources:saved.resources??defaultSamplingResources(),stelPolicy:saved.stelPolicy??defaultShortPolicy(),ceilingPolicy:saved.ceilingPolicy??defaultShortPolicy(),distribution:saved.distribution??defaultDistribution(),shiftId:saved.shiftId,durationMinutes:saved.durationMinutes,coveragePercent:saved.coveragePercent,strategyId:saved.strategyId,resultCount:saved.resultCount,justification:saved.justification.trim(),exceptions:[...saved.exceptions].map(e=>({...e,...(e.durationMinutes!=null?{coverageConfirmed:e.coverageConfirmed??true}:{}),justification:e.justification.trim()})).sort((a,b)=>a.exposureId.localeCompare(b.exposureId))}:null;
+  const dirty=!baseline || stable(payload)!==stable(baseline);
   const strategy = strategies.find((s) => s.id === strategyId);
   const minutes = Number(duration);
   const validDuration =
     Number.isInteger(minutes) && minutes > 0 && minutes <= 1440;
   const target = validDuration ? Math.ceil((minutes * coverage) / 100) : null;
+  useEffect(()=>{
+    if(!validDuration)return;
+    for(const exposure of exposures){
+      const suggestionKey=`individual:${exposure.exposureId}`;
+      if(suggestedOnce.current.has(suggestionKey) || saved?.exceptions.some(e=>e.exposureId===exposure.exposureId))continue;
+      const rows=methodRows.filter(r=>r.exposureId===exposure.exposureId && ['TWA','CMPT','TWA_CMPT'].includes(r.evaluationType));
+      const single=singleSamplerSuggestion(rows,Math.ceil(minutes*coverage/100));
+      if(single==null)continue;
+      suggestedOnce.current.add(suggestionKey);
+      if(exceptions[exposure.exposureId]!=null)continue;
+      if(single<Math.ceil(minutes*coverage/100)){
+        setExceptionMinutes(old=>({...old,[exposure.exposureId]:single}));
+        setExceptions(old=>({...old,[exposure.exposureId]:Math.max(1,Math.round(single/minutes*100))}));
+        setCoverageConfirmed(old=>({...old,[exposure.exposureId]:false}));
+      }
+    }
+  },[singleSamplerSuggestion,saved?.exceptions,validDuration,minutes,coverage,JSON.stringify(methodRows.map(r=>[r.exposureId,r.method,r.bounds]))]);
   const validCount =
     !!strategy &&
     Number.isInteger(Number(count)) &&
@@ -207,7 +257,7 @@ export function HoSamplingStrategy({
       <Typography variant="h6">3.3 Estratégia de amostragem</Typography>
       <Alert severity={saved ? 'success' : 'info'}>
         {saved
-          ? 'Dados salvos recuperados. As alterações e os novos critérios só serão registrados ao salvar a etapa 3.3.'
+          ? 'Estratégia salva recuperada. Salve novamente somente se alterar os dados.'
           : 'Preencha e salve a etapa 3.3 para manter estes dados ao atualizar a página.'}
       </Alert>
       {message && <Alert severity="success">{message}</Alert>}
@@ -218,6 +268,15 @@ export function HoSamplingStrategy({
         sx={{ border: 0, p: 0, m: 0, minWidth: 0 }}
       >
         <Stack spacing={10}>
+          <HoPlanningSection
+            title="Tipo de amostragem e recursos de campo"
+            defaultExpanded
+          >
+            <SamplingResourcesFields
+              value={resources}
+              onChange={setResources}
+            />
+          </HoPlanningSection>
           <HoPlanningSection title="Jornada de trabalho e cobertura da avaliação">
             <Stack spacing={8}>
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={8}>
@@ -293,6 +352,7 @@ export function HoSamplingStrategy({
                   max={100}
                   onChange={(_, v) => setCoverage(v as number)}
                   valueLabelDisplay="auto"
+                  valueLabelFormat={v=>`${v}% = ${Math.ceil(minutes*v/100)} min`}
                   marks={coverageMarks}
                   sx={coverageSliderSx}
                 />
@@ -483,60 +543,77 @@ export function HoSamplingStrategy({
                 As barras herdam a cobertura geral de {coverage}%. Ajuste para a
                 direita ou para a esquerda quando necessário. Alterações na
                 regra geral atualizam as exposições ainda não personalizadas.
-                Reduções exigem justificativa, incluindo duração e repetição do
-                ciclo.
+                A sugestão inicial prioriza uma amostra por agente. Reduções aparecem em vermelho e exigem confirmação e justificativa. Aumente a cobertura para ver a quantidade de amostradores necessária. Decisões já salvas são preservadas.
               </Typography>
-              {exposures.map((e) => (
+              {exposures.map((e) => {
+                const total=exceptionMinutes[e.exposureId]??Math.ceil(minutes*(exceptions[e.exposureId]??coverage)/100);
+                const candidates=methodRows.filter(r=>r.exposureId===e.exposureId && ['TWA','CMPT','TWA_CMPT'].includes(r.evaluationType));
+                const previews=candidates.map(r=>({row:r,preview:coveragePreview(r,total)})).filter(v=>v.preview!=null);
+                const differentCoverage=validDuration && total!==Math.ceil(minutes*coverage/100);
+                const incompatible=previews.some(v=>!v.preview!.valid);
+                const constrained=previews.some(v=>v.preview!.maxMinutes<Math.ceil(minutes*coverage/100) || !v.preview!.valid);
+                const pct=validDuration?total/minutes*100:0;
+                const fmt=(v:number)=>v.toLocaleString('pt-BR',{maximumFractionDigits:4});
+                return (
                 <Stack
                   key={e.exposureId}
                   spacing={4}
-                  sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 6 }}
+                  sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 6, ...((differentCoverage||incompatible)?{bgcolor:differentCoverage?'rgba(211,47,47,0.06)':'rgba(230,100,40,0.07)',px:6,borderLeft:'3px solid',borderLeftColor:differentCoverage?'#c43b3b':'#c65b32'}:{}) }}
                 >
                   <Typography fontWeight={600}>
                     {e.name} · {e.origin}
                   </Typography>
                   <Typography fontWeight={600}>
-                    Cobertura: {exceptions[e.exposureId] ?? coverage}%
-                    {validDuration
-                      ? ` · ${Math.ceil((minutes * (exceptions[e.exposureId] ?? coverage)) / 100)} minutos de ${minutes} minutos`
-                      : ' · informe a jornada para calcular os minutos'}
+                    Cobertura: {fmt(pct)}% · {total} minutos de {minutes} minutos
                   </Typography>
+                  {!previews.length && <Typography fontWeight={600} color="text.secondary">Quantidade de amostradores: a definir. Confirme o tipo de amostrador e as faixas do método selecionado.</Typography>}
+                  {previews.map(({row,preview:p})=><Box key={row.evaluationType}>
+                    <Typography fontWeight={600}>Quantidade de amostradores: <Box component="span" sx={{color:p!.valid && p!.count>1?'error.main':'inherit',fontWeight:700}}>{p!.valid?p!.count:'a definir'}</Box></Typography>
+                    <Typography variant="body2">{p!.valid ? p!.count===1 ? `Amostra única de ${fmt(p!.time)} minutos.` : `${p!.count} amostras ${differentCoverage?'distribuídas conforme a justificativa,':'consecutivas,'} de ${fmt(p!.time)} minutos.` : `Seriam necessários pelo menos ${p!.count} amostradores, mas a divisão não atende aos volumes mínimo e máximo. Ajuste a cobertura ou reveja o método.`}</Typography>
+                    <Typography variant="caption" component="div"><strong>{row.method}:</strong> máximo calculado pelo volume de {fmt(p!.maxMinutes)} min por amostrador, na vazão mínima de {fmt(row.bounds!.minimumFlowRate!)} {row.bounds!.flowRateUnit}. Vazão da coleta: {fmt(p!.flow)} L/min.</Typography>
+                    {constrained && <Button sx={{color:'info.main',textDecoration:'underline',textUnderlineOffset:'3px','&:hover':{textDecoration:'underline'}}} disabled={saving || !validDuration || p!.maxMinutes<1 || Math.floor(p!.maxMinutes)<p!.minMinutes} onClick={()=>{
+                      const t=Math.min(minutes,Math.floor(p!.maxMinutes+1e-9));
+                      setCoverageConfirmed(old=>({...old,[e.exposureId]:false}));
+                      setExceptions(old=>({...old,[e.exposureId]:Math.max(1,Math.round(t/minutes*100))}));
+                      setExceptionMinutes(old=>({...old,[e.exposureId]:t}));
+                    }}>Reduzir cobertura para uma amostra de {fmt(Math.min(minutes,Math.floor(p!.maxMinutes+1e-9)))} min</Button>}
+                  </Box>)}
                   <Box sx={{ px: 6, pb: 10 }}>
                     <Slider
                       aria-label={`Cobertura mínima — ${e.name} — ${e.origin}`}
-                      value={exceptions[e.exposureId] ?? coverage}
+                      value={total}
                       min={1}
-                      max={100}
+                      max={validDuration?minutes:100}
                       step={1}
-                      marks={coverageMarks}
-                      sx={coverageSliderSx}
+                      marks={coverageMarks.map(m=>({...m,value:Math.round(minutes*m.value/100)}))}
+                      sx={{...coverageSliderSx,...((differentCoverage||incompatible)?{color:differentCoverage?'#c43b3b':'#c65b32'}:{})}}
                       valueLabelDisplay="auto"
-                      onChange={(_, value) =>
-                        setExceptions((old) => ({
-                          ...old,
-                          [e.exposureId]: value as number,
-                        }))
-                      }
+                      valueLabelFormat={v=>`${fmt(v/minutes*100)}% = ${v} min`}
+                      onChange={(_, value) => {
+                        const t=value as number;
+                        setCoverageConfirmed(old=>({...old,[e.exposureId]:false}));
+                      setExceptions(old=>({...old,[e.exposureId]:Math.max(1,Math.round(t/minutes*100))}));
+                        setExceptionMinutes(old=>({...old,[e.exposureId]:t}));
+                      }}
                     />
                   </Box>
                   {exceptions[e.exposureId] !== undefined && (
                     <Box>
                       <Button
-                        onClick={() =>
-                          setExceptions((old) => {
-                            const next = { ...old };
-                            delete next[e.exposureId];
-                            return next;
-                          })
-                        }
+                        sx={{color:'info.main',textDecoration:'underline',textUnderlineOffset:'3px','&:hover':{textDecoration:'underline'}}}
+                        onClick={() => {
+                          setExceptionMinutes(previous=>{const copy={...previous};delete copy[e.exposureId];return copy;});
+                          setExceptions(old=>{const next={...old};delete next[e.exposureId];return next;});
+                        }}
                       >
                         Usar cobertura geral ({coverage}%)
                       </Button>
                     </Box>
                   )}
-                  {(exceptions[e.exposureId] ?? coverage) < coverage && (
+                  {total < Math.ceil(minutes*coverage/100) && <FormControlLabel control={<Checkbox checked={coverageConfirmed[e.exposureId]??false} onChange={(_,checked)=>setCoverageConfirmed(old=>({...old,[e.exposureId]:checked}))}/>} label={`Confirmo a cobertura reduzida de ${total} minutos e a quantidade de amostradores indicada acima.`}/>}
+                  {total < Math.ceil(minutes*coverage/100) && (
                     <TextField
-                      label="Justificativa da exceção e duração do ciclo"
+                      label="Justificativa, duração do ciclo e distribuição das coletas (manhã/tarde)"
                       value={exceptionNotes[e.exposureId] ?? ''}
                       onChange={(event) =>
                         setExceptionNotes((old) => ({
@@ -549,7 +626,7 @@ export function HoSamplingStrategy({
                     />
                   )}
                 </Stack>
-              ))}
+              );})}
             </Stack>
           </HoPlanningSection>
           <Alert severity="info">
@@ -581,15 +658,17 @@ export function HoSamplingStrategy({
           </Stack>
           {(!distributionValid(distribution) || !datesValid) && (
             <Alert severity="info">
-              Complete o período, os dias de coleta e os horários dos turnos
+              Complete o período e os horários dos turnos
               para salvar o planejamento estruturado.
             </Alert>
           )}
           <Box>
+            <Stack direction="row" spacing={4} useFlexGap flexWrap="wrap">
+            <Button disabled={saving} onClick={onBack}>Voltar para 3.2</Button>
             <Button
               variant="contained"
               disabled={
-                saving ||
+                saving || !dirty ||
                 !shift ||
                 !validDuration ||
                 !validCount ||
@@ -598,9 +677,10 @@ export function HoSamplingStrategy({
                 !policyValid(ceilingPolicy) ||
                 !distributionValid(distribution) ||
                 !datesValid ||
+                !resourcesValid(resources) ||
                 Object.entries(exceptions).some(
                   ([id, percent]) =>
-                    percent < coverage && !exceptionNotes[id]?.trim(),
+                    (exceptionMinutes[id]!=null ? exceptionMinutes[id]<Math.ceil(minutes*coverage/100) : percent < coverage) && (!exceptionNotes[id]?.trim() || coverageConfirmed[id]!==true),
                 )
               }
               onClick={async () => {
@@ -608,24 +688,9 @@ export function HoSamplingStrategy({
                 setError('');
                 setMessage('');
                 try {
-                  await save({
-                    stelPolicy,
-                    ceilingPolicy,
-                    distribution,
-                    shiftId: shift === 'campaign' ? null : Number(shift),
-                    durationMinutes: minutes,
-                    coveragePercent: coverage,
-                    strategyId,
-                    resultCount: Number(count),
-                    justification,
-                    exceptions: Object.entries(exceptions).map(
-                      ([exposureId, coveragePercent]) => ({
-                        exposureId,
-                        coveragePercent,
-                        justification: exceptionNotes[exposureId] ?? '',
-                      }),
-                    ),
-                  });
+                  if (!resourcesValid(resources)) return;
+                  await save({...payload,resources});
+                  onContinue();
                   setMessage(
                     'Etapa 3.3 salva. Os dados serão recuperados ao reabrir a campanha.',
                   );
@@ -642,8 +707,11 @@ export function HoSamplingStrategy({
                 }
               }}
             >
-              {saving ? 'Salvando...' : 'Salvar etapa 3.3'}
+              {saving ? 'Salvando...' : 'Salvar estratégia e avançar para 3.4'}
             </Button>
+            {!dirty && <Button variant="contained" disabled={saving} onClick={onContinue}>Avançar para 3.4 — estratégia salva</Button>}
+            </Stack>
+            <Typography variant="caption" display="block">{dirty?'Há alterações na estratégia ainda não salvas.':'Estratégia salva. Nenhuma alteração pendente.'}</Typography>
           </Box>
         </Stack>
       </Box>

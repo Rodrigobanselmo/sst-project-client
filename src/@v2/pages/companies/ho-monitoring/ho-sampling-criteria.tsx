@@ -17,8 +17,7 @@ export const canadaUrl =
   'https://www.canada.ca/en/employment-social-development/services/health-safety/reports/hazardous-substances-sampling-guideline.html';
 export const fundacentroUrl =
   'https://www.unicesumar.edu.br/biblioteca/wp-content/uploads/sites/50/2019/06/Guia-tecnico-sobre-estrategia-de-amostragem-e-interpretacao.pdf';
-export const nioshUrl =
-  'https://stacks.cdc.gov/view/cdc/11158';
+export const nioshUrl = 'https://stacks.cdc.gov/view/cdc/11158';
 export const aihaUrl =
   'https://aiha-assets.sfo2.digitaloceanspaces.com/AIHA/resources/Get-Involved/AIHA-Princ%C3%ADpios-de-Boas-Pr%C3%A1ticas-Final.pdf';
 export type ShortSamplingPolicy = {
@@ -257,15 +256,6 @@ export function SamplingDistributionFields({
           onChange={(v) => patch({ endDate: v })}
           onValidityChange={dateFieldValidity('end')}
           required
-        />
-        <TextField
-          fullWidth
-          type="number"
-          label="Dias previstos de coleta"
-          value={d.plannedDays || ''}
-          onChange={(e) => patch({ plannedDays: Number(e.target.value) })}
-          inputProps={{ min: 1, step: 1 }}
-          helperText="Dias distintos dentro do período; um dia pode conter várias avaliações."
         />
       </Stack>
       <TextField

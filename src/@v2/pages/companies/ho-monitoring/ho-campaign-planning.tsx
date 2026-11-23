@@ -1,5 +1,8 @@
+import { methodAdaptation } from './ho-method-adaptation';
+import { HoExecutionPlanning } from './ho-execution-planning';
+import { PlanningReadiness } from './ho-planning-pending';
 import type { ExposureActivities } from './ho-sampling-activities';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from 'react-query';
 import {
   Alert,
@@ -27,6 +30,7 @@ import { HoSamplingStrategy, SamplingSettings } from './ho-sampling-strategy';
 
 import {
   HoCollectionSummary,
+  HoAdaptationDocumentActions,
   CollectionSummaryRow,
   ShortCollectionDecision,
   CollectionSelection,
@@ -80,6 +84,8 @@ type Option = {
   }[];
 };
 type View = {
+  preliminaryOptions?: {exposureId:string;optionId:string;rows:CollectionSummaryRow[]}[];
+  readiness?: PlanningReadiness;
   activities?: ExposureActivities[];
   combinedCollections?: CombinedCollection[];
   collectionSummary?: CollectionSummaryRow[];
@@ -132,10 +138,29 @@ export function HoCampaignPlanning({
   const labs = [...new Set(selections.map((s) => s.laboratoryId))];
   const [choices, setChoices] = useState<Choice[]>([]);
   const [step, setStep] = useState(1);
+  const stepNavigation=useRef<HTMLElement|null>(null);
+  const previousStep=useRef(step);
+  useEffect(()=>{
+    if(previousStep.current!==step){
+      previousStep.current=step;
+      const frame=requestAnimationFrame(()=>stepNavigation.current?.scrollIntoView({block:'start'}));
+      return ()=>cancelAnimationFrame(frame);
+    }
+  },[step]);
+  const [collectionDraftDirty, setCollectionDraftDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const data = query.data;
+  const estimateDays = useCallback(
+    async () =>
+      (
+        await api.post(`${endpoint}/sampling-days`, {
+          revision: data?.revision,
+        })
+      ).data,
+    [endpoint, data?.revision],
+  );
   useEffect(() => {
     if (data) {
       setSelections(savedSelections(data));
@@ -150,8 +175,8 @@ export function HoCampaignPlanning({
             : 1,
       );
     }
-  }, [data?.revision, campaignId]);
-  const save = async (part: string, body: object) => {
+  }, [!!data, campaignId]);
+  const save = async (part: string, body: { confirm?: boolean; [key:string]: unknown }) => {
     setBusy(true);
     setError('');
     setSuccess('');
@@ -162,6 +187,7 @@ export function HoCampaignPlanning({
       });
       queryClientUpdate(response.data);
       await onSaved();
+      if(part==='methods' && body.confirm)setStep(3);
       setSuccess(
         part === 'laboratories'
           ? 'Laboratórios salvos. Confira os métodos na etapa 3.2.'
@@ -183,17 +209,24 @@ export function HoCampaignPlanning({
     setChoices(next.planning?.choices || []);
     setStep(2);
     client.setQueryData(['ho-planning', campaignId, revision], next);
+    client.setQueryData(['ho-planning', campaignId, next.revision], next);
   }
   if (query.isLoading)
     return <Typography>Carregando planejamento...</Typography>;
-  if (query.isError || !data)
+  if (!data)
     return (
       <Alert severity="error">
         Não foi possível carregar o planejamento.{' '}
         <Button onClick={() => query.refetch()}>Tentar novamente</Button>
       </Alert>
     );
+  const optionRows=(optionId:string)=>data.preliminaryOptions?.find(p=>p.optionId===optionId)?.rows??[];
+  const preliminaryRows=data.exposures.flatMap(e=>e.options.filter(o=>selectedCellForReport(e.exposureId,o.laboratoryId)).flatMap(o=>optionRows(o.id)));
+  function selectedCellForReport(exposureId:string,laboratoryId:string){return selections.some(s=>s.exposureId===exposureId&&s.laboratoryId===laboratoryId);}
   const savedCells = savedSelections(data);
+  const canonical=(values:string[])=>JSON.stringify([...values].sort());
+  const labsDirty=!data.planning || canonical(selections.map(s=>JSON.stringify([s.exposureId,s.laboratoryId])))!==canonical(savedCells.map(s=>JSON.stringify([s.exposureId,s.laboratoryId])));
+  const methodsDirty=canonical(choices.map(c=>JSON.stringify([c.exposureId,c.optionId])))!==canonical((data.planning?.choices??[]).map(c=>JSON.stringify([c.exposureId,c.optionId])));
   const selectedCell = (exposureId: string, laboratoryId: string) =>
     selections.some(
       (s) => s.exposureId === exposureId && s.laboratoryId === laboratoryId,
@@ -220,10 +253,20 @@ export function HoCampaignPlanning({
     );
   return (
     <Stack spacing={8}>
+      <HoAdaptationDocumentActions campaignId={campaignId} rows={step<=2?preliminaryRows:data.collectionSummary??[]} />
+      <Box>
+        <Button variant="outlined" disabled={query.isFetching} onClick={() => query.refetch()}>
+          Atualizar cálculos sem recarregar
+        </Button>
+        <Typography variant="caption" component="div">
+          Busca os cálculos atuais sem salvar nem recarregar a página.
+        </Typography>
+      </Box>
       <Box
         component="nav"
+        ref={stepNavigation}
         aria-label="Etapas do planejamento da coleta"
-        sx={{ overflowX: 'auto', py: 4 }}
+        sx={{ overflowX: 'auto', py: 4, scrollMarginTop: '80px' }}
       >
         <Stepper
           nonLinear
@@ -250,10 +293,20 @@ export function HoCampaignPlanning({
                 !!data.planning.sampling,
             },
             {
-              label: '3.4 Resumo por GSE',
+              label: '3.4 Definição das coletas',
               enabled:
                 data.planning?.step === 'METHODS_CONFIRMED' &&
                 !!data.planning.sampling,
+              completed: !!data.planning?.collectionSelection && !(data.collectionSummary ?? []).filter(r=>!['TWA','TWA_CMPT','CMPT','PENDING'].includes(r.evaluationType)).some(r=>!data.planning?.shortCollections?.some(d=>d.exposureId===r.exposureId && d.evaluationType===r.evaluationType && !d.reviewRequired)),
+            },
+            {
+              label: '3.5 Conferência por GSE',
+              enabled: !!data.planning?.collectionSelection && !collectionDraftDirty && !(data.collectionSummary ?? []).filter(r=>!['TWA','TWA_CMPT','CMPT','PENDING'].includes(r.evaluationType)).some(r=>!data.planning?.shortCollections?.some(d=>d.exposureId===r.exposureId && d.evaluationType===r.evaluationType && !d.reviewRequired)),
+              completed: !!data.readiness?.ready,
+            },
+            {
+              label: '3.6 Dimensionamento',
+              enabled: !!data.readiness?.ready && !collectionDraftDirty,
               completed: false,
             },
           ].map((item, index) => (
@@ -298,10 +351,11 @@ export function HoCampaignPlanning({
               consultar métodos e amostradores. — indica ausência de atendimento
               cadastrado.
             </Typography>
+            <Alert severity="info">Triagem antecipada: células em tom laranja têm ao menos um método com limitação; consulte o tooltip para comparar as opções. Picos usam referência de 15 minutos, a confirmar para VMP/Teto. Jornada depende da estratégia salva na 3.3. As faixas verificadas são as cadastradas e não substituem a validação do laboratório.</Alert>
             <TableContainer
               component={Paper}
               variant="outlined"
-              sx={{ maxHeight: 640 }}
+              sx={{ overflowX:'auto' }}
             >
               <Table
                 stickyHeader
@@ -409,7 +463,7 @@ export function HoCampaignPlanning({
                           key={l.id}
                           align="center"
                           sx={{
-                            backgroundColor: selectedCell(e.exposureId, l.id)
+                            backgroundColor: e.options.filter(o=>o.laboratoryId===l.id).some(o=>optionRows(o.id).some(r=>methodAdaptation(r))) ? 'rgba(211, 93, 50, 0.10)' : selectedCell(e.exposureId, l.id)
                               ? 'action.selected'
                               : undefined,
                           }}
@@ -436,6 +490,7 @@ export function HoCampaignPlanning({
                                   : []),
                               ])
                             }
+                            preliminaryOptions={data.preliminaryOptions??[]}
                             agent={e.name}
                             laboratory={l.name}
                             options={e.options.filter(
@@ -473,7 +528,7 @@ export function HoCampaignPlanning({
             <Box>
               <Button
                 variant="contained"
-                disabled={busy || !labs.length}
+                disabled={busy || !labs.length || !labsDirty}
                 onClick={() =>
                   save('laboratories', {
                     laboratoryIds: labs,
@@ -483,6 +538,8 @@ export function HoCampaignPlanning({
               >
                 Salvar laboratórios e avançar para 3.2
               </Button>
+              {!labsDirty && <Button disabled={busy} onClick={()=>setStep(2)}>Avançar para 3.2 — laboratórios salvos</Button>}
+              <Typography variant="caption" display="block">{labsDirty?'Há alterações nos laboratórios ainda não salvas.':'Laboratórios salvos. Nenhuma alteração pendente.'}</Typography>
             </Box>
           </>
         ) : (
@@ -697,19 +754,20 @@ export function HoCampaignPlanning({
                 Voltar para 3.1
               </Button>
               <Button
-                disabled={busy}
+                disabled={busy || !methodsDirty}
                 onClick={() => save('methods', { choices, confirm: false })}
               >
                 Salvar escolhas
               </Button>
               <Button
                 variant="contained"
-                disabled={busy || !complete}
-                onClick={() => save('methods', { choices, confirm: true })}
+                disabled={busy || !complete || labsDirty}
+                onClick={() => !methodsDirty && data.planning?.step==='METHODS_CONFIRMED' ? setStep(3) : save('methods', { choices, confirm: true })}
               >
-                Concluir 3.2 — confirmar métodos
+                {!methodsDirty && data.planning?.step==='METHODS_CONFIRMED' ? 'Avançar para 3.3 — métodos confirmados' : methodsDirty ? 'Salvar métodos e avançar para 3.3' : 'Confirmar métodos e avançar para 3.3'}
               </Button>
             </Stack>
+            <Typography variant="caption">{methodsDirty ? 'Há alterações nos métodos ainda não salvas.' : data.planning?.step==='METHODS_CONFIRMED' ? 'Métodos confirmados. Nenhuma alteração pendente.' : 'Escolhas salvas. Confirme os métodos para concluir a etapa 3.2.'}</Typography>
           </>
         )}
       </Box>
@@ -719,24 +777,67 @@ export function HoCampaignPlanning({
             key={campaignId}
             exposures={data.exposures}
             saved={data.planning?.sampling}
+            methodRows={data.exposures.flatMap(e=>{const choice=choices.find(c=>c.exposureId===e.exposureId);return data.preliminaryOptions?.find(p=>p.exposureId===e.exposureId && p.optionId===choice?.optionId)?.rows??[];})}
+            onBack={()=>setStep(2)}
+            onContinue={()=>setStep(4)}
             save={async (settings) => {
               const response = await api.post<View>(`${endpoint}/sampling`, {
-                revision: data.revision,
                 ...settings,
+                revision: data.revision,
               });
               client.setQueryData(
                 ['ho-planning', campaignId, revision],
                 response.data,
               );
+              client.setQueryData(['ho-planning',campaignId,response.data.revision],response.data);
               await onSaved();
             }}
           />
         </Box>
       )}{' '}
-      {step === 4 && (
+      {step === 6 &&
+        data.readiness?.ready &&
+        !collectionDraftDirty &&
+        data.planning?.sampling && (
+          <HoExecutionPlanning
+            onBack={()=>setStep(5)}
+            sampling={data.planning.sampling}
+            estimate={estimateDays}
+            save={async (plannedDays) => {
+              const response = await api.post<View>(
+                `${endpoint}/execution-days`,
+                { revision: data.revision, plannedDays },
+              );
+              client.setQueryData(
+                ['ho-planning', campaignId, revision],
+                response.data,
+              );
+              await onSaved();
+              setStep(6);
+            }}
+          />
+        )}
+      {!!data.planning?.sampling && (
+        <Box hidden={step !== 4 && step !== 5}>
         <HoCollectionSummary
+          reportCampaignId={campaignId}
+          phase={step === 5 ? 'review' : 'definition'}
+          onContinue={() => setStep(6)}
+          savePlan={async (decisions, selection) => {
+            const first = await api.post<View>(`${endpoint}/short-collections`, {revision:data.revision,decisions});
+            client.setQueryData(['ho-planning',campaignId,revision],first.data);
+            const second = await api.post<View>(`${endpoint}/collection-selection`, {revision:first.data.revision,...selection});
+            client.setQueryData(['ho-planning',campaignId,revision],second.data);
+            client.setQueryData(['ho-planning',campaignId,second.data.revision],second.data);
+            await onSaved();
+            setCollectionDraftDirty(false);
+            setStep(5);
+          }}
           sampling={data.planning?.sampling}
           key={campaignId}
+          readiness={data.readiness ?? { ready: false, pending: [] }}
+          onResolve={setStep}
+          onDraftChange={setCollectionDraftDirty}
           rows={data.collectionSummary ?? []}
           combined={data.combinedCollections ?? []}
           activities={data.activities ?? []}
@@ -767,6 +868,7 @@ export function HoCampaignPlanning({
             setStep(4);
           }}
         />
+        </Box>
       )}
     </Stack>
   );
@@ -775,11 +877,13 @@ export function HoCampaignPlanning({
 function CoverageCell({
   agent,
   laboratory,
+  preliminaryOptions,
   options,
   selected,
   disabled,
   onChange,
 }: {
+  preliminaryOptions:{optionId:string;rows:CollectionSummaryRow[]}[];
   agent: string;
   laboratory: string;
   options: Option[];
@@ -820,6 +924,10 @@ function CoverageCell({
                 {o.samplerType && (
                   <Typography variant="body2">Tipo: {o.samplerType}</Typography>
                 )}
+                {(preliminaryOptions.find(p=>p.optionId===o.id)?.rows??[]).map(row=><Typography key={row.evaluationType} variant="body2">
+                  {row.evaluationType.replace('TWA_CMPT','TWA / CMPT').replace('CEILING','Teto')}: {methodAdaptation(row)?.deviations.join(' ') || (row.calculation.flowLMin!=null ? `Atende às faixas cadastradas em ${row.plannedMinutes} min.` : row.calculation.note)}
+                  {!['TWA','TWA_CMPT','CMPT','STEL'].includes(row.evaluationType) ? ' Triagem em 15 min; confirmar duração do pico.' : ''}
+                </Typography>)}
                 {o.analyticalMethod && (
                   <Typography variant="body2">
                     Técnica: {o.analyticalMethod}
@@ -838,6 +946,7 @@ function CoverageCell({
     >
       <span>
         {attended ? (
+          <Box>
           <Checkbox
             disabled={disabled}
             checked={selected}
@@ -845,6 +954,13 @@ function CoverageCell({
             inputProps={{ 'aria-label': `${agent} — ${laboratory}` }}
             color="success"
           />
+          {[...new Set(options.flatMap(o=>(preliminaryOptions.find(p=>p.optionId===o.id)?.rows??[]).map(r=>r.evaluationType)))].map(type=>{
+            const candidates=options.flatMap(o=>(preliminaryOptions.find(p=>p.optionId===o.id)?.rows??[]).filter(r=>r.evaluationType===type));
+            const valid=candidates.some(r=>r.calculation.flowLMin!=null && !methodAdaptation(r));
+            const limited=candidates.some(r=>!!methodAdaptation(r));
+            return <Typography key={type} variant="caption" display="block" color={valid?'success.main':limited?'warning.dark':'text.secondary'}>{type.replace('TWA_CMPT','TWA / CMPT').replace('CEILING','Teto')}: {valid?(limited?'há alternativa que atende':'atende às faixas'):limited?'requer adaptação':'revisar definição / cadastro'}{!['TWA','TWA_CMPT','CMPT'].includes(type)?' (15 min)':''}</Typography>;
+          })}
+          </Box>
         ) : (
           <Typography
             component="span"

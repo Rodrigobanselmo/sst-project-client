@@ -1,3 +1,5 @@
+import { HoVolumeCalculation } from './ho-volume-calculation';
+import { shortLaboratory } from './ho-method-adaptation';
 import {
   SamplingActivities,
   ExposureActivities,
@@ -17,6 +19,8 @@ import {
   TableHead,
   TableRow,
   Typography,
+  Tooltip,
+  Box,
 } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import type { CollectionSummaryRow } from './ho-collection-summary';
@@ -55,12 +59,14 @@ const display = (n: number | null) =>
     : n.toLocaleString('pt-BR', { maximumFractionDigits: 6 });
 export function HoCombinedCollections({
   suggestions,
+  rows,
   selectedIds,
   onToggle,
   activities,
   busy,
 }: {
   suggestions: CombinedCollection[];
+  rows: CollectionSummaryRow[];
   selectedIds: string[];
   onToggle: (suggestion: CombinedCollection, checked: boolean) => void;
   activities: ExposureActivities[];
@@ -126,11 +132,12 @@ export function HoCombinedCollections({
                 <Table
                   size="small"
                   aria-label={`Sugestão de coleta combinada — ${s.group}`}
-                  sx={{ minWidth: 1150 }}
+                  sx={{ minWidth: 1300, '& td, & th, & .MuiTypography-root': {lineHeight:1.15,verticalAlign:'top'} }}
                 >
                   <TableHead>
                     <TableRow>
                       {[
+                        'Tipo / limite',
                         'Resultados TWA por agente',
                         'Vazão comum (L/min)',
                         'Tempo coberto / por amostrador',
@@ -146,6 +153,12 @@ export function HoCombinedCollections({
                   </TableHead>
                   <TableBody>
                     <TableRow>
+                      <TableCell>
+                        <Chip size="small" label="TWA / CMPT" />
+                        <Tooltip title={<Box sx={{color:'#fff','& p':{color:'inherit',lineHeight:1.15,fontSize:'inherit'}}}>{s.exposureIds.map(id=><Box key={id} sx={{mb:2}}>{rows.filter(r=>r.exposureId===id && ['TWA','CMPT','TWA_CMPT'].includes(r.evaluationType)).map(r=><Box key={r.evaluationType}><Typography component="p" fontWeight={700}>{r.agent} · {r.evaluationType === 'TWA_CMPT' ? 'TWA / CMPT' : r.evaluationType}</Typography>{r.limits.map(limit=><Typography component="p" key={limit}>{limit}</Typography>)}</Box>)}</Box>)}</Box>}>
+                          <Typography component="div" variant="body2" sx={{cursor:'help',textDecoration:'underline dotted'}}>Vários itens</Typography>
+                        </Tooltip>
+                      </TableCell>
                       <TableCell>
                         <Checkbox
                           checked={selectedIds.includes(s.id)}
@@ -165,7 +178,7 @@ export function HoCombinedCollections({
                         amostrador
                       </TableCell>
                       <TableCell>
-                        {display(s.calculation.volumeLitres)}
+                        <HoVolumeCalculation flow={s.calculation.flowLMin} minutes={s.calculation.minutesPerSampler} totalMinutes={s.plannedMinutes} samplers={s.calculation.samplersPerResult} volume={s.calculation.volumeLitres} />
                       </TableCell>
                       <TableCell>
                         {s.calculation.samplersPerResult} por resultado ·{' '}
@@ -176,9 +189,7 @@ export function HoCombinedCollections({
                           : 'Sem troca durante cada resultado.'}
                       </TableCell>
                       <TableCell>
-                        {s.laboratory}
-                        <br />
-                        {s.method}
+                        {shortLaboratory(s.laboratory)} ({s.method})
                       </TableCell>
                       <TableCell>
                         {s.sampler}

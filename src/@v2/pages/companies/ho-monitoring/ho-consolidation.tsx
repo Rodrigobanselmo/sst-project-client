@@ -348,6 +348,7 @@ export function HoConsolidation({
                 >
                   {busy ? 'Gerando PDF…' : 'Baixar justificativa em PDF'}
                 </Button>
+                <Box id={`ho-campaign-documents-${activeCampaign.id}`} sx={{ display: 'contents' }} />
               </Stack>
               <Tabs
                 value={planningTab}
