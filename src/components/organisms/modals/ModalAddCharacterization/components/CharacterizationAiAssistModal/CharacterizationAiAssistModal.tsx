@@ -2,6 +2,7 @@ import { DescriptionTextActions } from '@v2/components/molecules/DescriptionText
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import {
   Alert,
@@ -22,6 +23,7 @@ import {
   Select,
   TextField,
   Typography,
+  Tooltip,
 } from '@mui/material';
 
 import { SButton } from '@v2/components/atoms/SButton/SButton';
@@ -63,7 +65,10 @@ import {
 } from './characterization-ai-assist-model-notice.util';
 import { suggestCharacterizationAiSpecialist } from './suggest-characterization-ai-specialist.util';
 
-type CharacterizationArrayField = 'paragraphs' | 'activities' | 'considerations';
+type CharacterizationArrayField =
+  | 'paragraphs'
+  | 'activities'
+  | 'considerations';
 
 type FormState = AiCharacterizationAssistQuestionnaire & {
   userObservations: string;
@@ -139,7 +144,7 @@ const QuestionBlock: React.FC<{
   title: string;
   value: string;
   onChange: (value: string) => void;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; tooltip?: string }[];
 }> = ({ title, value, onChange, options }) => (
   <Box sx={{ mb: 3 }}>
     <SText variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
@@ -151,7 +156,25 @@ const QuestionBlock: React.FC<{
           key={option.value}
           value={option.value}
           control={<Radio size="small" />}
-          label={<Typography variant="body2">{option.label}</Typography>}
+          label={
+            option.tooltip ? (
+              <Tooltip title={option.tooltip} describeChild arrow>
+                <Typography
+                  component="span"
+                  variant="body2"
+                  tabIndex={0}
+                  sx={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                >
+                  {option.label}
+                  <HelpOutlineIcon
+                    sx={{ fontSize: 16, color: 'text.secondary' }}
+                  />
+                </Typography>
+              </Tooltip>
+            ) : (
+              <Typography variant="body2">{option.label}</Typography>
+            )
+          }
         />
       ))}
     </RadioGroup>
@@ -210,7 +233,13 @@ const TextItemsPreview: React.FC<{
         const isBullet =
           type === 'BULLET_0' || type === 'BULLET_1' || type === 'BULLET_2';
         const indentPx =
-          type === 'BULLET_1' ? 2.5 : type === 'BULLET_2' ? 4.5 : isBullet ? 0.5 : 0;
+          type === 'BULLET_1'
+            ? 2.5
+            : type === 'BULLET_2'
+              ? 4.5
+              : isBullet
+                ? 0.5
+                : 0;
 
         return (
           <Box
@@ -241,7 +270,13 @@ const TextItemsPreview: React.FC<{
           </Box>
         );
       })}
-      <DescriptionTextActions text={items.map((item) => sanitizeApplicableAssistText(item.text)).filter(Boolean).join('\n')} label="sugestão para o elemento" />
+      <DescriptionTextActions
+        text={items
+          .map((item) => sanitizeApplicableAssistText(item.text))
+          .filter(Boolean)
+          .join('\n')}
+        label="sugestão para o elemento"
+      />
     </Box>
   );
 };
@@ -267,7 +302,9 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
     null,
   );
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
-  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>(
+    {},
+  );
   const [selectedProfileId, setSelectedProfileId] = useState('');
   const [specialistSuggestionId, setSpecialistSuggestionId] = useState<
     string | null
@@ -281,17 +318,15 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       characterizationData.workspaceId,
   );
 
-  const {
-    data: specialistsBrowse,
-    refetch: refetchSpecialists,
-  } = useFetchBrowseCharacterizationAiProfiles(
-    {
-      companyId: characterizationData.companyId || '',
-      isActive: 'true',
-      limit: 100,
-    },
-    open && Boolean(characterizationData.companyId),
-  );
+  const { data: specialistsBrowse, refetch: refetchSpecialists } =
+    useFetchBrowseCharacterizationAiProfiles(
+      {
+        companyId: characterizationData.companyId || '',
+        isActive: 'true',
+        limit: 100,
+      },
+      open && Boolean(characterizationData.companyId),
+    );
 
   const activeSpecialists = specialistsBrowse?.data ?? [];
 
@@ -328,7 +363,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       } as Record<AiCharacterizationAssistCompanyRole, string>,
       target: {
         FULL_ESTABLISHMENT: 'Estabelecimento inteiro',
-        SECTOR: 'Setor',
+        SECTOR: 'Setor da empresa (unidade organizacional)',
         WORKSTATION: 'Posto de trabalho',
         ACTIVITY: 'Atividade',
         VESSEL_PLATFORM_EQUIPMENT: 'Embarcação/plataforma/equipamento',
@@ -337,8 +372,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       outputIntent: {
         GENERATE_FINAL: 'Gerar texto final para preencher os campos',
         REVIEW_EXISTING: 'Revisar texto existente',
-        CRITICAL_ONLY:
-          'Fazer análise crítica sem entregar texto final pronto',
+        CRITICAL_ONLY: 'Fazer análise crítica sem entregar texto final pronto',
       } as Record<AiCharacterizationAssistOutputIntent, string>,
     }),
     [],
@@ -439,7 +473,10 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
     }));
   };
 
-  const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+  const updateForm = <K extends keyof FormState>(
+    key: K,
+    value: FormState[K],
+  ) => {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
@@ -585,7 +622,9 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
             text={`Aplicar em ${label}`}
             variant="shade"
             size="s"
-            onClick={() => void applyField(field, items, defaultType, label, 'replace')}
+            onClick={() =>
+              void applyField(field, items, defaultType, label, 'replace')
+            }
           />
         ) : (
           <>
@@ -593,13 +632,17 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
               text="Adicionar ao final"
               variant="shade"
               size="s"
-              onClick={() => void applyField(field, items, defaultType, label, 'append')}
+              onClick={() =>
+                void applyField(field, items, defaultType, label, 'append')
+              }
             />
             <SButton
               text="Substituir conteúdo"
               variant="outlined"
               size="s"
-              onClick={() => void applyField(field, items, defaultType, label, 'replace')}
+              onClick={() =>
+                void applyField(field, items, defaultType, label, 'replace')
+              }
             />
           </>
         )}
@@ -622,7 +665,10 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
     () =>
       [
         ['DIRECT_OPERATOR', 'Opera diretamente o processo'],
-        ['SERVICE_CONSULTING', 'Apenas presta serviço/consultoria/acompanhamento'],
+        [
+          'SERVICE_CONSULTING',
+          'Apenas presta serviço/consultoria/acompanhamento',
+        ],
         ['MAINTENANCE', 'Executa manutenção/atividade operacional'],
         ['ADMINISTRATIVE', 'Atua administrativamente'],
       ] as [AiCharacterizationAssistCompanyRole, string][],
@@ -633,7 +679,7 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
     () =>
       [
         ['FULL_ESTABLISHMENT', 'Estabelecimento inteiro'],
-        ['SECTOR', 'Setor'],
+        ['SECTOR', 'Setor da empresa (unidade organizacional)'],
         ['WORKSTATION', 'Posto de trabalho'],
         ['ACTIVITY', 'Atividade'],
         ['VESSEL_PLATFORM_EQUIPMENT', 'Embarcação/plataforma/equipamento'],
@@ -647,7 +693,10 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
       [
         ['GENERATE_FINAL', 'Gerar texto final para preencher os campos'],
         ['REVIEW_EXISTING', 'Revisar texto existente'],
-        ['CRITICAL_ONLY', 'Fazer análise crítica sem entregar texto final pronto'],
+        [
+          'CRITICAL_ONLY',
+          'Fazer análise crítica sem entregar texto final pronto',
+        ],
       ] as [AiCharacterizationAssistOutputIntent, string][],
     [],
   );
@@ -732,9 +781,9 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                   aiMasterConfig.customPrompt?.trim() || aiMasterConfig.model,
                 ) && (
                   <Alert severity="success" sx={{ mb: 3 }}>
-                    Configuração temporária de prompt/modelo aplicada nesta sessão.
-                    A geração usará essa configuração até você fechar o Assistente
-                    IA.
+                    Configuração temporária de prompt/modelo aplicada nesta
+                    sessão. A geração usará essa configuração até você fechar o
+                    Assistente IA.
                   </Alert>
                 )}
 
@@ -747,7 +796,10 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                     value as AiCharacterizationAssistScope,
                   )
                 }
-                options={scopeOptions.map(([value, label]) => ({ value, label }))}
+                options={scopeOptions.map(([value, label]) => ({
+                  value,
+                  label,
+                }))}
               />
 
               <QuestionBlock
@@ -774,7 +826,24 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                     value as AiCharacterizationAssistTarget,
                   )
                 }
-                options={targetOptions.map(([value, label]) => ({ value, label }))}
+                options={targetOptions.map(([value, label]) => ({
+                  value,
+                  label,
+                  tooltip: {
+                    FULL_ESTABLISHMENT:
+                      'Caracterize o conjunto do estabelecimento, incluindo seus espaços, infraestrutura e funcionamento geral.',
+                    SECTOR:
+                      'Ex.: Administrativo, Manutenção ou Transporte. Refere-se à estrutura da empresa.',
+                    WORKSTATION:
+                      'Caracterize um ponto específico de trabalho, como uma bancada, estação de computador ou posto de operação de máquina.',
+                    ACTIVITY:
+                      'Caracterize o trabalho realizado, como varrição de ruas ou coleta de resíduos, que pode ocorrer em um ou mais ambientes.',
+                    VESSEL_PLATFORM_EQUIPMENT:
+                      'Caracterize a embarcação, plataforma ou equipamento em si, suas características, componentes e condições de uso.',
+                    WORK_FRONT:
+                      'Caracterize o local ou trecho onde uma equipe executa o serviço, como um trecho de obra ou uma frente de pavimentação.',
+                  }[value],
+                }))}
               />
 
               <QuestionBlock
@@ -862,7 +931,9 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                 <TextField
                   label="Observações livres"
                   value={form.userObservations}
-                  onChange={(e) => updateForm('userObservations', e.target.value)}
+                  onChange={(e) =>
+                    updateForm('userObservations', e.target.value)
+                  }
                   multiline
                   minRows={2}
                   fullWidth
@@ -997,7 +1068,11 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                 result.inconsistencies.length > 0) && (
                 <Box sx={{ mb: 3 }}>
                   {result.cautions.map((item, index) => (
-                    <Alert key={`caution-${index}`} severity="warning" sx={{ mb: 1 }}>
+                    <Alert
+                      key={`caution-${index}`}
+                      severity="warning"
+                      sx={{ mb: 1 }}
+                    >
                       {item}
                     </Alert>
                   ))}
@@ -1064,7 +1139,8 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                           : 'info'
                     }
                     icon={
-                      result.externalSources.webSearch.status === 'UNAVAILABLE' ? (
+                      result.externalSources.webSearch.status ===
+                      'UNAVAILABLE' ? (
                         <WarningAmberRoundedIcon sx={{ fontSize: 32 }} />
                       ) : undefined
                     }
@@ -1090,21 +1166,30 @@ export const CharacterizationAiAssistModal: React.FC<Props> = ({
                         : { mt: 1 }
                     }
                   >
-                    {result.externalSources.webSearch.status === 'UNAVAILABLE' ? (
+                    {result.externalSources.webSearch.status ===
+                    'UNAVAILABLE' ? (
                       <>
-                        <AlertTitle sx={{ fontWeight: 800, mb: 1, fontSize: '1.05rem' }}>
+                        <AlertTitle
+                          sx={{ fontWeight: 800, mb: 1, fontSize: '1.05rem' }}
+                        >
                           {WEB_SEARCH_UNAVAILABLE_TITLE}
                         </AlertTitle>
-                        <Typography variant="body2" sx={{ mb: 1, lineHeight: 1.55 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ mb: 1, lineHeight: 1.55 }}
+                        >
                           <strong>
-                            Este recurso depende da habilitação do serviço de fontes
-                            externas
+                            Este recurso depende da habilitação do serviço de
+                            fontes externas
                           </strong>{' '}
-                          e pode ser contratado sob demanda. Enquanto isso, você pode
-                          informar URLs específicas para que o sistema tente ler e
-                          utilizar como apoio técnico.
+                          e pode ser contratado sob demanda. Enquanto isso, você
+                          pode informar URLs específicas para que o sistema
+                          tente ler e utilizar como apoio técnico.
                         </Typography>
-                        <Typography variant="body2" sx={{ lineHeight: 1.5, opacity: 0.95 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ lineHeight: 1.5, opacity: 0.95 }}
+                        >
                           {result.externalSources.webSearch.warning &&
                           result.externalSources.webSearch.warning !==
                             WEB_SEARCH_UNAVAILABLE_MESSAGE

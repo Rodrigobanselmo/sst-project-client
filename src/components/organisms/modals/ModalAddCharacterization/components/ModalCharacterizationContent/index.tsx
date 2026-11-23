@@ -474,7 +474,8 @@ export const ModalCharacterizationContent = (
                 componentsProps: {
                   tooltip: {
                     sx: {
-                      maxWidth: 440,
+                      maxWidth: 'min(440px, calc(100vw - 32px))',
+                      boxSizing: 'border-box',
                       // ~640px, sem ultrapassar a viewport (rollo interno se necessário).
                       maxHeight: 'min(640px, calc(100vh - 48px))',
                       overflowY: 'auto',

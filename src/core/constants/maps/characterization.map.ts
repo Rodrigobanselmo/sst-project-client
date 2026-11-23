@@ -15,51 +15,51 @@ export const characterizationMap: ICharacterizationMap = {
     name: 'Posto de Trabalho',
     type: '',
     description:
-      'Use para caracterizar uma posição específica de trabalho, bancada, estação, posto fixo ou local onde uma função é executada de forma individualizada.',
+      'Use para caracterizar um ponto específico do espaço físico ocupado pelo trabalhador, como uma bancada, estação de computador ou posto de operação de máquina, incluindo sua disposição e condições de uso.',
   },
   [CharacterizationTypeEnum.ACTIVITIES]: {
     value: CharacterizationTypeEnum.ACTIVITIES,
     type: '',
     name: 'Atividade',
     description:
-      'Use para caracterizar uma tarefa, processo de trabalho, rotina operacional ou conjunto de ações executadas pelos trabalhadores, independentemente de um único local físico.',
+      'Use para caracterizar o trabalho realizado, como varrição de ruas, coleta de resíduos ou manutenção de equipamentos, que pode ocorrer em um ou mais ambientes.',
   },
   [CharacterizationTypeEnum.EQUIPMENT]: {
     value: CharacterizationTypeEnum.EQUIPMENT,
     type: '',
     name: 'Equipamento',
     description:
-      'Use para caracterizar máquinas, equipamentos, veículos, ferramentas, plataformas, sondas ou outros recursos técnicos relevantes para a exposição ocupacional.',
+      'Use para caracterizar o recurso técnico utilizado no trabalho, como máquina, veículo, ferramenta, plataforma ou sonda, descrevendo suas características, componentes e condições de uso.',
   },
   [CharacterizationTypeEnum.ADMINISTRATIVE]: {
     value: CharacterizationTypeEnum.ADMINISTRATIVE,
     type: '',
     name: 'Ambiente Administrativo',
     description:
-      'Use para áreas administrativas, escritórios, salas de apoio administrativo, recepção, áreas de gestão ou espaços de trabalho predominantemente administrativos.',
+      'Use para caracterizar o espaço físico destinado ao trabalho administrativo, como escritórios, salas de reunião ou recepção, descrevendo sua disposição, instalações e condições ambientais.',
   },
   [CharacterizationTypeEnum.OPERATION]: {
     value: CharacterizationTypeEnum.OPERATION,
     type: '',
     name: 'Ambiente Operacional',
     description:
-      'Use para áreas produtivas, industriais, operacionais, frentes de serviço, áreas de processo, manutenção, armazenamento, circulação operacional ou execução de atividades técnicas.',
+      'Use para caracterizar o espaço físico onde o trabalho é realizado, como galpões, oficinas, áreas de produção, armazenamento ou circulação, descrevendo sua disposição, instalações e condições ambientais.',
   },
   [CharacterizationTypeEnum.SUPPORT]: {
     value: CharacterizationTypeEnum.SUPPORT,
     type: '',
     name: 'Ambiente de Apoio',
     description:
-      'Use para áreas de suporte à operação ou aos trabalhadores, como vestiários, refeitórios, almoxarifados, áreas de convivência, sanitários, depósitos, salas de apoio ou estruturas auxiliares.',
+      'Use para caracterizar o espaço físico de suporte aos trabalhadores ou à operação, como vestiários, refeitórios, sanitários, áreas de convivência ou salas de apoio, descrevendo suas instalações e condições de uso.',
   },
   [CharacterizationTypeEnum.GENERAL]: {
     value: CharacterizationTypeEnum.GENERAL,
     type: '',
     name: 'Visão Geral',
     description:
-      'Use para uma descrição ampla do estabelecimento, unidade, operação, frente de trabalho, plataforma, sonda ou contexto geral da caracterização. No documento, este item compõe a seção de ambientes.',
+      'Use para apresentar o conjunto do estabelecimento ou unidade, sua finalidade, localização, organização dos espaços e infraestrutura geral. No documento, este item compõe a seção de ambientes.',
   },
 };
 
 export const CHARACTERIZATION_TYPE_HELP_TEXT =
-  'Escolha o tipo que melhor representa o elemento caracterizado. Esses tipos organizam a caracterização do PGR e influenciam a forma como as informações são apresentadas nos documentos.';
+  'Escolha conforme o objeto da descrição: o conjunto do estabelecimento (Visão Geral), um espaço físico (Ambiente), um ponto específico desse espaço (Posto de Trabalho), o trabalho realizado (Atividade) ou um recurso técnico (Equipamento). Esses tipos organizam a caracterização do PGR e sua apresentação nos documentos.';
