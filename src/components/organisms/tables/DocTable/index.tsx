@@ -417,7 +417,7 @@ export const DocTable: FC<
               .mutateAsync({ id: doc.id, companyId })
               .catch(() => {});
           },
-          `Esta ação removerá permanentemente uma versão oficial do documento. A exclusão só é permitida da versão mais recente para a mais antiga.\n\nDocumento: ${doc.name}\nVersão: ${doc.version}\nRevisão: ${formatRevisionDisplayLabel(doc.version)}\nSérie oficial: ${resolveOfficialRevisionSeries(doc.officialRevisionSeries)}`,
+          `Esta ação retirará a versão oficial da listagem e da sequência de revisões, preservando o histórico e os arquivos da emissão. A exclusão só é permitida da versão mais recente para a mais antiga.\n\nDocumento: ${doc.name}\nVersão: ${doc.version}\nRevisão: ${formatRevisionDisplayLabel(doc.version)}\nSérie oficial: ${resolveOfficialRevisionSeries(doc.officialRevisionSeries)}`,
           {
             title: 'Excluir versão oficial',
             confirmText: 'Excluir',
@@ -1032,7 +1032,7 @@ export const DocTable: FC<
                   sx={pgrResetOperationalSx}
                 />
                 <STableButton
-                  tooltip="Iniciar nova série oficial"
+                  tooltip={activeOfficialVersions.length === 0 ? 'Não há versões oficiais na série atual. O reset inicia uma nova série e não exclui arquivos de séries anteriores.' : 'Iniciar nova série oficial, preservando os arquivos existentes'}
                   text="Reset oficial"
                   icon={ReplayOutlined}
                   onClick={handleResetOfficialSeries}
