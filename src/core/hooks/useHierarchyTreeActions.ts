@@ -1,3 +1,4 @@
+import { attachUnassignedHierarchies } from 'components/organisms/main/Tree/OrgTree/utils/attach-unassigned-hierarchies';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback } from 'react';
 import { resolveCompanyDisplayName } from 'components/organisms/main/Tree/OrgTree/utils/company-display-name';
@@ -344,6 +345,8 @@ export const useHierarchyTreeActions = () => {
         groups: company.establishmentGroups,
         workspaces: company.workspace,
       });
+
+      attachUnassignedHierarchies(treeMap, hierarchyMap, firstNodeId);
 
       if (nodesTree)
         Object.values(nodesTree).forEach((node) => {

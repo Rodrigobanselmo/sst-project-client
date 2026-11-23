@@ -30,6 +30,8 @@ export interface ITreeMapObject {
   expand: boolean;
   showRef?: boolean;
   stopDrag?: boolean;
+  /** Existing record without an establishment; displayed under the company. */
+  missingWorkspace?: boolean;
   copyCompanyId?: string;
   idRef?: string;
   ghos: IGho[];

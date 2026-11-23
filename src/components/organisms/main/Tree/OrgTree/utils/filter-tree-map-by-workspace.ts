@@ -23,6 +23,9 @@ export function filterTreeMapByWorkspace(
     const node = nodes[id];
     if (!node) return false;
 
+    // Keep integrity warnings visible even when filtering establishments.
+    if (node.missingWorkspace) return true;
+
     const workspaceId = getWorkspaceIdFromTreeNode(node);
     if (workspaceId) return selectedIds.has(workspaceId);
 

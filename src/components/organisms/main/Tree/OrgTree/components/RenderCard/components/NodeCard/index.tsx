@@ -270,6 +270,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   const showGhoSelectButton = !hide && GhoId && isHierarchy;
 
   const showAddButton =
+    !node.missingWorkspace &&
     !selectionMode &&
     !node.showRef &&
     !GhoId &&
@@ -424,6 +425,12 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
             )}
           </SFlex>
         </SFlex>
+      )}
+
+      {node.missingWorkspace && (
+        <STooltip title="Cadastro sem vínculo com estabelecimento. Exibido diretamente na empresa para identificação e regularização.">
+          <Box component="span" sx={{color:'warning.main',fontSize:11,fontWeight:600}}>Sem estabelecimento</Box>
+        </STooltip>
       )}
 
       {showRefSelect && (
