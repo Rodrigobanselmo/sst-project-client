@@ -55,6 +55,8 @@ export function useMutUpdateFrpsPrivacySettings() {
               queryKey: [QueryKeyFormEnum.FORM_QUESTIONS_ANSWERS],
             });
           }
+          await queryClient.invalidateQueries([QueryEnum.FRPS_PRIVACY, getCompanyId(variables.companyId)]);
+          await v2QueryClient.invalidateQueries({queryKey:[QueryKeyFormEnum.FORM_PARTICIPANTS]});
           enqueueSnackbar('Política de privacidade psicossocial atualizada', {
             variant: 'success',
           });

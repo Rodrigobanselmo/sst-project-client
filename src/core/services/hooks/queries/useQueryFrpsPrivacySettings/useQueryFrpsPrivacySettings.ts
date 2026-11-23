@@ -48,18 +48,19 @@ export function useQueryFrpsPrivacySettings(
           }),
     {
       enabled: !!companyID && enabled,
-      staleTime: 1000 * 60 * 10,
+      staleTime: 0,
+      refetchOnWindowFocus: true,
     },
   );
 
   return {
     ...query,
-    data: data || {
+    data: (data || {
       indicatorsMinParticipants: 3 as const,
       riskAnalysisAiMinParticipants: 3 as const,
       riskAnalysisAiMinParticipantsIsDefault: true,
       allowPartialResults: false,
       canEdit: false,
-    },
+    }) as IFrpsPrivacySettings,
   };
 }

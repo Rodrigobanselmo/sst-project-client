@@ -1,3 +1,4 @@
+export type FrpsParticipantGrant = { userId: number; level: 'IDENTITY' | 'ANSWERS' };
 export type FrpsRiskAnalysisAiMinParticipants = 1 | 2 | 3;
 
 export type IFrpsPrivacySettings = {
@@ -6,9 +7,15 @@ export type IFrpsPrivacySettings = {
   riskAnalysisAiMinParticipantsIsDefault: boolean;
   allowPartialResults: boolean;
   canEdit: boolean;
+  restrictParticipantIdentity?: boolean;
+  participantGrants?: FrpsParticipantGrant[];
+  eligibleUsers?: { userId:number; name:string; email:string }[];
 };
 
 export type IUpdateFrpsPrivacySettings = {
+  restrictParticipantIdentity?: boolean;
+  participantGrants?: FrpsParticipantGrant[];
+  confirmIndividualAccess?: boolean;
   allowPartialResults?: boolean;
   riskAnalysisAiMinParticipants?: FrpsRiskAnalysisAiMinParticipants;
 };

@@ -1,3 +1,4 @@
+import { useParticipantAccess, RestrictedParticipantView, ParticipantAnswersDialog } from './ParticipantPrivacyView';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
@@ -129,7 +130,9 @@ function ViewModeSelectCategory({
   );
 }
 
-export const FormParticipantsTable = ({
+const AuthorizedFormParticipantsTable = ({
+  canViewIndividualAnswers,
+  answerCompanyIds,
   companyId,
   applicationId,
   formApplication,
@@ -137,7 +140,10 @@ export const FormParticipantsTable = ({
   companyId: string;
   applicationId: string;
   formApplication?: FormApplicationReadModel;
+  canViewIndividualAnswers: boolean;
+  answerCompanyIds: string[];
 }) => {
+  const [answersEmployee,setAnswersEmployee] = useState<{id:number;name:string}|null>(null);
   const { palette } = useTheme();
   const typeLabels = useHierarchyTypeLabels();
   const { data: frpsPrivacySettings } = useQueryFrpsPrivacySettings(companyId);
@@ -757,6 +763,7 @@ export const FormParticipantsTable = ({
 
   return (
     <>
+      {canViewIndividualAnswers && <ParticipantAnswersDialog companyId={companyId} applicationId={applicationId} employee={answersEmployee} onClose={()=>setAnswersEmployee(null)} />}
       <FormParticipantsFilterSummary
         summary={filterSummaryForUi}
         isLoading={diagnosticFiltersActive ? groupedTableLoading : isLoading}
@@ -1083,6 +1090,8 @@ export const FormParticipantsTable = ({
             setHiddenColumns({ ...hiddenColumns, ...hidden })
           }
           hiddenColumns={hiddenColumns}
+          onViewAnswers={canViewIndividualAnswers ? row=>setAnswersEmployee({id:row.id,name:row.name}) : undefined}
+          canViewAnswers={row=>answerCompanyIds.includes(row.companyId || companyId)}
           onSelectRow={(row) => onFormParticipantClick(row)}
           data={formParticipants?.results ?? []}
           isLoading={isLoading}
@@ -1098,4 +1107,12 @@ export const FormParticipantsTable = ({
       )}
     </>
   );
+};
+
+export const FormParticipantsTable = (props:{companyId:string;applicationId:string;formApplication?:FormApplicationReadModel}) => {
+  const access=useParticipantAccess(props.companyId,props.applicationId);
+  if(access.isError) return <Alert severity="error">Não foi possível verificar a autorização de privacidade. Atualize a página para tentar novamente.</Alert>;
+  if(!access.data) return <Alert severity="info">Verificando acesso aos participantes…</Alert>;
+  if(!access.data.canViewIdentity) return <RestrictedParticipantView {...props}/>;
+  return <AuthorizedFormParticipantsTable {...props} canViewIndividualAnswers={access.data.canViewIndividualAnswers} answerCompanyIds={access.data.answerCompanyIds}/>;
 };

@@ -40,6 +40,8 @@ export interface IFormParticipantsTableTableProps {
   setFilters: (values: IFormParticipantsFilterProps) => void;
   setPage: (page: number) => void;
   setOrderBy: (order: IOrderByParams<FormParticipantsOrderByEnum>) => void;
+  canViewAnswers?: (row: FormParticipantsBrowseResultModel) => boolean;
+  onViewAnswers?: (row: FormParticipantsBrowseResultModel) => void;
   onSelectRow: (row: FormParticipantsBrowseResultModel) => void;
   formApplication?: FormApplicationReadModel;
   pagination?: {

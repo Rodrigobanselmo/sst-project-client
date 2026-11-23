@@ -1,3 +1,4 @@
+import { Button } from '@mui/material';
 import { FC } from 'react';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -37,6 +38,8 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
   setPage,
   setOrderBy,
   onSelectRow,
+  onViewAnswers,
+  canViewAnswers,
   hiddenColumns,
   setHiddenColumns,
   formApplication,
@@ -224,6 +227,10 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
       row: (row) => <SBooleanRow checked={row.hasResponded} />,
     },
 
+    ...(onViewAnswers ? [{
+      column: '140px', header: null,
+      row: (row: FormParticipantsBrowseResultModel) => <Button size="small" variant="outlined" disabled={!row.hasResponded || (canViewAnswers && !canViewAnswers(row))} onClick={event=>{event.stopPropagation();onViewAnswers(row);}}>Ver respostas</Button>,
+    }] : []),
     // COPY_LINK
     {
       column: '50px',

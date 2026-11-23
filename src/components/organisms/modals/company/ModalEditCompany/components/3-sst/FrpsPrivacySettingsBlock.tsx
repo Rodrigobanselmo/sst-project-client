@@ -2,6 +2,7 @@ import React, { useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import {
   Box,
+  Checkbox,
   Button,
   Dialog,
   DialogActions,
@@ -21,6 +22,7 @@ import SText from 'components/atoms/SText';
 import { useAccess } from 'core/hooks/useAccess';
 import {
   FrpsRiskAnalysisAiMinParticipants,
+  FrpsParticipantGrant,
 } from 'core/interfaces/api/IFrpsPrivacySettings';
 import { useMutUpdateFrpsPrivacySettings } from 'core/services/hooks/mutations/company/useMutUpdateFrpsPrivacySettings/useMutUpdateFrpsPrivacySettings';
 import { useQueryFrpsPrivacySettings } from 'core/services/hooks/queries/useQueryFrpsPrivacySettings/useQueryFrpsPrivacySettings';
@@ -84,6 +86,16 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
   const partialResults = partialResultsDraft ?? serverPartialResults;
   const partialResultsChanged = partialResults !== serverPartialResults;
 
+  const [restrictedDraft, setRestrictedDraft] = useState<boolean | null>(null);
+  const [grantsDraft, setGrantsDraft] = useState<FrpsParticipantGrant[] | null>(null);
+  const restricted = restrictedDraft ?? data.restrictParticipantIdentity === true;
+  const grants = grantsDraft ?? data.participantGrants ?? [];
+  const policyChanged = restricted !== (data.restrictParticipantIdentity === true) || JSON.stringify(grants) !== JSON.stringify(data.participantGrants ?? []);
+  const newIndividualAccess = grants.some(g => g.level === 'ANSWERS' && !(data.participantGrants ?? []).some(old => old.userId === g.userId && old.level === 'ANSWERS'));
+  const setGrant = (userId:number, level:FrpsParticipantGrant['level'] | null) => {
+    setGrantsDraft([...grants.filter(g=>g.userId!==userId), ...(level ? [{userId,level}] : [])].sort((a,b)=>a.userId-b.userId));
+  };
+
   const current = draft ?? serverValue;
 
   const dirty = useMemo(
@@ -106,14 +118,14 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
 
   const requestSave = (onSaved?: () => void) => {
     if (mutation.isLoading) return;
-    if (!dirty && !partialResultsChanged) {
+    if (!dirty && !partialResultsChanged && !policyChanged) {
       onSaved?.();
       return;
     }
     if (!canEdit) return;
     const next = draft ?? serverValue;
     if (
-      requiresFrpsRiskAnalysisPrivacyConfirmation({
+      newIndividualAccess || requiresFrpsRiskAnalysisPrivacyConfirmation({
         current: serverValue,
         next,
       })
@@ -133,6 +145,7 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
     mutation.mutate(
       {
         companyId,
+        ...(policyChanged && { restrictParticipantIdentity: restricted, participantGrants: grants, confirmIndividualAccess: newIndividualAccess }),
         ...(dirty && { riskAnalysisAiMinParticipants: next }),
         ...(partialResultsChanged && { allowPartialResults: partialResults }),
       },
@@ -140,6 +153,8 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
         onSuccess: (result) => {
           if (!result) return;
           if (dirty) onPrivacySaved?.(next);
+          setRestrictedDraft(null);
+          setGrantsDraft(null);
           setPartialResultsDraft(null);
           setDraft(null);
           closeConfirmation();
@@ -213,7 +228,7 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
           <Button
             variant="contained"
             size="small"
-            disabled={(!dirty && !partialResultsChanged) || mutation.isLoading}
+            disabled={(!dirty && !partialResultsChanged && !policyChanged) || mutation.isLoading}
             onClick={() => requestSave()}
             sx={(theme) => ({
               '&.Mui-disabled': {
@@ -259,6 +274,28 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
         </Typography>
       </Box>
 
+      <Box mt={8} sx={{borderTop:'1px solid',borderColor:'divider',pt:6}}>
+        <FormControlLabel control={<Switch checked={restricted} disabled={!canEdit || mutation.isLoading} onChange={(_,checked)=>{setRestrictedDraft(checked);if(!checked)setGrantsDraft([]);}} />} label="Restringir a identificação dos participantes a usuários autorizados" />
+        <Typography variant="body2" color="text.secondary">Desativado: mantém a identificação disponível conforme as permissões atuais. Ativado: somente os usuários selecionados abaixo veem quem respondeu. As regras dos resultados agregados permanecem.</Typography>
+        {restricted && <Box mt={6}>
+          <Typography fontWeight={600} mb={4}>Usuários autorizados nesta empresa</Typography>
+          {(data.eligibleUsers ?? []).map(user=>{
+            const grant=grants.find(g=>g.userId===user.userId);
+            return <Box key={user.userId} sx={{display:'flex',alignItems:'center',flexWrap:'wrap',gap:6,py:4,borderBottom:'1px solid',borderColor:'divider'}}>
+              <FormControlLabel sx={{flex:'1 1 240px'}} control={<Checkbox disabled={!canEdit || mutation.isLoading} checked={!!grant} onChange={(_,checked)=>setGrant(user.userId,checked?'IDENTITY':null)} />} label={<Box><Typography>{user.name}</Typography><Typography variant="caption" color="text.secondary">{user.email}</Typography></Box>} />
+              {grant && <FormControl size="small" sx={{minWidth:260,flex:'1 1 300px'}} disabled={!canEdit || mutation.isLoading}>
+                <InputLabel id={`frps-grant-${user.userId}`}>Nível de acesso</InputLabel>
+                <Select labelId={`frps-grant-${user.userId}`} label="Nível de acesso" value={grant.level} onChange={e=>setGrant(user.userId,e.target.value as FrpsParticipantGrant['level'])}>
+                  <MenuItem value="IDENTITY">Identificação e participação</MenuItem>
+                  <MenuItem value="ANSWERS">Acesso completo às respostas individuais</MenuItem>
+                </Select>
+              </FormControl>}
+            </Box>;
+          })}
+          <Typography variant="body2" mt={4}>Identificação e participação permite ver quem respondeu. Acesso completo também permite consultar todas as respostas identificadas de cada empregado, independentemente do perfil do usuário. Sem usuários selecionados, ninguém terá acesso nominal.</Typography>
+        </Box>}
+      </Box>
+
       {!canEdit && (
         <Typography mt={2} variant="caption" color="text.secondary">
           Somente Administrador Máximo da empresa ou MASTER do sistema podem
@@ -268,13 +305,11 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
 
       <Dialog open={confirmOpen} onClose={closeConfirmation}>
         <DialogTitle>
-          Confirmar política de sigilo da Análise de Riscos
+          Confirmar alteração de privacidade
         </DialogTitle>
         <DialogContent>
           <Typography whiteSpace="pre-line">
-            {pendingValue != null
-              ? buildReduceConfirmMessage(pendingValue)
-              : ''}
+            {newIndividualAccess ? `Você está liberando acesso a todas as respostas individuais identificadas dos empregados para: ${grants.filter(g=>g.level==='ANSWERS').map(g=>data.eligibleUsers?.find(u=>u.userId===g.userId)?.name ?? g.userId).join(', ')}. Essa autorização e seu responsável serão registrados.` : pendingValue != null ? buildReduceConfirmMessage(pendingValue) : ''}
           </Typography>
         </DialogContent>
         <DialogActions>
