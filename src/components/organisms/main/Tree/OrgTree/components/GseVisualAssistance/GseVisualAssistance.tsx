@@ -78,7 +78,7 @@ export async function transcribeVisualGuidance({
 }): Promise<{ text: string }> {
   const body = new FormData();
   body.append('audio', audio, fileName || 'recording.webm');
-  return (await api.post<{ text: string }>('/ai-chat/transcribe', body)).data;
+  return (await api.post<{ text: string }>('/ai-chat/transcribe', body, { timeout: 120000 })).data;
 }
 type Session = {
   scope: string;

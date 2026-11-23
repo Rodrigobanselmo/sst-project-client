@@ -9,6 +9,7 @@ import {
   canFinalizeRecorderBlob,
   isRecorderBlobTooShort,
   stopAndCollectMediaRecorderBlob,
+  withAudioTranscriptionTimeout,
   type MediaRecorderLike,
 } from './collect-media-recorder-blob.util';
 
@@ -73,18 +74,24 @@ function createFakeRecorder(params: {
 }
 
 assert(
-  canFinalizeRecorderBlob({ stopEventFired: true, receivedDataAfterStop: true }) ===
-    true,
+  canFinalizeRecorderBlob({
+    stopEventFired: true,
+    receivedDataAfterStop: true,
+  }) === true,
   'só finaliza com stop + dataavailable após stop',
 );
 assert(
-  canFinalizeRecorderBlob({ stopEventFired: true, receivedDataAfterStop: false }) ===
-    false,
+  canFinalizeRecorderBlob({
+    stopEventFired: true,
+    receivedDataAfterStop: false,
+  }) === false,
   'não monta blob só no stop',
 );
 assert(
-  canFinalizeRecorderBlob({ stopEventFired: false, receivedDataAfterStop: true }) ===
-    false,
+  canFinalizeRecorderBlob({
+    stopEventFired: false,
+    receivedDataAfterStop: true,
+  }) === false,
   'não monta blob só no dataavailable',
 );
 
@@ -97,7 +104,8 @@ assert(MIN_AI_ANALYZE_AUDIO_BYTES === 1024, 'piso de 1 KB permanece');
 
 const validChunk = new Blob([new Uint8Array(2048)], { type: 'audio/webm' });
 assert(
-  isRecorderBlobTooShort(buildRecorderBlob([validChunk], 'audio/webm')) === false,
+  isRecorderBlobTooShort(buildRecorderBlob([validChunk], 'audio/webm')) ===
+    false,
   'gravação válida permanece acima de 1 KB',
 );
 
@@ -113,7 +121,10 @@ async function runAsyncCases() {
     chunks: [],
     mimeType: 'audio/webm',
   });
-  assert(recorderStopFirst.requestDataCalls === 1, 'requestData deve ser chamado antes do stop');
+  assert(
+    recorderStopFirst.requestDataCalls === 1,
+    'requestData deve ser chamado antes do stop',
+  );
   assert(
     blobStopFirst.size >= MIN_AI_ANALYZE_AUDIO_BYTES,
     'corrida stop-primeiro ainda coleta o flush',
@@ -214,6 +225,126 @@ async function runAsyncCases() {
   assert(
     blobValidThenEmpty.size === validChunk.size,
     'chunk válido antes do stop + vazio depois preserva o chunk válido',
+  );
+  // A tiny container header must not cause the real encoded speech to be discarded.
+  const listeners = new Map<string, Set<Listener>>();
+  const emit = (kind: string, data?: Blob) =>
+    listeners.get(kind)?.forEach((fn) => fn({ data }));
+  const delayedRecorder: MediaRecorderLike = {
+    state: 'recording',
+    mimeType: 'audio/mp4',
+    addEventListener: (kind, fn) => {
+      if (!listeners.has(kind)) listeners.set(kind, new Set());
+      listeners.get(kind)!.add(fn);
+    },
+    removeEventListener: (kind, fn) => {
+      listeners.get(kind)?.delete(fn);
+    },
+    requestData: () => emit('dataavailable', prefixChunk),
+    stop: () => {
+      delayedRecorder.state = 'inactive';
+      emit('stop');
+      setTimeout(() => emit('dataavailable', validChunk), 80);
+    },
+  };
+  const delayedBlob = await stopAndCollectMediaRecorderBlob({
+    mediaRecorder: delayedRecorder,
+    chunks: [],
+    mimeType: 'audio/mp4',
+    flushTimeoutMs: 150,
+    extraFlushMs: 10,
+  });
+  assert(
+    delayedBlob.size === prefixChunk.size + validChunk.size,
+    'header before stop must not hide a delayed audio chunk',
+  );
+  assert(
+    delayedBlob.type === 'audio/mp4',
+    'actual recorder format preserved for Safari',
+  );
+  assert(
+    [...listeners.values()].every((set) => set.size === 0),
+    'listeners cleaned after completion',
+  );
+
+  const alreadyCollected = [validChunk];
+  const inactive = createFakeRecorder({});
+  inactive.state = 'inactive';
+  const preserved = await stopAndCollectMediaRecorderBlob({
+    mediaRecorder: inactive,
+    chunks: alreadyCollected,
+    mimeType: 'audio/mp4',
+    dataAlreadyCollected: true,
+  });
+  assert(
+    preserved.size === validChunk.size,
+    'spontaneous stop keeps chunks collected during recording',
+  );
+
+  const collectedByHook = [prefixChunk];
+  const hooked = createFakeRecorder({ chunk: validChunk, order: 'data-first' });
+  const originalStop = hooked.stop;
+  hooked.stop = () => {
+    collectedByHook.push(validChunk);
+    originalStop();
+  };
+  const once = await stopAndCollectMediaRecorderBlob({
+    mediaRecorder: hooked,
+    chunks: collectedByHook,
+    mimeType: 'audio/webm',
+    dataAlreadyCollected: true,
+    flushTimeoutMs: 10,
+  });
+  assert(
+    once.size === prefixChunk.size + validChunk.size,
+    'hook collector must not duplicate the final audio event',
+  );
+
+  const missingStop = createFakeRecorder({});
+  missingStop.stop = () => {};
+  let timedOut = false;
+  try {
+    await stopAndCollectMediaRecorderBlob({
+      mediaRecorder: missingStop,
+      chunks: [],
+      mimeType: 'audio/webm',
+      stopTimeoutMs: 10,
+    });
+  } catch {
+    timedOut = true;
+  }
+  assert(timedOut, 'missing stop event must reject rather than wait forever');
+  const failedStop = createFakeRecorder({});
+  failedStop.stop = () => {
+    throw new Error('encoder failed');
+  };
+  let failed = false;
+  try {
+    await stopAndCollectMediaRecorderBlob({
+      mediaRecorder: failedStop,
+      chunks: [],
+      mimeType: 'audio/webm',
+    });
+  } catch {
+    failed = true;
+  }
+  assert(failed, 'stop failure must reach the UI error handler');
+  let transcriptionTimeout = false;
+  try {
+    await withAudioTranscriptionTimeout(new Promise(() => {}), 10);
+  } catch {
+    transcriptionTimeout = true;
+  }
+  assert(
+    transcriptionTimeout,
+    'unresponsive transcription must return an actionable error',
+  );
+  assert(
+    (await withAudioTranscriptionTimeout(
+      Promise.resolve('Synthetic text'),
+      10,
+    )) === 'Synthetic text',
+    'successful transcription preserved',
   );
 }
 

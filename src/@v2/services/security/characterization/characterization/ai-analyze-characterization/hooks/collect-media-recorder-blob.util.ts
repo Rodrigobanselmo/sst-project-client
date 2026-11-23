@@ -6,8 +6,14 @@ export type MediaRecorderLike = {
   mimeType?: string;
   requestData?: () => void;
   stop: () => void;
-  addEventListener: (type: string, listener: (event: { data?: Blob }) => void) => void;
-  removeEventListener: (type: string, listener: (event: { data?: Blob }) => void) => void;
+  addEventListener: (
+    type: string,
+    listener: (event: { data?: Blob }) => void,
+  ) => void;
+  removeEventListener: (
+    type: string,
+    listener: (event: { data?: Blob }) => void,
+  ) => void;
 };
 
 export function canFinalizeRecorderBlob(params: {
@@ -28,90 +34,113 @@ export function buildRecorderBlob(chunks: Blob[], mimeType: string): Blob {
   return new Blob(chunks, { type: mimeType });
 }
 
-/**
- * Stops the recorder and waits until BOTH:
- * - the `stop` event fired (recorder actually inactive);
- * - a non-empty `dataavailable` after that stop, or a timeout if the encoder
- *   never emits a valid chunk (Safari can omit a flush).
- *
- * Empty `dataavailable` events (size === 0) are ignored and must not settle
- * the Promise: Chrome can fire an empty flush from `requestData()` after
- * `stop` and before the real chunk (first take).
- */
+/** Collects the final encoder flush with a bounded wait, including out-of-order events. */
 export function stopAndCollectMediaRecorderBlob(params: {
   mediaRecorder: MediaRecorderLike;
   chunks: Blob[];
   mimeType: string;
   flushTimeoutMs?: number;
   extraFlushMs?: number;
+  stopTimeoutMs?: number;
+  /** The hook records every chunk from start; do not append the same event twice. */
+  dataAlreadyCollected?: boolean;
 }): Promise<Blob> {
   const {
     mediaRecorder,
     chunks,
     mimeType,
-    flushTimeoutMs = 500,
-    extraFlushMs = 50,
+    flushTimeoutMs = 1500,
+    extraFlushMs = 300,
+    stopTimeoutMs = 10000,
+    dataAlreadyCollected = false,
   } = params;
-
-  if (mediaRecorder.state === 'inactive') {
+  if (mediaRecorder.state === 'inactive')
     return Promise.resolve(buildRecorderBlob(chunks, mimeType));
-  }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let settled = false;
-    let stopEventFired = false;
-    let receivedDataAfterStop = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
+    let stopped = false;
+    let flushTimer: ReturnType<typeof setTimeout> | undefined;
+    let watchdog: ReturnType<typeof setTimeout> | undefined;
     const cleanup = () => {
-      mediaRecorder.removeEventListener('dataavailable', onDataAvailable);
+      mediaRecorder.removeEventListener('dataavailable', onData);
       mediaRecorder.removeEventListener('stop', onStop);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
+      mediaRecorder.removeEventListener('error', onError);
+      clearTimeout(flushTimer);
+      clearTimeout(watchdog);
     };
-
-    const settle = () => {
+    const finish = (error?: Error) => {
       if (settled) return;
-      if (!canFinalizeRecorderBlob({ stopEventFired, receivedDataAfterStop })) {
-        return;
-      }
       settled = true;
       cleanup();
-      resolve(buildRecorderBlob(chunks, mimeType));
+      if (error) reject(error);
+      else
+        resolve(buildRecorderBlob(chunks, mediaRecorder.mimeType || mimeType));
     };
-
-    const onDataAvailable = (event: { data?: Blob }) => {
-      if (!(event.data && event.data.size > 0)) {
-        return;
-      }
-      chunks.push(event.data);
-      if (stopEventFired) {
-        receivedDataAfterStop = true;
-        settle();
+    const onData = (event: { data?: Blob }) => {
+      if (!event.data?.size) return;
+      if (!dataAlreadyCollected) chunks.push(event.data);
+      if (stopped) {
+        clearTimeout(flushTimer);
+        flushTimer = setTimeout(() => finish(), extraFlushMs);
       }
     };
-
     const onStop = () => {
-      stopEventFired = true;
-      timeoutId = setTimeout(
-        () => {
-          receivedDataAfterStop = true;
-          settle();
-        },
-        chunks.length > 0 ? extraFlushMs : flushTimeoutMs,
-      );
+      stopped = true;
+      // Do not finalize early just because requestData emitted a container header.
+      clearTimeout(flushTimer);
+      flushTimer = setTimeout(() => finish(), flushTimeoutMs);
     };
-
-    mediaRecorder.addEventListener('dataavailable', onDataAvailable);
+    const onError = () =>
+      finish(new Error('O navegador interrompeu a gravação. Tente novamente.'));
+    mediaRecorder.addEventListener('dataavailable', onData);
     mediaRecorder.addEventListener('stop', onStop);
-
+    mediaRecorder.addEventListener('error', onError);
+    watchdog = setTimeout(
+      () =>
+        finish(
+          new Error('O navegador não concluiu a gravação. Tente novamente.'),
+        ),
+      stopTimeoutMs,
+    );
     try {
       mediaRecorder.requestData?.();
     } catch {
-      // Safari/Chrome may throw if the encoder is not ready; stop() still flushes.
+      /* stop still flushes */
     }
-    mediaRecorder.stop();
+    try {
+      mediaRecorder.stop();
+    } catch {
+      finish(
+        new Error('Não foi possível finalizar a gravação. Tente novamente.'),
+      );
+    }
+  });
+}
+
+export function withAudioTranscriptionTimeout<T>(
+  operation: Promise<T>,
+  timeoutMs = 120000,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () =>
+        reject(
+          new Error(
+            'A transcrição demorou mais que o esperado. Tente novamente.',
+          ),
+        ),
+      timeoutMs,
+    );
+    operation.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
   });
 }

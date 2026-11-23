@@ -6,10 +6,16 @@ import {
   MIN_AI_ANALYZE_AUDIO_BYTES,
   isRecorderBlobTooShort,
   stopAndCollectMediaRecorderBlob,
+  withAudioTranscriptionTimeout,
   type MediaRecorderLike,
 } from './collect-media-recorder-blob.util';
 
-export type AiAnalyzeAudioRecorderState = 'idle' | 'recording' | 'transcribing';
+export type AiAnalyzeAudioRecorderState =
+  | 'idle'
+  | 'starting'
+  | 'recording'
+  | 'stopping'
+  | 'transcribing';
 
 export type TranscribeAiAnalyzeAudioFn = (params: {
   companyId: string;
@@ -66,7 +72,13 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
   transcribe?: TranscribeAiAnalyzeAudioFn;
   onTranscription: (text: string) => void;
 }) {
-  const [state, setState] = useState<AiAnalyzeAudioRecorderState>('idle');
+  const [state, setStateValue] = useState<AiAnalyzeAudioRecorderState>('idle');
+  const phaseRef = useRef<AiAnalyzeAudioRecorderState>('idle');
+  const sessionRef = useRef(0);
+  const setState = useCallback((next: AiAnalyzeAudioRecorderState) => {
+    phaseRef.current = next;
+    setStateValue(next);
+  }, []);
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
 
@@ -78,7 +90,6 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
   );
   const mimeTypeRef = useRef('audio/webm');
   const cancelledRef = useRef(false);
-  const collectingRef = useRef(false);
   const onTranscriptionRef = useRef(params.onTranscription);
   onTranscriptionRef.current = params.onTranscription;
 
@@ -86,6 +97,11 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
       durationIntervalRef.current = null;
+    }
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.ondataavailable = null;
+      mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current.onerror = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -98,12 +114,14 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
   useEffect(() => {
     return () => {
       cancelledRef.current = true;
+      sessionRef.current += 1;
       cleanupStream();
     };
   }, [cleanupStream]);
 
   const cancelRecording = useCallback(() => {
     cancelledRef.current = true;
+    sessionRef.current += 1;
     const mediaRecorder = mediaRecorderRef.current;
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       try {
@@ -112,9 +130,7 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
         // already stopping
       }
     }
-    if (!collectingRef.current) {
-      cleanupStream();
-    }
+    cleanupStream();
     setDuration(0);
     setError(null);
     setState('idle');
@@ -122,34 +138,45 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
 
   const stopAndTranscribe = useCallback(async () => {
     const mediaRecorder = mediaRecorderRef.current;
-    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-      cleanupStream();
-      setState('idle');
-      return;
+    if (!mediaRecorder || phaseRef.current !== 'recording') return;
+    const session = sessionRef.current;
+    setState('stopping');
+    if (durationIntervalRef.current) {
+      clearInterval(durationIntervalRef.current);
+      durationIntervalRef.current = null;
     }
 
     cancelledRef.current = false;
-    collectingRef.current = true;
 
     let blob: Blob;
     try {
       blob = await stopAndCollectMediaRecorderBlob({
         mediaRecorder: mediaRecorder as unknown as MediaRecorderLike,
         chunks: audioChunksRef.current,
+        dataAlreadyCollected: true,
         mimeType: mediaRecorder.mimeType || mimeTypeRef.current,
       });
+    } catch (err) {
+      if (session === sessionRef.current) {
+        setError(
+          extractErrorMessage(
+            err,
+            'Não foi possível finalizar a gravação. Tente novamente.',
+          ),
+        );
+        setState('idle');
+      }
+      return;
     } finally {
-      collectingRef.current = false;
-      cleanupStream();
+      if (session === sessionRef.current) cleanupStream();
     }
 
-    if (cancelledRef.current) {
-      setState('idle');
-      return;
-    }
+    if (cancelledRef.current || session !== sessionRef.current) return;
 
     if (!blob || isRecorderBlobTooShort(blob, MIN_AI_ANALYZE_AUDIO_BYTES)) {
-      setError('Gravação muito curta. Tente novamente.');
+      setError(
+        'O microfone não forneceu áudio suficiente. Confira a entrada de som e grave novamente.',
+      );
       setState('idle');
       return;
     }
@@ -164,37 +191,38 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
           ? 'ogg'
           : blob.type.includes('mp4')
             ? 'mp4'
-            : 'webm';
-      const result = await (async () => {
-        if (params.transcribe) {
-          return params.transcribe({
+            : blob.type.includes('mpeg')
+              ? 'mp3'
+              : 'webm';
+      const result = await withAudioTranscriptionTimeout(
+        (async () => {
+          if (params.transcribe) {
+            return params.transcribe({
+              companyId: params.companyId,
+              workspaceId: params.workspaceId,
+              characterizationId: params.characterizationId,
+              audio: blob,
+              fileName: `recording.${extension}`,
+            });
+          }
+
+          if (!params.characterizationId) {
+            throw new Error(
+              'Identificador do elemento não encontrado para transcrever o áudio.',
+            );
+          }
+
+          return transcribeAiAnalyzeCharacterizationAudio({
             companyId: params.companyId,
             workspaceId: params.workspaceId,
             characterizationId: params.characterizationId,
             audio: blob,
             fileName: `recording.${extension}`,
           });
-        }
+        })(),
+      );
 
-        if (!params.characterizationId) {
-          throw new Error(
-            'Identificador do elemento não encontrado para transcrever o áudio.',
-          );
-        }
-
-        return transcribeAiAnalyzeCharacterizationAudio({
-          companyId: params.companyId,
-          workspaceId: params.workspaceId,
-          characterizationId: params.characterizationId,
-          audio: blob,
-          fileName: `recording.${extension}`,
-        });
-      })();
-
-      if (cancelledRef.current) {
-        setState('idle');
-        return;
-      }
+      if (cancelledRef.current || session !== sessionRef.current) return;
 
       const text = result.text?.trim() || '';
       if (!text) {
@@ -207,10 +235,7 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
       setDuration(0);
       setState('idle');
     } catch (err) {
-      if (cancelledRef.current) {
-        setState('idle');
-        return;
-      }
+      if (cancelledRef.current || session !== sessionRef.current) return;
       setError(
         extractErrorMessage(
           err,
@@ -228,12 +253,22 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
   ]);
 
   const startRecording = useCallback(async () => {
+    if (phaseRef.current !== 'idle') return;
+    const session = ++sessionRef.current;
+    setState('starting');
     try {
       cancelledRef.current = false;
       setError(null);
       setDuration(0);
       cleanupStream();
 
+      if (
+        !navigator.mediaDevices?.getUserMedia ||
+        typeof MediaRecorder === 'undefined'
+      )
+        throw new Error(
+          'Este navegador não oferece suporte à gravação de áudio.',
+        );
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -242,6 +277,10 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
         },
       });
 
+      if (session !== sessionRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
       const mimeType = getSupportedMimeType();
       mimeTypeRef.current = mimeType || 'audio/webm';
@@ -253,7 +292,25 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
 
       audioChunksRef.current = [];
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      mediaRecorder.ondataavailable = (event) => {
+        if (session === sessionRef.current && event.data.size > 0)
+          audioChunksRef.current.push(event.data);
+      };
+      mediaRecorder.onerror = () => {
+        if (session !== sessionRef.current) return;
+        sessionRef.current += 1;
+        cleanupStream();
+        setError(
+          'O navegador interrompeu a gravação. Confira o microfone e tente novamente.',
+        );
+        setState('idle');
+      };
+      mediaRecorder.onstop = () => {
+        if (session === sessionRef.current && phaseRef.current === 'recording')
+          void stopAndTranscribe();
+      };
+      // Preserve all encoded chunks from the beginning, including container headers.
+      mediaRecorder.start(1000);
       setState('recording');
 
       const startTime = Date.now();
@@ -269,13 +326,16 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
         }
       }, 1000);
     } catch (err) {
+      if (session !== sessionRef.current) return;
       cleanupStream();
       if ((err as Error).name === 'NotAllowedError') {
         setError('Permissão de microfone negada.');
       } else if ((err as Error).name === 'NotFoundError') {
         setError('Nenhum microfone encontrado.');
       } else {
-        setError('Não foi possível iniciar a gravação.');
+        setError(
+          extractErrorMessage(err, 'Não foi possível iniciar a gravação.'),
+        );
       }
       setState('idle');
     }
@@ -286,7 +346,7 @@ export function useCharacterizationAiAnalyzeAudioRecorder(params: {
     error,
     duration,
     durationLabel: formatDuration(duration),
-    isBusy: state === 'recording' || state === 'transcribing',
+    isBusy: state !== 'idle',
     startRecording,
     stopAndTranscribe,
     cancelRecording,

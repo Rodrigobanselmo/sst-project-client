@@ -50,6 +50,7 @@ export async function transcribeAiAnalyzeHierarchyAudio({
   const data = new FormData();
   data.append('audio', audio, fileName || 'recording.webm');
   const response = await api.post(`${url(target)}/transcribe`, data, {
+    timeout: 120000,
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;

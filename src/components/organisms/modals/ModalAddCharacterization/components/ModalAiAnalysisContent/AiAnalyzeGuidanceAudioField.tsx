@@ -28,7 +28,7 @@ type Props = {
 };
 
 export function AiAnalyzeGuidanceAudioField({
-  label = "Orientações adicionais para análise de riscos",
+  label = 'Orientações adicionais para análise de riscos',
   companyId,
   workspaceId,
   characterizationId,
@@ -49,6 +49,8 @@ export function AiAnalyzeGuidanceAudioField({
 
   const recording = recorder.state === 'recording';
   const transcribing = recorder.state === 'transcribing';
+  const starting = recorder.state === 'starting';
+  const stopping = recorder.state === 'stopping';
   const busy = recorder.isBusy;
 
   useEffect(() => {
@@ -68,11 +70,22 @@ export function AiAnalyzeGuidanceAudioField({
       error={Boolean(recorder.error)}
       helperText={
         recorder.error ||
-        (recording ? `Gravando ${recorder.durationLabel}` : undefined)
+        (starting
+          ? 'Aguardando o microfone…'
+          : stopping
+            ? 'Finalizando gravação…'
+            : transcribing
+              ? 'Transcrevendo áudio…'
+              : recording
+                ? `Gravando ${recorder.durationLabel}`
+                : undefined)
       }
       InputProps={{
         endAdornment: (
-          <InputAdornment position="end" sx={{ alignSelf: 'flex-end', mb: 0.5 }}>
+          <InputAdornment
+            position="end"
+            sx={{ alignSelf: 'flex-end', mb: 0.5 }}
+          >
             {recording ? (
               <>
                 <Tooltip title="Parar e transcrever">
@@ -99,12 +112,29 @@ export function AiAnalyzeGuidanceAudioField({
                   </span>
                 </Tooltip>
               </>
-            ) : transcribing ? (
+            ) : transcribing || starting || stopping ? (
               <>
-                <SText variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
-                  Transcrevendo…
+                <SText
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mr: 0.5 }}
+                >
+                  {starting
+                    ? 'Abrindo microfone…'
+                    : stopping
+                      ? 'Finalizando…'
+                      : 'Transcrevendo…'}
                 </SText>
                 <CircularProgress size={16} />
+                <Tooltip title="Cancelar operação de áudio">
+                  <IconButton
+                    size="small"
+                    aria-label="Cancelar operação de áudio"
+                    onClick={recorder.cancelRecording}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </>
             ) : (
               <Tooltip title="Gravar orientação por voz">

@@ -26,7 +26,7 @@ export async function transcribeAiAnalyzeCharacterizationAudio(params: {
       },
     }),
     formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } },
+    { timeout: 120000, headers: { 'Content-Type': 'multipart/form-data' } },
   );
 
   return response.data;
