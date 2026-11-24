@@ -93,13 +93,17 @@ export function ProposalRefinementDialog({
     !!justification.trim();
   return (
     <Dialog
+      PaperProps={{
+        sx: { bgcolor: 'background.paper', backgroundImage: 'none' },
+      }}
+      sx={{ '& .MuiFormHelperText-root': { color: 'text.secondary' } }}
       open
       maxWidth="md"
       fullWidth
       onClose={() => !busy && onClose()}
       aria-labelledby="refine-proposal-title"
     >
-      <DialogTitle id="refine-proposal-title">
+      <DialogTitle sx={{ color: 'text.primary' }} id="refine-proposal-title">
         Ajustar proposta · {group.name}
       </DialogTitle>
       <DialogContent dividers>
@@ -130,7 +134,7 @@ export function ProposalRefinementDialog({
             onChange={setIds}
             disabled={busy}
           />
-          <Typography fontWeight={700}>
+          <Typography color="text.primary" fontWeight={700}>
             Composição:{' '}
             {ids
               .map((id) => sectors.find((s) => s.id === id)?.name)

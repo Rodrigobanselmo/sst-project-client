@@ -25,16 +25,26 @@ export const DeleteHierarchyGroupModal = ({
   loading = false,
 }: DeleteHierarchyGroupModalProps) => {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>
+    <Dialog
+      PaperProps={{
+        sx: { bgcolor: 'background.paper', backgroundImage: 'none' },
+      }}
+      open={open}
+      onClose={onClose}
+      maxWidth="xs"
+      fullWidth
+    >
+      <DialogTitle sx={{ color: 'text.primary' }}>
         <SFlex alignItems="center" gap={2}>
           <WarningIcon color="error" />
-          <Typography variant="h6">Excluir Agrupamento</Typography>
+          <Typography color="text.primary" variant="h6">
+            Excluir Agrupamento
+          </Typography>
         </SFlex>
       </DialogTitle>
 
       <DialogContent>
-        <Typography variant="body1" gutterBottom>
+        <Typography color="text.primary" variant="body1" gutterBottom>
           Tem certeza que deseja excluir o agrupamento{' '}
           <strong>"{groupName}"</strong>?
         </Typography>

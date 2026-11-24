@@ -130,12 +130,21 @@ export const UpsertHierarchyGroupModal = ({
   const isValid = name.trim() && selectedHierarchyIds.length > 0;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>
+    <Dialog
+      PaperProps={{
+        sx: { bgcolor: 'background.paper', backgroundImage: 'none' },
+      }}
+      sx={{ '& .MuiFormHelperText-root': { color: 'text.secondary' } }}
+      open={open}
+      onClose={handleClose}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle sx={{ color: 'text.primary' }}>
         <SFlex justifyContent="space-between" alignItems="center">
           <SFlex alignItems="center" gap={2}>
             <GroupWorkIcon color="primary" />
-            <Typography variant="h6">
+            <Typography color="text.primary" variant="h6">
               {isEditing ? 'Editar Agrupamento' : 'Adicionar Agrupamento'}
             </Typography>
           </SFlex>
@@ -239,7 +248,7 @@ export const UpsertHierarchyGroupModal = ({
               sx={{
                 p: 2,
                 textAlign: 'center',
-                backgroundColor: 'grey.50',
+                backgroundColor: 'background.default',
                 borderRadius: 1,
               }}
             >

@@ -475,6 +475,10 @@ export function GroupingAiAssistant({
         />
       )}
       <Dialog
+        PaperProps={{
+          sx: { bgcolor: 'background.paper', backgroundImage: 'none' },
+        }}
+        sx={{ '& .MuiFormHelperText-root': { color: 'text.secondary' } }}
         open={open}
         onClose={() => {
           if ((!busy || !!generationNotice) && !audioBusy) setOpen(false);
@@ -482,10 +486,12 @@ export function GroupingAiAssistant({
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>Assistente de agrupamentos de setores</DialogTitle>
+        <DialogTitle sx={{ color: 'text.primary' }}>
+          Assistente de agrupamentos de setores
+        </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={8}>
-            <Typography>
+            <Typography color="text.primary">
               Propostas por similaridade do trabalho, com atenção ao anonimato e
               à suficiência das respostas. Nada é salvo antes da sua revisão.
             </Typography>
@@ -592,7 +598,7 @@ export function GroupingAiAssistant({
                         }
                         helperText="Descreva atividades, gestão, turnos e diferenças relevantes entre os setores. Você pode escrever ou gravar um áudio e revisar a transcrição. Evite nomes ou dados pessoais de empregados. As informações serão tratadas como contexto declarado."
                       />
-                      <Typography variant="body2">
+                      <Typography color="text.primary" variant="body2">
                         A IA recebe a estrutura, descrições de cargos,
                         caracterizações disponíveis e contagens agregadas. Não
                         recebe respostas individuais nem scores. O mínimo de
@@ -623,7 +629,7 @@ export function GroupingAiAssistant({
                   )}
                   {result && current && (
                     <>
-                      <Typography variant="caption">
+                      <Typography color="text.primary" variant="caption">
                         Modelo solicitado: {result.metadata.requestedModel}
                         {result.metadata.returnedModel
                           ? ` · Retornado: ${result.metadata.returnedModel}`
@@ -715,6 +721,7 @@ export function GroupingAiAssistant({
                             }}
                           >
                             <Typography
+                              color="text.primary"
                               component="summary"
                               sx={{
                                 cursor: 'pointer',
@@ -762,6 +769,7 @@ export function GroupingAiAssistant({
                                   }}
                                 >
                                   <Typography
+                                    color="text.primary"
                                     component="summary"
                                     sx={{
                                       cursor: 'pointer',
@@ -874,6 +882,7 @@ export function GroupingAiAssistant({
                                       />
                                     </Stack>
                                     <Typography
+                                      color="text.primary"
                                       variant="subtitle2"
                                       fontWeight={700}
                                       mb={4}
@@ -895,6 +904,7 @@ export function GroupingAiAssistant({
                                           }}
                                         >
                                           <Typography
+                                            color="text.primary"
                                             component="summary"
                                             sx={{
                                               cursor: 'pointer',
@@ -954,6 +964,7 @@ export function GroupingAiAssistant({
                                             <HierarchyLabel text={label(id)} />
                                           </Typography>
                                           <Typography
+                                            color="text.primary"
                                             variant="body2"
                                             sx={{ ml: 8, mt: 2 }}
                                           >
@@ -978,6 +989,7 @@ export function GroupingAiAssistant({
                                       }}
                                     >
                                       <Typography
+                                        color="text.primary"
                                         component="summary"
                                         variant="subtitle2"
                                         sx={{
@@ -994,6 +1006,7 @@ export function GroupingAiAssistant({
                                           sx={{ my: 4, ml: 8 }}
                                         >
                                           <Typography
+                                            color="text.primary"
                                             variant="caption"
                                             fontWeight={700}
                                           >
@@ -1003,6 +1016,7 @@ export function GroupingAiAssistant({
                                           </Typography>
                                           {e.sourceIds.map((id) => (
                                             <Typography
+                                              color="text.primary"
                                               key={id}
                                               variant="body2"
                                               sx={{
@@ -1037,7 +1051,10 @@ export function GroupingAiAssistant({
                                         },
                                       }}
                                     >
-                                      <Typography variant="body2">
+                                      <Typography
+                                        color="text.primary"
+                                        variant="body2"
+                                      >
                                         <Box
                                           component="strong"
                                           sx={{ fontWeight: 800 }}
@@ -1069,6 +1086,7 @@ export function GroupingAiAssistant({
                                         )}
                                         {g.adjusted && (
                                           <Typography
+                                            color="text.primary"
                                             component="span"
                                             variant="body2"
                                             sx={{ mt: 4, display: 'block' }}
@@ -1086,7 +1104,11 @@ export function GroupingAiAssistant({
                                         )}
                                       </Typography>
                                       {g.requiresContextConfirmation && (
-                                        <Typography variant="body2" mt={4}>
+                                        <Typography
+                                          color="text.primary"
+                                          variant="body2"
+                                          mt={4}
+                                        >
                                           A evidência disponível é parcial.
                                           Confira atividades efetivas, gestão,
                                           jornada e condições de trabalho antes
@@ -1094,7 +1116,11 @@ export function GroupingAiAssistant({
                                         </Typography>
                                       )}
                                       {g.uncertainties.length > 0 && (
-                                        <Typography variant="body2" mt={4}>
+                                        <Typography
+                                          color="text.primary"
+                                          variant="body2"
+                                          mt={4}
+                                        >
                                           <Box
                                             component="strong"
                                             sx={{ fontWeight: 700 }}
@@ -1199,6 +1225,7 @@ export function GroupingAiAssistant({
                         }}
                       >
                         <Typography
+                          color="text.primary"
                           component="summary"
                           sx={{
                             cursor: 'pointer',
@@ -1212,7 +1239,7 @@ export function GroupingAiAssistant({
                         </Typography>
                         <Box mt={8}>
                           {!current.ungrouped.length && (
-                            <Typography>
+                            <Typography color="text.primary">
                               Nenhum setor nesta condição.
                             </Typography>
                           )}
@@ -1223,6 +1250,7 @@ export function GroupingAiAssistant({
                               sx={{ mb: 6 }}
                             >
                               <Typography
+                                color="text.primary"
                                 component="summary"
                                 sx={{
                                   cursor: 'pointer',
@@ -1239,7 +1267,10 @@ export function GroupingAiAssistant({
                               >
                                 <HierarchyLabel text={label(u.hierarchyId)} />
                               </Typography>
-                              <Typography sx={{ ml: 8, mt: 2 }}>
+                              <Typography
+                                color="text.primary"
+                                sx={{ ml: 8, mt: 2 }}
+                              >
                                 {u.reason}
                               </Typography>
                             </Box>
@@ -1257,6 +1288,7 @@ export function GroupingAiAssistant({
                           }}
                         >
                           <Typography
+                            color="text.primary"
                             component="summary"
                             fontWeight={700}
                             sx={{ cursor: 'pointer', ml: 8 }}
@@ -1265,7 +1297,7 @@ export function GroupingAiAssistant({
                             {current.questions.length})
                           </Typography>
                           {current.questions.map((q, i) => (
-                            <Typography key={i}>
+                            <Typography color="text.primary" key={i}>
                               {i + 1}. {q}
                             </Typography>
                           ))}
@@ -1289,7 +1321,7 @@ export function GroupingAiAssistant({
               sx={{ width: '100%' }}
             >
               <CircularProgress size={20} />
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 {applying
                   ? 'Criando agrupamentos e atualizando os indicadores… Aguarde.'
                   : refining
@@ -1346,21 +1378,25 @@ export function GroupingAiAssistant({
         </DialogActions>
       </Dialog>
       <Dialog
+        PaperProps={{
+          sx: { bgcolor: 'background.paper', backgroundImage: 'none' },
+        }}
+        sx={{ '& .MuiFormHelperText-root': { color: 'text.secondary' } }}
         open={open && confirm && !!current}
         onClose={() => setConfirm(false)}
         maxWidth="sm"
         fullWidth
         aria-labelledby="grouping-confirm-title"
       >
-        <DialogTitle id="grouping-confirm-title">
+        <DialogTitle sx={{ color: 'text.primary' }} id="grouping-confirm-title">
           Confirmar criação dos agrupamentos
         </DialogTitle>
         <DialogContent dividers>
-          <Typography>
+          <Typography color="text.primary">
             Você selecionou {selected.length} agrupamento(s) em “
             {current ? MODE_LABELS[current.mode] : ''}”.
           </Typography>
-          <Typography sx={{ mt: 6 }}>
+          <Typography color="text.primary" sx={{ mt: 6 }}>
             Isso combinará dados nos indicadores e poderá alterar a
             probabilidade usada na análise dos setores. Os agrupamentos
             existentes serão preservados.

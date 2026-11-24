@@ -149,7 +149,9 @@ export function SectorPicker({
   );
   return (
     <Stack spacing={6} sx={{ minWidth: 0 }}>
-      <Typography fontWeight={700}>Localizar setores</Typography>
+      <Typography color="text.primary" fontWeight={700}>
+        Localizar setores
+      </Typography>
       <TextField
         select
         label="Exibir empresa por"
@@ -390,7 +392,7 @@ export function SectorPicker({
         }}
       >
         {!visible.length && (
-          <Typography sx={{ p: 8 }}>
+          <Typography color="text.primary" sx={{ p: 8 }}>
             Nenhum setor corresponde aos filtros.
           </Typography>
         )}
@@ -409,6 +411,7 @@ export function SectorPicker({
               {order === 'structure' &&
                 (!previous || rootKey(o) !== rootKey(previous)) && (
                   <Typography
+                    color="text.primary"
                     sx={{ px: 6, py: 4, bgcolor: 'action.hover' }}
                     fontWeight={700}
                   >
@@ -432,7 +435,7 @@ export function SectorPicker({
                 }
                 label={
                   <Box>
-                    <Typography fontWeight={650}>
+                    <Typography color="text.primary" fontWeight={650}>
                       <HierarchyLabel text={`Setor: ${o.name}`} />
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -441,7 +444,7 @@ export function SectorPicker({
                       />
                     </Typography>
                     {o.participantCount != null && (
-                      <Typography variant="caption">
+                      <Typography color="text.primary" variant="caption">
                         {o.participantCount} participante(s)
                         {o.respondentCount != null
                           ? ` · ${o.respondentCount} respondente(s)`

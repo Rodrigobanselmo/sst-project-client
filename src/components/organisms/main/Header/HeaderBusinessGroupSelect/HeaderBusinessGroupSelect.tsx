@@ -23,6 +23,7 @@ export function HeaderBusinessGroupSelect(): JSX.Element | null {
       sx={{
         cursor: 'default',
         ...documentsHeaderChipShellSx,
+        borderRadius: '999px',
         maxWidth: 220,
       }}
       onClick={(e) => e.stopPropagation()}

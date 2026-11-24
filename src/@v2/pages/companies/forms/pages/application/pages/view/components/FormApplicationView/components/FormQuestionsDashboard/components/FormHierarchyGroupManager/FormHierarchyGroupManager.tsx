@@ -226,7 +226,12 @@ export const FormHierarchyGroupManager = ({
     <Box sx={{ p: 3 }}>
       <SFlex justifyContent="space-between" alignItems="center" mb={4}>
         <Box>
-          <Typography variant="h5" fontWeight={600} gutterBottom>
+          <Typography
+            color="text.primary"
+            variant="h5"
+            fontWeight={600}
+            gutterBottom
+          >
             Agrupamentos de Setores
           </Typography>
           <Typography variant="body2" color="text.secondary">

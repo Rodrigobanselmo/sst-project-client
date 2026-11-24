@@ -41,10 +41,10 @@ export const HierarchyGroupsTable = ({
         sx={{
           p: 8,
           textAlign: 'center',
-          backgroundColor: 'grey.50',
+          backgroundColor: 'background.default',
           borderRadius: 2,
           border: '1px dashed',
-          borderColor: 'grey.300',
+          borderColor: 'divider',
         }}
       >
         <SText color="text.secondary" fontSize={16}>
@@ -61,7 +61,7 @@ export const HierarchyGroupsTable = ({
     <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
       <Table>
         <TableHead>
-          <TableRow sx={{ backgroundColor: 'grey.50' }}>
+          <TableRow sx={{ backgroundColor: 'background.default' }}>
             <TableCell width="25%">
               <SText fontWeight={600}>Nome do Grupo</SText>
             </TableCell>
@@ -82,7 +82,7 @@ export const HierarchyGroupsTable = ({
               key={group.id}
               sx={{
                 '&:hover': {
-                  backgroundColor: 'grey.50',
+                  backgroundColor: 'action.hover',
                 },
               }}
             >
