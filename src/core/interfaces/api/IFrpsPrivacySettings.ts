@@ -9,7 +9,7 @@ export type IFrpsPrivacySettings = {
   canEdit: boolean;
   restrictParticipantIdentity?: boolean;
   participantGrants?: FrpsParticipantGrant[];
-  eligibleUsers?: { userId:number; name:string; email:string }[];
+  eligibleUsers?: { userId:number; name:string; email:string; medicalRegistration?: {councilType:string;councilUF:string;councilId:string}|null }[];
 };
 
 export type IUpdateFrpsPrivacySettings = {

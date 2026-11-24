@@ -1,3 +1,4 @@
+import { individualPanelUrl } from '../../../../../clinical/ClinicalParticipantsTable';
 import { stripHtmlForDisplay } from '../FormQuestionsDashboard/components/FormRisksAnalysis/frps-explainability/strip-html-for-display.util';
 import { useQuery } from 'react-query';
 import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Typography, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
@@ -38,7 +39,9 @@ export function RestrictedParticipantView({companyId,applicationId,formApplicati
 type AnswerResult={employee:{id:number;name:string};submissions:{id:string;createdAt:string;status:string;answers:{id:string;question:string;value:string|null;options:string[]}[]}[]};
 export function ParticipantAnswersDialog({companyId,applicationId,employee,onClose}:{companyId:string;applicationId:string;employee:{id:number;name:string}|null;onClose:()=>void}){
   const query=useQuery<AnswerResult>(['frps-individual-answers',companyId,applicationId,employee?.id],async()=>(await api.get(`${participantPrivacyPath(companyId,applicationId)}/${employee!.id}/answers`)).data,{enabled:!!employee,retry:false,cacheTime:0,staleTime:0});
-  return <Dialog open={!!employee} onClose={onClose} maxWidth="md" fullWidth><DialogTitle>Respostas individuais — {employee?.name}</DialogTitle><DialogContent>
+  return <Dialog open={!!employee} onClose={onClose} maxWidth="md" fullWidth><DialogTitle>Respostas individuais — {employee?.name}
+    {employee && <Button component="a" href={individualPanelUrl(companyId,applicationId,employee.id)} target="_blank" rel="noopener noreferrer" variant="contained" sx={{display:'block',mt:4,width:'fit-content'}}>Abrir painel individual</Button>}
+    </DialogTitle><DialogContent>
     <Alert severity="warning" sx={{mb:6}}><Typography fontWeight={600} sx={{mb:3}}>Acesso individual sob sigilo profissional</Typography>
       <Typography variant="body2">Esta visualização exige autorização específica da empresa e destina-se ao médico do trabalho responsável, para finalidade assistencial e de proteção à saúde do trabalhador. As informações são confidenciais: utilize apenas o necessário para essa finalidade e preserve o sigilo perante gestores e terceiros.</Typography>
       <Typography variant="body2" sx={{mt:3}}>A LGPD (art. 11, II, “f”) prevê o tratamento indispensável à tutela da saúde em procedimentos realizados por profissionais ou serviços de saúde. O Código de Ética Médica (Resolução CFM nº 2.217/2018, arts. 73 e 76) estabelece os deveres de sigilo. A permissão no sistema não substitui a verificação da finalidade, da base legal e da responsabilidade profissional em cada caso.</Typography>

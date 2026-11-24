@@ -1,3 +1,4 @@
+import { ProfessionalDocuments } from '../ProfessionalDocuments';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
@@ -140,6 +141,7 @@ export const ModalProfessionalStep = ({
         </SFlex>
       )}
 
+      {!professionalData.simpleAdd && <ProfessionalDocuments professionalId={professionalData.id} companyId={professionalData.companyId} professionalName={professionalData.name} professionalEmail={professionalData.email} />}
       <RadioForm
         name="type"
         label="Profissão*"

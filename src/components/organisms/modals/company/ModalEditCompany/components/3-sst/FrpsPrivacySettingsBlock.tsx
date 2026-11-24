@@ -287,12 +287,20 @@ export function FrpsPrivacySettingsBlock({ companyId, onPrivacySaved, saveRef }:
                 <InputLabel id={`frps-grant-${user.userId}`}>Nível de acesso</InputLabel>
                 <Select labelId={`frps-grant-${user.userId}`} label="Nível de acesso" value={grant.level} onChange={e=>setGrant(user.userId,e.target.value as FrpsParticipantGrant['level'])}>
                   <MenuItem value="IDENTITY">Identificação e participação</MenuItem>
-                  <MenuItem value="ANSWERS">Acesso completo às respostas individuais</MenuItem>
+                  <MenuItem value="ANSWERS" disabled={!user.medicalRegistration}>Acesso completo às respostas individuais</MenuItem>
                 </Select>
               </FormControl>}
+              {grant && !user.medicalRegistration && <Box sx={{flexBasis:'100%'}}>
+                <Typography variant="caption" color="warning.main">Para acesso individual, vincule o usuário a um cadastro de médico ativo com CRM e UF. CPF e anexo não são exigidos.</Typography>
+                {isMaster && companyId && <Box mt={2}>
+                  <Button component="a" href={`/dashboard/empresas/${encodeURIComponent(companyId)}/profissionais/todos`} target="_blank" rel="noopener noreferrer" size="small">Abrir cadastros profissionais para vincular</Button>
+                  <Typography display="block" variant="caption" color="text.secondary">Abra o cadastro do médico e, em “Conta de acesso deste profissional e documentos”, selecione a conta de {user.name} e confirme que ela pertence ao profissional. Depois, volte a esta tela e selecione o acesso completo.</Typography>
+                </Box>}
+              </Box>}
+              {grant && user.medicalRegistration && <Typography variant="caption">CRM-{user.medicalRegistration.councilUF} {user.medicalRegistration.councilId} · informado no cadastro</Typography>}
             </Box>;
           })}
-          <Typography variant="body2" mt={4}>Identificação e participação permite ver quem respondeu. Acesso completo também permite consultar todas as respostas identificadas de cada empregado, independentemente do perfil do usuário. Sem usuários selecionados, ninguém terá acesso nominal.</Typography>
+          <Typography variant="body2" mt={4}>Identificação e participação permite ver quem respondeu. Acesso completo também permite consultar todas as respostas identificadas de cada empregado, desde que haja cadastro de médico ativo com CRM e UF vinculado à conta. O registro é informado no cadastro, sem verificação automática no conselho. Sem usuários selecionados, ninguém terá acesso nominal.</Typography>
         </Box>}
       </Box>
 

@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+import { ClinicalParticipantsTable } from '../../../../../clinical/ClinicalParticipantsTable';
 import { useParticipantAccess, RestrictedParticipantView, ParticipantAnswersDialog } from './ParticipantPrivacyView';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
@@ -1111,8 +1113,13 @@ const AuthorizedFormParticipantsTable = ({
 
 export const FormParticipantsTable = (props:{companyId:string;applicationId:string;formApplication?:FormApplicationReadModel}) => {
   const access=useParticipantAccess(props.companyId,props.applicationId);
+  const [clinicalView,setClinicalView]=useState(true);
   if(access.isError) return <Alert severity="error">Não foi possível verificar a autorização de privacidade. Atualize a página para tentar novamente.</Alert>;
   if(!access.data) return <Alert severity="info">Verificando acesso aos participantes…</Alert>;
+  if(access.data.canViewIndividualAnswers) return <Box>
+    <Box sx={{display:'flex',gap:4,mb:6}}><Button variant={clinicalView?'contained':'outlined'} onClick={()=>setClinicalView(true)}>Painel individual</Button><Button variant={!clinicalView?'contained':'outlined'} onClick={()=>setClinicalView(false)}>Participação e gestão</Button></Box>
+    {clinicalView?<ClinicalParticipantsTable companyId={props.companyId} applicationId={props.applicationId}/>:access.data.canViewIdentity?<AuthorizedFormParticipantsTable {...props} canViewIndividualAnswers answerCompanyIds={access.data.answerCompanyIds}/>:<RestrictedParticipantView {...props}/>}
+  </Box>;
   if(!access.data.canViewIdentity) return <RestrictedParticipantView {...props}/>;
   return <AuthorizedFormParticipantsTable {...props} canViewIndividualAnswers={access.data.canViewIndividualAnswers} answerCompanyIds={access.data.answerCompanyIds}/>;
 };
