@@ -3,6 +3,7 @@ import MicNoneIcon from '@mui/icons-material/MicNone';
 import StopIcon from '@mui/icons-material/Stop';
 import CloseIcon from '@mui/icons-material/Close';
 import {
+  Box,
   CircularProgress,
   IconButton,
   InputAdornment,
@@ -16,6 +17,10 @@ import type { TranscribeAiAnalyzeAudioFn } from '@v2/services/security/character
 
 type Props = {
   label?: string;
+  placeholder?: string;
+  shrinkLabel?: boolean;
+  helperText?: string;
+  maxLength?: number;
   companyId: string;
   workspaceId: string;
   characterizationId?: string;
@@ -29,6 +34,10 @@ type Props = {
 
 export function AiAnalyzeGuidanceAudioField({
   label = 'Orientações adicionais para análise de riscos',
+  placeholder = 'Ex.: avaliar queda ao mar, ruído, movimentação de cargas, trabalho em altura, intempéries...',
+  shrinkLabel,
+  helperText,
+  maxLength,
   companyId,
   workspaceId,
   characterizationId,
@@ -60,7 +69,10 @@ export function AiAnalyzeGuidanceAudioField({
   return (
     <TextField
       label={label}
-      placeholder="Ex.: avaliar queda ao mar, ruído, movimentação de cargas, trabalho em altura, intempéries..."
+      placeholder={placeholder}
+      InputLabelProps={{ shrink: shrinkLabel }}
+      disabled={disabled || busy}
+      inputProps={{ maxLength }}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       multiline
@@ -70,15 +82,64 @@ export function AiAnalyzeGuidanceAudioField({
       error={Boolean(recorder.error)}
       helperText={
         recorder.error ||
-        (starting
-          ? 'Aguardando o microfone…'
-          : stopping
-            ? 'Finalizando gravação…'
-            : transcribing
-              ? 'Transcrevendo áudio…'
-              : recording
-                ? `Gravando ${recorder.durationLabel}`
-                : undefined)
+        (starting ? (
+          'Aguardando o microfone…'
+        ) : stopping ? (
+          'Finalizando gravação…'
+        ) : transcribing ? (
+          'Transcrevendo áudio…'
+        ) : recording ? (
+          <Box
+            component="span"
+            role="status"
+            aria-live="off"
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: 'error.main',
+              fontWeight: 600,
+            }}
+          >
+            <Box
+              component="span"
+              aria-hidden="true"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                height: '20px',
+                '@keyframes guidanceRecordingWave': {
+                  '0%, 100%': { transform: 'scaleY(0.25)' },
+                  '50%': { transform: 'scaleY(1)' },
+                },
+              }}
+            >
+              {[12, 18, 14, 20, 15].map((height, index) => (
+                <Box
+                  component="span"
+                  key={index}
+                  sx={{
+                    display: 'block',
+                    width: '3px',
+                    height: `${height}px`,
+                    borderRadius: '3px',
+                    backgroundColor: 'currentColor',
+                    animation:
+                      'guidanceRecordingWave 850ms ease-in-out infinite',
+                    animationDelay: `${index * -130}ms`,
+                    '@media (prefers-reduced-motion: reduce)': {
+                      animation: 'none',
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+            <Box component="span">Gravando {recorder.durationLabel}</Box>
+          </Box>
+        ) : (
+          helperText
+        ))
       }
       InputProps={{
         endAdornment: (

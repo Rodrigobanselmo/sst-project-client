@@ -1,3 +1,4 @@
+import { GroupingAiAssistant } from './components/GroupingAiAssistant';
 import AddIcon from '@mui/icons-material/Add';
 import { Box, Typography } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
@@ -228,6 +229,8 @@ export const FormHierarchyGroupManager = ({
             mas com a probabilidade calculada pelo grupo.
           </Typography>
         </Box>
+        <Box sx={{display:"flex",flexWrap:"wrap",gap:4,alignItems:"center"}}>
+        <GroupingAiAssistant companyId={accessCompanyId} applicationId={formApplication.id}/>
         <SButton
           variant="contained"
           color="primary"
@@ -235,6 +238,7 @@ export const FormHierarchyGroupManager = ({
           icon={<AddIcon />}
           onClick={handleOpenAddModal}
         />
+        </Box>
       </SFlex>
 
       <HierarchyGroupsTable
