@@ -26,7 +26,9 @@ export type Result = {
       companyId: string;
       establishment?: string;
       companyName?: string;
+  companyFantasy?: string;
       participantCount?: number;
+      hierarchyPath?: { id: string; name: string; type: string }[];
     }
   >;
   // riskId -> { id: string; name: string; type: RiskEnum; subTypes: { sub_type: { id: number; name: string } }[] }
@@ -45,10 +47,7 @@ export type Result = {
     string,
     Record<string, { values: number[]; probability: number }>
   >;
-  groupedEntityMap: Record<
-    string,
-    { id: string; name: string; type: string }
-  >;
+  groupedEntityMap: Record<string, { id: string; name: string; type: string }>;
   hierarchyGroups: Array<{ id: string; name: string; hierarchyIds: string[] }>;
   entityEstablishmentMap?: Record<string, string>;
   inventoryStatusByKey?: Record<string, boolean>;

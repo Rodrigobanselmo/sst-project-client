@@ -3,13 +3,43 @@ export type HierarchyGroupOption = {
   name: string;
   establishment?: string;
   companyName?: string;
+  companyFantasy?: string;
+  companyId?: string;
+  hierarchyPath?: { id: string; name: string; type: string }[];
   participantCount?: number;
+  respondentCount?: number;
 };
 
+export const hierarchyLevelLabels: Record<string, string> = {
+  DIRECTORY: 'Diretoria',
+  MANAGEMENT: 'Gerência',
+  SECTOR: 'Setor',
+  SUB_SECTOR: 'Subsetor',
+  OFFICE: 'Cargo',
+  SUB_OFFICE: 'Especialidade',
+};
+
+export function labeledHierarchyContext(
+  option: HierarchyGroupOption,
+  visibility = { hideCompany: false, hideEstablishment: false },
+): string[] {
+  return [
+    !visibility.hideCompany && option.companyName
+      ? `Empresa: ${option.companyName}`
+      : undefined,
+    !visibility.hideEstablishment && option.establishment
+      ? `Estabelecimento: ${option.establishment}`
+      : undefined,
+    ...(option.hierarchyPath ?? []).map(
+      (n) => `${hierarchyLevelLabels[n.type] ?? n.type}: ${n.name}`,
+    ),
+  ].filter((part): part is string => !!part);
+}
+
 function formatHierarchyWithContext(option: HierarchyGroupOption): string {
-  const context = option.establishment?.trim() || option.companyName?.trim();
-  if (!context) return option.name;
-  return `${option.name} — ${context}`;
+  return [`Setor: ${option.name}`, ...labeledHierarchyContext(option)].join(
+    ' — ',
+  );
 }
 
 function formatParticipantCountSuffix(count: number): string {
@@ -32,7 +62,10 @@ export function buildHierarchyGroupOptionLabels(
   options: HierarchyGroupOption[],
 ): Map<string, string> {
   return new Map(
-    options.map((option) => [option.id, formatHierarchyGroupOptionLabel(option)]),
+    options.map((option) => [
+      option.id,
+      formatHierarchyGroupOptionLabel(option),
+    ]),
   );
 }
 
@@ -56,7 +89,9 @@ export function sortHierarchyGroupOptionsByLabel(
     });
     if (byLabel !== 0) return byLabel;
 
-    const byName = a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' });
+    const byName = a.name.localeCompare(b.name, 'pt-BR', {
+      sensitivity: 'base',
+    });
     if (byName !== 0) return byName;
 
     return a.id.localeCompare(b.id);

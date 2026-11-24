@@ -1,3 +1,6 @@
+import { HierarchyLabel } from './HierarchyLabel';
+import { labeledHierarchyContext } from '../helpers/formatHierarchyGroupOptionLabel';
+import { ProposalInlineAdd } from './ProposalInlineAdd';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -58,17 +61,26 @@ type Coverage = {
   meetsMinimum: boolean;
   zeroResponseSectorIds: string[];
 };
+type GroupingEdit = {
+  groupIndex: number;
+  name: string;
+  hierarchyIds: string[];
+  justification: string;
+};
 type Sector = {
   id: string;
   name: string;
   companyId: string;
   companyName: string;
+  companyFantasy?: string;
   establishments: string[];
   participants: number;
   respondents: number;
+  hierarchyPath?: { id: string; name: string; type: string }[];
   sources: { id: string; text: string }[];
 };
 type Group = {
+  adjusted?: boolean;
   requiresContextConfirmation: boolean;
   name: string;
   rationale: string;
@@ -150,6 +162,10 @@ export function GroupingAiAssistant({
     [error, setError] = useState(''),
     [confirm, setConfirm] = useState(false),
     [success, setSuccess] = useState('');
+  const [edits, setEdits] = useState<Partial<Record<Mode, GroupingEdit[]>>>({});
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editError, setEditError] = useState('');
+  const [refining, setRefining] = useState(false);
   const base = `v2/companies/${companyId}/forms/applications/${applicationId}/hierarchy-groups/ai`;
   const query = useQuery<Context>({
     queryKey: ['grouping-ai-context', companyId, applicationId],
@@ -162,6 +178,8 @@ export function GroupingAiAssistant({
   });
   useEffect(() => {
     setResult(null);
+    setEdits({});
+    setEditIndex(null);
     setSelected([]);
     setConfirmed([]);
     setNotes('');
@@ -175,7 +193,13 @@ export function GroupingAiAssistant({
   const label = (id: string) => {
     const s = sector(id);
     return s
-      ? `${s.companyName} · ${s.establishments.join(', ') || 'Estabelecimento não informado'} · ${s.name}`
+      ? [
+          ...labeledHierarchyContext({
+            ...s,
+            establishment: s.establishments.join(', ') || 'Não informado',
+          }),
+          `Setor: ${s.name}`,
+        ].join(' → ')
       : id;
   };
   async function generate() {
@@ -184,6 +208,8 @@ export function GroupingAiAssistant({
     setError('');
     setSuccess('');
     setResult(null);
+    setEdits({});
+    setEditIndex(null);
     setSelected([]);
     setConfirmed([]);
     try {
@@ -205,8 +231,79 @@ export function GroupingAiAssistant({
       setBusy(false);
     }
   }
+  async function saveRefinement(
+    value: {
+      name: string;
+      hierarchyIds: string[];
+      justification: string;
+    },
+    targetIndex: number | null = editIndex,
+  ) {
+    if (!result || !current || targetIndex == null || busy) return false;
+    const next = new Map(
+      (edits[current.mode] ?? []).map((e) => [e.groupIndex, e]),
+    );
+    next.set(targetIndex, { groupIndex: targetIndex, ...value });
+    current.groups.forEach((g, index) => {
+      if (index === targetIndex) return;
+      const ids = g.hierarchyIds.filter(
+        (id) => !value.hierarchyIds.includes(id),
+      );
+      if (ids.length !== g.hierarchyIds.length)
+        next.set(index, {
+          groupIndex: index,
+          name: g.name,
+          hierarchyIds: ids,
+          justification:
+            `Transferência manual de setor(es) para a proposta ${value.name}. A composição restante deve ter sua similaridade conferida novamente.`.slice(
+              0,
+              450,
+            ),
+        });
+    });
+    setBusy(true);
+    setRefining(true);
+    setEditIndex(targetIndex);
+    setSelected([]);
+    setConfirmed([]);
+    setEditError('');
+    try {
+      const response = await api.post<Alternative>(
+        `${base}/preview`,
+        {
+          mode: current.mode,
+          contextVersion: result.contextVersion,
+          notes: result.notes,
+          proposal: result.proposal,
+          edits: [...next.values()],
+          selectedIndexes: [targetIndex],
+        },
+        { timeout: 30000 },
+      );
+      setResult({
+        ...result,
+        alternatives: result.alternatives.map((a, i) =>
+          i === alternative ? response.data : a,
+        ),
+      });
+      setEdits((old) => ({ ...old, [current.mode]: [...next.values()] }));
+      setSelected([]);
+      setConfirmed([]);
+      setConfirm(false);
+      setEditIndex(null);
+      setError('');
+      return true;
+    } catch (e) {
+      setEditError(errorMessage(e));
+      setError(errorMessage(e));
+      return false;
+    } finally {
+      setBusy(false);
+      setRefining(false);
+    }
+  }
   async function apply() {
-    if (!result || !current || busy) return;
+    if (!result || !current || busy || editError) return;
     setConfirm(false);
     setApplying(true);
     setBusy(true);
@@ -221,6 +318,7 @@ export function GroupingAiAssistant({
           proposal: result.proposal,
           selectedIndexes: selected,
           confirmedIndexes: confirmed,
+          edits: edits[current.mode] ?? [],
         },
         { timeout: 90000 },
       );
@@ -337,6 +435,7 @@ export function GroupingAiAssistant({
                             disabled={busy || audioBusy}
                             onClick={() => {
                               setResult(ctx.lastProposal!);
+                              setEdits({});
                               setAlternative(0);
                               setSelected([]);
                               setConfirmed([]);
@@ -380,7 +479,7 @@ export function GroupingAiAssistant({
                       <AiAnalyzeGuidanceAudioField
                         label="Contexto de trabalho e esclarecimentos (opcional)"
                         shrinkLabel
-                        placeholder="Exemplo: Os setores de recepção dos dois hotéis realizam as mesmas atividades e trabalham em turnos semelhantes, mas têm gestores diferentes. Confira se essa diferença permite agrupá-los."
+                        placeholder="Exemplo: Os setores A e B realizam atividades semelhantes, mas têm gestores e turnos diferentes. O setor C tem o mesmo gestor do setor A, porém realiza atividades distintas. Considere essas diferenças ao sugerir os agrupamentos."
                         companyId={companyId}
                         workspaceId=""
                         transcribe={transcribeGroupingContext}
@@ -423,7 +522,9 @@ export function GroupingAiAssistant({
                     <Alert severity="info">
                       {applying
                         ? 'Gravando os agrupamentos selecionados e atualizando os indicadores.'
-                        : 'Processando. A análise pode levar alguns minutos; aguarde a conclusão.'}
+                        : refining
+                          ? 'Validando a composição ajustada…'
+                          : 'Processando. A análise pode levar alguns minutos; aguarde a conclusão.'}
                     </Alert>
                   )}
                   {result && current && (
@@ -595,6 +696,61 @@ export function GroupingAiAssistant({
                                   <Box sx={{ px: { xs: 6, sm: 8 }, pb: 8 }}>
                                     <Stack
                                       direction="row"
+                                      spacing={4}
+                                      sx={{ mb: 6 }}
+                                    >
+                                      <ProposalInlineAdd
+                                        index={index}
+                                        groups={current.groups}
+                                        sectors={ctx?.availableSectors ?? []}
+                                        mode={current.mode}
+                                        busy={busy}
+                                        onAdd={(s) =>
+                                          saveRefinement(
+                                            {
+                                              name: g.name,
+                                              hierarchyIds: [
+                                                ...g.hierarchyIds,
+                                                s.id,
+                                              ],
+                                              justification:
+                                                `Inclusão manual do setor ${s.name}. A similaridade do contexto de trabalho deve ser conferida na composição ajustada.`.slice(
+                                                  0,
+                                                  450,
+                                                ),
+                                            },
+                                            index,
+                                          )
+                                        }
+                                      />
+                                      {editIndex === index && editError && (
+                                        <Alert
+                                          severity="error"
+                                          sx={{ width: '100%' }}
+                                        >
+                                          O ajuste não foi aplicado: {editError}
+                                          <Button
+                                            onClick={() => {
+                                              setEditError('');
+                                              setError('');
+                                              setEditIndex(null);
+                                              setSelected([]);
+                                              setConfirmed([]);
+                                            }}
+                                          >
+                                            Manter composição anterior
+                                          </Button>
+                                        </Alert>
+                                      )}
+                                      {g.adjusted && (
+                                        <Chip
+                                          label="Ajustado pelo usuário"
+                                          color="info"
+                                        />
+                                      )}
+                                    </Stack>
+                                    <Stack
+                                      direction="row"
                                       flexWrap="wrap"
                                       gap={4}
                                       mb={8}
@@ -653,14 +809,55 @@ export function GroupingAiAssistant({
                                               fontWeight: 650,
                                             }}
                                           >
-                                            {sector(id)?.name ?? id}
+                                            <HierarchyLabel
+                                              text={`Setor: ${sector(id)?.name ?? id}`}
+                                            />
+                                            <Button
+                                              size="small"
+                                              disabled={
+                                                busy ||
+                                                g.hierarchyIds.length <= 2
+                                              }
+                                              title={
+                                                g.hierarchyIds.length <= 2
+                                                  ? 'A proposta precisa manter ao menos dois setores.'
+                                                  : 'Retirar setor desta proposta'
+                                              }
+                                              sx={{
+                                                ml: 4,
+                                                fontWeight: 400,
+                                                textTransform: 'none',
+                                              }}
+                                              onClick={(event) => {
+                                                event.preventDefault();
+                                                event.stopPropagation();
+                                                void saveRefinement(
+                                                  {
+                                                    name: g.name,
+                                                    hierarchyIds:
+                                                      g.hierarchyIds.filter(
+                                                        (member) =>
+                                                          member !== id,
+                                                      ),
+                                                    justification:
+                                                      `Retirada manual do setor ${sector(id)?.name ?? id}. A similaridade do contexto de trabalho deve ser conferida na composição ajustada.`.slice(
+                                                        0,
+                                                        450,
+                                                      ),
+                                                  },
+                                                  index,
+                                                );
+                                              }}
+                                            >
+                                              Retirar setor
+                                            </Button>
                                           </Typography>
                                           <Typography
                                             variant="body2"
                                             color="text.secondary"
                                             sx={{ ml: 8, mt: 2 }}
                                           >
-                                            {label(id)}
+                                            <HierarchyLabel text={label(id)} />
                                           </Typography>
                                           <Typography
                                             variant="body2"
@@ -706,7 +903,9 @@ export function GroupingAiAssistant({
                                             variant="caption"
                                             fontWeight={700}
                                           >
-                                            {label(e.hierarchyId)}
+                                            <HierarchyLabel
+                                              text={label(e.hierarchyId)}
+                                            />
                                           </Typography>
                                           {e.sourceIds.map((id) => (
                                             <Typography
@@ -749,9 +948,48 @@ export function GroupingAiAssistant({
                                           component="strong"
                                           sx={{ fontWeight: 800 }}
                                         >
-                                          Hipótese de agrupamento:{' '}
+                                          {g.adjusted
+                                            ? 'Justificativa do ajuste: '
+                                            : 'Hipótese de agrupamento: '}
                                         </Box>
                                         {g.rationale}
+                                        {editIndex === index && editError && (
+                                          <Alert
+                                            severity="error"
+                                            sx={{ width: '100%' }}
+                                          >
+                                            O ajuste não foi aplicado:{' '}
+                                            {editError}
+                                            <Button
+                                              onClick={() => {
+                                                setEditError('');
+                                                setError('');
+                                                setEditIndex(null);
+                                                setSelected([]);
+                                                setConfirmed([]);
+                                              }}
+                                            >
+                                              Manter composição anterior
+                                            </Button>
+                                          </Alert>
+                                        )}
+                                        {g.adjusted && (
+                                          <Typography
+                                            component="span"
+                                            variant="body2"
+                                            sx={{ mt: 4, display: 'block' }}
+                                          >
+                                            <strong>
+                                              Sugestão original da IA (anterior
+                                              ao ajuste):{' '}
+                                            </strong>
+                                            {
+                                              result.proposal.alternatives.find(
+                                                (a) => a.mode === current.mode,
+                                              )?.groups[index]?.rationale
+                                            }
+                                          </Typography>
+                                        )}
                                       </Typography>
                                       {g.requiresContextConfirmation && (
                                         <Typography variant="body2" mt={4}>
@@ -905,7 +1143,7 @@ export function GroupingAiAssistant({
                                 color="text.secondary"
                                 sx={{ ml: 8 }}
                               >
-                                {label(u.hierarchyId)}
+                                <HierarchyLabel text={label(u.hierarchyId)} />
                               </Typography>
                               <Typography sx={{ ml: 8, mt: 2 }}>
                                 {u.reason}
@@ -960,7 +1198,9 @@ export function GroupingAiAssistant({
               <Typography variant="body2">
                 {applying
                   ? 'Criando agrupamentos e atualizando os indicadores… Aguarde.'
-                  : 'Gerando propostas com IA… Aguarde.'}
+                  : refining
+                    ? 'Validando ajustes e recalculando contagens…'
+                    : 'Gerando propostas com IA… Aguarde.'}
               </Typography>
             </Stack>
           )}
@@ -995,7 +1235,7 @@ export function GroupingAiAssistant({
           {result && (
             <Button
               variant="contained"
-              disabled={busy || !selected.length || confirm}
+              disabled={busy || !!editError || !selected.length || confirm}
               onClick={() => setConfirm(true)}
             >
               {applying
@@ -1030,7 +1270,7 @@ export function GroupingAiAssistant({
           <Button onClick={() => setConfirm(false)}>Voltar à revisão</Button>
           <Button
             variant="contained"
-            disabled={busy || !selected.length}
+            disabled={busy || !!editError || !selected.length}
             onClick={() => void apply()}
           >
             Confirmar criação dos selecionados

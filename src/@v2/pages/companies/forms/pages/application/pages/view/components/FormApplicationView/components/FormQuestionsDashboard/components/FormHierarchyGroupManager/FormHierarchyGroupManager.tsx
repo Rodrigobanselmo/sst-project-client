@@ -65,6 +65,9 @@ export const FormHierarchyGroupManager = ({
       name: h.name,
       establishment: h.establishment,
       companyName: h.companyName,
+      companyFantasy: h.companyFantasy,
+      companyId: h.companyId,
+      hierarchyPath: h.hierarchyPath,
       participantCount: h.participantCount,
     }));
   }, [eligibleEntityMap]);
@@ -117,6 +120,9 @@ export const FormHierarchyGroupManager = ({
         name: source.name,
         establishment: fromEligible?.establishment,
         companyName: fromEligible?.companyName,
+        companyFantasy: fromEligible?.companyFantasy,
+        companyId: source.companyId,
+        hierarchyPath: fromEligible?.hierarchyPath,
         participantCount: fromEligible?.participantCount,
       });
     }
@@ -229,15 +235,25 @@ export const FormHierarchyGroupManager = ({
             mas com a probabilidade calculada pelo grupo.
           </Typography>
         </Box>
-        <Box sx={{display:"flex",flexWrap:"wrap",gap:4,alignItems:"center"}}>
-        <GroupingAiAssistant companyId={accessCompanyId} applicationId={formApplication.id}/>
-        <SButton
-          variant="contained"
-          color="primary"
-          text="Adicionar"
-          icon={<AddIcon />}
-          onClick={handleOpenAddModal}
-        />
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 4,
+            alignItems: 'center',
+          }}
+        >
+          <GroupingAiAssistant
+            companyId={accessCompanyId}
+            applicationId={formApplication.id}
+          />
+          <SButton
+            variant="contained"
+            color="primary"
+            text="Adicionar"
+            icon={<AddIcon />}
+            onClick={handleOpenAddModal}
+          />
         </Box>
       </SFlex>
 

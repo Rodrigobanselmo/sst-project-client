@@ -1,8 +1,14 @@
+import { HierarchyLabel } from './HierarchyLabel';
+import {
+  SectorVisibility,
+  sectorPresentationLabel,
+} from '../helpers/sector-picker.model';
+import { SectorPicker } from './SectorPicker';
+import { HierarchyGroupOption } from '../helpers/formatHierarchyGroupOptionLabel';
 import CloseIcon from '@mui/icons-material/Close';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import {
   Box,
-  Checkbox,
   Chip,
   Dialog,
   DialogActions,
@@ -14,17 +20,10 @@ import {
 } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
-import { SPopperSelectItem } from '@v2/components/organisms/SPopper/addons/SPopperSelectItem/SPopperSelectItem';
 import { useEffect, useMemo, useState } from 'react';
 import { sortHierarchyGroupOptionsByLabel } from '../helpers/formatHierarchyGroupOptionLabel';
 
-interface HierarchyOption {
-  id: string;
-  name: string;
-  establishment?: string;
-  companyName?: string;
-}
+type HierarchyOption = HierarchyGroupOption;
 
 interface UpsertHierarchyGroupModalProps {
   open: boolean;
@@ -57,6 +56,10 @@ export const UpsertHierarchyGroupModal = ({
   initialData,
   loading = false,
 }: UpsertHierarchyGroupModalProps) => {
+  const [visibility, setVisibility] = useState<SectorVisibility>({
+    hideCompany: false,
+    hideEstablishment: false,
+  });
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedHierarchyIds, setSelectedHierarchyIds] = useState<string[]>(
@@ -67,6 +70,7 @@ export const UpsertHierarchyGroupModal = ({
 
   useEffect(() => {
     if (open) {
+      setVisibility({ hideCompany: false, hideEstablishment: false });
       setName(initialData?.name || '');
       setDescription(initialData?.description || '');
       setSelectedHierarchyIds(initialData?.hierarchyIds || []);
@@ -74,7 +78,7 @@ export const UpsertHierarchyGroupModal = ({
   }, [open, initialData]);
 
   const handleSave = () => {
-    if (!name.trim() || selectedHierarchyIds.length === 0) return;
+    if (loading || !name.trim() || selectedHierarchyIds.length === 0) return;
     const trimmedDescription = description.trim();
     onSave({
       name: name.trim(),
@@ -84,6 +88,7 @@ export const UpsertHierarchyGroupModal = ({
   };
 
   const handleClose = () => {
+    if (loading) return;
     setName('');
     setDescription('');
     setSelectedHierarchyIds([]);
@@ -117,20 +122,9 @@ export const UpsertHierarchyGroupModal = ({
     ],
   );
 
-  const popperSelectedOptions = useMemo(
-    () =>
-      availableOptions.filter((option) =>
-        selectedHierarchyIds.includes(option.id),
-      ),
-    [availableOptions, selectedHierarchyIds],
-  );
-
   const getHierarchyLabel = (id: string) => {
-    return (
-      hierarchyOptionLabels.get(id) ??
-      availableHierarchies.find((h) => h.id === id)?.name ??
-      id
-    );
+    const option = availableHierarchies.find((h) => h.id === id);
+    return option ? sectorPresentationLabel(option, visibility) : id;
   };
 
   const isValid = name.trim() && selectedHierarchyIds.length > 0;
@@ -157,7 +151,7 @@ export const UpsertHierarchyGroupModal = ({
       </DialogTitle>
 
       <DialogContent dividers>
-        <SFlex sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <SFlex sx={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <TextField
             fullWidth
             label="Nome do Agrupamento"
@@ -180,51 +174,14 @@ export const UpsertHierarchyGroupModal = ({
             helperText={`${description.length}/500`}
           />
 
-          <Box>
-            <SSearchSelect
-              inputProps={{ sx: { width: '100%' } }}
-              label="Adicionar setor ao agrupamento"
-              closeOnSelect={false}
-              popperSelected={popperSelectedOptions}
-              onPopperClean={() => setSelectedHierarchyIds([])}
-              getOptionLabel={(option) =>
-                hierarchyOptionLabels.get(option.id) ?? option.name
-              }
-              getOptionValue={(option) => option?.id}
-              renderFullOption={({ option, label, isSelected, handleSelect }) => (
-                <SPopperSelectItem
-                  key={option.id}
-                  selected={isSelected}
-                  onClick={handleSelect}
-                  rerender={
-                    selectedHierarchyIds.length * 2 + (isSelected ? 1 : 0)
-                  }
-                  startAddon={
-                    <Checkbox
-                      checked={isSelected}
-                      size="small"
-                      tabIndex={-1}
-                      disableRipple
-                      sx={{
-                        p: 0,
-                        ml: 1,
-                        mr: 0.5,
-                        pointerEvents: 'none',
-                      }}
-                    />
-                  }
-                  text={label}
-                />
-              )}
-              onChange={(option) => {
-                if (!option) return;
-                toggleHierarchySelection(option.id);
-              }}
-              value={null}
-              options={availableOptions}
-              placeholder="Busque e selecione setores..."
-            />
-          </Box>
+          <SectorPicker
+            key={open ? 'open' : 'closed'}
+            options={availableOptions}
+            onVisibilityChange={setVisibility}
+            selected={selectedHierarchyIds}
+            onChange={setSelectedHierarchyIds}
+            disabled={loading}
+          />
 
           {selectedHierarchyIds.length > 0 && (
             <Box
@@ -256,11 +213,16 @@ export const UpsertHierarchyGroupModal = ({
                   return (
                     <Chip
                       key={hId}
-                      label={hierarchyName}
-                      onDelete={() => toggleHierarchySelection(hId)}
+                      label={<HierarchyLabel text={hierarchyName} />}
+                      onDelete={
+                        loading
+                          ? undefined
+                          : () => toggleHierarchySelection(hId)
+                      }
                       variant="filled"
                       sx={{
-                        height: '32px',
+                        height: 'auto',
+                        '& .MuiChip-label': { whiteSpace: 'normal', py: 3 },
                         fontSize: '14px',
                         mr: 5,
                         mt: 5,

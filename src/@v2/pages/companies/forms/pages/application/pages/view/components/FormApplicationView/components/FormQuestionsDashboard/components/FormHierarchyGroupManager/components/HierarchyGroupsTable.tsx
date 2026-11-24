@@ -1,3 +1,4 @@
+import { HierarchyLabel } from './HierarchyLabel';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {
@@ -111,7 +112,7 @@ export const HierarchyGroupsTable = ({
                   {group.hierarchyNames.map((name, index) => (
                     <Chip
                       key={group.hierarchyIds[index]}
-                      label={name}
+                      label={<HierarchyLabel text={name} />}
                       size="small"
                       variant="outlined"
                       color="primary"
