@@ -1,4 +1,6 @@
 import { Box } from '@mui/material';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import { formAccordionNavigationSx } from './form-accordion-navigation.styles';
 import { SIconEdit } from '@v2/assets/icons/SIconEdit/SIconEdit';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
@@ -39,6 +41,7 @@ export const FormApplicationInfo = ({
       sx={{ borderRadius: '24px', overflow: 'hidden', p: 0 }}
     >
       <SAccordion
+        expandIcon={<ArrowRightIcon fontSize="small" />}
         defaultExpanded={false}
         icon={
           <Box
@@ -62,6 +65,7 @@ export const FormApplicationInfo = ({
         fontWeight="600"
         accordionProps={{
           sx: (theme) => ({
+            ...formAccordionNavigationSx,
             boxShadow: 'none',
             border: 0,
             p: 0,

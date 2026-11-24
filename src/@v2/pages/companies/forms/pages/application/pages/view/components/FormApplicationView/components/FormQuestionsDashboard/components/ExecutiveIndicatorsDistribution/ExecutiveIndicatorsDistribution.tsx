@@ -55,6 +55,7 @@ export const ExecutiveIndicatorsDistributionSection = ({
           value={chartType}
           onChange={onChartTypeChange}
           label="Tipo de gráfico da distribuição geral"
+          order={['bar', 'pie', 'donut']}
         />
       </Box>
 
@@ -64,8 +65,8 @@ export const ExecutiveIndicatorsDistributionSection = ({
         sx={{ lineHeight: 1.5, mb: 4 }}
       >
         Distribuição dos indicadores calculados no recorte atual, classificados
-        conforme as faixas de qualidade. Não representa média geral nem nota única
-        da empresa.
+        conforme as faixas de qualidade. Não representa média geral nem nota
+        única da empresa.
       </Typography>
 
       {totalIndicators === 0 ? (

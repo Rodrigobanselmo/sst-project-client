@@ -7,6 +7,8 @@ import {
 } from './helpers/filterIndicatorAnswers';
 import type { ReactNode } from 'react';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import { formAccordionNavigationSx } from '../form-accordion-navigation.styles';
 import RadarIcon from '@mui/icons-material/Radar';
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -96,6 +98,10 @@ import { useAccess } from 'core/hooks/useAccess';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
 // Types for the restructured data
+const graphHierarchyAccordionProps = {
+  sx: formAccordionNavigationSx,
+};
+
 interface QuestionWithParticipantGroups {
   id: string;
   groupId: string;
@@ -681,6 +687,7 @@ export const FormQuestionsDashboard = ({
       ? selectedTab
       : initialTab;
   const isIndicatorTab = tabTableIndex === 2;
+  const isGraphsTab = tabTableIndex === 1;
   const [indicatorLevels, setIndicatorLevels] = useState<IndicatorLevels>({
     scales: true,
     dimensions: true,
@@ -699,6 +706,9 @@ export const FormQuestionsDashboard = ({
     ],
   );
   const indicatorHierarchy = isIndicatorTab ? dimensionView : null;
+  const questionDisplayHierarchy =
+    indicatorHierarchy ??
+    (isGraphsTab && isPsychosocialForm ? dimensionView : null);
   type IndicatorView = 'bars' | 'radar-scales' | 'radar-dimensions';
   const [consolidateRadar, setConsolidateRadar] = useState(false);
   const [indicatorView, setIndicatorView] = useState<IndicatorView>('bars');
@@ -724,7 +734,7 @@ export const FormQuestionsDashboard = ({
     DEFAULT_FORM_CHART_TYPE,
   );
   const [executiveDistributionChartType, setExecutiveDistributionChartType] =
-    useState<FormChartType>(DEFAULT_FORM_CHART_TYPE);
+    useState<FormChartType>('bar');
 
   // Fetch hierarchy groups for sector grouping
   const { hierarchyGroups } = useFetchBrowseHierarchyGroups({
@@ -1088,8 +1098,9 @@ export const FormQuestionsDashboard = ({
   // Create array of arrays for general questions - one array per participant group
   const generalQuestionsArrays = useMemo(() => {
     const displayGroups =
-      indicatorHierarchy?.scaleResults?.filter((group) => !group.identifier) ??
-      generalGroups;
+      questionDisplayHierarchy?.scaleResults?.filter(
+        (group) => !group.identifier,
+      ) ?? generalGroups;
     return visibleParticipantGroups.map((group) => {
       const questionsForGroup = filterQuestionsWithOptions(
         displayGroups,
@@ -1105,7 +1116,7 @@ export const FormQuestionsDashboard = ({
   }, [
     visibleParticipantGroups,
     generalGroups,
-    indicatorHierarchy,
+    questionDisplayHierarchy,
     filterQuestionsWithOptions,
   ]);
 
@@ -1288,7 +1299,6 @@ export const FormQuestionsDashboard = ({
     );
   }
 
-  const isGraphsTab = tabTableIndex === 1;
   const isTextAnswersTab = tabTableIndex === 3;
   const isRisksAnalysisTab = canAnalyzeRisks && tabTableIndex === 4;
   const isHierarchyGroupsTab = tabTableIndex === 5;
@@ -1305,12 +1315,14 @@ export const FormQuestionsDashboard = ({
               defaultExpanded={false}
               icon={<PieChartIcon sx={{ fontSize: 30 }} />}
               title="Informações de Identificação"
+              expandIcon={<ArrowRightIcon fontSize="small" />}
               color="text.primary"
               subtitle={`${identifierQuestions.length} gráfico${identifierQuestions.length === 1 ? '' : 's'}`}
               fontWeight="600"
               accordionProps={{
                 TransitionProps: { unmountOnExit: false },
                 sx: {
+                  ...formAccordionNavigationSx,
                   boxShadow: 'none',
                   '&::before': { display: 'none' },
                 },
@@ -2075,7 +2087,7 @@ export const FormQuestionsDashboard = ({
                   ) => (
                     <>
                       {/* Render each question with all its participant group variations side by side */}
-                      {!showOnlyGroupIndicators &&
+                      {(isGraphsTab || !showOnlyGroupIndicators) &&
                         groupData.questions.map(
                           (questionData: QuestionWithParticipantGroups) => (
                             <SPaper
@@ -2095,7 +2107,7 @@ export const FormQuestionsDashboard = ({
                               <SFlex
                                 gap={4}
                                 display="grid"
-                                gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
+                                gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))"
                               >
                                 {questionData.participantGroupData.map(
                                   (participantData: ParticipantGroupData) => (
@@ -2144,10 +2156,10 @@ export const FormQuestionsDashboard = ({
                   );
 
                   const groups = Object.entries(questionsByFormGroup);
-                  if (!indicatorHierarchy)
+                  if (!questionDisplayHierarchy)
                     return groups.map(([id, group]) => renderGroup(id, group));
 
-                  const dimensions = indicatorHierarchy.results.filter(
+                  const dimensions = questionDisplayHierarchy.results.filter(
                     (group) => !group.identifier,
                   );
                   const getScaleDimensions = (
@@ -2157,7 +2169,7 @@ export const FormQuestionsDashboard = ({
                     dimensions
                       .filter(
                         (group) =>
-                          indicatorHierarchy.parentGroupIds[group.id] ===
+                          questionDisplayHierarchy.parentGroupIds[group.id] ===
                           scaleId,
                       )
                       .map((group) => {
@@ -2172,6 +2184,42 @@ export const FormQuestionsDashboard = ({
                           ),
                         };
                       });
+
+                  if (isGraphsTab) {
+                    return groups.map(([id, scale]) => (
+                      <SAccordion
+                        key={`graphs-scale-${id}`}
+                        accordionProps={graphHierarchyAccordionProps}
+                        expandIcon={<ArrowRightIcon fontSize="small" />}
+                        defaultExpanded
+                        color="text.primary"
+                        title={scale.groupName}
+                      >
+                        <SAccordionBody>
+                          <Box sx={{ pl: { xs: 4, sm: 12 }, minWidth: 0 }}>
+                            {getScaleDimensions(id, scale).map((dimension) => (
+                              <SAccordion
+                                key={`graphs-dimension-${dimension.id}`}
+                                accordionProps={graphHierarchyAccordionProps}
+                                expandIcon={<ArrowRightIcon fontSize="small" />}
+                                defaultExpanded
+                                color="text.primary"
+                                title={dimension.groupName}
+                              >
+                                <SAccordionBody>
+                                  <Box
+                                    sx={{ pl: { xs: 4, sm: 12 }, minWidth: 0 }}
+                                  >
+                                    {renderQuestions(dimension)}
+                                  </Box>
+                                </SAccordionBody>
+                              </SAccordion>
+                            ))}
+                          </Box>
+                        </SAccordionBody>
+                      </SAccordion>
+                    ));
+                  }
 
                   const renderCompactGroup = (
                     id: string,

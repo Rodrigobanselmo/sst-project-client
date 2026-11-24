@@ -10,11 +10,8 @@ import {
 import { Radar } from 'react-chartjs-2';
 
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
-import { getIndicatorColorFromScore } from '../../helpers/form-indicator-quality.util';
 import {
   buildIndicatorRadarChart,
-  canDrawIndicatorRadar,
-  getScalesForDimensionRadar,
   type RadarGroup,
 } from '../../helpers/formIndicatorRadar';
 
@@ -32,30 +29,91 @@ export const ScaleIndicatorsRadar = ({
   const theme = useTheme();
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedScaleId, setSelectedScaleId] = useState('');
-  const group = groups.find(({ id }) => id === selectedGroupId) ?? groups[0];
-  const scales = byDimension
-    ? getScalesForDimensionRadar(group)
-    : (group?.scales ?? []);
+  const allGroups = !groups.some(({ id }) => id === selectedGroupId);
+  const visibleGroups = allGroups
+    ? groups
+    : groups.filter(({ id }) => id === selectedGroupId);
+  const group = visibleGroups[0];
+  const availableGroups = visibleGroups.filter((item) => !item.protected);
+  const scales = Array.from(
+    new Map(
+      availableGroups
+        .flatMap((item) => item.scales)
+        .map((scale) => [scale.id, scale]),
+    ).values(),
+  );
   const selectedScale =
     scales.find(({ id }) => id === selectedScaleId) ?? scales[0];
-  const points = byDimension ? (selectedScale?.dimensions ?? []) : scales;
-  const hasValues = points.some((point) => point.hasValidAnswers);
-  const canDrawRadar = canDrawIndicatorRadar(points, byDimension);
-  const color =
-    theme.palette.mode === 'dark'
-      ? theme.palette.primary.light
-      : theme.palette.primary.dark;
+  const pointsFor = (item: RadarGroup) =>
+    byDimension
+      ? (item.scales.find(({ id }) => id === selectedScale?.id)?.dimensions ??
+        [])
+      : item.scales;
+  const points = Array.from(
+    new Map(
+      availableGroups.flatMap(pointsFor).map((point) => [point.id, point]),
+    ).values(),
+  );
+  const hasValues = availableGroups.some((item) =>
+    pointsFor(item).some((point) => point.hasValidAnswers),
+  );
+  const canDrawRadar = availableGroups.some(
+    (item) =>
+      pointsFor(item).filter((point) => point.hasValidAnswers).length >= 3,
+  );
+  const palette = [
+    '#42a5f5',
+    '#ffb74d',
+    '#ab87ff',
+    '#26c6da',
+    '#ef77a7',
+    '#66bb6a',
+    '#ef5350',
+    '#a5b440',
+  ];
+  const groupColor = (id: string) =>
+    palette[
+      Math.max(
+        0,
+        groups.findIndex((item) => item.id === id),
+      ) % palette.length
+    ];
   const textColor = theme.palette.text.primary;
   const chart = buildIndicatorRadarChart(points, {
-    color,
+    color: groupColor(group?.id ?? ''),
     textColor,
     gridColor: alpha(textColor, 0.24),
     paperColor: theme.palette.background.paper,
   });
+  chart.data.datasets = availableGroups.map((item) => {
+    const alignedPoints = points.map(
+      (axis) =>
+        pointsFor(item).find((point) => point.id === axis.id) ?? {
+          ...axis,
+          hasValidAnswers: false,
+        },
+    );
+    const dataset = buildIndicatorRadarChart(alignedPoints, {
+      color: groupColor(item.id),
+      textColor,
+      gridColor: alpha(textColor, 0.24),
+      paperColor: theme.palette.background.paper,
+    }).data.datasets[0];
+    return {
+      ...dataset,
+      label: item.name,
+      pointBackgroundColor: groupColor(item.id),
+    };
+  });
+  chart.options.plugins!.tooltip = {
+    callbacks: { label: ({ dataset, raw }) => `${dataset.label}: ${raw}%` },
+  };
 
   return (
-    <SPaper sx={{ p: { xs: 6, sm: 10 }, borderRadius: 3 }}>
-      <Typography variant="h5" fontWeight={700}>
+    <SPaper
+      sx={{ p: { xs: 6, sm: 10 }, borderRadius: 3, color: 'text.primary' }}
+    >
+      <Typography variant="h5" fontWeight={700} color="text.primary">
         {byDimension ? 'Radar por dimensões' : 'Radar por escalas'}
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 6 }}>
@@ -90,10 +148,11 @@ export const ScaleIndicatorsRadar = ({
           select
           label="Grupo de participantes"
           size="small"
-          value={group.id}
+          value={allGroups ? '' : selectedGroupId}
           onChange={(event) => setSelectedGroupId(event.target.value)}
           sx={{ mb: 6, width: '100%', maxWidth: 360 }}
         >
+          <MenuItem value="">Todos os grupos (comparar)</MenuItem>
           {groups.map(({ id, name }) => (
             <MenuItem key={id} value={id}>
               {name}
@@ -122,7 +181,7 @@ export const ScaleIndicatorsRadar = ({
           ))}
         </TextField>
       )}
-      {group?.protected ? (
+      {availableGroups.length === 0 ? (
         <Typography variant="body2">
           Dados protegidos para este grupo.
         </Typography>
@@ -164,61 +223,101 @@ export const ScaleIndicatorsRadar = ({
             </Box>
           )}
           <Box
-            component="ul"
             sx={{
-              display: 'grid',
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(2, minmax(0, 1fr))',
-              },
-              listStyle: 'none',
-              p: 0,
-              m: 0,
-              gap: 3,
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: 8,
+              mb: 8,
             }}
           >
-            {points.map(({ id, name, percentage, score, hasValidAnswers }) => (
+            {visibleGroups.map((item) => (
               <Box
-                key={id}
+                key={item.id}
+                sx={{ display: 'flex', alignItems: 'center', gap: 3 }}
+              >
+                <Box
+                  aria-hidden
+                  sx={{ width: 24, height: 6, bgcolor: groupColor(item.id) }}
+                />
+                <Typography color="text.primary">
+                  {item.name}
+                  {item.protected ? ' — Dados protegidos' : ''}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
+            {points.map((axis) => (
+              <Box
                 component="li"
+                key={axis.id}
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 3,
                   borderBottom: '1px solid',
                   borderColor: 'divider',
-                  py: 2,
+                  py: 6,
                 }}
               >
-                <Typography variant="body1">{name}</Typography>
                 <Typography
-                  component="span"
-                  variant="body1"
+                  color="text.primary"
                   fontWeight={700}
-                  color={hasValidAnswers ? 'text.primary' : 'text.secondary'}
-                  sx={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 3,
-                    flexShrink: 0,
-                  }}
+                  sx={{ mb: 4 }}
                 >
-                  {hasValidAnswers && (
-                    <Box
-                      component="span"
-                      aria-hidden
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        border: '1px solid',
-                        borderColor: 'text.primary',
-                        bgcolor: getIndicatorColorFromScore(score),
-                      }}
-                    />
-                  )}
-                  {hasValidAnswers ? `${percentage}%` : 'Sem respostas válidas'}
+                  {axis.name}
                 </Typography>
+                {availableGroups.map((item) => {
+                  const point = pointsFor(item).find(
+                    ({ id }) => id === axis.id,
+                  );
+                  const valid = point?.hasValidAnswers;
+                  return (
+                    <Box
+                      key={item.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 4,
+                        mb: 3,
+                      }}
+                    >
+                      <Typography
+                        color="text.primary"
+                        sx={{ width: { xs: '100%', sm: 160 } }}
+                      >
+                        {item.name}
+                      </Typography>
+                      <Box
+                        sx={{
+                          flex: 1,
+                          minWidth: 80,
+                          height: 10,
+                          borderRadius: 2,
+                          bgcolor: 'action.disabledBackground',
+                        }}
+                      >
+                        {valid && (
+                          <Box
+                            sx={{
+                              width: `${point.percentage}%`,
+                              height: '100%',
+                              borderRadius: 2,
+                              bgcolor: groupColor(item.id),
+                            }}
+                          />
+                        )}
+                      </Box>
+                      <Typography
+                        color={valid ? 'text.primary' : 'text.secondary'}
+                        fontWeight={700}
+                      >
+                        {valid
+                          ? `${point.percentage}%`
+                          : 'Sem respostas válidas'}
+                      </Typography>
+                    </Box>
+                  );
+                })}
               </Box>
             ))}
           </Box>

@@ -60,7 +60,7 @@ export function CombinedIdentificationFilters({
     ? grouping.selectedIds.length
     : Object.values(value).filter((v) => v.length).length;
   const title = grouping
-    ? 'Agrupar por perguntas de identificação (combinar)'
+    ? 'Agrupar por perguntas de identificação (comparar)'
     : 'Filtrar por perguntas de identificação (combinar)';
   const clear = () => (grouping ? grouping.onClear() : onChange({}));
   return (

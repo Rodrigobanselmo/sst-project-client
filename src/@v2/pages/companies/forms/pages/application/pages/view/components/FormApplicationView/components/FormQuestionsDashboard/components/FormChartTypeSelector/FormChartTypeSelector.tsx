@@ -18,13 +18,20 @@ type FormChartTypeSelectorProps = {
   value: FormChartType;
   onChange: (value: FormChartType) => void;
   label?: string;
+  order?: readonly FormChartType[];
 };
 
 export const FormChartTypeSelector = ({
   value,
   onChange,
   label = 'Tipo de gráfico',
+  order,
 }: FormChartTypeSelectorProps) => {
+  const options = order
+    ? [...FORM_CHART_TYPE_OPTIONS].sort(
+        (a, b) => order.indexOf(a.value) - order.indexOf(b.value),
+      )
+    : FORM_CHART_TYPE_OPTIONS;
   return (
     <ToggleButtonGroup
       exclusive
@@ -46,7 +53,7 @@ export const FormChartTypeSelector = ({
         },
       })}
     >
-      {FORM_CHART_TYPE_OPTIONS.map((option) => (
+      {options.map((option) => (
         <ToggleButton key={option.value} value={option.value}>
           {CHART_TYPE_ICONS[option.value]}
           <Typography component="span" variant="body2">
