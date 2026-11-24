@@ -1,3 +1,6 @@
+import { CombinedIdentificationFilters } from './components/CombinedIdentificationFilters';
+import { intersectIdentificationFilters } from './helpers/intersectIdentificationFilters';
+import { SectionIndicatorsRadar } from './components/SectionIndicatorsRadar/SectionIndicatorsRadar';
 import {
   filterIndicatorAnswers,
   PARTIAL_RESULTS_MINIMUM,
@@ -282,16 +285,16 @@ const ParticipantGroupIndicator = ({
       sx={{
         p: 3,
         backgroundColor: shouldHideData
-          ? '#fff9e6'
+          ? 'background.paper'
           : !hasValidAnswers
-            ? '#f5f5f5'
-            : '#fafafa',
+            ? 'background.paper'
+            : 'background.paper',
         borderRadius: 2,
         border: '2px solid',
         borderColor: shouldHideData
           ? '#ffb74d'
           : !hasValidAnswers
-            ? '#e0e0e0'
+            ? 'action.disabledBackground'
             : getIndicatorColorFromScore(indicatorValue),
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
         transition: 'all 0.3s ease',
@@ -328,7 +331,7 @@ const ParticipantGroupIndicator = ({
             textAlign="center"
             px={2}
           >
-            <Typography variant="h5" sx={{ mb: 1 }}>
+            <Typography color="text.primary" variant="h5" sx={{ mb: 1 }}>
               🔒
             </Typography>
             <Typography
@@ -352,7 +355,9 @@ const ParticipantGroupIndicator = ({
             height="100%"
             color="text.secondary"
           >
-            <Typography variant="body2">Sem perguntas válidas</Typography>
+            <Typography color="text.primary" variant="body2">
+              Sem perguntas válidas
+            </Typography>
           </Box>
         ) : (
           <Box width="100%">
@@ -362,7 +367,7 @@ const ParticipantGroupIndicator = ({
               sx={{
                 height: 14,
                 borderRadius: 7,
-                backgroundColor: '#e0e0e0',
+                backgroundColor: 'action.disabledBackground',
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: getIndicatorColorFromScore(indicatorValue),
                   borderRadius: 7,
@@ -441,7 +446,7 @@ const GroupDashboardIndicator = ({
           p: 6,
           pb: 4,
           borderRadius: 3,
-          backgroundColor: '#fff',
+          backgroundColor: 'background.paper',
           border: '2px solid',
           borderColor: 'primary.100',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
@@ -521,7 +526,7 @@ const GroupDashboardIndicator = ({
         mb: 4,
         borderRadius: 2,
         border: '2px solid',
-        backgroundColor: 'grey.100',
+        backgroundColor: 'background.paper',
         borderColor: getIndicatorColorFromScore(indicatorValue),
       }}
     >
@@ -547,7 +552,7 @@ const GroupDashboardIndicator = ({
             sx={{
               height: 20,
               borderRadius: 10,
-              backgroundColor: '#e0e0e0',
+              backgroundColor: 'action.disabledBackground',
               '& .MuiLinearProgress-bar': {
                 backgroundColor: getIndicatorColorFromScore(indicatorValue),
                 borderRadius: 10,
@@ -798,7 +803,18 @@ export const FormQuestionsDashboard = ({
     ? ORGANIZATIONAL_GROUPING_LABEL
     : (selectedIdentificationQuestion?.textWithoutHtml ?? null);
 
-  const participantGroups = useMemo(
+  const [identificationFilters, setIdentificationFilters] = useState<
+    Record<string, string[]>
+  >({});
+  const identificationFilterIds = useMemo(
+    () =>
+      intersectIdentificationFilters(
+        availableGroupingQuestions,
+        identificationFilters,
+      ),
+    [availableGroupingQuestions, identificationFilters],
+  );
+  const baseParticipantGroups = useMemo(
     () =>
       isOrganizationalGrouping
         ? organizationalGroups
@@ -818,6 +834,22 @@ export const FormQuestionsDashboard = ({
       groupingEnrichment,
       typeLabels,
     ],
+  );
+
+  const participantGroups = useMemo(
+    () =>
+      baseParticipantGroups.map((group) => ({
+        ...group,
+        participantIds:
+          identificationFilterIds === null
+            ? group.participantIds
+            : new Set(
+                [...group.participantIds].filter((id) =>
+                  identificationFilterIds.has(id),
+                ),
+              ),
+      })),
+    [baseParticipantGroups, identificationFilterIds],
   );
 
   const { formParticipants: paginatedParticipants } =
@@ -1218,13 +1250,13 @@ export const FormQuestionsDashboard = ({
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             border: '1px solid rgba(0, 0, 0, 0.06)',
             textAlign: 'center',
-            backgroundColor: '#fafafa',
+            backgroundColor: 'background.paper',
           }}
         >
           <InsertChartIcon
             sx={{
               fontSize: 64,
-              color: '#9e9e9e',
+              color: 'text.secondary',
               mb: 3,
             }}
           />
@@ -1232,7 +1264,7 @@ export const FormQuestionsDashboard = ({
             sx={{
               fontSize: 18,
               fontWeight: 500,
-              color: '#616161',
+              color: 'text.primary',
               mb: 2,
               textAlign: 'center',
               lineHeight: 1.5,
@@ -1243,7 +1275,7 @@ export const FormQuestionsDashboard = ({
           <SText
             sx={{
               fontSize: 14,
-              color: '#9e9e9e',
+              color: 'text.secondary',
               textAlign: 'center',
               lineHeight: 1.4,
             }}
@@ -1273,6 +1305,7 @@ export const FormQuestionsDashboard = ({
               defaultExpanded={false}
               icon={<PieChartIcon sx={{ fontSize: 30 }} />}
               title="Informações de Identificação"
+              color="text.primary"
               subtitle={`${identifierQuestions.length} gráfico${identifierQuestions.length === 1 ? '' : 's'}`}
               fontWeight="600"
               accordionProps={{
@@ -1319,6 +1352,9 @@ export const FormQuestionsDashboard = ({
           {(availableGroupingQuestions.length > 0 ||
             organizationalGroups.length > 0) &&
             (hasGeneralQuestionsForAnyParticipantGroup ||
+              Object.values(identificationFilters).some(
+                (options) => options.length > 0,
+              ) ||
               selectedGroupingQuestion) && (
               <Box>
                 <SectionHeader
@@ -1336,27 +1372,46 @@ export const FormQuestionsDashboard = ({
                       {organizationalGroups.length > 0 && (
                         <Button
                           variant="outlined"
+                          sx={{
+                            minHeight: 40,
+                            color: 'text.secondary',
+                            borderColor: 'divider',
+                            bgcolor: 'background.paper',
+                            '&:hover': {
+                              borderColor: 'text.secondary',
+                              bgcolor: 'action.hover',
+                            },
+                          }}
                           onClick={() => setOrganizationDialogOpen(true)}
                         >
                           Selecionar grupos da estrutura organizacional
                         </Button>
                       )}
-                      {availableGroupingQuestions.length > 0 && (
-                        <SSearchSelect<
-                          (typeof availableGroupingQuestions)[number]
-                        >
-                          inputProps={{ sx: { width: 300, maxWidth: '100%' } }}
-                          label="Agrupar por pergunta de identificação"
-                          options={availableGroupingQuestions}
-                          value={selectedIdentificationQuestion ?? null}
-                          getOptionLabel={(option) => option.textWithoutHtml}
-                          getOptionValue={(option) => option.id}
-                          onChange={(option) => {
-                            if (option) handleCreateGroupAnalysis(option.id);
+                      <CombinedIdentificationFilters
+                        questions={availableGroupingQuestions}
+                        value={identificationFilters}
+                        onChange={setIdentificationFilters}
+                      />
+                      <CombinedIdentificationFilters
+                        questions={availableGroupingQuestions}
+                        value={identificationFilters}
+                        onChange={setIdentificationFilters}
+                        grouping={{
+                          questionId: identificationQuestionId,
+                          groups: participantGroups,
+                          selectedIds: selectedParticipantGroupIdsForView ?? [],
+                          onQuestionChange: (id) => {
+                            if (id) handleCreateGroupAnalysis(id);
                             else setIdentificationQuestionId(null);
-                          }}
-                        />
-                      )}
+                          },
+                          onGroupsChange: (ids) =>
+                            setGroupingSelectionState({
+                              key: groupingSelectionKey,
+                              ids,
+                            }),
+                          onClear: () => setIdentificationQuestionId(null),
+                        }}
+                      />
                     </SFlex>
                     {organizationDialogOpen && (
                       <OrganizationalGroupingDialog
@@ -1373,70 +1428,6 @@ export const FormQuestionsDashboard = ({
                           setOrganizationDialogOpen(false);
                         }}
                       />
-                    )}
-
-                    {/* Selected Grouping Info */}
-                    {selectedGroupingQuestion && selectedGroupingLabel && (
-                      <Box>
-                        <Typography
-                          variant="body2"
-                          color="text.primary"
-                          fontWeight="medium"
-                          mb={4}
-                        >
-                          Agrupando por: {selectedGroupingLabel}
-                        </Typography>
-                        {!isOrganizationalGrouping && (
-                          <SSearchSelectMultiple<ParticipantGroupForIndicators>
-                            label="Grupos exibidos (filtro de visualização e PDF)"
-                            placeholder="Pesquisar grupos..."
-                            options={participantGroups}
-                            value={participantGroups.filter((g) =>
-                              (
-                                selectedParticipantGroupIdsForView ?? []
-                              ).includes(g.id),
-                            )}
-                            getOptionLabel={(group) => {
-                              const respondents = group.participantIds.size;
-                              const respondentLabel =
-                                respondents === 1
-                                  ? 'respondente'
-                                  : 'respondentes';
-                              return `${group.name} (${respondents} ${respondentLabel})`;
-                            }}
-                            getOptionValue={(g) => g.id}
-                            onChange={(selected) => {
-                              setGroupingSelectionState({
-                                key: groupingSelectionKey,
-                                ids: selected.map((g) => g.id),
-                              });
-                            }}
-                            boxProps={{ sx: { maxWidth: '100%' } }}
-                          />
-                        )}
-                        {isOrganizationalGrouping &&
-                          visibleParticipantGroups.map((group) => (
-                            <Typography
-                              key={group.id}
-                              variant="body2"
-                              color="text.secondary"
-                            >
-                              {group.name}
-                            </Typography>
-                          ))}
-                        <Button
-                          size="small"
-                          color="error"
-                          startIcon={<ClearIcon />}
-                          onClick={() => {
-                            setIdentificationQuestionId(null);
-                            setOrganizationGroupIds([]);
-                          }}
-                          sx={{ mt: 2 }}
-                        >
-                          Remover agrupamento
-                        </Button>
-                      </Box>
                     )}
 
                     {/* Participant Count */}
@@ -1517,7 +1508,7 @@ export const FormQuestionsDashboard = ({
                       py: 1,
                       borderRadius: 1,
                       border: '1px solid',
-                      borderColor: 'grey.200',
+                      borderColor: 'divider',
                     },
                   }}
                 />
@@ -1926,14 +1917,38 @@ export const FormQuestionsDashboard = ({
               />
             ) : (
               <SFlex direction="column" gap={24} color="background.paper">
+                {isIndicatorTab && !isPsychosocialForm && (
+                  <SAccordion
+                    defaultExpanded
+                    color="text.primary"
+                    title="Visão geral por seção"
+                  >
+                    <SAccordionBody>
+                      <Box sx={{ '& h5': { display: 'none' } }}>
+                        <SectionIndicatorsRadar
+                          groups={generalQuestionsArrays}
+                          isShareableLink={isShareableLink}
+                        />
+                      </Box>
+                    </SAccordionBody>
+                  </SAccordion>
+                )}
                 {isIndicatorTab && indicatorsDatasetForView ? (
-                  <ExecutiveIndicatorsDistributionSection
-                    distribution={
-                      indicatorsDatasetForView.executiveDistribution
-                    }
-                    chartType={executiveDistributionChartType}
-                    onChartTypeChange={setExecutiveDistributionChartType}
-                  />
+                  <SAccordion
+                    defaultExpanded
+                    color="text.primary"
+                    title="Distribuição geral dos indicadores"
+                  >
+                    <SAccordionBody>
+                      <ExecutiveIndicatorsDistributionSection
+                        distribution={
+                          indicatorsDatasetForView.executiveDistribution
+                        }
+                        chartType={executiveDistributionChartType}
+                        onChartTypeChange={setExecutiveDistributionChartType}
+                      />
+                    </SAccordionBody>
+                  </SAccordion>
                 ) : null}
                 {isIndicatorTab && <IndicatorsQualityLegend />}
                 {isIndicatorTab && canShowNarrative && (
@@ -2071,8 +2086,8 @@ export const FormQuestionsDashboard = ({
                               py={8}
                             >
                               <HtmlContentRenderer
-                                content={questionData.details.text}
                                 useThemeTextColor
+                                content={questionData.details.text}
                               />
                               <SDivider sx={{ mt: 8, mb: 4 }} />
 
@@ -2115,23 +2130,17 @@ export const FormQuestionsDashboard = ({
                     id: string,
                     groupData: FormGroupWithQuestions,
                   ) => (
-                    <Box key={id} mb={6}>
-                      <SPaper className="polished-form-panel">
-                        <SText
-                          sx={{
-                            p: 8,
-                            fontWeight: 600,
-                            backgroundColor: 'background.lightGray',
-                            color: 'text.primary',
-                            mb: 4,
-                          }}
-                        >
-                          {groupData.groupName}
-                        </SText>
-                      </SPaper>
-                      {renderIndicator(groupData)}
-                      {renderQuestions(groupData)}
-                    </Box>
+                    <SAccordion
+                      key={id}
+                      defaultExpanded
+                      color="text.primary"
+                      title={groupData.groupName}
+                    >
+                      <SAccordionBody>
+                        {renderIndicator(groupData)}
+                        {renderQuestions(groupData)}
+                      </SAccordionBody>
+                    </SAccordion>
                   );
 
                   const groups = Object.entries(questionsByFormGroup);

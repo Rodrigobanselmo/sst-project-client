@@ -17,9 +17,7 @@ import {
   DEFAULT_FORM_CHART_TYPE,
   type FormChartType,
 } from '../../helpers/form-chart-type.types';
-import {
-  getIndicatorColorFromScore,
-} from '../../helpers/form-indicator-quality.util';
+import { getIndicatorColorFromScore } from '../../helpers/form-indicator-quality.util';
 import { FormChartDistributionView } from '../FormChartDistributionView/FormChartDistributionView';
 import { IndicatorPercentScale } from '../IndicatorPercentScale/IndicatorPercentScale';
 
@@ -48,11 +46,14 @@ const IndicatorComponent = ({
   const actualParticipantCount = participantCount ?? uniqueParticipants;
   const shouldHideData = !isShareableLink && actualParticipantCount < 3;
 
-  const { score: indicatorValue, percentage, hasValidAnswers } =
-    calculateFormIndicatorFromQuestion({
-      answers: question.answers,
-      options: question.options,
-    });
+  const {
+    score: indicatorValue,
+    percentage,
+    hasValidAnswers,
+  } = calculateFormIndicatorFromQuestion({
+    answers: question.answers,
+    options: question.options,
+  });
 
   return (
     <Box>
@@ -106,13 +107,18 @@ const IndicatorComponent = ({
             color="text.secondary"
             mt={10}
           >
-            <Typography variant="h6">
+            <Typography color="text.primary" variant="h6">
               Nenhuma resposta encontrada ou sem relevância
             </Typography>
           </Box>
         ) : (
           <Box width="100%" mb={2}>
-            <Typography variant="h6" textAlign="center" mb={1}>
+            <Typography
+              color="text.primary"
+              variant="h6"
+              textAlign="center"
+              mb={1}
+            >
               Indicador de Qualidade
             </Typography>
             <LinearProgress
@@ -121,7 +127,7 @@ const IndicatorComponent = ({
               sx={{
                 height: 20,
                 borderRadius: 10,
-                backgroundColor: '#e0e0e0',
+                backgroundColor: 'action.disabledBackground',
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: getIndicatorColorFromScore(indicatorValue),
                   borderRadius: 10,
@@ -245,7 +251,10 @@ export const FormQuestionPieChart = ({
         )}
         {!hideQuestionText && (
           <Box mb={2}>
-            <HtmlContentRenderer content={question.details.text} />
+            <HtmlContentRenderer
+              useThemeTextColor
+              content={question.details.text}
+            />
           </Box>
         )}
         <Box
@@ -295,7 +304,10 @@ export const FormQuestionPieChart = ({
         )}
         {!hideQuestionText && (
           <Box flex={1}>
-            <HtmlContentRenderer content={question.details.text} />
+            <HtmlContentRenderer
+              useThemeTextColor
+              content={question.details.text}
+            />
           </Box>
         )}
       </SFlex>

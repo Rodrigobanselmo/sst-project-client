@@ -112,14 +112,14 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             border: '1px solid rgba(0, 0, 0, 0.06)',
             textAlign: 'center',
-            backgroundColor: '#fafafa',
+            backgroundColor: 'background.paper',
           }}
         >
           <SText
             sx={{
               fontSize: 18,
               fontWeight: 500,
-              color: '#616161',
+              color: 'text.primary',
               mb: 2,
               textAlign: 'center',
               lineHeight: 1.5,
@@ -130,7 +130,7 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
           <SText
             sx={{
               fontSize: 14,
-              color: '#9e9e9e',
+              color: 'text.secondary',
               textAlign: 'center',
               lineHeight: 1.4,
             }}
@@ -152,7 +152,7 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
           borderRight: '1px solid',
           borderColor: 'grey.300',
           borderRadius: 1,
-          backgroundColor: 'grey.50',
+          backgroundColor: 'background.paper',
         }}
       >
         <Box sx={{ p: 4, borderBottom: '1px solid', borderColor: 'grey.300' }}>
@@ -172,7 +172,7 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
                     py: 4,
                     px: 6,
                     '&.Mui-selected': {
-                      backgroundColor: 'primary.50',
+                      backgroundColor: 'action.selected',
                       borderRight: '3px solid',
                       borderRightColor: 'primary.main',
                     },
@@ -188,7 +188,11 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
                         >
                           {textQuestion.groupName}
                         </Typography>
-                        <Typography variant="body1" sx={{ mt: 1 }}>
+                        <Typography
+                          color="text.primary"
+                          variant="body1"
+                          sx={{ mt: 1 }}
+                        >
                           {textQuestion.question.textWithoutHtml}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -220,6 +224,7 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
                 {selectedQuestion.groupName}
               </Typography>
               <HtmlContentRenderer
+                useThemeTextColor
                 content={selectedQuestion.question.details.text}
               />
               <Typography variant="body2" color="text.secondary" mt={4}>
@@ -237,14 +242,18 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
                       p: 6,
                       mb: 4,
                       border: '1px solid',
-                      borderColor: 'grey.200',
+                      borderColor: 'divider',
                       borderRadius: 1,
                     }}
                   >
                     <Typography variant="body2" color="text.secondary" mb={2}>
                       Participante #{index + 1}
                     </Typography>
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                    <Typography
+                      color="text.primary"
+                      variant="body1"
+                      sx={{ whiteSpace: 'pre-wrap' }}
+                    >
                       {answer.value}
                     </Typography>
                   </Paper>
@@ -255,7 +264,7 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
                 sx={{
                   p: 4,
                   textAlign: 'center',
-                  backgroundColor: 'grey.50',
+                  backgroundColor: 'background.paper',
                 }}
               >
                 <Typography variant="body1" color="text.secondary">
@@ -269,7 +278,7 @@ export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
             sx={{
               p: 4,
               textAlign: 'center',
-              backgroundColor: 'grey.50',
+              backgroundColor: 'background.paper',
             }}
           >
             <Typography variant="body1" color="text.secondary">

@@ -1,9 +1,4 @@
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Skeleton,
-} from '@mui/material';
+import { Alert, Box, CircularProgress, Skeleton } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
@@ -48,7 +43,9 @@ export const IndicatorsNarrativeDiagnosticSection = ({
   const { showConfirmation } = useConfirmationModal();
   const { enqueueSnackbar } = useSnackbar();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
-  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>(
+    {},
+  );
   const normalizedScope = normalizeIndicatorsNarrativeScope(scope);
   const scopeKey = buildIndicatorsNarrativeDiagnosticScopeKey(normalizedScope);
   const scopeQueryKey = [
@@ -77,13 +74,12 @@ export const IndicatorsNarrativeDiagnosticSection = ({
     ? SystemAiPromptKeyEnum.INDICATORS_NARRATIVE_DIAGNOSTIC_GROUPS_ONLY
     : SystemAiPromptKeyEnum.INDICATORS_NARRATIVE_DIAGNOSTIC_GROUPS_AND_QUESTIONS;
 
-  const diagnosticForScope =
-    diagnosticMatchesViewMode(
-      indicatorsNarrativeDiagnostic,
-      normalizedScope.showOnlyGroupIndicators,
-    )
-      ? indicatorsNarrativeDiagnostic
-      : null;
+  const diagnosticForScope = diagnosticMatchesViewMode(
+    indicatorsNarrativeDiagnostic,
+    normalizedScope.showOnlyGroupIndicators,
+  )
+    ? indicatorsNarrativeDiagnostic
+    : null;
 
   const status = diagnosticForScope?.status;
   const isDone =
@@ -151,7 +147,7 @@ export const IndicatorsNarrativeDiagnosticSection = ({
         scope: normalizedScope,
         regenerate,
         hasCustomPrompt: Boolean(isMaster && customPrompt?.trim()),
-        model: isMaster ? model ?? null : null,
+        model: isMaster ? (model ?? null) : null,
       });
 
       const generated = await generateDiagnostic(payload);
@@ -166,9 +162,10 @@ export const IndicatorsNarrativeDiagnosticSection = ({
         (error as { response?: { status?: number } })?.response?.status,
       );
       const messageFromApi =
-        typeof (error as { response?: { data?: { message?: unknown } } })?.response?.data
-          ?.message === 'string'
-          ? (error as { response?: { data?: { message?: string } } }).response!.data!.message
+        typeof (error as { response?: { data?: { message?: unknown } } })
+          ?.response?.data?.message === 'string'
+          ? (error as { response?: { data?: { message?: string } } }).response!
+              .data!.message
           : null;
 
       if (responseStatus === 409) {
@@ -191,9 +188,12 @@ export const IndicatorsNarrativeDiagnosticSection = ({
 
         if (existing) {
           queryClient.setQueryData(scopeQueryKey, existing);
-          enqueueSnackbar('Diagnóstico existente carregado para o recorte atual.', {
-            variant: 'info',
-          });
+          enqueueSnackbar(
+            'Diagnóstico existente carregado para o recorte atual.',
+            {
+              variant: 'info',
+            },
+          );
           return false;
         }
 
@@ -213,17 +213,22 @@ export const IndicatorsNarrativeDiagnosticSection = ({
           regenerate: true,
         });
         queryClient.setQueryData(scopeQueryKey, regenerated);
-        enqueueSnackbar('Regeração iniciada com sucesso.', { variant: 'success' });
+        enqueueSnackbar('Regeração iniciada com sucesso.', {
+          variant: 'success',
+        });
         void refetch();
         return true;
       }
 
-      console.error('[Indicators Narrative Diagnostic] Failed to start generation', {
-        formApplicationId,
-        scope: normalizedScope,
-        regenerate,
-        error,
-      });
+      console.error(
+        '[Indicators Narrative Diagnostic] Failed to start generation',
+        {
+          formApplicationId,
+          scope: normalizedScope,
+          regenerate,
+          error,
+        },
+      );
 
       enqueueSnackbar(
         messageFromApi ??
@@ -235,7 +240,10 @@ export const IndicatorsNarrativeDiagnosticSection = ({
   };
 
   const handleGenerate = async (regenerate: boolean) => {
-    const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
+    const masterOverrides = buildMasterAiRequestOverrides(
+      isMaster,
+      aiMasterConfig,
+    );
     await handleGenerateCommon({
       regenerate,
       customPrompt: masterOverrides.customPrompt,
@@ -249,9 +257,10 @@ export const IndicatorsNarrativeDiagnosticSection = ({
   useEffect(() => {
     if (!isError) return;
     const message =
-      typeof (error as { response?: { data?: { message?: unknown } } })?.response?.data
-        ?.message === 'string'
-        ? (error as { response?: { data?: { message?: string } } }).response!.data!.message
+      typeof (error as { response?: { data?: { message?: unknown } } })
+        ?.response?.data?.message === 'string'
+        ? (error as { response?: { data?: { message?: string } } }).response!
+            .data!.message
         : 'Falha ao carregar o diagnóstico narrativo deste recorte.';
 
     enqueueSnackbar(message, { variant: 'error' });
@@ -263,18 +272,24 @@ export const IndicatorsNarrativeDiagnosticSection = ({
         p: 3,
         borderRadius: 1,
         border: '1px solid',
-        borderColor: 'grey.200',
-        bgcolor: 'grey.50',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
       }}
     >
-      <SFlex justifyContent="space-between" alignItems="flex-start" gap={2} mb={2}>
+      <SFlex
+        justifyContent="space-between"
+        alignItems="flex-start"
+        gap={2}
+        mb={2}
+      >
         <Box>
           <SText fontSize={16} fontWeight="bold">
             Diagnóstico narrativo com IA
           </SText>
           <SText fontSize={13} color="text.secondary" mt={4}>
-            Síntese em texto dos indicadores de qualidade do recorte atual (construtos/sessões
-            e, quando aplicável, perguntas). A geração só ocorre quando você solicitar.
+            Síntese em texto dos indicadores de qualidade do recorte atual
+            (construtos/sessões e, quando aplicável, perguntas). A geração só
+            ocorre quando você solicitar.
           </SText>
         </Box>
         <AiActionButtonGroup
@@ -293,8 +308,8 @@ export const IndicatorsNarrativeDiagnosticSection = ({
         <Skeleton variant="rectangular" height={120} />
       ) : isError ? (
         <Alert severity="error">
-          Não foi possível carregar o diagnóstico narrativo deste recorte. Tente atualizar
-          a página ou gerar novamente.
+          Não foi possível carregar o diagnóstico narrativo deste recorte. Tente
+          atualizar a página ou gerar novamente.
         </Alert>
       ) : showProcessing ? (
         <SFlex alignItems="center" gap={2} py={2}>
@@ -327,10 +342,13 @@ export const IndicatorsNarrativeDiagnosticSection = ({
           )}
         </Alert>
       ) : isDone && diagnosticForScope?.contentMarkdown ? (
-        <IndicatorsNarrativeMarkdown content={diagnosticForScope.contentMarkdown} />
+        <IndicatorsNarrativeMarkdown
+          content={diagnosticForScope.contentMarkdown}
+        />
       ) : (
         <SText fontSize={14} color="text.secondary">
-          Nenhum diagnóstico gerado para este recorte. Use o botão acima para criar um.
+          Nenhum diagnóstico gerado para este recorte. Use o botão acima para
+          criar um.
         </SText>
       )}
 
