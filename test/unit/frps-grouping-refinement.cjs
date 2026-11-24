@@ -71,6 +71,7 @@ const React = {
     ];
   },
   useEffect() {},
+  useRef(initial) { return React.useState({current:initial})[0]; },
 };
 const jsx = (type, props, key) => ({ type, props: props || {}, key });
 const mod = { exports: {} };

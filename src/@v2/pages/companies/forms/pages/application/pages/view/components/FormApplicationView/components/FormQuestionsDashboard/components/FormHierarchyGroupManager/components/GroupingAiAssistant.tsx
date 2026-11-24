@@ -1,7 +1,7 @@
 import { HierarchyLabel } from './HierarchyLabel';
 import { labeledHierarchyContext } from '../helpers/formatHierarchyGroupOptionLabel';
 import { ProposalInlineAdd } from './ProposalInlineAdd';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
@@ -135,7 +135,9 @@ const errorMessage = (e: any) => {
     ? message
     : Array.isArray(message)
       ? message.join(' · ')
-      : 'Não foi possível concluir. Confira a conexão e tente novamente.';
+      : e?.code === 'ECONNABORTED' || e?.code === 'ETIMEDOUT'
+        ? 'O tempo de espera da resposta terminou. A geração pode continuar no servidor; verifique o andamento antes de iniciar outra.'
+        : 'Não foi possível receber a resposta do servidor. Isso pode ser uma falha temporária de comunicação ou do serviço; tente novamente.';
 };
 export function GroupingAiAssistant({
   companyId,
@@ -166,6 +168,9 @@ export function GroupingAiAssistant({
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editError, setEditError] = useState('');
   const [refining, setRefining] = useState(false);
+  const generationFence = useRef(0);
+  const generationSeen = useRef(false);
+  const [generationNotice, setGenerationNotice] = useState('');
   const base = `v2/companies/${companyId}/forms/applications/${applicationId}/hierarchy-groups/ai`;
   const query = useQuery<Context>({
     queryKey: ['grouping-ai-context', companyId, applicationId],
@@ -176,6 +181,78 @@ export function GroupingAiAssistant({
     retry: false,
     refetchOnWindowFocus: false,
   });
+  const generationQuery = useQuery<{
+    status: 'ABSENT' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+    startedAt?: string;
+    elapsedSeconds?: number;
+    result?: Result;
+    message?: string;
+  }>({
+    queryKey: ['grouping-ai-generation', companyId, applicationId],
+    queryFn: async () =>
+      (await api.get(`${base}/generation`, { timeout: 15000 })).data,
+    enabled: open && !result,
+    retry: 1,
+    refetchInterval: (q) =>
+      busy || q.state.data?.status === 'RUNNING' ? 3000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    gcTime: 0,
+  });
+  useEffect(() => {
+    const job = generationQuery.data;
+    if (
+      !open ||
+      !job ||
+      (job.startedAt && Date.parse(job.startedAt) < generationFence.current)
+    )
+      return;
+    if (job.status === 'RUNNING') {
+      generationSeen.current = true;
+      setBusy(true);
+      setGenerationNotice(
+        `Gerando propostas no servidor… ${job.elapsedSeconds ?? 0}s. Você pode fechar e reabrir esta janela para acompanhar.`,
+      );
+    }
+    if (
+      job.status === 'SUCCEEDED' &&
+      job.result &&
+      query.data?.version === job.result.contextVersion
+    ) {
+      setResult(job.result);
+      setAlternative(0);
+      setBusy(false);
+      setError('');
+      setGenerationNotice('');
+    }
+    if (
+      job.status === 'SUCCEEDED' &&
+      job.result &&
+      query.data?.version &&
+      query.data.version !== job.result.contextVersion &&
+      generationSeen.current
+    ) {
+      setBusy(false);
+      setGenerationNotice('');
+      generationSeen.current = false;
+      setError(
+        'A campanha mudou durante a geração. Atualize o contexto antes de gerar novamente.',
+      );
+    }
+    if (job.status === 'ABSENT' && generationSeen.current) {
+      setBusy(false);
+      setGenerationNotice('');
+      generationSeen.current = false;
+      setError(
+        'O acompanhamento não está mais disponível no servidor. Atualize o contexto antes de tentar novamente.',
+      );
+    }
+    if (job.status === 'FAILED') {
+      setBusy(false);
+      setError(job.message || 'A geração não foi concluída no servidor.');
+      setGenerationNotice('');
+    }
+  }, [generationQuery.data, open, query.data?.version]);
   useEffect(() => {
     setResult(null);
     setEdits({});
@@ -185,6 +262,9 @@ export function GroupingAiAssistant({
     setNotes('');
     setMode('SEPARATE');
     setConfig({});
+    generationFence.current = 0;
+    generationSeen.current = false;
+    setGenerationNotice('');
     setOpen(false);
   }, [companyId, applicationId]);
   const ctx = query.data;
@@ -204,7 +284,9 @@ export function GroupingAiAssistant({
   };
   async function generate() {
     if (!ctx) return;
+    generationFence.current = Date.now() - 1000;
     setBusy(true);
+    setGenerationNotice('Iniciando geração no servidor…');
     setError('');
     setSuccess('');
     setResult(null);
@@ -214,21 +296,33 @@ export function GroupingAiAssistant({
     setConfirmed([]);
     try {
       const r = await api.post(
-        `${base}/propose`,
+        `${base}/generation`,
         {
           mode,
           notes,
           contextVersion: ctx.version,
           ...(isMaster ? config : {}),
         },
-        { timeout: 330000 },
+        { timeout: 15000 },
       );
-      setResult(r.data);
-      setAlternative(0);
+      client.setQueryData(
+        ['grouping-ai-generation', companyId, applicationId],
+        r.data,
+      );
+      void generationQuery.refetch();
     } catch (e) {
-      setError(errorMessage(e));
-    } finally {
-      setBusy(false);
+      // A lost start response does not mean that the server failed to start.
+      const recovered = await generationQuery.refetch();
+      if (
+        !recovered.data ||
+        recovered.data.status === 'ABSENT' ||
+        (recovered.data.startedAt &&
+          Date.parse(recovered.data.startedAt) < generationFence.current)
+      ) {
+        setError(errorMessage(e));
+        setBusy(false);
+        setGenerationNotice('');
+      }
     }
   }
   async function saveRefinement(
@@ -362,7 +456,7 @@ export function GroupingAiAssistant({
         isMaster={isMaster}
         onConfigure={() => setConfigOpen(true)}
         configureIconOnly
-        disabled={busy || audioBusy}
+        disabled={(busy && !generationNotice) || audioBusy}
       />
       {isMaster && (
         <SystemAiPromptConfigDialog
@@ -383,7 +477,7 @@ export function GroupingAiAssistant({
       <Dialog
         open={open}
         onClose={() => {
-          if (!busy && !audioBusy) setOpen(false);
+          if ((!busy || !!generationNotice) && !audioBusy) setOpen(false);
         }}
         maxWidth="lg"
         fullWidth
@@ -1200,9 +1294,15 @@ export function GroupingAiAssistant({
                   ? 'Criando agrupamentos e atualizando os indicadores… Aguarde.'
                   : refining
                     ? 'Validando ajustes e recalculando contagens…'
-                    : 'Gerando propostas com IA… Aguarde.'}
+                    : generationNotice || 'Gerando propostas com IA… Aguarde.'}
               </Typography>
             </Stack>
+          )}
+          {generationQuery.isError && generationNotice && (
+            <Alert severity="warning" sx={{ width: '100%' }}>
+              A consulta de andamento não respondeu. A geração pode continuar no
+              servidor; o sistema tentará consultar novamente.
+            </Alert>
           )}
           {error && (
             <Alert severity="error" sx={{ width: '100%' }}>
@@ -1210,7 +1310,7 @@ export function GroupingAiAssistant({
             </Alert>
           )}
           <Button
-            disabled={busy || audioBusy}
+            disabled={(busy && !generationNotice) || audioBusy}
             onClick={() => {
               setConfirm(false);
               setOpen(false);
