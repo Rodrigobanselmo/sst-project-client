@@ -11,3 +11,7 @@ TypeScript independente e build Next de produção com webpack aprovados. Três 
 Publicação preparada em worktree isolada a partir de origin/main, preservando frentes locais de higiene ocupacional, áudio e privacidade. Não inclui next-env.d.ts nem arquivos de ambiente. API já operacional no commit fcfcaa7b90e7e1b5f9d8cc8e57215f30e590a25d, Actions 45600006070 com sucesso e migrations sem pendências, verificado antes do push do client. API não precisou de alteração adicional.
 
 Client funcional: c1e8694b1e9804e0a7de4f3d5c3192cb44ba72cb publicado em main. Vercel confirmou success na implantação FutDXuytAx2WEQTFApe1VCt7o93q, deployment GitHub 8063716918 em Production. URL da implantação: https://simplesst-jrw0pbwlb-rodrigobanselmos-projects.vercel.app. API confirmada antes do client.
+
+## Correção do cabeçalho duplicado
+
+A remoção do SPageHeader antigo em form-application-view.page.tsx já existia no checkout local, mas ficou fora do pacote inicial. O componente FormApplicationView passou a fornecer o cabeçalho integrado aos indicadores, causando dois títulos/setas em produção. Correção ff0c5a738f40cc0d9d48113e952e3ad915be59a3 remove apenas o cabeçalho antigo e corrige a grafia do título da aba. TypeScript e build de produção aprovados. Vercel confirmou success em AMaFkt4jVjPhYr5RD91heEpPexRy, deployment 8066214397 em Production. API/banco sem alterações.
