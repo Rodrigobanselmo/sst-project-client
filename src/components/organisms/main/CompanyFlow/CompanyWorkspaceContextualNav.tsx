@@ -1,3 +1,4 @@
+import { companyBrowserTabSx } from './company-browser-tabs.styles';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { Box, ButtonBase } from '@mui/material';
@@ -57,7 +58,17 @@ export function CompanyWorkspaceContextualNav({ companyId }: Props) {
           data-nav-id={item.id}
           data-nav-active={isActive ? 'true' : 'false'}
           aria-current={isActive ? 'page' : undefined}
-          sx={itemSx}
+          sx={[
+            ...(Array.isArray(itemSx) ? itemSx : [itemSx]),
+            (theme) => ({
+              ...companyBrowserTabSx(theme),
+              minHeight: 52,
+              px: 8,
+              py: 5,
+              fontSize: 15,
+              '& [data-nav-marker]': { display: 'none' },
+            }),
+          ]}
         >
           <Box component="span" data-nav-label>
             {item.label}
@@ -86,12 +97,14 @@ export function CompanyWorkspaceContextualNav({ companyId }: Props) {
         pb: 0.25,
         scrollbarWidth: 'thin',
         bgcolor: 'transparent',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
       }}
     >
       <SFlex
         align="center"
         gap={1.25}
-        sx={{ minWidth: 'max-content', py: 0.5 }}
+        sx={{ minWidth: 'max-content', pt: 2, alignItems: 'flex-end' }}
       >
         {renderGroup('management')}
         <Box

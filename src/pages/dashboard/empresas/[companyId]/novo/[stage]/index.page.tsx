@@ -105,13 +105,21 @@ const ModalUploadPhoto = dynamic(
 ) as any;
 
 const CompanyPage: NextPage = () => (
-  <CompanyWorkspaceCardsProvider><CompanyPageInner /></CompanyWorkspaceCardsProvider>
+  <CompanyWorkspaceCardsProvider>
+    <CompanyPageInner />
+  </CompanyWorkspaceCardsProvider>
 );
 
 const CompanyPageInner = () => {
   const { collapsed, hydrated } = useCompanyWorkspaceCardsCollapsed();
   const { query } = useRouter();
-  const props = useCompanyStep({ loadSummaryMetrics: shouldLoadSummaryMetrics(query.stage, collapsed, hydrated) });
+  const props = useCompanyStep({
+    loadSummaryMetrics: shouldLoadSummaryMetrics(
+      query.stage,
+      collapsed,
+      hydrated,
+    ),
+  });
   const pageTitle = props.isGroupConsolidated
     ? props.businessGroupName || getCompanyName(props.company)
     : getCompanyName(props.company);
@@ -154,22 +162,20 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
     ? businessGroupName || getCompanyName(company)
     : getCompanyName(company);
 
-  const isCharacterizationStage =
-    CompanyActionEnum.SST_GROUP_PAGE === stage;
+  const isCharacterizationStage = CompanyActionEnum.SST_GROUP_PAGE === stage;
   const isPrimaryCompanyStage =
     stage === CompanyActionEnum.COMPANY_GROUP_PAGE ||
     stage === CompanyActionEnum.EMPLOYEES_GROUP_PAGE ||
     stage === CompanyActionEnum.SST_GROUP_PAGE ||
     stage === CompanyActionEnum.DOCUMENTS_GROUP_PAGE;
-  const hideHomeSummaryCards =
-    (isCharacterizationStage && isInlineEditOpen) ||
-    (isPrimaryCompanyStage && summaryCollapsed);
+  const isCompanyHome = stage === CompanyActionEnum.COMPANY_GROUP_PAGE;
+  const hideHomeSummaryCards = !isCompanyHome || summaryCollapsed;
   const showCompanySummaryCardsToggle =
-    isPrimaryCompanyStage &&
-    !(isCharacterizationStage && isInlineEditOpen);
+    isPrimaryCompanyStage && !(isCharacterizationStage && isInlineEditOpen);
 
   return (
     <>
+      {isCompanyHome && (
         <CompanyHomeOperationalHeader
           companyName={companyName}
           stepsActionsList={stepsActionsList}
@@ -189,63 +195,62 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
             </Box>
           }
         />
+      )}
 
-        {showCompanySummaryCardsToggle && (
-          <SFlex
-            align="center"
-            justify="space-between"
-            gap={1.5}
-            sx={{ width: '100%', mb: 1, flexWrap: { xs: 'wrap', md: 'nowrap' } }}
-          >
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <CompanyWorkspaceContextualNav companyId={company?.id} />
-            </Box>
-            <CharacterizationSummaryToggle />
-          </SFlex>
-        )}
+      {showCompanySummaryCardsToggle && (
+        <SFlex
+          align="center"
+          justify="space-between"
+          gap={1.5}
+          sx={{ width: '100%', mb: 1, flexWrap: { xs: 'wrap', md: 'nowrap' } }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <CompanyWorkspaceContextualNav companyId={company?.id} />
+          </Box>
+          {isCompanyHome && <CharacterizationSummaryToggle />}
+        </SFlex>
+      )}
 
-        {!hideHomeSummaryCards && (
-          <CompanyHomeSummaryCards
-            pageGroupMemo={pageGroupMemo}
-            launchCardsMemo={launchCardsMemo}
-            formsLaunchGroup={formsLaunchGroup}
-            showFormsLaunchGroup={showFormsLaunchGroup}
-            actionPlanLaunchGroup={actionPlanLaunchGroup}
-            showActionPlanLaunchGroup={showActionPlanLaunchGroup}
-            stage={stage}
-            company={company}
-            isGroupConsolidated={isGroupConsolidated}
-          />
-        )}
+      {!hideHomeSummaryCards && (
+        <CompanyHomeSummaryCards
+          pageGroupMemo={pageGroupMemo}
+          launchCardsMemo={launchCardsMemo}
+          formsLaunchGroup={formsLaunchGroup}
+          showFormsLaunchGroup={showFormsLaunchGroup}
+          actionPlanLaunchGroup={actionPlanLaunchGroup}
+          showActionPlanLaunchGroup={showActionPlanLaunchGroup}
+          stage={stage}
+          company={company}
+          isGroupConsolidated={isGroupConsolidated}
+        />
+      )}
 
-        {isGroupConsolidated &&
-          stage !== pageGroupMemo[0]?.type && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              {HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE}
-            </Alert>
-          )}
+      {isGroupConsolidated && stage !== pageGroupMemo[0]?.type && (
+        <Alert severity="info" sx={{ mt: 2 }}>
+          {HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE}
+        </Alert>
+      )}
 
-        {!isGroupConsolidated &&
-          CompanyActionEnum.EMPLOYEES_GROUP_PAGE == stage && <EmployeeStage />}
+      {!isGroupConsolidated &&
+        CompanyActionEnum.EMPLOYEES_GROUP_PAGE == stage && <EmployeeStage />}
 
-        {!isGroupConsolidated &&
-          CompanyActionEnum.COMPANY_GROUP_PAGE == stage && (
+      {!isGroupConsolidated &&
+        CompanyActionEnum.COMPANY_GROUP_PAGE == stage && (
           <CompanyStage {...props} />
         )}
 
-        {!isGroupConsolidated &&
-          CompanyActionEnum.SST_GROUP_PAGE == stage && (
-          <GhoEditorProvider>
-            <CharacterizationStage {...props} />
-            <StackModalAddGho
-              includeHierarchySelect={false}
-              embedInParentProvider
-            />
-          </GhoEditorProvider>
-        )}
+      {!isGroupConsolidated && CompanyActionEnum.SST_GROUP_PAGE == stage && (
+        <GhoEditorProvider>
+          <CharacterizationStage {...props} />
+          <StackModalAddGho
+            includeHierarchySelect={false}
+            embedInParentProvider
+          />
+        </GhoEditorProvider>
+      )}
 
-        {!isGroupConsolidated &&
-          CompanyActionEnum.DOCUMENTS_GROUP_PAGE == stage && (
+      {!isGroupConsolidated &&
+        CompanyActionEnum.DOCUMENTS_GROUP_PAGE == stage && (
           <>
             <DocumentsStage {...props} />
             <StackModalViewDocumentModels />
@@ -253,32 +258,32 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           </>
         )}
 
-        <StackModalRiskTool />
-        {CompanyActionEnum.SST_GROUP_PAGE != stage && (
-          <StackModalAddGho includeHierarchySelect={false} />
-        )}
-        <ModalViewProfessional />
-        <ModalSingleInput />
-        <StackModalEditEmployee />
-        <ModalAddWorkspace />
-        <ModalAddExcelEmployees />
-        <ModalAddRiskGroup />
-        <ModalShowHierarchyTree />
-        <ModalSelectWorkspace />
-        <ModalSelectCharacterization />
-        <ModalSelectCompany />
-        <ModalSelectDocPgr />
-        <ModalUploadPhoto />
-        <ModalAddExam />
-        <ModalAddProtocol />
-        <ModalViewExam />
-        <ModalEditExamRisk />
-        <ModalEditProtocolRisk />
-        <ModalImportExport />
+      <StackModalRiskTool />
+      {CompanyActionEnum.SST_GROUP_PAGE != stage && (
+        <StackModalAddGho includeHierarchySelect={false} />
+      )}
+      <ModalViewProfessional />
+      <ModalSingleInput />
+      <StackModalEditEmployee />
+      <ModalAddWorkspace />
+      <ModalAddExcelEmployees />
+      <ModalAddRiskGroup />
+      <ModalShowHierarchyTree />
+      <ModalSelectWorkspace />
+      <ModalSelectCharacterization />
+      <ModalSelectCompany />
+      <ModalSelectDocPgr />
+      <ModalUploadPhoto />
+      <ModalAddExam />
+      <ModalAddProtocol />
+      <ModalViewExam />
+      <ModalEditExamRisk />
+      <ModalEditProtocolRisk />
+      <ModalImportExport />
 
-        <ModalViewUsers />
-        <StackModalViewUsers />
-        <StackModalViewDocuments />
+      <ModalViewUsers />
+      <StackModalViewUsers />
+      <StackModalViewDocuments />
     </>
   );
 };

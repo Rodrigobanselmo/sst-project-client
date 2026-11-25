@@ -1,3 +1,4 @@
+import { companyGlassCardSx } from './company-browser-tabs.styles';
 import { Box } from '@mui/material';
 import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
 import { SActionGroupButton } from 'components/atoms/SActionGroupButton';
@@ -83,7 +84,7 @@ export function CompanyHomeSummaryCards({
 
   return (
     <>
-      <Box sx={{ ...homeCardsGridSx, mt: 2, mb: hasLaunchRow ? 30 : 16 }}>
+      <Box sx={{ ...homeCardsGridSx, mt: 10, mb: hasLaunchRow ? 30 : 16 }}>
         {pageGroupMemo.map(({ color, ...cardProps }) => {
           const isActive =
             (forceCharacterizationActive &&
@@ -92,12 +93,13 @@ export function CompanyHomeSummaryCards({
           return (
             <Box
               key={cardProps.text}
-              sx={{
+              sx={(theme) => ({
                 minWidth: 0,
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-              }}
+                '& > .MuiBox-root': companyGlassCardSx(theme),
+              })}
             >
               <SActionGroupButton
                 active={isActive}
@@ -116,7 +118,21 @@ export function CompanyHomeSummaryCards({
           <SText mt={-8}>Lançamentos</SText>
           <Box sx={{ ...launchCardsGridSxResolved, mt: 3, mb: 16 }}>
             {showActionPlanLaunchGroup && actionPlanLaunchGroup && (
-              <Box sx={launchCardShellSx}>
+              <Box
+                sx={[
+                  launchCardShellSx,
+                  (theme) => ({
+                    ...companyGlassCardSx(theme),
+                    '& > .MuiBox-root': {
+                      bgcolor: 'transparent',
+                      backgroundImage: 'none',
+                      border: 0,
+                      boxShadow: 'none',
+                      borderRadius: 'inherit',
+                    },
+                  }),
+                ]}
+              >
                 <CompanyHomeActionPlanGroupCard
                   total={actionPlanLaunchGroup.total}
                   pending={actionPlanLaunchGroup.pending}
@@ -133,7 +149,22 @@ export function CompanyHomeSummaryCards({
             {launchCardsMemo.map((raw, index) => {
               const cardProps = raw as ISActionButtonProps;
               return (
-                <Box key={`${cardProps.text}-${index}`} sx={launchCardShellSx}>
+                <Box
+                  key={`${cardProps.text}-${index}`}
+                  sx={[
+                    launchCardShellSx,
+                    (theme) => ({
+                      ...companyGlassCardSx(theme),
+                      '& > .MuiBox-root': {
+                        bgcolor: 'transparent',
+                        backgroundImage: 'none',
+                        border: 0,
+                        boxShadow: 'none',
+                        borderRadius: 'inherit',
+                      },
+                    }),
+                  ]}
+                >
                   <SActionGroupButton
                     text={cardProps.text}
                     icon={cardProps.icon}
@@ -154,13 +185,20 @@ export function CompanyHomeSummaryCards({
             })}
             {showFormsLaunchGroup && (
               <Box
-                sx={{
+                sx={(theme) => ({
                   ...(formsCardShellSx as object),
+                  ...companyGlassCardSx(theme),
+                  '& > .MuiBox-root': {
+                    bgcolor: 'transparent',
+                    border: 0,
+                    boxShadow: 'none',
+                    borderRadius: 'inherit',
+                  },
                   gridColumn: {
                     xs: '1 / -1',
                     sm: launchGridColumnCount >= 4 ? 'span 2' : 'span 1',
                   },
-                }}
+                })}
               >
                 <CompanyHomeFormsGroupCard
                   companyId={company.id}

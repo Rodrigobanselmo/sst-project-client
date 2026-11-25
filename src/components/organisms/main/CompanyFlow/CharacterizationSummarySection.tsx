@@ -1,7 +1,5 @@
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import { CharacterizationSummaryToggle } from 'components/organisms/main/CompanyFlow/CharacterizationSummaryToggle';
-import { CompanyHomeSummaryCards } from 'components/organisms/main/CompanyFlow/CompanyHomeSummaryCards';
 import { CompanyWorkspaceContextualNav } from 'components/organisms/main/CompanyFlow/CompanyWorkspaceContextualNav';
 import {
   CompanyWorkspaceCardsProvider,
@@ -20,8 +18,8 @@ function CompanyWorkspaceSummarySectionInner({
   hidden = false,
   forceCharacterizationActive = true,
 }: Props) {
-  const { collapsed, hydrated } = useCompanyWorkspaceCardsCollapsed();
-  const companyStep = useCompanyStep({ loadSummaryMetrics: hydrated && !collapsed && !hidden });
+  const { collapsed } = useCompanyWorkspaceCardsCollapsed();
+  const companyStep = useCompanyStep({ loadSummaryMetrics: false });
   useFetchFeedback(companyStep.isLoading && !companyStep.company?.id);
 
   if (hidden) return null;
@@ -37,22 +35,7 @@ function CompanyWorkspaceSummarySectionInner({
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <CompanyWorkspaceContextualNav companyId={companyStep.company?.id} />
         </Box>
-        <CharacterizationSummaryToggle />
       </SFlex>
-      {!collapsed ? (
-        <CompanyHomeSummaryCards
-          pageGroupMemo={companyStep.pageGroupMemo}
-          launchCardsMemo={companyStep.launchCardsMemo}
-          formsLaunchGroup={companyStep.formsLaunchGroup}
-          showFormsLaunchGroup={companyStep.showFormsLaunchGroup}
-          actionPlanLaunchGroup={companyStep.actionPlanLaunchGroup}
-          showActionPlanLaunchGroup={companyStep.showActionPlanLaunchGroup}
-          stage={companyStep.stage}
-          company={companyStep.company}
-          isGroupConsolidated={companyStep.isGroupConsolidated}
-          forceCharacterizationActive={forceCharacterizationActive}
-        />
-      ) : null}
     </Box>
   );
 }

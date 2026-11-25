@@ -338,8 +338,14 @@ export const RiskCompanyTable: FC<
             borderColor: 'divider',
             '&.Mui-selected': {
               backgroundColor: 'primary.light',
-              color: 'text.primary',
+              color: (theme) =>
+                theme.palette.getContrastText(theme.palette.primary.light),
               borderColor: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: (theme) =>
+                  theme.palette.getContrastText(theme.palette.primary.light),
+              },
             },
           },
         }}
