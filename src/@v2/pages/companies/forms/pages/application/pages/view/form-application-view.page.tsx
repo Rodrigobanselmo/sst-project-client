@@ -1,7 +1,6 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 
-import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -39,9 +38,8 @@ export const FormViewPage = () => {
 
   return (
     <>
-      <SHeaderTag title={'Fomulários'} />
+      <SHeaderTag title={'Formulários'} />
       <SContainer>
-        <SPageHeader mb={8} title="Fomulários" />
         <FormApplicationViewClientOnly
           companyId={companyId}
           formApplicationId={formApplicationId}
