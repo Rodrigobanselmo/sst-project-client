@@ -6,6 +6,8 @@ import { IVisualIdentityModel } from '@v2/services/enterprise/visual-identity/re
 import { readVisualIdentity } from '@v2/services/enterprise/visual-identity/read-visual-identity/service/read-visual-identity.service';
 import { readForm } from '@v2/services/forms/form/read-form-model/service/read-form-model.service';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
+import { defaultBannerTexts, bannerPrivacyText } from './campaignBannerContent';
 import { exportCampaignBannerPdf } from './exportCampaignBannerPdf';
 
 const DEFAULT_PRIMARY = '#F27329';
@@ -62,7 +64,7 @@ function applyInlineFormatting(text: string): string {
     .replace(/_(.+?)_/g, '<em>$1</em>');
 }
 
-async function generateQrSvgString(
+export async function generateQrSvgString(
   url: string,
   size: number,
 ): Promise<string> {
@@ -112,7 +114,7 @@ const DEFAULT_WHY_TEXT =
 const DEFAULT_CONTACT_TEXT =
   'Entre em contato com o setor de RH da sua empresa ou diretamente com a SimpleSST: (51) 98348-5050';
 
-function buildBannerHtml({
+export function buildBannerHtml({
   formApplication,
   publicUrl,
   qrCodeSvg,
@@ -135,9 +137,11 @@ function buildBannerHtml({
 
   const formName = escapeHtml(formApplication.name);
 
-  const introText = formApplication.bannerIntroText?.trim() || DEFAULT_INTRO_TEXT(companyName);
-  const whyText = formApplication.bannerWhyText?.trim() || DEFAULT_WHY_TEXT;
-  const contactText = formApplication.bannerContactText?.trim() || DEFAULT_CONTACT_TEXT;
+  const psychosocial = formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
+  const defaults = defaultBannerTexts(formApplication);
+  const introText = formApplication.bannerIntroText?.trim() || (psychosocial ? DEFAULT_INTRO_TEXT(companyName) : defaults.intro);
+  const whyText = formApplication.bannerWhyText?.trim() || (psychosocial ? DEFAULT_WHY_TEXT : defaults.why);
+  const contactText = formApplication.bannerContactText?.trim() || (psychosocial ? DEFAULT_CONTACT_TEXT : defaults.contact);
 
   const avgTime = formApplication.averageTimeSpent;
   const hasRealAverage = avgTime !== null && avgTime > 0;
@@ -153,7 +157,7 @@ function buildBannerHtml({
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
-<title>Banner Campanha FRPS — ${escapeHtml(companyName)}</title>
+<title>Banner da campanha — ${escapeHtml(companyName)}</title>
 <style>
   @page { size: A4 portrait; margin: 0; }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -220,7 +224,7 @@ function buildBannerHtml({
   <div class="header">
     <div class="header-logo">${logoHtml}</div>
     <div class="header-title">
-      <h1>FATORES DE RISCOS<br/>PSICOSSOCIAIS</h1>
+      <h1>${psychosocial ? "FATORES DE RISCOS<br/>PSICOSSOCIAIS" : formName}</h1>
       <h2>${escapeHtml(companyName.toUpperCase())}</h2>
     </div>
   </div>
@@ -240,11 +244,11 @@ function buildBannerHtml({
     <div class="two-col">
       <div class="section">
         <h4>Confidencialidade</h4>
-        <p>Suas respostas serão enviadas diretamente para a consultoria da <strong>SimpleSST</strong>, garantindo total confidencialidade. Nenhuma resposta individual será compartilhada com a empresa.</p>
+        <p>${escapeHtml(bannerPrivacyText(formApplication))}</p>
       </div>
       <div class="section">
         <h4>Orientação</h4>
-        <p>Responda com sinceridade e tranquilidade. Não existem respostas certas ou erradas. Suas percepções são valiosas para construir um ambiente de trabalho mais saudável.</p>
+        <p>${psychosocial ? "Responda com sinceridade e tranquilidade. Não existem respostas certas ou erradas. Suas percepções são valiosas para construir um ambiente de trabalho mais saudável." : "Leia as perguntas com atenção e responda com sinceridade e tranquilidade, considerando sua experiência e as orientações da pesquisa."}</p>
       </div>
     </div>
 
@@ -263,7 +267,7 @@ function buildBannerHtml({
     </div>
 
     <div class="cta-bottom">
-      <p>Um ambiente de trabalho melhor é construído com a participação de todos.</p>
+      <p>${psychosocial ? "Um ambiente de trabalho melhor é construído com a participação de todos." : "Sua participação faz a diferença nesta pesquisa."}</p>
       <p class="highlight">Contamos com Você!</p>
     </div>
   </div>
@@ -276,7 +280,7 @@ function buildBannerHtml({
   </div>
 
   <div class="footer">
-    ${formName} &bull; ${escapeHtml(companyName)} &bull; Programa de Gerenciamento de Riscos
+    ${formName} &bull; ${escapeHtml(companyName)} ${psychosocial ? "&bull; Programa de Gerenciamento de Riscos" : ""}
   </div>
 
 </div>

@@ -9,6 +9,7 @@ import { FormApplicationDeleteConfirmModal } from './FormApplicationDeleteConfir
 import { FormApplicationStatusChange } from './FormApplicationStatusChange';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
+import { CampaignBannerAssistant } from './FormCampaignBanner/CampaignBannerAssistant';
 import { FormCampaignBanner } from './FormCampaignBanner/FormCampaignBanner';
 import { ClosingReviewModal } from './closing-review/ClosingReviewModal';
 import { canShowClosingAuditAction } from './closing-review/closing-review-ui.rules';
@@ -86,6 +87,7 @@ export const FormApplicationActionsBar = ({
           modelQuestionCount={modelQuestionCount}
         />
       )}
+      {formApplication.form?.type !== FormTypeEnum.PSYCHOSOCIAL && <CampaignBannerAssistant formApplication={formApplication} companyId={companyId} modelQuestionCount={modelQuestionCount} />}
       {showAuditAction && (
         <SButton
           text="Auditar consistência"
