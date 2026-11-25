@@ -1,12 +1,11 @@
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import { Box, Chip, Popover, TextField, Tooltip } from '@mui/material';
+import { Box, Popover, TextField, Tooltip } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SText } from '@v2/components/atoms/SText/SText';
 import type { FormAiAnalysisItemReviewModel } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import {
-  useMutateAcceptFormQuestionsAnswersAnalysisItem,
   useMutateCommentFormQuestionsAnswersAnalysisItem,
 } from '@v2/services/forms/form-questions-answers-analysis/review-form-questions-answers-analysis-item/hooks/useMutateReviewFormQuestionsAnswersAnalysisItem';
 import { canManageFrpsRiskAnalysisPrivacy } from 'core/utils/auth/frps-privacy-auth';
@@ -34,15 +33,6 @@ function formatReviewDate(value: string | Date | null | undefined): string {
   });
 }
 
-function acceptTooltip(review: FormAiAnalysisItemReviewModel): string {
-  const when = formatReviewDate(review.acceptedAt);
-  const who = review.acceptedByName?.trim();
-  if (who && when) return `Aceito por ${who} em ${when}`;
-  if (who) return `Aceito por ${who}`;
-  if (when) return `Aceito em ${when}`;
-  return 'Aceito';
-}
-
 type FrpsAnalysisItemReviewActionsProps = {
   companyId: string;
   applicationId: string;
@@ -63,11 +53,9 @@ export function FrpsAnalysisItemReviewActions({
   reviews,
 }: FrpsAnalysisItemReviewActionsProps) {
   const review = findAnalysisItemReview(reviews, item, itemType);
-  const accepted = Boolean(review?.acceptedAt);
   const commentCount = review?.comments.length ?? 0;
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [draft, setDraft] = useState('');
-  const acceptItem = useMutateAcceptFormQuestionsAnswersAnalysisItem();
   const commentItem = useMutateCommentFormQuestionsAnswersAnalysisItem();
 
   const submitComment = () => {
@@ -89,45 +77,6 @@ export function FrpsAnalysisItemReviewActions({
   return (
     <>
       <SFlex alignItems="center" gap={0.5} flexShrink={0}>
-        {accepted && review ? (
-          <Tooltip title={acceptTooltip(review)}>
-            <Chip
-              label="Aceito"
-              size="small"
-              color="success"
-              variant="outlined"
-              sx={{ height: 22, fontSize: 11, fontWeight: 600 }}
-            />
-          </Tooltip>
-        ) : (
-          <SButton
-            variant="outlined"
-            color="primary"
-            size="s"
-            text={acceptItem.isPending ? 'Aceitando...' : 'Aceitar'}
-            onClick={(event) => {
-              event.stopPropagation();
-              acceptItem.mutate({
-                companyId,
-                applicationId,
-                analysisId,
-                itemType,
-                itemIndex,
-              });
-            }}
-            buttonProps={{
-              disabled: acceptItem.isPending,
-              sx: {
-                minWidth: 'auto',
-                px: 1,
-                py: 0.25,
-                fontSize: '0.7rem',
-                lineHeight: 1.4,
-                boxShadow: 'none',
-              },
-            }}
-          />
-        )}
         <Tooltip title={commentCount > 0 ? `${commentCount} comentário(s)` : 'Comentar'}>
           <span>
             <SIconButton

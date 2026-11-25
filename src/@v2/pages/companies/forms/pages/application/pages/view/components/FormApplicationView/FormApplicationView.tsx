@@ -1,3 +1,4 @@
+import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { useMemo } from 'react';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { useFetchReadFormApplication } from '@v2/services/forms/form-application/read-form-application/hooks/useFetchReadFormApplication';
@@ -47,6 +48,26 @@ export const FormApplicationView = ({
           boxShadow: 'none',
           overflow: 'hidden',
         },
+        '&&&& .MuiAccordion-root:not(.Mui-expanded), &&&& .MuiAccordionSummary-root:not(.Mui-expanded)': {
+          backgroundColor: 'transparent',
+          backgroundImage: 'none',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
+        },
+        '&&&& .MuiAccordion-root:not(.Mui-expanded)': { overflow: 'visible' },
+        '&&&& .MuiAccordionSummary-root:not(.Mui-expanded)': {
+          transition: 'box-shadow 180ms ease, border-color 180ms ease',
+          '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+        },
+        '@media (hover: hover)': {
+          '&&&& .MuiAccordionSummary-root:not(.Mui-expanded):hover': {
+            backgroundColor: 'transparent',
+            borderColor: 'text.secondary',
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 3px 10px rgba(0, 0, 0, 0.16)'
+              : '0 3px 10px rgba(15, 23, 42, 0.07)',
+          },
+        },
         '&&&& button': {
           borderRadius: '999px',
           boxShadow: 'none',
@@ -74,14 +95,11 @@ export const FormApplicationView = ({
         },
       }}
     >
-      <FormApplicationInfo
-        mb={[20]}
-        formApplication={formApplication}
-        onEdit={handleEdit}
-      />
-      {!isLoading && formApplication && (
-        <SFlex direction="column" gap={20}>
+      <SFlex alignItems="center" flexWrap="wrap" gap={6} mb={8}>
+        <SPageHeader mb={0} title="Formulários" />
+        {!isLoading && formApplication && (
           <SFlex
+            flex={1}
             justifyContent="space-between"
             alignItems="center"
             flexWrap="wrap"
@@ -103,6 +121,15 @@ export const FormApplicationView = ({
               modelQuestionCount={modelQuestionCount}
             />
           </SFlex>
+        )}
+      </SFlex>
+      <FormApplicationInfo
+        mb={[20]}
+        formApplication={formApplication}
+        onEdit={handleEdit}
+      />
+      {!isLoading && formApplication && (
+        <SFlex direction="column" gap={20}>
           <FormQuestionsDashboard
             formQuestionsAnswers={formQuestionsAnswers}
             formApplication={formApplication}

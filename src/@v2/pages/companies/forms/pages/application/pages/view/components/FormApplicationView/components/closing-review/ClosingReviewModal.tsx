@@ -1,3 +1,4 @@
+import type { Theme } from '@mui/material/styles';
 import {
   Box,
   Checkbox,
@@ -46,6 +47,49 @@ import {
   type ClosingReviewModalMode,
 } from './closing-review-ui.rules';
 
+const closingReviewDialogSx = (theme: Theme) => ({
+  color: 'text.primary',
+  '& .MuiDialog-paper': {
+    backgroundColor: 'background.paper',
+    color: 'text.primary',
+    borderRadius: '24px',
+  },
+  '& .MuiTableCell-root': { color: 'text.primary', borderColor: 'divider' },
+  '& .MuiTableHead-root .MuiTableCell-root': {
+    backgroundColor: 'background.default',
+    color: 'text.primary',
+  },
+  '& .MuiCheckbox-root': {
+    color: 'text.secondary',
+    '&.Mui-checked, &.MuiCheckbox-indeterminate': {
+      color: theme.palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
+    },
+  },
+  '&& .MuiButton-root': {
+    borderRadius: '999px',
+    color: 'text.primary',
+    borderColor: 'divider',
+    background:
+      theme.palette.mode === 'dark'
+        ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+        : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+    backdropFilter: 'blur(16px) saturate(140%)',
+    WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+    '&:hover': {
+      color: theme.palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
+      backgroundColor: 'action.hover',
+      borderColor: 'text.secondary',
+    },
+    '&:focus-visible': {
+      outline: '2px solid',
+      outlineColor: 'text.secondary',
+      outlineOffset: 2,
+    },
+    '& *': { color: 'inherit' },
+    '&.Mui-disabled': { color: 'text.disabled', background: 'none' },
+  },
+});
+
 type ClosingReviewModalProps = {
   open: boolean;
   companyId: string;
@@ -67,12 +111,11 @@ export function ClosingReviewModal({
 }: ClosingReviewModalProps) {
   const [showComposition, setShowComposition] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const [confirmAction, setConfirmAction] = useState<ClosingResolutionBatchAction | null>(
-    null,
-  );
-  const [batchScope, setBatchScope] = useState<'selected' | 'allEligible' | null>(
-    null,
-  );
+  const [confirmAction, setConfirmAction] =
+    useState<ClosingResolutionBatchAction | null>(null);
+  const [batchScope, setBatchScope] = useState<
+    'selected' | 'allEligible' | null
+  >(null);
   const [resolutionError, setResolutionError] = useState<string | null>(null);
   const { precheck, isLoading, isError, error } = useFetchClosingPrecheck(
     { companyId, applicationId },
@@ -85,7 +128,9 @@ export function ClosingReviewModal({
   const showContinue = shouldShowContinueClosingAction(mode);
   const canResolve = Boolean(precheck?.canResolve);
   const pendingReviewTotal =
-    precheck?.summary.pendingReviewTotal ?? precheck?.summary.divergenceTotal ?? 0;
+    precheck?.summary.pendingReviewTotal ??
+    precheck?.summary.divergenceTotal ??
+    0;
   const allCorrectableKeys = useMemo(
     () => closingReviewCorrectablePendingKeys(precheck?.employees ?? []),
     [precheck?.employees],
@@ -152,6 +197,7 @@ export function ClosingReviewModal({
 
   return (
     <Dialog
+      sx={closingReviewDialogSx}
       open={open}
       onClose={onClose}
       maxWidth={false}
@@ -164,11 +210,15 @@ export function ClosingReviewModal({
         },
       }}
     >
-      <DialogTitle>{closingReviewModalTitle(mode)}</DialogTitle>
+      <DialogTitle sx={{ color: 'text.primary' }}>{closingReviewModalTitle(mode)}</DialogTitle>
       <DialogContent sx={{ overflowX: 'hidden' }}>
-        {isLoading && <Typography>Carregando revisão…</Typography>}
+        {isLoading && (
+          <Typography color="text.primary">Carregando revisão…</Typography>
+        )}
         {isError && (
-          <Typography color="error">{closingPrecheckErrorMessage(error)}</Typography>
+          <Typography color="error">
+            {closingPrecheckErrorMessage(error)}
+          </Typography>
         )}
         {precheck && (
           <SFlex direction="column" gap={3}>
@@ -183,7 +233,10 @@ export function ClosingReviewModal({
               </Typography>
             )}
             <SFlex gap={3} flexWrap="wrap">
-              <SummaryChip label="População" value={precheck.summary.populationTotal} />
+              <SummaryChip
+                label="População"
+                value={precheck.summary.populationTotal}
+              />
               <SummaryChip
                 label="Respondentes"
                 value={precheck.summary.respondentsTotal}
@@ -214,11 +267,14 @@ export function ClosingReviewModal({
 
             {precheck.possibleDuplicateHierarchyNames.length > 0 && (
               <Box>
-                <Typography fontWeight={600}>
+                <Typography color="text.primary" fontWeight={600}>
                   Possível duplicidade de setor
                 </Typography>
                 {precheck.possibleDuplicateHierarchyNames.map((item) => (
-                  <Typography key={`${item.hierarchyIdA}-${item.hierarchyIdB}`}>
+                  <Typography
+                    color="text.primary"
+                    key={`${item.hierarchyIdA}-${item.hierarchyIdB}`}
+                  >
                     {item.nameA} × {item.nameB} (similaridade{' '}
                     {Math.round(item.similarity * 100)}%). Sem auto-merge.
                   </Typography>
@@ -227,7 +283,7 @@ export function ClosingReviewModal({
             )}
 
             <Box sx={{ overflowX: 'auto' }}>
-              <Typography fontWeight={600} sx={{ mb: 1 }}>
+              <Typography color="text.primary" fontWeight={600} sx={{ mb: 1 }}>
                 Composição por setor
               </Typography>
               <Table size="small" sx={{ minWidth: 640 }}>
@@ -247,7 +303,9 @@ export function ClosingReviewModal({
                       <TableCell align="right">
                         {sector.currentEmployeeCount}
                       </TableCell>
-                      <TableCell align="right">{sector.respondentCount}</TableCell>
+                      <TableCell align="right">
+                        {sector.respondentCount}
+                      </TableCell>
                       <TableCell align="right">
                         {sector.withoutResponseCount}
                       </TableCell>
@@ -279,7 +337,9 @@ export function ClosingReviewModal({
                   flexWrap="wrap"
                   sx={{ mb: 1 }}
                 >
-                  <Typography fontWeight={600}>Conferência nominal</Typography>
+                  <Typography color="text.primary" fontWeight={600}>
+                    Conferência nominal
+                  </Typography>
                   {canResolve && (
                     <SFlex gap={1} flexWrap="wrap" alignItems="center">
                       <Typography variant="body2" color="text.secondary">
@@ -320,7 +380,9 @@ export function ClosingReviewModal({
                           setConfirmAction('CONFIRM_LEGITIMATE');
                           setResolutionError(null);
                         }}
-                        disabled={!selectedKeys.length || resolveMutation.isPending}
+                        disabled={
+                          !selectedKeys.length || resolveMutation.isPending
+                        }
                       />
                     </SFlex>
                   )}
@@ -329,7 +391,10 @@ export function ClosingReviewModal({
                   <TableHead>
                     <TableRow>
                       {canResolve && (
-                        <TableCell padding="checkbox" sx={{ width: 48, minWidth: 48 }}>
+                        <TableCell
+                          padding="checkbox"
+                          sx={{ width: 48, minWidth: 48 }}
+                        >
                           <Tooltip title="Selecionar todas as pendências elegíveis">
                             <span>
                               <Checkbox
@@ -364,7 +429,9 @@ export function ClosingReviewModal({
                         key={closingReviewEmployeeKey(employee)}
                         employee={employee}
                         canResolve={canResolve}
-                        selected={selectedSet.has(closingReviewEmployeeKey(employee))}
+                        selected={selectedSet.has(
+                          closingReviewEmployeeKey(employee),
+                        )}
                         resolving={resolveMutation.isPending}
                         onToggle={toggleOne}
                         onCorrect={() =>
@@ -405,20 +472,21 @@ export function ClosingReviewModal({
       </DialogActions>
 
       <Dialog
+        sx={closingReviewDialogSx}
         open={Boolean(confirmAction && partition)}
         onClose={() => {
           setConfirmAction(null);
           setBatchScope(null);
         }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ color: 'text.primary' }}>
           {confirmAction === 'CORRECT'
             ? 'Confirmar correção de vínculos'
             : 'Confirmar divergências como legítimas'}
         </DialogTitle>
         <DialogContent>
           {confirmLines.map((line) => (
-            <Typography key={line} sx={{ mb: 0.5 }}>
+            <Typography color="text.primary" key={line} sx={{ mb: 0.5 }}>
               {line}
             </Typography>
           ))}
@@ -443,7 +511,10 @@ export function ClosingReviewModal({
             disabled={!partition?.eligibleCount || resolveMutation.isPending}
             onClick={() => {
               if (!confirmAction || !partition) return;
-              void submitResolution(confirmAction, partition.eligible as ClosingPrecheckEmployee[]);
+              void submitResolution(
+                confirmAction,
+                partition.eligible as ClosingPrecheckEmployee[],
+              );
             }}
           />
         </DialogActions>
@@ -511,7 +582,11 @@ function EmployeeRow({
     employee.resolutionStatus,
   );
   const content = (
-    <Typography component="span" sx={{ color, fontWeight: 600 }}>
+    <Typography
+      color="text.primary"
+      component="span"
+      sx={{ color, fontWeight: 600 }}
+    >
       {label}
     </Typography>
   );

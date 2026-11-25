@@ -1,9 +1,7 @@
-import {
-  Alert,
-  Box,
-  CircularProgress,
-  Skeleton,
-} from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { formAccordionNavigationSx } from '../../../form-accordion-navigation.styles';
+import { Alert, Box, CircularProgress, Skeleton } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
@@ -78,7 +76,9 @@ export const RiskNarrativeDiagnosticSection = ({
 }: RiskNarrativeDiagnosticSectionProps) => {
   const { showConfirmation } = useConfirmationModal();
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
-  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>(
+    {},
+  );
 
   const storageKey = useMemo(
     () => buildNarrativeExpandedStorageKey(companyId, formApplicationId, scope),
@@ -151,7 +151,10 @@ export const RiskNarrativeDiagnosticSection = ({
   };
 
   const handleGenerate = async (regenerate: boolean) => {
-    const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
+    const masterOverrides = buildMasterAiRequestOverrides(
+      isMaster,
+      aiMasterConfig,
+    );
     await handleGenerateCommon({
       regenerate,
       customPrompt: masterOverrides.customPrompt,
@@ -163,41 +166,32 @@ export const RiskNarrativeDiagnosticSection = ({
     isProcessing || status === FormAiAnalysisStatusEnum.PROCESSING;
 
   return (
-    <Box sx={{ mx: 8, mb: 4 }}>
+    <Box>
       <SAccordion
+        icon={<AutoAwesomeIcon sx={{ fontSize: 30 }} />}
+        expandIcon={<ChevronRightIcon fontSize="small" />}
         expanded={expanded}
         onChange={(_, nextExpanded) => setExpanded(nextExpanded)}
         title={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
           <SText
             fontSize={16}
             fontWeight="bold"
             component="p"
-            sx={{ m: 0, lineHeight: 1.3 }}
+            sx={{ m: 0, lineHeight: 1.3, color: 'text.primary' }}
           >
             Diagnóstico narrativo com IA
           </SText>
-        }
-        subtitle={
-          <SText
-            fontSize={13}
-            color="text.secondary"
-            component="p"
-            sx={{ m: 0, lineHeight: 1.35 }}
-          >
-            Síntese em texto do recorte atual da análise de riscos (matriz, níveis e
-            análises já concluídas). A geração só ocorre quando você solicitar.
-          </SText>
-        }
-        endComponent={
           <Box
             onClick={(event) => event.stopPropagation()}
             onFocus={(event) => event.stopPropagation()}
-            sx={{ ml: 'auto', mr: 1, flexShrink: 0 }}
+            sx={{ flexShrink: 0 }}
           >
             <AiActionButtonGroup
               variant="s-button-shade"
               configureIconOnly
-              label={generateButtonLabel}
+              executeIconOnly
+              label={`${generateButtonLabel}: a IA sintetiza a matriz de risco, os níveis ocupacionais e as análises já concluídas do recorte atual em um diagnóstico narrativo, destacando achados prioritários e setores que demandam atenção. A geração só acontece ao clicar.${isDone ? ' Ao confirmar, o diagnóstico salvo será substituído.' : ''}`}
               loading={isGenerating}
               disabled={showProcessing || isGenerating}
               onExecute={() => void handleGenerate(isDone)}
@@ -206,18 +200,47 @@ export const RiskNarrativeDiagnosticSection = ({
               sButtonProps={{ color: 'primary' }}
             />
           </Box>
+          </Box>
+        }
+        subtitle={
+          <SText
+            fontSize={13}
+            color="text.secondary"
+            component="p"
+            sx={{ m: 0, lineHeight: 1.35 }}
+          >
+            Síntese em texto do recorte atual da análise de riscos (matriz,
+            níveis e análises já concluídas). A geração só ocorre quando você
+            solicitar.
+          </SText>
         }
         accordionProps={{
           disableGutters: true,
           TransitionProps: { unmountOnExit: true },
-          sx: {
-            border: '1px solid',
-            borderColor: 'grey.200',
-            bgcolor: 'grey.50',
+          sx: (theme) => ({
+            ...formAccordionNavigationSx,
+            p: 0,
+            border: 0,
+            bgcolor: 'transparent',
+            color: 'text.primary',
             borderRadius: 1,
             boxShadow: 'none',
             '&:before': { display: 'none' },
-            overflow: 'hidden',
+            overflow: 'visible',
+            '&& .MuiAccordionSummary-root:not(.Mui-expanded)': {
+              minHeight: '48px !important',
+              padding: '8px 12px !important',
+              gap: 4,
+              borderRadius: '24px',
+              border: '1px solid',
+              borderColor: 'divider',
+              backgroundColor: theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.045)'
+                : 'rgba(255, 255, 255, 0.45)',
+              backdropFilter: 'blur(16px) saturate(140%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+              '&:hover': { backgroundColor: 'action.hover' },
+            },
             '& .MuiAccordionSummary-root': {
               px: 3,
               py: 1,
@@ -233,6 +256,12 @@ export const RiskNarrativeDiagnosticSection = ({
               alignItems: 'center',
             },
             '& .MuiAccordionSummary-content > :first-child': {
+              width: 36,
+              height: 36,
+              flexShrink: 0,
+              mr: 4,
+            },
+            '& .MuiAccordionSummary-content > :nth-child(2)': {
               display: 'flex',
               flexDirection: 'column',
               flex: '1 1 auto',
@@ -244,7 +273,7 @@ export const RiskNarrativeDiagnosticSection = ({
               pb: 3,
               pt: 0,
             },
-          },
+          }),
         }}
       >
         {isLoading ? (
@@ -280,11 +309,13 @@ export const RiskNarrativeDiagnosticSection = ({
             )}
           </Alert>
         ) : isDone && riskNarrativeDiagnostic?.contentMarkdown ? (
-          <RiskNarrativeMarkdown content={riskNarrativeDiagnostic.contentMarkdown} />
+          <RiskNarrativeMarkdown
+            content={riskNarrativeDiagnostic.contentMarkdown}
+          />
         ) : (
           <SText fontSize={14} color="text.secondary">
-            Nenhum diagnóstico gerado para este recorte. Use o botão no cabeçalho
-            para criar um.
+            Nenhum diagnóstico gerado para este recorte. Use o botão no
+            cabeçalho para criar um.
           </SText>
         )}
       </SAccordion>

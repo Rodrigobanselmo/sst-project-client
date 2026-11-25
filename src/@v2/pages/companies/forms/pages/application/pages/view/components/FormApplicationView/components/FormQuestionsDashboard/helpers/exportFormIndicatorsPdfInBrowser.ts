@@ -35,9 +35,12 @@ export async function exportFormIndicatorsPdfInBrowser(
     dimensionView?: CopsoqLongDimensionView | null;
     levels?: IndicatorLevels;
     includeNarrative?: boolean;
+    executiveDistribution?: import('./buildExecutiveIndicatorsDistribution.util').ExecutiveIndicatorsDistribution;
     executiveDistributionChartType: FormChartType;
     hierarchyGroups: HierarchyGroupForIndicators[];
-    participantGroupingOverride?: Parameters<typeof buildDataset>[0]['participantGroupingOverride'];
+    participantGroupingOverride?: Parameters<
+      typeof buildDataset
+    >[0]['participantGroupingOverride'];
     /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
     visibleParticipantGroupIds?: string[];
   },
@@ -60,11 +63,13 @@ export async function exportFormIndicatorsPdfInBrowser(
   onProgress?.('Processando dados dos indicadores...');
   await yieldToUI();
 
-  const participantGroups = params.participantGroupingOverride?.participantGroups ?? buildParticipantGroupsForIndicators({
-    formQuestionsAnswers: params.formQuestionsAnswers,
-    selectedGroupingQuestionId: params.selectedGroupingQuestionId,
-    hierarchyGroups: params.hierarchyGroups,
-  });
+  const participantGroups =
+    params.participantGroupingOverride?.participantGroups ??
+    buildParticipantGroupsForIndicators({
+      formQuestionsAnswers: params.formQuestionsAnswers,
+      selectedGroupingQuestionId: params.selectedGroupingQuestionId,
+      hierarchyGroups: params.hierarchyGroups,
+    });
 
   const visibleParticipantGroups = params.selectedGroupingQuestionId
     ? params.visibleParticipantGroupIds
@@ -109,7 +114,8 @@ export async function exportFormIndicatorsPdfInBrowser(
       showOnlyGroupIndicators: params.showOnlyGroupIndicators,
       executiveDistributionChartType: params.executiveDistributionChartType,
       narrativeDiagnosticMarkdown,
-      isShareableLink: params.formApplication.isShareableLink && !params.partialResults,
+      isShareableLink:
+        params.formApplication.isShareableLink && !params.partialResults,
       partialResults: params.partialResults,
       hierarchyGroups: params.hierarchyGroups,
       participantGroupingOverride: params.participantGroupingOverride,
@@ -120,6 +126,9 @@ export async function exportFormIndicatorsPdfInBrowser(
     params.dimensionView,
     params.levels ?? { scales: true, dimensions: true },
   );
+
+  if (params.executiveDistribution)
+    dataset.executiveDistribution = params.executiveDistribution;
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short',

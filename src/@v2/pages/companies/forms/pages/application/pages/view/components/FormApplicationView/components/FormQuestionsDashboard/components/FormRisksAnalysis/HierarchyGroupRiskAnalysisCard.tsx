@@ -382,10 +382,11 @@ export function HierarchyGroupRiskAnalysisCard({
     <Box
       sx={{
         p: 4,
-        backgroundColor: 'grey.50',
+        backgroundColor: 'background.paper',
+        color: 'text.primary',
         borderRadius: 1,
         border: '1px solid',
-        borderColor: 'grey.300',
+        borderColor: 'divider',
       }}
     >
       <SFlex
@@ -396,7 +397,7 @@ export function HierarchyGroupRiskAnalysisCard({
         flexWrap="wrap"
       >
         <Box sx={{ minWidth: 0, flex: '1 1 240px' }}>
-          <Typography variant="body1" fontWeight="medium">
+          <Typography variant="body1" color="text.primary" fontWeight="medium">
             Agrupamento: {group.name}
           </Typography>
           <Typography
@@ -606,9 +607,10 @@ export function HierarchyGroupRiskAnalysisCard({
                   py: 1.5,
                   px: 2,
                   backgroundColor: 'background.paper',
+                  color: 'text.primary',
                   borderRadius: 1,
                   border: '1px solid',
-                  borderColor: 'grey.200',
+                  borderColor: 'divider',
                 }}
               >
                 <SFlex direction="column" gap={0.25} sx={{ minWidth: 120 }}>

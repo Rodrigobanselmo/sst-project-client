@@ -11,6 +11,7 @@ type FormChartDistributionViewProps = {
   totalAnswers: number;
   chartType: FormChartType;
   height?: number;
+  barLabelFontSize?: number;
 };
 
 export const FormChartDistributionView = ({
@@ -18,6 +19,7 @@ export const FormChartDistributionView = ({
   totalAnswers,
   chartType,
   height = 200,
+  barLabelFontSize = 11,
 }: FormChartDistributionViewProps) => {
   const { palette } = useTheme();
 
@@ -38,7 +40,7 @@ export const FormChartDistributionView = ({
 
     return (
       <Box>
-        <Box height={Math.max(height, rows.length * 36)}>
+        <Box height={Math.max(height, rows.length * 36)} sx={{ '& svg text[dominant-baseline="central"]': { fontSize: `${barLabelFontSize}px !important`, fontWeight: '700 !important' } }}>
           <ResponsiveBar
             data={barData}
             keys={['count']}
@@ -50,6 +52,7 @@ export const FormChartDistributionView = ({
             borderRadius={2}
             enableGridY={false}
             theme={{
+              labels: { text: { fontWeight: 700, fontSize: barLabelFontSize } },
               axis: { ticks: { text: { fill: palette.text.primary } } },
               grid: { line: { stroke: palette.divider } },
             }}
@@ -105,11 +108,19 @@ export const FormChartDistributionView = ({
   }));
 
   return (
-    <Box>
-      <Box height={height} maxWidth={400} mx="auto">
+    <Box sx={{ containerType: 'inline-size', width: '100%', minWidth: 0 }}>
+      <Box sx={{
+        display: 'grid', alignItems: 'center', gap: 6,
+        gridTemplateColumns: 'minmax(0, 1fr)',
+        '@container (min-width: 520px)': {
+          gridTemplateColumns: `${Math.max(height, 240)}px minmax(0, 220px)`,
+          justifyContent: 'center',
+        },
+      }}>
+      <Box height={Math.max(height, 240)} minWidth={0}>
         <ResponsivePie
           data={pieData}
-          margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
+          margin={{ top: 16, right: 16, bottom: 16, left: 16 }}
           innerRadius={chartType === 'donut' ? 0.5 : 0}
           padAngle={1}
           cornerRadius={3}
@@ -122,8 +133,9 @@ export const FormChartDistributionView = ({
           colors={{ datum: 'data.color' }}
           arcLabelsSkipAngle={10}
           arcLabelsTextColor="#333333"
+          theme={{ labels: { text: { fontWeight: 700 } } }}
           enableArcLabels
-          enableArcLinkLabels
+          enableArcLinkLabels={false}
           valueFormat={(value) => {
             const percentage = (value / totalAnswers) * 100;
             return percentage < 1 ? '<1%' : `${Math.round(percentage)}%`;
@@ -149,7 +161,8 @@ export const FormChartDistributionView = ({
           )}
         />
       </Box>
-      <PieLegends data={pieData} total={totalAnswers} />
+      <PieLegends data={pieData} total={totalAnswers} vertical />
+      </Box>
     </Box>
   );
 };

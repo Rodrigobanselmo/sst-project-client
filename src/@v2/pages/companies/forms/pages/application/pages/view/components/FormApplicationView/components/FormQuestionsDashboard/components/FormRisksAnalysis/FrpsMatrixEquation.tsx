@@ -88,6 +88,9 @@ export function FrpsMatrixEquation({
     <Tooltip
       title={
         <Box component="span" sx={{ whiteSpace: 'pre-line', display: 'block' }}>
+          <Box component="span" sx={{ display: 'block', fontWeight: 700, mb: 2 }}>
+            {kind === 'P' ? 'Probabilidade (P)' : 'Severidade (S)'}
+          </Box>
           {tooltipFor(kind, value)}
         </Box>
       }
@@ -95,8 +98,10 @@ export function FrpsMatrixEquation({
     >
       <Box component="span" sx={{ display: 'inline-flex' }}>
         <SScaleFactorPill
+          horizontalPadding={3}
           kind={kind}
           value={value}
+          label={`${kind === 'P' ? 'Probabilidade' : 'Severidade'} ${value ?? 'não informada'}`}
           chipColors={
             value != null
               ? resolveSystemAxisLevelChipColors(value, presentation)
@@ -114,16 +119,18 @@ export function FrpsMatrixEquation({
         alignItems: 'center',
         gap: 0.75,
         flexShrink: 0,
-        flexWrap: 'nowrap',
+        flexWrap: 'wrap',
       }}
     >
       {scalePill('P', probabilityValue)}
+      <Tooltip title="Cruzamento da probabilidade com a severidade na matriz de risco; não representa multiplicação aritmética.">
       <Typography
         component="span"
         sx={{ fontSize: 11, fontWeight: 500, color: 'text.secondary', lineHeight: 1 }}
       >
-        e
+        ×
       </Typography>
+      </Tooltip>
       {scalePill('S', severityValue)}
       <Typography
         component="span"

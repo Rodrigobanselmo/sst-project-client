@@ -9,6 +9,8 @@ import {
 export type SScaleFactorPillProps = {
   kind: SimpleSstScaleFactorKind;
   value?: number | null;
+  label?: string;
+  horizontalPadding?: number;
   chipColors?: {
     bgcolor: string;
     color: string;
@@ -19,6 +21,8 @@ export function SScaleFactorPill({
   kind,
   value,
   chipColors,
+  label,
+  horizontalPadding = 1.5,
 }: SScaleFactorPillProps) {
   const hasValue = typeof value === 'number' && value > 0;
   const chip = hasValue
@@ -39,7 +43,7 @@ export function SScaleFactorPill({
         justifyContent: 'center',
         minWidth: 34,
         height: 22,
-        px: 1.5,
+        px: horizontalPadding,
         flexShrink: 0,
         borderRadius: '999px',
         backgroundColor: chip.bgcolor,
@@ -51,7 +55,7 @@ export function SScaleFactorPill({
         boxShadow: '0px 1px 1px 0px rgb(0 0 0 / 5%)',
       }}
     >
-      {formatSimpleSstScaleFactorLabel(kind, hasValue ? value : null)}
+      {label ?? formatSimpleSstScaleFactorLabel(kind, hasValue ? value : null)}
     </Box>
   );
 }

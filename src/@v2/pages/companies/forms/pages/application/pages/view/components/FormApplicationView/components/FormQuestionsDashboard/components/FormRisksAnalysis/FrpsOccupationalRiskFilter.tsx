@@ -1,6 +1,5 @@
-import { Chip, Typography } from '@mui/material';
+import { Button, Chip, Typography } from '@mui/material';
 
-import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
@@ -31,10 +30,11 @@ export function FrpsOccupationalRiskFilter({
   };
 
   return (
-    <SFlex alignItems="center" gap={1} flexWrap="wrap">
-      <Typography variant="body2" color="text.secondary">
-        Risco ocupacional
+    <SFlex direction="column" gap={4} mt={8} mb={10}>
+      <Typography variant="body2" color="text.primary" fontWeight={600}>
+        Legenda e filtro por risco ocupacional
       </Typography>
+      <SFlex alignItems="center" gap={3} flexWrap="wrap">
       {FRPS_OCCUPATIONAL_FILTER_LEVELS.map((level) => {
         const active = selectedLevels.has(level);
         const chip = resolveSystemOccupationalChipColors(level, presentation);
@@ -48,27 +48,43 @@ export function FrpsOccupationalRiskFilter({
             aria-pressed={active}
             onClick={() => toggle(level)}
             sx={{
-              height: 26,
+              height: 28,
+              width: 112,
+              flexShrink: 0,
               fontWeight: 600,
               backgroundColor: active ? chip.bgcolor : 'transparent',
               color: active ? chip.color : 'text.secondary',
               border: '1px solid',
               borderColor: active ? chip.bgcolor : 'grey.400',
               '&:hover': {
-                backgroundColor: active ? chip.bgcolor : 'grey.100',
+                backgroundColor: active ? chip.bgcolor : 'action.hover',
               },
             }}
           />
         );
       })}
-      <SButton
-        variant="text"
-        size="s"
-        color="primary"
-        text="Todos"
-        disabled={allActive}
+      <Button
+        variant="outlined"
+        size="small"
+        aria-pressed={allActive}
         onClick={() => onChange(new Set(FRPS_OCCUPATIONAL_FILTER_LEVELS))}
-      />
+        sx={{
+          width: 112,
+          minWidth: 112,
+          height: 28,
+          p: 0,
+          fontSize: 13,
+          fontWeight: 600,
+          color: allActive ? 'text.primary' : 'text.secondary',
+          backgroundColor: 'transparent',
+          borderColor: allActive ? 'text.secondary' : 'divider',
+          '&:hover': { backgroundColor: 'action.hover', borderColor: 'text.primary' },
+          '&:active': { backgroundColor: 'action.selected' },
+        }}
+      >
+        Todos
+      </Button>
+      </SFlex>
     </SFlex>
   );
 }

@@ -19,6 +19,7 @@ type AiActionButtonGroupProps = {
   configureLabel?: string;
   /** Ícone de engrenagem, sem o texto do botão de configuração. */
   configureIconOnly?: boolean;
+  executeIconOnly?: boolean;
   isMaster?: boolean;
   variant?: AiActionButtonGroupVariant;
   size?: 'small' | 'medium';
@@ -33,6 +34,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
   onConfigure,
   configureLabel = 'Configurar prompt/modelo',
   configureIconOnly = false,
+  executeIconOnly = false,
   isMaster = false,
   variant = 'mui-outlined',
   size = 'small',
@@ -74,6 +76,18 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
         />
       )
     ) : null;
+
+  if (executeIconOnly) {
+    return (
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <SIconButton size="small" tooltip={label} disabled={isDisabled} onClick={onExecute}
+          iconButtonProps={{ 'aria-label': label, sx: { color: 'text.primary', '&:hover': { backgroundColor: 'action.hover' } } }}>
+          {loading ? <CircularProgress size={16} color="inherit" /> : <AutoFixHighOutlinedIcon sx={{ fontSize: 18 }} />}
+        </SIconButton>
+        {configureControl}
+      </Box>
+    );
+  }
 
   if (variant === 's-button-shade' || variant === 's-button-contained') {
     return (

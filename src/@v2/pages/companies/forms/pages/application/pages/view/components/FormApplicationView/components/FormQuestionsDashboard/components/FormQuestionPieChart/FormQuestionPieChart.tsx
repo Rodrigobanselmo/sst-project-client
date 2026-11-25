@@ -311,7 +311,11 @@ export const FormQuestionPieChart = ({
           </Box>
         )}
       </SFlex>
-      <Box width="100%" maxWidth={chartType === 'bar' ? '100%' : 400} mx="auto">
+      <Box
+        width="100%"
+        maxWidth={chartType === 'bar' ? '100%' : 760}
+        mx="auto"
+      >
         <FormChartDistributionView
           rows={rows}
           totalAnswers={totalAnswers}

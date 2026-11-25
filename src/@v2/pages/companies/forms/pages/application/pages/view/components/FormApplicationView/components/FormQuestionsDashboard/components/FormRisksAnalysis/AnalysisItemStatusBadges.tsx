@@ -2,31 +2,19 @@ import { Box } from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import type { AnalysisItemInventoryEntry } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse.model';
 
-type AnalysisItemBadgeVariant =
-  | 'inventory-in'
-  | 'inventory-pending'
-  | 'catalog-in'
-  | 'catalog-new';
-
-const analysisItemBadgeSx = (variant: AnalysisItemBadgeVariant) => {
-  const palette: Record<AnalysisItemBadgeVariant, { bgcolor: string; color: string }> =
-    {
-      'inventory-in': { bgcolor: 'success.dark', color: '#fff' },
-      'inventory-pending': { bgcolor: 'warning.dark', color: '#fff' },
-      'catalog-in': { bgcolor: 'info.dark', color: '#fff' },
-      'catalog-new': { bgcolor: 'grey.800', color: '#fff' },
-    };
-
-  return {
-    display: 'inline-block',
-    px: 1,
-    py: 0.25,
-    borderRadius: 0.5,
-    fontSize: 11,
-    fontWeight: 600,
-    lineHeight: 1.2,
-    ...palette[variant],
-  };
+const analysisItemBadgeSx = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  px: 3,
+  py: 0.5,
+  borderRadius: '999px',
+  border: '1px solid',
+  borderColor: 'divider',
+  backgroundColor: 'transparent',
+  color: 'text.secondary',
+  fontSize: 11,
+  fontWeight: 500,
+  lineHeight: 1.4,
 };
 
 export const AnalysisItemStatusBadges = ({
@@ -37,23 +25,19 @@ export const AnalysisItemStatusBadges = ({
   if (!itemStatus) return null;
 
   return (
-    <SFlex alignItems="center" gap={0.5} flexWrap="wrap">
+    <SFlex alignItems="center" gap={2} flexWrap="wrap">
       <Box
         component="span"
-        sx={analysisItemBadgeSx(
-          itemStatus.existsInInventory ? 'inventory-in' : 'inventory-pending',
-        )}
+        sx={analysisItemBadgeSx}
       >
-        {itemStatus.existsInInventory ? 'No inventário' : 'Pendente'}
+        {itemStatus.existsInInventory ? 'Incluído no inventário' : 'Não incluído no inventário'}
       </Box>
       {typeof itemStatus.existsInCatalog === 'boolean' && (
         <Box
           component="span"
-          sx={analysisItemBadgeSx(
-            itemStatus.existsInCatalog ? 'catalog-in' : 'catalog-new',
-          )}
+          sx={analysisItemBadgeSx}
         >
-          {itemStatus.existsInCatalog ? 'Cadastrado' : 'Novo cadastro'}
+          {itemStatus.existsInCatalog ? 'Existe no catálogo' : 'Não cadastrado no catálogo'}
         </Box>
       )}
     </SFlex>

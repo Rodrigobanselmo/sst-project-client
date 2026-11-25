@@ -1,3 +1,7 @@
+import {
+  analysisItemPillSchema,
+  analysisItemPillSx,
+} from '../analysis-item-pill.styles';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import type { FrpsAnalysisListItemType } from '@v2/services/forms/form-questions-answers-analysis/frps-explainability';
 import { useFrpsExplainabilityOptional } from './FrpsExplainabilityContext';
@@ -22,7 +26,9 @@ export function ExplainFrpsItemButton({
 
   return (
     <SButton
-      variant="text"
+      variant="outlined"
+      schema={analysisItemPillSchema}
+      textProps={{ fontSize: 11, fontWeight: 500 }}
       size="s"
       text="Entender este item"
       onClick={(event) => {
@@ -39,20 +45,7 @@ export function ExplainFrpsItemButton({
       buttonProps={{
         type: 'button',
         title: 'Abrir explicação técnica deste item',
-        sx: {
-          minWidth: 'auto',
-          px: 0.5,
-          py: 0.25,
-          fontSize: '0.7rem',
-          fontWeight: 500,
-          textTransform: 'none',
-          color: 'primary.main',
-          alignSelf: 'flex-start',
-          '&:hover': {
-            textDecoration: 'underline',
-            backgroundColor: 'transparent',
-          },
-        },
+        sx: analysisItemPillSx,
       }}
     />
   );

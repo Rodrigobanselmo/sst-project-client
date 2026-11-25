@@ -313,6 +313,8 @@ export function FrpsExplainabilityDrawer() {
             lg: '80vw',
           },
           maxWidth: '100vw',
+          backgroundColor: 'background.paper',
+          color: 'text.primary',
         },
       }}
     >
@@ -433,7 +435,7 @@ export function FrpsExplainabilityDrawer() {
                 borderRadius: 1,
                 border: '1px solid',
                 borderColor: 'divider',
-                backgroundColor: 'grey.50',
+                backgroundColor: 'background.default',
               }}
             >
               <SText variant="body1" fontWeight="bold" fontSize={16} mb={1}>
@@ -488,7 +490,7 @@ export function FrpsExplainabilityDrawer() {
                   borderRadius: 1,
                   border: '1px solid',
                   borderColor: 'divider',
-                  backgroundColor: 'grey.50',
+                  backgroundColor: 'background.default',
                 }}
               >
                 {data?.conceptual && (
@@ -540,7 +542,7 @@ export function FrpsExplainabilityDrawer() {
                   borderRadius: 1,
                   border: '1px solid',
                   borderColor: 'divider',
-                  backgroundColor: 'grey.50',
+                  backgroundColor: 'background.default',
                 }}
               >
                 <SText variant="body1" fontWeight="bold" fontSize={14} mb={1}>
@@ -692,7 +694,7 @@ export function FrpsExplainabilityDrawer() {
                   sx={{
                     p: 2.5,
                     borderRadius: 1,
-                    backgroundColor: 'warning.50',
+                    backgroundColor: 'action.hover',
                     border: '1px solid',
                     borderColor: 'warning.light',
                   }}
@@ -790,8 +792,8 @@ export function FrpsExplainabilityDrawer() {
                         sx={{
                           p: { xs: 2, md: 2.5 },
                           borderRadius: 1,
-                          borderColor: 'rgba(25, 118, 210, 0.22)',
-                          backgroundColor: 'rgba(25, 118, 210, 0.035)',
+                          borderColor: 'divider',
+                          backgroundColor: 'action.hover',
                         }}
                       >
                         <FrpsContextualContent
@@ -811,7 +813,7 @@ export function FrpsExplainabilityDrawer() {
         </FrpsExplainabilityDrawerErrorBoundary>
 
         <Divider />
-        <Box sx={{ px: { xs: 2.5, md: 4 }, py: 2.5, backgroundColor: 'grey.50' }}>
+        <Box sx={{ px: { xs: 2.5, md: 4 }, py: 2.5, backgroundColor: 'background.default' }}>
           <Typography
             variant="body2"
             color="text.secondary"

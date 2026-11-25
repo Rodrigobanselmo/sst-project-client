@@ -1,292 +1,156 @@
-import {
-  Box,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Paper,
-  Typography,
-  Divider,
-} from '@mui/material';
-import { useState, useMemo } from 'react';
+import { Box, Typography } from '@mui/material';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import { useMemo } from 'react';
 
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
-import { SText } from '@v2/components/atoms/SText/SText';
+import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
+import { SAccordionBody } from '@v2/components/organisms/SAccordion/components/SAccordionBody/SAccordionBody';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormQuestionGroupWithAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-question-group-with-answers-browse.model';
-import { FormQuestionWithAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-question-with-answers-browse.model';
 import { HtmlContentRenderer } from '../../../../../../../public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
+import { formAccordionNavigationSx } from '../../../form-accordion-navigation.styles';
 
 interface FormTextAnswersProps {
   formGroups: FormQuestionGroupWithAnswersBrowseModel[];
 }
 
-interface TextQuestion {
-  id: string;
-  groupId: string;
-  groupName: string;
-  question: FormQuestionWithAnswersBrowseModel;
-}
-
-interface TextAnswer {
-  id: string;
-  value: string;
-  participantId: string;
-}
-
 export const FormTextAnswers = ({ formGroups }: FormTextAnswersProps) => {
-  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(
-    null,
-  );
-
-  // Filter questions that are text-based (SHORT_TEXT, LONG_TEXT, TEXT)
-  const textQuestions = useMemo(() => {
-    const questions: TextQuestion[] = [];
-
-    formGroups.forEach((group) => {
-      group.questions.forEach((question) => {
-        if (
-          [
-            FormQuestionTypeEnum.SHORT_TEXT,
-            FormQuestionTypeEnum.LONG_TEXT,
-            FormQuestionTypeEnum.TEXT,
-          ].includes(question.details.type)
-        ) {
-          questions.push({
-            id: question.id,
-            groupId: group.id,
+  const textQuestions = useMemo(
+    () =>
+      formGroups.flatMap((group) =>
+        group.questions
+          .filter((question) =>
+            [
+              FormQuestionTypeEnum.SHORT_TEXT,
+              FormQuestionTypeEnum.LONG_TEXT,
+              FormQuestionTypeEnum.TEXT,
+            ].includes(question.details.type),
+          )
+          .map((question) => ({
             groupName: group.name,
             question,
-          });
-        }
-      });
-    });
+            answers: question.answers.filter(
+              (answer) => answer.value && answer.value.trim(),
+            ),
+          })),
+      ),
+    [formGroups],
+  );
 
-    return questions;
-  }, [formGroups]);
-
-  // Get selected question data
-  const selectedQuestion = useMemo(() => {
-    if (!selectedQuestionId) return null;
-    return textQuestions.find((q) => q.id === selectedQuestionId);
-  }, [selectedQuestionId, textQuestions]);
-
-  // Get text answers for selected question
-  const textAnswers = useMemo(() => {
-    if (!selectedQuestion) return [];
-
-    const answers: TextAnswer[] = [];
-    selectedQuestion.question.answers.forEach((answer) => {
-      if (answer.value && answer.value.trim()) {
-        answers.push({
-          id: answer.id,
-          value: answer.value,
-          participantId: answer.participantsAnswersId,
-        });
-      }
-    });
-
-    return answers;
-  }, [selectedQuestion]);
-
-  // Auto-select first question if none selected
-  if (!selectedQuestionId && textQuestions.length > 0) {
-    setSelectedQuestionId(textQuestions[0].id);
-  }
-
-  if (textQuestions.length === 0) {
+  if (!textQuestions.length)
     return (
-      <SFlex
-        direction="column"
-        alignItems="center"
-        justifyContent="center"
-        width="100%"
-        p={12}
-      >
-        <SPaper
-          sx={{
-            p: 12,
-            width: '100%',
-            borderRadius: 3,
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-            border: '1px solid rgba(0, 0, 0, 0.06)',
-            textAlign: 'center',
-            backgroundColor: 'background.paper',
-          }}
-        >
-          <SText
-            sx={{
-              fontSize: 18,
-              fontWeight: 500,
-              color: 'text.primary',
-              mb: 2,
-              textAlign: 'center',
-              lineHeight: 1.5,
-            }}
-          >
-            Nenhuma pergunta de texto encontrada
-          </SText>
-          <SText
-            sx={{
-              fontSize: 14,
-              color: 'text.secondary',
-              textAlign: 'center',
-              lineHeight: 1.4,
-            }}
-          >
-            Este formulário não possui perguntas de texto (resposta curta ou
-            longa).
-          </SText>
-        </SPaper>
-      </SFlex>
+      <Box sx={{ py: 8, px: 6 }}>
+        <Typography color="text.primary" fontWeight={600}>
+          Nenhuma pergunta de texto encontrada
+        </Typography>
+        <Typography color="text.secondary" variant="body2" sx={{ mt: 2 }}>
+          Este formulário não possui perguntas de texto (resposta curta ou
+          longa).
+        </Typography>
+      </Box>
     );
-  }
 
   return (
-    <SFlex direction="row" height="600px" gap={0}>
-      {/* Sidebar with questions */}
-      <Box
-        sx={{
-          width: 350,
-          borderRight: '1px solid',
-          borderColor: 'grey.300',
-          borderRadius: 1,
-          backgroundColor: 'background.paper',
-        }}
-      >
-        <Box sx={{ p: 4, borderBottom: '1px solid', borderColor: 'grey.300' }}>
-          <Typography variant="h6" color="text.label">
-            Perguntas de Texto ({textQuestions.length})
-          </Typography>
-        </Box>
-
-        <List sx={{ p: 0, maxHeight: 'calc(600px - 80px)', overflow: 'auto' }}>
-          {textQuestions.map((textQuestion, index) => (
-            <Box key={textQuestion.id}>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={selectedQuestionId === textQuestion.id}
-                  onClick={() => setSelectedQuestionId(textQuestion.id)}
-                  sx={{
-                    py: 4,
-                    px: 6,
-                    '&.Mui-selected': {
-                      backgroundColor: 'action.selected',
-                      borderRight: '3px solid',
-                      borderRightColor: 'primary.main',
-                    },
-                  }}
-                >
-                  <ListItemText
-                    primary={
-                      <Box>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontSize={12}
-                        >
-                          {textQuestion.groupName}
-                        </Typography>
-                        <Typography
-                          color="text.primary"
-                          variant="body1"
-                          sx={{ mt: 1 }}
-                        >
-                          {textQuestion.question.textWithoutHtml}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {
-                            textQuestion.question.answers.filter(
-                              (a) => a.value && a.value.trim(),
-                            ).length
-                          }{' '}
-                          respostas
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-              {index < textQuestions.length - 1 && <Divider />}
-            </Box>
-          ))}
-        </List>
-      </Box>
-
-      {/* Main content area with answers */}
-      <Box sx={{ flex: 1, p: 6, overflow: 'auto', maxHeight: '600px' }}>
-        {selectedQuestion ? (
-          <Box>
-            {/* Question header */}
-            <Box sx={{ mb: 8 }}>
-              <Typography variant="body2" color="text.secondary" mb={2}>
-                {selectedQuestion.groupName}
+    <Box sx={{ minWidth: 0 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ px: 6, mb: 6 }}>
+        {textQuestions.length}{' '}
+        {textQuestions.length === 1
+          ? 'pergunta de texto'
+          : 'perguntas de texto'}{' '}
+        ·{' '}
+        {textQuestions.reduce((total, item) => total + item.answers.length, 0)}{' '}
+        respostas
+      </Typography>
+      {textQuestions.map(({ groupName, question, answers }, questionIndex) => (
+        <SAccordion
+          key={question.id}
+          defaultExpanded={questionIndex === 0}
+          expandIcon={<ArrowRightIcon fontSize="small" />}
+          accordionProps={{
+            sx: {
+              ...formAccordionNavigationSx,
+              backgroundColor: 'transparent',
+              border: 0,
+              boxShadow: 'none',
+              WebkitBoxShadow: 'none',
+              '&::before': { display: 'none' },
+            },
+          }}
+          title={
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Pergunta {questionIndex + 1} · {groupName} · {answers.length}{' '}
+                respostas
               </Typography>
-              <HtmlContentRenderer
-                useThemeTextColor
-                content={selectedQuestion.question.details.text}
-              />
-              <Typography variant="body2" color="text.secondary" mt={4}>
-                {textAnswers.length} respostas encontradas
-              </Typography>
+              <Box
+                sx={{
+                  color: 'text.primary',
+                  fontWeight: 600,
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                <HtmlContentRenderer
+                  useThemeTextColor
+                  content={question.details.text}
+                />
+              </Box>
             </Box>
-
-            {/* Answers list */}
-            {textAnswers.length > 0 ? (
-              <Box>
-                {textAnswers.map((answer, index) => (
-                  <Paper
+          }
+        >
+          <SAccordionBody>
+            <Box sx={{ pl: { xs: 4, sm: 12 }, pr: 6, pt: 4 }}>
+              {answers.length ? (
+                answers.map((answer, answerIndex) => (
+                  <Box
+                    component="details"
+                    open
                     key={answer.id}
                     sx={{
-                      p: 6,
-                      mb: 4,
-                      border: '1px solid',
+                      py: 5,
+                      borderBottom: '1px solid',
                       borderColor: 'divider',
-                      borderRadius: 1,
+                      minWidth: 0,
+                      '& > summary': {
+                        cursor: 'pointer',
+                        color: 'text.primary',
+                        fontWeight: 600,
+                        fontSize: '14px',
+                      },
+                      '& > summary:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.main',
+                        outlineOffset: 3,
+                      },
                     }}
                   >
-                    <Typography variant="body2" color="text.secondary" mb={2}>
-                      Participante #{index + 1}
-                    </Typography>
+                    <Box component="summary">Resposta {answerIndex + 1}</Box>
                     <Typography
-                      color="text.primary"
                       variant="body1"
-                      sx={{ whiteSpace: 'pre-wrap' }}
+                      color="text.primary"
+                      sx={{
+                        mt: 3,
+                        pl: 8,
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                        lineHeight: 1.7,
+                      }}
                     >
                       {answer.value}
                     </Typography>
-                  </Paper>
-                ))}
-              </Box>
-            ) : (
-              <SPaper
-                sx={{
-                  p: 4,
-                  textAlign: 'center',
-                  backgroundColor: 'background.paper',
-                }}
-              >
-                <Typography variant="body1" color="text.secondary">
-                  Nenhuma resposta encontrada para esta pergunta
+                  </Box>
+                ))
+              ) : (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ py: 6 }}
+                >
+                  Nenhuma resposta encontrada para esta pergunta.
                 </Typography>
-              </SPaper>
-            )}
-          </Box>
-        ) : (
-          <SPaper
-            sx={{
-              p: 4,
-              textAlign: 'center',
-              backgroundColor: 'background.paper',
-            }}
-          >
-            <Typography variant="body1" color="text.secondary">
-              Selecione uma pergunta para ver as respostas
-            </Typography>
-          </SPaper>
-        )}
-      </Box>
-    </SFlex>
+              )}
+            </Box>
+          </SAccordionBody>
+        </SAccordion>
+      ))}
+    </Box>
   );
 };

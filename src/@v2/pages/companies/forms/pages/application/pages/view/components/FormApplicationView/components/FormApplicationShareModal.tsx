@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SModalHeader } from '@v2/components/organisms/SModal/components/SModalHeader/SModalHeader';
 import { SModalPaper } from '@v2/components/organisms/SModal/components/SModalPaper/SModalPaper';
@@ -28,6 +28,7 @@ export const FormApplicationShareModal = ({
   formApplication,
   onClose,
 }: FormApplicationShareModalProps) => {
+  const { palette } = useTheme();
   const { showSnackBar } = useSystemSnackbar();
   const qrCodeContainerRef = useRef<HTMLDivElement>(null);
   const [svgElement, setSvgElement] = useState<SVGSVGElement | null>(null);
@@ -38,14 +39,15 @@ export const FormApplicationShareModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formApplication.id]);
 
-  // Get the SVG element after QR code renders
+  // The dynamically loaded QR component may render after the modal mounts.
   useEffect(() => {
-    if (qrCodeContainerRef.current) {
-      const svg = qrCodeContainerRef.current.querySelector('svg');
-      if (svg) {
-        setSvgElement(svg);
-      }
-    }
+    const container = qrCodeContainerRef.current;
+    if (!container) return;
+    const updateSvg = () => setSvgElement(container.querySelector('svg'));
+    updateSvg();
+    const observer = new MutationObserver(updateSvg);
+    observer.observe(container, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [publicUrl]);
 
   const handleCopyUrl = () => {
@@ -102,8 +104,37 @@ export const FormApplicationShareModal = ({
     <SModalPaper center sx={{ maxWidth: 500, width: '90%' }}>
       <SModalHeader onClose={onClose} title="Compartilhar Formulário" />
 
-      <Box sx={{ p: 6, textAlign: 'center' }}>
-        <Typography variant="h6" gutterBottom>
+      <Box
+        sx={{
+          p: 6,
+          textAlign: 'center',
+          color: 'text.primary',
+          '&& .MuiButton-root': {
+            borderRadius: '999px',
+            color: 'text.primary',
+            borderColor: 'divider',
+            background:
+              palette.mode === 'dark'
+                ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+            backdropFilter: 'blur(16px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+            '&:hover': {
+              color: palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
+              backgroundColor: 'action.hover',
+              borderColor: 'text.secondary',
+            },
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'text.secondary',
+              outlineOffset: 2,
+            },
+            '& *': { color: 'inherit' },
+            '&.Mui-disabled': { color: 'text.disabled', background: 'none' },
+          },
+        }}
+      >
+        <Typography variant="h6" color="text.primary" gutterBottom>
           {formApplication.name}
         </Typography>
 
@@ -137,13 +168,20 @@ export const FormApplicationShareModal = ({
         <Box
           sx={{
             p: 4,
-            bgcolor: 'grey.100',
+            bgcolor: 'background.default',
+            color: 'text.primary',
+            border: '1px solid',
+            borderColor: 'divider',
             borderRadius: 1,
             mb: 8,
             wordBreak: 'break-all',
           }}
         >
-          <Typography variant="body2" fontFamily="monospace">
+          <Typography
+            variant="body2"
+            color="text.primary"
+            fontFamily="monospace"
+          >
             {publicUrl}
           </Typography>
         </Box>

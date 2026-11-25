@@ -1,3 +1,12 @@
+import {
+  AnalysisDisclosureHeader,
+  AnalysisItemsSection,
+} from './AnalysisDisclosure';
+import Tooltip from '@mui/material/Tooltip';
+import {
+  analysisItemPillSchema,
+  analysisItemPillSx,
+} from './analysis-item-pill.styles';
 import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
 import { Box, TextField, Typography } from '@mui/material';
@@ -16,7 +25,6 @@ import {
   FrpsAnalysisItemReviewActions,
   useCanEditFrpsAnalysisContent,
 } from './FrpsAnalysisItemReviewActions';
-import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
 import {
   ExplainFrpsItemButton,
   buildCatalogFrpsItemKey,
@@ -124,19 +132,19 @@ function EditableAnalysisItem({
     <Box
       sx={{
         p: 2,
-        backgroundColor,
+        backgroundColor: 'transparent',
         borderRadius: 1,
-        border: '1px solid',
-        borderColor,
+        borderBottom: '1px solid',
+        borderColor: 'divider',
         position: 'relative',
         transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          boxShadow: 'none',
           '.analysis-item-edit-actions': { opacity: 1 },
         },
         '.analysis-item-add-action': { opacity: 1, visibility: 'visible' },
         '.analysis-item-edit-actions': {
-          opacity: 0,
+          opacity: 1,
           transition: 'opacity 0.2s ease-in-out',
         },
       }}
@@ -187,37 +195,90 @@ function EditableAnalysisItem({
         </SFlex>
       ) : (
         <SFlex direction="column" gap={1} width="100%">
-          <SFlex alignItems="center" justifyContent="space-between" gap={1} flexWrap="wrap">
+          <SFlex
+            alignItems="center"
+            justifyContent="space-between"
+            gap={1}
+            flexWrap="wrap"
+          >
             <Box
               flex={1}
               minWidth={0}
-              onClick={allowContentEdit ? () => setIsEditing(true) : undefined}
               sx={{
                 cursor: allowContentEdit ? 'pointer' : 'default',
                 '&:hover': allowContentEdit
                   ? {
                       '& .item-name': {
-                        color: 'primary.main',
+                        color: (theme) => theme.palette.mode === 'light' ? '#1565C0' : theme.palette.text.primary,
+                          textDecoration: 'underline',
+                          textUnderlineOffset: '3px',
                       },
                     }
                   : undefined,
               }}
             >
               <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
-                {itemCode && <AnalysisItemCodeBadge code={itemCode} />}
-                <SText
-                  className="item-name"
-                  variant="body2"
-                  fontWeight="medium"
-                  fontSize={13}
-                  sx={{
-                    transition: 'color 0.2s ease-in-out',
-                    lineHeight: 1.4,
-                  }}
+                <Tooltip
+                  arrow
+                  title={
+                    <Box>
+                      {allowContentEdit && (
+                        <Box sx={{ fontWeight: 600, mb: 1 }}>
+                          Clique para editar
+                        </Box>
+                      )}
+                      {item.justificativa && (
+                            <Box sx={{ mt: allowContentEdit ? 4 : 0, lineHeight: 1.6 }}>
+                              <Box sx={{ fontWeight: 700, mb: 1 }}>Justificativa:</Box>
+                              <Box>{item.justificativa}</Box>
+                            </Box>
+                          )}
+                    </Box>
+                  }
                 >
-                  {item.nome}
-                </SText>
+                  <SText
+                    className="item-name"
+                    onClick={
+                      allowContentEdit ? () => setIsEditing(true) : undefined
+                    }
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (
+                        allowContentEdit &&
+                        (event.key === 'Enter' || event.key === ' ')
+                      ) {
+                        event.preventDefault();
+                        setIsEditing(true);
+                      }
+                    }}
+                    variant="body2"
+                    fontWeight="medium"
+                    fontSize={13}
+                    sx={{
+                      transition: 'color 0.2s ease-in-out',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {item.nome}
+                  </SText>
+                </Tooltip>
                 <AnalysisItemStatusBadges itemStatus={itemStatus} />
+                <ExplainFrpsItemButton
+                  analysisId={analysisId}
+                  listItemType={itemType}
+                  itemName={item.nome}
+                  itemKey={
+                    item.catalogId || itemStatus?.catalogId
+                      ? buildCatalogFrpsItemKey(
+                          mapAnalysisListItemTypeToExplanationItemType(
+                            itemType,
+                          ),
+                          (item.catalogId || itemStatus?.catalogId) as string,
+                        )
+                      : undefined
+                  }
+                  riskFactorName={analysis.analysis?.frps}
+                />
               </SFlex>
             </Box>
             <SFlex
@@ -246,9 +307,11 @@ function EditableAnalysisItem({
                 >
                   <SIconButton
                     iconButtonProps={{
+                      'aria-label': 'Editar item',
                       sx: {
                         p: 0.5,
                         borderRadius: 1,
+                        color: 'text.secondary',
                         '&:hover': {
                           backgroundColor: 'primary.light',
                           color: 'primary.contrastText',
@@ -261,9 +324,11 @@ function EditableAnalysisItem({
                   </SIconButton>
                   <SIconButton
                     iconButtonProps={{
+                      'aria-label': 'Excluir item',
                       sx: {
                         p: 0.5,
                         borderRadius: 1,
+                        color: 'text.secondary',
                         '&:hover': {
                           backgroundColor: 'error.light',
                           color: 'error.contrastText',
@@ -287,13 +352,17 @@ function EditableAnalysisItem({
                   </SIconButton>
                 </SFlex>
               )}
-              {onAddItem && (
+              {onAddItem && !itemStatus?.existsInInventory && (
                 <Box className="analysis-item-add-action">
                   <SButton
                     variant="contained"
                     color="success"
                     size="s"
-                    text={isAddingItem ? 'Adicionando...' : addItemLabel}
+                    schema={analysisItemPillSchema}
+                    textProps={{ fontSize: 11, fontWeight: 500 }}
+                    text={
+                      isAddingItem ? 'Adicionando...' : 'Aceitar e adicionar'
+                    }
                     onClick={(event) => {
                       event.stopPropagation();
                       onAddItem();
@@ -303,44 +372,13 @@ function EditableAnalysisItem({
                       title: itemCode
                         ? `${addItemLabel} (${itemCode})`
                         : addItemLabel,
-                      sx: {
-                        minWidth: 'auto',
-                        px: 1.5,
-                        py: 0.5,
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        whiteSpace: 'nowrap',
-                        boxShadow: 'none',
-                        opacity: 1,
-                        visibility: 'visible',
-                      },
+                      sx: analysisItemPillSx,
                     }}
                   />
                 </Box>
               )}
             </SFlex>
           </SFlex>
-          {item.justificativa && (
-            <Box sx={{ p: 1.5, backgroundColor: 'rgba(0,0,0,0.02)' }}>
-              <SText variant="body2" color="text.secondary" fontSize={11}>
-                {item.justificativa}
-              </SText>
-            </Box>
-          )}
-          <ExplainFrpsItemButton
-            analysisId={analysisId}
-            listItemType={itemType}
-            itemName={item.nome}
-            itemKey={
-              item.catalogId || itemStatus?.catalogId
-                ? buildCatalogFrpsItemKey(
-                    mapAnalysisListItemTypeToExplanationItemType(itemType),
-                    (item.catalogId || itemStatus?.catalogId) as string,
-                  )
-                : undefined
-            }
-            riskFactorName={analysis.analysis?.frps}
-          />
         </SFlex>
       )}
     </Box>
@@ -407,10 +445,7 @@ export type RiskEntityAiAnalysisPanelProps = {
   groupPerItemAdd?: {
     label: string;
     applyingKey: string | null;
-    buildApplyingKey: (
-      itemType: AnalysisItemType,
-      itemIndex: number,
-    ) => string;
+    buildApplyingKey: (itemType: AnalysisItemType, itemIndex: number) => string;
     isItemAddable: (
       itemType: AnalysisItemType,
       itemName: string,
@@ -499,23 +534,35 @@ export function RiskEntityAiAnalysisPanel({
 
   return (
     <Box mt={3}>
-      <SButton
-        variant="text"
-        text={
-          isAnalysisExpanded ? 'Ocultar Análise de IA' : 'Mostrar Análise de IA'
+      <AnalysisDisclosureHeader
+        expanded={isAnalysisExpanded}
+        onToggle={() => onAnalysisToggle(analysisKey)}
+        confidence={sourceAnalysis.confidence}
+        action={
+          !hideBulkApplyButton &&
+          applyAnalysisButtonProps &&
+          onBulkApplyAnalysis && (
+            <SButton
+              variant="shade"
+              schema={analysisItemPillSchema}
+              textProps={{ fontSize: 11 }}
+              size="s"
+              text={
+                'Aceitar e adicionar todos deste risco/setor'
+              }
+              tooltip="Aceitar e adicionar todas as fontes e recomendações deste risco no destino indicado"
+              onClick={onBulkApplyAnalysis}
+              buttonProps={{ sx: analysisItemPillSx }}
+            />
+          )
         }
-        onClick={() => onAnalysisToggle(analysisKey)}
-        buttonProps={{
-          sx: {
-            mb: 2,
-            textDecoration: 'underline',
-            '&:hover': { textDecoration: 'underline' },
-          },
-        }}
       />
       {isAnalysisExpanded && (
         <SFlex direction="column" gap={2}>
-          <Box key={sourceAnalysis.id} sx={{ p: 3, backgroundColor: 'primary.50' }}>
+          <Box
+            key={sourceAnalysis.id}
+            sx={{ p: 3, backgroundColor: 'transparent' }}
+          >
             {showInheritedBanner && isHierarchyGroupFallback && (
               <Typography
                 variant="body2"
@@ -525,97 +572,75 @@ export function RiskEntityAiAnalysisPanel({
                 Análise aplicada pelo agrupamento de setores.
               </Typography>
             )}
-            <SFlex alignItems="center" gap={2} mb={2}>
-              <SText variant="body2" color="text.main">
-                Análise de IA para este risco/setor: {analysis.analysis?.frps}
-              </SText>
-              <SText
-                variant="body2"
-                color="text.secondary"
-                fontSize={12}
-                sx={{ fontStyle: 'italic' }}
-              >
-                Confiança: {Math.round((sourceAnalysis.confidence ?? 0) * 100)}%
-              </SText>
-              {!hideBulkApplyButton && applyAnalysisButtonProps && onBulkApplyAnalysis && (
-                <SButton
-                  variant="shade"
-                  color={applyAnalysisButtonProps.color}
-                  size="s"
-                  text={applyAnalysisButtonProps.text}
-                  onClick={onBulkApplyAnalysis}
-                  buttonProps={{ sx: { ml: 'auto', fontSize: '0.75rem' } }}
-                />
-              )}
-            </SFlex>
 
             {displayAnalysisContent.fontesGeradoras?.length > 0 && (
-              <Box mb={2} mt={4}>
-                <SText variant="body2" fontWeight="bold" fontSize={14} mb={4}>
-                  Fontes Geradoras
-                </SText>
+              <AnalysisItemsSection title="Fontes Geradoras">
                 <SFlex direction="column" gap={4}>
-                  {displayAnalysisContent.fontesGeradoras.map((fonte, index) => {
-                    const itemStatus = resolveDisplayedItemStatus(
-                      'fontesGeradoras',
-                      fonte.nome,
-                      index,
-                    );
-                    const canEditContent = itemStatus?.existsInInventory !== true;
-                    const itemAddProps = resolveItemAddProps(
-                      'fontesGeradoras',
-                      index,
-                      fonte,
-                      canEditContent,
-                    );
+                  {displayAnalysisContent.fontesGeradoras.map(
+                    (fonte, index) => {
+                      const itemStatus = resolveDisplayedItemStatus(
+                        'fontesGeradoras',
+                        fonte.nome,
+                        index,
+                      );
+                      const canEditContent =
+                        itemStatus?.existsInInventory !== true;
+                      const itemAddProps = resolveItemAddProps(
+                        'fontesGeradoras',
+                        index,
+                        fonte,
+                        canEditContent,
+                      );
 
-                    return (
-                      <EditableAnalysisItem
-                        key={`fontesGeradoras-${index}`}
-                        item={fonte}
-                        itemIndex={index}
-                        analysisId={sourceAnalysis.id}
-                        itemType="fontesGeradoras"
-                        itemCode={itemCodeRegistry.getCode('fontesGeradoras', index)}
-                        analysis={sourceAnalysis}
-                        reviewCompanyId={reviewCompanyId}
-                        backgroundColor="grey.50"
-                        borderColor="grey.200"
-                        itemStatus={itemStatus}
-                        readOnly={!canEditContent}
-                        onEditItem={
-                          isHierarchyGroupFallback && canEditContent
-                            ? createInheritedAnalysisItemEditHandler(
-                                sourceAnalysis,
-                                'fontesGeradoras',
-                                index,
-                              )
-                            : undefined
-                        }
-                        onRemoveItem={
-                          isHierarchyGroupFallback && canEditContent
-                            ? createInheritedAnalysisItemRemoveHandler(
-                                sourceAnalysis,
-                                'fontesGeradoras',
-                                index,
-                              )
-                            : undefined
-                        }
-                        {...itemAddProps}
-                        onEditAnalysisItem={handleEditAnalysisItem}
-                        onRemoveAnalysisItem={handleRemoveAnalysisItem}
-                      />
-                    );
-                  })}
+                      return (
+                        <EditableAnalysisItem
+                          key={`fontesGeradoras-${index}`}
+                          item={fonte}
+                          itemIndex={index}
+                          analysisId={sourceAnalysis.id}
+                          itemType="fontesGeradoras"
+                          itemCode={itemCodeRegistry.getCode(
+                            'fontesGeradoras',
+                            index,
+                          )}
+                          analysis={sourceAnalysis}
+                          reviewCompanyId={reviewCompanyId}
+                          backgroundColor="background.paper"
+                          borderColor="divider"
+                          itemStatus={itemStatus}
+                          readOnly={!canEditContent}
+                          onEditItem={
+                            isHierarchyGroupFallback && canEditContent
+                              ? createInheritedAnalysisItemEditHandler(
+                                  sourceAnalysis,
+                                  'fontesGeradoras',
+                                  index,
+                                )
+                              : undefined
+                          }
+                          onRemoveItem={
+                            isHierarchyGroupFallback && canEditContent
+                              ? createInheritedAnalysisItemRemoveHandler(
+                                  sourceAnalysis,
+                                  'fontesGeradoras',
+                                  index,
+                                )
+                              : undefined
+                          }
+                          {...itemAddProps}
+                          onEditAnalysisItem={handleEditAnalysisItem}
+                          onRemoveAnalysisItem={handleRemoveAnalysisItem}
+                        />
+                      );
+                    },
+                  )}
                 </SFlex>
-              </Box>
+              </AnalysisItemsSection>
             )}
 
-            {displayAnalysisContent.medidasEngenhariaRecomendadas?.length > 0 && (
-              <Box mb={2} mt={8}>
-                <SText variant="body2" fontWeight="bold" fontSize={14} mb={2}>
-                  Recomendações (Medidas de Engenharia)
-                </SText>
+            {displayAnalysisContent.medidasEngenhariaRecomendadas?.length >
+              0 && (
+              <AnalysisItemsSection title="Recomendações (Medidas de Engenharia)">
                 <SFlex direction="column" gap={1}>
                   {displayAnalysisContent.medidasEngenhariaRecomendadas.map(
                     (medida, index) => {
@@ -624,7 +649,8 @@ export function RiskEntityAiAnalysisPanel({
                         medida.nome,
                         index,
                       );
-                      const canEditContent = itemStatus?.existsInInventory !== true;
+                      const canEditContent =
+                        itemStatus?.existsInInventory !== true;
                       const itemAddProps = resolveItemAddProps(
                         'medidasEngenhariaRecomendadas',
                         index,
@@ -645,8 +671,8 @@ export function RiskEntityAiAnalysisPanel({
                           )}
                           analysis={sourceAnalysis}
                           reviewCompanyId={reviewCompanyId}
-                          backgroundColor="grey.50"
-                          borderColor="grey.200"
+                          backgroundColor="background.paper"
+                          borderColor="divider"
                           itemStatus={itemStatus}
                           readOnly={!canEditContent}
                           onEditItem={
@@ -675,15 +701,12 @@ export function RiskEntityAiAnalysisPanel({
                     },
                   )}
                 </SFlex>
-              </Box>
+              </AnalysisItemsSection>
             )}
 
             {displayAnalysisContent.medidasAdministrativasRecomendadas?.length >
               0 && (
-              <Box mt={8}>
-                <SText variant="body2" fontWeight="bold" fontSize={14} mb={2}>
-                  Recomendações (Medidas Administrativas)
-                </SText>
+              <AnalysisItemsSection title="Recomendações (Medidas Administrativas)">
                 <SFlex direction="column" gap={1}>
                   {displayAnalysisContent.medidasAdministrativasRecomendadas.map(
                     (medida, index) => {
@@ -692,7 +715,8 @@ export function RiskEntityAiAnalysisPanel({
                         medida.nome,
                         index,
                       );
-                      const canEditContent = itemStatus?.existsInInventory !== true;
+                      const canEditContent =
+                        itemStatus?.existsInInventory !== true;
                       const itemAddProps = resolveItemAddProps(
                         'medidasAdministrativasRecomendadas',
                         index,
@@ -713,8 +737,8 @@ export function RiskEntityAiAnalysisPanel({
                           )}
                           analysis={sourceAnalysis}
                           reviewCompanyId={reviewCompanyId}
-                          backgroundColor="grey.50"
-                          borderColor="grey.200"
+                          backgroundColor="background.paper"
+                          borderColor="divider"
                           itemStatus={itemStatus}
                           readOnly={!canEditContent}
                           onEditItem={
@@ -743,7 +767,7 @@ export function RiskEntityAiAnalysisPanel({
                     },
                   )}
                 </SFlex>
-              </Box>
+              </AnalysisItemsSection>
             )}
           </Box>
         </SFlex>

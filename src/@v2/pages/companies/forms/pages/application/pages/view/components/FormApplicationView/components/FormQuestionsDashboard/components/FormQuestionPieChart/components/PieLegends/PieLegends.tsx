@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material';
 export const PieLegends = ({
   data,
   total,
+  vertical = false,
 }: {
   data: {
     label: string;
@@ -10,6 +11,7 @@ export const PieLegends = ({
     value: number;
   }[];
   total: number;
+  vertical?: boolean;
 }) => {
   const { palette } = useTheme();
   const newData = [...data];
@@ -21,11 +23,14 @@ export const PieLegends = ({
       <ul
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
+          flexWrap: vertical ? 'nowrap' : 'wrap',
+          flexDirection: vertical ? 'column' : 'row',
           justifyContent: 'center',
           listStyle: 'none',
           padding: 0,
-          marginTop: 16,
+          marginTop: vertical ? 0 : 16,
+          marginBottom: 0,
+          gap: vertical ? 6 : 0,
         }}
       >
         {newData.map((item) => (
@@ -34,8 +39,10 @@ export const PieLegends = ({
             style={{
               display: 'flex',
               alignItems: 'center',
-              marginBottom: 8,
-              marginRight: 16,
+              marginBottom: vertical ? 0 : 8,
+              marginRight: vertical ? 0 : 16,
+              overflowWrap: 'anywhere',
+              minWidth: 0,
               fontSize: 12,
               color: palette.text.primary,
               fontWeight: !item.color ? 600 : 400,
@@ -49,6 +56,7 @@ export const PieLegends = ({
                   backgroundColor: item.color,
                   borderRadius: '50%',
                   marginRight: 8,
+                  flexShrink: 0,
                 }}
               />
             )}

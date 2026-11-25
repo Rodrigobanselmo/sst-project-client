@@ -35,10 +35,15 @@ export const FormApplicationInfo = ({
 
   return (
     <SPaper
-      className="polished-form-panel"
       shadow={false}
       mb={mb}
-      sx={{ borderRadius: '24px', overflow: 'hidden', p: 0 }}
+      sx={{
+        borderRadius: '24px',
+        overflow: 'hidden',
+        p: 0,
+        border: 0,
+        backgroundColor: 'transparent',
+      }}
     >
       <SAccordion
         expandIcon={<ArrowRightIcon fontSize="small" />}
@@ -72,7 +77,14 @@ export const FormApplicationInfo = ({
             backgroundColor: 'transparent',
             '&.Mui-expanded': { m: 0 },
             '&& .MuiAccordionSummary-root': {
-              backgroundColor: 'transparent',
+              backgroundColor:
+                theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.045)'
+                  : 'rgba(255, 255, 255, 0.45)',
+              backdropFilter: 'blur(16px) saturate(140%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+              border: '1px solid',
+              borderColor: 'divider',
               borderRadius: '24px',
               minHeight: 76,
               px: 6,
@@ -80,8 +92,11 @@ export const FormApplicationInfo = ({
               '&.Mui-expanded': {
                 minHeight: 76,
                 backgroundColor: 'transparent',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
+                borderColor: 'transparent',
               },
-              '&:hover': { backgroundColor: 'background.box' },
+              '&:hover': { backgroundColor: 'action.hover' },
             },
             '& .MuiAccordionSummary-content, & .MuiAccordionSummary-content.Mui-expanded':
               { my: 4, alignItems: 'center', gap: 4, minWidth: 0 },

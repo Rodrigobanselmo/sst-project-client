@@ -1,3 +1,16 @@
+import { OccupationalRiskAnalysisSection } from './OccupationalRiskAnalysisSection';
+import { RiskAiAnalysisSection } from './RiskAiAnalysisSection';
+import {
+  AnalysisDisclosureHeader,
+  AnalysisItemsSection,
+} from './AnalysisDisclosure';
+import Tooltip from '@mui/material/Tooltip';
+import { acceptFormQuestionsAnswersAnalysisItem } from '@v2/services/forms/form-questions-answers-analysis/review-form-questions-answers-analysis-item/service/review-form-questions-answers-analysis-item.service';
+import {
+  analysisItemPillSchema,
+  analysisItemPillSx,
+} from './analysis-item-pill.styles';
+import { AnalysisItemStatusBadges } from './AnalysisItemStatusBadges';
 import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
 import { Box, Menu, MenuItem, Skeleton, Typography } from '@mui/material';
@@ -6,7 +19,8 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { formAccordionNavigationSx } from '../../../form-accordion-navigation.styles';
 import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
 import { SAccordionBody } from '@v2/components/organisms/SAccordion/components/SAccordionBody/SAccordionBody';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
@@ -19,7 +33,10 @@ import {
   sortRiskIdsForAnalysis,
 } from '../../helpers/buildRiskAnalysisViewContext';
 import { expandRiskAnalysisEntitiesForHierarchyGroups } from '../../helpers/expandRiskAnalysisEntitiesForHierarchyGroups';
-import { buildRiskAnalysisDisplayPartitions, formatRiskAnalysisMemberLabel } from '../../helpers/buildRiskAnalysisDisplayPartitions';
+import {
+  buildRiskAnalysisDisplayPartitions,
+  formatRiskAnalysisMemberLabel,
+} from '../../helpers/buildRiskAnalysisDisplayPartitions';
 import { pickCanonicalGroupMemberId } from '../../helpers/group-risk-analysis-display.utils';
 import { buildEnrichedInventoryStatusByKey } from '../../helpers/buildEnrichedInventoryStatusByKey';
 import { buildInventoryStatusKey } from '../../helpers/buildInventoryStatusKey';
@@ -58,9 +75,7 @@ import { applyAiAnalysisAsRiskData } from '@v2/services/forms/form-application/a
 import { useMutateAssignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/hooks/useMutateAssignRisksFormApplication';
 import { assignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/service/assign-risks-form-application.service';
 import { refetchFormRisksInventoryStatus } from '@v2/services/forms/form-application/shared/refetch-form-risks-inventory-status';
-import {
-  useFetchBrowseFormQuestionsAnswersAnalysis,
-} from '@v2/services/forms/form-questions-answers-analysis/browse-form-questions-answers-analysis/hooks/useFetchBrowseFormQuestionsAnswersAnalysis';
+import { useFetchBrowseFormQuestionsAnswersAnalysis } from '@v2/services/forms/form-questions-answers-analysis/browse-form-questions-answers-analysis/hooks/useFetchBrowseFormQuestionsAnswersAnalysis';
 import {
   hasRecentProcessingAnalyses,
   hasStaleProcessingAnalyses,
@@ -111,7 +126,6 @@ import {
   FRPS_OCCUPATIONAL_FILTER_LEVELS,
   frpsPassesOccupationalFilter,
 } from './frps-occupational-summary.util';
-import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
 import {
   FrpsAnalysisItemReviewActions,
   useCanEditFrpsAnalysisContent,
@@ -177,64 +191,6 @@ type AnalysisItemType =
   | 'medidasEngenhariaRecomendadas'
   | 'medidasAdministrativasRecomendadas';
 
-type AnalysisItemBadgeVariant =
-  | 'inventory-in'
-  | 'inventory-pending'
-  | 'catalog-in'
-  | 'catalog-new';
-
-const analysisItemBadgeSx = (variant: AnalysisItemBadgeVariant) => {
-  const palette: Record<AnalysisItemBadgeVariant, { bgcolor: string; color: string }> =
-    {
-      'inventory-in': { bgcolor: 'success.dark', color: '#fff' },
-      'inventory-pending': { bgcolor: 'warning.dark', color: '#fff' },
-      'catalog-in': { bgcolor: 'info.dark', color: '#fff' },
-      'catalog-new': { bgcolor: 'grey.800', color: '#fff' },
-    };
-
-  return {
-    display: 'inline-block',
-    px: 1,
-    py: 0.25,
-    borderRadius: 0.5,
-    fontSize: 11,
-    fontWeight: 600,
-    lineHeight: 1.2,
-    ...palette[variant],
-  };
-};
-
-const AnalysisItemStatusBadges = ({
-  itemStatus,
-}: {
-  itemStatus?: AnalysisItemInventoryEntry;
-}) => {
-  if (!itemStatus) return null;
-
-  return (
-    <SFlex alignItems="center" gap={0.5} flexWrap="wrap">
-      <Box
-        component="span"
-        sx={analysisItemBadgeSx(
-          itemStatus.existsInInventory ? 'inventory-in' : 'inventory-pending',
-        )}
-      >
-        {itemStatus.existsInInventory ? 'No inventário' : 'Pendente'}
-      </Box>
-      {typeof itemStatus.existsInCatalog === 'boolean' && (
-        <Box
-          component="span"
-          sx={analysisItemBadgeSx(
-            itemStatus.existsInCatalog ? 'catalog-in' : 'catalog-new',
-          )}
-        >
-          {itemStatus.existsInCatalog ? 'Cadastrado' : 'Novo cadastro'}
-        </Box>
-      )}
-    </SFlex>
-  );
-};
-
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
   accessCompanyId: string;
@@ -271,13 +227,15 @@ export const FormRisksAnalysis = ({
   const [addedRisks, setAddedRisks] = useState<Set<string>>(new Set());
   const [locallyAppliedInventoryKeys, setLocallyAppliedInventoryKeys] =
     useState<Set<string>>(() => new Set());
-  const [locallyAppliedItemKeys, setLocallyAppliedItemKeys] = useState<Set<string>>(
-    () => new Set(),
-  );
+  const [locallyAppliedItemKeys, setLocallyAppliedItemKeys] = useState<
+    Set<string>
+  >(() => new Set());
   const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
   const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
   const frpsExplainabilityApiRef = useRef<FrpsExplainabilityApi | null>(null);
-  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>(
+    {},
+  );
   const [showClearAiDialog, setShowClearAiDialog] = useState(false);
   const [showRecoverAiDialog, setShowRecoverAiDialog] = useState(false);
   const [addRiskMenu, setAddRiskMenu] = useState<{
@@ -324,7 +282,10 @@ export const FormRisksAnalysis = ({
   );
 
   const applicationWorkspaceNames = useMemo(
-    () => formApplication.participants.workspaces.map((workspace) => workspace.name),
+    () =>
+      formApplication.participants.workspaces.map(
+        (workspace) => workspace.name,
+      ),
     [formApplication.participants.workspaces],
   );
 
@@ -401,7 +362,8 @@ export const FormRisksAnalysis = ({
       return;
     }
 
-    if (!wasProcessingAnalysesRef.current || batchFailureNotifiedRef.current) return;
+    if (!wasProcessingAnalysesRef.current || batchFailureNotifiedRef.current)
+      return;
 
     wasProcessingAnalysesRef.current = false;
 
@@ -421,7 +383,11 @@ export const FormRisksAnalysis = ({
         { variant: 'error', autoHideDuration: 12000 },
       );
     }
-  }, [enqueueSnackbar, formQuestionsAnswersAnalysis?.results, hasProcessingAnalyses]);
+  }, [
+    enqueueSnackbar,
+    formQuestionsAnswersAnalysis?.results,
+    hasProcessingAnalyses,
+  ]);
 
   const inventoryStatusByKey = useMemo(
     () => formQuestionsAnswersRisks?.inventoryStatusByKey ?? {},
@@ -475,12 +441,15 @@ export const FormRisksAnalysis = ({
         status.fontesGeradoras,
       );
       countPendingInArray(
-        analysis.analysis.medidasEngenhariaRecomendadas as unknown[] | undefined,
+        analysis.analysis.medidasEngenhariaRecomendadas as
+          | unknown[]
+          | undefined,
         status.medidasEngenhariaRecomendadas,
       );
       countPendingInArray(
-        analysis.analysis
-          .medidasAdministrativasRecomendadas as unknown[] | undefined,
+        analysis.analysis.medidasAdministrativasRecomendadas as
+          | unknown[]
+          | undefined,
         status.medidasAdministrativasRecomendadas,
       );
 
@@ -492,14 +461,14 @@ export const FormRisksAnalysis = ({
   const handleAccordionChange = (riskId: string) => {
     setExpandedRisks((prev) => ({
       ...prev,
-      [riskId]: !prev[riskId],
+      [riskId]: !(prev[riskId] ?? true),
     }));
   };
 
   const handleAnalysisToggle = (analysisKey: string) => {
     setExpandedAnalysis((prev) => ({
       ...prev,
-      [analysisKey]: !prev[analysisKey],
+      [analysisKey]: !(prev[analysisKey] ?? true),
     }));
   };
 
@@ -566,14 +535,15 @@ export const FormRisksAnalysis = ({
     }
   };
 
-  const createInheritedAnalysisItemEditHandler = (
-    sourceAnalysis: {
-      id: string;
-      analysis?: Record<string, unknown> | null;
-    },
-    itemType: AnalysisItemType,
-    itemIndex: number,
-  ) =>
+  const createInheritedAnalysisItemEditHandler =
+    (
+      sourceAnalysis: {
+        id: string;
+        analysis?: Record<string, unknown> | null;
+      },
+      itemType: AnalysisItemType,
+      itemIndex: number,
+    ) =>
     async (newName: string): Promise<boolean> => {
       const confirmed = await showConfirmation(
         INHERITED_ANALYSIS_ITEM_EDIT_CONFIRMATION,
@@ -590,14 +560,15 @@ export const FormRisksAnalysis = ({
       return true;
     };
 
-  const createInheritedAnalysisItemRemoveHandler = (
-    sourceAnalysis: {
-      id: string;
-      analysis?: Record<string, unknown> | null;
-    },
-    itemType: AnalysisItemType,
-    itemIndex: number,
-  ) =>
+  const createInheritedAnalysisItemRemoveHandler =
+    (
+      sourceAnalysis: {
+        id: string;
+        analysis?: Record<string, unknown> | null;
+      },
+      itemType: AnalysisItemType,
+      itemIndex: number,
+    ) =>
     async (): Promise<void> => {
       const confirmed = await showConfirmation(
         INHERITED_ANALYSIS_ITEM_REMOVE_CONFIRMATION,
@@ -687,7 +658,9 @@ export const FormRisksAnalysis = ({
 
       setLocallyAppliedInventoryKeys((prev) => {
         const next = new Set(prev);
-        next.add(buildInventoryStatusKey(analysis.riskId, analysis.hierarchyId));
+        next.add(
+          buildInventoryStatusKey(analysis.riskId, analysis.hierarchyId),
+        );
         return next;
       });
       setLocallyAppliedItemKeys((prev) => {
@@ -765,13 +738,34 @@ export const FormRisksAnalysis = ({
           },
           options,
         );
+        try {
+          await acceptFormQuestionsAnswersAnalysisItem({
+            companyId: accessCompanyId,
+            applicationId: formApplication.id,
+            analysisId: analysis.id,
+            itemType,
+            itemIndex,
+          });
+        } catch {
+          enqueueSnackbar(
+            'Item incluído no inventário, mas não foi possível registrar o aceite.',
+            { variant: 'warning' },
+          );
+        }
+        void refetch();
       } catch {
         // Erros exibidos pelos hooks de mutação
       } finally {
         setApplyingItemKey(null);
       }
     },
-    [applyAnalysisItemsToInventory, enqueueSnackbar],
+    [
+      applyAnalysisItemsToInventory,
+      enqueueSnackbar,
+      accessCompanyId,
+      formApplication.id,
+      refetch,
+    ],
   );
 
   // Component for editable analysis items
@@ -847,14 +841,15 @@ export const FormRisksAnalysis = ({
       <Box
         sx={{
           p: 2,
-          backgroundColor,
+          backgroundColor: 'transparent',
+          color: 'text.primary',
           borderRadius: 1,
-          border: '1px solid',
-          borderColor,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
           position: 'relative',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            boxShadow: 'none',
             '.analysis-item-edit-actions': {
               opacity: 1,
             },
@@ -864,7 +859,7 @@ export const FormRisksAnalysis = ({
             visibility: 'visible',
           },
           '.analysis-item-edit-actions': {
-            opacity: 0,
+            opacity: 1,
             transition: 'opacity 0.2s ease-in-out',
           },
         }}
@@ -920,33 +915,84 @@ export const FormRisksAnalysis = ({
                 <Box
                   flex={1}
                   minWidth={0}
-                  onClick={allowContentEdit ? () => setIsEditing(true) : undefined}
                   sx={{
                     cursor: allowContentEdit ? 'pointer' : 'default',
                     '&:hover': allowContentEdit
                       ? {
                           '& .item-name': {
-                            color: 'primary.main',
+                            color: (theme) => theme.palette.mode === 'light' ? '#1565C0' : theme.palette.text.primary,
+                          textDecoration: 'underline',
+                          textUnderlineOffset: '3px',
                           },
                         }
                       : undefined,
                   }}
                 >
                   <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
-                    {itemCode && <AnalysisItemCodeBadge code={itemCode} />}
-                    <SText
-                      className="item-name"
-                      variant="body2"
-                      fontWeight="medium"
-                      fontSize={13}
-                      sx={{
-                        transition: 'color 0.2s ease-in-out',
-                        lineHeight: 1.4,
-                      }}
+                    <Tooltip
+                      arrow
+                      title={
+                        <Box>
+                          {allowContentEdit && (
+                            <Box sx={{ fontWeight: 600, mb: 1 }}>
+                              Clique para editar
+                            </Box>
+                          )}
+                          {item.justificativa && (
+                            <Box sx={{ mt: allowContentEdit ? 4 : 0, lineHeight: 1.6 }}>
+                              <Box sx={{ fontWeight: 700, mb: 1 }}>Justificativa:</Box>
+                              <Box>{item.justificativa}</Box>
+                            </Box>
+                          )}
+                        </Box>
+                      }
                     >
-                      {item.nome}
-                    </SText>
+                      <SText
+                        className="item-name"
+                        onClick={
+                          allowContentEdit
+                            ? () => setIsEditing(true)
+                            : undefined
+                        }
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (
+                            allowContentEdit &&
+                            (event.key === 'Enter' || event.key === ' ')
+                          ) {
+                            event.preventDefault();
+                            setIsEditing(true);
+                          }
+                        }}
+                        variant="body2"
+                        fontWeight="medium"
+                        fontSize={13}
+                        sx={{
+                          transition: 'color 0.2s ease-in-out',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {item.nome}
+                      </SText>
+                    </Tooltip>
                     <AnalysisItemStatusBadges itemStatus={itemStatus} />
+                    <ExplainFrpsItemButton
+                      analysisId={analysisId}
+                      listItemType={itemType}
+                      itemName={item.nome}
+                      itemKey={
+                        item.catalogId || itemStatus?.catalogId
+                          ? buildCatalogFrpsItemKey(
+                              mapAnalysisListItemTypeToExplanationItemType(
+                                itemType,
+                              ),
+                              (item.catalogId ||
+                                itemStatus?.catalogId) as string,
+                            )
+                          : undefined
+                      }
+                      riskFactorName={analysis?.analysis?.frps}
+                    />
                   </SFlex>
                 </Box>
                 <SFlex
@@ -975,9 +1021,11 @@ export const FormRisksAnalysis = ({
                     >
                       <SIconButton
                         iconButtonProps={{
+                          'aria-label': 'Editar item',
                           sx: {
                             p: 0.5,
                             borderRadius: 1,
+                            color: 'text.secondary',
                             '&:hover': {
                               backgroundColor: 'primary.light',
                               color: 'primary.contrastText',
@@ -990,9 +1038,11 @@ export const FormRisksAnalysis = ({
                       </SIconButton>
                       <SIconButton
                         iconButtonProps={{
+                          'aria-label': 'Excluir item',
                           sx: {
                             p: 0.5,
                             borderRadius: 1,
+                            color: 'text.secondary',
                             '&:hover': {
                               backgroundColor: 'error.light',
                               color: 'error.contrastText',
@@ -1016,13 +1066,19 @@ export const FormRisksAnalysis = ({
                       </SIconButton>
                     </SFlex>
                   )}
-                  {onAddItem && (
+                  {onAddItem && !itemStatus?.existsInInventory && (
                     <Box className="analysis-item-add-action">
                       <SButton
                         variant="contained"
                         color="success"
                         size="s"
-                        text={isAddingItem ? 'Adicionando...' : 'Adicionar'}
+                        schema={analysisItemPillSchema}
+                        textProps={{ fontSize: 11, fontWeight: 500 }}
+                        text={
+                          isAddingItem
+                            ? 'Adicionando...'
+                            : 'Aceitar e adicionar'
+                        }
                         onClick={(event) => {
                           event.stopPropagation();
                           onAddItem();
@@ -1032,58 +1088,13 @@ export const FormRisksAnalysis = ({
                           title: itemCode
                             ? `Adicionar este item ao inventário (${itemCode})`
                             : 'Adicionar este item ao inventário',
-                          sx: {
-                            minWidth: 'auto',
-                            px: 1.5,
-                            py: 0.5,
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                            boxShadow: 'none',
-                            opacity: 1,
-                            visibility: 'visible',
-                          },
+                          sx: analysisItemPillSx,
                         }}
                       />
                     </Box>
                   )}
                 </SFlex>
               </SFlex>
-              {item.justificativa && (
-                <Box
-                  sx={{
-                    mt: 1,
-                    p: 1.5,
-                    backgroundColor: 'rgba(0,0,0,0.02)',
-                    borderRadius: 0.5,
-                    borderLeft: '3px solid',
-                    borderLeftColor: borderColor,
-                  }}
-                >
-                  <SText
-                    variant="body2"
-                    color="text.secondary"
-                    fontSize={11}
-                    sx={{ lineHeight: 1.4 }}
-                  >
-                    {item.justificativa}
-                  </SText>
-                </Box>
-              )}
-              <ExplainFrpsItemButton
-                analysisId={analysisId}
-                listItemType={itemType}
-                itemName={item.nome}
-                itemKey={
-                  item.catalogId || itemStatus?.catalogId
-                    ? buildCatalogFrpsItemKey(
-                        mapAnalysisListItemTypeToExplanationItemType(itemType),
-                        (item.catalogId || itemStatus?.catalogId) as string,
-                      )
-                    : undefined
-                }
-                riskFactorName={analysis?.analysis?.frps}
-              />
             </SFlex>
           )}
         </SFlex>
@@ -1145,7 +1156,8 @@ export const FormRisksAnalysis = ({
     const itemStatus = options?.skipItemStatus
       ? undefined
       : analysisInventoryStatus[analysis.id];
-    const useItemStatus = !options?.isHierarchyGroupFallback && itemStatus != null;
+    const useItemStatus =
+      !options?.isHierarchyGroupFallback && itemStatus != null;
     const useTargetItemStatus = options?.isHierarchyGroupFallback === true;
 
     const fontesGeradoras = useTargetItemStatus
@@ -1206,6 +1218,34 @@ export const FormRisksAnalysis = ({
         },
         { skipMarkAnalysisApplied: options?.skipMarkAnalysisApplied },
       );
+      const itemLists: Array<[AnalysisItemType, Array<{ nome: string }> | undefined]> = [
+        ['fontesGeradoras', fontesGeradoras],
+        ['medidasEngenhariaRecomendadas', medidasEngenharia],
+        ['medidasAdministrativasRecomendadas', medidasAdministrativas],
+      ];
+      let failedAcceptances = 0;
+      for (const [itemType, includedItems] of itemLists) {
+        if (!includedItems?.length) continue;
+        const originalItems: Array<{ nome: string }> = analysis.analysis?.[itemType] ?? [];
+        for (const [itemIndex, item] of originalItems.entries()) {
+          if (!includedItems.includes(item)) continue;
+          try {
+            await acceptFormQuestionsAnswersAnalysisItem({
+              companyId: accessCompanyId,
+              applicationId: formApplication.id,
+              analysisId: options?.sourceAnalysisId || analysis.id,
+              itemType,
+              itemIndex,
+            });
+          } catch {
+            failedAcceptances += 1;
+          }
+        }
+      }
+      if (failedAcceptances > 0) {
+        enqueueSnackbar(`Itens incluídos no inventário, mas ${failedAcceptances} aceite(s) não puderam ser registrados.`, { variant: 'warning' });
+      }
+      void refetch();
     } catch {
       // Erros exibidos pelos hooks de mutação
     }
@@ -1253,11 +1293,13 @@ export const FormRisksAnalysis = ({
     }
     return {
       restrict: true,
-      scopeCompanyId: resolveOperationalCompanyIdFromSelectedEstablishmentGroup({
-        visibleParticipantGroups,
-        participantStructures:
-          resolveParticipantStructuresForGrouping(formQuestionsAnswers),
-      }),
+      scopeCompanyId: resolveOperationalCompanyIdFromSelectedEstablishmentGroup(
+        {
+          visibleParticipantGroups,
+          participantStructures:
+            resolveParticipantStructuresForGrouping(formQuestionsAnswers),
+        },
+      ),
     };
   }, [
     selectedGroupingQuestionId,
@@ -1323,7 +1365,13 @@ export const FormRisksAnalysis = ({
         hierarchyGroups,
         isEntityVisible,
       }),
-    [entityRiskMap, groupedEntityRiskMap, entityMap, hierarchyGroups, isEntityVisible],
+    [
+      entityRiskMap,
+      groupedEntityRiskMap,
+      entityMap,
+      hierarchyGroups,
+      isEntityVisible,
+    ],
   );
 
   const risksWithData = useMemo(
@@ -1338,7 +1386,10 @@ export const FormRisksAnalysis = ({
   );
 
   const occupationalLevelsByRiskId = useMemo(() => {
-    const levelsByRiskId = new Map<string, ReturnType<typeof collectDistinctFrpsOccupationalLevels>>();
+    const levelsByRiskId = new Map<
+      string,
+      ReturnType<typeof collectDistinctFrpsOccupationalLevels>
+    >();
     for (const riskId of risksWithData) {
       const partitions = buildRiskAnalysisDisplayPartitions({
         entityIds: getEntitiesWithRisk(riskId),
@@ -1448,14 +1499,13 @@ export const FormRisksAnalysis = ({
     const targets = new Map<string, string>();
     for (const riskId of risksWithData) {
       for (const entityId of getEntitiesWithRisk(riskId)) {
-        const resolved = resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback(
-          {
+        const resolved =
+          resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback({
             riskId,
             entityId,
             results: formQuestionsAnswersAnalysis.results,
             hierarchyGroups,
-          },
-        );
+          });
         if (resolved.source !== 'hierarchy_group_fallback') continue;
 
         const companyId = entityMap[entityId]?.companyId;
@@ -1493,7 +1543,10 @@ export const FormRisksAnalysis = ({
   });
 
   const riskDataByHierarchyId = useMemo(() => {
-    const map = new Map<string, import('core/interfaces/api/IRiskData').IRiskData[]>();
+    const map = new Map<
+      string,
+      import('core/interfaces/api/IRiskData').IRiskData[]
+    >();
     fallbackHierarchyTargets.forEach(({ hierarchyId }, index) => {
       const data = fallbackRiskDataQueries[index]?.data;
       if (data) map.set(hierarchyId, data);
@@ -1757,7 +1810,9 @@ export const FormRisksAnalysis = ({
               fontesGeradoras:
                 itemType === 'fontesGeradoras' ? [item] : undefined,
               medidasEngenharia:
-                itemType === 'medidasEngenhariaRecomendadas' ? [item] : undefined,
+                itemType === 'medidasEngenhariaRecomendadas'
+                  ? [item]
+                  : undefined,
               medidasAdministrativas:
                 itemType === 'medidasAdministrativasRecomendadas'
                   ? [item]
@@ -1768,6 +1823,20 @@ export const FormRisksAnalysis = ({
               suppressMutationFeedback: true,
             },
           );
+          try {
+            await acceptFormQuestionsAnswersAnalysisItem({
+              companyId: accessCompanyId,
+              applicationId: formApplication.id,
+              analysisId: memberResolved.analysis.id,
+              itemType,
+              itemIndex,
+            });
+          } catch {
+            enqueueSnackbar(
+              `Item incluído em ${memberLabel}, mas não foi possível registrar o aceite.`,
+              { variant: 'warning' },
+            );
+          }
           successes.push(memberLabel);
         } catch (error) {
           failures.push({
@@ -1792,7 +1861,9 @@ export const FormRisksAnalysis = ({
       }
 
       if (successes.length > 0) {
-        const failedLabels = failures.map((failure) => failure.label).join(', ');
+        const failedLabels = failures
+          .map((failure) => failure.label)
+          .join(', ');
         enqueueSnackbar(
           `Item aplicado em ${successes.length}/${membersNeedingItem.length} setores. Falharam: ${failedLabels}`,
           { variant: 'warning' },
@@ -1826,11 +1897,7 @@ export const FormRisksAnalysis = ({
   );
 
   const handleAddMemberAnalysisItem = useCallback(
-    async (
-      riskId: string,
-      entityId: string,
-      entry: AnalysisItemCodeEntry,
-    ) => {
+    async (riskId: string, entityId: string, entry: AnalysisItemCodeEntry) => {
       if (!isRiskInInventory(riskId, entityId)) return;
 
       const analysisResults = formQuestionsAnswersAnalysis?.results ?? [];
@@ -1844,7 +1911,9 @@ export const FormRisksAnalysis = ({
         });
 
       if (!memberResolved.analysis) {
-        enqueueSnackbar('Análise não encontrada para o setor', { variant: 'error' });
+        enqueueSnackbar('Análise não encontrada para o setor', {
+          variant: 'error',
+        });
         return;
       }
 
@@ -1871,9 +1940,12 @@ export const FormRisksAnalysis = ({
           );
 
       if (itemStatus?.existsInInventory === true) {
-        enqueueSnackbar(`Item ${entry.code} já está no inventário deste setor`, {
-          variant: 'info',
-        });
+        enqueueSnackbar(
+          `Item ${entry.code} já está no inventário deste setor`,
+          {
+            variant: 'info',
+          },
+        );
         return;
       }
 
@@ -2017,9 +2089,6 @@ export const FormRisksAnalysis = ({
           justifyContent="center"
           minHeight={400}
         >
-          <Typography variant="h5" color="primary.main" mb={2}>
-            Análise de Riscos
-          </Typography>
           <Typography variant="body1" color="text.secondary" textAlign="center">
             Nenhum risco foi identificado para este formulário.
           </Typography>
@@ -2103,13 +2172,17 @@ export const FormRisksAnalysis = ({
     successMessage?: string;
   }) => {
     batchFailureNotifiedRef.current = false;
-    const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
+    const masterOverrides = buildMasterAiRequestOverrides(
+      isMaster,
+      aiMasterConfig,
+    );
 
     mutateAiAnalyzeFormQuestionsRisks(
       {
         companyId: accessCompanyId,
         formApplicationId: formApplication.id,
-        mode: options?.mode ?? AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
+        mode:
+          options?.mode ?? AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
         riskId: options?.riskId,
         hierarchyId: options?.hierarchyId,
         ...masterOverrides,
@@ -2171,7 +2244,9 @@ export const FormRisksAnalysis = ({
     );
 
     if (hasGroupAnalysis) {
-      const confirmed = await showConfirmation(GROUP_TARGET_REANALYSIS_CONFIRMATION);
+      const confirmed = await showConfirmation(
+        GROUP_TARGET_REANALYSIS_CONFIRMATION,
+      );
       if (!confirmed) return;
     }
 
@@ -2185,12 +2260,11 @@ export const FormRisksAnalysis = ({
     });
   };
 
-  const generalAnalyzeButtonLabel =
-    hasProcessingAnalyses
-      ? 'Processando análise...'
-      : hasPreviousAiRun
-        ? 'Analisar com IA novamente'
-        : 'Analisar com IA';
+  const generalAnalyzeButtonLabel = hasProcessingAnalyses
+    ? 'Processando análise...'
+    : hasPreviousAiRun
+      ? 'Analisar com IA novamente'
+      : 'Analisar com IA';
 
   return (
     <FrpsExplainabilityProvider
@@ -2198,1029 +2272,1096 @@ export const FormRisksAnalysis = ({
       applicationId={formApplication.id}
       isMaster={isMaster}
     >
-    <SPaper sx={{ p: 4 }}>
-      <SFlex justifyContent="space-between" my={4} mx={8} mb={16}>
-        <SText fontSize={18} fontWeight="bold">
-          Análise de Riscos
-        </SText>
-        <SFlex gap={2}>
-          <AiActionButtonGroup
-            variant="s-button-shade"
-            configureIconOnly
-            label={generalAnalyzeButtonLabel}
-            loading={isAnalyzing || hasProcessingAnalyses}
-            disabled={hasProcessingAnalyses}
-            onExecute={() => void handleAnalyzeButtonClick()}
-            onConfigure={() => setAiConfigDialogOpen(true)}
-            isMaster={isMaster}
-            sButtonProps={{ color: 'primary' }}
-          />
-          <SButton
-            variant="shade"
-            text="Recuperar análises travadas"
-            color="info"
-            onClick={() => setShowRecoverAiDialog(true)}
-            disabled={!hasStaleAnalyses}
-            tooltip={
-              !hasStaleAnalyses
-                ? 'Nenhuma análise travada encontrada.'
-                : undefined
-            }
-          />
-          <SButton
-            variant="shade"
-            text="Limpar análises de IA"
-            color="danger"
-            onClick={() => setShowClearAiDialog(true)}
-            disabled={!hasPreviousAiRun && !hasProcessingAnalyses}
-          />
-          <SButton
-            variant="shade"
-            text="Adicionar todos os riscos a todos os setores"
-            color="success"
-            onClick={() => {
-              handleAddAllRisk();
-            }}
+      <Box sx={{ mb: 12 }}>
+        <RiskNarrativeDiagnosticSection
+          companyId={accessCompanyId}
+          formApplicationId={formApplication.id}
+          scope={riskNarrativeDiagnosticScope}
+          isMaster={isMaster}
+        />
+      </Box>
+      <Box sx={{ mb: 12 }}>
+        <FrpsOccupationalDistributionSummary distribution={occupationalDistribution} />
+      </Box>
+      <RiskAiAnalysisSection>
+            <AiActionButtonGroup
+              variant="s-button-shade"
+              configureIconOnly
+              executeIconOnly
+              label={generalAnalyzeButtonLabel}
+              loading={isAnalyzing || hasProcessingAnalyses}
+              disabled={hasProcessingAnalyses}
+              onExecute={() => void handleAnalyzeButtonClick()}
+              onConfigure={() => setAiConfigDialogOpen(true)}
+              isMaster={isMaster}
+              sButtonProps={{ color: 'primary' }}
+            />
+            <SButton
+              variant="shade"
+              text="Recuperar análises travadas"
+              color="normal"
+              textProps={{ color: 'inherit' }}
+              buttonProps={{ sx: {
+                color: 'text.primary',
+                borderRadius: '999px',
+                borderColor: 'divider',
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                  : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+                backdropFilter: 'blur(16px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                '&:hover': { backgroundColor: 'action.hover', borderColor: 'text.secondary' },
+                '&&.Mui-disabled': {
+                  color: 'text.disabled',
+                  borderColor: 'divider',
+                  backgroundColor: 'transparent',
+                  opacity: 0.65,
+                },
+              } }}
+              onClick={() => setShowRecoverAiDialog(true)}
+              disabled={!hasStaleAnalyses}
+              tooltip={
+                !hasStaleAnalyses
+                  ? 'Nenhuma análise travada encontrada.'
+                  : undefined
+              }
+            />
+            <SButton
+              variant="shade"
+              text="Limpar análises de IA"
+              tooltip="Abre as opções para escolher o escopo e confirmar a remoção permanente das análises de IA salvas, incluindo fontes geradoras, recomendações sugeridas e edições feitas nelas. Os riscos do inventário, os itens já aplicados ao PGR e as respostas do formulário são preservados."
+              color="danger"
+              onClick={() => setShowClearAiDialog(true)}
+              disabled={!hasPreviousAiRun && !hasProcessingAnalyses}
+            />
+      </RiskAiAnalysisSection>
+      <OccupationalRiskAnalysisSection
+        action={
+            <SButton
+              variant="shade"
+              text="Adicionar todos os riscos a todos os setores"
+              color="normal"
+              textProps={{ color: 'inherit' }}
+              buttonProps={{ sx: {
+                color: 'text.primary',
+                borderRadius: '999px',
+                borderColor: 'divider',
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                  : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+                backdropFilter: 'blur(16px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                '&:hover': { color: 'text.primary', backgroundColor: 'action.hover', borderColor: 'text.secondary' },
+                '&:active': { backgroundColor: 'action.hover' },
+              } }}
+              onClick={() => {
+                handleAddAllRisk();
+              }}
+            />
+        }
+      >
+
+
+        <SFlex direction="column" gap={2} mb={2}>
+          <FrpsOccupationalRiskFilter
+            selectedLevels={selectedOccupationalLevels}
+            onChange={setSelectedOccupationalLevels}
           />
         </SFlex>
-      </SFlex>
 
-      <RiskNarrativeDiagnosticSection
-        companyId={accessCompanyId}
-        formApplicationId={formApplication.id}
-        scope={riskNarrativeDiagnosticScope}
-        isMaster={isMaster}
-      />
+        <SFlex direction="column" gap={2}>
+          {visibleRiskIds.length === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Nenhum FRPS com os níveis de risco ocupacional selecionados.
+            </Typography>
+          )}
+          {visibleRiskIds.map((riskId) => {
+            const risk = riskMap[riskId];
+            const isExpanded = expandedRisks[riskId] ?? true;
+            const collapsedLevels =
+              occupationalLevelsByRiskId.get(riskId) ?? [];
 
-      <SFlex direction="column" gap={2} mb={2}>
-        <FrpsOccupationalDistributionSummary
-          distribution={occupationalDistribution}
-        />
-        <FrpsOccupationalRiskFilter
-          selectedLevels={selectedOccupationalLevels}
-          onChange={setSelectedOccupationalLevels}
-        />
-      </SFlex>
+            const entitiesWithRisk = getEntitiesWithRisk(riskId);
+            const riskPartitions = buildRiskAnalysisDisplayPartitions({
+              entityIds: entitiesWithRisk,
+              hierarchyGroups,
+              entityMap,
+            });
+            const groupByEstablishment = shouldGroupEntitiesByEstablishment(
+              riskPartitions.ungrouped,
+              entityMap,
+              entityEstablishmentMap,
+            );
+            const ungroupedEntityDisplayGroups = groupByEstablishment
+              ? groupEntityIdsByEstablishment(
+                  riskPartitions.ungrouped,
+                  entityMap,
+                  entityEstablishmentMap,
+                )
+              : [{ establishment: '', entityIds: riskPartitions.ungrouped }];
 
-      <SFlex direction="column" gap={2}>
-        {visibleRiskIds.length === 0 && (
-          <Typography variant="body2" color="text.secondary">
-            Nenhum FRPS com os níveis de risco ocupacional selecionados.
-          </Typography>
-        )}
-        {visibleRiskIds.map((riskId) => {
-          const risk = riskMap[riskId];
-          const isExpanded = expandedRisks[riskId] || false;
-          const collapsedLevels = occupationalLevelsByRiskId.get(riskId) ?? [];
+            return (
+              <SAccordion
+                key={riskId}
+                expanded={isExpanded}
+                onChange={() => handleAccordionChange(riskId)}
+                expandIcon={<ChevronRightIcon />}
+                accordionProps={{ sx: { ...riskFactorAccordionSummarySx, ...formAccordionNavigationSx, '&.Mui-expanded + .MuiAccordion-root': { marginTop: '32px !important' }, border: 0, borderRadius: 0, boxShadow: 'none', backgroundColor: 'transparent', '&::before': { display: 'none' }, '& > .MuiAccordionSummary-root': { borderBottom: '2px solid', borderColor: 'divider' }, '& > .MuiCollapse-root .MuiAccordionDetails-root > .MuiDivider-root:first-child': { display: 'none' } } }}
+                endComponent={
+                  entitiesWithRisk.every((entityId) =>
+                    isRiskInInventory(riskId, entityId),
+                  ) ||
+                  (!isExpanded && collapsedLevels.length > 0) ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        flexShrink: 0,
+                        pointerEvents: 'none',
+                        ml: 1,
+                      }}
+                    >
+                      {entitiesWithRisk.every((entityId) =>
+                        isRiskInInventory(riskId, entityId),
+                      ) && (
+                        <SText color="success.main" fontSize={12}>
+                          Risco adicionado a todos os setores
+                        </SText>
+                      )}
+                      {!isExpanded && (
+                        <FrpsOccupationalLevelDots levels={collapsedLevels} />
+                      )}
+                    </Box>
+                  ) : undefined
+                }
+                title={
+                  <SFlex alignItems="center" gap={2} sx={riskFactorNameRowSx}>
 
-          const entitiesWithRisk = getEntitiesWithRisk(riskId);
-          const riskPartitions = buildRiskAnalysisDisplayPartitions({
-            entityIds: entitiesWithRisk,
-            hierarchyGroups,
-            entityMap,
-          });
-          const groupByEstablishment = shouldGroupEntitiesByEstablishment(
-            riskPartitions.ungrouped,
-            entityMap,
-            entityEstablishmentMap,
-          );
-          const ungroupedEntityDisplayGroups = groupByEstablishment
-            ? groupEntityIdsByEstablishment(
-                riskPartitions.ungrouped,
-                entityMap,
-                entityEstablishmentMap,
-              )
-            : [{ establishment: '', entityIds: riskPartitions.ungrouped }];
-
-          return (
-            <SAccordion
-              key={riskId}
-              expanded={isExpanded}
-              onChange={() => handleAccordionChange(riskId)}
-              accordionProps={{ sx: riskFactorAccordionSummarySx }}
-              endComponent={
-                entitiesWithRisk.every((entityId) =>
-                  isRiskInInventory(riskId, entityId),
-                ) ||
-                (!isExpanded && collapsedLevels.length > 0) ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      flexShrink: 0,
-                      pointerEvents: 'none',
-                      ml: 1,
-                    }}
-                  >
-                    {entitiesWithRisk.every((entityId) =>
-                      isRiskInInventory(riskId, entityId),
-                    ) && (
-                      <SText color="success.main" fontSize={12}>
-                        Risco adicionado a todos os setores
-                      </SText>
-                    )}
-                    {!isExpanded && (
-                      <FrpsOccupationalLevelDots levels={collapsedLevels} />
-                    )}
-                  </Box>
-                ) : undefined
-              }
-              title={
-                <SFlex alignItems="center" gap={2} sx={riskFactorNameRowSx}>
-                  <SRiskChip
-                    size="lg"
-                    type={risk.type}
-                    subTypes={risk.subTypes.map((subType) => ({
-                      id: subType.sub_type.id,
-                      name: subType.sub_type.name,
-                    }))}
-                  />
-                  <Typography
-                    fontWeight="500"
-                    fontSize={18}
-                    color="text.main"
-                    title={risk.name}
-                    sx={riskFactorNameTypographySx}
-                  >
-                    {risk.name}
-                  </Typography>
-                </SFlex>
-              }
-            >
-              <SAccordionBody>
-                <SFlex direction="column" gap={3} mt={8}>
-                  <SFlex
-                    alignItems="center"
-                    justifyContent="space-between"
-                    flexWrap="wrap"
-                    gap={2}
-                  >
-                    <Typography color="text.secondary">
-                      Setores Identificados:
+                    <Typography
+                      fontWeight="500"
+                      fontSize={18}
+                      color="text.primary"
+                      title={risk.name}
+                      sx={{ ...riskFactorNameTypographySx, flex: '0 1 auto' }}
+                    >
+                      {risk.name}
                     </Typography>
-                    {entitiesWithRisk.length > 0 && (
-                      <SButton
-                        variant="shade"
-                        color="success"
-                        size="s"
-                        text="Adicionar risco a todos os setores"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setAddRiskMenu({
-                            anchorEl: e.currentTarget,
-                            riskId,
-                          });
-                        }}
-                        buttonProps={{
-                          sx: { width: 'fit-content' },
-                        }}
-                      />
-                    )}
-                  </SFlex>
-
-                  <SFlex direction="column" gap={4}>
-                    {riskPartitions.groups.map(({ group, memberEntityIds }) => (
-                      <HierarchyGroupRiskAnalysisCard
-                        key={`${riskId}-group-${group.id}`}
-                        riskId={riskId}
-                        risk={risk}
-                        group={group}
-                        memberEntityIds={memberEntityIds}
-                        entityMap={entityMap}
-                        entityEstablishmentMap={entityEstablishmentMap}
-                        hierarchyGroups={hierarchyGroups}
-                        analysisResults={
-                          formQuestionsAnswersAnalysis?.results ?? []
-                        }
-                        getEffectiveProbability={getEffectiveProbability}
-                        isRiskInInventory={isRiskInInventory}
-                        analysisKey={`${riskId}-group-${group.id}`}
-                        isAnalysisExpanded={
-                          expandedAnalysis[`${riskId}-group-${group.id}`] ??
-                          false
-                        }
-                        onAnalysisToggle={handleAnalysisToggle}
-                        onAnalyzeGroup={handleGroupTargetAnalyze}
-                        onConfigureAi={() => setAiConfigDialogOpen(true)}
-                        isMaster={isMaster}
-                        reviewCompanyId={accessCompanyId}
-                        onAddRiskToEntity={handleAddRiskToEntity}
-                        onAddRiskToAllGroupMembers={handleAddRiskToGroupMembers}
-                        onAddAnalysisAsRiskData={handleAddAnalysisAsRiskData}
-                        getApplyAnalysisButtonProps={getApplyAnalysisButtonProps}
-                        riskDataByHierarchyId={riskDataByHierarchyId}
-                        analysisInventoryStatus={analysisInventoryStatus}
-                        locallyAppliedItemKeys={locallyAppliedItemKeys}
-                        applyingItemKey={applyingItemKey}
-                        buildApplyingItemKey={buildApplyingItemKey}
-                        handleAddSingleAnalysisItem={handleAddSingleAnalysisItem}
-                        handleEditAnalysisItem={handleEditAnalysisItem}
-                        handleRemoveAnalysisItem={handleRemoveAnalysisItem}
-                        createInheritedAnalysisItemEditHandler={
-                          createInheritedAnalysisItemEditHandler
-                        }
-                        createInheritedAnalysisItemRemoveHandler={
-                          createInheritedAnalysisItemRemoveHandler
-                        }
-                        getAnalysisItemStatus={getAnalysisItemStatus}
-                        onAddAnalysisItemToAllGroupMembers={(
-                          itemType,
-                          itemIndex,
-                          item,
-                          memberEntityIds,
-                        ) =>
-                          handleAddAnalysisItemToAllGroupMembers(
-                            riskId,
-                            memberEntityIds,
-                            itemType,
-                            itemIndex,
-                            item,
-                          )
-                        }
-                        onAddMemberAnalysisItem={(entityId, entry) =>
-                          handleAddMemberAnalysisItem(riskId, entityId, entry)
-                        }
-                      />
-                    ))}
-
-                    {ungroupedEntityDisplayGroups.map(
-                      ({ establishment, entityIds: ungroupedEntityIds }) => (
-                        <Box key={establishment || 'ungrouped-all'}>
-                          {groupByEstablishment && establishment && (
-                            <Typography
-                              variant="subtitle2"
-                              fontWeight={600}
-                              color="text.secondary"
-                              sx={{ mb: 2 }}
-                            >
-                              {establishment}
-                            </Typography>
-                          )}
-                          <SFlex direction="column" gap={4}>
-                            {ungroupedEntityIds.map((entityId) => {
-                      const entity = entityMap[entityId];
-                      const severity = risk?.severity;
-                      const probability = getEffectiveProbability(entityId, riskId);
-                      const hasValidSeverity = isMatrixAxisValue(severity);
-                      const hasValidProbability = isMatrixAxisValue(probability);
-                      const matriz =
-                        hasValidSeverity && hasValidProbability
-                          ? getMatrizRisk(severity, probability)
-                          : null;
-                      const occupationalLevel = resolveOccupationalRiskLevel(
-                        severity,
-                        probability,
-                      );
-
-                      return (
-                        <Box
-                          key={entityId}
-                          sx={{
-                            p: 4,
-                            backgroundColor: 'grey.50',
-                            borderRadius: 1,
-                            border: '1px solid',
-                            borderColor: 'grey.200',
+{entitiesWithRisk.length > 0 && (
+                        <SButton
+                          variant="shade"
+                          schema={analysisItemPillSchema}
+ textProps={{ fontSize: 13 }}
+                          size="s"
+                          text="Adicionar risco a todos os setores"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAddRiskMenu({
+                              anchorEl: e.currentTarget,
+                              riskId,
+                            });
                           }}
-                        >
-                          <SFlex
-                            alignItems="center"
-                            gap={2}
-                            mb={2}
-                            flexWrap="wrap"
-                          >
-                            <SFlex
-                              alignItems="center"
-                              gap={2}
-                              flex={1}
-                              minWidth={0}
-                            >
-                              <Box
-                                sx={{
-                                  backgroundColor: 'grey.100',
-                                  padding: '2px 4px',
-                                  borderRadius: 1,
-                                  border: '1px solid',
-                                  borderColor: 'grey.200',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                <Typography fontSize={12} color="text.secondary">
-                                  {hierarchyTypeTranslation[entity.type]}
-                                </Typography>
-                              </Box>
+                          buttonProps={{
+                            sx: { ...analysisItemPillSx, height: 26 },
+                          }}
+                        />
+                      )}
+                  </SFlex>
+                }
+              >
+                <SAccordionBody>
+                  <SFlex direction="column" gap={3} mt={8}>
+
+
+                    <SFlex direction="column" gap={4}>
+                      {riskPartitions.groups.map(
+                        ({ group, memberEntityIds }) => (
+                          <HierarchyGroupRiskAnalysisCard
+                            key={`${riskId}-group-${group.id}`}
+                            riskId={riskId}
+                            risk={risk}
+                            group={group}
+                            memberEntityIds={memberEntityIds}
+                            entityMap={entityMap}
+                            entityEstablishmentMap={entityEstablishmentMap}
+                            hierarchyGroups={hierarchyGroups}
+                            analysisResults={
+                              formQuestionsAnswersAnalysis?.results ?? []
+                            }
+                            getEffectiveProbability={getEffectiveProbability}
+                            isRiskInInventory={isRiskInInventory}
+                            analysisKey={`${riskId}-group-${group.id}`}
+                            isAnalysisExpanded={
+                              expandedAnalysis[`${riskId}-group-${group.id}`] ??
+                              true
+                            }
+                            onAnalysisToggle={handleAnalysisToggle}
+                            onAnalyzeGroup={handleGroupTargetAnalyze}
+                            onConfigureAi={() => setAiConfigDialogOpen(true)}
+                            isMaster={isMaster}
+                            reviewCompanyId={accessCompanyId}
+                            onAddRiskToEntity={handleAddRiskToEntity}
+                            onAddRiskToAllGroupMembers={
+                              handleAddRiskToGroupMembers
+                            }
+                            onAddAnalysisAsRiskData={
+                              handleAddAnalysisAsRiskData
+                            }
+                            getApplyAnalysisButtonProps={
+                              getApplyAnalysisButtonProps
+                            }
+                            riskDataByHierarchyId={riskDataByHierarchyId}
+                            analysisInventoryStatus={analysisInventoryStatus}
+                            locallyAppliedItemKeys={locallyAppliedItemKeys}
+                            applyingItemKey={applyingItemKey}
+                            buildApplyingItemKey={buildApplyingItemKey}
+                            handleAddSingleAnalysisItem={
+                              handleAddSingleAnalysisItem
+                            }
+                            handleEditAnalysisItem={handleEditAnalysisItem}
+                            handleRemoveAnalysisItem={handleRemoveAnalysisItem}
+                            createInheritedAnalysisItemEditHandler={
+                              createInheritedAnalysisItemEditHandler
+                            }
+                            createInheritedAnalysisItemRemoveHandler={
+                              createInheritedAnalysisItemRemoveHandler
+                            }
+                            getAnalysisItemStatus={getAnalysisItemStatus}
+                            onAddAnalysisItemToAllGroupMembers={(
+                              itemType,
+                              itemIndex,
+                              item,
+                              memberEntityIds,
+                            ) =>
+                              handleAddAnalysisItemToAllGroupMembers(
+                                riskId,
+                                memberEntityIds,
+                                itemType,
+                                itemIndex,
+                                item,
+                              )
+                            }
+                            onAddMemberAnalysisItem={(entityId, entry) =>
+                              handleAddMemberAnalysisItem(
+                                riskId,
+                                entityId,
+                                entry,
+                              )
+                            }
+                          />
+                        ),
+                      )}
+
+                      {ungroupedEntityDisplayGroups.map(
+                        ({ establishment, entityIds: ungroupedEntityIds }) => (
+                          <Box key={establishment || 'ungrouped-all'}>
+                            {groupByEstablishment && establishment && (
                               <Typography
-                                variant="body1"
-                                fontWeight="medium"
-                                sx={{ minWidth: 0 }}
+                                variant="subtitle2"
+                                fontWeight={600}
+                                color="text.secondary"
+                                sx={{ mb: 2 }}
                               >
-                                {entity.name}
+                                {establishment}
                               </Typography>
-                            </SFlex>
-                            <SFlex alignItems="center" gap={1} flexWrap="wrap">
-                              {isRiskInInventory(riskId, entityId) ? (
-                                <SFlex alignItems="center" gap={0.5}>
-                                  <CheckIcon sx={{ fontSize: 14, color: 'success.main' }} />
-                                  <SText color="success.main" fontSize={12}>
-                                    Risco adicionado
-                                  </SText>
-                                </SFlex>
-                              ) : (
-                                <SButton
-                                  variant="shade"
-                                  color="paper"
-                                  size="s"
-                                  text="Adicionar risco a este setor"
-                                  onClick={() =>
-                                    handleAddRiskToEntity(riskId, entityId)
-                                  }
-                                />
-                              )}
-                              <AiActionButtonGroup
-                                variant="s-button-shade"
-                                configureIconOnly
-                                label={
-                                  isTargetAnalysisProcessing(riskId, entityId)
-                                    ? 'Analisando IA...'
-                                    : isTargetAnalysisStale(riskId, entityId)
-                                      ? 'Processamento interrompido'
-                                      : hasOwnAnalysisForPair(riskId, entityId)
-                                        ? 'Analisar IA novamente deste setor'
-                                        : 'Analisar IA deste setor'
-                                }
-                                loading={isTargetAnalysisProcessing(riskId, entityId)}
-                                disabled={isTargetAnalysisProcessing(riskId, entityId)}
-                                onExecute={() =>
-                                  void handleTargetAnalyze(riskId, entityId)
-                                }
-                                onConfigure={() => setAiConfigDialogOpen(true)}
-                                isMaster={isMaster}
-                                sButtonProps={{ color: 'primary' }}
-                              />
-                              <FrpsMatrixEquation
-                                probability={probability}
-                                severity={severity}
-                                resultLevel={occupationalLevel}
-                                riskType={risk?.type}
-                                riskSubTypes={risk?.subTypes}
-                              />
-                            </SFlex>
-                          </SFlex>
-                          {/* AI Analysis Results for this specific risk-entity combination */}
-                          {formQuestionsAnswersAnalysis?.results &&
-                            (() => {
-                              const resolved =
-                                resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback(
-                                  {
-                                    riskId,
-                                    entityId,
-                                    results:
-                                      formQuestionsAnswersAnalysis.results,
-                                    hierarchyGroups,
-                                  },
-                                );
-
-                              if (
-                                !resolved.analysis &&
-                                !resolved.failedAnalysis
-                              ) {
-                                return null;
-                              }
-
-                              if (!resolved.analysis) {
-                                if (
-                                  resolved.failedAnalysis &&
-                                  isOccupationalRiskEligibleForAiAnalysis(matriz)
-                                ) {
-                                  return (
-                                    <Box mt={3}>
-                                      <Typography
-                                        variant="body2"
-                                        color="error.main"
-                                        sx={{ fontStyle: 'italic' }}
-                                      >
-                                        Análise de IA falhou:{' '}
-                                        {getFormAiAnalysisErrorMessage(
-                                          resolved.failedAnalysis.metadata as
-                                            | Record<string, unknown>
-                                            | undefined,
-                                        )}
-                                      </Typography>
-                                    </Box>
-                                  );
-                                }
-
-                                return null;
-                              }
-
-                              const isHierarchyGroupFallback =
-                                resolved.source === 'hierarchy_group_fallback';
-                              const sourceAnalysis = resolved.analysis!;
-                              const analysis = buildTargetAiAnalysisViewModel({
-                                resolved,
-                                targetHierarchyId: entityId,
-                                targetProbability: getEffectiveProbability(
+                            )}
+                            <SFlex direction="column" gap={4}>
+                              {ungroupedEntityIds.map((entityId) => {
+                                const entity = entityMap[entityId];
+                                const severity = risk?.severity;
+                                const probability = getEffectiveProbability(
                                   entityId,
                                   riskId,
-                                ),
-                              })!;
-                              const fallbackApplyOptions = isHierarchyGroupFallback
-                                ? {
-                                    skipMarkAnalysisApplied: true as const,
-                                  }
-                                : undefined;
-                              const riskDataForHierarchy =
-                                riskDataByHierarchyId.get(entityId);
-                              const fallbackUiOptions = isHierarchyGroupFallback
-                                ? {
-                                    isHierarchyGroupFallback: true as const,
-                                    sourceAnalysisId: sourceAnalysis.id,
-                                    riskDataForHierarchy,
-                                  }
-                                : undefined;
-                              const displayAnalysisContent = sourceAnalysis.analysis;
-                              const isAnalysisProtected =
-                                sourceAnalysis.metadata?.protectedData === true;
-                              const protectedAnalysisLabel =
-                                (typeof sourceAnalysis.metadata
-                                  ?.protectedDataLabel === 'string' &&
-                                  sourceAnalysis.metadata.protectedDataLabel) ||
-                                'Dados Protegidos';
-                              const itemCodeRegistry =
-                                buildAnalysisItemCodeRegistry(displayAnalysisContent);
-                              const resolveDisplayedItemStatus = (
-                                itemType: AnalysisItemType,
-                                itemName: string,
-                                itemIndex: number,
-                              ) =>
-                                isHierarchyGroupFallback
-                                  ? resolveTargetAnalysisItemStatus({
-                                      riskId,
-                                      targetHierarchyId: entityId,
-                                      itemType,
-                                      itemName,
-                                      itemIndex,
-                                      sourceAnalysisId: sourceAnalysis.id,
-                                      results:
-                                        formQuestionsAnswersAnalysis.results,
-                                      analysisInventoryStatus,
-                                      riskDataForHierarchy,
-                                      locallyAppliedItemKeys,
-                                    })
-                                  : getAnalysisItemStatus(
-                                      sourceAnalysis.id,
-                                      itemType,
-                                      itemIndex,
-                                    );
-                              const applyAnalysisButtonProps =
-                                getApplyAnalysisButtonProps(
-                                  analysis,
-                                  fallbackUiOptions,
                                 );
-                              const analysisKey = `${riskId}-${entityId}`;
-                              const isAnalysisExpanded =
-                                expandedAnalysis[analysisKey];
+                                const hasValidSeverity =
+                                  isMatrixAxisValue(severity);
+                                const hasValidProbability =
+                                  isMatrixAxisValue(probability);
+                                const matriz =
+                                  hasValidSeverity && hasValidProbability
+                                    ? getMatrizRisk(severity, probability)
+                                    : null;
+                                const occupationalLevel =
+                                  resolveOccupationalRiskLevel(
+                                    severity,
+                                    probability,
+                                  );
 
-                              return (
-                                <Box mt={3}>
-                                  <SButton
-                                    variant="text"
-                                    text={
-                                      isAnalysisExpanded
-                                        ? 'Ocultar Análise de IA'
-                                        : 'Mostrar Análise de IA'
-                                    }
-                                    onClick={() =>
-                                      handleAnalysisToggle(analysisKey)
-                                    }
-                                    buttonProps={{
-                                      sx: {
-                                        mb: 2,
-                                        textDecoration: 'underline',
-                                        '&:hover': {
-                                          textDecoration: 'underline',
-                                        },
-                                      },
+                                return (
+                                  <Box component="details"
+                                    key={entityId}
+                                    sx={{
+                                      p: 4,
+                                      backgroundColor: 'transparent',
+                                      color: 'text.primary',
+                                      borderRadius: 0,
+                                      border: 0,
+                                      borderColor: 'divider',
+ '& > summary::-webkit-details-marker': { display: 'none' },
+ '&[open] > summary .sector-disclosure-arrow': { transform: 'rotate(90deg)' },
                                     }}
-                                  />
-                                  {isAnalysisExpanded && (
-                                    <SFlex direction="column" gap={2}>
-                                      <Box
-                                        key={sourceAnalysis.id}
-                                        sx={{
-                                          p: 3,
-                                          backgroundColor: 'primary.50',
-                                        }}
+                                  >
+                                    <SFlex component="summary"
+                                      sx={{ cursor: 'pointer', listStyle: 'none', borderBottom: '1px solid', borderColor: 'divider', pb: 3 }}
+                                      onClick={(event) => { if ((event.target as HTMLElement).closest('button')) event.preventDefault(); }}
+                                      alignItems="center"
+                                      gap={2}
+                                      mb={2}
+                                      flexWrap="wrap"
+                                    >
+                                      <SFlex
+                                        alignItems="center"
+                                        gap={2}
+                                        flex={1}
+                                        minWidth={0}
+                                        flexWrap="wrap"
                                       >
-                                        {isHierarchyGroupFallback && (
-                                          <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                            sx={{
-                                              mb: 2,
-                                              fontStyle: 'italic',
-                                              fontSize: 12,
-                                            }}
-                                          >
-                                            Análise aplicada pelo agrupamento de
-                                            setores.
-                                          </Typography>
-                                        )}
-                                        <SFlex
-                                          alignItems="center"
-                                          gap={2}
-                                          mb={2}
+                                        <ChevronRightIcon className="sector-disclosure-arrow" sx={{ fontSize: 18, flexShrink: 0 }} />
+                                        <Typography
+                                          variant="body1"
+                                          color="text.primary"
+                                          fontWeight="medium"
+                                          sx={{ minWidth: 0 }}
                                         >
-                                          <SText
-                                            variant="body2"
-                                            color="text.main"
-                                          >
-                                            Análise de IA para este risco/setor:{' '}
-                                            {analysis.analysis?.frps}
-                                          </SText>
-                                          <SText
-                                            variant="body2"
-                                            color="text.secondary"
-                                            fontSize={12}
-                                            sx={{ fontStyle: 'italic' }}
-                                          >
-                                            Confiança:{' '}
-                                            {Math.round(
-                                              (sourceAnalysis.confidence ?? 0) *
-                                                100,
-                                            )}
-                                            %
-                                          </SText>
+                                          {hierarchyTypeTranslation[entity.type].toUpperCase()} — {entity.name}
+                                        </Typography>
+{isRiskInInventory(riskId, entityId) ? (
+                                          <SFlex alignItems="center" gap={0.5}>
+                                            <CheckIcon
+                                              sx={{
+                                                fontSize: 14,
+                                                color: 'text.secondary',
+                                              }}
+                                            />
+                                            <SText
+                                              color="text.secondary"
+                                              fontSize={12}
+                                            >
+                                              Risco adicionado
+                                            </SText>
+                                          </SFlex>
+                                        ) : (
                                           <SButton
                                             variant="shade"
-                                            color={applyAnalysisButtonProps.color}
+                                            schema={analysisItemPillSchema}
+ textProps={{ fontSize: 12 }}
+ buttonProps={{ sx: { ...analysisItemPillSx, height: 24 } }}
                                             size="s"
-                                            text={applyAnalysisButtonProps.text}
+                                            text="Adicionar risco a este setor"
                                             onClick={() =>
-                                              handleAddAnalysisAsRiskData(
-                                                analysis,
-                                                isHierarchyGroupFallback
-                                                  ? {
-                                                      ...fallbackUiOptions,
-                                                      skipMarkAnalysisApplied:
-                                                        true,
-                                                    }
-                                                  : undefined,
+                                              handleAddRiskToEntity(
+                                                riskId,
+                                                entityId,
                                               )
                                             }
-                                            buttonProps={{
-                                              sx: {
-                                                ml: 'auto',
-                                                minWidth: 'auto',
-                                                px: 2,
-                                                py: 0.5,
-                                                fontSize: '0.75rem',
-                                              },
-                                            }}
                                           />
-                                        </SFlex>
-
-                                        {isAnalysisProtected && (
-                                          <Box
-                                            mb={2}
-                                            mt={3}
-                                            p={2}
-                                            sx={{
-                                              borderRadius: 1,
-                                              backgroundColor: 'warning.50',
-                                              border: '1px solid',
-                                              borderColor: 'warning.light',
-                                            }}
-                                          >
-                                            <SText
-                                              variant="body1"
-                                              fontWeight="bold"
-                                              fontSize={14}
-                                              mb={1}
-                                            >
-                                              {protectedAnalysisLabel}
-                                            </SText>
-                                            <SText
-                                              variant="body2"
-                                              color="text.secondary"
-                                              fontSize={13}
-                                            >
-                                              O grupo não atinge o mínimo atual
-                                              de participantes da Análise de
-                                              Riscos. Fontes, recomendações e
-                                              narrativa da IA ficam ocultas até
-                                              o recorte voltar a atender o
-                                              limiar.
-                                            </SText>
-                                          </Box>
                                         )}
-
-                                        {/* Fontes Geradoras */}
-                                        {!isAnalysisProtected &&
-                                          displayAnalysisContent?.fontesGeradoras &&
-                                          displayAnalysisContent.fontesGeradoras
-                                            .length > 0 && (
-                                            <Box mb={2} mt={4}>
-                                              <SFlex
-                                                alignItems="center"
-                                                gap={4}
-                                                mb={4}
-                                              >
-                                                <SText
-                                                  variant="body2"
-                                                  fontWeight="bold"
-                                                  color="text.primary"
-                                                  fontSize={14}
-                                                >
-                                                  Fontes Geradoras
-                                                </SText>
-                                              </SFlex>
-                                              <SFlex direction="column" gap={4}>
-                                                {displayAnalysisContent.fontesGeradoras.map(
-                                                  (fonte, index) => {
-                                                    const itemStatus =
-                                                      resolveDisplayedItemStatus(
-                                                        'fontesGeradoras',
-                                                        fonte.nome,
-                                                        index,
-                                                      );
-                                                    const canEditItem =
-                                                      itemStatus?.existsInInventory !==
-                                                      true;
-
-                                                    return (
-                                                      <EditableAnalysisItem
-                                                        key={`fontesGeradoras-${index}`}
-                                                        item={fonte}
-                                                        itemIndex={index}
-                                                        analysisId={
-                                                          sourceAnalysis.id
-                                                        }
-                                                        itemType="fontesGeradoras"
-                                                        itemCode={itemCodeRegistry.getCode(
-                                                          'fontesGeradoras',
-                                                          index,
-                                                        )}
-                                                        analysis={sourceAnalysis}
-                                                        backgroundColor="grey.50"
-                                                        borderColor="grey.200"
-                                                        itemStatus={itemStatus}
-                                                        readOnly={!canEditItem}
-                                                        onEditItem={
-                                                          isHierarchyGroupFallback &&
-                                                          canEditItem
-                                                            ? createInheritedAnalysisItemEditHandler(
-                                                                sourceAnalysis,
-                                                                'fontesGeradoras',
-                                                                index,
-                                                              )
-                                                            : undefined
-                                                        }
-                                                        onRemoveItem={
-                                                          isHierarchyGroupFallback &&
-                                                          canEditItem
-                                                            ? createInheritedAnalysisItemRemoveHandler(
-                                                                sourceAnalysis,
-                                                                'fontesGeradoras',
-                                                                index,
-                                                              )
-                                                            : undefined
-                                                        }
-                                                        onAddItem={
-                                                          canEditItem
-                                                            ? () =>
-                                                                handleAddSingleAnalysisItem(
-                                                                  analysis,
-                                                                  'fontesGeradoras',
-                                                                  index,
-                                                                  fonte,
-                                                                  fallbackApplyOptions,
-                                                                )
-                                                            : undefined
-                                                        }
-                                                        isAddingItem={
-                                                          applyingItemKey ===
-                                                          buildApplyingItemKey(
-                                                            sourceAnalysis.id,
-                                                            'fontesGeradoras',
-                                                            index,
-                                                          )
-                                                        }
-                                                      />
-                                                    );
-                                                  },
-                                                )}
-                                              </SFlex>
-                                            </Box>
+<AiActionButtonGroup
+                                          variant="s-button-shade"
+                                          configureIconOnly
+                                          executeIconOnly
+                                          label={
+                                            isTargetAnalysisProcessing(
+                                              riskId,
+                                              entityId,
+                                            )
+                                              ? 'Analisando IA...'
+                                              : isTargetAnalysisStale(
+                                                    riskId,
+                                                    entityId,
+                                                  )
+                                                ? 'Processamento interrompido'
+                                                : hasOwnAnalysisForPair(
+                                                      riskId,
+                                                      entityId,
+                                                    )
+                                                  ? 'Analisar IA novamente somente deste setor'
+                                                  : 'Analisar IA somente deste setor'
+                                          }
+                                          loading={isTargetAnalysisProcessing(
+                                            riskId,
+                                            entityId,
                                           )}
-
-                                        {/* Medidas de Engenharia */}
-                                        {displayAnalysisContent
-                                          ?.medidasEngenhariaRecomendadas &&
-                                          displayAnalysisContent
-                                            .medidasEngenhariaRecomendadas
-                                            .length > 0 && (
-                                            <Box mb={2} mt={8}>
-                                              <SFlex
-                                                alignItems="center"
-                                                gap={1}
-                                                mb={2}
-                                              >
-                                                <Box
-                                                  sx={{
-                                                    width: 4,
-                                                    height: 20,
-                                                    backgroundColor: 'blue.400',
-                                                    borderRadius: 2,
-                                                  }}
-                                                />
-                                                <SText
-                                                  variant="body2"
-                                                  fontWeight="bold"
-                                                  color="text.primary"
-                                                  fontSize={14}
-                                                >
-                                                  Recomendações (Medidas de
-                                                  Engenharia)
-                                                </SText>
-                                              </SFlex>
-                                              <SFlex direction="column" gap={1}>
-                                                {displayAnalysisContent.medidasEngenhariaRecomendadas.map(
-                                                  (medida, index) => {
-                                                    const itemStatus =
-                                                      resolveDisplayedItemStatus(
-                                                        'medidasEngenhariaRecomendadas',
-                                                        medida.nome,
-                                                        index,
-                                                      );
-                                                    const canEditItem =
-                                                      itemStatus?.existsInInventory !==
-                                                      true;
-
-                                                    return (
-                                                      <EditableAnalysisItem
-                                                        key={`medidasEngenhariaRecomendadas-${index}`}
-                                                        item={medida}
-                                                        itemIndex={index}
-                                                        analysisId={
-                                                          sourceAnalysis.id
-                                                        }
-                                                        itemType="medidasEngenhariaRecomendadas"
-                                                        itemCode={itemCodeRegistry.getCode(
-                                                          'medidasEngenhariaRecomendadas',
-                                                          index,
-                                                        )}
-                                                        analysis={sourceAnalysis}
-                                                        backgroundColor="grey.50"
-                                                        borderColor="grey.200"
-                                                        itemStatus={itemStatus}
-                                                        readOnly={!canEditItem}
-                                                        onEditItem={
-                                                          isHierarchyGroupFallback &&
-                                                          canEditItem
-                                                            ? createInheritedAnalysisItemEditHandler(
-                                                                sourceAnalysis,
-                                                                'medidasEngenhariaRecomendadas',
-                                                                index,
-                                                              )
-                                                            : undefined
-                                                        }
-                                                        onRemoveItem={
-                                                          isHierarchyGroupFallback &&
-                                                          canEditItem
-                                                            ? createInheritedAnalysisItemRemoveHandler(
-                                                                sourceAnalysis,
-                                                                'medidasEngenhariaRecomendadas',
-                                                                index,
-                                                              )
-                                                            : undefined
-                                                        }
-                                                        onAddItem={
-                                                          canEditItem
-                                                            ? () =>
-                                                                handleAddSingleAnalysisItem(
-                                                                  analysis,
-                                                                  'medidasEngenhariaRecomendadas',
-                                                                  index,
-                                                                  medida,
-                                                                  fallbackApplyOptions,
-                                                                )
-                                                            : undefined
-                                                        }
-                                                        isAddingItem={
-                                                          applyingItemKey ===
-                                                          buildApplyingItemKey(
-                                                            sourceAnalysis.id,
-                                                            'medidasEngenhariaRecomendadas',
-                                                            index,
-                                                          )
-                                                        }
-                                                      />
-                                                    );
-                                                  },
-                                                )}
-                                              </SFlex>
-                                            </Box>
+                                          disabled={isTargetAnalysisProcessing(
+                                            riskId,
+                                            entityId,
                                           )}
+                                          onExecute={() =>
+                                            void handleTargetAnalyze(
+                                              riskId,
+                                              entityId,
+                                            )
+                                          }
+                                          onConfigure={() =>
+                                            setAiConfigDialogOpen(true)
+                                          }
+                                          isMaster={isMaster}
+                                          sButtonProps={{ color: 'primary' }}
+                                        />
+                                      </SFlex>
+                                      <SFlex
+                                        alignItems="center"
+                                        gap={1}
+                                        flexWrap="wrap"
+                                      >
 
-                                        {/* Medidas Administrativas */}
-                                        {displayAnalysisContent
-                                          ?.medidasAdministrativasRecomendadas &&
-                                          displayAnalysisContent
-                                            .medidasAdministrativasRecomendadas
-                                            .length > 0 && (
-                                            <Box>
-                                              <SFlex
-                                                alignItems="center"
-                                                gap={1}
-                                                mb={2}
-                                                mt={8}
-                                              >
-                                                <Box
-                                                  sx={{
-                                                    width: 4,
-                                                    height: 20,
-                                                    backgroundColor:
-                                                      'green.400',
-                                                    borderRadius: 2,
-                                                  }}
-                                                />
-                                                <SText
-                                                  variant="body2"
-                                                  fontWeight="bold"
-                                                  color="text.primary"
-                                                  fontSize={14}
-                                                >
-                                                  Recomendações (Medidas
-                                                  Administrativas)
-                                                </SText>
-                                              </SFlex>
-                                              <SFlex direction="column" gap={1}>
-                                                {displayAnalysisContent.medidasAdministrativasRecomendadas.map(
-                                                  (medida, index) => {
-                                                    const itemStatus =
-                                                      resolveDisplayedItemStatus(
-                                                        'medidasAdministrativasRecomendadas',
-                                                        medida.nome,
-                                                        index,
-                                                      );
-                                                    const canEditItem =
-                                                      itemStatus?.existsInInventory !==
-                                                      true;
 
-                                                    return (
-                                                      <EditableAnalysisItem
-                                                        key={`medidasAdministrativasRecomendadas-${index}`}
-                                                        item={medida}
-                                                        itemIndex={index}
-                                                        analysisId={
-                                                          sourceAnalysis.id
-                                                        }
-                                                        itemType="medidasAdministrativasRecomendadas"
-                                                        itemCode={itemCodeRegistry.getCode(
-                                                          'medidasAdministrativasRecomendadas',
-                                                          index,
-                                                        )}
-                                                        analysis={sourceAnalysis}
-                                                        backgroundColor="grey.50"
-                                                        borderColor="grey.200"
-                                                        itemStatus={itemStatus}
-                                                        readOnly={!canEditItem}
-                                                        onEditItem={
-                                                          isHierarchyGroupFallback &&
-                                                          canEditItem
-                                                            ? createInheritedAnalysisItemEditHandler(
-                                                                sourceAnalysis,
-                                                                'medidasAdministrativasRecomendadas',
-                                                                index,
-                                                              )
-                                                            : undefined
-                                                        }
-                                                        onRemoveItem={
-                                                          isHierarchyGroupFallback &&
-                                                          canEditItem
-                                                            ? createInheritedAnalysisItemRemoveHandler(
-                                                                sourceAnalysis,
-                                                                'medidasAdministrativasRecomendadas',
-                                                                index,
-                                                              )
-                                                            : undefined
-                                                        }
-                                                        onAddItem={
-                                                          canEditItem
-                                                            ? () =>
-                                                                handleAddSingleAnalysisItem(
-                                                                  analysis,
-                                                                  'medidasAdministrativasRecomendadas',
-                                                                  index,
-                                                                  medida,
-                                                                  fallbackApplyOptions,
-                                                                )
-                                                            : undefined
-                                                        }
-                                                        isAddingItem={
-                                                          applyingItemKey ===
-                                                          buildApplyingItemKey(
-                                                            sourceAnalysis.id,
-                                                            'medidasAdministrativasRecomendadas',
-                                                            index,
-                                                          )
-                                                        }
-                                                      />
-                                                    );
-                                                  },
-                                                )}
-                                              </SFlex>
-                                            </Box>
-                                          )}
-                                      </Box>
+                                        <FrpsMatrixEquation
+                                          probability={probability}
+                                          severity={severity}
+                                          resultLevel={occupationalLevel}
+                                          riskType={risk?.type}
+                                          riskSubTypes={risk?.subTypes}
+                                        />
+                                      </SFlex>
                                     </SFlex>
-                                  )}
-                                </Box>
-                              );
-                            })()}
-                        </Box>
-                      );
-                            })}
-                          </SFlex>
-                        </Box>
-                      ),
-                    )}
-                  </SFlex>
-                </SFlex>
-              </SAccordionBody>
-            </SAccordion>
-          );
-        })}
-      </SFlex>
+                                    {/* AI Analysis Results for this specific risk-entity combination */}
+                                    {formQuestionsAnswersAnalysis?.results &&
+                                      (() => {
+                                        const resolved =
+                                          resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback(
+                                            {
+                                              riskId,
+                                              entityId,
+                                              results:
+                                                formQuestionsAnswersAnalysis.results,
+                                              hierarchyGroups,
+                                            },
+                                          );
 
-      <Menu
-        anchorEl={addRiskMenu?.anchorEl ?? null}
-        open={Boolean(addRiskMenu)}
-        onClose={() => setAddRiskMenu(null)}
-        onClick={(e) => e.stopPropagation()}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      >
-        {addRiskMenu &&
-          addRiskMenuOptions.map((option) => {
-            const count = getEntityIdsToAdd(addRiskMenu.riskId, option.filter)
-              .length;
-            return (
-              <MenuItem
-                key={option.filter}
-                disabled={count === 0}
-                onClick={() => {
-                  const riskId = addRiskMenu.riskId;
-                  const entityIds = getEntityIdsToAdd(riskId, option.filter);
-                  setAddRiskMenu(null);
-                  handleAddRiskToAllEntities(riskId, entityIds);
-                }}
-              >
-                {option.label} ({count})
-              </MenuItem>
+                                        if (
+                                          !resolved.analysis &&
+                                          !resolved.failedAnalysis
+                                        ) {
+                                          return null;
+                                        }
+
+                                        if (!resolved.analysis) {
+                                          if (
+                                            resolved.failedAnalysis &&
+                                            isOccupationalRiskEligibleForAiAnalysis(
+                                              matriz,
+                                            )
+                                          ) {
+                                            return (
+                                              <Box mt={3}>
+                                                <Typography
+                                                  variant="body2"
+                                                  color="error.main"
+                                                  sx={{ fontStyle: 'italic' }}
+                                                >
+                                                  Análise de IA falhou:{' '}
+                                                  {getFormAiAnalysisErrorMessage(
+                                                    resolved.failedAnalysis
+                                                      .metadata as
+                                                      | Record<string, unknown>
+                                                      | undefined,
+                                                  )}
+                                                </Typography>
+                                              </Box>
+                                            );
+                                          }
+
+                                          return null;
+                                        }
+
+                                        const isHierarchyGroupFallback =
+                                          resolved.source ===
+                                          'hierarchy_group_fallback';
+                                        const sourceAnalysis =
+                                          resolved.analysis!;
+                                        const analysis =
+                                          buildTargetAiAnalysisViewModel({
+                                            resolved,
+                                            targetHierarchyId: entityId,
+                                            targetProbability:
+                                              getEffectiveProbability(
+                                                entityId,
+                                                riskId,
+                                              ),
+                                          })!;
+                                        const fallbackApplyOptions =
+                                          isHierarchyGroupFallback
+                                            ? {
+                                                skipMarkAnalysisApplied:
+                                                  true as const,
+                                              }
+                                            : undefined;
+                                        const riskDataForHierarchy =
+                                          riskDataByHierarchyId.get(entityId);
+                                        const fallbackUiOptions =
+                                          isHierarchyGroupFallback
+                                            ? {
+                                                isHierarchyGroupFallback:
+                                                  true as const,
+                                                sourceAnalysisId:
+                                                  sourceAnalysis.id,
+                                                riskDataForHierarchy,
+                                              }
+                                            : undefined;
+                                        const displayAnalysisContent =
+                                          sourceAnalysis.analysis;
+                                        const isAnalysisProtected =
+                                          sourceAnalysis.metadata
+                                            ?.protectedData === true;
+                                        const protectedAnalysisLabel =
+                                          (typeof sourceAnalysis.metadata
+                                            ?.protectedDataLabel === 'string' &&
+                                            sourceAnalysis.metadata
+                                              .protectedDataLabel) ||
+                                          'Dados Protegidos';
+                                        const itemCodeRegistry =
+                                          buildAnalysisItemCodeRegistry(
+                                            displayAnalysisContent,
+                                          );
+                                        const resolveDisplayedItemStatus = (
+                                          itemType: AnalysisItemType,
+                                          itemName: string,
+                                          itemIndex: number,
+                                        ) =>
+                                          isHierarchyGroupFallback
+                                            ? resolveTargetAnalysisItemStatus({
+                                                riskId,
+                                                targetHierarchyId: entityId,
+                                                itemType,
+                                                itemName,
+                                                itemIndex,
+                                                sourceAnalysisId:
+                                                  sourceAnalysis.id,
+                                                results:
+                                                  formQuestionsAnswersAnalysis.results,
+                                                analysisInventoryStatus,
+                                                riskDataForHierarchy,
+                                                locallyAppliedItemKeys,
+                                              })
+                                            : getAnalysisItemStatus(
+                                                sourceAnalysis.id,
+                                                itemType,
+                                                itemIndex,
+                                              );
+                                        const applyAnalysisButtonProps =
+                                          getApplyAnalysisButtonProps(
+                                            analysis,
+                                            fallbackUiOptions,
+                                          );
+                                        const analysisKey = `${riskId}-${entityId}`;
+                                        const isAnalysisExpanded =
+                                          expandedAnalysis[analysisKey] ?? true;
+
+                                        return (
+                                          <Box mt={3}>
+                                            <AnalysisDisclosureHeader
+                                              expanded={isAnalysisExpanded}
+                                              onToggle={() =>
+                                                handleAnalysisToggle(
+                                                  analysisKey,
+                                                )
+                                              }
+                                              confidence={
+                                                sourceAnalysis.confidence
+                                              }
+                                              action={
+                                                <SButton
+                                                  variant="shade"
+                                                  schema={
+                                                    analysisItemPillSchema
+                                                  }
+                                                  textProps={{ fontSize: 11 }}
+                                                  size="s"
+                                                  text={
+                                                    'Aceitar e adicionar todos deste risco/setor'
+                                                  }
+                                                  tooltip="Aceitar e adicionar todas as fontes e recomendações deste risco, somente neste setor"
+                                                  onClick={() =>
+                                                    handleAddAnalysisAsRiskData(
+                                                      analysis,
+                                                      isHierarchyGroupFallback
+                                                        ? {
+                                                            ...fallbackUiOptions,
+                                                            skipMarkAnalysisApplied: true,
+                                                          }
+                                                        : undefined,
+                                                    )
+                                                  }
+                                                  buttonProps={{
+                                                    sx: analysisItemPillSx,
+                                                  }}
+                                                />
+                                              }
+                                            />
+                                            {isAnalysisExpanded && (
+                                              <SFlex direction="column" gap={2}>
+                                                <Box
+                                                  key={sourceAnalysis.id}
+                                                  sx={{
+                                                    p: 3,
+                                                    backgroundColor:
+                                                      'transparent',
+                                                  }}
+                                                >
+                                                  {isHierarchyGroupFallback && (
+                                                    <Typography
+                                                      variant="body2"
+                                                      color="text.secondary"
+                                                      sx={{
+                                                        mb: 2,
+                                                        fontStyle: 'italic',
+                                                        fontSize: 12,
+                                                      }}
+                                                    >
+                                                      Análise aplicada pelo
+                                                      agrupamento de setores.
+                                                    </Typography>
+                                                  )}
+
+                                                  {isAnalysisProtected && (
+                                                    <Box
+                                                      mb={2}
+                                                      mt={3}
+                                                      p={2}
+                                                      sx={{
+                                                        borderRadius: 1,
+                                                        backgroundColor:
+                                                          'action.hover',
+                                                        border: '1px solid',
+                                                        borderColor:
+                                                          'warning.light',
+                                                      }}
+                                                    >
+                                                      <SText
+                                                        variant="body1"
+                                                        fontWeight="bold"
+                                                        fontSize={14}
+                                                        mb={1}
+                                                      >
+                                                        {protectedAnalysisLabel}
+                                                      </SText>
+                                                      <SText
+                                                        variant="body2"
+                                                        color="text.secondary"
+                                                        fontSize={13}
+                                                      >
+                                                        O grupo não atinge o
+                                                        mínimo atual de
+                                                        participantes da Análise
+                                                        de Riscos. Fontes,
+                                                        recomendações e
+                                                        narrativa da IA ficam
+                                                        ocultas até o recorte
+                                                        voltar a atender o
+                                                        limiar.
+                                                      </SText>
+                                                    </Box>
+                                                  )}
+
+                                                  {/* Fontes Geradoras */}
+                                                  {!isAnalysisProtected &&
+                                                    displayAnalysisContent?.fontesGeradoras &&
+                                                    displayAnalysisContent
+                                                      .fontesGeradoras.length >
+                                                      0 && (
+                                                      <AnalysisItemsSection title="Fontes Geradoras">
+                                                        <SFlex
+                                                          alignItems="center"
+                                                          gap={4}
+                                                          mb={4}
+                                                        ></SFlex>
+                                                        <SFlex
+                                                          direction="column"
+                                                          gap={4}
+                                                        >
+                                                          {displayAnalysisContent.fontesGeradoras.map(
+                                                            (fonte, index) => {
+                                                              const itemStatus =
+                                                                resolveDisplayedItemStatus(
+                                                                  'fontesGeradoras',
+                                                                  fonte.nome,
+                                                                  index,
+                                                                );
+                                                              const canEditItem =
+                                                                itemStatus?.existsInInventory !==
+                                                                true;
+
+                                                              return (
+                                                                <EditableAnalysisItem
+                                                                  key={`fontesGeradoras-${index}`}
+                                                                  item={fonte}
+                                                                  itemIndex={
+                                                                    index
+                                                                  }
+                                                                  analysisId={
+                                                                    sourceAnalysis.id
+                                                                  }
+                                                                  itemType="fontesGeradoras"
+                                                                  itemCode={itemCodeRegistry.getCode(
+                                                                    'fontesGeradoras',
+                                                                    index,
+                                                                  )}
+                                                                  analysis={
+                                                                    sourceAnalysis
+                                                                  }
+                                                                  backgroundColor="background.paper"
+                                                                  borderColor="divider"
+                                                                  itemStatus={
+                                                                    itemStatus
+                                                                  }
+                                                                  readOnly={
+                                                                    !canEditItem
+                                                                  }
+                                                                  onEditItem={
+                                                                    isHierarchyGroupFallback &&
+                                                                    canEditItem
+                                                                      ? createInheritedAnalysisItemEditHandler(
+                                                                          sourceAnalysis,
+                                                                          'fontesGeradoras',
+                                                                          index,
+                                                                        )
+                                                                      : undefined
+                                                                  }
+                                                                  onRemoveItem={
+                                                                    isHierarchyGroupFallback &&
+                                                                    canEditItem
+                                                                      ? createInheritedAnalysisItemRemoveHandler(
+                                                                          sourceAnalysis,
+                                                                          'fontesGeradoras',
+                                                                          index,
+                                                                        )
+                                                                      : undefined
+                                                                  }
+                                                                  onAddItem={
+                                                                    canEditItem
+                                                                      ? () =>
+                                                                          handleAddSingleAnalysisItem(
+                                                                            analysis,
+                                                                            'fontesGeradoras',
+                                                                            index,
+                                                                            fonte,
+                                                                            fallbackApplyOptions,
+                                                                          )
+                                                                      : undefined
+                                                                  }
+                                                                  isAddingItem={
+                                                                    applyingItemKey ===
+                                                                    buildApplyingItemKey(
+                                                                      sourceAnalysis.id,
+                                                                      'fontesGeradoras',
+                                                                      index,
+                                                                    )
+                                                                  }
+                                                                />
+                                                              );
+                                                            },
+                                                          )}
+                                                        </SFlex>
+                                                      </AnalysisItemsSection>
+                                                    )}
+
+                                                  {/* Medidas de Engenharia */}
+                                                  {displayAnalysisContent?.medidasEngenhariaRecomendadas &&
+                                                    displayAnalysisContent
+                                                      .medidasEngenhariaRecomendadas
+                                                      .length > 0 && (
+                                                      <Box mb={2} mt={8}>
+                                                        <SFlex
+                                                          alignItems="center"
+                                                          gap={1}
+                                                          mb={2}
+                                                        >
+                                                          <Box
+                                                            sx={{
+                                                              width: 4,
+                                                              height: 20,
+                                                              backgroundColor:
+                                                                'blue.400',
+                                                              borderRadius: 2,
+                                                            }}
+                                                          />
+                                                          <SText
+                                                            variant="body2"
+                                                            fontWeight="bold"
+                                                            color="text.primary"
+                                                            fontSize={14}
+                                                          >
+                                                            Recomendações
+                                                            (Medidas de
+                                                            Engenharia)
+                                                          </SText>
+                                                        </SFlex>
+                                                        <SFlex
+                                                          direction="column"
+                                                          gap={1}
+                                                        >
+                                                          {displayAnalysisContent.medidasEngenhariaRecomendadas.map(
+                                                            (medida, index) => {
+                                                              const itemStatus =
+                                                                resolveDisplayedItemStatus(
+                                                                  'medidasEngenhariaRecomendadas',
+                                                                  medida.nome,
+                                                                  index,
+                                                                );
+                                                              const canEditItem =
+                                                                itemStatus?.existsInInventory !==
+                                                                true;
+
+                                                              return (
+                                                                <EditableAnalysisItem
+                                                                  key={`medidasEngenhariaRecomendadas-${index}`}
+                                                                  item={medida}
+                                                                  itemIndex={
+                                                                    index
+                                                                  }
+                                                                  analysisId={
+                                                                    sourceAnalysis.id
+                                                                  }
+                                                                  itemType="medidasEngenhariaRecomendadas"
+                                                                  itemCode={itemCodeRegistry.getCode(
+                                                                    'medidasEngenhariaRecomendadas',
+                                                                    index,
+                                                                  )}
+                                                                  analysis={
+                                                                    sourceAnalysis
+                                                                  }
+                                                                  backgroundColor="background.paper"
+                                                                  borderColor="divider"
+                                                                  itemStatus={
+                                                                    itemStatus
+                                                                  }
+                                                                  readOnly={
+                                                                    !canEditItem
+                                                                  }
+                                                                  onEditItem={
+                                                                    isHierarchyGroupFallback &&
+                                                                    canEditItem
+                                                                      ? createInheritedAnalysisItemEditHandler(
+                                                                          sourceAnalysis,
+                                                                          'medidasEngenhariaRecomendadas',
+                                                                          index,
+                                                                        )
+                                                                      : undefined
+                                                                  }
+                                                                  onRemoveItem={
+                                                                    isHierarchyGroupFallback &&
+                                                                    canEditItem
+                                                                      ? createInheritedAnalysisItemRemoveHandler(
+                                                                          sourceAnalysis,
+                                                                          'medidasEngenhariaRecomendadas',
+                                                                          index,
+                                                                        )
+                                                                      : undefined
+                                                                  }
+                                                                  onAddItem={
+                                                                    canEditItem
+                                                                      ? () =>
+                                                                          handleAddSingleAnalysisItem(
+                                                                            analysis,
+                                                                            'medidasEngenhariaRecomendadas',
+                                                                            index,
+                                                                            medida,
+                                                                            fallbackApplyOptions,
+                                                                          )
+                                                                      : undefined
+                                                                  }
+                                                                  isAddingItem={
+                                                                    applyingItemKey ===
+                                                                    buildApplyingItemKey(
+                                                                      sourceAnalysis.id,
+                                                                      'medidasEngenhariaRecomendadas',
+                                                                      index,
+                                                                    )
+                                                                  }
+                                                                />
+                                                              );
+                                                            },
+                                                          )}
+                                                        </SFlex>
+                                                      </Box>
+                                                    )}
+
+                                                  {/* Medidas Administrativas */}
+                                                  {displayAnalysisContent?.medidasAdministrativasRecomendadas &&
+                                                    displayAnalysisContent
+                                                      .medidasAdministrativasRecomendadas
+                                                      .length > 0 && (
+                                                      <AnalysisItemsSection title="Recomendações (Medidas Administrativas)">
+
+                                                        <SFlex
+                                                          direction="column"
+                                                          gap={1}
+                                                        >
+                                                          {displayAnalysisContent.medidasAdministrativasRecomendadas.map(
+                                                            (medida, index) => {
+                                                              const itemStatus =
+                                                                resolveDisplayedItemStatus(
+                                                                  'medidasAdministrativasRecomendadas',
+                                                                  medida.nome,
+                                                                  index,
+                                                                );
+                                                              const canEditItem =
+                                                                itemStatus?.existsInInventory !==
+                                                                true;
+
+                                                              return (
+                                                                <EditableAnalysisItem
+                                                                  key={`medidasAdministrativasRecomendadas-${index}`}
+                                                                  item={medida}
+                                                                  itemIndex={
+                                                                    index
+                                                                  }
+                                                                  analysisId={
+                                                                    sourceAnalysis.id
+                                                                  }
+                                                                  itemType="medidasAdministrativasRecomendadas"
+                                                                  itemCode={itemCodeRegistry.getCode(
+                                                                    'medidasAdministrativasRecomendadas',
+                                                                    index,
+                                                                  )}
+                                                                  analysis={
+                                                                    sourceAnalysis
+                                                                  }
+                                                                  backgroundColor="background.paper"
+                                                                  borderColor="divider"
+                                                                  itemStatus={
+                                                                    itemStatus
+                                                                  }
+                                                                  readOnly={
+                                                                    !canEditItem
+                                                                  }
+                                                                  onEditItem={
+                                                                    isHierarchyGroupFallback &&
+                                                                    canEditItem
+                                                                      ? createInheritedAnalysisItemEditHandler(
+                                                                          sourceAnalysis,
+                                                                          'medidasAdministrativasRecomendadas',
+                                                                          index,
+                                                                        )
+                                                                      : undefined
+                                                                  }
+                                                                  onRemoveItem={
+                                                                    isHierarchyGroupFallback &&
+                                                                    canEditItem
+                                                                      ? createInheritedAnalysisItemRemoveHandler(
+                                                                          sourceAnalysis,
+                                                                          'medidasAdministrativasRecomendadas',
+                                                                          index,
+                                                                        )
+                                                                      : undefined
+                                                                  }
+                                                                  onAddItem={
+                                                                    canEditItem
+                                                                      ? () =>
+                                                                          handleAddSingleAnalysisItem(
+                                                                            analysis,
+                                                                            'medidasAdministrativasRecomendadas',
+                                                                            index,
+                                                                            medida,
+                                                                            fallbackApplyOptions,
+                                                                          )
+                                                                      : undefined
+                                                                  }
+                                                                  isAddingItem={
+                                                                    applyingItemKey ===
+                                                                    buildApplyingItemKey(
+                                                                      sourceAnalysis.id,
+                                                                      'medidasAdministrativasRecomendadas',
+                                                                      index,
+                                                                    )
+                                                                  }
+                                                                />
+                                                              );
+                                                            },
+                                                          )}
+                                                        </SFlex>
+                                                      </AnalysisItemsSection>
+                                                    )}
+                                                </Box>
+                                              </SFlex>
+                                            )}
+                                          </Box>
+                                        );
+                                      })()}
+                                  </Box>
+                                );
+                              })}
+                            </SFlex>
+                          </Box>
+                        ),
+                      )}
+                    </SFlex>
+                  </SFlex>
+                </SAccordionBody>
+              </SAccordion>
             );
           })}
-      </Menu>
+        </SFlex>
 
-      {isMaster && (
-        <SystemAiPromptConfigDialog
-          open={aiConfigDialogOpen}
-          onClose={() => setAiConfigDialogOpen(false)}
-          onApply={setAiMasterConfig}
-          promptKey={SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS}
-          title="Configurar Análise de IA"
-          promptLabel="Prompt da análise"
-          saveDefaultConfirmMessage="O conteúdo atual do prompt será salvo como padrão do sistema para análises de Fontes Geradoras e Recomendações. Deseja continuar?"
-          maxWidth="xl"
-          promptMinRows={4}
-          promptMaxRows={30}
+        <Menu
+          anchorEl={addRiskMenu?.anchorEl ?? null}
+          open={Boolean(addRiskMenu)}
+          onClose={() => setAddRiskMenu(null)}
+          onClick={(e) => e.stopPropagation()}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        >
+          {addRiskMenu &&
+            addRiskMenuOptions.map((option) => {
+              const count = getEntityIdsToAdd(
+                addRiskMenu.riskId,
+                option.filter,
+              ).length;
+              return (
+                <MenuItem
+                  key={option.filter}
+                  disabled={count === 0}
+                  onClick={() => {
+                    const riskId = addRiskMenu.riskId;
+                    const entityIds = getEntityIdsToAdd(riskId, option.filter);
+                    setAddRiskMenu(null);
+                    handleAddRiskToAllEntities(riskId, entityIds);
+                  }}
+                >
+                  {option.label} ({count})
+                </MenuItem>
+              );
+            })}
+        </Menu>
+
+        {isMaster && (
+          <SystemAiPromptConfigDialog
+            open={aiConfigDialogOpen}
+            onClose={() => setAiConfigDialogOpen(false)}
+            onApply={setAiMasterConfig}
+            promptKey={SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS}
+            title="Configurar Análise de IA"
+            promptLabel="Prompt da análise"
+            saveDefaultConfirmMessage="O conteúdo atual do prompt será salvo como padrão do sistema para análises de Fontes Geradoras e Recomendações. Deseja continuar?"
+            maxWidth="xl"
+            promptMinRows={4}
+            promptMaxRows={30}
+          />
+        )}
+
+        <ClearFormAiAnalysisModal
+          open={showClearAiDialog}
+          onClose={() => setShowClearAiDialog(false)}
+          companyId={accessCompanyId}
+          applicationId={formApplication.id}
+          riskOptions={clearAiRiskOptions}
+          hierarchyOptions={clearAiHierarchyOptions}
+          hierarchyGroupOptions={clearAiHierarchyGroupOptions}
+          hasProcessingAnalyses={hasProcessingAnalyses}
         />
-      )}
 
-      <ClearFormAiAnalysisModal
-        open={showClearAiDialog}
-        onClose={() => setShowClearAiDialog(false)}
-        companyId={accessCompanyId}
-        applicationId={formApplication.id}
-        riskOptions={clearAiRiskOptions}
-        hierarchyOptions={clearAiHierarchyOptions}
-        hierarchyGroupOptions={clearAiHierarchyGroupOptions}
-        hasProcessingAnalyses={hasProcessingAnalyses}
-      />
-
-      <RecoverFormAiAnalysisModal
-        open={showRecoverAiDialog}
-        onClose={() => setShowRecoverAiDialog(false)}
-        companyId={accessCompanyId}
-        applicationId={formApplication.id}
-        riskOptions={clearAiRiskOptions}
-        hierarchyOptions={clearAiHierarchyOptions}
-        hierarchyGroupOptions={clearAiHierarchyGroupOptions}
-      />
-      <FrpsExplainabilityBridge apiRef={frpsExplainabilityApiRef} />
-    </SPaper>
+        <RecoverFormAiAnalysisModal
+          open={showRecoverAiDialog}
+          onClose={() => setShowRecoverAiDialog(false)}
+          companyId={accessCompanyId}
+          applicationId={formApplication.id}
+          riskOptions={clearAiRiskOptions}
+          hierarchyOptions={clearAiHierarchyOptions}
+          hierarchyGroupOptions={clearAiHierarchyGroupOptions}
+        />
+        <FrpsExplainabilityBridge apiRef={frpsExplainabilityApiRef} />
+      </OccupationalRiskAnalysisSection>
     </FrpsExplainabilityProvider>
   );
 };

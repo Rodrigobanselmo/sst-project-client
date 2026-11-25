@@ -1,4 +1,9 @@
-import { Box, Typography } from '@mui/material';
+import {
+  Box,
+  Typography,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@mui/material';
 
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 
@@ -8,6 +13,8 @@ import { FormChartDistributionView } from '../FormChartDistributionView/FormChar
 import { FormChartTypeSelector } from '../FormChartTypeSelector/FormChartTypeSelector';
 
 type ExecutiveIndicatorsDistributionProps = {
+  level?: 'scales' | 'dimensions' | 'questions';
+  onLevelChange?: (level: 'scales' | 'dimensions' | 'questions') => void;
   distribution: ExecutiveIndicatorsDistribution;
   chartType: FormChartType;
   onChartTypeChange: (chartType: FormChartType) => void;
@@ -15,6 +22,8 @@ type ExecutiveIndicatorsDistributionProps = {
 
 export const ExecutiveIndicatorsDistributionSection = ({
   distribution,
+  level,
+  onLevelChange,
   chartType,
   onChartTypeChange,
 }: ExecutiveIndicatorsDistributionProps) => {
@@ -30,12 +39,13 @@ export const ExecutiveIndicatorsDistributionSection = ({
 
   return (
     <SPaper
+      shadow={false}
       sx={{
         p: { xs: 6, sm: 8 },
         borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: 'background.paper',
+        border: 0,
+        boxShadow: 'none',
+        backgroundColor: 'transparent',
       }}
     >
       <Box
@@ -59,6 +69,35 @@ export const ExecutiveIndicatorsDistributionSection = ({
         />
       </Box>
 
+      {level && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 3,
+          }}
+        >
+          <Typography color="text.primary" variant="body2">
+            Exibir distribuição de:
+          </Typography>
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={level}
+            aria-label="Nível da distribuição geral"
+            onChange={(_, value) => {
+              if (value) onLevelChange?.(value);
+            }}
+            sx={{ '& .MuiToggleButton-root': { textTransform: 'none' } }}
+          >
+            <ToggleButton value="scales">Escalas</ToggleButton>
+            <ToggleButton value="dimensions">Dimensões</ToggleButton>
+            <ToggleButton value="questions">Perguntas</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+      )}
       <Typography
         variant="body2"
         color="text.secondary"
@@ -80,6 +119,7 @@ export const ExecutiveIndicatorsDistributionSection = ({
             totalAnswers={totalIndicators}
             chartType={chartType}
             height={220}
+            barLabelFontSize={12}
           />
           <Box sx={{ mt: 3 }}>
             {distribution.rows.map((row) => (

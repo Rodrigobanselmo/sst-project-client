@@ -15,6 +15,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import PieChartIcon from '@mui/icons-material/PieChart';
 import {
+  type AccordionProps,
   Box,
   Button,
   CircularProgress,
@@ -99,8 +100,67 @@ import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
 // Types for the restructured data
 const graphHierarchyAccordionProps = {
-  sx: formAccordionNavigationSx,
+  sx: {
+    ...formAccordionNavigationSx,
+    border: 0,
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
+    '&::before': { display: 'none' },
+  },
 };
+
+const indicatorSectionAccordionProps: Partial<AccordionProps> = {
+  sx: (theme) => ({
+    ...graphHierarchyAccordionProps.sx,
+    WebkitBoxShadow: 'none',
+    '&&:not(.Mui-expanded)': { p: 0, overflow: 'visible' },
+    '&& .MuiAccordionSummary-root:not(.Mui-expanded)': {
+      minHeight: 76,
+      px: 6,
+      gap: 4,
+      borderRadius: '24px',
+      border: '1px solid',
+      borderColor: 'divider',
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? 'rgba(255, 255, 255, 0.045)'
+          : 'rgba(255, 255, 255, 0.45)',
+      backdropFilter: 'blur(16px) saturate(140%)',
+      WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+      '&:hover': { backgroundColor: 'action.hover' },
+      '& .MuiAccordionSummary-content': {
+        my: 4,
+        alignItems: 'center',
+        minWidth: 0,
+      },
+    },
+  }),
+};
+
+const IndicatorDetailsSection = ({
+  enabled,
+  children,
+}: {
+  enabled: boolean;
+  children: ReactNode;
+}) =>
+  enabled ? (
+    <SAccordion
+      defaultExpanded
+      accordionProps={indicatorSectionAccordionProps}
+      expandIcon={<ArrowRightIcon fontSize="small" />}
+      color="text.primary"
+      title="Detalhamento dos indicadores"
+    >
+      <SAccordionBody>
+        <SFlex direction="column" gap={16} sx={{ pt: 8 }}>
+          {children}
+        </SFlex>
+      </SAccordionBody>
+    </SAccordion>
+  ) : (
+    <>{children}</>
+  );
 
 interface QuestionWithParticipantGroups {
   id: string;
@@ -446,16 +506,16 @@ const GroupDashboardIndicator = ({
 
     return (
       <SPaper
-        className="polished-form-panel"
+        shadow={false}
         sx={{
           mb: 6,
           p: 6,
           pb: 4,
           borderRadius: 3,
-          backgroundColor: 'background.paper',
-          border: '2px solid',
+          backgroundColor: 'transparent',
+          border: 0,
           borderColor: 'primary.100',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+          boxShadow: 'none',
         }}
       >
         <Box
@@ -526,13 +586,13 @@ const GroupDashboardIndicator = ({
 
   return (
     <SPaper
-      className="polished-form-panel"
+      shadow={false}
       sx={{
         p: 3,
         mb: 4,
         borderRadius: 2,
-        border: '2px solid',
-        backgroundColor: 'background.paper',
+        border: 0,
+        backgroundColor: 'transparent',
         borderColor: getIndicatorColorFromScore(indicatorValue),
       }}
     >
@@ -677,12 +737,42 @@ export const FormQuestionsDashboard = ({
   const initialResultsTab = isCanceled || canViewPartialResults ? 2 : 1;
   const initialManagementTab = canViewParticipants ? 6 : 5;
   const initialTab = canViewResults ? initialResultsTab : initialManagementTab;
-  const [selectedTab, setTabTableIndex] = useState<number | null>(null);
+  const tabStorageKey = `form-application-tab:${accessCompanyId}:${formApplication.id}:${isShareableLink ? 'shared' : 'internal'}`;
+  const [tabSelection, setTabSelection] = useState<{
+    key: string;
+    value: number;
+  } | null>(null);
+  const selectedTab =
+    tabSelection?.key === tabStorageKey ? tabSelection.value : null;
+
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(tabStorageKey);
+      const value = stored === null ? null : Number(stored);
+      setTabSelection(
+        value !== null && Number.isInteger(value) && value >= 1 && value <= 6
+          ? { key: tabStorageKey, value }
+          : null,
+      );
+    } catch {
+      setTabSelection(null);
+    }
+  }, [tabStorageKey]);
+
+  const setTabTableIndex = (value: number) => {
+    setTabSelection({ key: tabStorageKey, value });
+    try {
+      window.sessionStorage.setItem(tabStorageKey, String(value));
+    } catch {
+      // Tab navigation remains available when browser storage is disabled.
+    }
+  };
   const tabTableIndex =
     selectedTab !== null &&
     (canViewResults || selectedTab >= 5) &&
     (!isPartialPsychosocialForm || selectedTab !== 3) &&
     (canAnalyzeRisks || selectedTab !== 4) &&
+    (isPsychosocialForm || selectedTab !== 5) &&
     (selectedTab !== 6 || canViewParticipants)
       ? selectedTab
       : initialTab;
@@ -712,9 +802,8 @@ export const FormQuestionsDashboard = ({
   type IndicatorView = 'bars' | 'radar-scales' | 'radar-dimensions';
   const [consolidateRadar, setConsolidateRadar] = useState(false);
   const [indicatorView, setIndicatorView] = useState<IndicatorView>('bars');
-  const canShowScaleRadar = !!indicatorHierarchy && indicatorLevels.scales;
-  const canShowDimensionRadar =
-    !!indicatorHierarchy && indicatorLevels.dimensions;
+  const canShowScaleRadar = !!indicatorHierarchy;
+  const canShowDimensionRadar = !!indicatorHierarchy;
   const activeIndicatorView =
     (indicatorView === 'radar-scales' && canShowScaleRadar) ||
     (indicatorView === 'radar-dimensions' && canShowDimensionRadar)
@@ -727,12 +816,15 @@ export const FormQuestionsDashboard = ({
   const [organizationGroupIds, setOrganizationGroupIds] = useState<string[]>(
     [],
   );
-  // State for controlling whether to show only group indicators or individual questions too
-  const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
-    useState<boolean>(false);
+  const [showQuestionIndicators, setShowQuestionIndicators] = useState(true);
+  // Keep the existing presentation/PDF contract; the control uses positive wording.
+  const showOnlyGroupIndicators = !showQuestionIndicators;
   const [chartsChartType, setChartsChartType] = useState<FormChartType>(
     DEFAULT_FORM_CHART_TYPE,
   );
+  const [executiveLevel, setExecutiveLevel] = useState<
+    'scales' | 'dimensions' | 'questions'
+  >('scales');
   const [executiveDistributionChartType, setExecutiveDistributionChartType] =
     useState<FormChartType>('bar');
 
@@ -999,7 +1091,7 @@ export const FormQuestionsDashboard = ({
       {
         formQuestionsAnswers,
         selectedGroupingQuestionId: selectedGroupingQuestion,
-        showOnlyGroupIndicators,
+        showOnlyGroupIndicators: executiveLevel !== 'questions',
         executiveDistributionChartType,
         narrativeDiagnosticMarkdown: null,
         isShareableLink: isShareableLink && !isPartialPsychosocialForm,
@@ -1011,15 +1103,18 @@ export const FormQuestionsDashboard = ({
           : {}),
       },
       indicatorHierarchy,
-      indicatorLevels,
+      {
+        scales: executiveLevel === 'scales',
+        dimensions: executiveLevel === 'dimensions',
+      },
     );
   }, [
     formQuestionsAnswers,
     indicatorHierarchy,
-    indicatorLevels,
+    executiveLevel,
     isIndicatorTab,
     selectedGroupingQuestion,
-    showOnlyGroupIndicators,
+
     executiveDistributionChartType,
     isShareableLink,
     isPartialPsychosocialForm,
@@ -1066,8 +1161,7 @@ export const FormQuestionsDashboard = ({
     [isPartialPsychosocialForm],
   );
 
-  const requireIndicatorLevel =
-    showOnlyGroupIndicators || !!selectedGroupingQuestion;
+  const requireIndicatorLevel = !showQuestionIndicators;
   const usesDimensionSections = !!indicatorHierarchy?.scaleResults;
   const canShowNarrative =
     !isCanceled &&
@@ -1310,7 +1404,12 @@ export const FormQuestionsDashboard = ({
       {canViewResults &&
         !isPartialPsychosocialForm &&
         identifierQuestions.length > 0 && (
-          <Box sx={{ p: 3 }}>
+          <Box
+            sx={{
+              p: 3,
+              '&:has(> .MuiAccordion-root:not(.Mui-expanded))': { p: 0 },
+            }}
+          >
             <SAccordion
               defaultExpanded={false}
               icon={<PieChartIcon sx={{ fontSize: 30 }} />}
@@ -1321,27 +1420,65 @@ export const FormQuestionsDashboard = ({
               fontWeight="600"
               accordionProps={{
                 TransitionProps: { unmountOnExit: false },
-                sx: {
+                sx: (theme) => ({
                   ...formAccordionNavigationSx,
+                  border: 0,
+                  backgroundColor: 'transparent',
+                  WebkitBoxShadow: 'none',
                   boxShadow: 'none',
                   '&::before': { display: 'none' },
-                },
+                  '&&:not(.Mui-expanded)': { p: 0, overflow: 'visible' },
+                  '&& .MuiAccordionSummary-root:not(.Mui-expanded)': {
+                    minHeight: 76,
+                    px: 6,
+                    gap: 4,
+                    borderRadius: '24px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    backgroundColor:
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.045)'
+                        : 'rgba(255, 255, 255, 0.45)',
+                    backdropFilter: 'blur(16px) saturate(140%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                    '&:hover': { backgroundColor: 'action.hover' },
+                    '& .MuiAccordionSummary-content': {
+                      my: 4,
+                      alignItems: 'center',
+                      gap: 4,
+                      minWidth: 0,
+                    },
+                    '& .MuiAccordionSummary-content > div:first-of-type': {
+                      width: 36,
+                      height: 36,
+                      flexShrink: 0,
+                      mr: 0,
+                    },
+                  },
+                }),
               }}
             >
               <SAccordionBody>
-                <SPaper
-                  className="polished-form-panel"
-                  sx={{
-                    p: 3,
-                  }}
-                >
+                <Box sx={{ pt: 4 }}>
                   <SFlex
                     gap={4}
                     display="grid"
-                    gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
+                    gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))"
                   >
                     {identifierQuestions.map((question) => (
-                      <Box key={question.id} p={4}>
+                      <Box
+                        key={question.id}
+                        p={4}
+                        sx={{
+                          minWidth: 0,
+                          border: '1px solid',
+                          borderColor: (theme) =>
+                            theme.palette.mode === 'dark'
+                              ? '#465267'
+                              : '#CBD5E1',
+                          borderRadius: 3,
+                        }}
+                      >
                         <FormQuestionPieChart
                           question={question}
                           colorScheme="identifier"
@@ -1352,7 +1489,7 @@ export const FormQuestionsDashboard = ({
                       </Box>
                     ))}
                   </SFlex>
-                </SPaper>
+                </Box>
               </SAccordionBody>
             </SAccordion>
           </Box>
@@ -1368,334 +1505,229 @@ export const FormQuestionsDashboard = ({
                 (options) => options.length > 0,
               ) ||
               selectedGroupingQuestion) && (
-              <Box>
-                <SectionHeader
-                  icon={<FilterListIcon sx={{ fontSize: 30 }} />}
-                  title="Agrupar por Identificação"
-                />
-                <SPaper
-                  className="polished-form-panel"
-                  sx={{
-                    p: 10,
-                  }}
-                >
-                  <SFlex direction="column" gap={3}>
-                    <SFlex gap={3} flexWrap="wrap" alignItems="center">
-                      {organizationalGroups.length > 0 && (
-                        <Button
-                          variant="outlined"
-                          sx={{
-                            minHeight: 40,
-                            color: 'text.secondary',
-                            borderColor: 'divider',
-                            bgcolor: 'background.paper',
-                            '&:hover': {
-                              borderColor: 'text.secondary',
-                              bgcolor: 'action.hover',
-                            },
-                          }}
-                          onClick={() => setOrganizationDialogOpen(true)}
-                        >
-                          Selecionar grupos da estrutura organizacional
-                        </Button>
-                      )}
-                      <CombinedIdentificationFilters
-                        questions={availableGroupingQuestions}
-                        value={identificationFilters}
-                        onChange={setIdentificationFilters}
-                      />
-                      <CombinedIdentificationFilters
-                        questions={availableGroupingQuestions}
-                        value={identificationFilters}
-                        onChange={setIdentificationFilters}
-                        grouping={{
-                          questionId: identificationQuestionId,
-                          groups: participantGroups,
-                          selectedIds: selectedParticipantGroupIdsForView ?? [],
-                          onQuestionChange: (id) => {
-                            if (id) handleCreateGroupAnalysis(id);
-                            else setIdentificationQuestionId(null);
-                          },
-                          onGroupsChange: (ids) =>
-                            setGroupingSelectionState({
-                              key: groupingSelectionKey,
-                              ids,
-                            }),
-                          onClear: () => setIdentificationQuestionId(null),
-                        }}
-                      />
-                    </SFlex>
-                    {organizationDialogOpen && (
-                      <OrganizationalGroupingDialog
-                        groups={organizationalGroups}
-                        selectedIds={organizationSelection}
-                        counts={campaignEmployeesByGroup}
-                        onClose={() => setOrganizationDialogOpen(false)}
-                        onApply={(ids) => {
-                          if (ids.length) {
-                            ensureIndicatorLevel();
-                            setIdentificationQuestionId(null);
-                          }
-                          setOrganizationGroupIds(ids);
-                          setOrganizationDialogOpen(false);
-                        }}
-                      />
-                    )}
-
-                    {/* Participant Count */}
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        {selectedGroupingQuestion
-                          ? `Exibindo ${visibleParticipantGroups.length} de ${participantGroups.length} grupos`
-                          : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
-                      </Typography>
-                    </Box>
-                  </SFlex>
-                </SPaper>
-              </Box>
-            )}
-
-          {/* Switch to toggle between showing individual questions and only group indicators */}
-          {isIndicatorTab && (
-            <SPaper
-              className="polished-form-panel"
-              sx={{
-                mt: 5,
-                p: 10,
-                py: 5,
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 2,
-                }}
-              >
-                {dimensionView && (
-                  <>
-                    <SSwitch
-                      label="Mostrar escalas"
-                      color="text.primary"
-                      value={indicatorLevels.scales}
-                      disabled={
-                        requireIndicatorLevel && !indicatorLevels.dimensions
-                      }
-                      onChange={(_, checked) =>
-                        setIndicatorLevels((levels) => ({
-                          ...levels,
-                          scales: checked,
-                        }))
-                      }
-                    />
-                    <SSwitch
-                      label="Mostrar dimensões"
-                      color="text.primary"
-                      value={indicatorLevels.dimensions}
-                      disabled={
-                        requireIndicatorLevel && !indicatorLevels.scales
-                      }
-                      onChange={(_, checked) =>
-                        setIndicatorLevels((levels) => ({
-                          ...levels,
-                          dimensions: checked,
-                        }))
-                      }
-                    />
-                  </>
-                )}
-                <SSwitch
-                  label="Mostrar apenas indicadores de grupo"
-                  color="text.primary"
-                  value={showOnlyGroupIndicators}
-                  onChange={(_, checked) => {
-                    if (checked) ensureIndicatorLevel();
-                    setShowOnlyGroupIndicators(checked);
-                  }}
-                  formControlProps={{
-                    sx: {
-                      px: 2,
-                      py: 1,
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
+              <SAccordion
+                defaultExpanded={false}
+                accordionProps={{
+                  sx: (theme) => ({
+                    ...(typeof indicatorSectionAccordionProps.sx === 'function'
+                      ? indicatorSectionAccordionProps.sx(theme)
+                      : {}),
+                    '& > .MuiAccordionSummary-root > .MuiAccordionSummary-content':
+                      { alignItems: 'center', gap: 4 },
+                    '& > .MuiAccordionSummary-root > .MuiAccordionSummary-content > div:first-of-type':
+                      { width: 36, height: 36, flexShrink: 0, mr: 0 },
+                    '& .MuiAccordionSummary-content .MuiTypography-body2': {
+                      color: 'text.secondary',
                     },
-                  }}
-                />
-                <Button
-                  variant="outlined"
-                  disabled={isExportingIndicatorsPdf || !formQuestionsAnswers}
-                  onClick={async () => {
-                    if (!formQuestionsAnswers) {
-                      enqueueSnackbar(
-                        'Dados do formulário ainda não carregados.',
-                        {
-                          variant: 'warning',
-                        },
-                      );
-                      return;
-                    }
-                    setIsExportingIndicatorsPdf(true);
-                    setPdfLoadingMessage('Iniciando geração do PDF...');
-                    try {
-                      if (activeIndicatorView === 'bars') {
-                        await exportFormIndicatorsPdfInBrowser(
-                          {
-                            accessCompanyId,
-                            formApplication: reportApplication,
-                            partialResults: isPartialPsychosocialForm,
-                            formQuestionsAnswers,
-                            dimensionView: indicatorHierarchy,
-                            levels: indicatorLevels,
-                            includeNarrative: canShowNarrative,
-                            selectedGroupingQuestionId:
-                              selectedGroupingQuestion,
-                            selectedGroupingLabel,
-                            showOnlyGroupIndicators,
-                            executiveDistributionChartType,
-                            hierarchyGroups,
-                            participantGroupingOverride,
-                            ...(selectedGroupingQuestion &&
-                            selectedParticipantGroupIdsForView
-                              ? {
-                                  visibleParticipantGroupIds:
-                                    selectedParticipantGroupIdsForView,
-                                }
-                              : {}),
-                          },
-                          (message) => setPdfLoadingMessage(message),
-                        );
-                      } else {
-                        await exportFormRadarPdfInBrowser(
-                          {
-                            formName: formApplication.form.name,
-                            applicationName: reportApplication.name,
-                            groupingLabel: selectedGroupingLabel,
-                            groups: radarGroups,
-                            byDimension:
-                              activeIndicatorView === 'radar-dimensions',
-                          },
-                          setPdfLoadingMessage,
-                        );
-                      }
-                      enqueueSnackbar('PDF gerado com sucesso!', {
-                        variant: 'success',
-                      });
-                    } catch (e) {
-                      enqueueSnackbar(
-                        e instanceof Error
-                          ? e.message
-                          : 'Não foi possível gerar o PDF dos indicadores.',
-                        { variant: 'error' },
-                      );
-                    } finally {
-                      setIsExportingIndicatorsPdf(false);
-                      setPdfLoadingMessage('');
-                    }
-                  }}
-                >
-                  Exportar PDF (Indicadores)
-                </Button>
-              </Box>
-            </SPaper>
-          )}
-
-          {isGraphsTab && (
-            <SPaper
-              className="polished-form-panel"
-              sx={{
-                mt: 5,
-                p: 10,
-                py: 5,
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 2,
+                  }),
                 }}
+                expandIcon={<ArrowRightIcon fontSize="small" />}
+                icon={<FilterListIcon sx={{ fontSize: 30 }} />}
+                color="text.primary"
+                title="Filtros e comparações"
+                subtitle={[
+                  `${new Set(visibleParticipantGroups.flatMap((group) => Array.from(group.participantIds))).size} participantes`,
+                  organizationSelection.length
+                    ? `${organizationSelection.length} grupos organizacionais selecionados`
+                    : '',
+                  Object.values(identificationFilters).some(
+                    (options) => options.length > 0,
+                  )
+                    ? `${Object.values(identificationFilters).filter((options) => options.length > 0).length} filtros de identificação ativos`
+                    : '',
+                  selectedGroupingQuestion
+                    ? `Comparação: ${selectedGroupingLabel || 'grupos selecionados'}`
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               >
-                <FormChartTypeSelector
-                  value={chartsChartType}
-                  onChange={setChartsChartType}
-                />
-                <Button
-                  variant="outlined"
-                  disabled={!formQuestionsAnswers || isExportingChartsPdf}
-                  startIcon={
-                    isExportingChartsPdf ? (
-                      <CircularProgress color="inherit" size={16} />
-                    ) : undefined
-                  }
-                  onClick={async () => {
-                    if (!formQuestionsAnswers) {
-                      enqueueSnackbar(
-                        'Dados do formulário ainda não carregados.',
-                        {
-                          variant: 'warning',
-                        },
-                      );
-                      return;
-                    }
-                    setIsExportingChartsPdf(true);
-                    try {
-                      await exportFormChartsPdfInBrowser({
-                        formApplication: reportApplication,
-                        partialResults: isPartialPsychosocialForm,
-                        formQuestionsAnswers,
-                        selectedGroupingQuestionId: selectedGroupingQuestion,
-                        chartType: chartsChartType,
-                        hierarchyGroups,
-                        participantGroupingOverride,
-                        ...(selectedGroupingQuestion &&
-                        selectedParticipantGroupIdsForView
-                          ? {
-                              visibleParticipantGroupIds:
-                                selectedParticipantGroupIdsForView,
+                <SAccordionBody>
+                  <Box sx={{ pt: 6, px: 6, pb: 2 }}>
+                    <SFlex direction="column" gap={3}>
+                      <SFlex gap={3} flexWrap="wrap" alignItems="center">
+                        {organizationalGroups.length > 0 && (
+                          <Button
+                            variant="outlined"
+                            sx={{
+                              minHeight: 40,
+                              color: 'text.secondary',
+                              borderColor: 'divider',
+                              bgcolor: 'background.paper',
+                              '&:hover': {
+                                borderColor: 'text.secondary',
+                                bgcolor: 'action.hover',
+                              },
+                            }}
+                            onClick={() => setOrganizationDialogOpen(true)}
+                          >
+                            Selecionar grupos da estrutura organizacional
+                          </Button>
+                        )}
+                        <CombinedIdentificationFilters
+                          questions={availableGroupingQuestions}
+                          value={identificationFilters}
+                          onChange={setIdentificationFilters}
+                        />
+                        <CombinedIdentificationFilters
+                          questions={availableGroupingQuestions}
+                          value={identificationFilters}
+                          onChange={setIdentificationFilters}
+                          grouping={{
+                            questionId: identificationQuestionId,
+                            groups: participantGroups,
+                            selectedIds:
+                              selectedParticipantGroupIdsForView ?? [],
+                            onQuestionChange: (id) => {
+                              if (id) handleCreateGroupAnalysis(id);
+                              else setIdentificationQuestionId(null);
+                            },
+                            onGroupsChange: (ids) =>
+                              setGroupingSelectionState({
+                                key: groupingSelectionKey,
+                                ids,
+                              }),
+                            onClear: () => setIdentificationQuestionId(null),
+                          }}
+                        />
+                      </SFlex>
+                      {organizationDialogOpen && (
+                        <OrganizationalGroupingDialog
+                          groups={organizationalGroups}
+                          selectedIds={organizationSelection}
+                          counts={campaignEmployeesByGroup}
+                          onClose={() => setOrganizationDialogOpen(false)}
+                          onApply={(ids) => {
+                            if (ids.length) {
+                              ensureIndicatorLevel();
+                              setIdentificationQuestionId(null);
                             }
-                          : {}),
-                      });
-                    } catch (e) {
-                      enqueueSnackbar(
-                        e instanceof Error
-                          ? e.message
-                          : 'Não foi possível gerar o PDF dos gráficos.',
-                        { variant: 'error' },
-                      );
-                    } finally {
-                      setIsExportingChartsPdf(false);
-                    }
-                  }}
-                >
-                  Exportar PDF (Gráficos)
-                </Button>
-              </Box>
-            </SPaper>
-          )}
+                            setOrganizationGroupIds(ids);
+                            setOrganizationDialogOpen(false);
+                          }}
+                        />
+                      )}
 
-          {isRisksAnalysisTab && (
-            <SPaper
-              className="polished-form-panel"
-              sx={{
-                mt: 5,
-                p: 10,
-                py: 5,
+                      {/* Participant Count */}
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedGroupingQuestion
+                            ? `Exibindo ${visibleParticipantGroups.length} de ${participantGroups.length} grupos`
+                            : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
+                        </Typography>
+                      </Box>
+                    </SFlex>
+                  </Box>
+                </SAccordionBody>
+              </SAccordion>
+            )}
+        </Box>
+      )}
+
+      {/* General Questions Section */}
+      {(hasGeneralQuestionsForAnyParticipantGroup ||
+        canViewParticipants ||
+        isCanceled) && (
+        <Box sx={{ p: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 4,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <STabs
+              containerProps={{
+                sx: { flex: '1 1 600px', minWidth: 0, borderBottom: 0 },
               }}
-            >
+              options={[
+                ...(canViewResults
+                  ? [
+                      {
+                        label: 'Gráficos',
+                        value: 1,
+                      },
+                      {
+                        label: 'Indicadores',
+                        value: 2,
+                      },
+                      ...(!isPartialPsychosocialForm
+                        ? [{ label: 'Respostas de Texto', value: 3 }]
+                        : []),
+                    ]
+                  : []),
+                ...(canAnalyzeRisks
+                  ? [
+                      {
+                        label: 'Análise de Riscos',
+                        value: 4,
+                      },
+                    ]
+                  : []),
+                // Show Hierarchy Groups tab for psychosocial forms
+                ...(isPsychosocialForm
+                  ? [
+                      {
+                        label: 'Agrupamentos',
+                        value: 5,
+                      },
+                    ]
+                  : []),
+                ...(canViewParticipants
+                  ? [
+                      {
+                        label: 'Participantes',
+                        value: 6,
+                      },
+                    ]
+                  : []),
+              ]}
+              value={tabTableIndex}
+              onChange={(_, value) => {
+                setTabTableIndex(value);
+                setShowQuestionIndicators(true);
+              }}
+            />
+            {isRisksAnalysisTab && (
               <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'flex-end',
-                  gap: 1,
+                  gap: 4,
+                  ml: 'auto',
+                  pb: 2,
                   flexWrap: 'wrap',
                 }}
               >
                 <Button
+                  sx={(theme) => ({
+                    color: 'text.primary',
+                    borderColor: 'divider',
+                    background:
+                      theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+                    backdropFilter: 'blur(16px) saturate(140%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                    transition:
+                      'background-color 160ms ease, border-color 160ms ease, transform 160ms ease',
+                    '&:hover': {
+                      color:
+                        theme.palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
+                      backgroundColor: 'action.hover',
+                      borderColor: 'text.secondary',
+                      transform: 'translateY(-1px)',
+                    },
+                    '&:active': { transform: 'translateY(0)' },
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'text.secondary',
+                      outlineOffset: 2,
+                    },
+                  })}
                   variant="outlined"
                   disabled={
                     !formQuestionsAnswers ||
@@ -1755,6 +1787,31 @@ export const FormQuestionsDashboard = ({
                   Exportar PDF (Análise de Riscos)
                 </Button>
                 <Button
+                  sx={(theme) => ({
+                    color: 'text.primary',
+                    borderColor: 'divider',
+                    background:
+                      theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+                    backdropFilter: 'blur(16px) saturate(140%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                    transition:
+                      'background-color 160ms ease, border-color 160ms ease, transform 160ms ease',
+                    '&:hover': {
+                      color:
+                        theme.palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
+                      backgroundColor: 'action.hover',
+                      borderColor: 'text.secondary',
+                      transform: 'translateY(-1px)',
+                    },
+                    '&:active': { transform: 'translateY(0)' },
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'text.secondary',
+                      outlineOffset: 2,
+                    },
+                  })}
                   variant="outlined"
                   title="Gera a fundamentação conceitual validada das fontes geradoras e medidas de prevenção utilizadas neste recorte."
                   disabled={
@@ -1815,83 +1872,230 @@ export const FormQuestionsDashboard = ({
                   Exportar Relatório Técnico
                 </Button>
               </Box>
-            </SPaper>
-          )}
-        </Box>
-      )}
-
-      {/* General Questions Section */}
-      {(hasGeneralQuestionsForAnyParticipantGroup ||
-        canViewParticipants ||
-        isCanceled) && (
-        <Box sx={{ p: 3 }}>
-          <SectionHeader
-            icon={<InsertChartIcon sx={{ fontSize: 30 }} />}
-            title={
-              canViewPartialResults
-                ? 'Resultados parciais'
-                : canViewResults
-                  ? 'Perguntas Gerais'
-                  : 'Participantes'
-            }
-          />
-          <STabs
-            options={[
-              ...(canViewResults
-                ? [
-                    {
-                      label: 'Gráficos',
-                      value: 1,
+            )}
+            {canViewResults && isIndicatorTab && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  gap: 2,
+                  ml: 'auto',
+                  pb: 2,
+                }}
+              >
+                <Button
+                  sx={(theme) => ({
+                    color: 'text.primary',
+                    borderColor: 'divider',
+                    background:
+                      theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+                    backdropFilter: 'blur(16px) saturate(140%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                    transition:
+                      'background-color 160ms ease, border-color 160ms ease, transform 160ms ease',
+                    '&:hover': {
+                      color:
+                        theme.palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
+                      backgroundColor: 'action.hover',
+                      borderColor: 'text.secondary',
+                      transform: 'translateY(-1px)',
                     },
-                    {
-                      label: 'Indicadores',
-                      value: 2,
+                    '&:active': { transform: 'translateY(0)' },
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'text.secondary',
+                      outlineOffset: 2,
                     },
-                    ...(!isPartialPsychosocialForm
-                      ? [{ label: 'Respostas de Texto', value: 3 }]
-                      : []),
-                  ]
-                : []),
-              ...(canAnalyzeRisks
-                ? [
-                    {
-                      label: 'Análise de Riscos',
-                      value: 4,
+                  })}
+                  variant="outlined"
+                  disabled={isExportingIndicatorsPdf || !formQuestionsAnswers}
+                  onClick={async () => {
+                    if (!formQuestionsAnswers) {
+                      enqueueSnackbar(
+                        'Dados do formulário ainda não carregados.',
+                        {
+                          variant: 'warning',
+                        },
+                      );
+                      return;
+                    }
+                    setIsExportingIndicatorsPdf(true);
+                    setPdfLoadingMessage('Iniciando geração do PDF...');
+                    try {
+                      if (activeIndicatorView === 'bars') {
+                        await exportFormIndicatorsPdfInBrowser(
+                          {
+                            accessCompanyId,
+                            formApplication: reportApplication,
+                            partialResults: isPartialPsychosocialForm,
+                            formQuestionsAnswers,
+                            dimensionView: indicatorHierarchy,
+                            levels: indicatorLevels,
+                            includeNarrative: canShowNarrative,
+                            selectedGroupingQuestionId:
+                              selectedGroupingQuestion,
+                            selectedGroupingLabel,
+                            showOnlyGroupIndicators,
+                            executiveDistributionChartType,
+                            executiveDistribution:
+                              indicatorsDatasetForView?.executiveDistribution,
+                            hierarchyGroups,
+                            participantGroupingOverride,
+                            ...(selectedGroupingQuestion &&
+                            selectedParticipantGroupIdsForView
+                              ? {
+                                  visibleParticipantGroupIds:
+                                    selectedParticipantGroupIdsForView,
+                                }
+                              : {}),
+                          },
+                          (message) => setPdfLoadingMessage(message),
+                        );
+                      } else {
+                        await exportFormRadarPdfInBrowser(
+                          {
+                            formName: formApplication.form.name,
+                            applicationName: reportApplication.name,
+                            groupingLabel: selectedGroupingLabel,
+                            groups: radarGroups,
+                            byDimension:
+                              activeIndicatorView === 'radar-dimensions',
+                          },
+                          setPdfLoadingMessage,
+                        );
+                      }
+                      enqueueSnackbar('PDF gerado com sucesso!', {
+                        variant: 'success',
+                      });
+                    } catch (e) {
+                      enqueueSnackbar(
+                        e instanceof Error
+                          ? e.message
+                          : 'Não foi possível gerar o PDF dos indicadores.',
+                        { variant: 'error' },
+                      );
+                    } finally {
+                      setIsExportingIndicatorsPdf(false);
+                      setPdfLoadingMessage('');
+                    }
+                  }}
+                >
+                  Exportar PDF (Indicadores)
+                </Button>
+              </Box>
+            )}
+            {canViewResults && isGraphsTab && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  ml: 'auto',
+                  pb: 2,
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                }}
+              >
+                <FormChartTypeSelector
+                  value={chartsChartType}
+                  onChange={setChartsChartType}
+                />
+                <Button
+                  variant="outlined"
+                  sx={(theme) => ({
+                    color: 'text.primary',
+                    borderColor: 'divider',
+                    background:
+                      theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+                    backdropFilter: 'blur(16px) saturate(140%)',
+                    WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                    transition:
+                      'background-color 160ms ease, border-color 160ms ease, transform 160ms ease',
+                    '&:hover': {
+                      color:
+                        theme.palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
+                      backgroundColor: 'action.hover',
+                      borderColor: 'text.secondary',
+                      transform: 'translateY(-1px)',
                     },
-                  ]
-                : []),
-              // Show Hierarchy Groups tab for psychosocial forms
-              ...(isPsychosocialForm
-                ? [
-                    {
-                      label: 'Agrupamentos',
-                      value: 5,
+                    '&:active': { transform: 'translateY(0)' },
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'text.secondary',
+                      outlineOffset: 2,
                     },
-                  ]
-                : []),
-              ...(canViewParticipants
-                ? [
-                    {
-                      label: 'Participantes',
-                      value: 6,
-                    },
-                  ]
-                : []),
-            ]}
-            value={tabTableIndex}
-            onChange={(_, value) => {
-              setTabTableIndex(value);
-              setShowOnlyGroupIndicators(false);
-            }}
-          />
+                  })}
+                  disabled={!formQuestionsAnswers || isExportingChartsPdf}
+                  startIcon={
+                    isExportingChartsPdf ? (
+                      <CircularProgress color="inherit" size={16} />
+                    ) : undefined
+                  }
+                  onClick={async () => {
+                    if (!formQuestionsAnswers) {
+                      enqueueSnackbar(
+                        'Dados do formulário ainda não carregados.',
+                        {
+                          variant: 'warning',
+                        },
+                      );
+                      return;
+                    }
+                    setIsExportingChartsPdf(true);
+                    try {
+                      await exportFormChartsPdfInBrowser({
+                        formApplication: reportApplication,
+                        partialResults: isPartialPsychosocialForm,
+                        formQuestionsAnswers,
+                        selectedGroupingQuestionId: selectedGroupingQuestion,
+                        chartType: chartsChartType,
+                        hierarchyGroups,
+                        participantGroupingOverride,
+                        ...(selectedGroupingQuestion &&
+                        selectedParticipantGroupIdsForView
+                          ? {
+                              visibleParticipantGroupIds:
+                                selectedParticipantGroupIdsForView,
+                            }
+                          : {}),
+                      });
+                    } catch (e) {
+                      enqueueSnackbar(
+                        e instanceof Error
+                          ? e.message
+                          : 'Não foi possível gerar o PDF dos gráficos.',
+                        { variant: 'error' },
+                      );
+                    } finally {
+                      setIsExportingChartsPdf(false);
+                    }
+                  }}
+                >
+                  Exportar PDF (Gráficos)
+                </Button>
+              </Box>
+            )}
+          </Box>
 
           <SPaper
-            className="polished-form-panel"
+            className={
+              isGraphsTab || isIndicatorTab || isTextAnswersTab || isRisksAnalysisTab
+                ? undefined
+                : 'polished-form-panel'
+            }
             sx={
               isParticipantsTab ||
+              isTextAnswersTab ||
               isGraphsTab ||
               isIndicatorTab ||
-              isHierarchyGroupsTab
+              isHierarchyGroupsTab ||
+              isRisksAnalysisTab
                 ? {
                     backgroundColor: 'transparent',
                     border: 'none',
@@ -1899,7 +2103,10 @@ export const FormQuestionsDashboard = ({
                     WebkitBoxShadow: 'none',
                     outline: 'none',
                     p: 0,
-                    mt: 10,
+                    mt:
+                      isIndicatorTab || isGraphsTab || isTextAnswersTab
+                        ? 4
+                        : 10,
                   }
                 : {}
             }
@@ -1945,9 +2152,12 @@ export const FormQuestionsDashboard = ({
                     </SAccordionBody>
                   </SAccordion>
                 )}
+                {isIndicatorTab && <IndicatorsQualityLegend />}
                 {isIndicatorTab && indicatorsDatasetForView ? (
                   <SAccordion
                     defaultExpanded
+                    accordionProps={indicatorSectionAccordionProps}
+                    expandIcon={<ArrowRightIcon fontSize="small" />}
                     color="text.primary"
                     title="Distribuição geral dos indicadores"
                   >
@@ -1956,13 +2166,14 @@ export const FormQuestionsDashboard = ({
                         distribution={
                           indicatorsDatasetForView.executiveDistribution
                         }
+                        level={indicatorHierarchy ? executiveLevel : undefined}
+                        onLevelChange={setExecutiveLevel}
                         chartType={executiveDistributionChartType}
                         onChartTypeChange={setExecutiveDistributionChartType}
                       />
                     </SAccordionBody>
                   </SAccordion>
                 ) : null}
-                {isIndicatorTab && <IndicatorsQualityLegend />}
                 {isIndicatorTab && canShowNarrative && (
                   <IndicatorsNarrativeDiagnosticSection
                     companyId={accessCompanyId}
@@ -1971,381 +2182,524 @@ export const FormQuestionsDashboard = ({
                     isMaster={isMaster}
                   />
                 )}
-                {(canShowScaleRadar || canShowDimensionRadar) && (
-                  <Box>
-                    <ToggleButtonGroup
-                      aria-label="Visualização dos indicadores"
-                      exclusive
-                      size="small"
-                      value={activeIndicatorView}
-                      onChange={(_, value: IndicatorView | null) => {
-                        if (value) setIndicatorView(value);
-                      }}
+                <IndicatorDetailsSection enabled={isIndicatorTab}>
+                  {isIndicatorTab && (
+                    <Box
                       sx={{
+                        display: 'flex',
                         flexWrap: 'wrap',
-                        '& .MuiToggleButton-root': {
+                        alignItems: 'center',
+                        columnGap: 8,
+                        rowGap: 4,
+                        '&& .MuiToggleButton-root': {
+                          height: 36,
+                          px: 3,
+                          py: 0,
+                          fontSize: '14px',
+                          lineHeight: 1.5,
                           textTransform: 'none',
                           gap: 0.75,
-                          px: 1.5,
+                          whiteSpace: 'nowrap',
+                          '& .MuiSvgIcon-root': { fontSize: 20 },
                         },
                       }}
                     >
-                      <ToggleButton value="bars">
+                      <ToggleButton
+                        size="small"
+                        value="bars"
+                        selected={activeIndicatorView === 'bars'}
+                        onClick={() => setIndicatorView('bars')}
+                        sx={{ textTransform: 'none', gap: 0.75, flexShrink: 0 }}
+                      >
                         <BarChartIcon
                           fontSize="small"
                           sx={{ transform: 'rotate(90deg)' }}
                         />
                         Barras horizontais
                       </ToggleButton>
-                      {canShowScaleRadar && (
-                        <ToggleButton value="radar-scales">
-                          <RadarIcon fontSize="small" />
-                          Radar por escalas
-                        </ToggleButton>
-                      )}
-                      {canShowDimensionRadar && (
-                        <ToggleButton value="radar-dimensions">
-                          <RadarIcon fontSize="small" />
-                          Radar por dimensões
-                        </ToggleButton>
-                      )}
-                    </ToggleButtonGroup>
-                  </Box>
-                )}
-                {(() => {
-                  if (activeIndicatorView !== 'bars') {
-                    return (
-                      <ScaleIndicatorsRadar
-                        byDimension={activeIndicatorView === 'radar-dimensions'}
-                        groups={radarGroups}
-                        onConsolidationChange={
-                          isPartialPsychosocialForm && selectedGroupingQuestion
-                            ? setConsolidateRadar
-                            : undefined
-                        }
-                        consolidated={consolidateRadar}
-                      />
-                    );
-                  }
-
-                  // Get all unique questions across all participant groups
-                  const allQuestions = new Map<
-                    string,
-                    QuestionWithParticipantGroups
-                  >();
-
-                  generalQuestionsArrays.forEach((participantGroup) => {
-                    participantGroup.questions.forEach((question) => {
-                      const key = `${question.groupId}-${question.id}`;
-                      const questionData = allQuestions.get(key) ?? {
-                        id: question.id,
-                        groupId: question.groupId,
-                        groupName: question.groupName,
-                        details: question.details,
-                        options: question.options,
-                        participantGroupData: [],
-                      };
-                      questionData.participantGroupData.push({
-                        groupId: participantGroup.groupId,
-                        groupName: participantGroup.groupName,
-                        participantCount: participantGroup.participantCount,
-                        question,
-                      });
-                      allQuestions.set(key, questionData);
-                    });
-                  });
-
-                  // Group questions by their original form groups
-                  const questionsByFormGroup = Array.from(
-                    allQuestions.values(),
-                  ).reduce(
-                    (acc, questionData) => {
-                      const groupKey = questionData.groupId;
-                      if (!acc[groupKey]) {
-                        acc[groupKey] = {
-                          groupName: questionData.groupName,
-                          questions: [],
-                        };
-                      }
-                      acc[groupKey].questions.push(questionData);
-                      return acc;
-                    },
-                    {} as Record<string, FormGroupWithQuestions>,
-                  );
-
-                  const renderIndicator = (groupData: FormGroupWithQuestions) =>
-                    isIndicatorTab && (
-                      <GroupDashboardIndicator
-                        groupData={groupData}
-                        selectedGroupingQuestion={selectedGroupingQuestion}
-                        isShareableLink={isShareableLink}
-                      />
-                    );
-
-                  const renderQuestions = (
-                    groupData: FormGroupWithQuestions,
-                  ) => (
-                    <>
-                      {/* Render each question with all its participant group variations side by side */}
-                      {(isGraphsTab || !showOnlyGroupIndicators) &&
-                        groupData.questions.map(
-                          (questionData: QuestionWithParticipantGroups) => (
-                            <SPaper
-                              className="polished-form-panel"
-                              key={questionData.id}
-                              mb={6}
-                              px={8}
-                              py={8}
-                            >
-                              <HtmlContentRenderer
-                                useThemeTextColor
-                                content={questionData.details.text}
+                      {activeIndicatorView === 'bars' && (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            columnGap: 6,
+                            rowGap: 4,
+                            '& .MuiFormControlLabel-root': { m: 0 },
+                          }}
+                        >
+                          {dimensionView && (
+                            <>
+                              <SSwitch
+                                label="Mostrar escalas"
+                                color="text.primary"
+                                value={indicatorLevels.scales}
+                                disabled={
+                                  requireIndicatorLevel &&
+                                  !indicatorLevels.dimensions
+                                }
+                                onChange={(_, checked) =>
+                                  setIndicatorLevels((levels) => ({
+                                    ...levels,
+                                    scales: checked,
+                                  }))
+                                }
                               />
-                              <SDivider sx={{ mt: 8, mb: 4 }} />
+                              <SSwitch
+                                label="Mostrar dimensões"
+                                color="text.primary"
+                                value={indicatorLevels.dimensions}
+                                disabled={
+                                  requireIndicatorLevel &&
+                                  !indicatorLevels.scales
+                                }
+                                onChange={(_, checked) =>
+                                  setIndicatorLevels((levels) => ({
+                                    ...levels,
+                                    dimensions: checked,
+                                  }))
+                                }
+                              />
+                            </>
+                          )}
+                          <SSwitch
+                            label="Mostrar perguntas"
+                            color="text.primary"
+                            value={showQuestionIndicators}
+                            disabled={
+                              Boolean(dimensionView) &&
+                              !indicatorLevels.scales &&
+                              !indicatorLevels.dimensions
+                            }
+                            onChange={(_, checked) =>
+                              setShowQuestionIndicators(checked)
+                            }
+                            formControlProps={{
+                              sx: {
+                                px: 2,
+                                py: 1,
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                              },
+                            }}
+                          />
+                        </Box>
+                      )}
+                      {(canShowScaleRadar || canShowDimensionRadar) && (
+                        <ToggleButtonGroup
+                          exclusive
+                          size="small"
+                          value={activeIndicatorView}
+                          aria-label="Visualização em radar"
+                          onChange={(_, value: IndicatorView | null) => {
+                            if (value) setIndicatorView(value);
+                          }}
+                          sx={{
+                            ml: 'auto',
+                            flexWrap: 'wrap',
+                            '& .MuiToggleButton-root': {
+                              textTransform: 'none',
+                              gap: 0.75,
+                            },
+                          }}
+                        >
+                          {canShowScaleRadar && (
+                            <ToggleButton value="radar-scales">
+                              <RadarIcon fontSize="small" />
+                              Radar por escalas
+                            </ToggleButton>
+                          )}
+                          {canShowDimensionRadar && (
+                            <ToggleButton value="radar-dimensions">
+                              <RadarIcon fontSize="small" />
+                              Radar por dimensões
+                            </ToggleButton>
+                          )}
+                        </ToggleButtonGroup>
+                      )}
+                    </Box>
+                  )}
+                  {(() => {
+                    if (activeIndicatorView !== 'bars') {
+                      return (
+                        <ScaleIndicatorsRadar
+                          byDimension={
+                            activeIndicatorView === 'radar-dimensions'
+                          }
+                          groups={radarGroups}
+                          onConsolidationChange={
+                            isPartialPsychosocialForm &&
+                            selectedGroupingQuestion
+                              ? setConsolidateRadar
+                              : undefined
+                          }
+                          consolidated={consolidateRadar}
+                        />
+                      );
+                    }
 
-                              {/* Show all participant groups for this question side by side */}
-                              <SFlex
-                                gap={4}
-                                display="grid"
-                                gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))"
-                              >
-                                {questionData.participantGroupData.map(
-                                  (participantData: ParticipantGroupData) => (
-                                    <Box key={participantData.groupId} p={4}>
-                                      <FormQuestionPieChart
-                                        hideQuestionText
-                                        groupName={participantData.groupName}
-                                        question={participantData.question}
-                                        colorScheme="general"
-                                        chartType={
-                                          isGraphsTab
-                                            ? chartsChartType
-                                            : DEFAULT_FORM_CHART_TYPE
-                                        }
-                                        indicators={isIndicatorTab}
-                                        isShareableLink={isShareableLink}
-                                        participantCount={
-                                          participantData.participantCount
-                                        }
-                                      />
-                                    </Box>
-                                  ),
-                                )}
-                              </SFlex>
-                            </SPaper>
-                          ),
-                        )}
-                    </>
-                  );
+                    // Get all unique questions across all participant groups
+                    const allQuestions = new Map<
+                      string,
+                      QuestionWithParticipantGroups
+                    >();
 
-                  const renderGroup = (
-                    id: string,
-                    groupData: FormGroupWithQuestions,
-                  ) => (
-                    <SAccordion
-                      key={id}
-                      defaultExpanded
-                      color="text.primary"
-                      title={groupData.groupName}
-                    >
-                      <SAccordionBody>
-                        {renderIndicator(groupData)}
-                        {renderQuestions(groupData)}
-                      </SAccordionBody>
-                    </SAccordion>
-                  );
-
-                  const groups = Object.entries(questionsByFormGroup);
-                  if (!questionDisplayHierarchy)
-                    return groups.map(([id, group]) => renderGroup(id, group));
-
-                  const dimensions = questionDisplayHierarchy.results.filter(
-                    (group) => !group.identifier,
-                  );
-                  const getScaleDimensions = (
-                    scaleId: string,
-                    scale: FormGroupWithQuestions,
-                  ) =>
-                    dimensions
-                      .filter(
-                        (group) =>
-                          questionDisplayHierarchy.parentGroupIds[group.id] ===
-                          scaleId,
-                      )
-                      .map((group) => {
-                        const ids = new Set(
-                          group.questions.map((question) => question.id),
-                        );
-                        return {
-                          id: group.id,
-                          groupName: group.name,
-                          questions: scale.questions.filter((question) =>
-                            ids.has(question.id),
-                          ),
+                    generalQuestionsArrays.forEach((participantGroup) => {
+                      participantGroup.questions.forEach((question) => {
+                        const key = `${question.groupId}-${question.id}`;
+                        const questionData = allQuestions.get(key) ?? {
+                          id: question.id,
+                          groupId: question.groupId,
+                          groupName: question.groupName,
+                          details: question.details,
+                          options: question.options,
+                          participantGroupData: [],
                         };
+                        questionData.participantGroupData.push({
+                          groupId: participantGroup.groupId,
+                          groupName: participantGroup.groupName,
+                          participantCount: participantGroup.participantCount,
+                          question,
+                        });
+                        allQuestions.set(key, questionData);
                       });
+                    });
 
-                  if (isGraphsTab) {
-                    return groups.map(([id, scale]) => (
-                      <SAccordion
-                        key={`graphs-scale-${id}`}
-                        accordionProps={graphHierarchyAccordionProps}
-                        expandIcon={<ArrowRightIcon fontSize="small" />}
-                        defaultExpanded
-                        color="text.primary"
-                        title={scale.groupName}
-                      >
-                        <SAccordionBody>
-                          <Box sx={{ pl: { xs: 4, sm: 12 }, minWidth: 0 }}>
-                            {getScaleDimensions(id, scale).map((dimension) => (
+                    // Group questions by their original form groups
+                    const questionsByFormGroup = Array.from(
+                      allQuestions.values(),
+                    ).reduce(
+                      (acc, questionData) => {
+                        const groupKey = questionData.groupId;
+                        if (!acc[groupKey]) {
+                          acc[groupKey] = {
+                            groupName: questionData.groupName,
+                            questions: [],
+                          };
+                        }
+                        acc[groupKey].questions.push(questionData);
+                        return acc;
+                      },
+                      {} as Record<string, FormGroupWithQuestions>,
+                    );
+
+                    const renderIndicator = (
+                      groupData: FormGroupWithQuestions,
+                    ) =>
+                      isIndicatorTab && (
+                        <GroupDashboardIndicator
+                          groupData={groupData}
+                          selectedGroupingQuestion={selectedGroupingQuestion}
+                          isShareableLink={isShareableLink}
+                        />
+                      );
+
+                    const renderQuestions = (
+                      groupData: FormGroupWithQuestions,
+                    ) => (
+                      <>
+                        {/* Render each question with all its participant group variations side by side */}
+                        {(isGraphsTab || !showOnlyGroupIndicators) &&
+                          groupData.questions.map(
+                            (questionData: QuestionWithParticipantGroups) => (
                               <SAccordion
-                                key={`graphs-dimension-${dimension.id}`}
+                                key={questionData.id}
                                 accordionProps={graphHierarchyAccordionProps}
                                 expandIcon={<ArrowRightIcon fontSize="small" />}
                                 defaultExpanded
                                 color="text.primary"
-                                title={dimension.groupName}
+                                title={
+                                  <HtmlContentRenderer
+                                    useThemeTextColor
+                                    content={questionData.details.text}
+                                  />
+                                }
                               >
                                 <SAccordionBody>
-                                  <Box
-                                    sx={{ pl: { xs: 4, sm: 12 }, minWidth: 0 }}
+                                  {/* Show all participant groups for this question side by side */}
+                                  <SFlex
+                                    gap={4}
+                                    display="grid"
+                                    gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 400px), 1fr))"
                                   >
-                                    {renderQuestions(dimension)}
-                                  </Box>
+                                    {questionData.participantGroupData.map(
+                                      (
+                                        participantData: ParticipantGroupData,
+                                      ) => (
+                                        <Box
+                                          key={participantData.groupId}
+                                          p={4}
+                                          sx={
+                                            isGraphsTab &&
+                                            questionData.participantGroupData
+                                              .length > 1
+                                              ? {
+                                                  minWidth: 0,
+                                                  border: '1px solid',
+                                                  borderColor: (theme) =>
+                                                    theme.palette.mode ===
+                                                    'dark'
+                                                      ? '#465267'
+                                                      : '#CBD5E1',
+                                                  borderRadius: 3,
+                                                }
+                                              : { minWidth: 0 }
+                                          }
+                                        >
+                                          <FormQuestionPieChart
+                                            hideQuestionText
+                                            groupName={
+                                              participantData.groupName
+                                            }
+                                            question={participantData.question}
+                                            colorScheme="general"
+                                            chartType={
+                                              isGraphsTab
+                                                ? chartsChartType
+                                                : DEFAULT_FORM_CHART_TYPE
+                                            }
+                                            indicators={isIndicatorTab}
+                                            isShareableLink={isShareableLink}
+                                            participantCount={
+                                              participantData.participantCount
+                                            }
+                                          />
+                                        </Box>
+                                      ),
+                                    )}
+                                  </SFlex>
                                 </SAccordionBody>
                               </SAccordion>
-                            ))}
-                          </Box>
+                            ),
+                          )}
+                      </>
+                    );
+
+                    const renderGroup = (
+                      id: string,
+                      groupData: FormGroupWithQuestions,
+                    ) => (
+                      <SAccordion
+                        key={id}
+                        accordionProps={graphHierarchyAccordionProps}
+                        expandIcon={<ArrowRightIcon fontSize="small" />}
+                        defaultExpanded
+                        color="text.primary"
+                        title={groupData.groupName}
+                      >
+                        <SAccordionBody>
+                          {renderIndicator(groupData)}
+                          {renderQuestions(groupData)}
                         </SAccordionBody>
                       </SAccordion>
-                    ));
-                  }
+                    );
 
-                  const renderCompactGroup = (
-                    id: string,
-                    group: FormGroupWithQuestions,
-                    children: ReactNode,
-                    alignDimension = false,
-                  ) => (
-                    <Box
-                      component={children ? 'details' : 'div'}
-                      key={id}
-                      {...(children ? { open: !alignDimension } : {})}
-                      sx={{
-                        mb: 6,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 2,
-                        minWidth: 0,
-                      }}
-                    >
+                    const groups = Object.entries(questionsByFormGroup);
+                    if (!questionDisplayHierarchy)
+                      return groups.map(([id, group]) =>
+                        renderGroup(id, group),
+                      );
+
+                    const dimensions = questionDisplayHierarchy.results.filter(
+                      (group) => !group.identifier,
+                    );
+                    const getScaleDimensions = (
+                      scaleId: string,
+                      scale: FormGroupWithQuestions,
+                    ) =>
+                      dimensions
+                        .filter(
+                          (group) =>
+                            questionDisplayHierarchy.parentGroupIds[
+                              group.id
+                            ] === scaleId,
+                        )
+                        .map((group) => {
+                          const ids = new Set(
+                            group.questions.map((question) => question.id),
+                          );
+                          return {
+                            id: group.id,
+                            groupName: group.name,
+                            questions: scale.questions.filter((question) =>
+                              ids.has(question.id),
+                            ),
+                          };
+                        });
+
+                    if (isGraphsTab) {
+                      return groups.map(([id, scale]) => (
+                        <SAccordion
+                          key={`graphs-scale-${id}`}
+                          accordionProps={graphHierarchyAccordionProps}
+                          expandIcon={<ArrowRightIcon fontSize="small" />}
+                          defaultExpanded
+                          color="text.primary"
+                          title={scale.groupName}
+                        >
+                          <SAccordionBody>
+                            <Box sx={{ pl: { xs: 4, sm: 12 }, minWidth: 0 }}>
+                              {getScaleDimensions(id, scale).map(
+                                (dimension) => (
+                                  <SAccordion
+                                    key={`graphs-dimension-${dimension.id}`}
+                                    accordionProps={
+                                      graphHierarchyAccordionProps
+                                    }
+                                    expandIcon={
+                                      <ArrowRightIcon fontSize="small" />
+                                    }
+                                    defaultExpanded
+                                    color="text.primary"
+                                    title={dimension.groupName}
+                                  >
+                                    <SAccordionBody>
+                                      <Box
+                                        sx={{
+                                          pl: { xs: 4, sm: 12 },
+                                          minWidth: 0,
+                                        }}
+                                      >
+                                        {renderQuestions(dimension)}
+                                      </Box>
+                                    </SAccordionBody>
+                                  </SAccordion>
+                                ),
+                              )}
+                            </Box>
+                          </SAccordionBody>
+                        </SAccordion>
+                      ));
+                    }
+
+                    const renderCompactGroup = (
+                      id: string,
+                      group: FormGroupWithQuestions,
+                      children: ReactNode,
+                      alignDimension = false,
+                    ) => (
                       <Box
-                        component={children ? 'summary' : 'div'}
+                        component={children ? 'details' : 'div'}
+                        key={id}
+                        {...(children ? { open: !alignDimension } : {})}
                         sx={{
-                          cursor: children ? 'pointer' : 'default',
-                          p: 8,
-                          fontWeight: 700,
-                          color: 'text.primary',
-                          backgroundColor: 'background.lightGray',
-                          ...(alignDimension && {
-                            '--indicator-group-width': '18ch',
-                            '--indicator-percent-width': '5ch',
-                            '--indicator-score-width': '28ch',
-                          }),
+                          mb: 6,
+                          border: 0,
+                          backgroundColor: 'transparent',
+                          minWidth: 0,
                         }}
                       >
                         <Box
-                          component="span"
+                          component={children ? 'summary' : 'div'}
                           sx={{
-                            display: 'inline-flex',
-                            width: children ? 'calc(100% - 1.1em)' : '100%',
-                            verticalAlign: 'middle',
-                            alignItems: 'center',
-                            gap: 5,
-                            minWidth: 0,
+                            cursor: children ? 'pointer' : 'default',
+                            p: 8,
+                            fontWeight: 700,
+                            color: 'text.primary',
+                            backgroundColor: 'transparent',
+                            borderBottom: '1px solid',
+                            borderColor: 'divider',
+                            ...(alignDimension && {
+                              '--indicator-group-width': '18ch',
+                              '--indicator-percent-width': '5ch',
+                              '--indicator-score-width': '28ch',
+                            }),
                           }}
                         >
-                          <Box
-                            component="span"
-                            title={group.groupName}
-                            sx={{
-                              flex: alignDimension ? '0 0 auto' : '0 1 auto',
-                              width: alignDimension
-                                ? 'clamp(6ch, 32%, 46ch)'
-                                : undefined,
-                              minWidth: '6ch',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {group.groupName}
-                          </Box>
                           <Box
                             component="span"
                             sx={{
                               display: 'inline-flex',
-                              flex: '1 1 0',
-                              minWidth: 0,
+                              width: children ? 'calc(100% - 1.1em)' : '100%',
+                              verticalAlign: 'middle',
                               alignItems: 'center',
-                              overflowX: 'auto',
-                              gap: 6,
+                              gap: 5,
+                              minWidth: 0,
                             }}
                           >
-                            <GroupDashboardIndicator
-                              groupData={group}
-                              selectedGroupingQuestion={
-                                selectedGroupingQuestion
-                              }
-                              isShareableLink={isShareableLink}
-                              compact
-                            />
+                            <Box
+                              component="span"
+                              title={group.groupName}
+                              sx={{
+                                flex: alignDimension ? '0 0 auto' : '0 1 auto',
+                                width: alignDimension
+                                  ? 'clamp(6ch, 32%, 46ch)'
+                                  : undefined,
+                                minWidth: '6ch',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {group.groupName}
+                            </Box>
+                            <Box
+                              component="span"
+                              sx={{
+                                display: 'inline-flex',
+                                flex: '1 1 0',
+                                minWidth: 0,
+                                alignItems: 'center',
+                                overflowX: 'auto',
+                                gap: 6,
+                              }}
+                            >
+                              <GroupDashboardIndicator
+                                groupData={group}
+                                selectedGroupingQuestion={
+                                  selectedGroupingQuestion
+                                }
+                                isShareableLink={isShareableLink}
+                                compact
+                              />
+                            </Box>
                           </Box>
                         </Box>
+                        {children}
                       </Box>
-                      {children}
-                    </Box>
-                  );
-
-                  return groups.map(([id, scale]) => {
-                    const children = indicatorLevels.dimensions
-                      ? getScaleDimensions(id, scale).map((dimension) => {
-                          return renderCompactGroup(
-                            dimension.id,
-                            dimension,
-                            showOnlyGroupIndicators ? null : (
-                              <Box sx={{ p: 4 }}>
-                                {renderQuestions(dimension)}
-                              </Box>
-                            ),
-                            true,
-                          );
-                        })
-                      : showOnlyGroupIndicators
-                        ? null
-                        : renderQuestions(scale);
-
-                    if (!indicatorLevels.scales)
-                      return <Box key={id}>{children}</Box>;
-
-                    return renderCompactGroup(
-                      id,
-                      scale,
-                      children && (
-                        <Box
-                          sx={{
-                            p: 4,
-                            pl: indicatorLevels.dimensions
-                              ? { xs: 4, sm: 12 }
-                              : 4,
-                          }}
-                        >
-                          {children}
-                        </Box>
-                      ),
                     );
-                  });
-                })()}
+
+                    return groups.map(([id, scale]) => {
+                      const children = indicatorLevels.dimensions
+                        ? getScaleDimensions(id, scale).map((dimension) => {
+                            return renderCompactGroup(
+                              dimension.id,
+                              dimension,
+                              showOnlyGroupIndicators ? null : (
+                                <Box sx={{ p: 4 }}>
+                                  {renderQuestions(dimension)}
+                                </Box>
+                              ),
+                              true,
+                            );
+                          })
+                        : showOnlyGroupIndicators
+                          ? null
+                          : renderQuestions(scale);
+
+                      if (!indicatorLevels.scales)
+                        return <Box key={id}>{children}</Box>;
+
+                      return renderCompactGroup(
+                        id,
+                        scale,
+                        children && (
+                          <Box
+                            sx={{
+                              p: 4,
+                              pl: indicatorLevels.dimensions
+                                ? { xs: 4, sm: 12 }
+                                : 4,
+                            }}
+                          >
+                            {children}
+                          </Box>
+                        ),
+                      );
+                    });
+                  })()}
+                </IndicatorDetailsSection>
               </SFlex>
             )}
           </SPaper>

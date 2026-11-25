@@ -111,7 +111,14 @@ export const ScaleIndicatorsRadar = ({
 
   return (
     <SPaper
-      sx={{ p: { xs: 6, sm: 10 }, borderRadius: 3, color: 'text.primary' }}
+      shadow={false}
+      sx={{
+        p: { xs: 6, sm: 10 },
+        border: 0,
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+        color: 'text.primary',
+      }}
     >
       <Typography variant="h5" fontWeight={700} color="text.primary">
         {byDimension ? 'Radar por dimensões' : 'Radar por escalas'}
