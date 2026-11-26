@@ -1,3 +1,4 @@
+import { ReportConfigurationContent } from './ReportSettings';
 import { Alert, Box, Button, Stack } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
@@ -165,12 +166,14 @@ export function CampaignReportEvolution({
   presentation,
   dark,
   onSimulationChange,
+  controlsContainer,
 }: {
   companyId: string;
   applicationId: string;
   presentation: boolean;
   dark: boolean;
   onSimulationChange?: (value: boolean) => void;
+  controlsContainer: HTMLElement | null;
 }) {
   const path = `/v2/companies/${encodeURIComponent(companyId)}/forms/applications/${encodeURIComponent(applicationId)}/reports/comparison`;
   const context = useQuery<Context>({
@@ -277,136 +280,138 @@ export function CampaignReportEvolution({
           heading="h2"
           title="1. Seleção e compatibilidade"
         >
-          <Box
-            data-comparison-controls
-            sx={{ '@media print': { display: 'none' } }}
-          >
-            <Stack gap="16px" sx={{ mb: '24px' }}>
-              <Box component="label">
-                Ciclo anterior e versão do relatório{' '}
-                <Box
-                  component="select"
-                  aria-label="Relatório do ciclo anterior"
-                  value={before}
-                  onChange={(e) => {
-                    setBefore(e.target.value);
-                    setScenario('');
-                    setVersion('live');
-                  }}
-                  sx={selectStyle}
-                >
-                  <option value="">Selecione uma versão concluída</option>
-                  {options.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.label}
-                    </option>
-                  ))}
-                </Box>
-              </Box>
-              <Box component="label">
-                Ciclo posterior e versão do relatório{' '}
-                <Box
-                  component="select"
-                  aria-label="Relatório do ciclo posterior"
-                  value={after}
-                  onChange={(e) => {
-                    setAfter(e.target.value);
-                    setScenario('');
-                    setVersion('live');
-                  }}
-                  sx={selectStyle}
-                >
-                  <option value="">Selecione uma versão concluída</option>
-                  {options.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.label}
-                    </option>
-                  ))}
-                </Box>
-              </Box>
-              {context.data?.simulationAvailable && (
+          <ReportConfigurationContent container={controlsContainer}>
+            <Box
+              data-comparison-controls
+              sx={{ '@media print': { display: 'none' } }}
+            >
+              <Stack gap="16px" sx={{ mb: '24px' }}>
                 <Box component="label">
-                  Laboratório local{' '}
+                  Ciclo anterior e versão do relatório{' '}
                   <Box
                     component="select"
-                    aria-label="Cenário de simulação comparativa"
-                    value={scenario}
+                    aria-label="Relatório do ciclo anterior"
+                    value={before}
                     onChange={(e) => {
-                      setScenario(e.target.value);
+                      setBefore(e.target.value);
+                      setScenario('');
                       setVersion('live');
                     }}
                     sx={selectStyle}
                   >
-                    <option value="">Dados reais selecionados</option>
-                    <option value="standard">
-                      Simulação: dois ciclos compatíveis
-                    </option>
-                    <option value="changed-score">
-                      Simulação: pontuação alterada
-                    </option>
-                    <option value="changed-taxonomy">
-                      Simulação: taxonomia alterada
-                    </option>
-                    <option value="small-base">
-                      Simulação: base insuficiente
-                    </option>
-                    <option value="missing-question-base">
-                      Simulação: cobertura de pergunta diferente
-                    </option>
-                  </Box>
-                </Box>
-              )}
-              <Box component="label">
-                Análise exibida{' '}
-                <Box
-                  component="select"
-                  aria-label="Versão da análise comparativa"
-                  value={version}
-                  onChange={(e) => setVersion(e.target.value)}
-                  sx={selectStyle}
-                >
-                  <option value="auto">Última análise desta seleção</option>
-                  <option value="live">
-                    Comparação calculada, sem análise por IA
-                  </option>
-                  {history.data
-                    ?.filter((r) => r.status === 'DONE')
-                    .map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.simulation ? 'SIMULAÇÃO · ' : ''}
-                        {r.comparison.before.referencePeriod} →{' '}
-                        {r.comparison.after.referencePeriod} ·{' '}
-                        {new Date(r.createdAt).toLocaleString('pt-BR', {
-                          timeZone: 'America/Bahia',
-                        })}
+                    <option value="">Selecione uma versão concluída</option>
+                    {options.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.label}
                       </option>
                     ))}
+                  </Box>
                 </Box>
-              </Box>
-            </Stack>
-            <Button
-              variant="contained"
-              disabled={
-                !preview.data?.compatibility.compatible ||
-                !preview.data.evidence.length ||
-                !!active ||
-                generate.isPending ||
-                (version !== 'live' && version !== 'auto')
-              }
-              onClick={() => generate.mutate()}
-            >
-              {active
-                ? 'Gerando análise comparativa…'
-                : 'Gerar análise comparativa por IA'}
-            </Button>
-            <p>
-              <small>
-                Modelo: gpt-6.1-sol. A análise usa as versões selecionadas e
-                mantém os números calculados pelo sistema. Geração com consumo
-                de IA; rascunho sujeito a revisão.
-              </small>
-            </p>
-          </Box>
+                <Box component="label">
+                  Ciclo posterior e versão do relatório{' '}
+                  <Box
+                    component="select"
+                    aria-label="Relatório do ciclo posterior"
+                    value={after}
+                    onChange={(e) => {
+                      setAfter(e.target.value);
+                      setScenario('');
+                      setVersion('live');
+                    }}
+                    sx={selectStyle}
+                  >
+                    <option value="">Selecione uma versão concluída</option>
+                    {options.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </Box>
+                </Box>
+                {context.data?.simulationAvailable && (
+                  <Box component="label">
+                    Laboratório local{' '}
+                    <Box
+                      component="select"
+                      aria-label="Cenário de simulação comparativa"
+                      value={scenario}
+                      onChange={(e) => {
+                        setScenario(e.target.value);
+                        setVersion('live');
+                      }}
+                      sx={selectStyle}
+                    >
+                      <option value="">Dados reais selecionados</option>
+                      <option value="standard">
+                        Simulação: dois ciclos compatíveis
+                      </option>
+                      <option value="changed-score">
+                        Simulação: pontuação alterada
+                      </option>
+                      <option value="changed-taxonomy">
+                        Simulação: taxonomia alterada
+                      </option>
+                      <option value="small-base">
+                        Simulação: base insuficiente
+                      </option>
+                      <option value="missing-question-base">
+                        Simulação: cobertura de pergunta diferente
+                      </option>
+                    </Box>
+                  </Box>
+                )}
+                <Box component="label">
+                  Análise exibida{' '}
+                  <Box
+                    component="select"
+                    aria-label="Versão da análise comparativa"
+                    value={version}
+                    onChange={(e) => setVersion(e.target.value)}
+                    sx={selectStyle}
+                  >
+                    <option value="auto">Última análise desta seleção</option>
+                    <option value="live">
+                      Comparação calculada, sem análise por IA
+                    </option>
+                    {history.data
+                      ?.filter((r) => r.status === 'DONE')
+                      .map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.simulation ? 'SIMULAÇÃO · ' : ''}
+                          {r.comparison.before.referencePeriod} →{' '}
+                          {r.comparison.after.referencePeriod} ·{' '}
+                          {new Date(r.createdAt).toLocaleString('pt-BR', {
+                            timeZone: 'America/Bahia',
+                          })}
+                        </option>
+                      ))}
+                  </Box>
+                </Box>
+              </Stack>
+              <Button
+                variant="contained"
+                disabled={
+                  !preview.data?.compatibility.compatible ||
+                  !preview.data.evidence.length ||
+                  !!active ||
+                  generate.isPending ||
+                  (version !== 'live' && version !== 'auto')
+                }
+                onClick={() => generate.mutate()}
+              >
+                {active
+                  ? 'Gerando análise comparativa…'
+                  : 'Gerar análise comparativa por IA'}
+              </Button>
+              <p>
+                <small>
+                  Modelo: gpt-6.1-sol. A análise usa as versões selecionadas e
+                  mantém os números calculados pelo sistema. Geração com consumo
+                  de IA; rascunho sujeito a revisão.
+                </small>
+              </p>
+            </Box>
+          </ReportConfigurationContent>
           {context.isError && (
             <Alert severity="error">
               Não foi possível consultar os ciclos desta empresa.

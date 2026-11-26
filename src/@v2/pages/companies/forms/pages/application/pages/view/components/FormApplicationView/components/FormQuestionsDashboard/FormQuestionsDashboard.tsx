@@ -2092,6 +2092,7 @@ export const FormQuestionsDashboard = ({
 
           <SPaper
             className={
+              isReportsTab ||
               isGraphsTab ||
               isIndicatorTab ||
               isTextAnswersTab ||

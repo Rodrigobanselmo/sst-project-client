@@ -17,6 +17,11 @@ export function ReportDisclosure({
       <>
         <Box
           component={heading}
+          data-report-nav-heading={
+            typeof title === 'string' && /^\d+\.\d+/.test(title)
+              ? title
+              : undefined
+          }
           sx={heading === 'div' ? { fontWeight: 700, mb: '24px' } : undefined}
         >
           {title}
@@ -33,6 +38,11 @@ export function ReportDisclosure({
     >
       <Box
         component={presentation ? 'summary' : 'div'}
+        data-report-nav-heading={
+          typeof title === 'string' && /^\d+\.\d+/.test(title)
+            ? title
+            : undefined
+        }
         sx={{
           cursor: presentation ? 'pointer' : 'default',
           mb: heading === 'div' ? '24px' : '20px',
