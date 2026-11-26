@@ -22,3 +22,11 @@ Apresentação ocupa a janela ao abrir. Fullscreen real depende de um clique por
 - Referencia remota main conferida sem divergencia. Nenhuma alteracao em API, schema/migrations, workflows, configuracao de deploy ou dependencias. next-env.d.ts fora do commit.
 - API anterior ae66be2e8c19de6164b9a012ec7e2dbf2e039503 confirmada com workflow 45888010916 success e migrations sem pendencias.
 - Vercel Production: status success confirmado para o commit funcional: https://vercel.com/rodrigobanselmos-projects/simplesst/AsYyEtPSYBNfAWUR2YwsocKrNcgi.
+
+## Correção local de larguras após publicação
+
+Relato do usuário: barras saindo da moldura e rótulos estreitos no HTML independente. Causa: larguras medidas pelo getComputedStyle eram aplicadas novamente aos filhos das células, enquanto tracks fr mantinham mínimo intrínseco e SVG conservava largura da viewport original. Removida a conversão genérica de larguras HTML; percentuais inline explícitos e geometria SVG preservados, tracks com mínimo zero. Marcadores sem efeito visual no documento do sistema permitem regras próprias no HTML para rótulo, barra, valores e eixo. Colunas responsivas, SVG limitado a 100% da célula e 30px de altura; em telas pequenas a barra ocupa a linha seguinte. Larguras de spans deixam de quebrar o indicador e os ticks.
+
+Validação: três testes de regressão aprovados, TypeScript sem erros e novo download real com 205 linhas e 41 gráficos contendo todos os marcadores e regras de exportação. Arquivo `PESQUISA DE CLIMA ORGANIZACIONAL SEFAZ-BA 2025 (4).html`. Visualização automatizada de file continua indisponível; conferência manual do HTML pelo usuário. Correção homologada e publicação autorizada pelo usuário. Commit funcional 4a5643ba485bd88778a0b49692f84c5eb87db92e; build final Webpack, TypeScript e três testes aprovados. API anterior confirmada em operação, sem alterações de migrations, configuração ou dependências. Arquivos HTML antigos precisam ser exportados novamente.
+
+Deploy da correção: https://vercel.com/rodrigobanselmos-projects/simplesst/BcR82dpe7ESG3kM2BjhKgYXdYkMP (Vercel Production: success confirmado).
