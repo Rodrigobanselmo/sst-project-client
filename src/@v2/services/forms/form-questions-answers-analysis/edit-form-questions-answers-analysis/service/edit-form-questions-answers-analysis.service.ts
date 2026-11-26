@@ -10,6 +10,8 @@ export async function editFormQuestionsAnswersAnalysis({
   companyId,
   applicationId,
   analysisId,
+  hierarchyId,
+  riskId,
   analysis,
 }: EditFormQuestionsAnswersAnalysisParams): Promise<EditFormQuestionsAnswersAnalysisResponse> {
   const response = await api.patch<EditFormQuestionsAnswersAnalysisResponse>(
@@ -17,7 +19,7 @@ export async function editFormQuestionsAnswersAnalysis({
       path: FormRoutes.FORM_QUESTIONS_ANSWERS.EDIT_ANALYSIS,
       pathParams: { companyId, applicationId, analysisId },
     }),
-    { analysis },
+    { analysis, hierarchyId, riskId },
   );
 
   return response.data;

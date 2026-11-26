@@ -1,5 +1,5 @@
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { Box, ButtonBase } from '@mui/material';
+import { Box } from '@mui/material';
 import type { ReactNode } from 'react';
 
 export function AnalysisDisclosureHeader({
@@ -13,64 +13,25 @@ export function AnalysisDisclosureHeader({
   confidence?: number | null;
   action?: ReactNode;
 }) {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 3,
-        flexWrap: 'wrap',
-        py: 2,
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-      }}
-    >
-      <ButtonBase
-        onClick={onToggle}
-        aria-expanded={expanded}
-        sx={{
-          color: 'text.primary',
-          gap: 2,
-          borderRadius: 1,
-          '&.Mui-focusVisible': {
-            outline: '2px solid',
-            outlineColor: 'text.secondary',
-          },
-        }}
-      >
-        <ChevronRightIcon
-          sx={{
-            fontSize: 18,
-            transform: expanded ? 'rotate(90deg)' : undefined,
-          }}
-        />
-        <Box component="span" sx={{ fontSize: 13, fontWeight: 600 }}>
-          Análise da IA
-        </Box>
-        {confidence != null && (
-          <Box component="span" sx={{ color: 'text.secondary', fontSize: 12 }}>
-            (Confiança: {Math.round(confidence * 100)}%)
-          </Box>
-        )}
-      </ButtonBase>
-      {action}
-    </Box>
-  );
+  return <Box sx={{ display: 'flex', justifyContent: 'flex-end', position: { xs: 'static', md: 'absolute' }, right: 0, top: '2px', zIndex: 1, py: 0, mb: 0, '&:empty': { display: 'none' } }}>{action}</Box>;
 }
 
 export function AnalysisItemsSection({
   title,
   children,
+  action,
 }: {
   title: string;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <Box
       component="details"
+      data-analysis-section={title}
       open
       sx={{
-        mt: title.startsWith('Recomendações') ? 10 : 3,
+        mt: title.startsWith('Recomendações') ? '12px' : '2px',
         '& > summary': {
           display: 'flex',
           alignItems: 'center',
@@ -85,14 +46,23 @@ export function AnalysisItemsSection({
           listStyle: 'none',
           '&::-webkit-details-marker': { display: 'none' },
         },
-        '&[open] > summary svg': { transform: 'rotate(90deg)' },
+        '&[open] > summary > svg': { transform: 'rotate(90deg)' },
       }}
     >
       <summary>
         <ChevronRightIcon sx={{ fontSize: 18 }} />
         {title}
+        {action}
       </summary>
-      <Box sx={{ pl: { xs: 12, sm: 16 }, pt: 2 }}>{children}</Box>
+      <Box sx={{ pl: { xs: '16px', sm: '24px' }, pt: '2px' }}>{children}</Box>
     </Box>
   );
+}
+
+export function renderAnalysisOriginGroups<T extends { justificativa: string; selectionOrigin?: string }>(items: T[], render: (item: T, index: number) => ReactNode) {
+  const manual = (item: T) => item.selectionOrigin === 'USER' || item.justificativa === 'Selecionado manualmente do catálogo pelo responsável técnico.';
+  return [false, true].map(user => {
+    const entries = items.map((item, index) => ({ item, index })).filter(({ item }) => manual(item) === user);
+    return entries.length ? <AnalysisItemsSection key={String(user)} title={user ? 'Adicionados pelo usuário' : 'Adicionados pela IA'}>{entries.map(({ item, index }) => render(item, index))}</AnalysisItemsSection> : null;
+  });
 }

@@ -4,6 +4,8 @@ export interface EditFormQuestionsAnswersAnalysisParams {
   companyId: string;
   applicationId: string;
   analysisId: string;
+  hierarchyId?: string;
+  riskId?: string;
   analysis: AiRiskAnalysisResponse;
 }
 

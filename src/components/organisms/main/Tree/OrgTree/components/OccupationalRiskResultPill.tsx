@@ -18,11 +18,12 @@ export type OccupationalRiskResultPillProps = {
   resultColor?: string | null;
   /** No grid expandido: alinha ao topo da célula (junto da Probabilidade). */
   alignSelfStart?: boolean;
+  textColor?: string;
 };
 
 export const OccupationalRiskResultPill: FC<
   OccupationalRiskResultPillProps
-> = ({ label, level, resultColor, alignSelfStart = false }) => {
+> = ({ label, level, resultColor, alignSelfStart = false, textColor }) => {
   const theme = useTheme();
   const presentation = useSystemRiskMatrixPresentation();
   const customChip = resolveDisplayedOccupationalChipColorsFromHex(resultColor);
@@ -52,7 +53,7 @@ export const OccupationalRiskResultPill: FC<
         py: 0,
         borderRadius: '999px',
         backgroundColor: chip.bgcolor,
-        color: chip.color,
+        color: textColor ?? chip.color,
         fontSize: 10,
         fontWeight: 600,
         lineHeight: 1.1,

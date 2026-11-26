@@ -1,8 +1,25 @@
+import { ManualRiskContentSections } from './ManualRiskContentSections';
+import { CatalogAnalysisItemButton } from './CatalogAnalysisItemButton';
+import { RiskFactorDisclosure } from './RiskFactorDisclosure';
+import { SectorBulkRiskAdd } from './SectorBulkRiskAdd';
+import { SectorBulkRiskRemove } from './SectorBulkRiskRemove';
+import { api } from 'core/services/apiClient';
+import type { BulkRiskAddTask } from './bulk-risk-add.runner';
+import { FrpsSectorView } from './FrpsSectorView';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { FRPS_GENERATION_DEFAULT_MODEL, FRPS_GENERATION_MODEL_OPTIONS } from './frps-generation-model-options';
+import { FrpsAiProgress } from './FrpsAiProgress';
+import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
+import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import { FrpsAiGenerationPermissions } from './FrpsAiGenerationPermissions';
+import { useQueryFrpsPrivacySettings } from 'core/services/hooks/queries/useQueryFrpsPrivacySettings/useQueryFrpsPrivacySettings';
 import { OccupationalRiskAnalysisSection } from './OccupationalRiskAnalysisSection';
 import { RiskAiAnalysisSection } from './RiskAiAnalysisSection';
 import {
   AnalysisDisclosureHeader,
   AnalysisItemsSection,
+  renderAnalysisOriginGroups,
 } from './AnalysisDisclosure';
 import Tooltip from '@mui/material/Tooltip';
 import { acceptFormQuestionsAnswersAnalysisItem } from '@v2/services/forms/form-questions-answers-analysis/review-form-questions-answers-analysis-item/service/review-form-questions-answers-analysis-item.service';
@@ -28,8 +45,6 @@ import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-que
 import type { ParticipantGroupForIndicators } from '../../helpers/buildParticipantGroupsForIndicators';
 import {
   buildRiskAnalysisViewContext,
-  groupEntityIdsByEstablishment,
-  shouldGroupEntitiesByEstablishment,
   sortRiskIdsForAnalysis,
 } from '../../helpers/buildRiskAnalysisViewContext';
 import { expandRiskAnalysisEntitiesForHierarchyGroups } from '../../helpers/expandRiskAnalysisEntitiesForHierarchyGroups';
@@ -49,7 +64,7 @@ import {
   buildTargetAiAnalysisViewModel,
   resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback,
 } from '../../helpers/resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback';
-import { useFetchBrowseFormApplicationRiskLog } from '@v2/services/forms/form-application/form-application-risk-log/hooks/useFetchBrowseFormApplicationRiskLog';
+import { getKeyBrowseFormApplicationRiskLog, useFetchBrowseFormApplicationRiskLog } from '@v2/services/forms/form-application/form-application-risk-log/hooks/useFetchBrowseFormApplicationRiskLog';
 import { fetchFullRiskDataForHierarchy } from '../../helpers/fetchFullRiskDataForHierarchy';
 import { QueryEnum } from 'core/enums/query.enums';
 import { buildHierarchyIdToWorkspaceNameFromParticipants } from '../../helpers/buildHierarchyIdToWorkspaceNameFromParticipants';
@@ -212,10 +227,9 @@ export const FormRisksAnalysis = ({
   selectedGroupingLabel = null,
 }: FormRisksAnalysisProps) => {
   const { isMaster } = useAccess();
+  const generationMatrixPresentation = useSystemRiskMatrixPresentation();
+  const { data: generationSettings, isLoading: loadingGenerationSettings, isError: generationSettingsError } = useQueryFrpsPrivacySettings(accessCompanyId);
   const { showConfirmation } = useConfirmationModal();
-  const [expandedRisks, setExpandedRisks] = useState<Record<string, boolean>>(
-    {},
-  );
   const [selectedOccupationalLevels, setSelectedOccupationalLevels] = useState<
     Set<number>
   >(() => new Set(FRPS_OCCUPATIONAL_FILTER_LEVELS));
@@ -236,6 +250,7 @@ export const FormRisksAnalysis = ({
   const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>(
     {},
   );
+  const [organization, setOrganization] = useState<'risk' | 'sector'>('risk');
   const [showClearAiDialog, setShowClearAiDialog] = useState(false);
   const [showRecoverAiDialog, setShowRecoverAiDialog] = useState(false);
   const [addRiskMenu, setAddRiskMenu] = useState<{
@@ -293,6 +308,8 @@ export const FormRisksAnalysis = ({
     formQuestionsAnswersAnalysis,
 
     refetch,
+    isFetching: fetchingAnalysisStatus,
+    isError: analysisStatusError,
   } = useFetchBrowseFormQuestionsAnswersAnalysis({
     companyId: accessCompanyId,
     applicationId: formApplication.id,
@@ -457,13 +474,6 @@ export const FormRisksAnalysis = ({
     },
     [analysisInventoryStatus],
   );
-
-  const handleAccordionChange = (riskId: string) => {
-    setExpandedRisks((prev) => ({
-      ...prev,
-      [riskId]: !(prev[riskId] ?? true),
-    }));
-  };
 
   const handleAnalysisToggle = (analysisKey: string) => {
     setExpandedAnalysis((prev) => ({
@@ -1036,6 +1046,7 @@ export const FormRisksAnalysis = ({
                       >
                         <EditIcon fontSize="small" />
                       </SIconButton>
+                      <CatalogAnalysisItemButton analysis={analysis} itemType={itemType} itemIndex={itemIndex} companyId={accessCompanyId} inherited={Boolean(onEditItem)} />
                       <SIconButton
                         iconButtonProps={{
                           'aria-label': 'Excluir item',
@@ -2166,6 +2177,7 @@ export const FormRisksAnalysis = ({
   };
 
   const handleAnalyzeRisks = (options?: {
+    riskBand?: 'PRIORITY' | 'HIGH' | 'VERY_HIGH' | 'MODERATE' | 'LOW' | 'VERY_LOW';
     mode?: AiAnalyzeFormQuestionsRisksModeEnum;
     riskId?: string;
     hierarchyId?: string;
@@ -2183,6 +2195,7 @@ export const FormRisksAnalysis = ({
         formApplicationId: formApplication.id,
         mode:
           options?.mode ?? AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
+        riskBand: options?.riskBand ?? 'PRIORITY',
         riskId: options?.riskId,
         hierarchyId: options?.hierarchyId,
         ...masterOverrides,
@@ -2200,7 +2213,7 @@ export const FormRisksAnalysis = ({
     );
   };
 
-  const handleAnalyzeButtonClick = async () => {
+  const handleAnalyzeButtonClick = async (riskBand: 'PRIORITY' | 'HIGH' | 'VERY_HIGH' | 'MODERATE' | 'LOW' | 'VERY_LOW') => {
     if (hasPreviousAiRun) {
       const confirmed = await showConfirmation(REANALYSIS_CONFIRMATION);
       if (!confirmed) return;
@@ -2208,9 +2221,14 @@ export const FormRisksAnalysis = ({
 
     handleAnalyzeRisks({
       mode: AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
+      riskBand,
     });
   };
 
+  const riskBandForTarget = (riskId: string, hierarchyId: string): 'PRIORITY' | 'HIGH' | 'VERY_HIGH' | 'MODERATE' | 'LOW' | 'VERY_LOW' => {
+    const level = getMatrizRisk(riskMap[riskId]?.severity, getEffectiveProbability(hierarchyId, riskId))?.level;
+    return level === 1 ? 'VERY_LOW' : level === 2 ? 'LOW' : level === 3 ? 'MODERATE' : level === 4 ? 'HIGH' : 'VERY_HIGH';
+  };
   const handleTargetAnalyze = async (riskId: string, hierarchyId: string) => {
     const hasOwnAnalysis = hasOwnAnalysisForPair(riskId, hierarchyId);
 
@@ -2221,6 +2239,7 @@ export const FormRisksAnalysis = ({
 
     handleAnalyzeRisks({
       mode: AiAnalyzeFormQuestionsRisksModeEnum.TARGET,
+      riskBand: riskBandForTarget(riskId, hierarchyId),
       riskId,
       hierarchyId,
       successMessage: hasOwnAnalysis
@@ -2254,320 +2273,100 @@ export const FormRisksAnalysis = ({
       mode: AiAnalyzeFormQuestionsRisksModeEnum.TARGET,
       riskId,
       hierarchyId: canonicalHierarchyId,
+      riskBand: riskBandForTarget(riskId, canonicalHierarchyId),
       successMessage: hasGroupAnalysis
         ? 'Análise de IA do agrupamento reiniciada.'
         : 'Análise de IA do agrupamento iniciada.',
     });
   };
 
-  const generalAnalyzeButtonLabel = hasProcessingAnalyses
-    ? 'Processando análise...'
-    : hasPreviousAiRun
-      ? 'Analisar com IA novamente'
-      : 'Analisar com IA';
 
-  return (
-    <FrpsExplainabilityProvider
-      companyId={accessCompanyId}
-      applicationId={formApplication.id}
-      isMaster={isMaster}
-    >
-      <Box sx={{ mb: 12 }}>
-        <RiskNarrativeDiagnosticSection
-          companyId={accessCompanyId}
-          formApplicationId={formApplication.id}
-          scope={riskNarrativeDiagnosticScope}
-          isMaster={isMaster}
-        />
-      </Box>
-      <Box sx={{ mb: 12 }}>
-        <FrpsOccupationalDistributionSummary distribution={occupationalDistribution} />
-      </Box>
-      <RiskAiAnalysisSection>
-            <AiActionButtonGroup
-              variant="s-button-shade"
-              configureIconOnly
-              executeIconOnly
-              label={generalAnalyzeButtonLabel}
-              loading={isAnalyzing || hasProcessingAnalyses}
-              disabled={hasProcessingAnalyses}
-              onExecute={() => void handleAnalyzeButtonClick()}
-              onConfigure={() => setAiConfigDialogOpen(true)}
-              isMaster={isMaster}
-              sButtonProps={{ color: 'primary' }}
-            />
-            <SButton
-              variant="shade"
-              text="Recuperar análises travadas"
-              color="normal"
-              textProps={{ color: 'inherit' }}
-              buttonProps={{ sx: {
-                color: 'text.primary',
-                borderRadius: '999px',
-                borderColor: 'divider',
-                background: (theme) => theme.palette.mode === 'dark'
-                  ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
-                  : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
-                backdropFilter: 'blur(16px) saturate(140%)',
-                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-                '&:hover': { backgroundColor: 'action.hover', borderColor: 'text.secondary' },
-                '&&.Mui-disabled': {
-                  color: 'text.disabled',
-                  borderColor: 'divider',
-                  backgroundColor: 'transparent',
-                  opacity: 0.65,
-                },
-              } }}
-              onClick={() => setShowRecoverAiDialog(true)}
-              disabled={!hasStaleAnalyses}
-              tooltip={
-                !hasStaleAnalyses
-                  ? 'Nenhuma análise travada encontrada.'
-                  : undefined
-              }
-            />
-            <SButton
-              variant="shade"
-              text="Limpar análises de IA"
-              tooltip="Abre as opções para escolher o escopo e confirmar a remoção permanente das análises de IA salvas, incluindo fontes geradoras, recomendações sugeridas e edições feitas nelas. Os riscos do inventário, os itens já aplicados ao PGR e as respostas do formulário são preservados."
-              color="danger"
-              onClick={() => setShowClearAiDialog(true)}
-              disabled={!hasPreviousAiRun && !hasProcessingAnalyses}
-            />
-      </RiskAiAnalysisSection>
-      <OccupationalRiskAnalysisSection
-        action={
-            <SButton
-              variant="shade"
-              text="Adicionar todos os riscos a todos os setores"
-              color="normal"
-              textProps={{ color: 'inherit' }}
-              buttonProps={{ sx: {
-                color: 'text.primary',
-                borderRadius: '999px',
-                borderColor: 'divider',
-                background: (theme) => theme.palette.mode === 'dark'
-                  ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
-                  : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
-                backdropFilter: 'blur(16px) saturate(140%)',
-                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-                '&:hover': { color: 'text.primary', backgroundColor: 'action.hover', borderColor: 'text.secondary' },
-                '&:active': { backgroundColor: 'action.hover' },
-              } }}
-              onClick={() => {
-                handleAddAllRisk();
-              }}
-            />
+  const buildBulkRiskTasks = (ids: string[], riskIds: string[], includeAi: boolean): BulkRiskAddTask[] => {
+    const tasks: BulkRiskAddTask[] = [];
+    const entitiesByRisk = new Map([...new Set(riskIds)].map(riskId => [riskId, new Set(getEntitiesWithRisk(riskId))]));
+    for (const hierarchyId of [...new Set(ids)]) {
+      for (const riskId of entitiesByRisk.keys()) {
+        if (!entitiesByRisk.get(riskId)?.has(hierarchyId)) continue;
+        const probability = getEffectiveProbability(hierarchyId, riskId);
+        const eligibility = formQuestionsAnswersRisks.aiEligibilityByEntity?.[hierarchyId]?.[riskId];
+        const resolved = resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback({ riskId, entityId: hierarchyId, results: formQuestionsAnswersAnalysis?.results ?? [], hierarchyGroups });
+        const source = resolved.analysis;
+        const target = buildTargetAiAnalysisViewModel({ resolved, targetHierarchyId: hierarchyId, targetProbability: probability });
+        const available = source?.metadata?.protectedData !== true && target?.analysis != null;
+        const lists = available ? [
+          { type: 'fontesGeradoras' as const, items: target.analysis?.fontesGeradoras ?? [] },
+          { type: 'medidasEngenhariaRecomendadas' as const, items: target.analysis?.medidasEngenhariaRecomendadas ?? [] },
+          { type: 'medidasAdministrativasRecomendadas' as const, items: target.analysis?.medidasAdministrativasRecomendadas ?? [] },
+        ] : [];
+        const pending = (type: AnalysisItemType, items: Array<{ nome: string }>) => items.filter((item, itemIndex) => resolveTargetAnalysisItemStatus({
+          riskId, targetHierarchyId: hierarchyId, itemType: type, itemName: item.nome, itemIndex,
+          sourceAnalysisId: source!.id, results: formQuestionsAnswersAnalysis?.results ?? [], analysisInventoryStatus,
+          riskDataForHierarchy: riskDataByHierarchyId.get(hierarchyId), locallyAppliedItemKeys,
+        })?.existsInInventory !== true);
+        const sourceItems = lists.find(list => list.type === 'fontesGeradoras')?.items ?? [];
+        const engineering = lists.find(list => list.type === 'medidasEngenhariaRecomendadas')?.items ?? [];
+        const administrative = lists.find(list => list.type === 'medidasAdministrativasRecomendadas')?.items ?? [];
+        const pendingItems = available && target && source ? { fontesGeradoras: pending('fontesGeradoras', sourceItems), medidasEngenharia: pending('medidasEngenhariaRecomendadas', engineering), medidasAdministrativas: pending('medidasAdministrativasRecomendadas', administrative) } : { fontesGeradoras: [], medidasEngenharia: [], medidasAdministrativas: [] };
+        const alreadyInInventory = isRiskInInventory(riskId, hierarchyId);
+        const steps: BulkRiskAddTask['steps'] = [];
+        const stepLabels: string[] = [];
+        if (!alreadyInInventory) stepLabels.push('Adicionar o risco ao inventário');
+        if (!alreadyInInventory) steps.push(async () => {
+          await assignRisksFormApplication({ companyId: accessCompanyId, applicationId: formApplication.id, risks: [{ hierarchyId, riskId, probability }] });
+          setLocallyAppliedInventoryKeys(previous => new Set(previous).add(buildInventoryStatusKey(riskId, hierarchyId)));
+        });
+        if (includeAi && available && target && source) {
+          const items = pendingItems;
+          if (Object.values(items).some(list => list.length)) {
+            stepLabels.push('Incluir fontes geradoras e recomendações');
+            steps.push(() => applyAnalysisItemsToInventory(target, items, { skipMarkAnalysisApplied: true, suppressMutationFeedback: true }));
+          }
+          for (const list of lists) for (const itemIndex of list.items.keys()) {
+            stepLabels.push(`Registrar aceite de ${list.type === 'fontesGeradoras' ? 'fonte geradora' : 'recomendação'} ${itemIndex + 1}`);
+            steps.push(() => acceptFormQuestionsAnswersAnalysisItem({ companyId: accessCompanyId, applicationId: formApplication.id, analysisId: source.id, itemType: list.type, itemIndex }));
+          }
         }
-      >
+        tasks.push({ id: `${hierarchyId}:${riskId}`, riskId, label: `${entityMap[hierarchyId]?.name} — ${riskMap[riskId]?.name}`,
+          level: eligibility?.eligible === false ? null : resolveOccupationalRiskLevel(riskMap[riskId]?.severity, probability) ?? null,
+          alreadyInInventory, sources: sourceItems.length, recommendations: engineering.length + administrative.length,
+          sourcesToAdd: pendingItems.fontesGeradoras.length, recommendationsToAdd: pendingItems.medidasEngenharia.length + pendingItems.medidasAdministrativas.length,
+          hasAnalysis: lists.some(list => list.items.length > 0), steps, stepLabels });
+      }
+    }
+    return tasks;
+  };
 
+  const buildBulkRemoveTasks = (ids: string[], riskIds: string[]): BulkRiskAddTask[] => {
+    const tasks: BulkRiskAddTask[] = [];
+    const entitiesByRisk = new Map([...new Set(riskIds)].map(riskId => [riskId, new Set(getEntitiesWithRisk(riskId))]));
+    for (const hierarchyId of new Set(ids)) for (const riskId of entitiesByRisk.keys()) {
+      if (!entitiesByRisk.get(riskId)?.has(hierarchyId) || !isRiskInInventory(riskId, hierarchyId)) continue;
+      const probability = getEffectiveProbability(hierarchyId, riskId);
+      const protectedData = formQuestionsAnswersRisks.aiEligibilityByEntity?.[hierarchyId]?.[riskId]?.eligible === false;
+      tasks.push({ id: `${hierarchyId}:${riskId}`, riskId, label: `${entityMap[hierarchyId]?.name} — ${riskMap[riskId]?.name}`,
+        level: protectedData ? null : resolveOccupationalRiskLevel(riskMap[riskId]?.severity, probability) ?? null,
+        alreadyInInventory: true, sources: 0, recommendations: 0, hasAnalysis: false,
+        stepLabels: ['Remover risco e todos os vínculos do inventário'], steps: [async () => {
+          await api.post(`/v2/companies/${accessCompanyId}/forms/applications/${formApplication.id}/remove-risk`, { hierarchyId, riskId });
+          const key = buildInventoryStatusKey(riskId, hierarchyId);
+          setLocallyAppliedInventoryKeys(previous => new Set([...previous].filter(value => value !== key)));
+          setLocallyAppliedItemKeys(previous => new Set([...previous].filter(value => !value.startsWith(`${riskId}:${hierarchyId}:`))));
+        }] });
+    }
+    return tasks;
+  };
 
-        <SFlex direction="column" gap={2} mb={2}>
-          <FrpsOccupationalRiskFilter
-            selectedLevels={selectedOccupationalLevels}
-            onChange={setSelectedOccupationalLevels}
-          />
-        </SFlex>
+  const refreshBulkRiskStatus = async () => {
+    await Promise.all([refetch(), refetchFormRisksInventoryStatus(queryClient, { companyId: accessCompanyId, applicationId: formApplication.id }), queryClient.refetchQueries({ queryKey: [QueryEnum.RISK_DATA] }), queryClient.refetchQueries({ queryKey: getKeyBrowseFormApplicationRiskLog({ companyId: accessCompanyId, applicationId: formApplication.id }) })]);
+  };
 
-        <SFlex direction="column" gap={2}>
-          {visibleRiskIds.length === 0 && (
-            <Typography variant="body2" color="text.secondary">
-              Nenhum FRPS com os níveis de risco ocupacional selecionados.
-            </Typography>
-          )}
-          {visibleRiskIds.map((riskId) => {
-            const risk = riskMap[riskId];
-            const isExpanded = expandedRisks[riskId] ?? true;
-            const collapsedLevels =
-              occupationalLevelsByRiskId.get(riskId) ?? [];
+  const renderSectorRisk = (entityId: string, riskId: string, sectorFirst = false) => {
+    const risk = riskMap[riskId];
 
-            const entitiesWithRisk = getEntitiesWithRisk(riskId);
-            const riskPartitions = buildRiskAnalysisDisplayPartitions({
-              entityIds: entitiesWithRisk,
-              hierarchyGroups,
-              entityMap,
-            });
-            const groupByEstablishment = shouldGroupEntitiesByEstablishment(
-              riskPartitions.ungrouped,
-              entityMap,
-              entityEstablishmentMap,
-            );
-            const ungroupedEntityDisplayGroups = groupByEstablishment
-              ? groupEntityIdsByEstablishment(
-                  riskPartitions.ungrouped,
-                  entityMap,
-                  entityEstablishmentMap,
-                )
-              : [{ establishment: '', entityIds: riskPartitions.ungrouped }];
-
-            return (
-              <SAccordion
-                key={riskId}
-                expanded={isExpanded}
-                onChange={() => handleAccordionChange(riskId)}
-                expandIcon={<ChevronRightIcon />}
-                accordionProps={{ sx: { ...riskFactorAccordionSummarySx, ...formAccordionNavigationSx, '&.Mui-expanded + .MuiAccordion-root': { marginTop: '32px !important' }, border: 0, borderRadius: 0, boxShadow: 'none', backgroundColor: 'transparent', '&::before': { display: 'none' }, '& > .MuiAccordionSummary-root': { borderBottom: '2px solid', borderColor: 'divider' }, '& > .MuiCollapse-root .MuiAccordionDetails-root > .MuiDivider-root:first-child': { display: 'none' } } }}
-                endComponent={
-                  entitiesWithRisk.every((entityId) =>
-                    isRiskInInventory(riskId, entityId),
-                  ) ||
-                  (!isExpanded && collapsedLevels.length > 0) ? (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        flexShrink: 0,
-                        pointerEvents: 'none',
-                        ml: 1,
-                      }}
-                    >
-                      {entitiesWithRisk.every((entityId) =>
-                        isRiskInInventory(riskId, entityId),
-                      ) && (
-                        <SText color="success.main" fontSize={12}>
-                          Risco adicionado a todos os setores
-                        </SText>
-                      )}
-                      {!isExpanded && (
-                        <FrpsOccupationalLevelDots levels={collapsedLevels} />
-                      )}
-                    </Box>
-                  ) : undefined
-                }
-                title={
-                  <SFlex alignItems="center" gap={2} sx={riskFactorNameRowSx}>
-
-                    <Typography
-                      fontWeight="500"
-                      fontSize={18}
-                      color="text.primary"
-                      title={risk.name}
-                      sx={{ ...riskFactorNameTypographySx, flex: '0 1 auto' }}
-                    >
-                      {risk.name}
-                    </Typography>
-{entitiesWithRisk.length > 0 && (
-                        <SButton
-                          variant="shade"
-                          schema={analysisItemPillSchema}
- textProps={{ fontSize: 13 }}
-                          size="s"
-                          text="Adicionar risco a todos os setores"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setAddRiskMenu({
-                              anchorEl: e.currentTarget,
-                              riskId,
-                            });
-                          }}
-                          buttonProps={{
-                            sx: { ...analysisItemPillSx, height: 26 },
-                          }}
-                        />
-                      )}
-                  </SFlex>
-                }
-              >
-                <SAccordionBody>
-                  <SFlex direction="column" gap={3} mt={8}>
-
-
-                    <SFlex direction="column" gap={4}>
-                      {riskPartitions.groups.map(
-                        ({ group, memberEntityIds }) => (
-                          <HierarchyGroupRiskAnalysisCard
-                            key={`${riskId}-group-${group.id}`}
-                            riskId={riskId}
-                            risk={risk}
-                            group={group}
-                            memberEntityIds={memberEntityIds}
-                            entityMap={entityMap}
-                            entityEstablishmentMap={entityEstablishmentMap}
-                            hierarchyGroups={hierarchyGroups}
-                            analysisResults={
-                              formQuestionsAnswersAnalysis?.results ?? []
-                            }
-                            getEffectiveProbability={getEffectiveProbability}
-                            isRiskInInventory={isRiskInInventory}
-                            analysisKey={`${riskId}-group-${group.id}`}
-                            isAnalysisExpanded={
-                              expandedAnalysis[`${riskId}-group-${group.id}`] ??
-                              true
-                            }
-                            onAnalysisToggle={handleAnalysisToggle}
-                            onAnalyzeGroup={handleGroupTargetAnalyze}
-                            onConfigureAi={() => setAiConfigDialogOpen(true)}
-                            isMaster={isMaster}
-                            reviewCompanyId={accessCompanyId}
-                            onAddRiskToEntity={handleAddRiskToEntity}
-                            onAddRiskToAllGroupMembers={
-                              handleAddRiskToGroupMembers
-                            }
-                            onAddAnalysisAsRiskData={
-                              handleAddAnalysisAsRiskData
-                            }
-                            getApplyAnalysisButtonProps={
-                              getApplyAnalysisButtonProps
-                            }
-                            riskDataByHierarchyId={riskDataByHierarchyId}
-                            analysisInventoryStatus={analysisInventoryStatus}
-                            locallyAppliedItemKeys={locallyAppliedItemKeys}
-                            applyingItemKey={applyingItemKey}
-                            buildApplyingItemKey={buildApplyingItemKey}
-                            handleAddSingleAnalysisItem={
-                              handleAddSingleAnalysisItem
-                            }
-                            handleEditAnalysisItem={handleEditAnalysisItem}
-                            handleRemoveAnalysisItem={handleRemoveAnalysisItem}
-                            createInheritedAnalysisItemEditHandler={
-                              createInheritedAnalysisItemEditHandler
-                            }
-                            createInheritedAnalysisItemRemoveHandler={
-                              createInheritedAnalysisItemRemoveHandler
-                            }
-                            getAnalysisItemStatus={getAnalysisItemStatus}
-                            onAddAnalysisItemToAllGroupMembers={(
-                              itemType,
-                              itemIndex,
-                              item,
-                              memberEntityIds,
-                            ) =>
-                              handleAddAnalysisItemToAllGroupMembers(
-                                riskId,
-                                memberEntityIds,
-                                itemType,
-                                itemIndex,
-                                item,
-                              )
-                            }
-                            onAddMemberAnalysisItem={(entityId, entry) =>
-                              handleAddMemberAnalysisItem(
-                                riskId,
-                                entityId,
-                                entry,
-                              )
-                            }
-                          />
-                        ),
-                      )}
-
-                      {ungroupedEntityDisplayGroups.map(
-                        ({ establishment, entityIds: ungroupedEntityIds }) => (
-                          <Box key={establishment || 'ungrouped-all'}>
-                            {groupByEstablishment && establishment && (
-                              <Typography
-                                variant="subtitle2"
-                                fontWeight={600}
-                                color="text.secondary"
-                                sx={{ mb: 2 }}
-                              >
-                                {establishment}
-                              </Typography>
-                            )}
-                            <SFlex direction="column" gap={4}>
-                              {ungroupedEntityIds.map((entityId) => {
                                 const entity = entityMap[entityId];
+                                const eligibility = formQuestionsAnswersRisks?.aiEligibilityByEntity?.[entityId]?.[riskId];
+                                const ineligible = eligibility?.eligible === false;
+
                                 const severity = risk?.severity;
                                 const probability = getEffectiveProbability(
                                   entityId,
@@ -2589,7 +2388,7 @@ export const FormRisksAnalysis = ({
 
                                 return (
                                   <Box component="details"
-                                    key={entityId}
+                                    key={`${riskId}-${entityId}`}
                                     sx={{
                                       p: 4,
                                       backgroundColor: 'transparent',
@@ -2623,8 +2422,9 @@ export const FormRisksAnalysis = ({
                                           fontWeight="medium"
                                           sx={{ minWidth: 0 }}
                                         >
-                                          {hierarchyTypeTranslation[entity.type].toUpperCase()} — {entity.name}
+                                          {sectorFirst ? risk.name : `${hierarchyTypeTranslation[entity.type].toUpperCase()} — ${entity.name}`}
                                         </Typography>
+
 {isRiskInInventory(riskId, entityId) ? (
                                           <SFlex alignItems="center" gap={0.5}>
                                             <CheckIcon
@@ -2707,6 +2507,8 @@ export const FormRisksAnalysis = ({
 
 
                                         <FrpsMatrixEquation
+                                          protectedData={ineligible}
+                                          minParticipants={eligibility?.minParticipants}
                                           probability={probability}
                                           severity={severity}
                                           resultLevel={occupationalLevel}
@@ -2733,7 +2535,7 @@ export const FormRisksAnalysis = ({
                                           !resolved.analysis &&
                                           !resolved.failedAnalysis
                                         ) {
-                                          return null;
+                                          return <ManualRiskContentSections companyId={accessCompanyId} applicationId={formApplication.id} hierarchyId={entityId} riskId={riskId} riskName={risk?.name || ''} />;
                                         }
 
                                         if (!resolved.analysis) {
@@ -2745,6 +2547,7 @@ export const FormRisksAnalysis = ({
                                           ) {
                                             return (
                                               <Box mt={3}>
+                                                <ManualRiskContentSections companyId={accessCompanyId} applicationId={formApplication.id} hierarchyId={entityId} riskId={riskId} riskName={risk?.name || ''} />
                                                 <Typography
                                                   variant="body2"
                                                   color="error.main"
@@ -2762,7 +2565,7 @@ export const FormRisksAnalysis = ({
                                             );
                                           }
 
-                                          return null;
+                                          return <ManualRiskContentSections companyId={accessCompanyId} applicationId={formApplication.id} hierarchyId={entityId} riskId={riskId} riskName={risk?.name || ''} />;
                                         }
 
                                         const isHierarchyGroupFallback =
@@ -2849,7 +2652,7 @@ export const FormRisksAnalysis = ({
                                           expandedAnalysis[analysisKey] ?? true;
 
                                         return (
-                                          <Box mt={3}>
+                                          <Box sx={{ position: 'relative', mt: 0, ml: { xs: '16px', sm: '24px' }, '& [data-analysis-section="Fontes Geradoras"] > summary': { pr: { md: '380px' } } }}>
                                             <AnalysisDisclosureHeader
                                               expanded={isAnalysisExpanded}
                                               onToggle={() =>
@@ -2889,12 +2692,12 @@ export const FormRisksAnalysis = ({
                                                 />
                                               }
                                             />
-                                            {isAnalysisExpanded && (
+                                            {true && (
                                               <SFlex direction="column" gap={2}>
                                                 <Box
                                                   key={sourceAnalysis.id}
                                                   sx={{
-                                                    p: 3,
+                                                    p: 0,
                                                     backgroundColor:
                                                       'transparent',
                                                   }}
@@ -2955,22 +2758,13 @@ export const FormRisksAnalysis = ({
                                                   )}
 
                                                   {/* Fontes Geradoras */}
-                                                  {!isAnalysisProtected &&
-                                                    displayAnalysisContent?.fontesGeradoras &&
-                                                    displayAnalysisContent
-                                                      .fontesGeradoras.length >
-                                                      0 && (
-                                                      <AnalysisItemsSection title="Fontes Geradoras">
-                                                        <SFlex
-                                                          alignItems="center"
-                                                          gap={4}
-                                                          mb={4}
-                                                        ></SFlex>
+                                                  {!isAnalysisProtected && displayAnalysisContent && (
+                                                      <AnalysisItemsSection title="Fontes Geradoras" action={<CatalogAnalysisItemButton analysis={sourceAnalysis} itemType="fontesGeradoras" companyId={accessCompanyId} inherited={isHierarchyGroupFallback} />}>
                                                         <SFlex
                                                           direction="column"
                                                           gap={4}
                                                         >
-                                                          {displayAnalysisContent.fontesGeradoras.map(
+                                                          {renderAnalysisOriginGroups(displayAnalysisContent.fontesGeradoras,
                                                             (fonte, index) => {
                                                               const itemStatus =
                                                                 resolveDisplayedItemStatus(
@@ -3091,7 +2885,7 @@ export const FormRisksAnalysis = ({
                                                           direction="column"
                                                           gap={1}
                                                         >
-                                                          {displayAnalysisContent.medidasEngenhariaRecomendadas.map(
+                                                          {renderAnalysisOriginGroups(displayAnalysisContent.medidasEngenhariaRecomendadas,
                                                             (medida, index) => {
                                                               const itemStatus =
                                                                 resolveDisplayedItemStatus(
@@ -3182,13 +2976,13 @@ export const FormRisksAnalysis = ({
                                                     displayAnalysisContent
                                                       .medidasAdministrativasRecomendadas
                                                       .length > 0 && (
-                                                      <AnalysisItemsSection title="Recomendações (Medidas Administrativas)">
+                                                      <AnalysisItemsSection title="Recomendações (Medidas Administrativas)" action={<CatalogAnalysisItemButton analysis={sourceAnalysis} itemType="medidasAdministrativasRecomendadas" companyId={accessCompanyId} inherited={isHierarchyGroupFallback} />}>
 
                                                         <SFlex
                                                           direction="column"
                                                           gap={1}
                                                         >
-                                                          {displayAnalysisContent.medidasAdministrativasRecomendadas.map(
+                                                          {renderAnalysisOriginGroups(displayAnalysisContent.medidasAdministrativasRecomendadas,
                                                             (medida, index) => {
                                                               const itemStatus =
                                                                 resolveDisplayedItemStatus(
@@ -3281,17 +3075,318 @@ export const FormRisksAnalysis = ({
                                       })()}
                                   </Box>
                                 );
-                              })}
+
+  };
+
+            const renderGroupRisk = ({ group, memberEntityIds }: ReturnType<typeof buildRiskAnalysisDisplayPartitions>['groups'][number], riskId: string, intercompany: boolean, sectorFirst = false) => (
+                          <HierarchyGroupRiskAnalysisCard
+                            key={`${riskId}-group-${group.id}`}
+                            riskId={riskId}
+                            risk={riskMap[riskId]}
+                            headingLabel={sectorFirst ? riskMap[riskId].name : undefined}
+                            group={group}
+                            memberEntityIds={memberEntityIds}
+                            showMemberEstablishment={intercompany}
+                            entityMap={entityMap}
+                            entityEstablishmentMap={entityEstablishmentMap}
+                            hierarchyGroups={hierarchyGroups}
+                            analysisResults={
+                              formQuestionsAnswersAnalysis?.results ?? []
+                            }
+                            getEffectiveProbability={getEffectiveProbability}
+                            isRiskInInventory={isRiskInInventory}
+                            analysisKey={`${riskId}-group-${group.id}`}
+                            isAnalysisExpanded={
+                              expandedAnalysis[`${riskId}-group-${group.id}`] ??
+                              true
+                            }
+                            onAnalysisToggle={handleAnalysisToggle}
+                            onAnalyzeGroup={handleGroupTargetAnalyze}
+                            onConfigureAi={() => setAiConfigDialogOpen(true)}
+                            isMaster={isMaster}
+                            reviewCompanyId={accessCompanyId}
+                            onAddRiskToEntity={handleAddRiskToEntity}
+                            onAddRiskToAllGroupMembers={
+                              handleAddRiskToGroupMembers
+                            }
+                            onAddAnalysisAsRiskData={
+                              handleAddAnalysisAsRiskData
+                            }
+                            getApplyAnalysisButtonProps={
+                              getApplyAnalysisButtonProps
+                            }
+                            riskDataByHierarchyId={riskDataByHierarchyId}
+                            analysisInventoryStatus={analysisInventoryStatus}
+                            locallyAppliedItemKeys={locallyAppliedItemKeys}
+                            applyingItemKey={applyingItemKey}
+                            buildApplyingItemKey={buildApplyingItemKey}
+                            handleAddSingleAnalysisItem={
+                              handleAddSingleAnalysisItem
+                            }
+                            handleEditAnalysisItem={handleEditAnalysisItem}
+                            handleRemoveAnalysisItem={handleRemoveAnalysisItem}
+                            createInheritedAnalysisItemEditHandler={
+                              createInheritedAnalysisItemEditHandler
+                            }
+                            createInheritedAnalysisItemRemoveHandler={
+                              createInheritedAnalysisItemRemoveHandler
+                            }
+                            getAnalysisItemStatus={getAnalysisItemStatus}
+                            onAddAnalysisItemToAllGroupMembers={(
+                              itemType,
+                              itemIndex,
+                              item,
+                              memberEntityIds,
+                            ) =>
+                              handleAddAnalysisItemToAllGroupMembers(
+                                riskId,
+                                memberEntityIds,
+                                itemType,
+                                itemIndex,
+                                item,
+                              )
+                            }
+                            onAddMemberAnalysisItem={(entityId, entry) =>
+                              handleAddMemberAnalysisItem(
+                                riskId,
+                                entityId,
+                                entry,
+                              )
+                            }
+                          />
+            );
+  return (
+    <FrpsExplainabilityProvider
+      companyId={accessCompanyId}
+      applicationId={formApplication.id}
+      isMaster={isMaster}
+    >
+      <Box sx={{ mb: 12 }}>
+        <RiskNarrativeDiagnosticSection
+          companyId={accessCompanyId}
+          formApplicationId={formApplication.id}
+          scope={riskNarrativeDiagnosticScope}
+          isMaster={isMaster}
+        />
+      </Box>
+      <Box sx={{ mb: 12 }}>
+        <FrpsOccupationalDistributionSummary distribution={occupationalDistribution} />
+      </Box>
+      <RiskAiAnalysisSection>
+            <FrpsAiProgress results={formQuestionsAnswersAnalysis?.results ?? []} fetching={fetchingAnalysisStatus} fetchError={analysisStatusError} starting={isAnalyzing} />
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'repeat(2, minmax(0, 1fr))', lg: `${isMaster ? '40px ' : ''}repeat(5, minmax(0, 1fr))` }, gap: '12px', width: '100%', mb: 6, alignItems: 'start', '& > .ai-generation-control > span': { display: 'block', width: '100%' } }}>
+              {isMaster && <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1' }, gridRow: { lg: 1 } }}><SIconButton tooltip="Configurar análise de IA e liberar faixas de risco" onClick={() => setAiConfigDialogOpen(true)} iconButtonProps={{ 'aria-label': 'Configurar análise de IA e liberar faixas de risco', sx: { color: 'text.primary' } }}><SettingsOutlinedIcon /></SIconButton></Box>}
+              {([
+                { band: 'VERY_HIGH', level: 5, label: 'Gerar análise de FRPS — Muito Alto' },
+                { band: 'HIGH', level: 4, label: 'Gerar análise de FRPS — Alto' },
+                { band: 'MODERATE', level: 3, label: 'Gerar análise de FRPS — Moderado' },
+                { band: 'LOW', level: 2, label: 'Gerar análise de FRPS — Baixo' },
+                { band: 'VERY_LOW', level: 1, label: 'Gerar análise de FRPS — Muito Baixo' },
+              ] as const).map(({band, level, label}, index) => {
+                const allowed = level >= 4 || isMaster || (!loadingGenerationSettings && !generationSettingsError && generationSettings.aiGenerationAdditionalLevels?.includes(level));
+                return <Box className="ai-generation-control" key={band} sx={{ minWidth: 0, gridColumn: { lg: index + (isMaster ? 2 : 1) }, gridRow: { lg: 1 } }}><SButton variant="outlined" text={label}
+                  icon={<Box component="span" aria-hidden="true" sx={{ display: 'block', width: '12px', height: '12px', m: '4px', borderRadius: '50%', flexShrink: 0, backgroundColor: resolveSystemOccupationalChipColors(level, generationMatrixPresentation).bgcolor }} />} textProps={{ color: 'inherit', fontSize: 14 }}
+                  disabled={!allowed || isAnalyzing || hasProcessingAnalyses}
+                  tooltip={!allowed ? 'Quer ampliar sua análise? O pacote padrão concentra a análise por IA nos riscos Altos e Muito Altos, priorizando as situações que demandam maior atenção técnica. A análise de riscos Moderados, Baixos e Muito Baixos é um recurso complementar, que pode ser útil conforme os objetivos da sua avaliação. Para conhecer as possibilidades de ampliação e solicitar a liberação para sua empresa, entre em contato com a administração do SimpleSST ou com nossa equipe comercial.' : 'Gera somente análises da faixa indicada, preservando as demais faixas.'}
+                  onClick={() => void handleAnalyzeButtonClick(band)}
+                  buttonProps={{ sx: { width: '100%', minHeight: 48, height: 'auto', px: 8, py: 5, color: 'text.primary', borderColor: 'divider', borderRadius: '24px', whiteSpace: 'normal' } }} /></Box>;
+              })}
+            <Box className="ai-generation-control" sx={{ gridColumn: { sm: 1, lg: isMaster ? 2 : 1 }, gridRow: { lg: 2 } }}>
+            <SButton
+              variant="shade"
+              buttonProps={{ sx: { width: '100%', minHeight: 44, height: 'auto', py: 5, borderRadius: '24px', whiteSpace: 'normal' } }}
+              text="Limpar análises de IA"
+              schema={{ color: 'error.main', borderColor: 'error.main', backgroundColor: 'transparent' }}
+              textProps={{ color: 'inherit', fontSize: 15, fontWeight: 600 }}
+              tooltip="Abre as opções para escolher o escopo e confirmar a remoção permanente das análises de IA salvas, incluindo fontes geradoras, recomendações sugeridas e edições feitas nelas. Os riscos do inventário, os itens já aplicados ao PGR e as respostas do formulário são preservados."
+              color="danger"
+              onClick={() => setShowClearAiDialog(true)}
+              disabled={!(formQuestionsAnswersAnalysis?.results.length)}
+            />
+            </Box>
+            <Box className="ai-generation-control" sx={{ gridColumn: { sm: 2, lg: isMaster ? 3 : 2 }, gridRow: { lg: 2 } }}>
+            <SButton
+              variant="shade"
+              text="Recuperar análises travadas"
+              color="normal"
+              textProps={{ color: 'inherit', fontSize: 15, fontWeight: 600 }}
+              schema={{ color: 'info.main', borderColor: 'info.main', backgroundColor: 'transparent' }}
+              buttonProps={{ sx: {
+                width: '100%', minHeight: 44, height: 'auto', py: 5,
+                borderRadius: '24px', whiteSpace: 'normal', fontWeight: 600,
+                '&&.Mui-disabled': { color: 'text.disabled', borderColor: 'divider', backgroundColor: 'transparent', opacity: 0.35 },
+                backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(56, 189, 248, 0.14)' : 'rgba(2, 132, 199, 0.08)',
+                '&:hover': { backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(56, 189, 248, 0.23)' : 'rgba(2, 132, 199, 0.15)' },
+              } }}
+              onClick={() => setShowRecoverAiDialog(true)}
+              disabled={!hasStaleAnalyses}
+              tooltip={
+                !hasStaleAnalyses
+                  ? 'Nenhuma análise travada encontrada.'
+                  : undefined
+              }
+            />
+            </Box>
+            </Box>
+      </RiskAiAnalysisSection>
+      <OccupationalRiskAnalysisSection
+        action={
+            <SButton
+              variant="shade"
+              text="Adicionar todos os riscos a todos os setores"
+              color="normal"
+              textProps={{ color: 'inherit' }}
+              buttonProps={{ sx: {
+                color: 'text.primary',
+                borderRadius: '999px',
+                borderColor: 'divider',
+                background: (theme) => theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
+                  : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
+                backdropFilter: 'blur(16px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(140%)',
+                '&:hover': { color: 'text.primary', backgroundColor: 'action.hover', borderColor: 'text.secondary' },
+                '&:active': { backgroundColor: 'action.hover' },
+              } }}
+              onClick={() => {
+                handleAddAllRisk();
+              }}
+            />
+        }
+      >
+
+
+        <SFlex direction="column" gap={2} mb={2}>
+          <FrpsOccupationalRiskFilter
+            selectedLevels={selectedOccupationalLevels}
+            onChange={setSelectedOccupationalLevels}
+            actions={<ToggleButtonGroup exclusive size="small" value={organization} aria-label="Organizar análise"
+              onChange={(_, value) => { if (value) setOrganization(value); }}
+              sx={{ '& .MuiToggleButton-root': { color: 'text.primary', textTransform: 'none', px: 6, borderColor: 'divider' }, '& .Mui-selected': { color: 'primary.main' } }}>
+              <ToggleButton value="risk">Organizar por fator de risco</ToggleButton>
+              <ToggleButton value="sector">Organizar por setor</ToggleButton>
+            </ToggleButtonGroup>}
+          />
+        </SFlex>
+
+        <SFlex direction="column" gap={2}>
+          {visibleRiskIds.length === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Nenhum FRPS com os níveis de risco ocupacional selecionados.
+            </Typography>
+          )}
+          {organization === 'sector' && <FrpsSectorView
+            isRiskProtected={(riskId, id) => formQuestionsAnswersRisks.aiEligibilityByEntity?.[id]?.[riskId]?.eligible === false}
+            riskIds={visibleRiskIds}
+            getEntitiesWithRisk={getEntitiesWithRisk}
+            entityMap={entityMap}
+            hierarchyGroups={hierarchyGroups}
+            establishmentMap={entityEstablishmentMap}
+            renderSectorRisk={(id, riskId) => renderSectorRisk(id, riskId, true)}
+            renderGroupRisk={(entry, riskId, intercompany) => renderGroupRisk(entry, riskId, intercompany, true)}
+            buildBulkRiskTasks={buildBulkRiskTasks}
+            buildBulkRemoveTasks={buildBulkRemoveTasks}
+            isRiskInInventory={isRiskInInventory}
+            onBulkComplete={refreshBulkRiskStatus}
+          />}
+          {organization === 'risk' && visibleRiskIds.map((riskId) => <RiskFactorDisclosure key={riskId}>{(isExpanded, toggleExpanded) => {
+            const risk = riskMap[riskId];
+            const collapsedLevels =
+              occupationalLevelsByRiskId.get(riskId) ?? [];
+
+            const entitiesWithRisk = getEntitiesWithRisk(riskId);
+            const riskPartitions = buildRiskAnalysisDisplayPartitions({
+              entityIds: entitiesWithRisk,
+              hierarchyGroups,
+              entityMap,
+            });
+            const sectionMap = new Map<string, { establishment: string; entityIds: string[]; groups: typeof riskPartitions.groups; intercompany: boolean }>();
+            const establishmentFor = (id: string) => entityEstablishmentMap.get(id) || 'Empresa não identificada';
+            for (const entry of riskPartitions.groups) {
+              const establishments = [...new Set(entry.group.hierarchyIds.map(establishmentFor))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+              const intercompany = establishments.length > 1;
+              const key = JSON.stringify(establishments);
+              const section = sectionMap.get(key) ?? { establishment: intercompany ? `AGRUPAMENTO DE ESTABELECIMENTOS — ${establishments.join(' + ')}` : establishments[0], entityIds: [], groups: [], intercompany };
+              section.groups.push(entry);
+              sectionMap.set(key, section);
+            }
+            for (const id of riskPartitions.ungrouped) {
+              const establishment = establishmentFor(id);
+              const key = JSON.stringify([establishment]);
+              const section = sectionMap.get(key) ?? { establishment, entityIds: [], groups: [], intercompany: false };
+              section.entityIds.push(id);
+              sectionMap.set(key, section);
+            }
+            const ungroupedEntityDisplayGroups = [...sectionMap.values()].sort((a, b) => Number(b.intercompany) - Number(a.intercompany) || a.establishment.localeCompare(b.establishment, 'pt-BR'));
+            const renderHierarchyGroup = (entry: (typeof riskPartitions.groups)[number], intercompany: boolean) => renderGroupRisk(entry, riskId, intercompany);
+
+            return (
+              <SAccordion
+                key={riskId}
+                expanded={isExpanded}
+                onChange={toggleExpanded}
+                expandIcon={<ChevronRightIcon />}
+                accordionProps={{ TransitionProps: { timeout: 0, unmountOnExit: true }, sx: { ...riskFactorAccordionSummarySx, ...formAccordionNavigationSx, '&.Mui-expanded + .MuiAccordion-root': { marginTop: '32px !important' }, border: 0, borderRadius: 0, boxShadow: 'none', backgroundColor: 'transparent', '&::before': { display: 'none' }, '& > .MuiAccordionSummary-root': { borderBottom: '2px solid', borderColor: 'divider' }, '& > .MuiCollapse-root .MuiAccordionDetails-root > .MuiDivider-root:first-child': { display: 'none' } } }}
+                endComponent={
+                  <Box onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap', ml: 'auto', flex: '0 0 auto' }}>
+                    {!isExpanded && <FrpsOccupationalLevelDots levels={collapsedLevels} />}
+                    <SectorBulkRiskAdd scope="risk" title={`FATOR DE RISCO — ${risk.name}`}
+                      buildTasks={includeAi => buildBulkRiskTasks(entitiesWithRisk, [riskId], includeAi)} onComplete={refreshBulkRiskStatus} />
+                    <SectorBulkRiskRemove canRemove={entitiesWithRisk.some(entityId => isRiskInInventory(riskId, entityId))} scope="risk" title={`FATOR DE RISCO — ${risk.name}`}
+                      buildTasks={() => buildBulkRemoveTasks(entitiesWithRisk, [riskId])} onComplete={refreshBulkRiskStatus} />
+                  </Box>
+                }
+                title={
+                  <SFlex alignItems="center" gap={2} sx={riskFactorNameRowSx}>
+
+                    <Typography
+                      fontWeight={700}
+                      color="text.primary"
+                      title={risk.name}
+                      sx={{ ...riskFactorNameTypographySx, flex: '0 1 auto', fontSize: { xs: 22, sm: 24 }, lineHeight: 1.35 }}
+                    >
+                      {risk.name}
+                    </Typography>
+                  </SFlex>
+                }
+              >
+                {isExpanded && <SAccordionBody>
+                  <SFlex direction="column" gap={3} mt={8}>
+
+
+                    <SFlex direction="column" gap={4}>
+
+                      {ungroupedEntityDisplayGroups.map(
+                        ({ establishment, entityIds: ungroupedEntityIds, groups: sectionGroups, intercompany }) => (
+                          <Box component="details" open key={establishment || 'ungrouped-all'}
+                            sx={{
+                              ml: { xs: 4, sm: 10 }, minWidth: 0,
+                              '& > summary::-webkit-details-marker': { display: 'none' },
+                              '&[open] > summary .company-disclosure-arrow': { transform: 'rotate(90deg)' },
+                            }}
+                          >
+                            <SFlex component="summary" alignItems="center" gap={3}
+                              sx={{ cursor: 'pointer', listStyle: 'none', py: 6, borderBottom: '1px solid', borderColor: 'divider' }}>
+                              <ChevronRightIcon className="company-disclosure-arrow" sx={{ fontSize: 22, flexShrink: 0, color: 'text.primary' }} />
+                              <Typography component="span" fontWeight={700} color="text.primary"
+                                sx={{ fontSize: { xs: 18, sm: 20 }, lineHeight: 1.4, overflowWrap: 'anywhere' }}>
+                                {intercompany ? establishment : `ESTABELECIMENTO — ${establishment}`}
+                              </Typography>
+                            </SFlex>
+                            <SFlex direction="column" gap={4} sx={{ pl: { xs: 6, sm: 12 }, pt: 4, minWidth: 0 }}>
+                              {sectionGroups.map((entry) => renderHierarchyGroup(entry, intercompany))}
+                              {ungroupedEntityIds.map((entityId) => renderSectorRisk(entityId, riskId))}
                             </SFlex>
                           </Box>
                         ),
                       )}
                     </SFlex>
                   </SFlex>
-                </SAccordionBody>
+                </SAccordionBody>}
               </SAccordion>
             );
-          })}
+          }}</RiskFactorDisclosure>)}
         </SFlex>
 
         <Menu
@@ -3332,6 +3427,10 @@ export const FormRisksAnalysis = ({
             onApply={setAiMasterConfig}
             promptKey={SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS}
             title="Configurar Análise de IA"
+            defaultModelValue={FRPS_GENERATION_DEFAULT_MODEL}
+            modelOptions={FRPS_GENERATION_MODEL_OPTIONS}
+            initialConfig={aiMasterConfig}
+            additionalSettings={<FrpsAiGenerationPermissions companyId={accessCompanyId} />}
             promptLabel="Prompt da análise"
             saveDefaultConfirmMessage="O conteúdo atual do prompt será salvo como padrão do sistema para análises de Fontes Geradoras e Recomendações. Deseja continuar?"
             maxWidth="xl"

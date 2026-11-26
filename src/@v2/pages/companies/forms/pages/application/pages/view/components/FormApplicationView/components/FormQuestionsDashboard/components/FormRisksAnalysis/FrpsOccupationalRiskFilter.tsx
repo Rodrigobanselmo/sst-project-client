@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Button, Chip, Typography } from '@mui/material';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -13,7 +14,9 @@ import {
 export function FrpsOccupationalRiskFilter({
   selectedLevels,
   onChange,
+  actions,
 }: {
+  actions?: ReactNode;
   selectedLevels: ReadonlySet<number>;
   onChange: (next: Set<number>) => void;
 }) {
@@ -31,9 +34,10 @@ export function FrpsOccupationalRiskFilter({
 
   return (
     <SFlex direction="column" gap={4} mt={8} mb={10}>
-      <Typography variant="body2" color="text.primary" fontWeight={600}>
+            <Typography variant="body2" color="text.primary" fontWeight={600}>
         Legenda e filtro por risco ocupacional
       </Typography>
+      <SFlex alignItems="center" justifyContent="space-between" gap={6} flexWrap="wrap">
       <SFlex alignItems="center" gap={3} flexWrap="wrap">
       {FRPS_OCCUPATIONAL_FILTER_LEVELS.map((level) => {
         const active = selectedLevels.has(level);
@@ -53,7 +57,7 @@ export function FrpsOccupationalRiskFilter({
               flexShrink: 0,
               fontWeight: 600,
               backgroundColor: active ? chip.bgcolor : 'transparent',
-              color: active ? chip.color : 'text.secondary',
+              color: active ? (level === 5 ? '#FFFFFF' : '#000000') : 'text.secondary',
               border: '1px solid',
               borderColor: active ? chip.bgcolor : 'grey.400',
               '&:hover': {
@@ -84,6 +88,8 @@ export function FrpsOccupationalRiskFilter({
       >
         Todos
       </Button>
+      </SFlex>
+      {actions}
       </SFlex>
     </SFlex>
   );

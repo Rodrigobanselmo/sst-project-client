@@ -7,9 +7,11 @@ import {
 } from '@v2/services/security/risk-matrix/presentation/axis-level-tooltip.util';
 import { resolveSystemAxisLevelChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 import { SScaleFactorPill } from 'components/atoms/SScaleFactorPill';
-import { OccupationalRiskResultPill } from 'components/organisms/main/Tree/OrgTree/components/OccupationalRiskResultPill';
+import { OccupationalRiskResultPill, OCCUPATIONAL_RISK_RESULT_PILL_MIN_WIDTH } from 'components/organisms/main/Tree/OrgTree/components/OccupationalRiskResultPill';
 import { matrixRiskMap } from 'core/constants/maps/matriz-risk.constant';
 import type { OccupationalRiskLevel } from 'core/utils/helpers/occupational-risk-level.util';
+
+const PROBABILITY_PILL_WIDTH = 120;
 
 const PROBABILITY_AXIS_LABEL: Record<number, string> = {
   1: 'Desprezível',
@@ -42,6 +44,8 @@ export type FrpsRiskSubtypeRef = {
 };
 
 export type FrpsMatrixEquationProps = {
+  protectedData?: boolean;
+  minParticipants?: number;
   probability?: number | null;
   severity?: number | null;
   resultLevel?: OccupationalRiskLevel | null;
@@ -50,6 +54,8 @@ export type FrpsMatrixEquationProps = {
 };
 
 export function FrpsMatrixEquation({
+  protectedData = false,
+  minParticipants = 3,
   probability,
   severity,
   resultLevel,
@@ -84,6 +90,15 @@ export function FrpsMatrixEquation({
     return `${kind}${value} — ${label}`;
   };
 
+  const protectedPill = (label: string) => (
+    <Tooltip title={`Dados protegidos: este recorte não atinge o mínimo de ${minParticipants} respondentes. Use a aba Agrupamentos para reunir setores com contexto compatível, com apoio da IA, ou consulte o RH. A regra pode ser ajustada por um usuário autorizado nas configurações de SST.`}>
+      <Box component="span" tabIndex={0} aria-label={`${label}: dados protegidos`}
+        sx={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxSizing: 'border-box', width: label === 'Probabilidade' ? PROBABILITY_PILL_WIDTH : OCCUPATIONAL_RISK_RESULT_PILL_MIN_WIDTH, height: label === 'Probabilidade' ? 22 : 24, px: 1, borderRadius: '999px', color: '#000000', backgroundColor: (theme) => theme.palette.mode === 'dark' ? '#59616D' : '#D1D5DB', fontSize: label === 'Probabilidade' ? 11 : 10, fontWeight: label === 'Probabilidade' ? 700 : 600, lineHeight: 1, whiteSpace: 'nowrap' }}>
+        Protegido
+      </Box>
+    </Tooltip>
+  );
+
   const scalePill = (kind: 'P' | 'S', value: number | null) => (
     <Tooltip
       title={
@@ -96,7 +111,7 @@ export function FrpsMatrixEquation({
       }
       placement="top"
     >
-      <Box component="span" sx={{ display: 'inline-flex' }}>
+      <Box component="span" sx={{ display: 'inline-flex', ...(kind === 'P' ? { width: PROBABILITY_PILL_WIDTH, flexShrink: 0, '& > span': { width: '100%', boxSizing: 'border-box', whiteSpace: 'nowrap' } } : {}) }}>
         <SScaleFactorPill
           horizontalPadding={3}
           kind={kind}
@@ -104,7 +119,10 @@ export function FrpsMatrixEquation({
           label={`${kind === 'P' ? 'Probabilidade' : 'Severidade'} ${value ?? 'não informada'}`}
           chipColors={
             value != null
-              ? resolveSystemAxisLevelChipColors(value, presentation)
+              ? {
+                  ...resolveSystemAxisLevelChipColors(value, presentation),
+                  color: value === 5 ? '#FFFFFF' : '#000000',
+                }
               : undefined
           }
         />
@@ -122,7 +140,7 @@ export function FrpsMatrixEquation({
         flexWrap: 'wrap',
       }}
     >
-      {scalePill('P', probabilityValue)}
+      {protectedData ? protectedPill('Probabilidade') : scalePill('P', probabilityValue)}
       <Tooltip title="Cruzamento da probabilidade com a severidade na matriz de risco; não representa multiplicação aritmética.">
       <Typography
         component="span"
@@ -138,11 +156,11 @@ export function FrpsMatrixEquation({
       >
         →
       </Typography>
-      <Tooltip title={`Risco ocupacional: ${resultLabel}`} placement="top">
+      {protectedData ? protectedPill('Risco ocupacional') : <Tooltip title={`Risco ocupacional: ${resultLabel}`} placement="top">
         <Box component="span" sx={{ display: 'inline-flex' }}>
-          <OccupationalRiskResultPill label={resultLabel} level={resultLevel} />
+          <OccupationalRiskResultPill label={resultLabel} level={resultLevel} textColor={resultLevel != null ? (resultLevel === 5 ? "#FFFFFF" : "#000000") : undefined} />
         </Box>
-      </Tooltip>
+      </Tooltip>}
     </Box>
   );
 }

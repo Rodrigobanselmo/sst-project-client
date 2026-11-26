@@ -1,6 +1,8 @@
+import { CatalogAnalysisItemButton } from './CatalogAnalysisItemButton';
 import {
   AnalysisDisclosureHeader,
   AnalysisItemsSection,
+  renderAnalysisOriginGroups,
 } from './AnalysisDisclosure';
 import Tooltip from '@mui/material/Tooltip';
 import {
@@ -322,6 +324,7 @@ function EditableAnalysisItem({
                   >
                     <EditIcon fontSize="small" />
                   </SIconButton>
+                  <CatalogAnalysisItemButton analysis={analysis} itemType={itemType} itemIndex={itemIndex} companyId={reviewCompanyId || analysis.companyId} inherited={Boolean(onEditItem)} />
                   <SIconButton
                     iconButtonProps={{
                       'aria-label': 'Excluir item',
@@ -533,7 +536,7 @@ export function RiskEntityAiAnalysisPanel({
   };
 
   return (
-    <Box mt={3}>
+    <Box sx={{ position: 'relative', mt: 0, ml: { xs: '16px', sm: '24px' }, '& [data-analysis-section="Fontes Geradoras"] > summary': { pr: { md: '380px' } } }}>
       <AnalysisDisclosureHeader
         expanded={isAnalysisExpanded}
         onToggle={() => onAnalysisToggle(analysisKey)}
@@ -557,11 +560,11 @@ export function RiskEntityAiAnalysisPanel({
           )
         }
       />
-      {isAnalysisExpanded && (
+      {true && (
         <SFlex direction="column" gap={2}>
           <Box
             key={sourceAnalysis.id}
-            sx={{ p: 3, backgroundColor: 'transparent' }}
+            sx={{ p: 0, backgroundColor: 'transparent' }}
           >
             {showInheritedBanner && isHierarchyGroupFallback && (
               <Typography
@@ -573,10 +576,10 @@ export function RiskEntityAiAnalysisPanel({
               </Typography>
             )}
 
-            {displayAnalysisContent.fontesGeradoras?.length > 0 && (
-              <AnalysisItemsSection title="Fontes Geradoras">
+            {(
+              <AnalysisItemsSection title="Fontes Geradoras" action={<CatalogAnalysisItemButton analysis={sourceAnalysis} itemType="fontesGeradoras" companyId={(reviewCompanyId || sourceAnalysis.companyId)} inherited={isHierarchyGroupFallback} />}>
                 <SFlex direction="column" gap={4}>
-                  {displayAnalysisContent.fontesGeradoras.map(
+                  {renderAnalysisOriginGroups(displayAnalysisContent.fontesGeradoras,
                     (fonte, index) => {
                       const itemStatus = resolveDisplayedItemStatus(
                         'fontesGeradoras',
@@ -640,9 +643,9 @@ export function RiskEntityAiAnalysisPanel({
 
             {displayAnalysisContent.medidasEngenhariaRecomendadas?.length >
               0 && (
-              <AnalysisItemsSection title="Recomendações (Medidas de Engenharia)">
+              <AnalysisItemsSection title="Recomendações (Medidas de Engenharia)" action={<CatalogAnalysisItemButton analysis={sourceAnalysis} itemType="medidasEngenhariaRecomendadas" companyId={(reviewCompanyId || sourceAnalysis.companyId)} inherited={isHierarchyGroupFallback} />}>
                 <SFlex direction="column" gap={1}>
-                  {displayAnalysisContent.medidasEngenhariaRecomendadas.map(
+                  {renderAnalysisOriginGroups(displayAnalysisContent.medidasEngenhariaRecomendadas,
                     (medida, index) => {
                       const itemStatus = resolveDisplayedItemStatus(
                         'medidasEngenhariaRecomendadas',
@@ -706,9 +709,9 @@ export function RiskEntityAiAnalysisPanel({
 
             {displayAnalysisContent.medidasAdministrativasRecomendadas?.length >
               0 && (
-              <AnalysisItemsSection title="Recomendações (Medidas Administrativas)">
+              <AnalysisItemsSection title="Recomendações (Medidas Administrativas)" action={<CatalogAnalysisItemButton analysis={sourceAnalysis} itemType="medidasAdministrativasRecomendadas" companyId={(reviewCompanyId || sourceAnalysis.companyId)} inherited={isHierarchyGroupFallback} />}>
                 <SFlex direction="column" gap={1}>
-                  {displayAnalysisContent.medidasAdministrativasRecomendadas.map(
+                  {renderAnalysisOriginGroups(displayAnalysisContent.medidasAdministrativasRecomendadas,
                     (medida, index) => {
                       const itemStatus = resolveDisplayedItemStatus(
                         'medidasAdministrativasRecomendadas',

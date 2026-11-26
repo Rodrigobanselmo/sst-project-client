@@ -11,6 +11,7 @@ export interface ClearFormQuestionsAnswersAnalysisParams {
   applicationId: string;
   scope: ClearFormAiAnalysisScopeEnum;
   dryRun?: boolean;
+    failuresOnly?: boolean;
   riskId?: string;
   hierarchyId?: string;
   hierarchyGroupId?: string;

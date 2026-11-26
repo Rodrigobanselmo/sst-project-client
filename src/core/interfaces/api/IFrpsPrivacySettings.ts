@@ -6,6 +6,7 @@ export type IFrpsPrivacySettings = {
   riskAnalysisAiMinParticipants: FrpsRiskAnalysisAiMinParticipants;
   riskAnalysisAiMinParticipantsIsDefault: boolean;
   allowPartialResults: boolean;
+  aiGenerationAdditionalLevels?: number[];
   canEdit: boolean;
   restrictParticipantIdentity?: boolean;
   participantGrants?: FrpsParticipantGrant[];
@@ -13,6 +14,7 @@ export type IFrpsPrivacySettings = {
 };
 
 export type IUpdateFrpsPrivacySettings = {
+  aiGenerationAdditionalLevels?: number[];
   restrictParticipantIdentity?: boolean;
   participantGrants?: FrpsParticipantGrant[];
   confirmIndividualAccess?: boolean;

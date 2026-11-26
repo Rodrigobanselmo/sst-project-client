@@ -14,8 +14,13 @@ export const useMutateClearFormQuestionsAnswersAnalysis = () => {
       variables.applicationId,
     ],
     onError: onErrorMessage,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       if (data.dryRun) return;
+
+      if (variables.failuresOnly) {
+        onSuccessMessage(`${data.deletedCount} registro(s) de falha ou travamento sem conteúdo removido(s).`);
+        return;
+      }
 
       onSuccessMessage(
         data.deletedCount === 1

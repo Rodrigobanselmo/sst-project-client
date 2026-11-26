@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 
 export interface IUseFetchProps<T> {
   queryKey: any[];
   queryFn: () => Promise<T>;
-  refetchInterval?: number;
+  refetchInterval?: UseQueryOptions<T>['refetchInterval'];
   refetchOnWindowFocus?: boolean;
   refetchOnMount?: boolean;
   enabled?: boolean;

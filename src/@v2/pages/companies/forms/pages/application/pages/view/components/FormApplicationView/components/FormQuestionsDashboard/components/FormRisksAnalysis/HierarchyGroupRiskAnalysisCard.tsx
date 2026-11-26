@@ -1,5 +1,10 @@
 import CheckIcon from '@mui/icons-material/Check';
-import { Box, Chip, Typography } from '@mui/material';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import {
+  analysisItemPillSchema,
+  analysisItemPillSx,
+} from './analysis-item-pill.styles';
+import { Box, Typography } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -48,6 +53,8 @@ type AnalysisItemType =
   | 'medidasAdministrativasRecomendadas';
 
 export type HierarchyGroupRiskAnalysisCardProps = {
+  headingLabel?: string;
+  showMemberEstablishment?: boolean;
   riskId: string;
   risk: {
     severity?: number;
@@ -73,7 +80,10 @@ export type HierarchyGroupRiskAnalysisCardProps = {
   isMaster?: boolean;
   reviewCompanyId?: string;
   onAddRiskToEntity: (riskId: string, entityId: string) => void;
-  onAddRiskToAllGroupMembers: (riskId: string, memberEntityIds: string[]) => void;
+  onAddRiskToAllGroupMembers: (
+    riskId: string,
+    memberEntityIds: string[],
+  ) => void;
   entityEstablishmentMap?: Map<string, string>;
   onAddAnalysisAsRiskData: (
     analysis: IFormQuestionsAnswersAnalysisBrowseResultModel,
@@ -155,6 +165,8 @@ export type HierarchyGroupRiskAnalysisCardProps = {
 };
 
 export function HierarchyGroupRiskAnalysisCard({
+  headingLabel,
+  showMemberEstablishment = false,
   riskId,
   risk,
   group,
@@ -190,13 +202,16 @@ export function HierarchyGroupRiskAnalysisCard({
   onAddAnalysisItemToAllGroupMembers,
   onAddMemberAnalysisItem,
 }: HierarchyGroupRiskAnalysisCardProps) {
-  const { resolved, hasMisalignedAnalyses, canonicalMemberId: displayCanonicalId } =
-    resolveGroupRiskAnalysisDisplay({
-      riskId,
-      memberEntityIds,
-      results: analysisResults,
-      hierarchyGroups,
-    });
+  const {
+    resolved,
+    hasMisalignedAnalyses,
+    canonicalMemberId: displayCanonicalId,
+  } = resolveGroupRiskAnalysisDisplay({
+    riskId,
+    memberEntityIds,
+    results: analysisResults,
+    hierarchyGroups,
+  });
 
   const probability = getEffectiveProbability(displayCanonicalId, riskId);
   const severity = risk?.severity;
@@ -241,14 +256,18 @@ export function HierarchyGroupRiskAnalysisCard({
     [displayAnalysisContent],
   );
 
-  const isHierarchyGroupFallback = resolved.source === 'hierarchy_group_fallback';
+  const isHierarchyGroupFallback =
+    resolved.source === 'hierarchy_group_fallback';
 
   const panelAnalysis =
     sourceAnalysis && resolved.analysis
       ? buildTargetAiAnalysisViewModel({
           resolved,
           targetHierarchyId: displayCanonicalId,
-          targetProbability: getEffectiveProbability(displayCanonicalId, riskId),
+          targetProbability: getEffectiveProbability(
+            displayCanonicalId,
+            riskId,
+          ),
         })
       : null;
 
@@ -264,12 +283,12 @@ export function HierarchyGroupRiskAnalysisCard({
 
   const allMembersHaveRisk = membersPendingRiskAdd.length === 0;
 
-  const [applyingGroupItemKey, setApplyingGroupItemKey] = useState<string | null>(
-    null,
-  );
-  const [applyingMemberItemKey, setApplyingMemberItemKey] = useState<string | null>(
-    null,
-  );
+  const [applyingGroupItemKey, setApplyingGroupItemKey] = useState<
+    string | null
+  >(null);
+  const [applyingMemberItemKey, setApplyingMemberItemKey] = useState<
+    string | null
+  >(null);
 
   const buildGroupItemApplyingKey = useCallback(
     (itemType: AnalysisItemType, itemIndex: number) =>
@@ -284,14 +303,13 @@ export function HierarchyGroupRiskAnalysisCard({
       itemName: string,
       itemIndex: number,
     ) => {
-      const memberResolved = resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback(
-        {
+      const memberResolved =
+        resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback({
           riskId,
           entityId,
           results: analysisResults,
           hierarchyGroups,
-        },
-      );
+        });
 
       if (!memberResolved.analysis) return undefined;
 
@@ -311,7 +329,11 @@ export function HierarchyGroupRiskAnalysisCard({
             riskDataForHierarchy: riskDataByHierarchyId.get(entityId),
             locallyAppliedItemKeys,
           })
-        : getAnalysisItemStatus(memberResolved.analysis.id, itemType, itemIndex);
+        : getAnalysisItemStatus(
+            memberResolved.analysis.id,
+            itemType,
+            itemIndex,
+          );
     },
     [
       analysisInventoryStatus,
@@ -380,69 +402,71 @@ export function HierarchyGroupRiskAnalysisCard({
 
   return (
     <Box
+      component="details"
       sx={{
         p: 4,
-        backgroundColor: 'background.paper',
         color: 'text.primary',
-        borderRadius: 1,
-        border: '1px solid',
-        borderColor: 'divider',
+        backgroundColor: 'transparent',
+        '& > summary::-webkit-details-marker': { display: 'none' },
+        '&[open] > summary .group-disclosure-arrow': {
+          transform: 'rotate(90deg)',
+        },
       }}
     >
       <SFlex
-        alignItems="flex-start"
-        justifyContent="space-between"
+        component="summary"
+        alignItems="center"
         gap={2}
-        mb={2}
         flexWrap="wrap"
+        mb={2}
+        sx={{
+          cursor: 'pointer',
+          listStyle: 'none',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          pb: 3,
+        }}
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest('button'))
+            event.preventDefault();
+        }}
       >
-        <Box sx={{ minWidth: 0, flex: '1 1 240px' }}>
-          <Typography variant="body1" color="text.primary" fontWeight="medium">
-            Agrupamento: {group.name}
-          </Typography>
+        <SFlex
+          alignItems="center"
+          gap={2}
+          flex={1}
+          minWidth={0}
+          flexWrap="wrap"
+        >
+          <ChevronRightIcon
+            className="group-disclosure-arrow"
+            sx={{ fontSize: 18, flexShrink: 0 }}
+          />
           <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontStyle: 'italic', fontSize: 12, mt: 0.5 }}
+            variant="body1"
+            color="text.primary"
+            fontWeight="medium"
+            sx={{ overflowWrap: 'anywhere' }}
           >
-            Análise aplicada pelo agrupamento de setores
+            {headingLabel ?? <><Box component="span" sx={{ fontWeight: 700 }}>AGRUPAMENTO</Box> DE SETORES — {group.name}</>}
           </Typography>
-          <SFlex gap={0.75} flexWrap="wrap" mt={1}>
-            {sortedMemberEntityIds.map((entityId) => (
-              <Chip
-                key={entityId}
-                label={formatRiskAnalysisMemberLabel({
-                  entityId,
-                  entityMap,
-                  entityEstablishmentMap,
-                })}
-                size="small"
-                variant="outlined"
-              />
-            ))}
-          </SFlex>
-          {hasMisalignedAnalyses && (
-            <Typography variant="caption" color="warning.dark" sx={{ mt: 1, display: 'block' }}>
-              Possível desalinhamento entre análises antigas dos membros. Limpe ou
-              reanalise o agrupamento para uniformizar.
-            </Typography>
-          )}
-        </Box>
-
-        <SFlex alignItems="center" gap={1} flexWrap="wrap" sx={{ flexShrink: 0 }}>
           {allMembersHaveRisk ? (
             <SFlex alignItems="center" gap={0.5}>
-              <CheckIcon sx={{ fontSize: 14, color: 'success.main' }} />
-              <SText color="success.main" fontSize={12}>
+              <CheckIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <SText color="text.secondary" fontSize={12}>
                 Risco adicionado
               </SText>
             </SFlex>
           ) : (
             <SButton
               variant="shade"
-              color="paper"
+              schema={analysisItemPillSchema}
               size="s"
-              text="Adicionar risco a todos os setores deste agrupamento"
+              textProps={{ fontSize: 12 }}
+              buttonProps={{
+                sx: { ...analysisItemPillSx, minHeight: 24, height: 'auto' },
+              }}
+              text="Adicionar risco a todos os setores do agrupamento"
               onClick={() =>
                 onAddRiskToAllGroupMembers(riskId, sortedMemberEntityIds)
               }
@@ -451,6 +475,7 @@ export function HierarchyGroupRiskAnalysisCard({
           <AiActionButtonGroup
             variant="s-button-shade"
             configureIconOnly
+            executeIconOnly
             label={
               isProcessing
                 ? 'Analisando IA...'
@@ -467,6 +492,8 @@ export function HierarchyGroupRiskAnalysisCard({
             isMaster={isMaster}
             sButtonProps={{ color: 'primary' }}
           />
+        </SFlex>
+        <SFlex alignItems="center" gap={1} flexWrap="wrap">
           <FrpsMatrixEquation
             probability={probability}
             severity={severity}
@@ -476,10 +503,26 @@ export function HierarchyGroupRiskAnalysisCard({
           />
         </SFlex>
       </SFlex>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 3, mb: 3 }}>
+        Análise aplicada pelo agrupamento de setores ·{' '}
+        {sortedMemberEntityIds.length} setores membros
+      </Typography>
+      {hasMisalignedAnalyses && (
+        <Typography
+          variant="caption"
+          color="warning.main"
+          sx={{ mt: 1, display: 'block' }}
+        >
+          Possível desalinhamento entre análises antigas dos membros. Limpe ou
+          reanalise o agrupamento para uniformizar.
+        </Typography>
+      )}
 
       {analysisResults.length > 0 && (
         <>
-          {!resolved.analysis && resolved.failedAnalysis && matriz &&
+          {!resolved.analysis &&
+            resolved.failedAnalysis &&
+            matriz &&
             isOccupationalRiskEligibleForAiAnalysis(matriz) && (
               <Box mt={3}>
                 <Typography
@@ -531,7 +574,11 @@ export function HierarchyGroupRiskAnalysisCard({
                         riskDataByHierarchyId.get(displayCanonicalId),
                       locallyAppliedItemKeys,
                     })
-                  : getAnalysisItemStatus(sourceAnalysis.id, itemType, itemIndex)
+                  : getAnalysisItemStatus(
+                      sourceAnalysis.id,
+                      itemType,
+                      itemIndex,
+                    )
               }
               applyingItemKey={applyingItemKey}
               buildApplyingItemKey={buildApplyingItemKey}
@@ -582,7 +629,10 @@ export function HierarchyGroupRiskAnalysisCard({
 
             const applyProps =
               memberAnalysis && memberResolved.analysis
-                ? getApplyAnalysisButtonProps(memberAnalysis, memberFallbackOptions)
+                ? getApplyAnalysisButtonProps(
+                    memberAnalysis,
+                    memberFallbackOptions,
+                  )
                 : null;
 
             const pendingItemEntries = isRiskInInventory(riskId, entityId)
@@ -598,28 +648,100 @@ export function HierarchyGroupRiskAnalysisCard({
               : [];
 
             return (
-              <SFlex
+              <Box
+                component="details"
                 key={entityId}
-                alignItems="center"
-                gap={2}
-                flexWrap="wrap"
                 sx={{
-                  py: 1.5,
-                  px: 2,
-                  backgroundColor: 'background.paper',
+                  py: 3,
+                  px: 4,
                   color: 'text.primary',
-                  borderRadius: 1,
-                  border: '1px solid',
+                  borderBottom: '1px solid',
                   borderColor: 'divider',
+                  '& > summary::-webkit-details-marker': { display: 'none' },
+                  '&[open] > summary .member-disclosure-arrow': {
+                    transform: 'rotate(90deg)',
+                  },
                 }}
               >
-                <SFlex direction="column" gap={0.25} sx={{ minWidth: 120 }}>
-                  <Typography variant="body2" fontWeight={500}>
-                    {formatRiskAnalysisMemberLabel({
-                      entityId,
-                      entityMap,
-                      entityEstablishmentMap,
-                    })}
+                <SFlex
+                  component="summary"
+                  alignItems="center"
+                  gap={2}
+                  flexWrap="wrap"
+                  sx={{ cursor: 'pointer', listStyle: 'none' }}
+                  onClick={(event) => {
+                    if ((event.target as HTMLElement).closest('button'))
+                      event.preventDefault();
+                  }}
+                >
+                  <ChevronRightIcon
+                    className="member-disclosure-arrow"
+                    sx={{ fontSize: 18, flexShrink: 0 }}
+                  />
+                  <SFlex direction="column" gap={0.25} sx={{ minWidth: 120 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.primary"
+                      fontWeight={500}
+                    >
+                      {showMemberEstablishment
+                        ? formatRiskAnalysisMemberLabel({ entityId, entityMap, entityEstablishmentMap })
+                        : `SETOR — ${entityMap[entityId]?.name ?? entityId}`}
+                    </Typography>
+                  </SFlex>
+                  {isRiskInInventory(riskId, entityId) ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        color: 'success.main',
+                        fontSize: 11,
+                      }}
+                    >
+                      <CheckIcon sx={{ fontSize: 14 }} />
+                      Risco adicionado
+                    </Box>
+                  ) : (
+                    <SButton
+                      variant="shade"
+                      schema={analysisItemPillSchema}
+                      textProps={{ fontSize: 12 }}
+                      text="Adicionar risco a este setor"
+                      onClick={() => onAddRiskToEntity(riskId, entityId)}
+                      buttonProps={{
+                        sx: { ...analysisItemPillSx, height: 24 },
+                      }}
+                    />
+                  )}
+                  {memberAnalysis && applyProps && (
+                    <SButton
+                      variant="shade"
+                      schema={analysisItemPillSchema}
+                      textProps={{ fontSize: 11 }}
+                      size="s"
+                      text={applyProps.text}
+                      onClick={() =>
+                        onAddAnalysisAsRiskData(
+                          memberAnalysis,
+                          memberIsFallback
+                            ? {
+                                ...memberFallbackOptions,
+                                skipMarkAnalysisApplied: true,
+                              }
+                            : undefined,
+                        )
+                      }
+                      buttonProps={{
+                        sx: { ...analysisItemPillSx, ml: 'auto' },
+                      }}
+                    />
+                  )}
+                </SFlex>
+                <Box sx={{ pl: 10, pt: 3 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Setor membro de {group.name}. A análise coletiva é exibida
+                    acima.
                   </Typography>
                   {pendingItemEntries.length > 0 && (
                     <SFlex direction="column" gap={0.5} mt={0.25}>
@@ -633,60 +755,19 @@ export function HierarchyGroupRiskAnalysisCard({
                             code={entry.code}
                             title={entry.nome}
                             isApplying={
-                              applyingMemberItemKey === `${entityId}:${entry.code}`
+                              applyingMemberItemKey ===
+                              `${entityId}:${entry.code}`
                             }
-                            onClick={() => handleMemberItemClick(entityId, entry)}
+                            onClick={() =>
+                              handleMemberItemClick(entityId, entry)
+                            }
                           />
                         ))}
                       </SFlex>
                     </SFlex>
                   )}
-                </SFlex>
-                {isRiskInInventory(riskId, entityId) ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      color: 'success.main',
-                      fontSize: 11,
-                    }}
-                  >
-                    <CheckIcon sx={{ fontSize: 14 }} />
-                    Risco adicionado
-                  </Box>
-                ) : (
-                  <SButton
-                    variant="shade"
-                    color="paper"
-                    text="Adicionar somente neste setor"
-                    onClick={() => onAddRiskToEntity(riskId, entityId)}
-                    buttonProps={{ sx: { fontSize: '0.7rem', py: 0.5 } }}
-                  />
-                )}
-                {memberAnalysis && applyProps && (
-                  <SButton
-                    variant="shade"
-                    color={applyProps.color}
-                    size="s"
-                    text={applyProps.text}
-                    onClick={() =>
-                      onAddAnalysisAsRiskData(
-                        memberAnalysis,
-                        memberIsFallback
-                          ? {
-                              ...memberFallbackOptions,
-                              skipMarkAnalysisApplied: true,
-                            }
-                          : undefined,
-                      )
-                    }
-                    buttonProps={{
-                      sx: { ml: 'auto', fontSize: '0.75rem' },
-                    }}
-                  />
-                )}
-              </SFlex>
+                </Box>
+              </Box>
             );
           })}
         </SFlex>

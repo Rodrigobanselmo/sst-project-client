@@ -35,6 +35,7 @@ type SystemAiPromptConfigForm = {
 };
 
 export type SystemAiPromptConfigDialogProps = {
+  additionalSettings?: React.ReactNode;
   open: boolean;
   onClose: () => void;
   onApply: (config: SystemAiMasterConfig) => void;
@@ -79,6 +80,7 @@ function resolveFormDefaultModel(defaultModelValue?: string, options = AI_MODEL_
 
 export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = ({
   open,
+  additionalSettings,
   onClose,
   onApply,
   title,
@@ -278,6 +280,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
         <form onSubmit={handleFormSubmit}>
           <DialogTitle>{title}</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {additionalSettings}
             {description && (
               <Typography variant="body2" color="text.secondary">
                 {description}

@@ -9,6 +9,7 @@ export enum AiAnalyzeFormQuestionsRisksModeEnum {
 export interface AiAnalyzeFormQuestionsRisksParams {
   companyId: string;
   formApplicationId: string;
+  riskBand?: 'PRIORITY' | 'HIGH' | 'VERY_HIGH' | 'MODERATE' | 'LOW' | 'VERY_LOW';
   mode?: AiAnalyzeFormQuestionsRisksModeEnum;
   riskId?: string;
   hierarchyId?: string;
@@ -20,6 +21,7 @@ export type AiRiskAnalysisItem = {
   nome: string;
   justificativa: string;
   origem: 'sistema' | 'ia';
+  selectionOrigin?: 'USER';
   /** Identidade system do catálogo (enriquecida no browse). */
   catalogId?: string | null;
   /** Identidade estável da validação do cliente, gravada no JSON da análise. */

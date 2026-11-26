@@ -1,35 +1,31 @@
-/**
- * Estilos do nome do fator de risco no título do accordion da análise.
- * Mantém uma única linha; textos longos usam ellipsis.
- */
+/** Títulos completos; em telas estreitas podem ocupar mais de uma linha. */
 export const riskFactorNameTypographySx = {
-  whiteSpace: 'nowrap' as const,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
+  whiteSpace: 'normal' as const,
+  overflowWrap: 'anywhere' as const,
   minWidth: 0,
   flex: 1,
 };
 
-/** Container flex do chip PSIC + nome: permite o texto encolher com ellipsis. */
 export const riskFactorNameRowSx = {
   flex: 1,
   minWidth: 0,
-  overflow: 'hidden',
   width: '100%',
+  flexWrap: 'wrap' as const,
 };
 
-/**
- * Garante que o content do AccordionSummary ceda largura ao nome
- * (em vez de forçar quebra de linha no Typography).
- */
+/** Nome usa o espaço disponível; indicadores ficam no extremo direito. */
 export const riskFactorAccordionSummarySx = {
   '& .MuiAccordionSummary-content': {
     minWidth: 0,
-    overflow: 'hidden',
+    gap: '16px',
+  },
+  '& .MuiAccordionSummary-content > div:nth-of-type(2)': {
+    flex: '0 0 auto !important',
+    width: 'max-content',
+    marginLeft: 'auto',
   },
   '& .MuiAccordionSummary-content > div:first-of-type': {
-    flex: 1,
+    flex: '1 1 0%',
     minWidth: 0,
-    overflow: 'hidden',
   },
 };

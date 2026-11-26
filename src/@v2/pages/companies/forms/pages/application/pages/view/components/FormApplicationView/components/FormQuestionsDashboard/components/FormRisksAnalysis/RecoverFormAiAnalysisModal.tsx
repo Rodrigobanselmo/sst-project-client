@@ -321,6 +321,7 @@ export function RecoverFormAiAnalysisModal({
     selectionComplete &&
     understood &&
     confirmationText.trim().toUpperCase() === CONFIRMATION_TOKEN &&
+    !previewError &&
     !isPreviewLoading &&
     !isRecovering &&
     (preview?.totalStuckCount ?? 0) > 0;
@@ -344,14 +345,16 @@ export function RecoverFormAiAnalysisModal({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Recuperar análises travadas</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth
+      PaperProps={{ sx: { backgroundColor: 'background.paper', color: 'text.primary', border: '1px solid', borderColor: 'divider', borderRadius: 3 } }}>
+      <DialogTitle sx={{ color: 'text.primary', fontWeight: 700, px: 10, pt: 10, pb: 6 }}>Recuperar análises travadas</DialogTitle>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 6, px: 10, py: 4, '& .MuiFormControlLabel-label': { color: 'text.primary' }, '& .MuiInputBase-root': { color: 'text.primary' } }}>
         <Typography variant="body2" color="text.secondary">
           Esta ação recupera análises de IA presas em processamento há mais de{' '}
           {DEFAULT_STUCK_AI_ANALYSIS_OLDER_THAN_MINUTES} minutos. Análises com
-          conteúdo completo serão marcadas como concluídas; análises vazias ou
-          incompletas serão marcadas como falha para permitir reprocessamento.
+          fontes geradoras ou recomendações salvas terão o conteúdo preservado e serão
+          marcadas como concluídas; análises sem conteúdo serão marcadas como falha
+          para permitir reprocessamento.
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Não remove respostas do formulário, riscos do inventário, agrupamentos,
@@ -361,6 +364,7 @@ export function RecoverFormAiAnalysisModal({
         <FormControl fullWidth size="small">
           <InputLabel id="recover-ai-scope-label">Escopo da recuperação</InputLabel>
           <Select
+              MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
             labelId="recover-ai-scope-label"
             label="Escopo da recuperação"
             value={scope}
@@ -386,6 +390,7 @@ export function RecoverFormAiAnalysisModal({
           <FormControl fullWidth size="small">
             <InputLabel id="recover-ai-risk-label">Fator de risco</InputLabel>
             <Select
+              MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
               labelId="recover-ai-risk-label"
               label="Fator de risco"
               value={riskId}
@@ -404,6 +409,7 @@ export function RecoverFormAiAnalysisModal({
           <FormControl fullWidth size="small">
             <InputLabel id="recover-ai-hierarchy-label">Setor</InputLabel>
             <Select
+              MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
               labelId="recover-ai-hierarchy-label"
               label="Setor"
               value={hierarchyId}
@@ -423,6 +429,7 @@ export function RecoverFormAiAnalysisModal({
           <FormControl fullWidth size="small">
             <InputLabel id="recover-ai-group-label">Agrupamento</InputLabel>
             <Select
+              MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
               labelId="recover-ai-group-label"
               label="Agrupamento"
               value={hierarchyGroupId}
@@ -440,20 +447,21 @@ export function RecoverFormAiAnalysisModal({
         {selectionComplete && (
           <Box
             sx={{
-              p: 2,
-              borderRadius: 1,
+              p: 6,
+              borderRadius: 2,
               border: '1px solid',
-              borderColor: 'grey.200',
-              backgroundColor: 'grey.50',
+              borderColor: 'divider',
+              backgroundColor: 'action.hover',
+              color: 'text.primary',
             }}
           >
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" color="text.primary" fontWeight={600} gutterBottom>
               Resumo do escopo
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {scopeSummary}
             </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }}>
+            <Typography variant="body2" color={previewError ? "error.main" : "text.primary"} sx={{ mt: 3 }}>
               {isPreviewLoading
                 ? 'Calculando análises travadas...'
                 : previewError
@@ -505,13 +513,17 @@ export function RecoverFormAiAnalysisModal({
           autoComplete="off"
         />
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <SButton variant="outlined" text="Cancelar" onClick={handleClose} />
+      <DialogActions sx={{ px: 10, py: 8, gap: 4, borderTop: '1px solid', borderColor: 'divider', flexWrap: 'wrap' }}>
+        <SButton variant="outlined" text="Cancelar" onClick={handleClose}
+          schema={{ color: 'text.primary', borderColor: 'divider', backgroundColor: 'transparent' }}
+          textProps={{ color: 'inherit', fontSize: 14 }} />
         <SButton
           variant="contained"
           color="primary"
           text="Recuperar análises travadas"
           loading={isRecovering}
+          textProps={{ color: 'inherit' }}
+          buttonProps={{ sx: { '&&.Mui-disabled': { color: 'text.disabled', backgroundColor: 'action.disabledBackground', borderColor: 'divider' } } }}
           disabled={!canConfirm}
           onClick={() => void handleConfirm()}
         />

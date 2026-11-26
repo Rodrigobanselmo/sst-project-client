@@ -21,6 +21,9 @@ export const useFetchBrowseFormQuestionsAnswersAnalysis = (
       return browseFormQuestionsAnswersAnalysis(params);
     },
     queryKey: getKeyBrowseFormQuestionsAnswersAnalysis(params),
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: (query) => query.state.data?.results?.some(item => item.status === 'PROCESSING') ? 3000 : false,
     enabled: !!params.companyId && !!params.applicationId,
   });
 

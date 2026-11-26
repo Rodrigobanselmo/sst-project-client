@@ -88,12 +88,14 @@ function buildClearPayload(params: {
   hierarchyId: string;
   hierarchyGroupId: string;
   dryRun: boolean;
+  failuresOnly: boolean;
 }): ClearFormQuestionsAnswersAnalysisParams {
   const payload: ClearFormQuestionsAnswersAnalysisParams = {
     companyId: params.companyId,
     applicationId: params.applicationId,
     scope: params.scope,
     dryRun: params.dryRun,
+    failuresOnly: params.failuresOnly,
   };
 
   if (params.scope === ClearFormAiAnalysisScopeEnum.RISK) {
@@ -172,6 +174,7 @@ export function ClearFormAiAnalysisModal({
   const [scope, setScope] = useState<ClearFormAiAnalysisScopeEnum>(
     ClearFormAiAnalysisScopeEnum.APPLICATION,
   );
+  const [failuresOnly, setFailuresOnly] = useState(true);
   const [riskId, setRiskId] = useState('');
   const [hierarchyId, setHierarchyId] = useState('');
   const [hierarchyGroupId, setHierarchyGroupId] = useState('');
@@ -185,6 +188,7 @@ export function ClearFormAiAnalysisModal({
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   const resetState = useCallback(() => {
+    setFailuresOnly(true);
     setScope(ClearFormAiAnalysisScopeEnum.APPLICATION);
     setRiskId('');
     setHierarchyId('');
@@ -254,6 +258,7 @@ export function ClearFormAiAnalysisModal({
             hierarchyId,
             hierarchyGroupId,
             dryRun: true,
+            failuresOnly,
           }),
         );
 
@@ -280,6 +285,7 @@ export function ClearFormAiAnalysisModal({
     };
   }, [
     open,
+    failuresOnly,
     selectionComplete,
     companyId,
     applicationId,
@@ -293,6 +299,9 @@ export function ClearFormAiAnalysisModal({
     selectionComplete &&
     understood &&
     confirmationText.trim().toUpperCase() === CONFIRMATION_TOKEN &&
+    !previewError &&
+    matchedCount !== null &&
+    matchedCount > 0 &&
     !isPreviewLoading &&
     !isClearing;
 
@@ -308,6 +317,7 @@ export function ClearFormAiAnalysisModal({
         hierarchyId,
         hierarchyGroupId,
         dryRun: false,
+        failuresOnly,
       }),
     );
 
@@ -315,13 +325,15 @@ export function ClearFormAiAnalysisModal({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Limpar análises de IA</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth
+      PaperProps={{ sx: { backgroundColor: 'background.paper', color: 'text.primary', border: '1px solid', borderColor: 'divider', borderRadius: 3 } }}>
+
+      <DialogTitle sx={{ color: 'text.primary', fontWeight: 700, px: 10, pt: 10, pb: 6 }}>Limpar análises de IA</DialogTitle>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 6, px: 10, py: 4, '& .MuiFormControlLabel-label': { color: 'text.primary' }, '& .MuiInputBase-root': { color: 'text.primary' } }}>
         <Typography variant="body2" color="text.secondary">
-          Esta ação remove permanentemente as análises de IA salvas para o escopo
+          {failuresOnly ? 'Remove somente registros com falha ou travados há mais de 60 minutos, sem conteúdo. Análises concluídas, fontes geradoras, recomendações, revisões e edições serão preservadas. Registros recentes em processamento serão preservados. Não é necessário recuperar os registros travados antes de limpar.' : <>Esta ação remove permanentemente as análises de IA salvas para o escopo
           selecionado, incluindo fontes geradoras, recomendações sugeridas e
-          edições feitas nelas.
+          edições feitas nelas.</>}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Não remove riscos do inventário, fontes/recomendações já aplicadas ao
@@ -329,9 +341,19 @@ export function ClearFormAiAnalysisModal({
           agrupamentos de setores.
         </Typography>
 
+        <FormControlLabel
+          control={<Checkbox checked={failuresOnly} onChange={(event) => {
+            setFailuresOnly(event.target.checked);
+            setMatchedCount(null);
+            setUnderstood(false);
+            setConfirmationText('');
+          }} />}
+          label="Somente falhas e travamentos sem conteúdo (preservar análises e edições)"
+        />
         <FormControl fullWidth size="small">
           <InputLabel id="clear-ai-scope-label">Escopo da limpeza</InputLabel>
           <Select
+            MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
             labelId="clear-ai-scope-label"
             label="Escopo da limpeza"
             value={scope}
@@ -357,6 +379,7 @@ export function ClearFormAiAnalysisModal({
           <FormControl fullWidth size="small">
             <InputLabel id="clear-ai-risk-label">Fator de risco</InputLabel>
             <Select
+            MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
               labelId="clear-ai-risk-label"
               label="Fator de risco"
               value={riskId}
@@ -375,6 +398,7 @@ export function ClearFormAiAnalysisModal({
           <FormControl fullWidth size="small">
             <InputLabel id="clear-ai-hierarchy-label">Setor</InputLabel>
             <Select
+            MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
               labelId="clear-ai-hierarchy-label"
               label="Setor"
               value={hierarchyId}
@@ -394,6 +418,7 @@ export function ClearFormAiAnalysisModal({
           <FormControl fullWidth size="small">
             <InputLabel id="clear-ai-group-label">Agrupamento</InputLabel>
             <Select
+            MenuProps={{ PaperProps: { sx: { backgroundColor: 'background.paper', color: 'text.primary', '& .MuiMenuItem-root': { color: 'text.primary' } } } }}
               labelId="clear-ai-group-label"
               label="Agrupamento"
               value={hierarchyGroupId}
@@ -411,20 +436,21 @@ export function ClearFormAiAnalysisModal({
         {selectionComplete && (
           <Box
             sx={{
-              p: 2,
-              borderRadius: 1,
+              p: 6,
+              borderRadius: 2,
               border: '1px solid',
-              borderColor: 'grey.200',
-              backgroundColor: 'grey.50',
+              borderColor: 'divider',
+              backgroundColor: 'action.hover',
+              color: 'text.primary',
             }}
           >
-            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+            <Typography variant="subtitle2" color="text.primary" fontWeight={600} gutterBottom>
               Resumo do escopo
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {scopeSummary}
             </Typography>
-            <Typography variant="body2" sx={{ mt: 1 }}>
+            <Typography variant="body2" color={previewError ? "error.main" : "text.primary"} sx={{ mt: 3 }}>
               {isPreviewLoading
                 ? 'Calculando quantidade de análises...'
                 : previewError
@@ -432,12 +458,12 @@ export function ClearFormAiAnalysisModal({
                   : matchedCount === null
                     ? ''
                     : matchedCount === 0
-                      ? 'Nenhuma análise de IA encontrada para este escopo.'
+                      ? failuresOnly ? 'Nenhuma falha ou travamento sem conteúdo encontrada neste escopo.' : 'Nenhuma análise de IA encontrada para este escopo.'
                       : matchedCount === 1
-                        ? 'Será removida 1 análise de IA.'
-                        : `Serão removidas ${matchedCount} análises de IA.`}
+                        ? failuresOnly ? 'Será removido 1 registro de falha ou travamento sem conteúdo.' : 'Será removida 1 análise de IA.'
+                        : failuresOnly ? `Serão removidos ${matchedCount} registros de falha ou travamento sem conteúdo.` : `Serão removidas ${matchedCount} análises de IA.`}
             </Typography>
-            {hasProcessingAnalyses && (
+            {hasProcessingAnalyses && !failuresOnly && (
               <Typography
                 variant="body2"
                 color="warning.main"
@@ -457,7 +483,7 @@ export function ClearFormAiAnalysisModal({
               onChange={(event) => setUnderstood(event.target.checked)}
             />
           }
-          label="Entendo que isso apaga análises geradas pela IA e edições feitas nelas."
+          label={failuresOnly ? "Entendo que serão removidos somente registros com falha ou travados há mais de 60 minutos, sem conteúdo." : "Entendo que isso apaga análises geradas pela IA e edições feitas nelas."}
         />
 
         <TextField
@@ -469,13 +495,17 @@ export function ClearFormAiAnalysisModal({
           autoComplete="off"
         />
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <SButton variant="outlined" text="Cancelar" onClick={handleClose} />
+      <DialogActions sx={{ px: 10, py: 8, gap: 4, borderTop: '1px solid', borderColor: 'divider', flexWrap: 'wrap' }}>
+        <SButton variant="outlined" text="Cancelar" onClick={handleClose}
+          schema={{ color: 'text.primary', borderColor: 'divider', backgroundColor: 'transparent' }}
+          textProps={{ color: 'inherit', fontSize: 14 }} />
         <SButton
           variant="contained"
           color="danger"
-          text="Limpar análises"
+          text={failuresOnly ? "Limpar falhas e travamentos sem conteúdo" : "Limpar análises"}
           loading={isClearing}
+          textProps={{ color: 'inherit' }}
+          buttonProps={{ sx: { '&&.Mui-disabled': { color: 'text.disabled', backgroundColor: 'action.disabledBackground', borderColor: 'divider' } } }}
           disabled={!canConfirm || matchedCount === 0}
           onClick={() => void handleConfirm()}
         />

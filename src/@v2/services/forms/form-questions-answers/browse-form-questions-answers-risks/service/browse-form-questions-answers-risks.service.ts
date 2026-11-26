@@ -6,6 +6,7 @@ import { api } from 'core/services/apiClient';
 import { BrowseFormQuestionsAnswersRisksParams } from './browse-form-questions-answers-risks.types';
 
 export type Result = {
+  aiEligibilityByEntity?: Record<string, Record<string, { eligible: boolean; minParticipants: number }>>;
   // entityId -> riskId --> values
   entityRiskMap: Record<
     string,
