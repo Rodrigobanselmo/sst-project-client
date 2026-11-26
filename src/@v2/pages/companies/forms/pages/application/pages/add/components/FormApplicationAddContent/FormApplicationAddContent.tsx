@@ -1,3 +1,5 @@
+import { Box, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { ContinueCampaign } from '@v2/pages/companies/forms/pages/application/components/CampaignCycles/ContinueCampaign';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { SFormSection } from '@v2/components/forms/components/SFormSection/SFormSection';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
@@ -32,7 +34,7 @@ import {
 } from '../../../../schema/form-application.schema';
 import { FormApplicationScopeTypeEnum } from '@v2/models/form/enums/form-application-scope-type.enum';
 
-export const FormApplicationAddContent = ({
+const IndependentFormApplicationAddContent = ({
   companyId,
 }: {
   companyId: string;
@@ -245,4 +247,15 @@ export const FormApplicationAddContent = ({
       />
     </SForm>
   );
+};
+
+export const FormApplicationAddContent = ({companyId}: {companyId:string}) => {
+  const [mode,setMode] = useState('independent');
+  return <Box>
+    <ToggleButtonGroup exclusive value={mode} onChange={(_,value)=>value && setMode(value)} sx={{mb:'20px'}}>
+      <ToggleButton value="independent">Nova pesquisa independente</ToggleButton>
+      <ToggleButton value="cycle">Novo ciclo de pesquisa existente</ToggleButton>
+    </ToggleButtonGroup>
+    {mode === 'cycle' ? <ContinueCampaign companyId={companyId} /> : <IndependentFormApplicationAddContent companyId={companyId} />}
+  </Box>;
 };

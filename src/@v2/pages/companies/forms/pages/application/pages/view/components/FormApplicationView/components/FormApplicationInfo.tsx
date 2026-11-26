@@ -1,3 +1,6 @@
+import { useAppRouter } from '@v2/hooks/useAppRouter';
+import { useCampaignCycles } from '@v2/pages/companies/forms/pages/application/components/CampaignCycles/campaign-cycles.api';
+import { CampaignCyclesPanel } from '@v2/pages/companies/forms/pages/application/components/CampaignCycles/CampaignCyclesPanel';
 import { Box } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { formAccordionNavigationSx } from './form-accordion-navigation.styles';
@@ -24,6 +27,9 @@ export const FormApplicationInfo = ({
   formApplication: FormApplicationReadModel | null | undefined;
   onEdit: () => void;
 }) => {
+  const router = useAppRouter();
+  const companyId = router.params.companyId || formApplication?.companyId || '';
+  const cycles = useCampaignCycles(companyId,formApplication?.id);
   if (!formApplication) {
     return <SSkeleton height={200} sx={{ mb: 10 }} />;
   }
@@ -66,7 +72,7 @@ export const FormApplicationInfo = ({
           </Box>
         }
         title={formApplication.name}
-        subtitle={formApplication.form.name}
+        subtitle={`${formApplication.form.name}${cycles.data ? ` · Ciclo ${cycles.data.current.number} · ${cycles.data.current.referencePeriod}` : ''}`}
         fontWeight="600"
         accordionProps={{
           sx: (theme) => ({
@@ -216,6 +222,7 @@ export const FormApplicationInfo = ({
               </InfoCardSection>
             </>
           )}
+          <CampaignCyclesPanel companyId={companyId} applicationId={formApplication.id} data={cycles.data} />
         </SAccordionBody>
       </SAccordion>
     </SPaper>

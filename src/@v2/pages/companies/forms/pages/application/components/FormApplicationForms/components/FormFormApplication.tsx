@@ -140,7 +140,7 @@ export const FormFormApplication = ({ companyId, disabled }: Props) => {
       )}
       {isPsychosocial && (
         <SPaper sx={{ p: 6, borderRadius: 1, mt: 4 }}>
-          <SText fontSize={14} fontWeight={600} mb={4}>
+          <SText color="text.primary" fontSize={16} fontWeight={600} mb={6}>
             Textos do Banner de Campanha
           </SText>
           <SFlex direction="column" gap={6}>

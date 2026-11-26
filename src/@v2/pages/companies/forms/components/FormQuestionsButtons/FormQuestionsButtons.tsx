@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
@@ -23,6 +23,9 @@ export const FormQuestionsButtons = ({
   isDirty?: boolean;
   showSaveAndExit?: boolean;
 }) => {
+  const theme = useTheme();
+  const errorText =
+    theme.palette.mode === 'dark' ? 'error.light' : 'error.dark';
   const { showConfirmation } = useConfirmationModal();
   const saveActionColor = getSaveActionV2Color(!!isDirty);
 
@@ -49,7 +52,7 @@ export const FormQuestionsButtons = ({
   const hasErrors = Object.keys(errors).length > 0;
 
   return (
-    <div>
+    <Box sx={{ pb: { xs: '80px', sm: '24px' } }}>
       {hasErrors && (
         <Box
           sx={{
@@ -61,10 +64,10 @@ export const FormQuestionsButtons = ({
             my: 8,
           }}
         >
-          <Typography color="error.dark" fontSize={14} fontWeight={600} mb={1}>
+          <Typography color={errorText} fontSize={14} fontWeight={600} mb={1}>
             Erro de Validação
           </Typography>
-          <Typography color="error.dark" fontSize={13} mb={2}>
+          <Typography color={errorText} fontSize={13} mb={2}>
             Alguns campos estão faltando ou incorretos. Verifique os erros
             destacados no formulário.
           </Typography>
@@ -73,7 +76,7 @@ export const FormQuestionsButtons = ({
             {Object.entries(errors).map(([fieldPath, error]) => (
               <Typography
                 key={fieldPath}
-                color="error.dark"
+                color={errorText}
                 fontSize={12}
                 sx={{
                   display: 'flex',
@@ -98,7 +101,12 @@ export const FormQuestionsButtons = ({
         <SButton
           text="Cancelar"
           onClick={handleCancel}
-          color="danger"
+          color="normal"
+          schema={{
+            color: 'text.primary',
+            borderColor: 'divider',
+            backgroundColor: 'transparent',
+          }}
           variant="shade"
           size="m"
           buttonProps={{
@@ -139,6 +147,6 @@ export const FormQuestionsButtons = ({
           />
         )}
       </SFlex>
-    </div>
+    </Box>
   );
 };

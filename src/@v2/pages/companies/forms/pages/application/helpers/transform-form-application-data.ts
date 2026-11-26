@@ -51,7 +51,9 @@ export function transformFormApplicationDataToApiFormat(
 export function isFormApplicationStructureLocked(params: {
   status?: FormApplicationStatusEnum | string | null;
   startedAt?: Date | string | null;
+  isCycle?: boolean;
 }) {
+  if (params.isCycle) return true;
   if (params.status === FormApplicationStatusEnum.INACTIVE) return false;
   return !!params.startedAt;
 }
@@ -62,6 +64,7 @@ export function buildEditFormApplicationMutationPayload(params: {
   data: IFormApplicationFormFields;
   status?: FormApplicationStatusEnum | string | null;
   startedAt?: Date | string | null;
+  isCycle?: boolean;
 }): EditFormApplicationParams {
   const payload: EditFormApplicationParams = {
     companyId: params.companyId,

@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -80,16 +81,16 @@ export const QuestionTypeFormContent = ({
     }
 
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           padding: '16px',
           textAlign: 'center',
-          color: '#666',
+          color: 'text.secondary',
           fontStyle: 'italic',
         }}
       >
         Selecione um tipo de pergunta para configurar as opções
-      </div>
+      </Box>
     );
   };
 

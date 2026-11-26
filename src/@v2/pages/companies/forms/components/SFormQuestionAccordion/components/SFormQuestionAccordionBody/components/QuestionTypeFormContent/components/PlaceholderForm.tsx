@@ -13,7 +13,7 @@ export const PlaceholderForm = ({
 }: PlaceholderFormProps) => {
   return (
     <Box>
-      <Typography variant="body1">Campo Automático</Typography>
+      <Typography variant="body1" color="text.secondary">Campo Automático</Typography>
     </Box>
   );
 };

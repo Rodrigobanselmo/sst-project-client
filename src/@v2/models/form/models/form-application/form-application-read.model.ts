@@ -26,6 +26,7 @@ export type IFormApplicationReadModel = {
     indicatorHierarchy?: FormIndicatorHierarchy;
   };
   isShareableLink: boolean;
+  isCycle?: boolean;
   isAnonymous: boolean;
   scopeType: FormApplicationScopeTypeEnum;
   companyGroupId: number | null;
@@ -65,6 +66,7 @@ export class FormApplicationReadModel {
     indicatorHierarchy?: FormIndicatorHierarchy;
   };
   isShareableLink: boolean;
+  isCycle?: boolean;
   isAnonymous: boolean;
   totalParticipants: number;
   totalAnswers: number;
@@ -86,6 +88,7 @@ export class FormApplicationReadModel {
   questionIdentifierGroup: FormQuestionGroupReadModel;
 
   constructor(params: IFormApplicationReadModel) {
+    this.isCycle = params.isCycle;
     this.id = params.id;
     this.companyId = params.companyId;
     this.name = params.name;

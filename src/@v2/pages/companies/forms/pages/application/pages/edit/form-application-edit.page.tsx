@@ -23,7 +23,12 @@ export const FormApplicationEditPage = () => {
       <SContainer>
         <Box
           sx={{
-            maxWidth: 800,
+            maxWidth: '880px',
+            width: '100%',
+            color: 'text.primary',
+            '& .MuiInputBase-input.Mui-disabled': {
+              WebkitTextFillColor: (theme) => theme.palette.text.secondary,
+            },
             mx: 'auto',
           }}
         >

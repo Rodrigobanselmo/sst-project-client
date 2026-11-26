@@ -110,8 +110,8 @@ const nextConfig = {
         splitChunks: false,
       };
 
-      // Faster source maps in development
-      config.devtool = 'eval-cheap-module-source-map';
+      // Let Next.js choose its development source-map mode; overriding it
+      // causes a framework warning and slows down incremental compilation.
 
       // Cache for faster rebuilds
       config.cache = {

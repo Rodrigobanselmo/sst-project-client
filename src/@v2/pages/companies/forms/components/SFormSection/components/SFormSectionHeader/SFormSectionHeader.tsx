@@ -76,15 +76,23 @@ export const SFormSectionHeader = ({
   };
 
   return (
-    <Stack gap={4}>
+    <Stack gap={8} sx={{ minWidth: 0 }}>
       {/* Section Header */}
       <SAccordion
         accordionProps={{
           sx: {
-            borderTop: '7px solid',
-            borderColor: 'grey.500',
+            border: '1px solid',
+            borderTop: '3px solid',
+            borderColor: 'divider',
+            borderTopColor: 'primary.main',
+            borderRadius: '12px',
+            boxShadow: 'none',
+            '& .MuiAccordionSummary-root': { minHeight: '64px' },
+            '& .MuiTypography-h5': { fontSize: '16px', lineHeight: 1.5 },
           },
         }}
+        color="text.primary"
+        fontWeight="600"
         title={title(sectionIndex)}
         expandIcon={null}
         expanded={true}
@@ -100,7 +108,7 @@ export const SFormSectionHeader = ({
                 iconButtonProps={{ 'aria-label': 'Subir seção' }}
               >
                 <KeyboardArrowUpOutlinedIcon
-                  sx={{ color: 'grey.600', fontSize: 20 }}
+                  sx={{ color: 'text.secondary', fontSize: 20 }}
                 />
               </SIconButton>
             )}
@@ -111,7 +119,7 @@ export const SFormSectionHeader = ({
                 iconButtonProps={{ 'aria-label': 'Descer seção' }}
               >
                 <KeyboardArrowDownOutlinedIcon
-                  sx={{ color: 'grey.600', fontSize: 20 }}
+                  sx={{ color: 'text.secondary', fontSize: 20 }}
                 />
               </SIconButton>
             )}
@@ -127,7 +135,9 @@ export const SFormSectionHeader = ({
               iconButtonProps={{ ref: anchorRef }}
               onClick={handleTogglePopper}
             >
-              <SMoreOptionsIcon sx={{ color: 'grey.600', fontSize: 20 }} />
+              <SMoreOptionsIcon
+                sx={{ color: 'text.secondary', fontSize: 20 }}
+              />
             </SIconButton>
           </Box>
         }

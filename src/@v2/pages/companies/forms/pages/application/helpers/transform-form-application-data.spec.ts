@@ -106,3 +106,11 @@ run('stay and exit share the same persist payload builder', () => {
 });
 
 console.log('\nAll transform-form-application-data tests passed.');
+
+run('cycle questionnaire stays locked before opening and while inactive', () => {
+  assert.equal(isFormApplicationStructureLocked({status: FormApplicationStatusEnum.PENDING, startedAt: null, isCycle: true}), true);
+  assert.equal(isFormApplicationStructureLocked({status: FormApplicationStatusEnum.INACTIVE, startedAt: null, isCycle: true}), true);
+  const payload = buildEditFormApplicationMutationPayload({companyId:'company', applicationId:'cycle', data, status:FormApplicationStatusEnum.PENDING, startedAt:null, isCycle:true});
+  assert.equal('identifier' in payload, false);
+  assert.equal('formId' in payload, false);
+});

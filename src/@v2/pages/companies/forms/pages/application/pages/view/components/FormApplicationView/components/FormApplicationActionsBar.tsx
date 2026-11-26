@@ -1,3 +1,4 @@
+import { formApplicationActionButtonSx } from '@v2/pages/companies/forms/pages/application/components/form-application-action-button.styles';
 import { Box, useTheme } from '@mui/material';
 import { SIconShare } from '@v2/assets/icons/SIconShare/SIconShare';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
@@ -26,7 +27,8 @@ export const FormApplicationActionsBar = ({
   companyId: string;
   modelQuestionCount?: number | null;
 }) => {
-  const { palette } = useTheme();
+  const theme = useTheme();
+  const { palette } = theme;
   const infoButtonSchema =
     palette.mode === 'dark'
       ? { color: 'info.light', borderColor: 'info.light' }
@@ -74,33 +76,7 @@ export const FormApplicationActionsBar = ({
       <Box
         sx={{
           display: 'contents',
-          '&& .MuiButton-root': {
-            color: 'text.primary',
-            borderColor: 'divider',
-            background:
-              palette.mode === 'dark'
-                ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.035))'
-                : 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4))',
-            backdropFilter: 'blur(16px) saturate(140%)',
-            WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-            transition:
-              'background-color 160ms ease, border-color 160ms ease, transform 160ms ease',
-            '&:hover': {
-              color: palette.mode === 'dark' ? '#F9D43B' : '#1565C0',
-              backgroundColor: 'action.hover',
-              borderColor: 'text.secondary',
-              transform: 'translateY(-1px)',
-            },
-            '&:active': { transform: 'translateY(0)' },
-            '&:focus-visible': {
-              outline: '2px solid',
-              outlineColor: 'text.secondary',
-              outlineOffset: 2,
-            },
-            '& *': {
-              color: 'inherit',
-            },
-          },
+          '&& .MuiButton-root': formApplicationActionButtonSx(theme),
         }}
       >
         {isSharable && (

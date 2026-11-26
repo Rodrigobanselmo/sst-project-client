@@ -94,10 +94,16 @@ function toggleBulletList(
 const toolbarSx = {
   display: 'flex',
   gap: '2px',
-  borderBottom: '1px solid',
+  border: '1px solid',
   borderColor: 'divider',
-  backgroundColor: 'grey.50',
-  borderRadius: '4px 4px 0 0',
+  backgroundColor: 'background.default',
+  color: 'text.primary',
+  '& .MuiIconButton-root': {
+    color: 'text.primary',
+    width: '32px',
+    height: '32px',
+  },
+  borderRadius: '8px 8px 0 0',
   px: 1,
   py: 0.5,
 };
@@ -137,17 +143,17 @@ export function SInputMarkdownForm({
     <Box>
       <Box sx={toolbarSx}>
         <Tooltip title="Negrito" arrow>
-          <IconButton size="small" onClick={handleBold} tabIndex={-1}>
+          <IconButton size="small" onClick={handleBold} aria-label="Negrito">
             <FormatBoldIcon sx={btnSx} />
           </IconButton>
         </Tooltip>
         <Tooltip title="Itálico" arrow>
-          <IconButton size="small" onClick={handleItalic} tabIndex={-1}>
+          <IconButton size="small" onClick={handleItalic} aria-label="Itálico">
             <FormatItalicIcon sx={btnSx} />
           </IconButton>
         </Tooltip>
         <Tooltip title="Lista" arrow>
-          <IconButton size="small" onClick={handleBullet} tabIndex={-1}>
+          <IconButton size="small" onClick={handleBullet} aria-label="Lista">
             <FormatListBulletedIcon sx={btnSx} />
           </IconButton>
         </Tooltip>

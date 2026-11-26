@@ -26,6 +26,8 @@ import {
   MenuItem,
   Stack,
   Tooltip,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import Code from '@tiptap/extension-code';
 import CodeBlock from '@tiptap/extension-code-block';
@@ -230,6 +232,8 @@ export function SEditor({
   readOnly = false,
   toolbarOptions = DEFAULT_TOOLBAR_OPTIONS,
 }: SEditorProps) {
+  const theme = useTheme();
+  const accent = theme.palette.mode === 'dark' ? '#C4B5FD' : '#6D28D9';
   const [isFocused, setIsFocused] = React.useState(false);
   const [showToolbar, setShowToolbar] = React.useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -323,8 +327,8 @@ export function SEditor({
   }
 
   const buttonStyle = (active: boolean) => ({
-    color: active ? '#7c3aed' : undefined,
-    backgroundColor: active ? 'rgba(124, 58, 237, 0.08)' : undefined,
+    color: active ? accent : 'text.primary',
+    backgroundColor: active ? alpha(accent, 0.14) : undefined,
     borderRadius: 2,
   });
 
@@ -352,11 +356,15 @@ export function SEditor({
       {...containerProps}
       sx={{
         border: '1px solid',
-        borderColor: error ? 'error.main' : '#bfbfbf',
+        borderColor: error
+          ? 'error.main'
+          : isFocused
+            ? 'text.secondary'
+            : 'divider',
         borderRadius: 1,
         p: 2,
         minHeight: showToolbar ? 20 : 2,
-        background: '#fff',
+        backgroundColor: 'background.paper',
         ...containerProps?.sx,
       }}
     >
@@ -366,7 +374,16 @@ export function SEditor({
           spacing={1}
           alignItems="center"
           divider={<Divider orientation="vertical" flexItem />}
-          sx={{ mb: 2 }}
+          sx={{
+            mb: '8px',
+            flexWrap: 'wrap',
+            gap: '4px',
+            p: '6px',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            '& .MuiIconButton-root': { color: 'text.primary' },
+            '& .MuiIconButton-root.Mui-disabled': { color: 'text.disabled' },
+          }}
           onClick={handleToolbarClick}
         >
           {/* Undo/Redo */}
@@ -376,7 +393,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().undo().run()}
-                  style={buttonStyle(false)}
+                  sx={buttonStyle(false)}
                   disabled={!editor.can().chain().focus().undo().run()}
                 >
                   <UndoIcon fontSize="small" />
@@ -390,7 +407,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().redo().run()}
-                  style={buttonStyle(false)}
+                  sx={buttonStyle(false)}
                   disabled={!editor.can().chain().focus().redo().run()}
                 >
                   <RedoIcon fontSize="small" />
@@ -409,15 +426,15 @@ export function SEditor({
                 sx={{
                   minWidth: 30,
                   fontWeight: 700,
-                  color: currentHeading ? '#7c3aed' : '#232326',
+                  color: currentHeading ? accent : 'text.primary',
                   background: currentHeading
-                    ? 'rgba(124, 58, 237, 0.12)'
+                    ? alpha(accent, 0.14)
                     : 'transparent',
                   border: 'none',
                   borderRadius: 2,
                   px: 2,
                   mx: 0.5,
-                  '&:hover': { background: 'primary.light' },
+                  '&:hover': { backgroundColor: 'action.hover' },
                 }}
               >
                 {headingOptions.find(
@@ -435,7 +452,7 @@ export function SEditor({
                       borderRadius: 2,
                       boxShadow: '0px 8px 32px 0px rgba(80, 80, 120, 0.18)',
                       p: 4,
-                      background: '#fff',
+                      backgroundColor: 'background.paper',
                       border: 'none',
                       overflow: 'visible',
                     },
@@ -468,14 +485,16 @@ export function SEditor({
                       borderRadius: 1,
                       fontWeight: currentHeading === option.level ? 700 : 400,
                       color:
-                        currentHeading === option.level ? '#7c3aed' : '#232326',
+                        currentHeading === option.level
+                          ? accent
+                          : 'text.primary',
                       fontSize: 16,
                       background:
                         currentHeading === option.level
-                          ? 'rgba(124, 58, 237, 0.08)'
+                          ? alpha(accent, 0.12)
                           : 'transparent',
                       transition: 'background 0.2s',
-                      '&:hover': { background: 'rgba(124, 58, 237, 0.12)' },
+                      '&:hover': { background: alpha(accent, 0.14) },
                       mb: 0.5,
                     }}
                   >
@@ -497,7 +516,7 @@ export function SEditor({
                   onClick={() =>
                     editor.chain().focus().toggleBulletList().run()
                   }
-                  style={buttonStyle(editor.isActive('bulletList'))}
+                  sx={buttonStyle(editor.isActive('bulletList'))}
                   disabled={
                     !editor.can().chain().focus().toggleBulletList().run()
                   }
@@ -515,7 +534,7 @@ export function SEditor({
                   onClick={() =>
                     editor.chain().focus().toggleOrderedList().run()
                   }
-                  style={buttonStyle(editor.isActive('orderedList'))}
+                  sx={buttonStyle(editor.isActive('orderedList'))}
                   disabled={
                     !editor.can().chain().focus().toggleOrderedList().run()
                   }
@@ -531,7 +550,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().toggleCode().run()}
-                  style={buttonStyle(editor.isActive('code'))}
+                  sx={buttonStyle(editor.isActive('code'))}
                   disabled={!editor.can().chain().focus().toggleCode().run()}
                 >
                   <CodeIcon fontSize="small" />
@@ -546,7 +565,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().toggleHighlight().run()}
-                  style={buttonStyle(editor.isActive('highlight'))}
+                  sx={buttonStyle(editor.isActive('highlight'))}
                   disabled={
                     !editor.can().chain().focus().toggleHighlight().run()
                   }
@@ -569,7 +588,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().toggleBold().run()}
-                  style={buttonStyle(editor.isActive('bold'))}
+                  sx={buttonStyle(editor.isActive('bold'))}
                   disabled={!editor.can().chain().focus().toggleBold().run()}
                 >
                   <FormatBoldIcon fontSize="small" />
@@ -583,7 +602,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().toggleItalic().run()}
-                  style={buttonStyle(editor.isActive('italic'))}
+                  sx={buttonStyle(editor.isActive('italic'))}
                   disabled={!editor.can().chain().focus().toggleItalic().run()}
                 >
                   <FormatItalicIcon fontSize="small" />
@@ -597,7 +616,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().toggleStrike().run()}
-                  style={buttonStyle(editor.isActive('strike'))}
+                  sx={buttonStyle(editor.isActive('strike'))}
                   disabled={!editor.can().chain().focus().toggleStrike().run()}
                 >
                   <FormatStrikethroughIcon fontSize="small" />
@@ -611,7 +630,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().toggleUnderline().run()}
-                  style={buttonStyle(editor.isActive('underline'))}
+                  sx={buttonStyle(editor.isActive('underline'))}
                 >
                   <FormatUnderlinedIcon fontSize="small" />
                 </IconButton>
@@ -625,7 +644,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={setLink}
-                  style={buttonStyle(editor.isActive('link'))}
+                  sx={buttonStyle(editor.isActive('link'))}
                 >
                   <LinkIcon fontSize="small" />
                 </IconButton>
@@ -639,7 +658,7 @@ export function SEditor({
                 <IconButton
                   size="small"
                   onClick={() => editor.chain().focus().toggleSubscript().run()}
-                  style={buttonStyle(editor.isActive('subscript'))}
+                  sx={buttonStyle(editor.isActive('subscript'))}
                 >
                   <SubscriptIcon fontSize="small" />
                 </IconButton>
@@ -654,7 +673,7 @@ export function SEditor({
                   onClick={() =>
                     editor.chain().focus().toggleSuperscript().run()
                   }
-                  style={buttonStyle(editor.isActive('superscript'))}
+                  sx={buttonStyle(editor.isActive('superscript'))}
                 >
                   <SuperscriptIcon fontSize="small" />
                 </IconButton>
@@ -670,7 +689,7 @@ export function SEditor({
                   onClick={() =>
                     editor.chain().focus().setTextAlign('left').run()
                   }
-                  style={buttonStyle(editor.isActive({ textAlign: 'left' }))}
+                  sx={buttonStyle(editor.isActive({ textAlign: 'left' }))}
                 >
                   <FormatAlignLeftIcon fontSize="small" />
                 </IconButton>
@@ -685,7 +704,7 @@ export function SEditor({
                   onClick={() =>
                     editor.chain().focus().setTextAlign('center').run()
                   }
-                  style={buttonStyle(editor.isActive({ textAlign: 'center' }))}
+                  sx={buttonStyle(editor.isActive({ textAlign: 'center' }))}
                 >
                   <FormatAlignCenterIcon fontSize="small" />
                 </IconButton>
@@ -700,7 +719,7 @@ export function SEditor({
                   onClick={() =>
                     editor.chain().focus().setTextAlign('right').run()
                   }
-                  style={buttonStyle(editor.isActive({ textAlign: 'right' }))}
+                  sx={buttonStyle(editor.isActive({ textAlign: 'right' }))}
                 >
                   <FormatAlignRightIcon fontSize="small" />
                 </IconButton>
@@ -715,7 +734,7 @@ export function SEditor({
                   onClick={() =>
                     editor.chain().focus().setTextAlign('justify').run()
                   }
-                  style={buttonStyle(editor.isActive({ textAlign: 'justify' }))}
+                  sx={buttonStyle(editor.isActive({ textAlign: 'justify' }))}
                 >
                   <FormatAlignJustifyIcon fontSize="small" />
                 </IconButton>
@@ -753,25 +772,30 @@ export function SEditor({
         {...editorContainerProps}
         sx={{
           minHeight: showToolbar ? 20 : 2,
-          background: '#fff',
+          backgroundColor: 'background.paper',
           borderRadius: 1,
           overflow: 'hidden',
-          mb: -1,
+          color: 'text.primary',
           '& .ProseMirror': {
             outline: 'none',
             boxShadow: 'none',
             border: 'none',
             minHeight: '1.5em',
-            p: 5,
-            pb: 4,
-            pt: 1,
-            mt: 3,
             ...SEDITOR_HTML_STYLES,
+            padding: '12px 14px',
+            color: 'text.primary',
+            lineHeight: 1.65,
+            overflowWrap: 'anywhere',
+            '& h1, & h2, & h3, & h4': { ...SEDITOR_HTML_STYLES['& h1, & h2, & h3, & h4'], color: 'inherit' },
+            '& ul, & ol': { margin: '8px 0', paddingLeft: '24px' },
+            '& li': { marginBottom: '4px' },
+            '& a': { color: accent },
+            '& blockquote': { color: 'text.secondary', borderColor: 'divider' },
           },
           '& .ProseMirror p.is-editor-empty:first-child::before': {
             content: 'attr(data-placeholder)',
             float: 'left',
-            color: 'grey.500',
+            color: 'text.secondary',
             pointerEvents: 'none',
             fontSize: 14,
             position: 'absolute',

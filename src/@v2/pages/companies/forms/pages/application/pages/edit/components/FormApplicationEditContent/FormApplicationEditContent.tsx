@@ -90,7 +90,7 @@ export const FormApplicationEditContent = ({
   const [libraryDialogOpen, setLibraryDialogOpen] = useState(false);
   const [libraryBlockDialogOpen, setLibraryBlockDialogOpen] = useState(false);
 
-  const hasAnswers = formApplication.totalAnswers > 0;
+  const hasAnswers = formApplication.totalAnswers > 0 || !!formApplication.isCycle;
 
   const form = useForm<IFormApplicationFormFields>({
     resolver: yupResolver(schemaFormApplicationForm),
@@ -201,6 +201,7 @@ export const FormApplicationEditContent = ({
       !isFormApplicationStructureLocked({
         status: formApplication.status,
         startedAt: formApplication.startedAt,
+        isCycle: formApplication.isCycle,
       }) &&
       data.sections.length === 0
     ) {
@@ -218,6 +219,7 @@ export const FormApplicationEditContent = ({
           data,
           status: formApplication.status,
           startedAt: formApplication.startedAt,
+        isCycle: formApplication.isCycle,
         }),
       );
       baselineRef.current = getFormApplicationEditorSnapshot(form.getValues());

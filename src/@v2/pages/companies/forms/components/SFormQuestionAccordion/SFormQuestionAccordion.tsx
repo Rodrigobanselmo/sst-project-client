@@ -61,13 +61,23 @@ export const SFormQuestionAccordion = ({
   return (
     <div style={{ position: 'relative' }}>
       <SAccordion
+        color="text.primary"
+        fontWeight="600"
         expandIcon={null}
         expanded={true}
         onChange={() => {}}
         accordionProps={{
           sx: {
-            borderLeft: isFocused ? '5px solid' : 'none',
-            borderColor: isFocused ? 'info.light' : 'transparent',
+            border: '1px solid',
+            borderColor: isFocused ? 'text.secondary' : 'divider',
+            borderRadius: '12px',
+            boxShadow: 'none',
+            '& .MuiTypography-h5': { fontSize: '16px', lineHeight: 1.5 },
+            '& .MuiAccordionSummary-content': {
+              flexWrap: 'wrap',
+              gap: '12px',
+              alignItems: 'center',
+            },
           },
         }}
         endComponent={
@@ -89,7 +99,7 @@ export const SFormQuestionAccordion = ({
                 iconButtonProps={{ 'aria-label': 'Subir pergunta' }}
               >
                 <KeyboardArrowUpOutlinedIcon
-                  sx={{ color: 'grey.600', fontSize: 20 }}
+                  sx={{ color: 'text.secondary', fontSize: 20 }}
                 />
               </SIconButton>
             )}
@@ -103,7 +113,7 @@ export const SFormQuestionAccordion = ({
                 iconButtonProps={{ 'aria-label': 'Descer pergunta' }}
               >
                 <KeyboardArrowDownOutlinedIcon
-                  sx={{ color: 'grey.600', fontSize: 20 }}
+                  sx={{ color: 'text.secondary', fontSize: 20 }}
                 />
               </SIconButton>
             )}
