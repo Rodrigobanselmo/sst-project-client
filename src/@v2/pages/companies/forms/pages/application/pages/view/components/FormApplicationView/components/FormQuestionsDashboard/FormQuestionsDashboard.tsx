@@ -1,3 +1,4 @@
+import { CampaignReports } from '../CampaignReports/CampaignReports';
 import { CombinedIdentificationFilters } from './components/CombinedIdentificationFilters';
 import { intersectIdentificationFilters } from './helpers/intersectIdentificationFilters';
 import { SectionIndicatorsRadar } from './components/SectionIndicatorsRadar/SectionIndicatorsRadar';
@@ -750,7 +751,7 @@ export const FormQuestionsDashboard = ({
       const stored = window.sessionStorage.getItem(tabStorageKey);
       const value = stored === null ? null : Number(stored);
       setTabSelection(
-        value !== null && Number.isInteger(value) && value >= 1 && value <= 6
+        value !== null && Number.isInteger(value) && value >= 1 && value <= 7
           ? { key: tabStorageKey, value }
           : null,
       );
@@ -773,7 +774,8 @@ export const FormQuestionsDashboard = ({
     (!isPartialPsychosocialForm || selectedTab !== 3) &&
     (canAnalyzeRisks || selectedTab !== 4) &&
     (isPsychosocialForm || selectedTab !== 5) &&
-    (selectedTab !== 6 || canViewParticipants)
+    (selectedTab !== 6 || canViewParticipants) &&
+    (selectedTab !== 7 || (!isPsychosocialForm && canViewResults))
       ? selectedTab
       : initialTab;
   const isIndicatorTab = tabTableIndex === 2;
@@ -1397,6 +1399,8 @@ export const FormQuestionsDashboard = ({
   const isRisksAnalysisTab = canAnalyzeRisks && tabTableIndex === 4;
   const isHierarchyGroupsTab = tabTableIndex === 5;
   const isParticipantsTab = tabTableIndex === 6;
+  const isReportsTab =
+    !isPsychosocialForm && canViewResults && tabTableIndex === 7;
 
   return (
     <SFlex direction="column" gap={16}>
@@ -1683,6 +1687,9 @@ export const FormQuestionsDashboard = ({
                         value: 6,
                       },
                     ]
+                  : []),
+                ...(!isPsychosocialForm && canViewResults
+                  ? [{ label: 'Relatórios', value: 7 }]
                   : []),
               ]}
               value={tabTableIndex}
@@ -2085,11 +2092,15 @@ export const FormQuestionsDashboard = ({
 
           <SPaper
             className={
-              isGraphsTab || isIndicatorTab || isTextAnswersTab || isRisksAnalysisTab
+              isGraphsTab ||
+              isIndicatorTab ||
+              isTextAnswersTab ||
+              isRisksAnalysisTab
                 ? undefined
                 : 'polished-form-panel'
             }
             sx={
+              isReportsTab ||
               isParticipantsTab ||
               isTextAnswersTab ||
               isGraphsTab ||
@@ -2111,7 +2122,14 @@ export const FormQuestionsDashboard = ({
                 : {}
             }
           >
-            {isTextAnswersTab ? (
+            {isReportsTab ? (
+              <CampaignReports
+                key={`${accessCompanyId}:${formApplication.id}`}
+                application={formApplication}
+                answers={formQuestionsAnswers}
+                companyId={accessCompanyId}
+              />
+            ) : isTextAnswersTab ? (
               <FormTextAnswers formGroups={generalGroups} />
             ) : isRisksAnalysisTab && formQuestionsAnswers ? (
               <FormRisksAnalysis
