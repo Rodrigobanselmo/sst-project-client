@@ -196,7 +196,7 @@ export function buildBannerHtml({
   .access-info p { font-size: 12px; color: #444; line-height: 1.5; }
   .access-url { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
   .access-url a { display: block; font-family: monospace; font-size: 7.5px; color: ${primary}; background: #fff; padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; line-height: 1.2; text-decoration: none; white-space: nowrap; word-break: keep-all; overflow-wrap: normal; letter-spacing: -0.02em; }
-  .access-time { grid-column: 3; grid-row: 1; align-self: center; text-align: center; background: ${primary}; color: #fff; border-radius: 8px; padding: 10px 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .access-time { grid-column: 3; grid-row: 1; align-self: center; text-align: center; background: ${primary}; color: #000; border-radius: 8px; padding: 10px 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .access-time .big { font-size: 22px; font-weight: 800; line-height: 1; }
   .access-time .small { font-size: 10px; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
 
@@ -208,7 +208,7 @@ export function buildBannerHtml({
   .contact h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: ${primary}; margin-bottom: 3px; }
   .contact p { font-size: 12px; color: #ccc; line-height: 1.5; }
 
-  .footer { background: ${primary}; color: #fff; text-align: center; padding: 8px 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .footer { background: ${primary}; color: #000; text-align: center; padding: 8px 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
   @media print {
     html, body { width: 210mm; height: 297mm; }

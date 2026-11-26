@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SModalHeader } from '@v2/components/organisms/SModal/components/SModalHeader/SModalHeader';
@@ -19,8 +19,14 @@ export const FormApplicationDeleteConfirmModal = ({
   companyId,
   onClose,
 }: FormApplicationDeleteConfirmModalProps) => {
+  const theme = useTheme();
+  const dangerColor =
+    theme.palette.mode === 'dark'
+      ? theme.palette.error.light
+      : theme.palette.error.dark;
   const router = useAppRouter();
-  const { mutate: softDelete, isPending } = useMutateSoftDeleteFormApplication();
+  const { mutate: softDelete, isPending } =
+    useMutateSoftDeleteFormApplication();
 
   const handleConfirm = () => {
     softDelete(
@@ -37,15 +43,56 @@ export const FormApplicationDeleteConfirmModal = ({
   };
 
   return (
-    <SModalPaper center sx={{ maxWidth: 480, width: '90%' }}>
-      <SModalHeader onClose={onClose} title="Excluir aplicação" />
+    <SModalPaper
+      center
+      minWidthDesk={480}
+      maxWidthDesk={480}
+      sx={{
+        width: 'calc(100vw - 32px)',
+        minWidth: 0,
+        maxWidth: '480px',
+        color: 'text.primary',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '12px',
+      }}
+    >
+      <SModalHeader
+        onClose={onClose}
+        title={
+          <Typography
+            component="h2"
+            color="text.primary"
+            fontSize="20px"
+            fontWeight={600}
+          >
+            Excluir aplicação
+          </Typography>
+        }
+      />
 
-      <Box sx={{ p: 6 }}>
-        <Typography variant="body1" sx={{ mb: 6 }}>
-          Tem certeza que deseja excluir a aplicação{' '}
-          <strong>{formApplication.name}</strong>? Esta ação não remove as
-          respostas do banco de dados, mas a aplicação deixará de aparecer na
-          listagem.
+      <Box sx={{ px: '4px', pb: '4px' }}>
+        <Typography
+          variant="body1"
+          color="text.primary"
+          sx={{ mb: '12px', lineHeight: 1.6 }}
+        >
+          Tem certeza que deseja excluir esta aplicação?
+        </Typography>
+        <Typography
+          color="text.primary"
+          fontWeight={600}
+          sx={{ mb: '16px', overflowWrap: 'anywhere', lineHeight: 1.5 }}
+        >
+          {formApplication.name}
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: '24px', lineHeight: 1.6 }}
+        >
+          As respostas serão preservadas no banco de dados. A aplicação deixará
+          de aparecer na listagem.
         </Typography>
 
         <SFlex gap={4} justifyContent="flex-end" flexWrap="wrap">
@@ -53,13 +100,23 @@ export const FormApplicationDeleteConfirmModal = ({
             text="Cancelar"
             variant="outlined"
             color="normal"
+            schema={{
+              color: 'text.primary',
+              borderColor: 'divider',
+              backgroundColor: 'transparent',
+            }}
             onClick={onClose}
             disabled={isPending}
           />
           <SButton
             text="Excluir"
-            variant="contained"
+            variant="outlined"
             color="danger"
+            schema={{
+              color: dangerColor,
+              borderColor: dangerColor,
+              backgroundColor: 'transparent',
+            }}
             onClick={handleConfirm}
             loading={isPending}
             disabled={isPending}
