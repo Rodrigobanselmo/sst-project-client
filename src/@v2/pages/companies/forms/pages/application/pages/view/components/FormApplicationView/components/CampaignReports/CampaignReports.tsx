@@ -1375,6 +1375,7 @@ export function CampaignReports({
                                         <>
                                           <Box
                                             component="figure"
+                                            data-export-distribution
                                             aria-label={`Distribuição das respostas: ${plain(question.title)}`}
                                             sx={{
                                               my: '24px',
@@ -1408,6 +1409,7 @@ export function CampaignReports({
                                                   return (
                                                     <Box
                                                       key={item.id}
+                                                      data-distribution-row
                                                       sx={{
                                                         display: 'grid',
                                                         gridTemplateColumns: {
@@ -1420,6 +1422,7 @@ export function CampaignReports({
                                                       }}
                                                     >
                                                       <Box
+                                                        data-distribution-label
                                                         sx={{
                                                           fontSize: presentation
                                                             ? {
@@ -1436,6 +1439,7 @@ export function CampaignReports({
                                                           : ''}
                                                       </Box>
                                                       <Box
+                                                        data-distribution-plot
                                                         sx={{
                                                           gridColumn: {
                                                             xs: '1 / -1',
@@ -1514,6 +1518,7 @@ export function CampaignReports({
                                                         </svg>
                                                       </Box>
                                                       <Box
+                                                        data-distribution-value
                                                         sx={{
                                                           gridColumn: {
                                                             xs: 2,
@@ -1546,6 +1551,7 @@ export function CampaignReports({
                                               )}
                                             </Box>
                                             <Box
+                                              data-distribution-axis
                                               sx={{
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
