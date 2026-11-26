@@ -15,6 +15,35 @@ export function defaultBannerTexts(
     contact: 'Em caso de dúvidas, procure a equipe responsável pela campanha.',
   };
 }
+/** Rebuild only the exact generated introduction; preserve authored copy. */
+export function campaignBannerIntro(
+  application: Pick<
+    FormApplicationReadModel,
+    'name' | 'description' | 'bannerIntroText'
+  >,
+): string {
+  const saved = application.bannerIntroText?.trim();
+  if (!saved) return defaultBannerTexts(application).intro;
+  const prefix = 'Participe da campanha ';
+  const description =
+    application.description?.trim() ||
+    'Sua participação contribui para compreender o tema desta pesquisa.';
+  const suffix = `. ${description}`;
+  if (saved.startsWith(prefix) && saved.endsWith(suffix)) {
+    const previousName = saved.slice(prefix.length, -suffix.length);
+    if (
+      previousName &&
+      defaultBannerTexts({
+        name: previousName,
+        description: application.description,
+      }).intro === saved
+    ) {
+      return defaultBannerTexts(application).intro;
+    }
+  }
+  return saved;
+}
+
 export function bannerPrivacyText(
   application: Pick<
     FormApplicationReadModel,

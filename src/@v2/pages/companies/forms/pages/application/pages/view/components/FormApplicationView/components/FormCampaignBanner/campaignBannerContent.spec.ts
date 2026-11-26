@@ -1,17 +1,63 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { bannerPrivacyText, defaultBannerTexts } from './campaignBannerContent.ts';
+import {
+  bannerPrivacyText,
+  defaultBannerTexts,
+  campaignBannerIntro,
+} from './campaignBannerContent.ts';
 
 test('privacy distinguishes shared anonymous, individual anonymous and identified access', () => {
-  const shared = bannerPrivacyText({ isAnonymous: true, isShareableLink: true });
+  const shared = bannerPrivacyText({
+    isAnonymous: true,
+    isShareableLink: true,
+  });
   assert.match(shared, /sem necessidade de cadastro/);
   assert.match(shared, /reduzir o risco/);
-  assert.match(bannerPrivacyText({ isAnonymous: true, isShareableLink: false }), /controle de participação/);
-  assert.match(bannerPrivacyText({ isAnonymous: false, isShareableLink: true }), /não está configurada como anônima/);
+  assert.match(
+    bannerPrivacyText({ isAnonymous: true, isShareableLink: false }),
+    /controle de participação/,
+  );
+  assert.match(
+    bannerPrivacyText({ isAnonymous: false, isShareableLink: true }),
+    /não está configurada como anônima/,
+  );
 });
 test('generic draft uses campaign facts without inventing instrument or contact', () => {
-  const texts = defaultBannerTexts({ name: 'Clima SEFAZ', description: 'Avaliar o ambiente de trabalho' });
+  const texts = defaultBannerTexts({
+    name: 'Clima SEFAZ',
+    description: 'Avaliar o ambiente de trabalho',
+  });
   assert.match(texts.intro, /Clima SEFAZ/);
   assert.match(texts.intro, /Avaliar o ambiente de trabalho/);
   assert.doesNotMatch(JSON.stringify(texts), /COPSOQ|PGR|\(51\)/);
+});
+
+test('generated introduction follows the current campaign name after a new cycle or rename', () => {
+  const description = 'Avaliar o ambiente de trabalho.';
+  const old = defaultBannerTexts({
+    name: 'PESQUISA SEFAZ-BA 2025',
+    description,
+  }).intro;
+  const application = {
+    name: 'Pesquisa de Clima Organizacional 2026',
+    description,
+    bannerIntroText: old,
+  };
+  assert.equal(
+    campaignBannerIntro(application),
+    defaultBannerTexts(application).intro,
+  );
+  assert.doesNotMatch(campaignBannerIntro(application), /2025/);
+});
+test('authored introductions and historical references are preserved', () => {
+  const bannerIntroText =
+    'Em 2025 ouvimos vocês. Participe da pesquisa de 2026!';
+  assert.equal(
+    campaignBannerIntro({
+      name: 'Clima 2026',
+      description: 'Objetivo',
+      bannerIntroText,
+    }),
+    bannerIntroText,
+  );
 });

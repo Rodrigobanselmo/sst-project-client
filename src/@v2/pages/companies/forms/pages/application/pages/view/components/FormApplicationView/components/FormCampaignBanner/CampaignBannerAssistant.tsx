@@ -28,6 +28,7 @@ import {
   bannerLimits,
   bannerPrivacyText,
   defaultBannerTexts,
+  campaignBannerIntro,
 } from './campaignBannerContent';
 import { exportCampaignBannerPdf } from './exportCampaignBannerPdf';
 
@@ -130,7 +131,7 @@ export function CampaignBannerAssistant({
   const start = () => {
     const defaults = defaultBannerTexts(application);
     setTexts({
-      intro: application.bannerIntroText || defaults.intro,
+      intro: campaignBannerIntro(application),
       why: application.bannerWhyText || defaults.why,
       contact: application.bannerContactText || defaults.contact,
     });
@@ -213,7 +214,9 @@ export function CampaignBannerAssistant({
           sx: {
             bgcolor: 'background.paper',
             color: foreground,
-            '& .MuiDialogTitle-root, & .MuiTypography-root': { color: foreground },
+            '& .MuiDialogTitle-root, & .MuiTypography-root': {
+              color: foreground,
+            },
             '& .MuiFormHelperText-root': { color: muted },
             borderRadius: 4,
           },
@@ -377,7 +380,12 @@ export function CampaignBannerAssistant({
           <Button
             variant="outlined"
             disabled={locked || !valid || !html}
-            onClick={() => { if (!exportCampaignBannerPdf(html)) setError('O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.'); }}
+            onClick={() => {
+              if (!exportCampaignBannerPdf(html))
+                setError(
+                  'O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.',
+                );
+            }}
           >
             Imprimir / salvar PDF
           </Button>

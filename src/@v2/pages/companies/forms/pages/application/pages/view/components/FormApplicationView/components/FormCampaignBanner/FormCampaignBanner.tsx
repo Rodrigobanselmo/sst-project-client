@@ -7,7 +7,7 @@ import { readVisualIdentity } from '@v2/services/enterprise/visual-identity/read
 import { readForm } from '@v2/services/forms/form/read-form-model/service/read-form-model.service';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
-import { defaultBannerTexts, bannerPrivacyText } from './campaignBannerContent';
+import { defaultBannerTexts, bannerPrivacyText, campaignBannerIntro } from './campaignBannerContent';
 import { exportCampaignBannerPdf } from './exportCampaignBannerPdf';
 
 const DEFAULT_PRIMARY = '#F27329';
@@ -139,7 +139,10 @@ export function buildBannerHtml({
 
   const psychosocial = formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
   const defaults = defaultBannerTexts(formApplication);
-  const introText = formApplication.bannerIntroText?.trim() || (psychosocial ? DEFAULT_INTRO_TEXT(companyName) : defaults.intro);
+  const introText =
+    formApplication.bannerIntroText?.trim() || !psychosocial
+      ? campaignBannerIntro(formApplication)
+      : DEFAULT_INTRO_TEXT(companyName);
   const whyText = formApplication.bannerWhyText?.trim() || (psychosocial ? DEFAULT_WHY_TEXT : defaults.why);
   const contactText = formApplication.bannerContactText?.trim() || (psychosocial ? DEFAULT_CONTACT_TEXT : defaults.contact);
 

@@ -104,6 +104,10 @@ export function SstDateField({
   };
   const calendarLabel = `Calendário: ${typeof label === 'string' ? label : 'selecionar data'}`;
   const calendarYears = civilCalendarYears(calendar);
+  const selectedDate = !invalid ? civilDateValue(value) : null;
+  const selectedDateLabel = selectedDate
+    ?.locale('pt-br')
+    .format('dddd, DD/MM/YYYY');
   return (
     <>
       <TextField
@@ -116,10 +120,29 @@ export function SstDateField({
         placeholder="DD/MM/AAAA"
         error={!!error || invalid}
         helperText={
-          invalid
-            ? 'Informe uma data válida no formato DD/MM/AAAA.'
-            : helperText
+          invalid ? (
+            'Informe uma data válida no formato DD/MM/AAAA.'
+          ) : selectedDateLabel ? (
+            <>
+              {selectedDateLabel}
+              {helperText && (
+                <>
+                  <br />
+                  {helperText}
+                </>
+              )}
+            </>
+          ) : (
+            helperText
+          )
         }
+        FormHelperTextProps={{
+          ...fieldProps.FormHelperTextProps,
+          sx: {
+            color: !!error || invalid ? 'error.main' : 'text.secondary',
+            ...fieldProps.FormHelperTextProps?.sx,
+          },
+        }}
         InputLabelProps={{ shrink: true, ...fieldProps.InputLabelProps }}
         inputProps={{
           ...fieldProps.inputProps,
@@ -165,7 +188,12 @@ export function SstDateField({
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         marginThreshold={16}
       >
-        <Box id={calendarId} role="dialog" aria-label={calendarLabel}>
+        <Box
+          id={calendarId}
+          role="dialog"
+          aria-label={calendarLabel}
+          sx={{ color: 'text.primary' }}
+        >
           <LocalizationProvider
             localeText={
               ptBR.components.MuiLocalizationProvider.defaultProps.localeText
@@ -173,6 +201,25 @@ export function SstDateField({
           >
             <DateCalendar
               value={calendar}
+              dayOfWeekFormatter={(date) =>
+                ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.day()]
+              }
+              sx={{
+                color: 'text.primary',
+                '& .MuiPickersCalendarHeader-label, & .MuiPickersCalendarHeader-labelContainer':
+                  {
+                    color: 'text.primary',
+                  },
+                '& .MuiDayCalendar-weekDayLabel': {
+                  color: 'text.secondary',
+                  fontWeight: 600,
+                },
+                '& .MuiPickersYear-yearButton, & .MuiPickersMonth-monthButton':
+                  {
+                    color: 'text.primary',
+                    '&.Mui-selected': { color: 'primary.contrastText' },
+                  },
+              }}
               disabled={disabled}
               minDate={dayjs()
                 .year(calendarYears.minYear)
