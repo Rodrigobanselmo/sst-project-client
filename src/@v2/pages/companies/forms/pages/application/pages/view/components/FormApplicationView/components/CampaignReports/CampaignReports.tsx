@@ -1,3 +1,4 @@
+import { createCampaignReportHtml } from './campaign-report.html';
 import { ReportPresentationInk } from './ReportPresentationInk';
 import { ReportFloatingNavigation } from './ReportFloatingNavigation';
 import { ReportSettings, ReportToolbarGroup } from './ReportSettings';
@@ -199,6 +200,51 @@ export function CampaignReports({
           'Composição dos participantes',
           'Análise comparativa por IA',
         ];
+
+  const [exportingHtml, setExportingHtml] = useState(false);
+  async function exportHtml() {
+    setExportError('');
+    setExportingHtml(true);
+    try {
+      setViewMode('presentation');
+      // Wait for React to commit the presentation before taking its snapshot.
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      );
+      if (!report.current)
+        throw new Error('O relatório ainda não está disponível.');
+      await Promise.all(
+        [...report.current.querySelectorAll('img')].map(
+          (img: HTMLImageElement) => img.decode().catch(() => undefined),
+        ),
+      );
+      if (
+        /Carregando ilustração|Ilustração indisponível no momento/.test(
+          report.current.textContent ?? '',
+        )
+      )
+        throw new Error(
+          'Aguarde o carregamento de todas as ilustrações antes de gerar o HTML.',
+        );
+      const html = await createCampaignReportHtml(report.current, reportTitle);
+      const url = URL.createObjectURL(
+        new Blob([html], { type: 'text/html;charset=utf-8' }),
+      );
+      const anchor = window.document.createElement('a');
+      anchor.href = url;
+      anchor.download = `${reportTitle.replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 100) || 'Relatorio'}.html`;
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      setExportError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível gerar o HTML.',
+      );
+    } finally {
+      setExportingHtml(false);
+    }
+  }
 
   async function exportPdf(orientation: ReportPaperOrientation = 'portrait') {
     if (!report.current) return;
@@ -550,6 +596,25 @@ export function CampaignReports({
             ? 'Rascunho gerado por IA, ainda não aprovado. Indicadores e análise usam a base preservada desta geração; novas gerações não substituem este registro. A auditoria do cadastro e a revisão metodológica permanecem necessárias.'
             : 'Prévia descritiva para revisão, calculada a partir dos dados atuais. Selecione um rascunho concluído para visualizar a análise integrada por IA. Esta prévia não é uma versão histórica preservada.'}
         </Alert>
+        <Box sx={{ mb: 10 }}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadOutlinedIcon />}
+            disabled={exportingHtml}
+            onClick={exportHtml}
+          >
+            {exportingHtml ? 'Preparando HTML…' : 'Gerar HTML'}
+          </Button>
+          <Typography
+            variant="caption"
+            display="block"
+            color="text.secondary"
+            sx={{ mt: 3 }}
+          >
+            Arquivo independente do relatório exibido, com imagens, sumário,
+            anotações e PDF. Tela cheia exige um clique ao abrir.
+          </Typography>
+        </Box>
         {exportError && (
           <Alert severity="error" sx={{ mb: 8 }}>
             {exportError}
