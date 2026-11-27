@@ -14,6 +14,8 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 
 interface IUpdateRecMed extends Pick<IRecMed, 'riskId'> {
   id: string;
+  riskSubTypeId?: number | null;
+  riskScopes?: { riskId: string; riskSubTypeId: number | null }[];
   status?: string;
   companyId?: string;
   recType?: RecTypeEnum | string;

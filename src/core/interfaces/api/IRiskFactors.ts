@@ -26,6 +26,8 @@ export interface IRecMed {
   recName: string;
   medName: string;
   riskId: string;
+  riskSubTypeId?: number | null;
+  riskScopes?: { riskId: string; riskSubTypeId: number | null }[] | null;
   companyId: string;
   system: true;
   status: StatusEnum;

@@ -57,8 +57,10 @@ export const SEditButtonRow = ({
       {...boxProps}
       sx={{
         borderRadius: '5px',
-        borderColor: 'gray.400',
-        backgroundColor: 'grey.50',
+        borderColor: (theme) =>
+          theme.palette.mode === 'dark' ? 'divider' : 'gray.400',
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark' ? 'background.paper' : 'grey.50',
         borderWidth: '1px',
         position: 'relative',
         userSelect: 'none',

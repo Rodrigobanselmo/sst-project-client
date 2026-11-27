@@ -13,6 +13,8 @@ import { IErrorResp } from '../../../../../errors/types';
 
 interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
   id?: number;
+  riskSubTypeId?: number | null;
+  riskScopes?: { riskId: string; riskSubTypeId: number | null }[];
   status?: string;
   medName?: string;
   redName?: string;

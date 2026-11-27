@@ -229,7 +229,9 @@ export function mergeProbabilityWriteIntoRiskRow<T extends {
     write?.probabilityAfter != null;
   return {
     ...current,
-    ...incoming,
+    // A resposta de escrita contém relações compartilhadas não resolvidas para
+    // o estabelecimento. Atualizar apenas os campos da probabilidade evita que
+    // recs/controles alternem entre a escrita e o refetch e disparem autosaves.
     probability: residualOnly
       ? current.probability
       : incoming.probability ?? current.probability,

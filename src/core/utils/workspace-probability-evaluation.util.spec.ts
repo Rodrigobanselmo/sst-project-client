@@ -344,6 +344,46 @@ assert.equal(residualResponse.probabilityOrigin, 'ESTIMATE');
 assert.equal(residualResponse.probabilityCriteria?.medsImplemented, 2);
 assert.equal(residualResponse.criteriaAdoptedAt, '2026-01-01');
 
+// A gravação retorna a linha compartilhada; a consulta por estabelecimento
+// separa recomendações pendentes das correspondências de controles existentes.
+// Misturar essas duas listas provoca recálculo/gravação residual em ciclo.
+const scopedRecommendations = Array.from({ length: 5 }, (_, index) => ({
+  id: `pending-${index}`,
+  recType: 'ADM',
+}));
+const scopedRow = {
+  ...current,
+  probabilityAfter: 2,
+  recs: scopedRecommendations,
+  adms: [manual, derivedMoeve],
+  engs: [],
+  epis: [epi],
+};
+const sharedWriteResponse = {
+  ...scopedRow,
+  probabilityAfter: 1,
+  recs: [
+    ...scopedRecommendations,
+    { id: 'existing-1', recType: 'ADM' },
+    { id: 'existing-2', recType: 'ADM' },
+  ],
+  adms: [],
+  epis: [],
+};
+let stableScopedRow = scopedRow;
+for (let iteration = 0; iteration < 3; iteration++) {
+  stableScopedRow = mergeProbabilityWriteIntoRiskRow(
+    stableScopedRow,
+    sharedWriteResponse,
+    { probabilityAfter: 1 },
+  );
+  assert.strictEqual(stableScopedRow.recs, scopedRecommendations);
+  assert.deepEqual(stableScopedRow.adms, [manual, derivedMoeve]);
+  assert.deepEqual(stableScopedRow.epis, [epi]);
+  assert.equal(stableScopedRow.probability, 4);
+  assert.equal(stableScopedRow.probabilityAfter, 1);
+}
+
 const residualWrite = prepareWorkspaceProbabilityWrite({
   values: { probabilityAfter: 1 },
   headerWorkspaceId: 'moeve',

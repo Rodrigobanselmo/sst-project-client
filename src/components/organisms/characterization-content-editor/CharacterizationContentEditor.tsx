@@ -310,14 +310,14 @@ export function CharacterizationContentEditor({
   return (
     <Box sx={{ mt: label ? 1 : 0, mb: 1 }} data-toolbar={toolbarVersion}>
       {label ? (
-        <Typography sx={{ color: 'grey.600', fontSize: 14, mb: 0.75 }}>
+        <Typography sx={{ color: 'text.secondary', fontSize: 14, mb: 0.75 }}>
           {label}
         </Typography>
       ) : null}
       <Box
         sx={{
           border: '1px solid',
-          borderColor: 'grey.300',
+          borderColor: 'divider',
           borderRadius: 1,
           backgroundColor: 'background.paper',
           overflow: 'hidden',
@@ -330,8 +330,9 @@ export function CharacterizationContentEditor({
             px: 0.5,
             py: 0.25,
             borderBottom: '1px solid',
-            borderColor: 'grey.200',
-            backgroundColor: 'grey.50',
+            borderColor: 'divider',
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark' ? 'background.default' : 'grey.50',
           }}
         >
           <ToolbarButton
@@ -557,6 +558,11 @@ function ToolbarButton({
           aria-pressed={active}
           disabled={disabled}
           color={active ? 'primary' : 'default'}
+          sx={{
+            color: active ? 'primary.main' : 'text.primary',
+            '&.Mui-disabled': { color: 'text.disabled' },
+            '&:hover': { backgroundColor: 'action.hover' },
+          }}
           onMouseDown={(event) => event.preventDefault()}
           onClick={onClick}
         >

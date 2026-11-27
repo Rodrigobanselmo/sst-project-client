@@ -24,7 +24,10 @@ export function SStatusButtonRow({
           color={color}
           textProps={{
             sx: {
-              filter: 'brightness(0.5)',
+              color: (theme) =>
+                theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+              filter: (theme) =>
+                theme.palette.mode === 'dark' ? 'none' : 'brightness(0.5)',
             },
           }}
           boxProps={{

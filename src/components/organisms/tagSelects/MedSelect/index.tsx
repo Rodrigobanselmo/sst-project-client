@@ -148,7 +148,9 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
       {
         riskIds: riskIdsArray,
         edit: true,
-        risk,
+        risk: option?.riskSubTypeId && risk ? { ...risk, id: option.riskId } : risk,
+        riskSubTypeId: option?.riskSubTypeId ?? null,
+        riskScopes: option?.riskScopes ?? [],
         companyId: option?.companyId || '',
         medName: option?.medName || '',
         recName: option?.recName || '',

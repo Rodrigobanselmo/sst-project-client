@@ -17,6 +17,10 @@ import { useMutCreateRecMed } from 'core/services/hooks/mutations/checklist/recM
 import { useMutDeleteRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutDeleteRecMed';
 import { useMutUpdateRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutUpdateRecMed';
 import { recMedSchema } from 'core/utils/schemas/recMed.schema';
+import { recMedScopesIncludeRisk } from 'core/utils/rec-med-catalogue-scope.util';
+import { queryClient } from 'core/services/queryClient';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 export const initialAddRecMedState = {
   status: StatusEnum.ACTIVE,
@@ -25,6 +29,8 @@ export const initialAddRecMedState = {
   id: '',
   localId: '' as string | number,
   risk: {} as IRiskFactors,
+  riskSubTypeId: null as number | null,
+  riskScopes: [] as { riskId: string; riskSubTypeId: number | null }[],
   riskIds: [] as (string | number)[],
   hasSubmit: false,
   passDataBack: false,
@@ -37,6 +43,7 @@ export const initialAddRecMedState = {
 };
 
 export const useAddRecMed = () => {
+  const { companyId: catalogueCompanyId } = useGetCompanyId(true);
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddRecMedState);
@@ -146,6 +153,8 @@ export const useAddRecMed = () => {
     const submitData = {
       status: recMedData.status,
       riskId: recMedData.risk.id,
+      riskSubTypeId: recMedData.riskSubTypeId,
+      ...(recMedData.riskScopes?.length && { riskScopes: recMedData.riskScopes }),
       ...data,
     };
 
@@ -153,7 +162,14 @@ export const useAddRecMed = () => {
       if (recMedData.id == '') {
         const result = await createRecMedMut.mutateAsync(submitData);
         if (!result) return;
-        if (result) recMedData.onCreate(result);
+        if (result) {
+          const initialRisk = initialDataRef.current.risk;
+          const catalogue = queryClient.getQueryData<IRiskFactors[]>([QueryEnum.RISK, catalogueCompanyId]) || [];
+          if (!result.riskScopes?.length || !initialRisk?.id ||
+            recMedScopesIncludeRisk(result.riskScopes, initialRisk, catalogue)) {
+            recMedData.onCreate(result);
+          }
+        }
       } else {
         const result = await updateRecMedMut.mutateAsync({
           ...submitData,
