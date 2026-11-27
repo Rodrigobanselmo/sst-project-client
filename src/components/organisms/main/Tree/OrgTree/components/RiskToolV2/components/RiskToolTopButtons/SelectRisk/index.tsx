@@ -121,6 +121,7 @@ export const RiskToolTopButtonsSelectRisk: FC<
   return (
     <RiskSelect
       polished
+      hideRiskIcon
       key={
         enableViewModes
           ? `${companyId}:${workspaceId || 'company'}:${viewType}`

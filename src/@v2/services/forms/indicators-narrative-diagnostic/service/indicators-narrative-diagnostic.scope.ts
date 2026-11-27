@@ -3,6 +3,9 @@ import type {
   IndicatorsNarrativeDiagnosticScope,
 } from './indicators-narrative-diagnostic.types';
 
+export const CAMPAIGN_INDICATORS_SCOPE_KEY = 'campaign::hierarchy-v1';
+export const CAMPAIGN_INDICATORS_SCOPE: IndicatorsNarrativeDiagnosticScope = { coverage: 'campaign', groupingQuestionId: null, participantGroupIds: [], groupingLabel: null, showOnlyGroupIndicators: false };
+
 const normalizeNullableString = (value?: string | null): string | null => {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
@@ -25,6 +28,7 @@ export const parseShowOnlyGroupIndicators = (value: unknown): boolean => {
 export function normalizeIndicatorsNarrativeScope(
   scope: IndicatorsNarrativeDiagnosticScope,
 ): IndicatorsNarrativeDiagnosticScope {
+  if (scope.coverage === 'campaign') return { ...CAMPAIGN_INDICATORS_SCOPE };
   const participantGroupIds = Array.from(
     new Set((scope.participantGroupIds ?? []).map((id) => id?.trim()).filter(Boolean)),
   ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
@@ -40,6 +44,7 @@ export function normalizeIndicatorsNarrativeScope(
 export const buildIndicatorsNarrativeDiagnosticScopeKey = (
   scope: IndicatorsNarrativeDiagnosticScope,
 ): string => {
+  if (scope.coverage === 'campaign') return CAMPAIGN_INDICATORS_SCOPE_KEY;
   const groupingPart = scope.groupingQuestionId ?? '_all_';
   const participantGroupIds = scope.participantGroupIds ?? [];
   const groupsPart =
@@ -64,3 +69,5 @@ export const diagnosticMatchesViewMode = (
 
   return result.scopeKey.endsWith(expectedSuffix);
 };
+
+export const diagnosticMatchesScope = (result: IndicatorsNarrativeDiagnosticResult | null | undefined, scope: IndicatorsNarrativeDiagnosticScope): result is IndicatorsNarrativeDiagnosticResult => Boolean(result && result.scopeKey === buildIndicatorsNarrativeDiagnosticScopeKey(normalizeIndicatorsNarrativeScope(scope)));

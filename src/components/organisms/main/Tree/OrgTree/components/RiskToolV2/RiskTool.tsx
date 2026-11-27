@@ -34,7 +34,7 @@ import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklis
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useHierarchyTreeLoad } from '../../hooks/useHierarchyTreeLoad';
 import { RiskToolHeader } from './components/RiskToolHeader';
-import { RiskToolTopButtons } from './components/RiskToolTopButtons';
+import { RiskToolTopButtons, RiskToolActions } from './components/RiskToolTopButtons';
 import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { RiskToolRiskView } from './components/RiskToolViews/RiskToolRiskView';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
@@ -457,6 +457,7 @@ export const RiskToolV2 = ({
               >
                 <RiskRowsExpandProvider>
                   <RiskToolHeader
+                    actions={<RiskToolActions companyId={companyId} riskGroupId={riskGroupIdMemo} viewType={viewType} viewDataType={effectiveViewDataType} enableViewModes={enableViewModes} />}
                     handleCopyGHO={handleCopyGHO}
                     handleSelectGHO={handleSelectGHO}
                     handleEditGHO={handleEditGHO}

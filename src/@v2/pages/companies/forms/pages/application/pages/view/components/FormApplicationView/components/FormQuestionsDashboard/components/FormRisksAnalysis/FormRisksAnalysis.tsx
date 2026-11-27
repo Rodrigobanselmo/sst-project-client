@@ -12,6 +12,7 @@ import { FrpsAiProgress } from './FrpsAiProgress';
 import { useSystemRiskMatrixPresentation } from '@v2/services/security/risk-matrix/hooks/useSystemRiskMatrixPresentation';
 import { resolveSystemOccupationalChipColors } from '@v2/services/security/risk-matrix/presentation/system-risk-matrix-presentation.util';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import { FrpsAiGenerationPermissions } from './FrpsAiGenerationPermissions';
 import { useQueryFrpsPrivacySettings } from 'core/services/hooks/queries/useQueryFrpsPrivacySettings/useQueryFrpsPrivacySettings';
 import { OccupationalRiskAnalysisSection } from './OccupationalRiskAnalysisSection';
@@ -3177,19 +3178,23 @@ export const FormRisksAnalysis = ({
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'repeat(2, minmax(0, 1fr))', lg: `${isMaster ? '40px ' : ''}repeat(5, minmax(0, 1fr))` }, gap: '12px', width: '100%', mb: 6, alignItems: 'start', '& > .ai-generation-control > span': { display: 'block', width: '100%' } }}>
               {isMaster && <Box sx={{ gridColumn: { xs: '1 / -1', lg: '1' }, gridRow: { lg: 1 } }}><SIconButton tooltip="Configurar análise de IA e liberar faixas de risco" onClick={() => setAiConfigDialogOpen(true)} iconButtonProps={{ 'aria-label': 'Configurar análise de IA e liberar faixas de risco', sx: { color: 'text.primary' } }}><SettingsOutlinedIcon /></SIconButton></Box>}
               {([
-                { band: 'VERY_HIGH', level: 5, label: 'Gerar análise de FRPS — Muito Alto' },
-                { band: 'HIGH', level: 4, label: 'Gerar análise de FRPS — Alto' },
-                { band: 'MODERATE', level: 3, label: 'Gerar análise de FRPS — Moderado' },
-                { band: 'LOW', level: 2, label: 'Gerar análise de FRPS — Baixo' },
-                { band: 'VERY_LOW', level: 1, label: 'Gerar análise de FRPS — Muito Baixo' },
+                { band: 'VERY_HIGH', level: 5, label: 'Muito alto' },
+                { band: 'HIGH', level: 4, label: 'Alto' },
+                { band: 'MODERATE', level: 3, label: 'Moderado' },
+                { band: 'LOW', level: 2, label: 'Baixo' },
+                { band: 'VERY_LOW', level: 1, label: 'Muito baixo' },
               ] as const).map(({band, level, label}, index) => {
                 const allowed = level >= 4 || isMaster || (!loadingGenerationSettings && !generationSettingsError && generationSettings.aiGenerationAdditionalLevels?.includes(level));
                 return <Box className="ai-generation-control" key={band} sx={{ minWidth: 0, gridColumn: { lg: index + (isMaster ? 2 : 1) }, gridRow: { lg: 1 } }}><SButton variant="outlined" text={label}
-                  icon={<Box component="span" aria-hidden="true" sx={{ display: 'block', width: '12px', height: '12px', m: '4px', borderRadius: '50%', flexShrink: 0, backgroundColor: resolveSystemOccupationalChipColors(level, generationMatrixPresentation).bgcolor }} />} textProps={{ color: 'inherit', fontSize: 14 }}
+                  icon={<AutoAwesomeOutlinedIcon aria-hidden="true" sx={{ fontSize: 20, color: resolveSystemOccupationalChipColors(level, generationMatrixPresentation).bgcolor }} />} textProps={{ color: 'inherit', fontSize: 14 }}
                   disabled={!allowed || isAnalyzing || hasProcessingAnalyses}
-                  tooltip={!allowed ? 'Quer ampliar sua análise? O pacote padrão concentra a análise por IA nos riscos Altos e Muito Altos, priorizando as situações que demandam maior atenção técnica. A análise de riscos Moderados, Baixos e Muito Baixos é um recurso complementar, que pode ser útil conforme os objetivos da sua avaliação. Para conhecer as possibilidades de ampliação e solicitar a liberação para sua empresa, entre em contato com a administração do SimpleSST ou com nossa equipe comercial.' : 'Gera somente análises da faixa indicada, preservando as demais faixas.'}
+                  tooltip={!allowed ? (
+                    <>Quer ampliar sua análise? O pacote padrão concentra a análise por <strong>IA</strong> nos riscos <strong>ALTOS</strong> e <strong>MUITO ALTOS</strong>, priorizando as situações que demandam maior atenção técnica. A análise de riscos <strong>MODERADOS</strong>, <strong>BAIXOS</strong> e <strong>MUITO BAIXOS</strong> é um recurso complementar, que pode ser útil conforme os objetivos da sua avaliação. Para conhecer as possibilidades de ampliação e solicitar a liberação para sua empresa, entre em contato com a administração do SimpleSST ou com nossa equipe comercial.</>
+                  ) : (
+                    <>Ao clicar, você vai gerar com <strong>IA</strong> a análise dos fatores de riscos psicossociais classificados com risco ocupacional <strong>{label.toUpperCase()}</strong> no recorte atual, incluindo fontes geradoras e recomendações. Somente essa faixa será analisada; as análises das outras faixas serão preservadas.</>
+                  )}
                   onClick={() => void handleAnalyzeButtonClick(band)}
-                  buttonProps={{ sx: { width: '100%', minHeight: 48, height: 'auto', px: 8, py: 5, color: 'text.primary', borderColor: 'divider', borderRadius: '24px', whiteSpace: 'normal' } }} /></Box>;
+                  buttonProps={{ 'aria-label': `Gerar análise com IA dos fatores de riscos psicossociais com risco ocupacional ${label.toLowerCase()}`, sx: { width: '100%', minHeight: 48, height: 48, px: 6, py: 5, color: 'text.primary', borderColor: 'divider', borderRadius: '24px', whiteSpace: 'nowrap' } }} /></Box>;
               })}
             <Box className="ai-generation-control" sx={{ gridColumn: { sm: 1, lg: isMaster ? 2 : 1 }, gridRow: { lg: 2 } }}>
             <SButton

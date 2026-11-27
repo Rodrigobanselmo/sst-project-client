@@ -71,6 +71,7 @@ export function RiskToolWideFrame({
           wideView
             ? {
                 position: 'fixed',
+                bgcolor: 'background.default',
                 inset: { xs: 8, md: 16 },
                 zIndex: 1200,
                 m: 0,

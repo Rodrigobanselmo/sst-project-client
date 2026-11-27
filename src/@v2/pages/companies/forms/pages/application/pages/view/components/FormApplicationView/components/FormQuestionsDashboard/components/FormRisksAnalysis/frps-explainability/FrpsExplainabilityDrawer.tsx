@@ -1,3 +1,7 @@
+import { useState } from 'react';
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
+import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
+import { FRPS_GENERATION_MODEL_OPTIONS } from '../frps-generation-model-options';
 import CloseIcon from '@mui/icons-material/Close';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import {
@@ -232,6 +236,8 @@ export function FrpsExplainabilityDrawer() {
     unavailableReason,
     resolvedItem,
     isMaster,
+    selectedContextualModel,
+    setSelectedContextualModel,
     selectedConceptualModel,
     setSelectedConceptualModel,
     isEditing,
@@ -277,6 +283,7 @@ export function FrpsExplainabilityDrawer() {
     data?.conceptual?.validationStatus === 'VALIDATED' &&
     isReleased &&
     contextual?.validationStatus === 'VALIDATED';
+  const [contextualConfigOpen, setContextualConfigOpen] = useState(false);
   const showMasterActions = isMaster && phase === 'ready';
   const conceptualStatusLabel = data?.conceptual?.validationStatus
     ? getConceptualValidationStatusLabel(data.conceptual.validationStatus)
@@ -307,12 +314,25 @@ export function FrpsExplainabilityDrawer() {
       PaperProps={{
         sx: {
           width: {
-            xs: '100vw',
+            xs: 'calc(100vw - 16px)',
             sm: '90vw',
             md: '75vw',
             lg: '80vw',
           },
-          maxWidth: '100vw',
+          maxWidth: 'calc(100vw - 16px)',
+          top: '8px',
+          right: '8px',
+          height: 'calc(100% - 16px)',
+          borderRadius: '24px',
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden',
+          '& .MuiButton-root': {
+            borderRadius: '999px',
+            textTransform: 'none',
+            boxShadow: 'none',
+          },
+          '& .MuiIconButton-root': { borderRadius: '50%' },
           backgroundColor: 'background.paper',
           color: 'text.primary',
         },
@@ -521,14 +541,33 @@ export function FrpsExplainabilityDrawer() {
                 >
                   {FRPS_EXPLAINABILITY_UI_COPY.commonAwaitingContextualBody}
                 </SText>
-                <SButton
-                  variant="contained"
-                  color="primary"
-                  size="s"
-                  text={FRPS_EXPLAINABILITY_UI_COPY.generateContextualButton}
-                  onClick={() => void confirmGenerateContextual()}
-                  buttonProps={{ type: 'button', disabled: isLoading }}
+                <AiActionButtonGroup
+                  label={FRPS_EXPLAINABILITY_UI_COPY.generateContextualButton}
+                  onExecute={() => void confirmGenerateContextual()}
+                  disabled={isLoading}
+                  isMaster={isMaster}
+                  configureIconOnly
+                  onConfigure={() => setContextualConfigOpen(true)}
+                  sButtonProps={{ buttonProps: { sx: {
+                    color: 'text.primary', borderColor: 'divider', borderRadius: '999px',
+                    backgroundColor: 'transparent',
+                    '& .MuiButton-startIcon': { color: 'primary.main' },
+                  } } }}
                 />
+                {isMaster && <SystemAiPromptConfigDialog
+                  open={contextualConfigOpen}
+                  onClose={() => setContextualConfigOpen(false)}
+                  onApply={(config) => setSelectedContextualModel(config.model || 'gpt-6.1-sol')}
+                  initialConfig={{ model: selectedContextualModel }}
+                  defaultModelValue="gpt-6.1-sol"
+                  modelOptions={[...FRPS_GENERATION_MODEL_OPTIONS, ...FRPS_EXPLAINABILITY_MODEL_OPTIONS]}
+                  showPrompt={false}
+                  title="Configurar IA da justificativa contextual"
+                  description="Configuração desta sessão, exclusiva do MASTER. O padrão é GPT-6.1 Sol. As instruções técnicas são mantidas pelo sistema."
+                  showSaveDefault={false}
+                  showRestoreDefault={false}
+                />}
+
               </Box>
             )}
 

@@ -1,3 +1,4 @@
+import { sstScopeAccessMessage } from './sst-query-state';
 import { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from 'react-query';
 import {
@@ -140,9 +141,28 @@ export function EsocialOverview({ companyId, initialEnvironment = 2 }: { company
       setBusy(false);
     }
   };
+  const lastScopeDenial = useRef<{ companyId: string; message: string } | null>(null);
+  const currentScopeDenial = sstScopeAccessMessage(policy.error);
+  if (currentScopeDenial) lastScopeDenial.current = { companyId, message: currentScopeDenial };
+  else if (!policy.isFetching) lastScopeDenial.current = null;
+  const scopeAccessMessage = currentScopeDenial || (policy.isFetching && lastScopeDenial.current?.companyId === companyId ? lastScopeDenial.current.message : null);
+  if (scopeAccessMessage) return (
+    <Box sx={{ p: { xs: 8, md: 12 } }}>
+      <Stack spacing={8} useFlexGap>
+        <Typography color="text.primary" variant="h5">Acompanhamento eSocial</Typography>
+        <Alert severity="warning">{scopeAccessMessage}</Alert>
+        <Typography color="text.secondary">
+          Nenhuma configuração ou declaração foi alterada. Este bloqueio é de acesso à empresa, não de falta de preenchimento do fator de risco.
+        </Typography>
+        <Button sx={{ alignSelf: 'flex-start' }} disabled={policy.isFetching} onClick={() => policy.refetch()}>
+          {policy.isFetching ? 'Conferindo acesso…' : 'Conferir acesso novamente'}
+        </Button>
+      </Stack>
+    </Box>
+  );
   if (!access.canRead && access.canReadDeclaration)
     return (
-      <Box sx={{ p: { xs: 8, md: 12 } }}>
+      <Box sx={{ p: { xs: 8, md: 12 }, color: 'text.primary', '& .MuiFormHelperText-root:not(.Mui-error)': { color: 'text.secondary' }, '& .MuiFormControlLabel-label': { color: 'text.primary' } }}>
         <Stack spacing={12} useFlexGap>
           <OperationalStatusSummary companyId={companyId} />
           <BulkDispatchPanel
@@ -169,21 +189,21 @@ export function EsocialOverview({ companyId, initialEnvironment = 2 }: { company
       </Alert>
     );
   return (
-    <Box sx={{ p: { xs: 8, md: 12 } }}>
+    <Box sx={{ p: { xs: 8, md: 12 }, color: 'text.primary', '& .MuiFormHelperText-root:not(.Mui-error)': { color: 'text.secondary' }, '& .MuiFormControlLabel-label': { color: 'text.primary' } }}>
       <Stack spacing={12} useFlexGap>
-        <Typography variant="h5">Acompanhamento eSocial</Typography>
+        <Typography color="text.primary" variant="h5">Acompanhamento eSocial</Typography>
         <Alert severity="info">
           As condições são cadastradas e corrigidas na caracterização e nos
           cadastros do empregado. Aqui você confere as declarações e acompanha o
           processamento e os recibos do eSocial.
         </Alert>
-        <Typography variant="h6">Enviar condições a partir de</Typography>
-        <Typography>
+        <Typography color="text.primary" variant="h6">Enviar condições a partir de</Typography>
+        <Typography color="text.primary">
           {policy.data?.policy
             ? `Data configurada: ${policy.data.policy.fromDate.slice(0, 10)} · revisão ${policy.data.policy.revision}`
             : 'Informe a data inicial antes de preparar o primeiro envio.'}
         </Typography>
-        <Typography>
+        <Typography color="text.primary">
           O histórico anterior continua disponível. Se já foi enviado por outro
           software, escolha de quando este sistema deve assumir os envios.
           Alterar esta data reavalia as pendências; não cria comprovantes de
@@ -267,14 +287,14 @@ export function EsocialOverview({ companyId, initialEnvironment = 2 }: { company
                 }}
               >
                 <Stack spacing={8} useFlexGap>
-                  <Typography variant="h6">
+                  <Typography color="text.primary" variant="h6">
                     Confira a alteração da data inicial
                   </Typography>
-                  <Typography>
+                  <Typography color="text.primary">
                     De {dateLabel(preview.data.previousFromDate)} para{' '}
                     {dateLabel(preview.data.fromDate)}
                   </Typography>
-                  <Typography>
+                  <Typography color="text.primary">
                     {policyImpactMessage(preview.data.direction)}
                   </Typography>
                   <Alert severity="info">

@@ -8,6 +8,7 @@ import { ViewTypeEnum } from '../../../utils/view-risk-type.constant';
 import { IHierarchyTreeMapObject } from '../../RiskToolViews/RiskToolRiskView/types';
 
 export interface SideSelectViewContentProps {
+  actions?: React.ReactNode;
   ghoQuery: IGho[];
   viewType: ViewTypeEnum;
   loadingCopy?: boolean;

@@ -128,14 +128,18 @@ export const FormApplicationInfo = ({
           }),
         }}
         endComponent={
-          <SIconButton
-            onClick={(event) => {
-              event.stopPropagation();
-              onEdit();
-            }}
-          >
-            <SIconEdit fontSize={22} color="grey.600" />
-          </SIconButton>
+          <Box sx={{ ml: 'auto', flexShrink: 0 }}>
+            <SIconButton
+              tooltip="Editar metadados da campanha"
+              iconButtonProps={{ 'aria-label': 'Editar metadados da campanha' }}
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit();
+              }}
+            >
+              <SIconEdit fontSize={22} color="grey.600" />
+            </SIconButton>
+          </Box>
         }
       >
         <SAccordionBody>

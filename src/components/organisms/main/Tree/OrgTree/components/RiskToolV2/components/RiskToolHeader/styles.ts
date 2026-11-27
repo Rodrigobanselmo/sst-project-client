@@ -39,10 +39,10 @@ export const STGridHeader = styled(STGridExtend)`
     max-width: 100%;
     box-sizing: border-box;
     justify-self: stretch;
-    border: 2px solid ${(props) =>
-      props.theme.palette.mode === 'dark' ? '#69778B' : '#C5CBD3'};
-    border-radius: 999px;
-    background-color: ${(props) => props.theme.palette.background.paper};
+    border: none;
+    border-bottom: 1px solid ${(props) => props.theme.palette.divider};
+    border-radius: 0;
+    background-color: transparent;
     padding: ${(props) => props.theme.spacing(3, 5)};
     min-height: 32px;
   }

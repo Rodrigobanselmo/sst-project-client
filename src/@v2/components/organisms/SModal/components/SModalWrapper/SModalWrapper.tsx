@@ -14,6 +14,7 @@ export const SModalWrapper = ({
   modalKey,
   loading,
   semiFullScreen,
+  rounded = false,
   closeButtonOptions,
   dangerButtonOptions,
   submitButtonOptions,
@@ -38,6 +39,24 @@ export const SModalWrapper = ({
       sx={{
         flexDirection: 'column',
         display: 'flex',
+        ...(rounded && {
+          borderRadius: '24px',
+          border: '1px solid',
+          borderColor: 'divider',
+          color: 'text.primary',
+          '&& .MuiButton-root': {
+            borderRadius: '999px',
+            textTransform: 'none',
+            boxShadow: 'none',
+            minHeight: 40,
+          },
+          '&& .MuiIconButton-root': {
+            borderRadius: '50%',
+            color: 'text.secondary',
+            '&:hover': { backgroundColor: 'action.hover' },
+          },
+          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+        }),
       }}
     >
       <SModalHeader

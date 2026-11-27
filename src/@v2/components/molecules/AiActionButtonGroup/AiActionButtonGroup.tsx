@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { Box, Button, CircularProgress } from '@mui/material';
 
@@ -82,7 +82,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
         <SIconButton size="small" tooltip={label} disabled={isDisabled} onClick={onExecute}
           iconButtonProps={{ 'aria-label': label, sx: { color: 'text.primary', '&:hover': { backgroundColor: 'action.hover' } } }}>
-          {loading ? <CircularProgress size={16} color="inherit" /> : <AutoFixHighOutlinedIcon sx={{ fontSize: 18 }} />}
+          {loading ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeOutlinedIcon sx={{ fontSize: 18 }} />}
         </SIconButton>
         {configureControl}
       </Box>
@@ -102,7 +102,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
           minWidth={sButtonProps?.minWidth}
           tooltip={sButtonProps?.tooltip}
           buttonProps={sButtonProps?.buttonProps}
-          icon={<AutoFixHighOutlinedIcon sx={{ fontSize: 18 }} />}
+          icon={<AutoAwesomeOutlinedIcon sx={{ fontSize: 18 }} />}
         />
         {configureControl}
       </Box>
@@ -115,7 +115,7 @@ export const AiActionButtonGroup: FC<AiActionButtonGroupProps> = ({
         size={size}
         variant="outlined"
         startIcon={
-          loading ? <CircularProgress size={16} /> : <AutoFixHighOutlinedIcon />
+          loading ? <CircularProgress size={16} /> : <AutoAwesomeOutlinedIcon />
         }
         onClick={onExecute}
         disabled={isDisabled}

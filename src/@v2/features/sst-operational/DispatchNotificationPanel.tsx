@@ -1,3 +1,4 @@
+import { sstRefetchInterval } from './sst-query-state';
 import { useEffect, useId, useState } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from 'react-query';
 import {
@@ -117,7 +118,7 @@ function NotificationDraft({
     {
       enabled: access.canReadDeclaration && expanded && !!runId,
       retry: false,
-      refetchInterval: 10000,
+      refetchInterval: sstRefetchInterval(10000),
       getNextPageParam: (p) => p.nextCursor || undefined,
     },
   );
@@ -227,11 +228,11 @@ function NotificationDraft({
       sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography fontWeight={600}>Avisos por e-mail</Typography>
+        <Typography color="text.primary" fontWeight={600}>Avisos por e-mail</Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ p: '16px' }}>
         <Stack sx={{ gap: '24px' }}>
-          <Typography variant="body2">
+          <Typography color="text.primary" variant="body2">
             Receba resumos de atenção e conclusão da execução, sem um e-mail por
             empregado. O e-mail não inclui CPF, XML, exames ou certificados.
           </Typography>
@@ -354,7 +355,7 @@ function NotificationDraft({
                   </>
                 )}
                 {!access.canSendDeclaration && (
-                  <Typography variant="body2">
+                  <Typography color="text.primary" variant="body2">
                     Consulta disponível. Somente quem gerencia envios pode
                     alterar destinatários.
                   </Typography>
@@ -365,10 +366,10 @@ function NotificationDraft({
           {!!runId && (
             <Box component="section" aria-label="E-mails desta execução">
               <Stack sx={{ gap: '16px' }}>
-                <Typography variant="subtitle1" fontWeight={600}>
+                <Typography color="text.primary" variant="subtitle1" fontWeight={600}>
                   E-mails desta execução
                 </Typography>
-                <Typography variant="body2">
+                <Typography color="text.primary" variant="body2">
                   “Aceito pelo provedor” confirma o recebimento pelo serviço de
                   e-mail; a entrega na caixa de entrada não é garantida.
                   Resultados incertos exigem conferir o provedor antes de
@@ -380,7 +381,7 @@ function NotificationDraft({
                 {results.isLoading && <LinearProgress />}
                 {results.data &&
                   !results.data.pages.some((p) => p.notices.length) && (
-                    <Typography variant="body2">
+                    <Typography color="text.primary" variant="body2">
                       O resumo será registrado quando esta execução terminar ou
                       precisar de atenção.
                     </Typography>
@@ -398,18 +399,18 @@ function NotificationDraft({
                       }}
                     >
                       <Stack sx={{ gap: '12px' }}>
-                        <Typography fontWeight={600}>
+                        <Typography color="text.primary" fontWeight={600}>
                           {n.kind === 'ATTENTION'
                             ? 'Execução requer atenção'
                             : 'Resumo de conclusão'}{' '}
                           · rodada {n.round}
                         </Typography>
-                        <Typography variant="body2">
+                        <Typography color="text.primary" variant="body2">
                           {new Date(n.createdAt).toLocaleString('pt-BR')} ·{' '}
                           {dispatchMailStateLabel(n.state)}
                         </Typography>
                         {!n.recipients.length && (
-                          <Typography variant="body2">
+                          <Typography color="text.primary" variant="body2">
                             {n.state === 'SUPPRESSED'
                               ? 'Aviso desativado, substituído ou sem destinatário autorizado.'
                               : 'Aguardando definição dos destinatários pelo serviço de e-mail.'}
@@ -420,7 +421,7 @@ function NotificationDraft({
                             key={m.id}
                             sx={{ gap: '8px', overflowWrap: 'anywhere' }}
                           >
-                            <Typography variant="body2">
+                            <Typography color="text.primary" variant="body2">
                               {m.role === 'OPERATOR'
                                 ? 'Operador'
                                 : 'Responsável'}{' '}
@@ -432,7 +433,7 @@ function NotificationDraft({
                                   ? 'O provedor pode ter recebido este aviso. Não há reenvio automático.'
                                   : 'Confira a configuração e o erro no serviço antes de tentar novamente.'}
                                 {m.errorCode && (
-                                  <Typography
+                                  <Typography color="text.primary"
                                     component="span"
                                     variant="caption"
                                     display="block"
@@ -485,7 +486,7 @@ function NotificationDraft({
         </DialogTitle>
         <DialogContent sx={{ pt: '12px !important' }}>
           <Stack sx={{ gap: '24px', pt: '8px' }}>
-            <Typography>
+            <Typography color="text.primary">
               {review?.address} ·{' '}
               {review && dispatchMailStateLabel(review.state)}
             </Typography>

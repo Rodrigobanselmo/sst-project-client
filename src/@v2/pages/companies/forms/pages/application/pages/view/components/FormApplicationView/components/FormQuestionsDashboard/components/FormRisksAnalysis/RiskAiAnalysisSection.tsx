@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { Box } from '@mui/material';
 import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
@@ -12,7 +12,7 @@ export function RiskAiAnalysisSection({ children }: { children: ReactNode }) {
         defaultExpanded={false}
         title="Gerar análise de riscos com IA"
         subtitle="Gerar e gerenciar as análises de fontes geradoras e recomendações do recorte atual."
-        icon={<AutoFixHighOutlinedIcon sx={{ fontSize: 30 }} />}
+        icon={<AutoAwesomeOutlinedIcon sx={{ fontSize: 30 }} />}
         expandIcon={<ChevronRightIcon fontSize="small" />}
         color="text.primary"
         fontWeight="600"

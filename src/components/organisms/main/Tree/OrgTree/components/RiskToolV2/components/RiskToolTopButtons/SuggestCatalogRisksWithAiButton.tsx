@@ -1,12 +1,9 @@
-import { riskEditorActionSx } from 'configs/theme/risk-editor-action';
 import { useMemo, useState } from 'react';
 
-import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
-import { Button, IconButton } from '@mui/material';
+import { Box, IconButton } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -110,7 +107,7 @@ export function SuggestCatalogRisksWithAiButton({
             size="small"
             aria-label="Configurar orientação funcional (master)"
             onClick={() => setConfigOpen(true)}
-            sx={{ ml: -1.5, mr: 1 }}
+            sx={{ color: 'text.secondary', width: 30, height: 30 }}
           >
             <SettingsOutlinedIcon sx={{ fontSize: 18 }} />
           </IconButton>
@@ -130,75 +127,58 @@ export function SuggestCatalogRisksWithAiButton({
       </>
     ) : null;
 
-  if (!selectedGho?.id) {
-    return (
-      <SFlex align="center" gap={0.75} sx={{ mr: 2 }}>
-        <STooltip
-          withWrapper
-          title="Selecione uma entidade para sugerir riscos com IA."
-        >
-          <SFlex align="center" gap={0.75} sx={{ cursor: 'default' }}>
-            <InfoOutlined
-              sx={{ fontSize: 18, color: 'text.secondary' }}
-              aria-hidden
-            />
-            <SText fontSize={13} color="text.secondary" lineNumber={1}>
-              Sugerir riscos com IA
-            </SText>
-          </SFlex>
-        </STooltip>
-        {masterConfigControl}
-      </SFlex>
-    );
-  }
-
-  if (!context) {
-    return (
-      <SFlex align="center" gap={0.75} sx={{ mr: 2 }}>
-        <STooltip
-          withWrapper
-          title="Vincule ao menos um estabelecimento para sugerir riscos com IA."
-        >
-          <SFlex align="center" gap={0.75} sx={{ cursor: 'default' }}>
-            <InfoOutlined
-              sx={{ fontSize: 18, color: 'text.secondary' }}
-              aria-hidden
-            />
-            <SText fontSize={13} color="text.secondary" lineNumber={1}>
-              Sugerir riscos com IA
-            </SText>
-          </SFlex>
-        </STooltip>
-        {masterConfigControl}
-      </SFlex>
-    );
-  }
+  const disabledReason = !selectedGho?.id
+    ? 'Selecione uma entidade para sugerir riscos com IA.'
+    : !context
+      ? 'Vincule ao menos um estabelecimento para sugerir riscos com IA.'
+      : '';
 
   return (
     <>
-      <SFlex align="center" sx={{ mr: 2 }}>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<AutoFixHighOutlinedIcon sx={{ fontSize: 16 }} />}
-          onClick={() => setOpen(true)}
-          sx={{ ...riskEditorActionSx, whiteSpace: 'nowrap' }}
+      <SFlex align="center" gap={2} sx={{ flexShrink: 0 }}>
+        <STooltip
+          withWrapper
+          title={
+            <Box sx={{ maxWidth: 330 }}>
+              <Box component="strong" sx={{ display: 'block', mb: 3 }}>
+                Sugerir riscos com IA
+              </Box>
+              {disabledReason ||
+                'Abre o modal de sugestão de fatores do catálogo para o contexto selecionado. Você revisa e escolhe quais vincular, como em Adicionar riscos. Não preenche fontes geradoras, medidas de controle, recomendações ou probabilidades; para sugestões desses detalhes, use Análise geral com IA.'}
+            </Box>
+          }
         >
-          ✨ Sugerir riscos com IA
-        </Button>
+          <IconButton
+            type="button"
+            aria-label="Sugerir riscos com IA"
+            disabled={!!disabledReason}
+            onClick={() => setOpen(true)}
+            sx={{
+              width: 34,
+              height: 34,
+              border: '1px solid',
+              borderColor: 'divider',
+              color: 'primary.main',
+            }}
+          >
+            <AutoAwesomeOutlinedIcon sx={{ fontSize: 19 }} />
+          </IconButton>
+        </STooltip>
         {masterConfigControl}
       </SFlex>
-      <SuggestCatalogRisksWithAiDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        context={context}
-        isSystemMaster={isSystemMaster}
-        sessionModel={
-          context.kind === 'gse'
-            ? sessionModelByKind.gse
-            : sessionModelByKind.characterization
-        }
-      />
+      {context && (
+        <SuggestCatalogRisksWithAiDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          context={context}
+          isSystemMaster={isSystemMaster}
+          sessionModel={
+            context.kind === 'gse'
+              ? sessionModelByKind.gse
+              : sessionModelByKind.characterization
+          }
+        />
+      )}
     </>
   );
 }

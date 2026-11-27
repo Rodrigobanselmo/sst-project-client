@@ -77,7 +77,7 @@ export function FrpsExplainabilityLibrarySummaryCards({
             >
               {card.label}
             </Typography>
-            <Typography variant="h6" fontSize={18} fontWeight={600}>
+            <Typography color="text.primary" variant="h6" fontSize={18} fontWeight={600}>
               {card.value}
             </Typography>
           </Paper>

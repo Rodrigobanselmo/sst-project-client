@@ -55,6 +55,7 @@ export type SystemAiPromptConfigDialogProps = {
   defaultModelValue?: string;
   modelOptions?: AiModelOption[];
   promptLabel?: string;
+  showPrompt?: boolean;
   modelLabel?: string;
   modelPlaceholder?: string;
   showSaveDefault?: boolean;
@@ -91,6 +92,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
   defaultModelValue,
   modelOptions = AI_MODEL_OPTIONS,
   promptLabel = 'Prompt do sistema',
+  showPrompt = true,
   modelLabel = 'Modelo de IA',
   modelPlaceholder = 'Selecione o modelo de IA',
   showSaveDefault = Boolean(promptKey),
@@ -244,7 +246,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
 
   const onSubmit = (formData: SystemAiPromptConfigForm) => {
     onApply({
-      customPrompt: formData.customPrompt?.trim() || undefined,
+      customPrompt: showPrompt ? formData.customPrompt?.trim() || undefined : undefined,
       model: formData.model?.value,
     });
     enqueueSnackbar('Configuração aplicada para esta sessão.', { variant: 'success' });
@@ -275,11 +277,17 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
     Boolean(promptKey) && isLoadingSystemAiPrompt && !hasSessionAppliedConfig;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth
+      PaperProps={{ sx: {
+        borderRadius: '24px', border: '1px solid', borderColor: 'divider', color: 'text.primary',
+        '& .MuiButton-root': { borderRadius: '999px', textTransform: 'none', boxShadow: 'none' },
+        '& .MuiIconButton-root': { borderRadius: '50%' },
+      } }}
+    >
       <FormProvider {...methods}>
-        <form onSubmit={handleFormSubmit}>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+          <DialogTitle sx={{ color: 'text.primary', px: 8, pt: 8, pb: 4 }}>{title}</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 8, px: 8, pt: '12px !important', '& .MuiFormHelperText-root:not(.Mui-error)': { color: 'text.secondary' } }}>
             {additionalSettings}
             {description && (
               <Typography variant="body2" color="text.secondary">
@@ -295,7 +303,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
               getOptionLabel={(option) => option.label}
               getOptionValue={(option) => option.value}
             />
-            {isLoadingPrompt ? (
+            {showPrompt && (isLoadingPrompt ? (
               <Skeleton variant="rectangular" height={320} />
             ) : (
               <SInputMultilineForm
@@ -309,11 +317,11 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
                 fullWidth
                 inputProps={{ minRows: promptMinRows, maxRows: promptMaxRows }}
               />
-            )}
+            ))}
           </DialogContent>
-          <DialogActions sx={{ justifyContent: 'space-between', px: 3 }}>
+          <DialogActions sx={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, px: 8, pb: 8, pt: 6, flexShrink: 0 }}>
             {showSaveDefault || showRestoreDefault ? (
-              <SFlex gap={2}>
+              <SFlex gap={4} flexWrap="wrap">
                 {showSaveDefault && (
                   <SButton
                     variant="outlined"
@@ -339,7 +347,7 @@ export const SystemAiPromptConfigDialog: FC<SystemAiPromptConfigDialogProps> = (
             ) : (
               <span />
             )}
-            <SFlex gap={2}>
+            <SFlex gap={4} flexWrap="wrap" sx={{ ml: 'auto', justifyContent: 'flex-end' }}>
               <Button type="button" onClick={onClose}>
                 Cancelar
               </Button>

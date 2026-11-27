@@ -110,13 +110,13 @@ export function FrpsLibraryUnlinkCanonicalDialog({
       <DialogContent>
         {target ? (
           <Box display="flex" flexDirection="column" gap={1.5}>
-            <Typography variant="body2">
+            <Typography color="text.primary" variant="body2">
               Item: <strong>{target.alias.label}</strong>
             </Typography>
-            <Typography variant="body2">
+            <Typography color="text.primary" variant="body2">
               Canônico atual: <strong>{target.canonicalLabel}</strong>
             </Typography>
-            <Typography variant="body2">
+            <Typography color="text.primary" variant="body2">
               Origem: {target.alias.origin === 'GLOBAL' ? 'Global' : 'Local'} ·
               Tipo: {getFrpsLibraryItemTypeLabel(target.alias.itemType)}
             </Typography>
@@ -129,7 +129,7 @@ export function FrpsLibraryUnlinkCanonicalDialog({
             ) : null}
 
             <Box>
-              <Typography variant="subtitle2" gutterBottom>
+              <Typography color="text.primary" variant="subtitle2" gutterBottom>
                 Prévia de impacto (sem migração)
               </Typography>
               {impactLoading ? (

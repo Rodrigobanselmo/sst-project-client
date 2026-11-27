@@ -1,3 +1,4 @@
+import { FRPS_EXPLAINABILITY_MODEL_OPTIONS } from '../../FormRisksAnalysis/ai-model-options';
 import { HierarchyLabel } from './HierarchyLabel';
 import { labeledHierarchyContext } from '../helpers/formatHierarchyGroupOptionLabel';
 import { ProposalInlineAdd } from './ProposalInlineAdd';
@@ -50,7 +51,12 @@ async function transcribeGroupingContext({
 
 const MODELS = [
   { label: 'GPT-6.1 Sol — padrão SimpleSST', value: 'gpt-6.1-sol' },
-  { label: 'GPT-5 — alternativa explícita do MASTER', value: 'gpt-5' },
+  { label: 'GPT-6.2 Sol', value: 'gpt-6.2-sol' },
+  { label: 'GPT-6.2 Astra', value: 'gpt-6.2-astra' },
+  ...FRPS_EXPLAINABILITY_MODEL_OPTIONS.map(({ label, value }) => ({
+    label: label.split(' - $')[0],
+    value,
+  })),
 ];
 type Mode = 'SEPARATE' | 'INTEGRATED';
 type Coverage = {
@@ -450,6 +456,13 @@ export function GroupingAiAssistant({
     <>
       <AiActionButtonGroup
         label="Sugerir agrupamentos com IA"
+        variant="mui-outlined"
+        sButtonProps={{ buttonProps: { sx: {
+          color: 'text.primary', borderColor: 'divider', borderRadius: '999px',
+          backgroundColor: 'transparent', minWidth: 0, whiteSpace: 'normal',
+          '& .MuiButton-startIcon': { color: 'primary.main' },
+          '&:hover': { backgroundColor: 'action.hover', borderColor: 'text.secondary' },
+        } } }}
         onExecute={() => {
           setReviewSession((value) => value + 1);
           setConfirm(false);
@@ -469,17 +482,24 @@ export function GroupingAiAssistant({
           initialConfig={config}
           defaultModelValue="gpt-6.1-sol"
           modelOptions={MODELS}
-          factoryDefaultPrompt=""
+          showPrompt={false}
           title="Configurar IA de agrupamentos"
-          description="Configuração desta sessão, exclusiva do MASTER. O padrão é GPT-6.1 Sol. Não há troca automática de modelo após erros. As regras de escopo, contrato e divulgação são mantidas pelo sistema."
-          promptLabel="Orientações adicionais para a IA"
+          description="Configuração desta sessão, exclusiva do MASTER. O padrão é GPT-6.1 Sol. Não há troca automática de modelo após erros. Informe os esclarecimentos no campo Contexto de trabalho do assistente. As instruções técnicas são mantidas pelo sistema."
+
           showSaveDefault={false}
           showRestoreDefault={false}
         />
       )}
       <Dialog
         PaperProps={{
-          sx: { bgcolor: 'background.paper', backgroundImage: 'none' },
+          sx: {
+            bgcolor: 'background.paper', backgroundImage: 'none',
+            borderRadius: '24px', border: '1px solid', borderColor: 'divider',
+            '& .MuiButton-root': {
+              borderRadius: '999px', textTransform: 'none', boxShadow: 'none',
+            },
+            '& .MuiIconButton-root': { borderRadius: '50%' },
+          },
         }}
         sx={{ '& .MuiFormHelperText-root': { color: 'text.secondary' } }}
         open={open}
@@ -1387,7 +1407,14 @@ export function GroupingAiAssistant({
       </Dialog>
       <Dialog
         PaperProps={{
-          sx: { bgcolor: 'background.paper', backgroundImage: 'none' },
+          sx: {
+            bgcolor: 'background.paper', backgroundImage: 'none',
+            borderRadius: '24px', border: '1px solid', borderColor: 'divider',
+            '& .MuiButton-root': {
+              borderRadius: '999px', textTransform: 'none', boxShadow: 'none',
+            },
+            '& .MuiIconButton-root': { borderRadius: '50%' },
+          },
         }}
         sx={{ '& .MuiFormHelperText-root': { color: 'text.secondary' } }}
         open={open && confirm && !!current}

@@ -1,3 +1,4 @@
+import { sstRefetchInterval, hasSstQueryError } from './sst-query-state';
 import { esocialEnvironment } from './environment-model';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from 'react-query';
@@ -115,7 +116,7 @@ export function DeclarationPanel({
     {
       enabled: access.canReadDeclaration,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: sstRefetchInterval(5000),
       keepPreviousData: true,
     },
   );
@@ -125,7 +126,7 @@ export function DeclarationPanel({
     {
       enabled: access.canReadDeclaration && !!selectedId,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: sstRefetchInterval(5000),
     },
   );
   const run =
@@ -228,8 +229,8 @@ export function DeclarationPanel({
       useFlexGap
       sx={{ scrollMarginTop: '96px' }}
     >
-      <Typography variant="h6">Envios S-2240</Typography>
-      <Typography>
+      <Typography color="text.primary" variant="h6">Envios S-2240</Typography>
+      <Typography color="text.primary">
         Prepare as condições cadastradas, confira os impedimentos e confirme o
         envio. Depois de um envio aceito, confira as alterações para gerar novas
         condições ou retificações já definidas nos cadastros de origem.
@@ -237,7 +238,7 @@ export function DeclarationPanel({
       {overview.isLoading && (
         <CircularProgress size={24} aria-label="Carregando declarações" />
       )}
-      {overview.isError && (
+      {hasSstQueryError(overview) && (
         <Alert severity="error">
           Não foi possível consultar as declarações.{' '}
           <Button onClick={() => overview.refetch()}>Tentar novamente</Button>
@@ -384,7 +385,7 @@ export function DeclarationPanel({
             </Stack>
           )}
           {!hasAcceptedDeclaration(overview.data.runs) && (
-            <Typography variant="body2">
+            <Typography color="text.primary" variant="body2">
               Por padrão, o primeiro envio considera a condição vigente de cada
               vínculo e a data inicial configurada. O histórico importado só é
               incluído quando você escolhe essa opção explicitamente.
@@ -428,7 +429,7 @@ export function DeclarationPanel({
         </>
       )}
       {error && <Alert severity="error">{error}</Alert>}
-      {detail.isError && (
+      {hasSstQueryError(detail) && (
         <Alert severity="error">
           Não foi possível atualizar o resultado.{' '}
           <Button onClick={() => detail.refetch()}>Consultar novamente</Button>
@@ -449,12 +450,12 @@ export function DeclarationPanel({
           }}
         >
           <Stack spacing={8} useFlexGap>
-            <Typography variant="subtitle1">
+            <Typography color="text.primary" variant="subtitle1">
               Declaração preparada ·{' '}
               {run.environment === 2 ? 'Produção restrita' : 'Produção'}
             </Typography>
             {run.fromDate && (
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 Data inicial nesta preparação: {dateLabel(run.fromDate)}.
                 {run.policyRevision !== undefined &&
                   ` Configuração ${run.policyRevision}.`}
@@ -475,7 +476,7 @@ export function DeclarationPanel({
                 aceitos. Nenhum novo evento precisa ser transmitido.
               </Alert>
             ) : (
-              <Typography>
+              <Typography color="text.primary">
                 {run.events.length} evento(s) · {declarationStatusLabel(run)}
               </Typography>
             )}
@@ -512,7 +513,7 @@ export function DeclarationPanel({
                         <TableCell>
                           {declarationOperationLabel(event)}
                           {event.rectifiedReceipt && (
-                            <Typography variant="caption" display="block">
+                            <Typography color="text.primary" variant="caption" display="block">
                               Corrige o recibo {event.rectifiedReceipt}
                             </Typography>
                           )}
@@ -532,7 +533,7 @@ export function DeclarationPanel({
                               ? 'Confira os impedimentos na origem'
                               : 'Aguardando confirmação'}
                           {event.delivery?.errorCode && (
-                            <Typography variant="caption" display="block">
+                            <Typography color="text.primary" variant="caption" display="block">
                               {deliveryErrorMessage(event.delivery.errorCode)}
                             </Typography>
                           )}
@@ -552,7 +553,7 @@ export function DeclarationPanel({
                   .filter((event) => event.legalDeadline)
                   .map((event) => (
                     <Stack key={event.id} spacing={8} useFlexGap>
-                      <Typography variant="body2">
+                      <Typography color="text.primary" variant="body2">
                         {event.employeeName || 'Evento S-2240'} · condição desde{' '}
                         {dateLabel(event.effectiveFrom)}
                       </Typography>

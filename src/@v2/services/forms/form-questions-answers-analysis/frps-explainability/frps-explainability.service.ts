@@ -70,6 +70,7 @@ export async function generateFrpsContextualExplanation(
     }),
     {
       itemType: params.itemType,
+      ...(params.contextualModel ? { contextualModel: params.contextualModel } : {}),
       ...(params.itemKey ? { itemKey: params.itemKey } : {}),
       ...(params.itemName ? { itemName: params.itemName } : {}),
     },

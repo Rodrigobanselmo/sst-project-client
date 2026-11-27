@@ -153,6 +153,7 @@ export type ReadFrpsItemExplanationResponse =
     };
 
 export type GenerateFrpsItemExplanationParams = ReadFrpsItemExplanationParams & {
+  contextualModel?: string;
   conceptualModel?: string;
 };
 

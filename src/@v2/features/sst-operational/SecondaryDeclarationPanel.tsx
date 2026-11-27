@@ -1,3 +1,4 @@
+import { sstRefetchInterval, hasSstQueryError } from './sst-query-state';
 import { esocialEnvironment } from './environment-model';
 import { SecondaryBulkDispatchPanel } from './SecondaryBulkDispatchPanel';
 import { useEffect, useId, useRef, useState } from 'react';
@@ -125,7 +126,7 @@ export function SecondaryDeclarationPanel({
     {
       enabled: access.canReadDeclaration,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: sstRefetchInterval(5000),
       keepPreviousData: false,
     },
   );
@@ -139,7 +140,7 @@ export function SecondaryDeclarationPanel({
     {
       enabled: access.canReadDeclaration && type !== 'S-3000',
       retry: false,
-      refetchInterval: 30_000,
+      refetchInterval: sstRefetchInterval(30_000),
       getNextPageParam: (page) => page.nextCursor || undefined,
     },
   );
@@ -154,7 +155,7 @@ export function SecondaryDeclarationPanel({
     {
       enabled: access.canReadDeclaration && !!selectedId,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: sstRefetchInterval(5000),
     },
   );
   const event =
@@ -267,10 +268,10 @@ export function SecondaryDeclarationPanel({
   if (!access.canReadDeclaration) return null;
   return (
     <Stack spacing={8} useFlexGap>
-      <Typography variant="h6">
+      <Typography color="text.primary" variant="h6">
         CAT, saúde, toxicológicos e exclusões
       </Typography>
-      <Typography>
+      <Typography color="text.primary">
         Os dados vêm dos cadastros de origem. Confira as informações e os
         impedimentos antes de confirmar a transmissão.
       </Typography>
@@ -372,7 +373,7 @@ export function SecondaryDeclarationPanel({
           aria-label="Carregando origens dos eventos"
         />
       )}
-      {overview.isError && (
+      {hasSstQueryError(overview) && (
         <Alert severity="error">
           Não foi possível consultar as origens.{' '}
           <Button onClick={() => overview.refetch()}>Tentar novamente</Button>
@@ -392,16 +393,16 @@ export function SecondaryDeclarationPanel({
               }}
             >
               <Stack spacing={8} useFlexGap>
-                <Typography variant="subtitle1">
+                <Typography color="text.primary" variant="subtitle1">
                   Pendências de cadastros anteriores
                 </Typography>
-                <Typography variant="body2">
+                <Typography color="text.primary" variant="body2">
                   A conferência em segundo plano também identifica cadastros
                   antigos. Eles continuam disponíveis aqui mesmo quando saem da
                   lista dos mais recentes. Selecionar uma pendência não
                   transmite nada.
                 </Typography>
-                {previousSources.isError && (
+                {hasSstQueryError(previousSources) && (
                   <Alert severity="warning">
                     Não foi possível atualizar esta lista. As páginas já
                     carregadas e seu rascunho foram mantidos.{' '}
@@ -414,12 +415,12 @@ export function SecondaryDeclarationPanel({
                   </Alert>
                 )}
                 {previousSources.isLoading && (
-                  <Typography>Consultando pendências anteriores…</Typography>
+                  <Typography color="text.primary">Consultando pendências anteriores…</Typography>
                 )}
                 {!previousSources.isLoading &&
-                  !previousSources.isError &&
+                  !hasSstQueryError(previousSources) &&
                   !previousReviews.length && (
-                    <Typography variant="body2">
+                    <Typography color="text.primary" variant="body2">
                       Nenhuma pendência anterior encontrada nesta consulta. A
                       conferência pode continuar em segundo plano.
                     </Typography>
@@ -443,7 +444,7 @@ export function SecondaryDeclarationPanel({
                             <TableCell>
                               {secondaryDisplayLabel(item.label)}
                               {item.date && (
-                                <Typography variant="caption" display="block">
+                                <Typography color="text.primary" variant="caption" display="block">
                                   {dateLabel(item.date)}
                                 </Typography>
                               )}
@@ -554,7 +555,7 @@ export function SecondaryDeclarationPanel({
             )}
           />
           {source && (
-            <Typography variant="body2">
+            <Typography color="text.primary" variant="body2">
               {source.employeeName || secondaryDisplayLabel(source.label)}
               {source.date ? ` · ${dateLabel(source.date)}` : ''}
               {source.receipt ? ` · Recibo ${source.receipt}` : ''}
@@ -680,7 +681,7 @@ export function SecondaryDeclarationPanel({
         </>
       )}
       {error && <Alert severity="error">{error}</Alert>}
-      {detail.isError && (
+      {hasSstQueryError(detail) && (
         <Alert severity="error">
           Não foi possível atualizar o resultado desta preparação.{' '}
           <Button onClick={() => detail.refetch()}>Consultar novamente</Button>
@@ -698,10 +699,10 @@ export function SecondaryDeclarationPanel({
           }}
         >
           <Stack spacing={8} useFlexGap>
-            <Typography variant="subtitle1">
+            <Typography color="text.primary" variant="subtitle1">
               {secondaryEventLabels[event.type]}
             </Typography>
-            <Typography>
+            <Typography color="text.primary">
               {secondaryDisplayLabel(
                 event.source?.label || 'Cadastro de origem',
               )}{' '}
@@ -732,7 +733,7 @@ export function SecondaryDeclarationPanel({
               <Alert severity="warning">
                 <Stack spacing={4}>
                   {event.diagnostics.map((item, index) => (
-                    <Typography key={`${item.code}-${index}`} variant="body2">
+                    <Typography color="text.primary" key={`${item.code}-${index}`} variant="body2">
                       {item.message || diagnosticMessage(item.code)}
                     </Typography>
                   ))}
@@ -743,7 +744,7 @@ export function SecondaryDeclarationPanel({
               <Alert severity="info">
                 <Stack spacing={4}>
                   {event.warnings.map((warning, index) => (
-                    <Typography
+                    <Typography color="text.primary"
                       variant="body2"
                       key={`${warning.code}-${index}`}
                     >
@@ -786,7 +787,7 @@ export function SecondaryDeclarationPanel({
                   >
                     {label}
                   </Typography>
-                  <Typography
+                  <Typography color="text.primary"
                     component="dd"
                     variant="body2"
                     sx={{ m: 0, mt: '4px', overflowWrap: 'anywhere' }}

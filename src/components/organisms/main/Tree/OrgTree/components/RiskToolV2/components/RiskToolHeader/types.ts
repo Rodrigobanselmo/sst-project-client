@@ -12,6 +12,7 @@ export interface SideHeaderProps {
   isAddLoading?: boolean;
   riskInit?: boolean;
   loadingCopy?: boolean;
+  actions?: React.ReactNode;
   ghoQuery: IGho[];
   inputRef: any;
   /** Grupo de dados de risco atual (escopo da sincronização com o plano). */

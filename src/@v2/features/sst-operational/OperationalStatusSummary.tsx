@@ -1,3 +1,4 @@
+import { sstRefetchInterval, hasSstQueryError } from './sst-query-state';
 import { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from 'react-query';
 import {
@@ -50,7 +51,7 @@ export function OperationalStatusSummary({ companyId }: { companyId: string }) {
     {
       enabled: access.canReadOperations,
       retry: false,
-      refetchInterval: 30_000,
+      refetchInterval: sstRefetchInterval(30_000),
     },
   );
   const reconcile = async () => {
@@ -93,8 +94,8 @@ export function OperationalStatusSummary({ companyId }: { companyId: string }) {
       }}
     >
       <Stack spacing={8} useFlexGap>
-        <Typography variant="subtitle1">Conferência dos envios</Typography>
-        {status.isError && (
+        <Typography color="text.primary" variant="subtitle1">Conferência dos envios</Typography>
+        {hasSstQueryError(status) && (
           <Alert severity="warning">
             Não foi possível atualizar este resumo. Os resultados individuais
             continuam disponíveis abaixo.{' '}

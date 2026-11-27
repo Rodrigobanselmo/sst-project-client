@@ -1,3 +1,4 @@
+import { RiskEditorSection } from 'components/molecules/RiskEditorSection';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 
 import { Box, Button, LinearProgress, TextField } from '@mui/material';
@@ -89,7 +90,15 @@ export const RiskToolByRiskView: FC<RiskToolByRiskViewProps> = ({
 
   if (isRiskDataError) {
     return (
-      <Box sx={{ py: 4, px: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Box
+        sx={{
+          py: 4,
+          px: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.5,
+        }}
+      >
         <SText color="text.secondary">{RISK_LINKAGE_LOAD_ERROR_MESSAGE}</SText>
         <Button
           variant="outlined"
@@ -114,63 +123,74 @@ export const RiskToolByRiskView: FC<RiskToolByRiskViewProps> = ({
           sx={{ minWidth: 260 }}
           inputProps={{ 'aria-label': `Pesquisar ${groupLabel}` }}
         />
-        {expandCtx?.hasRows && (
-          <SButton
-            variant="outlined"
-            sx={{ height: 30 }}
-            onClick={() =>
-              expandCtx.allExpanded ? expandCtx.collapseAll() : expandCtx.expandAll()
-            }
-          >
-            <SText sx={{ mr: 5 }}>
-              {expandCtx.allExpanded ? 'Recolher todos' : 'Expandir todos'}
-            </SText>
-          </SButton>
-        )}
-        {wideCtx && (
-          <STooltip
-            title={
-              wideCtx.wideView ? 'Sair da visualização ampla' : 'Visualização ampla'
-            }
-          >
+      </SFlex>
+      <RiskEditorSection
+        title="Ferramentas dos vínculos"
+        description="Opções de visualização e ações sobre os vínculos"
+      >
+        <SFlex align="center" gap={4} flexWrap="wrap">
+          {expandCtx?.hasRows && (
             <SButton
               variant="outlined"
-              sx={{
-                ...tableUtilityPillSx,
-                minWidth: 'auto',
-                height: 30,
-                ...(wideCtx.wideView
-                  ? {
-                      '&&': {
-                        backgroundColor: 'primary.identityBackground',
-                        color: 'primary.identityOn',
-                        borderColor: 'primary.border',
-                      },
-                      '&:hover': {
-                        backgroundColor: 'primary.identityBackgroundHover',
-                        color: 'primary.identityOn',
-                        borderColor: 'primary.border',
-                      },
-                      '&&:hover': {
-                        backgroundColor: 'primary.identityBackgroundHover',
-                        color: 'primary.identityOn',
-                        borderColor: 'primary.border',
-                      },
-                    }
-                  : {}),
-              }}
-              onClick={() => wideCtx.toggleWideView()}
+              sx={{ height: 30 }}
+              onClick={() =>
+                expandCtx.allExpanded
+                  ? expandCtx.collapseAll()
+                  : expandCtx.expandAll()
+              }
             >
               <SText sx={{ mr: 5 }}>
-                {wideCtx.wideView
-                  ? 'Sair da visualização ampla'
-                  : 'Visualização ampla'}
+                {expandCtx.allExpanded ? 'Recolher todos' : 'Expandir todos'}
               </SText>
             </SButton>
-          </STooltip>
-        )}
-        {extraActions}
-      </SFlex>
+          )}
+          {wideCtx && (
+            <STooltip
+              title={
+                wideCtx.wideView
+                  ? 'Sair da visualização ampla'
+                  : 'Visualização ampla'
+              }
+            >
+              <SButton
+                variant="outlined"
+                sx={{
+                  ...tableUtilityPillSx,
+                  minWidth: 'auto',
+                  height: 30,
+                  ...(wideCtx.wideView
+                    ? {
+                        '&&': {
+                          backgroundColor: 'primary.identityBackground',
+                          color: 'primary.identityOn',
+                          borderColor: 'primary.border',
+                        },
+                        '&:hover': {
+                          backgroundColor: 'primary.identityBackgroundHover',
+                          color: 'primary.identityOn',
+                          borderColor: 'primary.border',
+                        },
+                        '&&:hover': {
+                          backgroundColor: 'primary.identityBackgroundHover',
+                          color: 'primary.identityOn',
+                          borderColor: 'primary.border',
+                        },
+                      }
+                    : {}),
+                }}
+                onClick={() => wideCtx.toggleWideView()}
+              >
+                <SText color={wideCtx.wideView ? 'common.black' : 'inherit'} sx={{ mr: 5 }}>
+                  {wideCtx.wideView
+                    ? 'Sair da visualização ampla'
+                    : 'Visualização ampla'}
+                </SText>
+              </SButton>
+            </STooltip>
+          )}
+          {extraActions}
+        </SFlex>
+      </RiskEditorSection>
 
       {!expandCtx?.allCollapsed && (
         <Box sx={{ flexShrink: 0 }}>

@@ -9,11 +9,9 @@ import type { FormApplicationReadModel } from '@v2/models/form/models/form-appli
 import type { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import { readIndicatorsNarrativeDiagnostic } from '@v2/services/forms/indicators-narrative-diagnostic/service/indicators-narrative-diagnostic.service';
-import { diagnosticMatchesViewMode } from '@v2/services/forms/indicators-narrative-diagnostic/service/indicators-narrative-diagnostic.scope';
+import { diagnosticMatchesScope, CAMPAIGN_INDICATORS_SCOPE } from '@v2/services/forms/indicators-narrative-diagnostic/service/indicators-narrative-diagnostic.scope';
 
 import type { HierarchyGroupForIndicators } from './buildParticipantGroupsForIndicators';
-import { buildParticipantGroupsForIndicators } from './buildParticipantGroupsForIndicators';
-import { buildIndicatorsNarrativeDiagnosticScope } from './buildIndicatorsNarrativeDiagnosticScope';
 import type { FormChartType } from './form-chart-type.types';
 import type { buildIndicatorsPdfDataset as buildDataset } from './buildIndicatorsPdfDataset';
 
@@ -63,28 +61,7 @@ export async function exportFormIndicatorsPdfInBrowser(
   onProgress?.('Processando dados dos indicadores...');
   await yieldToUI();
 
-  const participantGroups =
-    params.participantGroupingOverride?.participantGroups ??
-    buildParticipantGroupsForIndicators({
-      formQuestionsAnswers: params.formQuestionsAnswers,
-      selectedGroupingQuestionId: params.selectedGroupingQuestionId,
-      hierarchyGroups: params.hierarchyGroups,
-    });
-
-  const visibleParticipantGroups = params.selectedGroupingQuestionId
-    ? params.visibleParticipantGroupIds
-      ? participantGroups.filter((g) =>
-          params.visibleParticipantGroupIds!.includes(g.id),
-        )
-      : participantGroups
-    : participantGroups;
-
-  const narrativeScope = buildIndicatorsNarrativeDiagnosticScope({
-    selectedGroupingQuestionId: params.selectedGroupingQuestionId,
-    visibleParticipantGroups,
-    groupingLabel: params.selectedGroupingLabel ?? null,
-    showOnlyGroupIndicators: params.showOnlyGroupIndicators,
-  });
+  const narrativeScope = CAMPAIGN_INDICATORS_SCOPE;
 
   onProgress?.('Carregando diagnóstico narrativo salvo...');
   await yieldToUI();
@@ -100,11 +77,8 @@ export async function exportFormIndicatorsPdfInBrowser(
 
   const narrativeDiagnosticMarkdown =
     narrativeDiagnostic?.status === FormAiAnalysisStatusEnum.DONE &&
-    diagnosticMatchesViewMode(
-      narrativeDiagnostic,
-      narrativeScope.showOnlyGroupIndicators,
-    )
-      ? narrativeDiagnostic.contentMarkdown
+    diagnosticMatchesScope(narrativeDiagnostic, narrativeScope)
+      ? `## Diagnóstico geral da campanha completa\n\nEste texto considera todas as escalas, dimensões cadastradas e perguntas da campanha, independentemente dos filtros usados nos gráficos deste PDF.\n\n${narrativeDiagnostic.contentMarkdown ?? ''}`
       : null;
 
   const dataset = buildIndicatorsPresentation(

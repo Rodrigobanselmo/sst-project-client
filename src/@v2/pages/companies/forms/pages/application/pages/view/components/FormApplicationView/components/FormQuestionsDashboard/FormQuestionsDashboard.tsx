@@ -96,7 +96,6 @@ import { getIndicatorColorFromScore } from './helpers/form-indicator-quality.uti
 import { calculateFormIndicatorFromQuestions } from './helpers/calculate-form-indicator.util';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 import { IndicatorsNarrativeDiagnosticSection } from './components/IndicatorsNarrativeDiagnosticSection/IndicatorsNarrativeDiagnosticSection';
-import { buildIndicatorsNarrativeDiagnosticScope } from './helpers/buildIndicatorsNarrativeDiagnosticScope';
 import { useAccess } from 'core/hooks/useAccess';
 import { useHierarchyTypeLabels } from 'core/hooks/useHierarchyTypeLabels';
 
@@ -1056,21 +1055,6 @@ export const FormQuestionsDashboard = ({
     selectedParticipantGroupIdsForView,
   ]);
 
-  const indicatorsNarrativeScope = useMemo(
-    () =>
-      buildIndicatorsNarrativeDiagnosticScope({
-        selectedGroupingQuestionId: selectedGroupingQuestion,
-        visibleParticipantGroups,
-        groupingLabel: selectedGroupingLabel,
-        showOnlyGroupIndicators,
-      }),
-    [
-      selectedGroupingQuestion,
-      visibleParticipantGroups,
-      selectedGroupingLabel,
-      showOnlyGroupIndicators,
-    ],
-  );
 
   const participantGroupingOverride = useMemo(
     () =>
@@ -1165,15 +1149,8 @@ export const FormQuestionsDashboard = ({
   );
 
   const requireIndicatorLevel = !showQuestionIndicators;
-  const usesDimensionSections = !!indicatorHierarchy?.scaleResults;
-  const canShowNarrative =
-    !isCanceled &&
-    !isOrganizationalGrouping &&
-    !isPartialPsychosocialForm &&
-    (!indicatorHierarchy ||
-      (usesDimensionSections
-        ? indicatorLevels.dimensions && !indicatorLevels.scales
-        : indicatorLevels.scales && !indicatorLevels.dimensions));
+  const canShowNarrative = isDone;
+
   const ensureIndicatorLevel = () => {
     setIndicatorLevels((levels) =>
       levels.scales || levels.dimensions
@@ -2200,7 +2177,6 @@ export const FormQuestionsDashboard = ({
                   <IndicatorsNarrativeDiagnosticSection
                     companyId={accessCompanyId}
                     formApplicationId={formApplication.id}
-                    scope={indicatorsNarrativeScope}
                     isMaster={isMaster}
                   />
                 )}

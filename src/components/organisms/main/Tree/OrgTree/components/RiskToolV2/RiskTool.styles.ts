@@ -8,11 +8,11 @@ export const STBoxContainer = styled(Box)<{
   expanded?: number;
   open?: number;
 }>`
-  background-color: ${(props) => props.theme.palette.background.paper};
+  background-color: transparent;
   width: 100%;
   max-height: 100%;
   margin: ${(props) => props.theme.spacing(4, 8, 0, 1)};
-  border-radius: ${({ theme }) => theme.spacing(3, 3, 12, 3)};
+  border-radius: 0;
   position: relative;
   overflow: hidden;
   padding: ${(props) => props.theme.spacing(5, 5)};

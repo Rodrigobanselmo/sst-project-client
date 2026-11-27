@@ -8,7 +8,7 @@ import {
 } from './indicators-narrative-diagnostic.types';
 import {
   buildIndicatorsNarrativeDiagnosticScopeKey,
-  diagnosticMatchesViewMode,
+  diagnosticMatchesScope,
   normalizeIndicatorsNarrativeScope,
 } from './indicators-narrative-diagnostic.scope';
 
@@ -27,7 +27,7 @@ export async function generateIndicatorsNarrativeDiagnostic({
   );
 
   const data = response.data;
-  if (!diagnosticMatchesViewMode(data, scope.showOnlyGroupIndicators)) {
+  if (!diagnosticMatchesScope(data, scope)) {
     throw new Error(
       'Resposta do diagnóstico narrativo não corresponde ao modo de visualização solicitado.',
     );
@@ -52,6 +52,7 @@ export async function readIndicatorsNarrativeDiagnostic({
     {
       params: {
         scopeKey,
+        coverage: normalizedScope.coverage,
         groupingQuestionId: normalizedScope.groupingQuestionId ?? undefined,
         participantGroupIds: normalizedScope.participantGroupIds?.length
           ? normalizedScope.participantGroupIds.join(',')
@@ -67,7 +68,7 @@ export async function readIndicatorsNarrativeDiagnostic({
   const data = response.data;
   if (!data) return null;
 
-  if (!diagnosticMatchesViewMode(data, normalizedScope.showOnlyGroupIndicators)) {
+  if (!diagnosticMatchesScope(data, normalizedScope)) {
     return null;
   }
 

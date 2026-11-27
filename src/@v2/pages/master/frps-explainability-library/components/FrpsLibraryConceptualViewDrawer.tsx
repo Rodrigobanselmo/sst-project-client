@@ -172,7 +172,7 @@ export function FrpsLibraryConceptualViewDrawer({
             <Typography variant="overline" color="text.secondary">
               Conhecimento conceitual
             </Typography>
-            <Typography
+            <Typography color="text.primary"
               variant="h6"
               fontWeight={700}
               sx={{ wordBreak: 'break-word' }}

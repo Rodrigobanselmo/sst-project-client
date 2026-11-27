@@ -40,6 +40,7 @@ export const ConfirmationModal = ({
     <SModalWrapper
       modalKey={ModalKeyEnum.CONFIRMATION_MODAL}
       title={title}
+      rounded
       minWidthDesk={500}
       maxWidthDesk={500}
       closeButtonOptions={{

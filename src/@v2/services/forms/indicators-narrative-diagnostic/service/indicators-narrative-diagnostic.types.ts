@@ -1,6 +1,7 @@
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 
 export type IndicatorsNarrativeDiagnosticScope = {
+  coverage?: 'campaign';
   groupingQuestionId?: string | null;
   participantGroupIds?: string[];
   groupingLabel?: string | null;

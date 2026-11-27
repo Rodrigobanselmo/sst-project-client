@@ -13,7 +13,7 @@ export const STBoxItem = styled(Box)<{
   .item_box {
     min-height: 44px;
     padding: ${(props) => props.theme.spacing(2, 4)};
-    background-color: ${(props) => props.theme.palette.background.paper};
+    background-color: transparent;
     position: relative;
 
     ${(props) =>
@@ -23,7 +23,7 @@ export const STBoxItem = styled(Box)<{
             border-radius: 0;
             ${!props.collapsed &&
             css`
-              border-bottom: 1px solid ${props.theme.palette.grey[200]};
+              border-bottom: 1px solid ${props.theme.palette.divider};
             `}
           `
         : css`
@@ -52,7 +52,7 @@ export const STBoxItem = styled(Box)<{
   .item_end_date {
     flex-shrink: 0;
     padding: ${(props) => props.theme.spacing(0.5, 4)};
-    background-color: ${(props) => props.theme.palette.background.paper};
+    background-color: transparent;
     position: relative;
     cursor: pointer;
 
@@ -61,7 +61,7 @@ export const STBoxItem = styled(Box)<{
         ? css`
             border: none;
             border-radius: 0;
-            border-bottom: 1px solid ${props.theme.palette.grey[200]};
+            border-bottom: 1px solid ${props.theme.palette.divider};
           `
         : css`
             border: 2px solid

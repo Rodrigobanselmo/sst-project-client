@@ -438,7 +438,7 @@ export function FrpsCatalogEquivalenceDialog({
           Equivalências, sem migrar inventário ou documentos.
         </Typography>
 
-        <Typography variant="subtitle2" gutterBottom>
+        <Typography color="text.primary" variant="subtitle2" gutterBottom>
           Aliases locais ({aliases.length})
         </Typography>
         <Box display="flex" flexDirection="column" gap={1} mb={2.5}>
@@ -450,7 +450,7 @@ export function FrpsCatalogEquivalenceDialog({
               borderRadius={1}
               p={1.25}
             >
-              <Typography variant="body2" fontWeight={600}>
+              <Typography color="text.primary" variant="body2" fontWeight={600}>
                 {alias.label}
               </Typography>
               <Typography
@@ -484,13 +484,13 @@ export function FrpsCatalogEquivalenceDialog({
             mb={2}
             bgcolor="action.hover"
           >
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography color="text.primary" variant="subtitle2" gutterBottom>
               Candidato global encontrado
             </Typography>
             <Typography variant="body2" color="text.secondary" mb={1}>
               Sugestão para revisão. Nenhuma equivalência foi criada ainda.
             </Typography>
-            <Typography variant="body2" fontWeight={600}>
+            <Typography color="text.primary" variant="body2" fontWeight={600}>
               {canonicalSearch.label}
             </Typography>
             <Typography
@@ -686,7 +686,7 @@ export function FrpsCatalogEquivalenceDialog({
 
         {createGlobalStep === 'preview' && createGlobalPreview ? (
           <Box mb={2}>
-            <Typography variant="body2" mb={1.5}>
+            <Typography color="text.primary" variant="body2" mb={1.5}>
               {FRPS_CREATE_GLOBAL_BODY}
             </Typography>
             <Box
@@ -696,22 +696,22 @@ export function FrpsCatalogEquivalenceDialog({
               p={1.5}
               mb={1.5}
             >
-              <Typography variant="subtitle2" gutterBottom>
+              <Typography color="text.primary" variant="subtitle2" gutterBottom>
                 Prévia
               </Typography>
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 Texto: {createGlobalPreview.baseLabel}
               </Typography>
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 Tipo: {getFrpsLibraryItemTypeLabel(createGlobalBase!.itemType)}
               </Typography>
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 Fator de risco: {createGlobalPreview.riskName}
               </Typography>
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 Origem atual: {createGlobalPreview.originLabel}
               </Typography>
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 Itens que serão vinculados: {createGlobalPreview.linkCount}
               </Typography>
             </Box>
@@ -759,10 +759,10 @@ export function FrpsCatalogEquivalenceDialog({
                 p={1.5}
                 mb={2}
               >
-                <Typography variant="subtitle2" gutterBottom>
+                <Typography color="text.primary" variant="subtitle2" gutterBottom>
                   Comparação
                 </Typography>
-                <Typography variant="body2">
+                <Typography color="text.primary" variant="body2">
                   Canônico: {canonicalSearch.label} (
                   {FRPS_GLOBAL_ORIGIN_DISPLAY_NAME}) ·{' '}
                   {FRPS_GLOBAL_COMPANY_DISPLAY_NAME} · {canonicalSearch.riskName}

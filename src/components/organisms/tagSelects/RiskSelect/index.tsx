@@ -48,6 +48,7 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
   large,
   linkageContext,
   polished = false,
+  hideRiskIcon = false,
   handleSelect,
   selectedRiskIds,
   text,
@@ -189,7 +190,7 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
                 variant="outlined"
                 size="small"
                 onClick={onClick as any}
-                startIcon={<ReportProblemOutlinedIcon />}
+                startIcon={hideRiskIcon ? undefined : <ReportProblemOutlinedIcon />}
                 endIcon={<ExpandMoreIcon />}
                 sx={{
                   textTransform: 'none',

@@ -1,11 +1,10 @@
+import { RiskEditorSection } from 'components/molecules/RiskEditorSection';
 import { HierarchyRiskLevelFilter } from '../HierarchyRiskLevel';
 import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
-import { Box, Button } from '@mui/material';
-import { useRouter } from 'next/router';
-import { useSstAccess } from '@v2/features/sst-operational/access';
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { setGhoSearch } from 'store/reducers/hierarchy/ghoSlice';
 
@@ -21,6 +20,7 @@ import { RiskToolGhoHorizontal } from './RiskToolGhoHorizontal';
 import { SideHeaderProps as RiskToolProps } from './types';
 
 export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
+  actions,
   handleSelectGHO,
   handleEditGHO,
   handleAddGHO,
@@ -39,20 +39,8 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   disableEditGho = false,
 }) => {
   const dispatch = useAppDispatch();
-  const router = useRouter();
-  const { canRead } = useSstAccess();
-  const esocialLink = canRead ? (
-    <Button
-      size="small"
-      sx={{ ml: 'auto', flexShrink: 0, whiteSpace: 'nowrap' }}
-      onClick={() => router.push(`/dashboard/empresas/${companyId}/esocial`)}
-    >
-      Acompanhamento eSocial
-    </Button>
-  ) : null;
   return (
     <SFlex direction="column" align="stretch" gap={4} mb={8}>
-      {viewType !== ViewTypeEnum.SIMPLE_BY_RISK && esocialLink}
       {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
         <SFlex align="center" sx={{ flexWrap: 'wrap', gap: 5 }}>
           <SideInput
@@ -68,8 +56,10 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
           {viewDataType === ViewsDataEnum.HIERARCHY && (
             <HierarchyRiskLevelFilter />
           )}
-          {esocialLink}
         </SFlex>
+      )}
+      {viewType !== ViewTypeEnum.SIMPLE_BY_GROUP && (
+        <RiskEditorSection title="Ferramentas dos fatores de risco" description="Inclusão de riscos e análise com IA">{actions}</RiskEditorSection>
       )}
       <Box width="100%">
         {riskInit && viewType !== ViewTypeEnum.SIMPLE_BY_GROUP && (
@@ -83,6 +73,7 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
         )}
         {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
           <RiskToolGhoHorizontal
+            actions={actions}
             handleSelectGHO={handleSelectGHO}
             handleCopyGHO={handleCopyGHO}
             handleEditGHO={handleEditGHO}

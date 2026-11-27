@@ -1,3 +1,4 @@
+import { RiskEditorSection } from 'components/molecules/RiskEditorSection';
 import {
   riskEditorActionSx,
   riskEditorSaveActionSx,
@@ -346,18 +347,7 @@ export const CharacterizationEditView = ({
         contextName={headerContextName}
         onBack={embedded ? onCloseUnsaved : onBack}
       />
-      {isEditEntity && !isDetailLoading && !isDetailError && (
-        <StructuralSourceActions
-          compact
-          companyId={companyId}
-          target={{
-            table: 'CompanyCharacterization',
-            id: characterizationData.id,
-          }}
-          disabled={!!hasUnsavedChanges || loading}
-          onChanged={onBack}
-        />
-      )}
+
       {actionButtons}
     </SFlex>
   );
@@ -399,6 +389,25 @@ export const CharacterizationEditView = ({
         }}
       >
         {headerRow}
+        {isEditEntity && !isDetailLoading && !isDetailError && (
+          <RiskEditorSection
+            title="Histórico e revisão do cadastro"
+            description="Períodos, participações e cadastros encerrados"
+          >
+            {isEditEntity && !isDetailLoading && !isDetailError && (
+              <StructuralSourceActions
+                compact
+                companyId={companyId}
+                target={{
+                  table: 'CompanyCharacterization',
+                  id: characterizationData.id,
+                }}
+                disabled={!!hasUnsavedChanges || loading}
+                onChanged={onBack}
+              />
+            )}
+          </RiskEditorSection>
+        )}
 
         <Box
           sx={{
@@ -439,7 +448,7 @@ export const CharacterizationEditView = ({
           flexDirection: 'column',
           flex: 1,
           minHeight: 0,
-          bgcolor: 'background.paper',
+          bgcolor: 'transparent',
         }}
       >
         {content}

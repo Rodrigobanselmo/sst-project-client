@@ -9,6 +9,7 @@ export interface SModalWrapperProps {
   loading?: boolean;
   modalKey: ModalKeyEnum;
   semiFullScreen?: boolean;
+  rounded?: boolean;
   closeButtonOptions?: {
     text?: string;
     onClick?: () => void;

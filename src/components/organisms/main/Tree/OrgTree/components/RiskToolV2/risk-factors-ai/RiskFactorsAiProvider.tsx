@@ -1,4 +1,3 @@
-import { riskEditorActionSx } from 'configs/theme/risk-editor-action';
 import { mergeProbabilitySuggestionActions } from './merge-probability-suggestion-actions.util';
 import {
   resolveProbabilityAiResult,
@@ -86,6 +85,7 @@ type RiskFactorsAiContextValue = {
   byRiskOccurrence?: RiskByOccurrenceAiAdapter;
   openProbability?: (params: OpenRiskParams) => void;
   occurrenceScope?: RiskFactorAiOccurrenceScope;
+  openGeneral?: () => void;
   openField: (params: OpenFieldParams) => void;
   openRisk: (params: OpenRiskParams) => void;
   suggestions: RiskFactorAiSuggestionActions;
@@ -356,6 +356,12 @@ export function RiskFactorsAiProvider({
 
   const value = useMemo(
     () => ({
+      openGeneral: individualOnly
+        ? undefined
+        : () => {
+            setScoped(null);
+            setGeneralOpen(true);
+          },
       openField,
       openRisk,
       openProbability: byRiskOccurrence ? openProbability : undefined,
@@ -364,6 +370,7 @@ export function RiskFactorsAiProvider({
       byRiskOccurrence,
     }),
     [
+      individualOnly,
       openField,
       openRisk,
       openProbability,
@@ -385,28 +392,6 @@ export function RiskFactorsAiProvider({
           overflow: 'hidden',
         }}
       >
-        {!individualOnly && (
-          <Box
-            sx={{
-              flexShrink: 0,
-              display: 'flex',
-              justifyContent: 'flex-end',
-              mb: 1,
-            }}
-          >
-            <SButton
-              text="Análise geral com IA"
-              variant="outlined"
-              color="primary"
-              size="s"
-              onClick={() => {
-                setScoped(null);
-                setGeneralOpen(true);
-              }}
-              buttonProps={{ sx: riskEditorActionSx }}
-            />
-          </Box>
-        )}
         {!individualOnly && (
           <Box sx={{ flexShrink: 0 }}>
             <RiskFactorAiNewRiskCandidates

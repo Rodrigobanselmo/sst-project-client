@@ -23,15 +23,15 @@ export function LegalDeadlineSummary({
         aria-label={label}
         sx={{ mt: '16px', minWidth: 0, overflowWrap: 'anywhere' }}
       >
-        <Typography variant="body2">
+        <Typography color="text.primary" variant="body2">
           {summary.simulation ? 'Simulação · ' : ''}
           {summary.title}
         </Typography>
         {summary.dueLabel && (
-          <Typography variant="body2">{summary.dueLabel}</Typography>
+          <Typography color="text.primary" variant="body2">{summary.dueLabel}</Typography>
         )}
         {summary.immediateNote && (
-          <Typography variant="body2">{summary.immediateNote}</Typography>
+          <Typography color="text.primary" variant="body2">{summary.immediateNote}</Typography>
         )}
       </Box>
     );
@@ -48,7 +48,7 @@ export function LegalDeadlineSummary({
       }}
     >
       <Stack spacing={8} useFlexGap>
-        <Typography variant="subtitle2">Prazo legal</Typography>
+        <Typography color="text.primary" variant="subtitle2">Prazo legal</Typography>
         {summary.simulation && (
           <Chip
             size="small"
@@ -69,24 +69,24 @@ export function LegalDeadlineSummary({
             '& .MuiAlert-message': { minWidth: 0, overflowWrap: 'anywhere' },
           }}
         >
-          <Typography variant="body2" fontWeight={600}>
+          <Typography color="text.primary" variant="body2" fontWeight={600}>
             {summary.title}
           </Typography>
-          <Typography variant="body2" sx={{ mt: '8px' }}>
+          <Typography color="text.primary" variant="body2" sx={{ mt: '8px' }}>
             {summary.message}
           </Typography>
           {summary.dueLabel && (
-            <Typography variant="body2" fontWeight={600} sx={{ mt: '8px' }}>
+            <Typography color="text.primary" variant="body2" fontWeight={600} sx={{ mt: '8px' }}>
               {summary.dueLabel}
             </Typography>
           )}
           {summary.immediateNote && (
-            <Typography variant="body2" sx={{ mt: '8px' }}>
+            <Typography color="text.primary" variant="body2" sx={{ mt: '8px' }}>
               {summary.immediateNote}
             </Typography>
           )}
           {summary.simulation && (
-            <Typography variant="body2" sx={{ mt: '8px' }}>
+            <Typography color="text.primary" variant="body2" sx={{ mt: '8px' }}>
               Este ambiente de testes não cumpre a obrigação legal de produção.
             </Typography>
           )}
@@ -125,14 +125,14 @@ export function LegalDeadlineSummary({
                   >
                     {item.label}
                   </Typography>
-                  <Typography component="dd" variant="body2" sx={{ m: 0 }}>
+                  <Typography color="text.primary" component="dd" variant="body2" sx={{ m: 0 }}>
                     {item.value}
                   </Typography>
                 </Box>
               ))}
             </Box>
             {summary.diagnostics.map((message, index) => (
-              <Typography key={index} variant="body2">
+              <Typography color="text.primary" key={index} variant="body2">
                 {message}
               </Typography>
             ))}

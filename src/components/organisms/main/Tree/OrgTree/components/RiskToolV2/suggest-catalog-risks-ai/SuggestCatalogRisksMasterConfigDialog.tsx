@@ -183,8 +183,8 @@ export const SuggestCatalogRisksMasterConfigDialog: FC<Props> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth sx={{ '& .MuiFormHelperText-root:not(.Mui-error)': { color: 'text.secondary' } }}>
+      <DialogTitle sx={{ color: 'text.primary' }}>
         Configurar orientação funcional — {titleKind}
       </DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -262,7 +262,7 @@ export const SuggestCatalogRisksMasterConfigDialog: FC<Props> = ({
         )}
 
         <Box>
-          <Typography variant="subtitle2" gutterBottom>
+          <Typography color="text.primary" variant="subtitle2" gutterBottom>
             Regras protegidas do sistema (somente leitura)
           </Typography>
           <Box
@@ -292,7 +292,7 @@ export const SuggestCatalogRisksMasterConfigDialog: FC<Props> = ({
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" gutterBottom>
+          <Typography color="text.primary" variant="subtitle2" gutterBottom>
             Campos de contexto enviados à IA ({titleKind})
           </Typography>
           <Box

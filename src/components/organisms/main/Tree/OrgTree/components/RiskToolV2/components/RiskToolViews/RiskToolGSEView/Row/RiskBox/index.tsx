@@ -261,6 +261,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
         gap={3}
         sx={{
           width: '100%',
+          flexWrap: { xs: 'wrap', md: 'nowrap' },
           cursor: onToggleExpand ? 'pointer' : 'default',
           userSelect: 'none',
         }}
@@ -282,7 +283,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
           align="center"
           gap={2}
           flexWrap="wrap"
-          sx={{ minWidth: 0, flex: 1 }}
+          sx={{ minWidth: 0, flex: { xs: '1 1 calc(100% - 40px)', md: 1 } }}
         >
           {headerTitle ? (
             <STooltip
@@ -355,6 +356,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
           <Box
             sx={{
               display: 'flex',
+              flexWrap: { xs: 'wrap', md: 'nowrap' },
               alignItems: 'flex-start',
               gap: 0.5,
               minWidth: 0,
@@ -378,6 +380,7 @@ export const RiskToolGSEViewRowRiskBox: FC<
                   wordBreak: 'break-word',
                   lineHeight: 1.35,
                   minWidth: 0,
+                  flex: { xs: '1 1 200px', md: 'initial' },
                 }}
               >
                 {!isRepresentAll

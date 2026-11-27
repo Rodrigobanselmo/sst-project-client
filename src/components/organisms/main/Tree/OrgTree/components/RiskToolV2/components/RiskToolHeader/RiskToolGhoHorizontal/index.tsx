@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useCallback, useEffect, useMemo } from 'react';
 
+import { RiskEditorSection } from 'components/molecules/RiskEditorSection';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import { Box, Divider, Icon } from '@mui/material';
+import { Box, Icon } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { SButton } from 'components/atoms/SButton';
@@ -142,6 +143,7 @@ export const GhoOrHierarchySelect = ({
 export const RiskToolGhoHorizontal: FC<
   { children?: any } & SideSelectViewContentProps
 > = ({
+  actions,
   handleAddGHO,
   ghoQuery,
   handleSelectGHO,
@@ -417,6 +419,13 @@ export const RiskToolGhoHorizontal: FC<
               {...(getFilter({ viewDataType }) as any)}
             />
           )}
+        </SFlex>
+      </SFlex>
+      <RiskEditorSection
+        title="Ferramentas dos fatores de risco"
+        description="Pesquisa, inclusão de riscos, análises com IA e opções de visualização"
+      >
+        <SFlex align="center" flexWrap="wrap" gap={4}>
           {selected && (
             <Box
               sx={{
@@ -464,6 +473,23 @@ export const RiskToolGhoHorizontal: FC<
               />
             </Box>
           )}
+        </SFlex>
+        <SFlex align="center" flexWrap="wrap" gap={4} sx={{ my: 6 }}>
+          <SButton
+            onClick={() => {
+              selected && handleCopyGHO(selected);
+            }}
+            loading={loadingCopy}
+            disabled={!selected}
+            variant="outlined"
+            sx={{ ...tableUtilityPillSx, minWidth: 'auto', height: 30 }}
+          >
+            <SText sx={{ mr: 5 }}>Importar riscos</SText>
+            <Icon component={SCopyIcon} sx={{ fontSize: '1.2rem' }} />
+          </SButton>
+          {actions}
+        </SFlex>
+        <SFlex align="center" flexWrap="wrap" gap={4}>
           {showSyncPlanButton && (
             <SButton
               variant="outlined"
@@ -555,7 +581,7 @@ export const RiskToolGhoHorizontal: FC<
                 }}
                 onClick={() => wideCtx.toggleWideView()}
               >
-                <SText sx={{ mr: 5 }}>
+                <SText color={wideCtx.wideView ? 'common.black' : 'inherit'} sx={{ mr: 5 }}>
                   {wideCtx.wideView
                     ? 'Sair da visualização ampla'
                     : 'Visualização ampla'}
@@ -563,21 +589,9 @@ export const RiskToolGhoHorizontal: FC<
               </SButton>
             </STooltip>
           )}
-          <SButton
-            onClick={() => {
-              selected && handleCopyGHO(selected);
-            }}
-            loading={loadingCopy}
-            disabled={!selected}
-            variant="outlined"
-            sx={{ ...tableUtilityPillSx, minWidth: 'auto', height: 30 }}
-          >
-            <SText sx={{ mr: 5 }}>Importar riscos</SText>
-            <Icon component={SCopyIcon} sx={{ fontSize: '1.2rem' }} />
-          </SButton>
+
         </SFlex>
-      </SFlex>
-      <Divider sx={{ mt: 8, mb: 8 }} />
+      </RiskEditorSection>
 
       {selected && !expandCtx?.allCollapsed && (
         <Box mb={0} mt={4}>

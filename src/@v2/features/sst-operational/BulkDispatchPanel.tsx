@@ -1,3 +1,4 @@
+import { sstRefetchInterval, hasSstQueryError } from './sst-query-state';
 import { esocialEnvironment } from './environment-model';
 import { useId, useRef, useState } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from 'react-query';
@@ -106,7 +107,7 @@ export function BulkDispatchPanel({
     {
       enabled: access.canReadDeclaration && !!runId,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: sstRefetchInterval(5000),
     },
   );
   const run = detail.data?.run || runs.find((item) => item.id === runId);
@@ -125,7 +126,7 @@ export function BulkDispatchPanel({
     {
       enabled: access.canReadDeclaration && !!runId,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: sstRefetchInterval(5000),
     },
   );
   const items = bulkDispatchItems(results.data ? [results.data] : []);
@@ -216,15 +217,15 @@ export function BulkDispatchPanel({
       }}
     >
       <Stack spacing={8} useFlexGap>
-        <Typography variant="h6">
+        <Typography color="text.primary" variant="h6">
           Condições ambientais de todos os empregados
         </Typography>
-        <Typography variant="body2">
+        <Typography color="text.primary" variant="body2">
           Envie as pendências S-2240 de toda a empresa, sem selecionar os
           empregados um a um. CAT, ASO e toxicológico continuam nos seus painéis
           de envio.
         </Typography>
-        <Typography variant="body2">
+        <Typography color="text.primary" variant="body2">
           Serão usados os dados válidos na preparação de cada empregado;
           cadastros incluídos depois ficam para a próxima execução. Você pode
           sair da tela.
@@ -281,7 +282,7 @@ export function BulkDispatchPanel({
               impedem o envio dos demais. Não haverá uma confirmação separada
               para cada empregado.
             </Alert>
-            {overview.isError && (
+            {hasSstQueryError(overview) && (
               <Alert severity="error">
                 Não foi possível conferir a configuração de envio.{' '}
                 <Button onClick={() => overview.refetch()}>
@@ -300,7 +301,7 @@ export function BulkDispatchPanel({
               disabled={
                 busy ||
                 !overview.data ||
-                overview.isError ||
+                hasSstQueryError(overview) ||
                 !enabled ||
                 !validRegistration
               }
@@ -316,8 +317,8 @@ export function BulkDispatchPanel({
         )}
         {error && <Alert severity="error">{error}</Alert>}
         {notice && <Alert severity="success">{notice}</Alert>}
-        {history.isLoading && <Typography>Consultando execuções…</Typography>}
-        {history.isError && (
+        {history.isLoading && <Typography color="text.primary">Consultando execuções…</Typography>}
+        {hasSstQueryError(history) && (
           <Alert severity="warning">
             Não foi possível atualizar o histórico das execuções.{' '}
             <Button onClick={() => history.refetch()}>
@@ -362,14 +363,14 @@ export function BulkDispatchPanel({
         {run && (
           <Box role="region" aria-label="Andamento da execução S-2240">
             <Stack spacing={8} useFlexGap>
-              <Typography variant="subtitle1">
+              <Typography color="text.primary" variant="subtitle1">
                 {bulkDispatchStateLabel(run.state)} ·{' '}
                 {run.environment === 2
                   ? 'Produção restrita — testes'
                   : 'Produção'}
               </Typography>
               {run.snapshotOn && (
-                <Typography variant="body2">
+                <Typography color="text.primary" variant="body2">
                   Data de referência das condições:{' '}
                   {new Date(run.snapshotOn).toLocaleDateString('pt-BR', {
                     timeZone: 'UTC',
@@ -377,7 +378,7 @@ export function BulkDispatchPanel({
                   .
                 </Typography>
               )}
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 {countLabel(run.counts.settled)} de{' '}
                 {countLabel(run.counts.total)} empregados com resultado final
                 nesta execução.
@@ -410,7 +411,7 @@ export function BulkDispatchPanel({
                   />
                 ))}
               </Stack>
-              <Typography variant="body2">
+              <Typography color="text.primary" variant="body2">
                 Resultado em conferência não é aceite nem rejeição. Corrija
                 impedimentos no cadastro de origem e solicite a retomada quando
                 estiver disponível.
@@ -421,7 +422,7 @@ export function BulkDispatchPanel({
                   salvo no sistema.
                 </Typography>
               )}
-              {detail.isError && (
+              {hasSstQueryError(detail) && (
                 <Alert severity="warning">
                   Não foi possível atualizar este andamento. Os dados anteriores
                   foram mantidos.{' '}
@@ -497,11 +498,11 @@ export function BulkDispatchPanel({
                 ))}
               </TextField>
               {results.isLoading && (
-                <Typography>
+                <Typography color="text.primary">
                   Consultando os resultados dos empregados…
                 </Typography>
               )}
-              {results.isError && (
+              {hasSstQueryError(results) && (
                 <Alert severity="warning">
                   Não foi possível atualizar esta página de resultados.{' '}
                   <Button onClick={() => results.refetch()}>
@@ -509,8 +510,8 @@ export function BulkDispatchPanel({
                   </Button>
                 </Alert>
               )}
-              {!results.isLoading && !results.isError && !items.length && (
-                <Typography>
+              {!results.isLoading && !hasSstQueryError(results) && !items.length && (
+                <Typography color="text.primary">
                   Nenhum empregado nesta situação na consulta carregada.
                 </Typography>
               )}
@@ -532,27 +533,27 @@ export function BulkDispatchPanel({
                     }}
                   >
                     <Stack spacing={4}>
-                      <Typography variant="subtitle2">
+                      <Typography color="text.primary" variant="subtitle2">
                         {item.employeeName || 'Empregado da execução'}
                         {item.matricula ? ` · Matrícula ${item.matricula}` : ''}
                       </Typography>
-                      <Typography variant="body2">
+                      <Typography color="text.primary" variant="body2">
                         {bulkDispatchStateLabel(item.state)}
                       </Typography>
                       {bulkDispatchItemMessage(item) && (
-                        <Typography variant="body2">
+                        <Typography color="text.primary" variant="body2">
                           {bulkDispatchItemMessage(item)}
                         </Typography>
                       )}
                       {item.eventCount !== undefined && (
-                        <Typography variant="body2">
+                        <Typography color="text.primary" variant="body2">
                           {item.eventCount === 0
                             ? 'Nenhum evento gerado para este empregado.'
                             : `Eventos aceitos: ${item.acceptedEvents || 0} de ${item.eventCount}.`}
                         </Typography>
                       )}
                       {item.receipt && (
-                        <Typography variant="body2">
+                        <Typography color="text.primary" variant="body2">
                           Recibo: {item.receipt}
                         </Typography>
                       )}
@@ -587,7 +588,7 @@ export function BulkDispatchPanel({
                 useFlexGap
                 alignItems={{ sm: 'center' }}
               >
-                <Typography variant="body2">
+                <Typography color="text.primary" variant="body2">
                   Página {cursors.length} · {items.length}{' '}
                   {items.length === 1 ? 'empregado' : 'empregados'} nesta
                   página.

@@ -1,5 +1,6 @@
+import { FRPS_GENERATION_DEFAULT_MODEL, FRPS_GENERATION_MODEL_OPTIONS } from './frps-generation-model-options';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import { formAccordionNavigationSx } from '../../../form-accordion-navigation.styles';
 import { Alert, Box, CircularProgress, Skeleton } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
@@ -168,7 +169,7 @@ export const RiskNarrativeDiagnosticSection = ({
   return (
     <Box>
       <SAccordion
-        icon={<AutoAwesomeIcon sx={{ fontSize: 30 }} />}
+        icon={<AutoAwesomeOutlinedIcon sx={{ fontSize: 30 }} />}
         expandIcon={<ChevronRightIcon fontSize="small" />}
         expanded={expanded}
         onChange={(_, nextExpanded) => setExpanded(nextExpanded)}
@@ -325,11 +326,14 @@ export const RiskNarrativeDiagnosticSection = ({
           open={aiConfigDialogOpen}
           onClose={() => setAiConfigDialogOpen(false)}
           onApply={setAiMasterConfig}
+          initialConfig={aiMasterConfig}
+          defaultModelValue={FRPS_GENERATION_DEFAULT_MODEL}
+          modelOptions={FRPS_GENERATION_MODEL_OPTIONS}
           promptKey={SystemAiPromptKeyEnum.RISK_NARRATIVE_DIAGNOSTIC}
           title="Configurar Diagnóstico Narrativo de IA"
           promptLabel="Prompt do diagnóstico"
           modelLabel="Modelo de IA (opcional)"
-          modelPlaceholder="Use o padrão configurado no backend"
+          modelPlaceholder="Padrão: GPT-6.1 Sol (gpt-6.1-sol)"
           saveDefaultConfirmMessage="O conteúdo atual será salvo como prompt padrão para o diagnóstico narrativo com IA. Deseja continuar?"
           promptMinRows={5}
           promptMaxRows={30}

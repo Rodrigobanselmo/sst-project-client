@@ -64,7 +64,7 @@ function FrpsLibraryClampedName({
   }, [name, measure]);
 
   const text = (
-    <Typography
+    <Typography color="text.primary"
       ref={textRef}
       variant="body2"
       fontWeight={fontWeight}
@@ -149,7 +149,9 @@ export function FrpsExplainabilityLibraryTable({
               width={48}
               sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}
             />
-            <TableCell sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}>Nome</TableCell>
+            <TableCell sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}>
+              Descrição da fonte geradora / recomendação
+            </TableCell>
             <TableCell width={120} sx={FRPS_LIBRARY_STICKY_TABLE_HEAD_SX}>
               Tipo
             </TableCell>
@@ -210,7 +212,7 @@ export function FrpsExplainabilityLibraryTable({
                   row.isCanonical
                     ? { bgcolor: 'action.hover' }
                     : row.isOrphanAliasOnPage
-                      ? { bgcolor: 'grey.50' }
+                      ? { bgcolor: 'action.hover' }
                       : undefined
                 }
               >

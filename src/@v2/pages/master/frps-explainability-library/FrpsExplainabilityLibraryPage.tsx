@@ -626,7 +626,7 @@ export const FrpsExplainabilityLibraryPage: FC = () => {
   return (
     <Box style={{ ['--frps-library-sticky-offset' as string]: `${stickyOffsetPx}px` }}>
       <Box mb={isCompactViewport ? 1.5 : 2}>
-        <Typography variant="h5" fontWeight={700} mb={0.75}>
+        <Typography color="text.primary" variant="h5" fontWeight={700} mb={0.75}>
           Biblioteca de Explicabilidade FRPS
         </Typography>
         {!isCompactViewport ? (

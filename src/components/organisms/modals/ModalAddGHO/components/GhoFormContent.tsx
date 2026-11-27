@@ -1,3 +1,4 @@
+import { RiskEditorSection } from 'components/molecules/RiskEditorSection';
 import {
   riskEditorActionSx,
   riskEditorSaveActionSx,
@@ -384,15 +385,7 @@ export const GhoFormContent = ({
             contextName={headerContextName}
             onBack={onCloseUnsaved}
           />
-          {ghoData.id && (
-            <StructuralSourceActions
-              compact
-              companyId={companyId}
-              target={{ table: 'HomogeneousGroup', id: ghoData.id }}
-              disabled={isDirty || loading}
-              onChanged={onCloseUnsaved}
-            />
-          )}
+
           <SFlex
             align="center"
             gap={3}
@@ -452,6 +445,23 @@ export const GhoFormContent = ({
             </SButton>
           </SFlex>
         </SFlex>
+
+        {ghoData.id && (
+          <RiskEditorSection
+            title="Histórico e revisão do cadastro"
+            description="Períodos, participações e cadastros encerrados"
+          >
+            {ghoData.id && (
+              <StructuralSourceActions
+                compact
+                companyId={companyId}
+                target={{ table: 'HomogeneousGroup', id: ghoData.id }}
+                disabled={isDirty || loading}
+                onChanged={onCloseUnsaved}
+              />
+            )}
+          </RiskEditorSection>
+        )}
 
         <Box
           sx={{

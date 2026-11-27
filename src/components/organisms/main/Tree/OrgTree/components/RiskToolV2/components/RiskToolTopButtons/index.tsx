@@ -48,6 +48,7 @@ import { RiskToolTopButtonsSelectRisk } from './SelectRisk';
 import { SuggestCatalogRisksWithAiButton } from './SuggestCatalogRisksWithAiButton';
 import { LinkageMenu } from './LinkageMenu';
 import { SideTopProps } from './types';
+import { RiskGeneralAnalysisButton } from './RiskGeneralAnalysisButton';
 
 export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
   riskInit,
@@ -154,20 +155,7 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
         </SFlex>
 
         <SFlex align="center" gap="1" mb={2}>
-          <SFlex center sx={{ ml: 'auto' }}>
-            <RiskToolTopButtonsSelectRisk
-              key={companyId}
-              riskGroupId={riskGroupId}
-              viewType={viewType}
-              companyId={companyId}
-              enableViewModes={enableViewModes}
-            />
-            <SuggestCatalogRisksWithAiButton
-              riskGroupId={riskGroupId}
-              viewType={viewType}
-              viewDataType={viewDataType}
-              companyId={companyId}
-            />
+          <SFlex center sx={{ ml: 'auto', maxWidth: '100%', justifyContent: 'flex-end' }}>
 
             {!hideCloseButton && (
               <SIconButton onClick={handleCloseRisk} size="small">
@@ -214,3 +202,11 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
 //     ...viewsDataOptionsConstant[key],
 //   }))}
 // /> */}
+
+export function RiskToolActions({ companyId, riskGroupId, viewType, viewDataType, enableViewModes }: Pick<SideTopProps, 'companyId' | 'riskGroupId' | 'viewType' | 'viewDataType' | 'enableViewModes'>) {
+  return <SFlex align="center" flexWrap="wrap" gap={4} sx={{ ml: 'auto', maxWidth: '100%', justifyContent: 'flex-end' }}>
+    <RiskGeneralAnalysisButton />
+    <SuggestCatalogRisksWithAiButton companyId={companyId} riskGroupId={riskGroupId} viewType={viewType} viewDataType={viewDataType} />
+    <RiskToolTopButtonsSelectRisk companyId={companyId} riskGroupId={riskGroupId} viewType={viewType} enableViewModes={enableViewModes} />
+  </SFlex>;
+}

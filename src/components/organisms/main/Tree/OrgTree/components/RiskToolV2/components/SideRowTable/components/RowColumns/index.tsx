@@ -180,7 +180,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
     ) : null;
 
   return (
-    <Box>
+    <Box sx={{ '& > .MuiAccordion-root': { bgcolor: 'transparent', borderRadius: '0 !important' } }}>
       {recordHeading && (
         <SFlex
           align="center"
@@ -205,7 +205,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
           // Não usar min-height:0 nos filhos (quebrava a altura do conteúdo).
           border: 'none',
           borderRadius: 0,
-          backgroundColor: 'background.paper',
+          backgroundColor: 'transparent',
           ...(readOnly ? { pointerEvents: 'none', userSelect: 'text' } : {}),
         }}
         onClick={() =>

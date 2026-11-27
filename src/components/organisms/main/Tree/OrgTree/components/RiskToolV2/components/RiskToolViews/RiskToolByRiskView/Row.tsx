@@ -38,7 +38,7 @@ export const RiskToolByRiskRow = React.memo<RiskToolByRiskRowProps>(
 
     const isRepresentAll = risk.type === RiskEnum.OUTROS && !!risk.representAll;
     const expanded = expandCtx ? expandCtx.isExpanded(row.rowId) : false;
-    const borderColor = row.isHistorical ? 'error.main' : 'grey.400';
+    const borderColor = row.isHistorical ? 'error.main' : 'divider';
 
     const isBatchSelecting = !!dnd?.isSelectingDestination && !readOnly;
     const isBatchSource =
@@ -81,16 +81,17 @@ export const RiskToolByRiskRow = React.memo<RiskToolByRiskRowProps>(
             sx={{
               width: '100%',
               mb: 5,
-              border: '1.5px solid',
+              border: 'none',
+              borderBottom: '1px solid',
               borderColor: isBatchDestination
                 ? 'primary.main'
                 : isBatchSource
                   ? 'warning.main'
                   : borderColor,
-              borderRadius: 1,
+              borderRadius: 0,
               backgroundColor: isBatchDestination
                 ? 'rgba(25, 118, 210, 0.04)'
-                : 'background.paper',
+                : 'transparent',
               boxShadow: isBatchDestination
                 ? '0 0 0 1px rgba(25, 118, 210, 0.25)'
                 : undefined,
@@ -140,7 +141,7 @@ export const RiskToolByRiskRow = React.memo<RiskToolByRiskRowProps>(
                   overflowY: 'visible',
                   backgroundColor: isBatchDestination
                     ? 'rgba(25, 118, 210, 0.03)'
-                    : 'background.paper',
+                    : 'transparent',
                 }}
               >
                 {readOnly ? (

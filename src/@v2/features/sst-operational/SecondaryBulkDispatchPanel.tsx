@@ -1,3 +1,4 @@
+import { sstRefetchInterval, hasSstQueryError } from './sst-query-state';
 import { useId, useRef, useState } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from 'react-query';
 import {
@@ -110,7 +111,7 @@ function BatchDraft({
     {
       enabled: access.canReadDeclaration,
       retry: false,
-      refetchInterval: 10000,
+      refetchInterval: sstRefetchInterval(10000),
       getNextPageParam: (page) => page.nextCursor || undefined,
     },
   );
@@ -122,7 +123,7 @@ function BatchDraft({
     {
       enabled: access.canReadDeclaration && !!runId,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: sstRefetchInterval(5000),
     },
   );
   const results = useInfiniteQuery<Result>(
@@ -135,7 +136,7 @@ function BatchDraft({
     {
       enabled: access.canReadDeclaration && !!runId,
       retry: false,
-      refetchInterval: 10000,
+      refetchInterval: sstRefetchInterval(10000),
       getNextPageParam: (page) => page.nextCursor || undefined,
     },
   );
@@ -209,19 +210,19 @@ function BatchDraft({
       }}
     >
       <Stack spacing={8} useFlexGap>
-        <Typography variant="h6">Envio em massa · {type}</Typography>
-        <Typography>
+        <Typography color="text.primary" variant="h6">Envio em massa · {type}</Typography>
+        <Typography color="text.primary">
           {exclusions
             ? 'Envia somente as exclusões que você já preparou e conferiu pelo recibo. Nunca seleciona todos os eventos aceitos para excluir.'
             : 'Autorize uma vez. O sistema confere os cadastros desta família e envia as pendências, incluindo correções de origens já aceitas. Um cadastro impedido não bloqueia os demais.'}
         </Typography>
-        <Typography variant="body2">
+        <Typography color="text.primary" variant="body2">
           {environment === 2 ? 'Produção restrita — testes' : 'Produção'} ·{' '}
           {secondaryEventLabels[type]}. Você pode sair desta tela e acompanhar
           depois.
         </Typography>
         {error && <Alert severity="error">{error}</Alert>}
-        {history.isError && (
+        {hasSstQueryError(history) && (
           <Alert severity="error">
             Não foi possível carregar as execuções.{' '}
             <Button onClick={() => history.refetch()}>Tentar novamente</Button>
@@ -276,7 +277,7 @@ function BatchDraft({
             Carregar execuções anteriores
           </Button>
         )}
-        {detail.isError && (
+        {hasSstQueryError(detail) && (
           <Alert severity="error">
             Falha ao consultar esta execução.{' '}
             <Button onClick={() => detail.refetch()}>
@@ -286,10 +287,10 @@ function BatchDraft({
         )}
         {run && (
           <>
-            <Typography variant="subtitle1">
+            <Typography color="text.primary" variant="subtitle1">
               {bulkDispatchStateLabel(run.state)}
             </Typography>
-            <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
+            <Typography color="text.primary" variant="body2" sx={{ overflowWrap: 'anywhere' }}>
               Execução {run.id}
             </Typography>
             <LinearProgress
@@ -301,13 +302,13 @@ function BatchDraft({
               }
               aria-label="Itens concluídos desta execução"
             />
-            <Typography>
+            <Typography color="text.primary">
               Cadastros: {run.counts.total} · Aceitos: {run.counts.accepted} ·{' '}
               Impedidos: {run.counts.blocked} · Recusados: {run.counts.rejected}{' '}
               · Em conferência: {run.counts.unknown} · Sem alterações:{' '}
               {run.counts.noChanges} · Cancelados: {run.counts.cancelled}
             </Typography>
-            <Typography variant="body2">
+            <Typography color="text.primary" variant="body2">
               {run.counts.pending +
                 run.counts.preparing +
                 run.counts.queued +
@@ -352,7 +353,7 @@ function BatchDraft({
                 </MenuItem>
               ))}
             </TextField>
-            {results.isError && (
+            {hasSstQueryError(results) && (
               <Alert severity="error">
                 Falha ao consultar os itens.{' '}
                 <Button onClick={() => results.refetch()}>
@@ -373,12 +374,12 @@ function BatchDraft({
                       overflowWrap: 'anywhere',
                     }}
                   >
-                    <Typography>
+                    <Typography color="text.primary">
                       {item.event?.employeeLabel ||
                         item.event?.sourceLabel ||
                         item.sourceLabel}
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography color="text.primary" variant="body2">
                       {bulkDispatchStateLabel(item.state)}
                       {item.event?.kind === 'RECTIFICATION'
                         ? ' · Retificação'
@@ -387,7 +388,7 @@ function BatchDraft({
                           : ''}
                     </Typography>
                     {item.event?.eventOn && (
-                      <Typography variant="body2">
+                      <Typography color="text.primary" variant="body2">
                         Data da origem:{' '}
                         {item.event.eventOn
                           .slice(0, 10)
@@ -397,10 +398,10 @@ function BatchDraft({
                       </Typography>
                     )}
                     {item.message && (
-                      <Typography variant="body2">{item.message}</Typography>
+                      <Typography color="text.primary" variant="body2">{item.message}</Typography>
                     )}
                     {item.event?.delivery?.receipt && (
-                      <Typography variant="body2">
+                      <Typography color="text.primary" variant="body2">
                         Recibo: {item.event.delivery.receipt}
                       </Typography>
                     )}
@@ -450,7 +451,7 @@ function BatchDraft({
                 ? 'Esta operação pode transmitir declarações reais em produção.'
                 : 'Somente produção restrita — ambiente de testes.'}
             </Alert>
-            <Typography>
+            <Typography color="text.primary">
               {ask === 'cancel'
                 ? 'Eventos aceitos e transmissões em andamento permanecem preservados e acompanhados. Cancelar não exclui o que o governo já recebeu.'
                 : ask === 'resume'

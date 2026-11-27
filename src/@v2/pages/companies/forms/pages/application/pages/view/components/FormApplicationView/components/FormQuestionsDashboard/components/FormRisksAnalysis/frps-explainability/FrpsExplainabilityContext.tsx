@@ -76,6 +76,8 @@ type FrpsExplainabilityContextValue = {
     Extract<ReadFrpsItemExplanationResponse, { available: false }>['resolvedItem']
   > | null;
   isMaster: boolean;
+  selectedContextualModel: string;
+  setSelectedContextualModel: (model: string) => void;
   selectedConceptualModel: string;
   setSelectedConceptualModel: (model: string) => void;
   isEditing: boolean;
@@ -167,6 +169,7 @@ export function FrpsExplainabilityProvider({
       >['resolvedItem']
     > | null
   >(null);
+  const [selectedContextualModel, setSelectedContextualModel] = useState('gpt-6.1-sol');
   const [selectedConceptualModel, setSelectedConceptualModel] = useState(
     FRPS_DEFAULT_CONCEPTUAL_MODEL_FOR_MASTER,
   );
@@ -516,6 +519,7 @@ export function FrpsExplainabilityProvider({
             ...(target.itemKey ? { itemKey: target.itemKey } : {}),
           })
         : await generateContextualMutation.mutateAsync({
+            contextualModel: isMaster ? selectedContextualModel : undefined,
             companyId,
             applicationId,
             analysisId: target.analysisId,
@@ -555,6 +559,7 @@ export function FrpsExplainabilityProvider({
     applicationId,
     companyId,
     data?.conceptual.validationStatus,
+    selectedContextualModel,
     generateContextualMutation,
     generateMutation,
     isLoading,
@@ -815,6 +820,8 @@ export function FrpsExplainabilityProvider({
       unavailableReason,
       resolvedItem,
       isMaster,
+      selectedContextualModel,
+      setSelectedContextualModel,
       selectedConceptualModel,
       setSelectedConceptualModel,
       isEditing,
@@ -847,6 +854,8 @@ export function FrpsExplainabilityProvider({
       unavailableReason,
       resolvedItem,
       isMaster,
+      selectedContextualModel,
+      setSelectedContextualModel,
       selectedConceptualModel,
       isEditing,
       draftConceptual,

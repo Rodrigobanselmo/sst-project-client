@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from 'react';
 
-import { Box, useTheme } from '@mui/material';
+import { Box } from '@mui/material';
 import { RiskEnum } from 'project/enum/risk.enums';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -39,9 +39,8 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
         stringNormalize(searchSelected),
       );
 
-    const theme = useTheme();
     const expanded = expandCtx ? expandCtx.isExpanded(rowId) : false;
-    const borderColor = riskData?.endDate ? 'error.main' : theme.palette.mode === 'dark' ? '#69778B' : '#C5CBD3';
+    const borderColor = riskData?.endDate ? 'error.main' : 'divider';
 
     const isBatchSelecting = !!dnd?.isSelectingDestination && !readOnly;
     const isBatchSource =
@@ -56,23 +55,24 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
         sx={{
           display: isToFilter ? 'none' : 'block',
           width: '100%',
-          mb: 8,
-          border: '2px solid',
+          mb: 4,
+          border: 'none',
+          borderBottom: '1px solid',
           borderColor: isBatchDestination
             ? 'primary.main'
             : isBatchSource
               ? 'warning.main'
               : borderColor,
-          borderRadius: expanded ? '20px' : '999px',
+          borderRadius: 0,
           '&& .item_box': {
-            borderRadius: expanded ? '20px 20px 0 0' : '999px',
+            borderRadius: 0,
             borderBottom: 'none',
             paddingLeft: '12px',
             paddingRight: '12px',
           },
           backgroundColor: isBatchDestination
             ? 'rgba(25, 118, 210, 0.04)'
-            : 'background.paper',
+            : 'transparent',
           boxShadow: isBatchDestination
             ? '0 0 0 1px rgba(25, 118, 210, 0.25)'
             : undefined,
@@ -123,12 +123,12 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
           <Box
             sx={{
               width: '100%',
-              borderRadius: '0 0 18px 18px',
+              borderRadius: 0,
               overflowX: 'auto',
               overflowY: 'visible',
               backgroundColor: isBatchDestination
                 ? 'rgba(25, 118, 210, 0.03)'
-                : 'background.paper',
+                : 'transparent',
             }}
           >
             <RiskToolSingleRiskRow

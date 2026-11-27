@@ -6,6 +6,7 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 export interface ITypeSelectProps extends BoxProps {
   polished?: boolean;
+  hideRiskIcon?: boolean;
   linkageContext?: {
     companyId: string;
     workspaceId?: string;
