@@ -52,7 +52,7 @@ const SummaryCard: FC<{
       <Typography variant="caption" color="text.secondary" display="block">
         {title}
       </Typography>
-      <Typography variant="h6" fontWeight={600} mt={0.25}>
+      <Typography variant="h6" color="text.primary" fontWeight={600} mt={0.25}>
         {value}
       </Typography>
       {subtitle && (

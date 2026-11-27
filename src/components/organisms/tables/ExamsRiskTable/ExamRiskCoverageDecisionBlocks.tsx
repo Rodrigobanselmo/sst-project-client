@@ -281,11 +281,11 @@ const ExpandedRisk: FC<{
   return (
     <Box>
       {completeAction}
-      <Typography variant="subtitle2" mb={1}>
+      <Typography color="text.primary" variant="subtitle2" mb={1}>
         Exames adotados pela empresa
       </Typography>
       {!data.adoptedExams.length && (
-        <Typography variant="body2" mb={2}>
+        <Typography color="text.primary" variant="body2" mb={2}>
           Nenhum exame adotado.
         </Typography>
       )}
@@ -308,11 +308,11 @@ const ExpandedRisk: FC<{
           }
         />
       ))}
-      <Typography variant="subtitle2" mb={1}>
+      <Typography color="text.primary" variant="subtitle2" mb={1}>
         Recomendações da Biblioteca SimpleSST
       </Typography>
       {!data.recommendedExams.length && (
-        <Typography variant="body2">
+        <Typography color="text.primary" variant="body2">
           Nenhuma recomendação disponível.
         </Typography>
       )}
@@ -472,7 +472,7 @@ export const ExamRiskCoverageDecisionBlocks: FC<Props> = ({
             >
               Limpar seleção
             </Button>
-            <Typography variant="caption" display="block">
+            <Typography color="text.primary" variant="caption" display="block">
               Os parâmetros do vínculo são empresariais e podem repercutir em
               outros estabelecimentos. A seleção abrange somente vínculos
               próprios nas expansões carregadas.
@@ -522,15 +522,19 @@ export const ExamRiskCoverageDecisionBlocks: FC<Props> = ({
           }}
         />
 
-        <Typography variant="h6">{copy.title}</Typography>
+        <Typography color="text.primary" variant="h6">
+          {copy.title}
+        </Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>
           {copy.description}
         </Typography>
-        <Typography variant="body2" mt={0.5} mb={2}>
+        <Typography color="text.primary" variant="body2" mt={0.5} mb={2}>
           {copy.guidance}
         </Typography>
         {isLoading ? (
-          <Typography role="status">Carregando riscos…</Typography>
+          <Typography color="text.primary" role="status">
+            Carregando riscos…
+          </Typography>
         ) : isError ? (
           <Alert severity="warning">
             Não foi possível carregar os riscos. Use a ação de recarregar no
@@ -712,7 +716,11 @@ export const ExamRiskCoverageDecisionBlocks: FC<Props> = ({
                                 </Box>
                               </Box>
                               <Box sx={{ minWidth: 0 }}>
-                                <Typography variant="body2" fontWeight={600}>
+                                <Typography
+                                  color="text.primary"
+                                  variant="body2"
+                                  fontWeight={600}
+                                >
                                   <Chip
                                     size="small"
                                     variant="outlined"

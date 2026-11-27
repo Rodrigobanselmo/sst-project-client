@@ -37,21 +37,26 @@ export const ExamRiskWorkspaceContextBanner: FC<Props> = ({
         mb: 0.5,
         py: 0.75,
         alignItems: 'center',
-        bgcolor: '#E8F4FD',
+        bgcolor: (theme) =>
+          theme.palette.mode === 'dark' ? '#102A3A' : '#E8F4FD',
+        color: (theme) =>
+          theme.palette.mode === 'dark' ? '#D6EEFF' : '#123B54',
         border: '1px solid',
-        borderColor: 'info.light',
+        borderColor: (theme) =>
+          theme.palette.mode === 'dark' ? '#477B9B' : 'info.light',
+        '& .MuiAlert-icon': { color: 'inherit' },
         '& .MuiAlert-message': { width: '100%' },
       }}
     >
       <Box>
-        <Typography variant="caption" color="text.secondary" display="block">
+        <Typography variant="caption" color="inherit" display="block">
           {title}
         </Typography>
-        <Typography variant="body2" fontWeight={700} color="text.primary">
+        <Typography variant="body2" fontWeight={700} color="inherit">
           {body}
         </Typography>
         {!isAllEstablishments && (
-          <Typography variant="caption" color="text.secondary" display="block" mt={0.25}>
+          <Typography variant="caption" color="inherit" display="block" mt={0.25}>
             Indicadores e cobertura referem-se somente a este estabelecimento — não à
             empresa inteira.
           </Typography>
