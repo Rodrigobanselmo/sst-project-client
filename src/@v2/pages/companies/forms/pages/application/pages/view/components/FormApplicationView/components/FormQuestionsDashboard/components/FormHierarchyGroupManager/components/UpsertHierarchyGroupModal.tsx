@@ -8,6 +8,9 @@ import { HierarchyGroupOption } from '../helpers/formatHierarchyGroupOptionLabel
 import CloseIcon from '@mui/icons-material/Close';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import {
+  Alert,
+  Checkbox,
+  FormControlLabel,
   Box,
   Chip,
   Dialog,
@@ -43,6 +46,12 @@ interface UpsertHierarchyGroupModalProps {
     hierarchyIds: string[];
   };
   loading?: boolean;
+  creationDraft?: boolean;
+  respondentEligibility?: Map<
+    string,
+    { responded: number; minimum: number; blocked: boolean }
+  >;
+  existingMemberships?: Map<string, string>;
 }
 
 export const UpsertHierarchyGroupModal = ({
@@ -55,22 +64,33 @@ export const UpsertHierarchyGroupModal = ({
   assignedHierarchyIds,
   initialData,
   loading = false,
+  creationDraft = false,
+  respondentEligibility,
+  existingMemberships,
 }: UpsertHierarchyGroupModalProps) => {
   const [visibility, setVisibility] = useState<SectorVisibility>({
     hideCompany: false,
     hideEstablishment: false,
   });
+  const [onlyBelowMinimum, setOnlyBelowMinimum] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedHierarchyIds, setSelectedHierarchyIds] = useState<string[]>(
     [],
   );
 
-  const isEditing = !!initialData;
+  const isEditing = !!initialData && !creationDraft;
+  const conflicts = creationDraft
+    ? selectedHierarchyIds.filter((id) => existingMemberships?.has(id))
+    : [];
+  const unavailable = creationDraft
+    ? selectedHierarchyIds.filter((id) => !eligibleHierarchyIds.has(id))
+    : [];
 
   useEffect(() => {
     if (open) {
       setVisibility({ hideCompany: false, hideEstablishment: false });
+      setOnlyBelowMinimum(false);
       setName(initialData?.name || '');
       setDescription(initialData?.description || '');
       setSelectedHierarchyIds(initialData?.hierarchyIds || []);
@@ -78,7 +98,14 @@ export const UpsertHierarchyGroupModal = ({
   }, [open, initialData]);
 
   const handleSave = () => {
-    if (loading || !name.trim() || selectedHierarchyIds.length === 0) return;
+    if (
+      loading ||
+      !name.trim() ||
+      selectedHierarchyIds.length === 0 ||
+      conflicts.length ||
+      unavailable.length
+    )
+      return;
     const trimmedDescription = description.trim();
     onSave({
       name: name.trim(),
@@ -108,8 +135,11 @@ export const UpsertHierarchyGroupModal = ({
       sortHierarchyGroupOptionsByLabel(
         availableHierarchies.filter(
           (h) =>
-            selectedHierarchyIds.includes(h.id) ||
-            (eligibleHierarchyIds.has(h.id) && !assignedHierarchyIds.has(h.id)),
+            (selectedHierarchyIds.includes(h.id) ||
+              (eligibleHierarchyIds.has(h.id) &&
+                !assignedHierarchyIds.has(h.id))) &&
+            (!onlyBelowMinimum ||
+              respondentEligibility?.get(h.id)?.blocked === true),
         ),
         hierarchyOptionLabels,
       ),
@@ -119,6 +149,8 @@ export const UpsertHierarchyGroupModal = ({
       eligibleHierarchyIds,
       assignedHierarchyIds,
       hierarchyOptionLabels,
+      onlyBelowMinimum,
+      respondentEligibility,
     ],
   );
 
@@ -127,7 +159,11 @@ export const UpsertHierarchyGroupModal = ({
     return option ? sectorPresentationLabel(option, visibility) : id;
   };
 
-  const isValid = name.trim() && selectedHierarchyIds.length > 0;
+  const isValid =
+    name.trim() &&
+    selectedHierarchyIds.length > 0 &&
+    !conflicts.length &&
+    !unavailable.length;
 
   return (
     <Dialog
@@ -160,6 +196,25 @@ export const UpsertHierarchyGroupModal = ({
       </DialogTitle>
 
       <DialogContent dividers>
+        {!!conflicts.length && (
+          <Alert severity="warning" sx={{ mb: 6 }}>
+            Já pertencem a agrupamentos:{' '}
+            {conflicts
+              .map(
+                (id) =>
+                  `${availableHierarchies.find((sector) => sector.id === id)?.name ?? id} — ${existingMemberships?.get(id)}`,
+              )
+              .join('; ')}
+            . Retire esses setores da seleção para criar um novo grupo. Para
+            alterar o grupo existente, use a aba Agrupamentos.
+          </Alert>
+        )}
+        {!!unavailable.length && (
+          <Alert severity="error" sx={{ mb: 6 }}>
+            Há setores indisponíveis neste cadastro. Remova-os da seleção ou
+            atualize o relatório.
+          </Alert>
+        )}
         <SFlex sx={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <TextField
             fullWidth
@@ -183,6 +238,38 @@ export const UpsertHierarchyGroupModal = ({
             helperText={`${description.length}/500`}
           />
 
+          {respondentEligibility && (
+            <Box>
+              <FormControlLabel
+                sx={{
+                  color: 'text.primary',
+                  '& .MuiFormControlLabel-label': { color: 'text.primary' },
+                }}
+                control={
+                  <Checkbox
+                    checked={onlyBelowMinimum}
+                    disabled={loading}
+                    onChange={(event) =>
+                      setOnlyBelowMinimum(event.target.checked)
+                    }
+                  />
+                }
+                label="Somente setores abaixo do mínimo de respondentes"
+              />
+              <Typography
+                variant="caption"
+                component="p"
+                color="text.secondary"
+              >
+                Exibe setores com menos respondentes que o mínimo de anonimato
+                configurado pela empresa (padrão: 3), incluindo zero respostas.
+                Considera respondentes, não pessoas cadastradas nem quantidade
+                de perguntas. Setores já vinculados a outros agrupamentos não
+                são oferecidos para um novo grupo. O filtro não remove as
+                seleções atuais.
+              </Typography>
+            </Box>
+          )}
           <SectorPicker
             key={open ? 'open' : 'closed'}
             options={availableOptions}
@@ -261,7 +348,16 @@ export const UpsertHierarchyGroupModal = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <SButton onClick={handleClose} text="Cancelar" variant="outlined" />
+        <SButton
+          onClick={handleClose}
+          text="Cancelar"
+          variant="outlined"
+          schema={{ color: 'text.primary', borderColor: 'divider' }}
+          textProps={{ color: 'text.primary' }}
+          buttonProps={{
+            sx: { '&:hover': { backgroundColor: 'action.hover' } },
+          }}
+        />
         <SButton
           onClick={handleSave}
           text={isEditing ? 'Salvar Alterações' : 'Adicionar'}

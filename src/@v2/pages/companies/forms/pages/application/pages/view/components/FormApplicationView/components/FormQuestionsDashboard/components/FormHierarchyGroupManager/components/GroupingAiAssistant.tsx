@@ -428,6 +428,9 @@ export function GroupingAiAssistant({
           queryKey: [QueryKeyFormEnum.FORM_QUESTIONS_ANSWERS_RISKS, companyId],
         }),
       ]);
+      await client.invalidateQueries({
+        queryKey: ['psychosocial-report', 'v4', companyId, applicationId],
+      });
       setSuccess(
         `${selected.length} agrupamento(s) criado(s). Os agrupamentos anteriores foram preservados.`,
       );
@@ -630,7 +633,10 @@ export function GroupingAiAssistant({
                   {result && current && (
                     <>
                       <Typography color="text.primary" variant="caption">
-                        Modelo solicitado: {result.metadata.requestedModel}
+                        {result.metadata.requestedModel ===
+                        'Proposta manual do relatório'
+                          ? 'Origem: proposta manual do relatório'
+                          : `Modelo solicitado: ${result.metadata.requestedModel}`}
                         {result.metadata.returnedModel
                           ? ` · Retornado: ${result.metadata.returnedModel}`
                           : ''}{' '}
@@ -1138,6 +1144,7 @@ export function GroupingAiAssistant({
                                             alignItems: 'flex-start',
                                             '& .MuiCheckbox-root': { pt: 0 },
                                             '& .MuiFormControlLabel-label': {
+                                              color: 'text.primary',
                                               fontSize: '0.9rem',
                                               fontWeight: 600,
                                             },
@@ -1181,6 +1188,7 @@ export function GroupingAiAssistant({
                                         sx={{
                                           mr: 0,
                                           '& .MuiFormControlLabel-label': {
+                                            color: 'text.primary',
                                             fontWeight: 700,
                                           },
                                         }}

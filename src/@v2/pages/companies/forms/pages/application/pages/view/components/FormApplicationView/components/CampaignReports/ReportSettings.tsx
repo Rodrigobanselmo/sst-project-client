@@ -6,11 +6,17 @@ import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
 import { Box, Typography } from '@mui/material';
 import { formAccordionNavigationSx } from '../form-accordion-navigation.styles';
 
-export function ReportSettings({ children }: { children: ReactNode }) {
+export function ReportSettings({
+  children,
+  subtitle = 'Selecione versões e configure a geração de análises e ilustrações.',
+}: {
+  children: ReactNode;
+  subtitle?: string;
+}) {
   return (
     <SAccordion
       title="Configurações do relatório"
-      subtitle="Selecione versões e configure a geração de análises e ilustrações."
+      subtitle={subtitle}
       icon={<DescriptionOutlinedIcon sx={{ fontSize: 30 }} />}
       expandIcon={<ArrowRightIcon fontSize="small" />}
       color="text.primary"

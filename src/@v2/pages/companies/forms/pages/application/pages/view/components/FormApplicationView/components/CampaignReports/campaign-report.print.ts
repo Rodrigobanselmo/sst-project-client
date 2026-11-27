@@ -1,5 +1,7 @@
+import { REPORT_TABLE_PREVIEW_CSS } from './report-table-preview';
 /** Paper layout is independent of presentation size and fullscreen fitting. */
 export const CAMPAIGN_REPORT_PRINT_CSS = `
+${REPORT_TABLE_PREVIEW_CSS}
 @page { size: A4; margin: 18mm 16mm; background: white; }
 :root { color-scheme: light !important; }
 html, body { background: white !important; color: #17212f !important; margin: 0 !important; }

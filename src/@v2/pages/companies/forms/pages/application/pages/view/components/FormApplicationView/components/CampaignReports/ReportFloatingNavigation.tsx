@@ -28,6 +28,24 @@ export function ReportFloatingNavigation({
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NavigationItem[]>([]);
   const [activeSection, setActiveSection] = useState<number | null>(null);
+  const [submenuPosition, setSubmenuPosition] = useState({ top: 0, height: 480 });
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+  useEffect(() => () => cancelClose(), []);
+  const activateSection = (index: number, row: HTMLElement) => {
+    const panel = row.closest('nav');
+    if (!panel) return;
+    const rowTop = row.getBoundingClientRect().top;
+    // Match the first child row to its parent, allowing for the panel padding.
+    setSubmenuPosition({
+      top: rowTop - panel.getBoundingClientRect().top - 13,
+      height: Math.max(80, window.innerHeight - rowTop - 20),
+    });
+    setActiveSection(items[index].children.length ? index : null);
+  };
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   useEffect(() => {
     if (!open || !report.current) return;
@@ -151,9 +169,9 @@ export function ReportFloatingNavigation({
   return (
     <Box
       ref={wrapper}
-      onMouseEnter={() => setOpen(true)}
+      onMouseEnter={() => { cancelClose(); setOpen(true); }}
       onMouseLeave={() => {
-        if (desktopHover()) setOpen(false);
+        if (desktopHover()) closeTimer.current = setTimeout(() => setOpen(false), 200);
       }}
       onFocus={() => setOpen(true)}
       onBlur={(event) => {
@@ -243,13 +261,11 @@ export function ReportFloatingNavigation({
                       key={item.id}
                       direction="row"
                       alignItems="center"
-                      onMouseEnter={() =>
-                        desktopHover() &&
-                        setActiveSection(item.children.length ? index : null)
+                      onMouseEnter={(event) =>
+                        desktopHover() && activateSection(index, event.currentTarget)
                       }
-                      onFocus={() =>
-                        desktopHover() &&
-                        setActiveSection(item.children.length ? index : null)
+                      onFocus={(event) =>
+                        desktopHover() && activateSection(index, event.currentTarget)
                       }
                     >
                       <Button
@@ -271,7 +287,7 @@ export function ReportFloatingNavigation({
                           size="small"
                           aria-label={`Ver subitens de ${item.title}`}
                           aria-expanded={activeSection === index}
-                          onClick={() => setActiveSection(index)}
+                          onClick={(event) => activateSection(index, event.currentTarget.parentElement!)}
                         >
                           <ChevronRightIcon fontSize="small" />
                         </IconButton>
@@ -289,8 +305,8 @@ export function ReportFloatingNavigation({
                       width: { xs: '100%', lg: '340px' },
                       position: { xs: 'static', lg: 'absolute' },
                       left: { lg: '100%' },
-                      bottom: { lg: 0 },
-                      maxHeight: 'min(65vh, 480px)',
+                      top: { lg: `${submenuPosition.top}px` },
+                      maxHeight: { xs: 'min(65vh, 480px)', lg: `${submenuPosition.height}px` },
                       overflowY: 'auto',
                       minWidth: 0,
                       border: '1px solid',
@@ -301,14 +317,6 @@ export function ReportFloatingNavigation({
                       boxShadow: 8,
                     }}
                   >
-                    <Typography
-                      variant="body2"
-                      fontWeight={600}
-                      color="text.primary"
-                      sx={{ mb: 4 }}
-                    >
-                      {items[activeSection].title}
-                    </Typography>
                     {renderChildren(items[activeSection].children)}
                   </Box>
                 )}

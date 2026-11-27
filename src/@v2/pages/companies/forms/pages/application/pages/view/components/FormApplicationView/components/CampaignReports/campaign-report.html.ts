@@ -1,3 +1,4 @@
+import { REPORT_TABLE_PREVIEW_CSS } from './report-table-preview';
 import { normalizeReportSnapshotProperty } from './campaign-report.html-style';
 import DOMPurify from 'dompurify';
 import { campaignReportPrintCss } from './campaign-report.print';
@@ -160,11 +161,18 @@ export async function createCampaignReportHtml(
   });
   clone
     .querySelectorAll(
-      '[data-radar-controls],[data-comparison-controls],script,style,link,iframe,object,embed,form,input,select,button',
+      '[data-report-controls],[data-radar-controls],[data-comparison-controls],script,style,link,iframe,object,embed,form,input,select,button',
     )
     .forEach((el) => el.remove());
   clone.querySelectorAll('[href]').forEach((el) => {
-    if (!el.getAttribute('href')?.startsWith('#')) el.removeAttribute('href');
+    const href = el.getAttribute('href');
+    if (
+      href ===
+      'https://www.copsoq-network.org/licence-guidelines-and-questionnaire'
+    ) {
+      el.setAttribute('target', '_blank');
+      el.setAttribute('rel', 'noopener noreferrer');
+    } else if (!href?.startsWith('#')) el.removeAttribute('href');
   });
   const images = [...clone.querySelectorAll('img')];
   const cache = new Map<string, Promise<string>>();
@@ -221,5 +229,6 @@ article [data-distribution-axis] span{width:auto!important;white-space:nowrap!im
 @media screen and (max-width:600px){article [data-distribution-row]{grid-template-columns:minmax(0,1fr) 104px!important}article [data-distribution-plot]{grid-column:1 / -1!important;grid-row:2!important}article [data-distribution-value]{grid-column:2!important;grid-row:1!important}article [data-distribution-axis]{margin-left:0!important;margin-right:0!important}}
 
 @media print { ${campaignReportPrintCss('portrait')} #bar,main,.floating{display:none!important}#print-copy{display:block!important} }
+${REPORT_TABLE_PREVIEW_CSS}
 </style><style id="orientation" media="print"></style></head><body><header id="bar"><button id="fullscreen" title="Entrar em tela cheia; Esc para sair">Tela cheia</button><button data-print="portrait">PDF em retrato</button><button data-print="landscape">PDF em paisagem</button><span id="message">Apresentação independente · Clique em Tela cheia; Esc para sair. Na impressão, escolha “Salvar como PDF”.</span></header><main>${content}<svg id="ink" aria-hidden="true"></svg></main><details id="navigation" class="floating"><summary>☰ Sumário</summary><nav id="contents" aria-label="Sumário do relatório"></nav></details><details id="annotations" class="floating"><summary>✎ Anotar</summary><div id="tools" role="group" aria-label="Ferramentas de anotação"><button data-tool="pointer" title="Navegar e clicar no relatório">Navegar</button><button data-tool="pen" title="Desenhar à mão livre">Caneta</button><button data-tool="marker" title="Destacar com transparência">Marca-texto</button><button data-tool="eraser" title="Clique ou arraste sobre uma marca para apagá-la">Borracha</button><label>Cor <input id="color" type="color" value="#facc15"></label><label>Espessura <input id="size" type="range" min="1" max="12" value="4"></label><button id="undo">Desfazer</button><button id="clear">Limpar</button><p>Marcas temporárias, fora do PDF. Reabrir o arquivo ou mudar o layout limpa as marcas. Use Navegar para clicar no conteúdo.</p></div></details><script>${REPORT_HTML_RUNTIME}</script></body></html>`;
 }

@@ -3,6 +3,18 @@ export const REPORT_HTML_RUNTIME = String.raw`
 (() => {
   const main = document.querySelector('main');
   const article = main.querySelector('article');
+  article.addEventListener('click', event => {
+    const trigger = event.target.closest('[data-table-expand], [data-report-table-preview] tbody tr:nth-child(n+5)');
+    if (!trigger) return;
+    const container = trigger.closest('[data-report-table-preview]');
+    if (!container) return;
+    event.preventDefault();
+    const disclosure = container.querySelector(':scope > details');
+    if (disclosure) disclosure.open = true;
+  });
+  article.addEventListener('keydown', event => {
+    if (event.key === ' ' && event.target.matches('[data-table-expand]')) { event.preventDefault(); event.target.click(); }
+  });
   const svg = document.querySelector('#ink');
   const tools = document.querySelector('#tools');
   const ns = 'http://www.w3.org/2000/svg';

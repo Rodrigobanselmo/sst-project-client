@@ -1,3 +1,4 @@
+import { PsychosocialCampaignReports } from '../PsychosocialCampaignReports/PsychosocialCampaignReports';
 import { CampaignReports } from '../CampaignReports/CampaignReports';
 import { CombinedIdentificationFilters } from './components/CombinedIdentificationFilters';
 import { intersectIdentificationFilters } from './helpers/intersectIdentificationFilters';
@@ -775,7 +776,7 @@ export const FormQuestionsDashboard = ({
     (canAnalyzeRisks || selectedTab !== 4) &&
     (isPsychosocialForm || selectedTab !== 5) &&
     (selectedTab !== 6 || canViewParticipants) &&
-    (selectedTab !== 7 || (!isPsychosocialForm && canViewResults))
+    (selectedTab !== 7 || (canViewResults && (!isPsychosocialForm || isDone)))
       ? selectedTab
       : initialTab;
   const isIndicatorTab = tabTableIndex === 2;
@@ -1400,7 +1401,7 @@ export const FormQuestionsDashboard = ({
   const isHierarchyGroupsTab = tabTableIndex === 5;
   const isParticipantsTab = tabTableIndex === 6;
   const isReportsTab =
-    !isPsychosocialForm && canViewResults && tabTableIndex === 7;
+    canViewResults && (!isPsychosocialForm || isDone) && tabTableIndex === 7;
 
   return (
     <SFlex direction="column" gap={16}>
@@ -1688,7 +1689,7 @@ export const FormQuestionsDashboard = ({
                       },
                     ]
                   : []),
-                ...(!isPsychosocialForm && canViewResults
+                ...(canViewResults && (!isPsychosocialForm || isDone)
                   ? [{ label: 'Relatórios', value: 7 }]
                   : []),
               ]}
@@ -2123,7 +2124,9 @@ export const FormQuestionsDashboard = ({
                 : {}
             }
           >
-            {isReportsTab ? (
+            {isReportsTab && isPsychosocialForm ? (
+            <PsychosocialCampaignReports companyId={accessCompanyId} applicationId={formApplication.id} />
+          ) : isReportsTab ? (
               <CampaignReports
                 key={`${accessCompanyId}:${formApplication.id}`}
                 application={formApplication}
