@@ -185,7 +185,7 @@ const riskData = (values: Partial<IRiskData>) =>
   const base = 'src/components/organisms/main/Tree/OrgTree/components/RiskToolV2/risk-catalog-dnd';
   const hook = readFileSync(resolve(`${base}/useRiskCatalogDndCopy.ts`), 'utf8');
   // Mesmo fator em outro registro: vincula pelo id do próprio item (nunca cria cadastro)
-  assert.match(hook, /const sameRiskCatalogMatch[\s\S]*id: String\(item\.catalogId\)/);
+  assert.match(readFileSync(resolve(`${base}/shared-catalog-paste.util.ts`), 'utf8'), /id: String\(item\.catalogId\)/);
   // Ordem: mesma origem → bloqueado → já vinculado → vínculo por id
   const resolveBody = hook.slice(hook.indexOf('const resolveCatalogCopyAction'));
   const order = [
@@ -202,7 +202,7 @@ const riskData = (values: Partial<IRiskData>) =>
   const drop = readFileSync(resolve(`${base}/RiskCatalogDropColumn.tsx`), 'utf8');
   assert.match(drop, /recordScoped && item\.recordCopyBlockedReason/);
   assert.match(drop, /if \(dropLocked\) return false;/);
-  assert.match(drop, /'Copiar para esta entidade' : 'Copiar para este fator'/);
+  assert.match(drop, /'Colar nesta entidade' : 'Colar neste fator'/);
 
   const drag = readFileSync(resolve(`${base}/RiskCatalogDraggableItem.tsx`), 'utf8');
   assert.match(drag, /withRecordCopySource\(\s*item,\s*recordScope\.riskData,\s*recordScope\.copyIdentity,?\s*\)/);

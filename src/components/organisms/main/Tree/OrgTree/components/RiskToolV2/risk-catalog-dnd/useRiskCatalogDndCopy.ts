@@ -56,27 +56,7 @@ const destinationIdentity = (dest: DestinationContext) => ({
 const destinationName = (dest: DestinationContext) =>
   dest.label?.trim() || dest.risk.name || 'Fator de risco de destino';
 
-/** Mesmo fator em outro registro: o item já existe no cadastro; vincula pelo próprio id. */
-const sameRiskCatalogMatch = (
-  item: RiskCatalogDndDragItem,
-  dest: DestinationContext,
-): RiskCatalogCopyItemResult | null => {
-  if (!dest.recordScoped || item.kind === 'epi') return null;
-  if (item.sourceRiskId !== dest.risk?.id || item.catalogId == null)
-    return null;
-  return {
-    status: 'attach_existing',
-    match: {
-      id: String(item.catalogId),
-      name: item.name,
-      recName: item.name,
-      medName: item.name,
-      recType: item.recType,
-      medType: item.medType,
-      ...(item.catalogStatus ? { status: item.catalogStatus } : {}),
-    },
-  };
-};
+import { sameRiskCatalogMatch } from './shared-catalog-paste.util';
 
 function alreadyAttached(
   kind: RiskCatalogDndKind,
@@ -109,7 +89,7 @@ function alreadyAttached(
       return (riskData.recs ?? []).some(
         (rec) =>
           rec?.id === item.catalogId ||
-          (rec?.recName || '').trim().toLowerCase() === needle,
+          ((rec?.recName || '').trim().toLowerCase() === needle && rec.recType === item.recType),
       );
     case 'epi':
       return (riskData.epis ?? []).some(
@@ -638,7 +618,7 @@ export const useRiskCatalogDndCopy = () => {
       );
 
       if (!uniqueItems.length) {
-        enqueueSnackbar('Nenhum item para copiar.', { variant: 'info' });
+        enqueueSnackbar('Nenhum item para colar.', { variant: 'info' });
         options?.onFinished?.();
         return;
       }
@@ -695,7 +675,7 @@ export const useRiskCatalogDndCopy = () => {
               },
             );
           } catch {
-            enqueueSnackbar('Falha ao copiar o lote para o fator de destino.', {
+            enqueueSnackbar('Falha ao colar o lote para o fator de destino.', {
               variant: 'error',
             });
           } finally {
@@ -703,8 +683,8 @@ export const useRiskCatalogDndCopy = () => {
           }
         },
         {
-          title: 'Copiar todos?',
-          confirmText: 'Copiar',
+          title: 'Colar todos?',
+          confirmText: 'Colar',
           tag: 'warning',
         },
       );

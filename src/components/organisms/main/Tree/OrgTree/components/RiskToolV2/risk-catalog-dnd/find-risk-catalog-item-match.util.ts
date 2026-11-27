@@ -43,7 +43,7 @@ export function buildRiskCatalogBatchConfirmMessage(params: {
   destinationRiskName: string;
 }): string {
   const plural = RISK_CATALOG_DND_KIND_LABEL_PLURAL[params.kind];
-  return `Copiar ${params.count} ${plural} para:\n\n“${params.destinationRiskName}”\n\nContinuar?`;
+  return `Colar ${params.count} ${plural} em:\n\n“${params.destinationRiskName}”\n\nContinuar?`;
 }
 
 export function buildRiskCatalogBatchSummaryMessage(
@@ -132,7 +132,7 @@ export function dedupeRiskCatalogDragItems(
     const key =
       item.kind === 'epi'
         ? `epi:${String(item.ca || item.catalogId || item.name)}`
-        : `${item.kind}:${normalizeInventoryItemName(item.name)}`;
+        : `${item.kind}:${item.kind === 'rec' ? item.recType ?? '' : item.medType ?? ''}:${item.name.replace(/\s+/g, ' ').trim().toLowerCase()}`;
     if (!key || key.endsWith(':') || seen.has(key)) continue;
     seen.add(key);
     out.push(item);

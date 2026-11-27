@@ -271,7 +271,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
           : {}),
       }}
     >
-      {children}
+      <Box sx={isBatchDestination ? { visibility: 'hidden' } : undefined}>{children}</Box>
 
       {isBatchDestination && (
         <Box
@@ -290,8 +290,9 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
             borderRadius: 1,
             border: '1px dashed',
             borderColor: 'primary.main',
-            backgroundColor: 'rgba(255, 255, 255, 0.88)',
-            backdropFilter: 'blur(1px)',
+            backgroundColor: 'background.paper',
+            color: 'text.primary',
+            boxShadow: 2,
             textAlign: 'center',
             pointerEvents: 'none',
           }}
@@ -300,11 +301,11 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
             sx={{
               fontSize: 11,
               fontWeight: 700,
-              color: 'primary.main',
+              color: 'text.primary',
               lineHeight: 1.2,
             }}
           >
-            {recordScoped ? 'Copiar para esta entidade' : 'Copiar para este fator'}
+            {recordScoped ? 'Colar nesta entidade' : 'Colar neste fator'}
           </Typography>
           <Typography
             sx={{
@@ -319,7 +320,7 @@ export const RiskCatalogDropColumn: FC<RiskCatalogDropColumnProps> = ({
             sx={{
               fontSize: 10,
               fontWeight: 600,
-              color: 'primary.dark',
+              color: 'text.primary',
               lineHeight: 1.2,
               mt: 0.25,
             }}

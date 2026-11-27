@@ -78,7 +78,7 @@ const batchConfirm = buildRiskCatalogBatchConfirmMessage({
   count: 7,
   destinationRiskName: 'Lixo (Resíduos em atividades)',
 });
-assert.match(batchConfirm, /Copiar 7 recomendações/);
+assert.match(batchConfirm, /Colar 7 recomendações/);
 assert.match(batchConfirm, /Lixo \(Resíduos em atividades\)/);
 assert.match(batchConfirm, /Continuar/);
 
